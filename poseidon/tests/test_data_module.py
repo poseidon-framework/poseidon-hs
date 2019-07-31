@@ -78,8 +78,11 @@ class TestMassLoadingModules(unittest.TestCase):
     def test_find_module_files(self):
         f = pd.findPoseidonModulesFiles("poseidon/tests/testData/testModules")
         self.assertEqual(len(f), 4, "there should be four modules in the test set")
-        for i in [1, 2, 3, 4]:
-            fn = f"poseidon/tests/testData/testModules/myTestModule{i}/poseidon.json"
+        for i in [1, 2]:
+            fn = f"poseidon/tests/testData/testModules/ancient/myTestModule{i}/poseidon.json"
+            self.assertIn(fn, f)
+        for i in [3, 4]:
+            fn = f"poseidon/tests/testData/testModules/modern/myTestModule{i}/poseidon.json"
             self.assertIn(fn, f)
     
     def test_loadModules(self):
