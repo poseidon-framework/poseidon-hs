@@ -1,0 +1,14 @@
+{
+    "moduleName": "myTestModule4",
+    "genotypeData": {
+        "format": "EIGENSTRAT",
+        "genoFile": "geno.txt",
+        "snpFile": "snp.txt",
+        "indFile": "ind.txt"
+    },
+    "metaDataFile": "annot.txt",
+    "notes": "hello world",
+    "maintainer": "Stephan Schiffels",
+    "maintainerEmail": "schiffels@shh.mpg.de",
+    "version": "1.0.0"
+}
