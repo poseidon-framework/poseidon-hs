@@ -1,9 +1,13 @@
 import unittest
-import poseidon.genotype_iterator as gi
+from poseidon.genotype_data import EigenstratGenotypeData
 
 class TestEigenstratIterator(unittest.TestCase):
     def testIterateEigenstrat(self):
-        l = list(gi.iterateEigenstrat("poseidon/tests/testData/testModules/ancient/myTestModule1/snp.txt", "poseidon/tests/testData/testModules/ancient/myTestModule1/geno.txt"))
+        genoF = "poseidon/tests/testData/testModules/ancient/myTestModule1/geno.txt"
+        snpF = "poseidon/tests/testData/testModules/ancient/myTestModule1/snp.txt"
+        indF = "poseidon/tests/testData/testModules/ancient/myTestModule1/ind.txt"
+        gd = EigenstratGenotypeData(genoF, snpF, indF)
+        l = list(gd.iterateGenotypeData())
         self.assertEqual(len(l), 10)
         self.assertEqual(l[0].chrom, 1)
         self.assertEqual(l[0].pos, 752566)

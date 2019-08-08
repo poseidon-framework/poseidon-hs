@@ -10,9 +10,9 @@ class TestModuleLoading(unittest.TestCase):
             "moduleName": "myTestModuleName",
             "genotypeData": {
                 "format": "EIGENSTRAT",
-                "genoFile": "geno.txt",
-                "snpFile": "snp.txt",
-                "indFile": "ind.txt"
+                "genoFile": "poseidon/tests/testData/testModules/ancient/myTestModule1/geno.txt",
+                "snpFile": "poseidon/tests/testData/testModules/ancient/myTestModule1/snp.txt",
+                "indFile": "poseidon/tests/testData/testModules/ancient/myTestModule1/ind.txt"
             },
             "metaDataFile": "annot.txt",
             "notes": "hello world",

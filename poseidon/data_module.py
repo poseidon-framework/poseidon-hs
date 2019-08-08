@@ -35,7 +35,7 @@ class PoseidonModule:
         with open(moduleFile, "r") as f:
             jsonObj = json.load(f)
         jsonschema.validate(instance=jsonObj, schema=poseidon_schema, format_checker=jsonschema.draft7_format_checker)
-        self.baseDir         = os.path.dirname(moduleFile)
+        self.baseDir         = '.' if os.path.dirname(moduleFile) == '' else os.path.dirname(moduleFile)
         self.moduleName      = jsonObj["moduleName"]
         self.metaData        = jsonObj.get("metaDataFile", None)
         self.notes           = jsonObj.get("notes", None)
@@ -44,9 +44,9 @@ class PoseidonModule:
         self.version         = jsonObj["version"]
         f = jsonObj["genotypeData"]["format"]
         if f == "EIGENSTRAT":
-            genoF = jsonObj["genotypeData"]["genoFile"]
-            snpF = jsonObj["genotypeData"]["snpFile"]
-            indF = jsonObj["genotypeData"]["indFile"]
+            genoF = self.baseDir + "/" + jsonObj["genotypeData"]["genoFile"]
+            snpF = self.baseDir + "/" + jsonObj["genotypeData"]["snpFile"]
+            indF = self.baseDir + "/" + jsonObj["genotypeData"]["indFile"]
             self.genotypeData = EigenstratGenotypeData(genoF, snpF, indF, popSpecList)
         else:
             raise PoseidonError(f"Support of genotype format {f} not yet supported. Please use EIGENSTRAT for now")
