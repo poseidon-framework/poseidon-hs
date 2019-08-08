@@ -2,6 +2,9 @@ import os
 import json
 import jsonschema
 from operator import itemgetter
+from poseidon.genotype_data import EigenstratGenotypeData, PopSpec
+from poseidon.utils import PoseidonError
+from typing import List
 
 poseidon_schema = {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -28,22 +31,26 @@ poseidon_schema = {
 }
 
 class PoseidonModule:
-    def __init__(self, moduleFile):
+    def __init__(self, moduleFile: str, popSpecList: List[PopSpec] = []):
         with open(moduleFile, "r") as f:
             jsonObj = json.load(f)
         jsonschema.validate(instance=jsonObj, schema=poseidon_schema, format_checker=jsonschema.draft7_format_checker)
         self.baseDir         = os.path.dirname(moduleFile)
         self.moduleName      = jsonObj["moduleName"]
-        self.genotypeData    = jsonObj["genotypeData"]
         self.metaData        = jsonObj.get("metaDataFile", None)
         self.notes           = jsonObj.get("notes", None)
         self.maintainer      = jsonObj["maintainer"]
         self.maintainerEmail = jsonObj["maintainerEmail"]
         self.version         = jsonObj["version"]
-
-class PoseidonError(Exception):
-    pass
-
+        f = jsonObj["genotypeData"]["format"]
+        if f == "EIGENSTRAT":
+            genoF = jsonObj["genotypeData"]["genoFile"]
+            snpF = jsonObj["genotypeData"]["snpFile"]
+            indF = jsonObj["genotypeData"]["indFile"]
+            self.genotypeData = EigenstratGenotypeData(genoF, snpF, indF, popSpecList)
+        else:
+            raise PoseidonError(f"Support of genotype format {f} not yet supported. Please use EIGENSTRAT for now")
+    
 def checkDuplicates(list_):
     seen = []
     for m in list_:
@@ -60,8 +67,8 @@ def findPoseidonModulesFiles(dir):
         )
     ))
 
-def loadModules(moduleFiles):
-    modules = list(map(PoseidonModule, moduleFiles))
+def loadModules(moduleFiles, popSpecList: List[PopSpec] = []):
+    modules = [PoseidonModule(moduleFile, popSpecList) for moduleFile in moduleFiles]
     checkDuplicates([m.moduleName for m in modules])
     return modules
 
