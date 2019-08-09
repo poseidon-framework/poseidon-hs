@@ -3,7 +3,7 @@ import json
 import jsonschema
 from operator import itemgetter
 from poseidon.genotype_data import EigenstratGenotypeData, PopSpec
-from poseidon.utils import PoseidonError
+from poseidon.utils import PoseidonError, checkDuplicates
 from typing import List
 
 poseidon_schema = {
@@ -51,13 +51,6 @@ class PoseidonModule:
         else:
             raise PoseidonError(f"Support of genotype format {f} not yet supported. Please use EIGENSTRAT for now")
     
-def checkDuplicates(list_):
-    seen = []
-    for m in list_:
-        if m in seen:
-            raise PoseidonError(f"duplicate module name {m}")
-        seen.append(m)
-
 def findPoseidonModulesFiles(dir):
     return list(map(
         lambda t: f"{t[0]}/poseidon.json",
@@ -69,6 +62,6 @@ def findPoseidonModulesFiles(dir):
 
 def loadModules(moduleFiles, popSpecList: List[PopSpec] = []):
     modules = [PoseidonModule(moduleFile, popSpecList) for moduleFile in moduleFiles]
-    checkDuplicates([m.moduleName for m in modules])
+    checkDuplicates([m.moduleName for m in modules], "module name")
     return modules
 

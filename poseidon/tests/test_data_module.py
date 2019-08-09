@@ -70,10 +70,10 @@ class TestModuleLoading(unittest.TestCase):
 class TestMassLoadingModules(unittest.TestCase):
     def test_check_duplicates_raise(self):
         with self.assertRaises(pd.PoseidonError):
-            pd.checkDuplicates([1, 2, 2, 3])
+            pd.checkDuplicates([1, 2, 2, 3], "nr")
 
     def test_check_duplicates_pass(self):
-        pd.checkDuplicates([1, 2, 3])
+        pd.checkDuplicates([1, 2, 3], "nr")
 
     def test_find_module_files(self):
         f = pd.findPoseidonModulesFiles("poseidon/tests/testData/testModules")
