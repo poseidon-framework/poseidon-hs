@@ -18,6 +18,7 @@ class TestModuleLoading(unittest.TestCase):
             "notes": "hello world",
             "maintainer": "Stephan Schiffels",
             "maintainerEmail": "schiffels@shh.mpg.de",
+            "lastUpdate": "2019-07-10",
             "version": "1.0.0"
         }
     

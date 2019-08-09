@@ -10,7 +10,7 @@ poseidon_schema = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type" : "object",
     "additionalProperties": False,
-    "required": ["moduleName", "genotypeData", "maintainer", "maintainerEmail", "version"],
+    "required": ["moduleName", "genotypeData", "maintainer", "maintainerEmail", "lastUpdate", "version"],
     "properties" : {
         "moduleName" : {"type" : "string"},
         "genotypeData" : {
@@ -26,6 +26,7 @@ poseidon_schema = {
         "notes" : {"type" : "string"},
         "maintainer" : {"type" : "string"},
         "maintainerEmail" : {"type" : "string", "format": "email"},
+        "lastUpdate" : {"type" : "string", "format" : "date"},
         "version" : {"type" : "string"}
     }
 }
@@ -41,6 +42,7 @@ class PoseidonModule:
         self.notes           = jsonObj.get("notes", None)
         self.maintainer      = jsonObj["maintainer"]
         self.maintainerEmail = jsonObj["maintainerEmail"]
+        self.lastUpdate      = jsonObj["lastUpdate"]
         self.version         = jsonObj["version"]
         f = jsonObj["genotypeData"]["format"]
         if f == "EIGENSTRAT":
@@ -59,6 +61,9 @@ def findPoseidonModulesFiles(dir):
             os.walk(dir)
         )
     ))
+
+# TODO: For multiple modules with the same name: Check version and take the one with the highest version nr (give a warning in that case).
+# The user should be able to give constraints for which version of which module should be loaded!
 
 def loadModules(moduleFiles, popSpecList: List[PopSpec] = []):
     modules = [PoseidonModule(moduleFile, popSpecList) for moduleFile in moduleFiles]
