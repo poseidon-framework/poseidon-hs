@@ -78,7 +78,7 @@ class TestMassLoadingModules(unittest.TestCase):
 
     def test_find_module_files(self):
         f = pd.findPoseidonModulesFiles("poseidon/tests/testData/testModules")
-        self.assertEqual(len(f), 4, "there should be four modules in the test set")
+        self.assertEqual(len(f), 5, "there should be four modules in the test set")
         for i in [1, 2]:
             fn = f"poseidon/tests/testData/testModules/ancient/myTestModule{i}/poseidon.json"
             self.assertIn(fn, f)
@@ -89,12 +89,22 @@ class TestMassLoadingModules(unittest.TestCase):
     def test_loadModules(self):
         files = pd.findPoseidonModulesFiles("poseidon/tests/testData/testModules")
         modules = pd.loadModules(files)
-        self.assertEqual(
-            set(["myTestModule1", "myTestModule2", "myTestModule3", "myTestModule4"]),
-            set([m.moduleName for m in modules])
+        self.assertListEqual(
+            list(set(["myTestModule1", "myTestModule2", "myTestModule3", "myTestModule4"])),
+            list(set([m.moduleName for m in modules]))
+        )
+        self.assertListEqual(
+            list(set([m.version for m in modules])),
+            list(set(["1.0.0", "1.0.0", "1.0.0", "1.0.1"]))
         )
 
     def test_loadModules_raiseDuplicates(self):
         files = pd.findPoseidonModulesFiles("poseidon/tests/testData/testModules")
         with self.assertRaises(pd.PoseidonError):
             pd.loadModules(files + [files[0]])
+    
+    def test_loadModules_versionConstraint(self):
+        files = pd.findPoseidonModulesFiles("poseidon/tests/testData/testModules")
+        modules = pd.loadModules(files, versionConstraints={"myTestModule1": "1.0.0"})
+        for m in modules:
+            self.assertEqual(m.version, "1.0.0")

@@ -42,9 +42,10 @@ class TestEigenstratIterator(unittest.TestCase):
         self.assertListEqual(gd.getIndividuals(), indsShouldBe)
 
     def testIterateEigenstratSelected(self):
-        selList = [PopSpec("POP1"), PopSpec("XXX002", isPop=False)]
+        selList = [PopSpec("POP1"), PopSpec("XXX002", isIndividualName=True)]
         gd = EigenstratGenotypeData(self.genoF, self.snpF, self.indF, popSpecList=selList)
-        self.assertListEqual(gd.selectedIndividualsIndices, [0, 1, 2, 6, 8])
+        if gd.selectedIndividualsIndices is not None:
+            self.assertListEqual(gd.selectedIndividualsIndices, [0, 1, 2, 6, 8])
         l = list(gd.iterateGenotypeData())
         self.assertEqual(len(l), 10)
         self.assertEqual(l[0].chrom, 1)
@@ -76,7 +77,7 @@ class TestEigenstratIterator(unittest.TestCase):
 class TestCombinedGenotypeData(unittest.TestCase):
     def testCombineGenotypeData(self):
         genotypeDatas = []
-        selList = [PopSpec("POP1"), PopSpec("XXX002", isPop=False)]
+        selList = [PopSpec("POP1"), PopSpec("XXX002", isIndividualName=True)]
         for module in ["ancient/myTestModule1", "ancient/myTestModule2"]:
             genoF, snpF, indF = [f"poseidon/tests/testData/testModules/{module}/" + e for e in ["geno.txt", "snp.txt", "ind.txt"]]
             genotypeDatas.append(EigenstratGenotypeData(genoF, snpF, indF, selList))

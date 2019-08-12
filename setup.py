@@ -6,7 +6,8 @@ setup(
     packages=find_packages(),
     scripts=['bin/poseidon'],
     install_requires=[
-          'jsonschema'
+          'jsonschema',
+          'packaging'
     ],
     test_suite='nose.collector',
     tests_require=['nose']

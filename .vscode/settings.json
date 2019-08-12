@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/Users/schiffels/.virtualenvs/poseidon-tools-devel/bin/python"
+    "python.pythonPath": "/Users/schiffels/.virtualenvs/poseidon-tools-devel/bin/python",
+    "restructuredtext.confPath": "${workspaceFolder}/docs"
 }
