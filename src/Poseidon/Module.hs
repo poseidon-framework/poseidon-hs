@@ -8,14 +8,20 @@ module Poseidon.Module (
     getCombinedGenotypeData
 ) where
 
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
+                                             EigenstratSnpEntry, GenoLine)
 
-import           Poseidon.MetaData          (PoseidonMetaData)
-
+import           Control.Exception          (Exception)
+import           Control.Monad.Catch        (MonadThrow)
+import           Control.Monad.IO.Class     (MonadIO)
+import           Data.Aeson                 (FromJSON)
+import           Data.ByteString            (ByteString)
 import           Data.Text                  (Text)
 import           Data.Time                  (UTCTime)
 import           Data.Version               (Version)
 import           GHC.Generics
+import           Pipes                      (Producer)
+import           Pipes.Safe                 (MonadSafe)
 
 data PoseidonModuleJSON = PoseidonModuleJSON {
     moduleName      :: Text,
@@ -39,20 +45,30 @@ instance FromJSON PoseidonModuleJSON
 instance FromJSON GenotypeDataSpecJSON
 
 data PoseidonModule = PoseidonModule {
-    pmBaseDir          :: FilePath,
-    pmModuleName       :: Text,
-    pmMetaData         :: Maybe MetaData,
-    pmNotes            :: Maybe Text,
-    pmMaintainer       :: Text,
-    pmMaintainerEmail  :: Text,
-    pmLastUpdate       :: UTCTime,
-    pmVersion          :: Version,
-    pmIndividuals      :: [EigenstratIndEntry],
-    pmGenotypeDataSpec :: GenotypeDataSpec
+    pmBaseDir         :: FilePath,
+    pmModuleName      :: Text,
+    pmNotes           :: Maybe Text,
+    pmMaintainer      :: Text,
+    pmMaintainerEmail :: Text,
+    pmLastUpdate      :: UTCTime,
+    pmVersion         :: Version,
+    pmIndividuals     :: [PoseidonIndEntry],
+    pmGenotypeData    :: m (Producer (EigenstratSnpEntry, GenoLine) m ())
 }
 
-data GenotypeDataSpec = EigenstratDataSpec FilePath FilePath
-                      | PlinkDataSpec FilePath FilePath
+data PoseidonIndEntry = PoseidonIndEntry {
+    piName          :: String,
+    piEigenstratSex :: String,
+    piEigenstratPop :: String,
+    piMetaData      :: Maybe PoseidonMetaData
+}
+
+data PoseidonMetaData = PoseidonMetaData {
+    pmCountry     :: String,
+    pmGeoPosition :: (Double, Double),
+    pmUncalAge    :: Int,
+    pmCalAge      :: (Int, Int)
+}
 
 data PoseidonException = PoseidonModuleParseException String
 instance Exception PoseidonException
@@ -60,7 +76,7 @@ instance Exception PoseidonException
 data IndSelection = AllIndividuals | SelectionList [SelectionSpec]
 data SelectionSpec = SelectedInd String | SelectedPop String
 
-parsePoseidonModuleBS :: (MonadThrow m) => B.ByteString -> m PoseidonModule
+parsePoseidonModuleBS :: (MonadThrow m) => ByteString -> m PoseidonModule
 parsePoseidonModuleBS = undefined
 
 parsePoseidonModule :: (MonadIO m) => FilePath -> m PoseidonModule
