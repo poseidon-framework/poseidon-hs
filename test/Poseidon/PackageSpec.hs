@@ -5,19 +5,22 @@ module Poseidon.PackageSpec (spec) where
 import           Poseidon.Package      (ContributorSpec (..),
                                         GenotypeDataSpec (..),
                                         GenotypeFormatSpec (..),
-                                        PoseidonPackage (..))
+                                        PoseidonPackage (..), readPoseidonPackage)
 
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Class (lift)
 import qualified Data.ByteString.Char8 as B
 import           Data.Time             (defaultTimeLocale, fromGregorian,
                                         parseTimeOrError)
 import           Data.Version          (makeVersion)
 import           Data.Yaml             (ParseException, decodeEither')
-import           System.IO             (hPutStrLn, stderr)
+import           System.IO             (hPutStrLn, stderr, withFile, IOMode(..))
 import           Test.Hspec
 import           Text.RawString.QQ
 
 spec = do
     testPoseidonFromYAML
+    testReadPoseidonYAML
 
 yamlPackage :: B.ByteString
 yamlPackage = [r|
@@ -88,4 +91,15 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with lastModified missing" $ do
         show err `shouldBe` "AesonException \"Error in $: key \\\"lastModified\\\" not present\""
+
+testReadPoseidonYAML :: Spec
+testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
+    let fn = "/tmp/poseidon_test.yml"
+    it "should return correct package from file read" $ do
+        withFile fn WriteMode $ \h -> B.hPutStr h yamlPackage
+        pac <- readPoseidonPackage fn
+        posPacBibFile pac `shouldBe` Just "/tmp/sources.bib"
+        (genoFile . posPacGenotypeData) pac `shouldBe` "/tmp/Schiffels_2016.bed"
+
+
 

@@ -13,9 +13,8 @@ import           SequenceFormats.Eigenstrat   (EigenstratIndEntry (..),
                                                EigenstratSnpEntry, GenoLine,
                                                Sex, readEigenstrat)
 
-import           Control.Exception            (Exception)
-import           Control.Monad.Catch          (MonadThrow, throwM)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Control.Exception            (Exception, throwIO)
+import Control.Monad (filterM)
 import           Data.Aeson                   (FromJSON, Object, parseJSON,
                                                withObject, withText, (.:),
                                                (.:?))
@@ -29,7 +28,8 @@ import           Data.Yaml                    (decodeEither')
 import           GHC.Generics                 hiding (moduleName)
 import           Pipes                        (Producer)
 import           Pipes.Safe                   (MonadSafe)
-import           System.FilePath.Posix        (takeDirectory, (</>))
+import           System.FilePath.Posix        (takeDirectory, (</>), takeFileName)
+import System.Directory (doesFileExist, doesDirectoryExist, listDirectory)
 import           Text.ParserCombinators.ReadP (readP_to_S)
 
 data PoseidonPackage = PoseidonPackage
@@ -113,30 +113,31 @@ data PoseidonException = PoseidonPackageParseException String
 
 instance Exception PoseidonException
 
-data IndSelection = AllIndividuals
-    | SelectionList [SelectionSpec]
-data SelectionSpec = SelectedInd String
-    | SelectedPop String
+addFullPaths :: FilePath -> PoseidonPackage -> PoseidonPackage
+addFullPaths baseDir pac = 
+    let bibFileFullPath = (baseDir </>) <$> posPacBibFile pac
+        jannoFileFullPath = baseDir </> (posPacJannoFile pac)
+        GenotypeDataSpec format geno snp ind = posPacGenotypeData pac
+        genotypeDataFullPath = GenotypeDataSpec format (baseDir </> geno) (baseDir </> snp) (baseDir </> ind)
+    in  pac {
+            posPacBibFile = bibFileFullPath,
+            posPacJannoFile = jannoFileFullPath,
+            posPacGenotypeData = genotypeDataFullPath
+        }
 
-readPoseidonPackage :: (MonadSafe m) => FilePath -> m PoseidonPackage
+readPoseidonPackage :: FilePath -> IO PoseidonPackage
 readPoseidonPackage jsonPath = do
     let baseDir = takeDirectory jsonPath
-    bs <- liftIO $ B.readFile jsonPath
+    bs <- B.readFile jsonPath
     fromJSON <- case decodeEither' bs of
-        Left err -> throwM $ PoseidonPackageParseException ("module YAML parsing error: " ++ show err)
+        Left err -> throwIO $ PoseidonPackageParseException ("module YAML parsing error: " ++ show err)
         Right pac -> return pac
-    let bibFileFullPath = (baseDir </>) <$> posPacBibFile fromJSON
-        jannoFileFullPath = baseDir </> (posPacJannoFile fromJSON)
-        genotypeDataFullPath = addBaseDirGenoData baseDir (posPacGenotypeData fromJSON)
-    return $ fromJSON {
-        posPacBibFile = bibFileFullPath,
-        posPacJannoFile = jannoFileFullPath,
-        posPacGenotypeData = genotypeDataFullPath
-    }
-  where
-    addBaseDirGenoData baseDir (GenotypeDataSpec format geno snp ind) =
-        GenotypeDataSpec format (baseDir </> geno) (baseDir </> snp) (baseDir </> ind)
+    return $ addFullPaths baseDir fromJSON
 
--- getCombinedGenotypeData :: (MonadSafe m) => [PoseidonPackage m] -> IndSelection -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
--- getCombinedGenotypeData pms indSelection = undefined
-
+findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
+findPoseidonPackages baseDir = do
+    entries <- listDirectory baseDir
+    posPac <- mapM readPoseidonPackage . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    subDirs <- filterM doesDirectoryExist entries
+    morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
+    return $ posPac ++ morePosPacs
