@@ -14,12 +14,13 @@ import           SequenceFormats.Eigenstrat   (EigenstratIndEntry (..),
                                                Sex, readEigenstrat)
 
 import           Control.Exception            (Exception, throwIO)
-import Control.Monad (filterM)
+import           Control.Monad                (filterM)
 import           Data.Aeson                   (FromJSON, Object, parseJSON,
                                                withObject, withText, (.:),
                                                (.:?))
 import           Data.Aeson.Types             (Parser, modifyFailure)
 import qualified Data.ByteString              as B
+import           Data.List                    (sortOn, groupBy)
 import           Data.Text                    (Text)
 import           Data.Time                    (Day, defaultTimeLocale,
                                                readSTime)
@@ -28,8 +29,10 @@ import           Data.Yaml                    (decodeEither')
 import           GHC.Generics                 hiding (moduleName)
 import           Pipes                        (Producer)
 import           Pipes.Safe                   (MonadSafe)
-import           System.FilePath.Posix        (takeDirectory, (</>), takeFileName)
-import System.Directory (doesFileExist, doesDirectoryExist, listDirectory)
+import           System.Directory             (doesDirectoryExist,
+                                               doesFileExist, listDirectory)
+import           System.FilePath.Posix        (takeDirectory, takeFileName,
+                                               (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 
 data PoseidonPackage = PoseidonPackage
@@ -64,11 +67,11 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat
 
 instance FromJSON PoseidonPackage where
     parseJSON = withObject "PoseidonPackage" $ \v -> PoseidonPackage
-        <$> v .: "poseidonVersion" --parseModuleVersion
+        <$> v .:  "poseidonVersion" --parseModuleVersion
         <*> v .:  "title"
         <*> v .:  "description"
         <*> v .:  "contributor"
-        <*> v .: "lastModified" --parseLastModified
+        <*> v .:  "lastModified" --parseLastModified
         <*> v .:? "bibFile"
         <*> v .:  "genotypeData"
         <*> v .:  "jannoFile"
@@ -101,7 +104,7 @@ parseLastModified v = do
 parseModuleVersion :: Object -> Parser Version
 parseModuleVersion v = do
     versionString <- v .:  "poseidonVersion"
-    let parseResult = (readP_to_S parseVersion) versionString
+    let parseResult  = (readP_to_S parseVersion) versionString
         validResults = filter ((==""). snd) $ parseResult
     case validResults of
         [(t, "")] -> return t
@@ -114,14 +117,15 @@ data PoseidonException = PoseidonPackageParseException String
 instance Exception PoseidonException
 
 addFullPaths :: FilePath -> PoseidonPackage -> PoseidonPackage
-addFullPaths baseDir pac = 
-    let bibFileFullPath = (baseDir </>) <$> posPacBibFile pac
-        jannoFileFullPath = baseDir </> (posPacJannoFile pac)
+addFullPaths baseDir pac =
+    let bibFileFullPath                      = (baseDir </>) <$> posPacBibFile pac
+        jannoFileFullPath                    = baseDir </> (posPacJannoFile pac)
         GenotypeDataSpec format geno snp ind = posPacGenotypeData pac
-        genotypeDataFullPath = GenotypeDataSpec format (baseDir </> geno) (baseDir </> snp) (baseDir </> ind)
+        genotypeDataFullPath                 =
+            GenotypeDataSpec format (baseDir </> geno) (baseDir </> snp) (baseDir </> ind)
     in  pac {
-            posPacBibFile = bibFileFullPath,
-            posPacJannoFile = jannoFileFullPath,
+            posPacBibFile      = bibFileFullPath,
+            posPacJannoFile    = jannoFileFullPath,
             posPacGenotypeData = genotypeDataFullPath
         }
 
@@ -130,14 +134,26 @@ readPoseidonPackage jsonPath = do
     let baseDir = takeDirectory jsonPath
     bs <- B.readFile jsonPath
     fromJSON <- case decodeEither' bs of
-        Left err -> throwIO $ PoseidonPackageParseException ("module YAML parsing error: " ++ show err)
+        Left err  -> throwIO $ PoseidonPackageParseException ("module YAML parsing error: " ++ show err)
         Right pac -> return pac
     return $ addFullPaths baseDir fromJSON
 
 findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
 findPoseidonPackages baseDir = do
-    entries <- listDirectory baseDir
-    posPac <- mapM readPoseidonPackage . filter ((=="POSEIDON.yml") . takeFileName) $ entries
-    subDirs <- filterM doesDirectoryExist entries
+    entries     <- listDirectory baseDir
+    posPac      <- mapM readPoseidonPackage . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    subDirs     <- filterM doesDirectoryExist entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
-    return $ posPac ++ morePosPacs
+    let packages = takeMostRecentPackageVersion $ posPac ++ morePosPacs
+    checkNoDuplicateIndividuals packages
+    return packages
+
+takeMostRecentPackageVersion :: [PoseidonPackage] -> [PoseidonPackage]
+takeMostRecentPackageVersion packages = map last . groupBy titleEq . sortOn pComp $ packages
+  where
+    titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
+    -- First sort on title, then on date, so use tuples to express that ordering
+    pComp = (\p -> (posPacTitle p, posPacLastModified p))
+
+checkNoDuplicateIndividuals :: [PoseidonPackage] -> IO ()
+checkNoDuplicateIndividuals = undefined

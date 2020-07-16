@@ -101,5 +101,7 @@ testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
         posPacBibFile pac `shouldBe` Just "/tmp/sources.bib"
         (genoFile . posPacGenotypeData) pac `shouldBe` "/tmp/Schiffels_2016.bed"
 
-
+-- testFindPoseidonPackages :: Spec
+-- testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
+--     it "should yield the four packages"
 
