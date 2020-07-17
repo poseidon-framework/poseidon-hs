@@ -6,12 +6,10 @@ module Poseidon.Package (
     GenotypeDataSpec(..),
     GenotypeFormatSpec(..),
     ContributorSpec(..),
-    readPoseidonPackage
+    readPoseidonPackage,
+    findPoseidonPackages,
+    filterDuplicatePackages
 ) where
-
-import           SequenceFormats.Eigenstrat   (EigenstratIndEntry (..),
-                                               EigenstratSnpEntry, GenoLine,
-                                               Sex, readEigenstrat)
 
 import           Control.Exception            (Exception, throwIO)
 import           Control.Monad                (filterM)
@@ -144,16 +142,12 @@ findPoseidonPackages baseDir = do
     posPac      <- mapM readPoseidonPackage . filter ((=="POSEIDON.yml") . takeFileName) $ entries
     subDirs     <- filterM doesDirectoryExist entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
-    let packages = takeMostRecentPackageVersion $ posPac ++ morePosPacs
-    checkNoDuplicateIndividuals packages
-    return packages
+    return $ posPac ++ morePosPacs
 
-takeMostRecentPackageVersion :: [PoseidonPackage] -> [PoseidonPackage]
-takeMostRecentPackageVersion packages = map last . groupBy titleEq . sortOn pComp $ packages
+filterDuplicatePackages :: [PoseidonPackage] -> [PoseidonPackage]
+filterDuplicatePackages packages = map last . groupBy titleEq . sortOn pComp $ packages
   where
     titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
     -- First sort on title, then on date, so use tuples to express that ordering
     pComp = (\p -> (posPacTitle p, posPacLastModified p))
 
-checkNoDuplicateIndividuals :: [PoseidonPackage] -> IO ()
-checkNoDuplicateIndividuals = undefined
