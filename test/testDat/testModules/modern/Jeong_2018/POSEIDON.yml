@@ -1,0 +1,14 @@
+poseidonVersion: 2.0.1
+title: Jeong_Modern_Siberian_2018
+description: Modern Genetic data published in Jeong et al. 2018
+contributor:
+  name: Stephan Schiffels
+  email: schiffels@institute.org
+lastModified: 2018-06-19
+bibFile: sources.bib
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: Jeong_Modern_Siberian_2018.bed
+  snpFile: Jeong_Modern_Siberian_2018.bim
+  indFile: Jeong_Modern_Siberian_2018.fam
+jannoFile: Jeong_Modern_Siberian_2018.janno

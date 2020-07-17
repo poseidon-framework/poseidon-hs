@@ -1,0 +1,14 @@
+poseidonVersion: 2.0.1
+title: Schiffels_2016
+description: Genetic data published in Schiffels et al. 2016
+contributor:
+  name: Stephan Schiffels
+  email: schiffels@institute.org
+lastModified: 2020-02-28
+bibFile: sources.bib
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: Schiffels_2016.bed
+  snpFile: Schiffels_2016.bim
+  indFile: Schiffels_2016.fam
+jannoFile: Schiffels_2016.janno

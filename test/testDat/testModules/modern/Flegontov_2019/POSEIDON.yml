@@ -1,0 +1,14 @@
+poseidonVersion: 2.0.1
+title: Flegontov_Modern_Siberian_2019
+description: Modern Genetic data published in Flegontov et al. 2019
+contributor:
+  name: Stephan Schiffels
+  email: schiffels@institute.org
+lastModified: 2019-04-28
+bibFile: sources.bib
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: Flegontov_Modern_Siberian_2019.bed
+  snpFile: Flegontov_Modern_Siberian_2019.bim
+  indFile: Flegontov_Modern_Siberian_2019.fam
+jannoFile: Flegontov_Modern_Siberian_2019.janno

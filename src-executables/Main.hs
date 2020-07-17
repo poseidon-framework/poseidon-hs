@@ -1,6 +1,6 @@
 import           Options.Applicative as OP
 import           Poseidon.Package    (filterDuplicatePackages,
-                                      findPoseidonPackages)
+                                      findPoseidonPackages, PoseidonPackage(..))
 
 data Options = CmdView ViewOptions
     | CmdSearch SearchOptions
@@ -64,15 +64,18 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
 
 runView :: ViewOptions -> IO ()
 runView (ViewOptions baseDirs) = do
-    packages <- fmap (filterDuplicatePackages . concat) . mapM findPoseidonPackages $ baseDirs
+    packages <- getPackages $ baseDirs
     print packages
 
 runSearch :: SearchOptions -> IO ()
 runSearch (SearchOptions baseDirs) = do
-    packages <- fmap (filterDuplicatePackages . concat) . mapM findPoseidonPackages $ baseDirs
+    packages <- getPackages $ baseDirs
     print packages
 
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs) = do
-    packages <- fmap (filterDuplicatePackages . concat) . mapM findPoseidonPackages $ baseDirs
+    packages <- getPackages $ baseDirs
     print packages
+
+getPackages :: [FilePath] -> IO [PoseidonPackage]
+getPackages = fmap (filterDuplicatePackages . concat) . mapM findPoseidonPackages

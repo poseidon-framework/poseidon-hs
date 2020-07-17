@@ -1,0 +1,14 @@
+poseidonVersion: 2.0.1
+title: Lamnidis_2018
+description: Genetic data published in Lamnidis et al. 2018 - updated version
+contributor:
+  name: Thiseas Lamnidis
+  email: lamnidis@institute.org
+lastModified: 2019-01-15
+bibFile: sources.bib
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: Lamnidis_2018.bed
+  snpFile: Lamnidis_2018.bim
+  indFile: Lamnidis_2018.fam
+jannoFile: Lamnidis_2018.janno

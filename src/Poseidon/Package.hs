@@ -88,7 +88,7 @@ instance FromJSON GenotypeDataSpec where
 
 instance FromJSON GenotypeFormatSpec where
     parseJSON = withText "format" $ \v -> case v of
-        "Eigenstrat" -> pure GenotypeFormatEigenstrat
+        "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
         "PLINK"      -> pure GenotypeFormatPlink
 
 parseLastModified :: Object -> Parser Day
@@ -139,15 +139,13 @@ readPoseidonPackage jsonPath = do
 findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
 findPoseidonPackages baseDir = do
     entries     <- listDirectory baseDir
-    posPac      <- mapM readPoseidonPackage . filter ((=="POSEIDON.yml") . takeFileName) $ entries
-    subDirs     <- filterM doesDirectoryExist entries
+    posPac      <- mapM readPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
     return $ posPac ++ morePosPacs
 
 filterDuplicatePackages :: [PoseidonPackage] -> [PoseidonPackage]
-filterDuplicatePackages packages = map last . groupBy titleEq . sortOn pComp $ packages
+filterDuplicatePackages packages = map (\p -> last (sortOn posPacLastModified p)) . groupBy titleEq . sortOn posPacTitle $ packages
   where
     titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
-    -- First sort on title, then on date, so use tuples to express that ordering
-    pComp = (\p -> (posPacTitle p, posPacLastModified p))
 

@@ -2,25 +2,30 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.PackageSpec (spec) where
 
-import           Poseidon.Package      (ContributorSpec (..),
-                                        GenotypeDataSpec (..),
-                                        GenotypeFormatSpec (..),
-                                        PoseidonPackage (..), readPoseidonPackage)
+import           Poseidon.Package          (ContributorSpec (..),
+                                            GenotypeDataSpec (..),
+                                            GenotypeFormatSpec (..),
+                                            PoseidonPackage (..),
+                                            findPoseidonPackages,
+                                            readPoseidonPackage, filterDuplicatePackages)
 
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Class (lift)
-import qualified Data.ByteString.Char8 as B
-import           Data.Time             (defaultTimeLocale, fromGregorian,
-                                        parseTimeOrError)
-import           Data.Version          (makeVersion)
-import           Data.Yaml             (ParseException, decodeEither')
-import           System.IO             (hPutStrLn, stderr, withFile, IOMode(..))
+import           Control.Monad.IO.Class    (liftIO)
+import           Control.Monad.Trans.Class (lift)
+import qualified Data.ByteString.Char8     as B
+import Data.List (sort)
+import           Data.Time                 (defaultTimeLocale, fromGregorian,
+                                            parseTimeOrError)
+import           Data.Version              (makeVersion)
+import           Data.Yaml                 (ParseException, decodeEither')
+import           System.IO                 (IOMode (..), hPutStrLn, stderr,
+                                            withFile)
 import           Test.Hspec
 import           Text.RawString.QQ
 
 spec = do
     testPoseidonFromYAML
     testReadPoseidonYAML
+    testFindPoseidonPackages
 
 yamlPackage :: B.ByteString
 yamlPackage = [r|
@@ -101,3 +106,14 @@ testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
         posPacBibFile pac `shouldBe` Just "/tmp/sources.bib"
         (genoFile . posPacGenotypeData) pac `shouldBe` "/tmp/Schiffels_2016.bed"
 
+testFindPoseidonPackages :: Spec
+testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
+    let dir = "test/testDat/testModules/ancient"
+    it "should discover packages correctly" $ do
+        pac <- findPoseidonPackages dir
+        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Lamnidis_2018", "Schiffels_2016"]
+    it "should handle duplicate names correctly" $ do
+        pac <- fmap filterDuplicatePackages . findPoseidonPackages $ dir
+        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016"]
+        sort (map posPacLastModified pac) `shouldBe` [fromGregorian 2020 2 20, fromGregorian 2020 2 28]
+        
