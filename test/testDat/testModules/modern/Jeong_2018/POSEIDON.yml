@@ -8,7 +8,7 @@ lastModified: 2018-06-19
 bibFile: sources.bib
 genotypeData:
   format: EIGENSTRAT
-  genoFile: Jeong_Modern_Siberian_2018.bed
-  snpFile: Jeong_Modern_Siberian_2018.bim
-  indFile: Jeong_Modern_Siberian_2018.fam
+  genoFile: geno.txt
+  snpFile: snp.txt
+  indFile: ind.txt
 jannoFile: Jeong_Modern_Siberian_2018.janno

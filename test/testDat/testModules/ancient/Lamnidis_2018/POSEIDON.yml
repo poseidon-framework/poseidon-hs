@@ -8,7 +8,7 @@ lastModified: 2019-01-15
 bibFile: sources.bib
 genotypeData:
   format: EIGENSTRAT
-  genoFile: Lamnidis_2018.bed
-  snpFile: Lamnidis_2018.bim
-  indFile: Lamnidis_2018.fam
+  genoFile: geno.txt
+  snpFile: snp.txt
+  indFile: ind.txt
 jannoFile: Lamnidis_2018.janno

@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+import Control.Monad (forM)
 import           Data.Text           (unpack)
 import           Data.Version        (showVersion)
 import           Options.Applicative as OP
 import           Poseidon.Package    (PoseidonPackage (..),
                                       filterDuplicatePackages,
-                                      findPoseidonPackages)
+                                      findPoseidonPackages, getIndividuals)
 import           Text.Layout.Table   (asciiRoundS, column, def, expand, rowsG,
                                       tableString, titlesH)
 
@@ -72,11 +73,11 @@ runView :: ViewOptions -> IO ()
 runView (ViewOptions baseDirs) = do
     packages <- getPackages $ baseDirs
     putStrLn $ (show . length $ packages) ++ " packages found:"
-    let tableH = ["Title", "Version", "Date", "Nr Individuals"]
-        tableB = do
-            PoseidonPackage v t _ _ lm _ gd _ <- packages
-            return [unpack t, showVersion v, show lm, "n/a"]
-    let colSpecs = replicate 4 (column expand def def def)
+    let tableH = ["Title", "Date", "Nr Individuals"]
+    tableB <- forM packages $ \pac -> do
+        inds <- getIndividuals pac
+        return [unpack (posPacTitle pac), show (posPacLastModified pac), show (length inds)]
+    let colSpecs = replicate 3 (column expand def def def)
     putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 runSearch :: SearchOptions -> IO ()

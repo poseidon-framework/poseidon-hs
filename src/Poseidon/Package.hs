@@ -8,7 +8,8 @@ module Poseidon.Package (
     ContributorSpec(..),
     readPoseidonPackage,
     findPoseidonPackages,
-    filterDuplicatePackages
+    filterDuplicatePackages,
+    getIndividuals
 ) where
 
 import           Control.Exception            (Exception, throwIO)
@@ -27,6 +28,7 @@ import           Data.Yaml                    (decodeEither')
 import           GHC.Generics                 hiding (moduleName)
 import           Pipes                        (Producer)
 import           Pipes.Safe                   (MonadSafe)
+import SequenceFormats.Eigenstrat (readEigenstratInd, EigenstratIndEntry(..))
 import           System.Directory             (doesDirectoryExist,
                                                doesFileExist, listDirectory)
 import           System.FilePath.Posix        (takeDirectory, takeFileName,
@@ -110,6 +112,7 @@ parseModuleVersion v = do
 
 data PoseidonException = PoseidonPackageParseException String
     | PoseidonGenotypeFormatException String
+    | PoseidonNotYetImplemented String
     deriving (Show)
 
 instance Exception PoseidonException
@@ -149,3 +152,9 @@ filterDuplicatePackages packages = map (\p -> last (sortOn posPacLastModified p)
   where
     titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
 
+getIndividuals :: PoseidonPackage -> IO [EigenstratIndEntry]
+getIndividuals pac = do
+    let (GenotypeDataSpec format genoF snpF indF) = posPacGenotypeData pac
+    case format of
+        GenotypeFormatEigenstrat -> readEigenstratInd indF
+        GenotypeFormatPlink -> throwIO $ PoseidonNotYetImplemented "Plink File reading not yet implemented"
