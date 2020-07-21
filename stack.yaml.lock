@@ -5,22 +5,22 @@
 
 packages:
 - completed:
-    hackage: HsYAML-0.2.1.0@sha256:e4677daeba57f7a1e9a709a1f3022fe937336c91513e893166bd1f023f530d68,5311
+    hackage: table-layout-0.9.0.0@sha256:66dc7b7b9d14fa4769f1192a58ab9721ef8efd1d5773acae34dc5e2dce3fec0a,7106
     pantry-tree:
-      size: 1340
-      sha256: 21f61bf9cad31674126b106071dd9b852e408796aeffc90eec1792f784107eff
+      size: 2215
+      sha256: 6165b25b77808ae9e0447d3816358ef2a94c21d23fa33c05292856fba7aaa4ec
   original:
-    hackage: HsYAML-0.2.1.0@sha256:e4677daeba57f7a1e9a709a1f3022fe937336c91513e893166bd1f023f530d68,5311
+    hackage: table-layout-0.9.0.0
 - completed:
-    hackage: HsYAML-aeson-0.2.0.0@sha256:04796abfc01cffded83f37a10e6edba4f0c0a15d45bef44fc5bb4313d9c87757,1791
+    hackage: data-default-instances-base-0.1.0.1@sha256:985a13d7103e45a65f06f277b735ef025636014f0d29dd6de998bc7628e09be9,509
     pantry-tree:
-      size: 234
-      sha256: 67cc9ba17c79e71d3abdb465a3ee2825477856fff3b8b7d543cbbbefdae9a9d9
+      size: 242
+      sha256: 92969ddf22c5f54123fb2bcfbe5917b59a7e6382473b0306bcd8fb7990d9aa1a
   original:
-    hackage: HsYAML-aeson-0.2.0.0@sha256:04796abfc01cffded83f37a10e6edba4f0c0a15d45bef44fc5bb4313d9c87757,1791
+    hackage: data-default-instances-base-0.1.0.1
 snapshots:
 - completed:
-    size: 529130
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2019/9/16.yaml
-    sha256: a8c2355f4f1c46896e5c32aa0b576bbacf0677ff8a164333fa29733d39c3cf4f
-  original: nightly-2019-09-16
+    size: 531718
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/6.yaml
+    sha256: 230a7266fc11f76222bd3bb68e9503ed11d553060a752f164bff6753ed03e271
+  original: lts-16.6

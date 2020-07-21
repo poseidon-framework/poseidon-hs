@@ -1,6 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+import           Data.Text           (unpack)
+import           Data.Version        (showVersion)
 import           Options.Applicative as OP
-import           Poseidon.Package    (filterDuplicatePackages,
-                                      findPoseidonPackages, PoseidonPackage(..))
+import           Poseidon.Package    (PoseidonPackage (..),
+                                      filterDuplicatePackages,
+                                      findPoseidonPackages)
+import           Text.Layout.Table   (asciiRoundS, column, def, expand, rowsG,
+                                      tableString, titlesH)
 
 data Options = CmdView ViewOptions
     | CmdSearch SearchOptions
@@ -65,7 +71,13 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
 runView :: ViewOptions -> IO ()
 runView (ViewOptions baseDirs) = do
     packages <- getPackages $ baseDirs
-    print packages
+    putStrLn $ (show . length $ packages) ++ " packages found:"
+    let tableH = ["Title", "Version", "Date", "Nr Individuals"]
+        tableB = do
+            PoseidonPackage v t _ _ lm _ gd _ <- packages
+            return [unpack t, showVersion v, show lm, "n/a"]
+    let colSpecs = replicate 4 (column expand def def def)
+    putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 runSearch :: SearchOptions -> IO ()
 runSearch (SearchOptions baseDirs) = do
