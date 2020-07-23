@@ -87,15 +87,15 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     let yamlPackage2 = replace "title: Schiffels_2016\n" "" yamlPackage
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with title missing" $ do
-        show err `shouldBe` "AesonException \"Error in $: key \\\"title\\\" not present\""
+        show err `shouldBe` "AesonException \"Error in $: key \\\"title\\\" not found\""
     let yamlPackage2 = replace "poseidonVersion: 2.0.1\n" "" yamlPackage
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with poseidonVersion missing" $ do
-        show err `shouldBe` "AesonException \"Error in $: key \\\"poseidonVersion\\\" not present\""
+        show err `shouldBe` "AesonException \"Error in $: key \\\"poseidonVersion\\\" not found\""
     let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with lastModified missing" $ do
-        show err `shouldBe` "AesonException \"Error in $: key \\\"lastModified\\\" not present\""
+        show err `shouldBe` "AesonException \"Error in $: key \\\"lastModified\\\" not found\""
 
 testReadPoseidonYAML :: Spec
 testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do

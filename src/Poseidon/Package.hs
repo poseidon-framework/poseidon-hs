@@ -9,7 +9,8 @@ module Poseidon.Package (
     readPoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
-    getIndividuals
+    getIndividuals,
+    EigenstratIndEntry(..)
 ) where
 
 import           Control.Exception            (Exception, throwIO)
@@ -37,8 +38,8 @@ import           Text.ParserCombinators.ReadP (readP_to_S)
 
 data PoseidonPackage = PoseidonPackage
     { posPacPoseidonVersion :: Version
-    , posPacTitle           :: Text
-    , posPacDescription     :: Text
+    , posPacTitle           :: String
+    , posPacDescription     :: String
     , posPacContributor     :: ContributorSpec
     , posPacLastModified    :: Day
     , posPacBibFile         :: Maybe FilePath
@@ -48,8 +49,8 @@ data PoseidonPackage = PoseidonPackage
     deriving (Show, Eq)
 
 data ContributorSpec = ContributorSpec
-    { contributorName  :: Text
-    , contributorEmail :: Text
+    { contributorName  :: String
+    , contributorEmail :: String
     }
     deriving (Show, Eq)
 

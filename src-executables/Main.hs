@@ -1,13 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-import Control.Monad (forM)
-import           Data.Text           (unpack)
-import           Data.Version        (showVersion)
-import           Options.Applicative as OP
-import           Poseidon.Package    (PoseidonPackage (..),
-                                      filterDuplicatePackages,
-                                      findPoseidonPackages, getIndividuals)
-import           Text.Layout.Table   (asciiRoundS, column, def, expand, rowsG,
-                                      tableString, titlesH)
+import           Control.Monad               (forM, when, forM_)
+import Data.List (intercalate, isInfixOf)
+import           Data.Text                   (unpack)
+import           Data.Version                (showVersion)
+import           Options.Applicative         as OP
+import           Poseidon.Package            (PoseidonPackage (..),
+                                              filterDuplicatePackages,
+                                              findPoseidonPackages,
+                                              getIndividuals, EigenstratIndEntry(..))
+import           Text.Layout.Table           (asciiRoundS, column, def, expand,
+                                              rowsG, tableString, titlesH)
 
 data Options = CmdView ViewOptions
     | CmdSearch SearchOptions
@@ -18,7 +20,8 @@ data ViewOptions = ViewOptions
     }
 
 data SearchOptions = SearchOptions
-    { _soBaseDirs :: [FilePath]
+    { _soBaseDirs     :: [FilePath]
+    , _soSearchString :: String
     }
 
 data FstatsOptions = FstatsOptions
@@ -58,7 +61,7 @@ viewOptParser :: OP.Parser ViewOptions
 viewOptParser = ViewOptions <$> parseBasePaths
 
 searchOptParser :: OP.Parser SearchOptions
-searchOptParser = SearchOptions <$> parseBasePaths
+searchOptParser = SearchOptions <$> parseBasePaths <*> parseSearchString
 
 fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths
@@ -69,6 +72,12 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages"))
 
+parseSearchString :: OP.Parser String
+parseSearchString = OP.strOption (OP.long "searchString" <>
+    OP.short 's' <>
+    OP.metavar "STR" <>
+    OP.help "A search string for individuals or populations")
+
 runView :: ViewOptions -> IO ()
 runView (ViewOptions baseDirs) = do
     packages <- getPackages $ baseDirs
@@ -76,14 +85,24 @@ runView (ViewOptions baseDirs) = do
     let tableH = ["Title", "Date", "Nr Individuals"]
     tableB <- forM packages $ \pac -> do
         inds <- getIndividuals pac
-        return [unpack (posPacTitle pac), show (posPacLastModified pac), show (length inds)]
+        return [posPacTitle pac, show (posPacLastModified pac), show (length inds)]
     let colSpecs = replicate 3 (column expand def def def)
     putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 runSearch :: SearchOptions -> IO ()
-runSearch (SearchOptions baseDirs) = do
+runSearch (SearchOptions baseDirs searchString) = do
     packages <- getPackages $ baseDirs
-    print packages
+    fullTable <- fmap concat . forM packages $ \pac -> do
+        inds <- getIndividuals pac
+        return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
+    let tableB = filter (\[pacT, name, pop] -> searchString `isInfixOf` name || searchString `isInfixOf` pop) fullTable
+        tableH = ["Package", "Individual", "Population"]
+        colSpecs = replicate 3 (column expand def def def)
+    putStrLn $ "Searched in " ++ show (length packages) ++ " packages:"
+    if length tableB == 0
+    then putStrLn "Nothing found"
+    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+
 
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs) = do
