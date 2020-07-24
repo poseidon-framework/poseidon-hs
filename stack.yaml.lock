@@ -18,6 +18,13 @@ packages:
       sha256: 92969ddf22c5f54123fb2bcfbe5917b59a7e6382473b0306bcd8fb7990d9aa1a
   original:
     hackage: data-default-instances-base-0.1.0.1
+- completed:
+    hackage: sequence-formats-1.5.0@sha256:a1570e26ad5f88350e5108e4098878b83e029fa5814761ed27659619ebf0f466,2509
+    pantry-tree:
+      size: 2011
+      sha256: b926719a79f3aa2f33ab51b7ca28c3247765a5b650bbf978227c62a702867377
+  original:
+    hackage: sequence-formats-1.5.0
 snapshots:
 - completed:
     size: 531718

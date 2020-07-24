@@ -20,7 +20,7 @@ import           Data.Aeson                   (FromJSON, Object, parseJSON,
                                                (.:?))
 import           Data.Aeson.Types             (Parser, modifyFailure)
 import qualified Data.ByteString              as B
-import           Data.List                    (sortOn, groupBy)
+import           Data.List                    (groupBy, sortOn)
 import           Data.Text                    (Text)
 import           Data.Time                    (Day, defaultTimeLocale,
                                                readSTime)
@@ -29,7 +29,9 @@ import           Data.Yaml                    (decodeEither')
 import           GHC.Generics                 hiding (moduleName)
 import           Pipes                        (Producer)
 import           Pipes.Safe                   (MonadSafe)
-import SequenceFormats.Eigenstrat (readEigenstratInd, EigenstratIndEntry(..))
+import           SequenceFormats.Eigenstrat   (EigenstratIndEntry (..),
+                                               readEigenstratInd)
+import           SequenceFormats.Plink        (readFamFile)
 import           System.Directory             (doesDirectoryExist,
                                                doesFileExist, listDirectory)
 import           System.FilePath.Posix        (takeDirectory, takeFileName,
@@ -158,4 +160,4 @@ getIndividuals pac = do
     let (GenotypeDataSpec format genoF snpF indF) = posPacGenotypeData pac
     case format of
         GenotypeFormatEigenstrat -> readEigenstratInd indF
-        GenotypeFormatPlink -> throwIO $ PoseidonNotYetImplemented "Plink File reading not yet implemented"
+        GenotypeFormatPlink      -> readFamFile indF
