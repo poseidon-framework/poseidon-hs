@@ -103,7 +103,6 @@ runSearch (SearchOptions baseDirs searchString) = do
     then putStrLn "Nothing found"
     else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
-
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs) = do
     packages <- getPackages $ baseDirs
