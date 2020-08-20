@@ -51,7 +51,7 @@ optParser = OP.subparser $
         (OP.progDesc "view: show all packages with \
             \nr of samples, or only packages with selected samples and pops")
     searchOptInfo = OP.info (OP.helper <*> (CmdSearch <$> searchOptParser))
-        (OP.progDesc "search: fshowing all \
+        (OP.progDesc "search: showing all \
             \packages and individuals where the individual or pop-name contains \
             \a search string")
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))

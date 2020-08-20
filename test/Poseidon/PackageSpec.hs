@@ -111,9 +111,9 @@ testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
     it "should discover packages correctly" $ do
         pac <- findPoseidonPackages dir
-        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Lamnidis_2018", "Schiffels_2016"]
+        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
     it "should handle duplicate names correctly" $ do
         pac <- fmap filterDuplicatePackages . findPoseidonPackages $ dir
-        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016"]
-        sort (map posPacLastModified pac) `shouldBe` [fromGregorian 2020 2 20, fromGregorian 2020 2 28]
+        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
+        sort (map posPacLastModified pac) `shouldBe` [fromGregorian 2020 2 20, fromGregorian 2020 2 28, fromGregorian 2020 05 20]
         

@@ -13,19 +13,20 @@ module Poseidon.Package (
     EigenstratIndEntry(..)
 ) where
 
-import           Control.Exception            (Exception, throwIO)
-import           Control.Monad                (filterM)
+import           Control.Exception            (Exception, throwIO, try)
+import           Control.Monad                (filterM, forM_)
 import           Data.Aeson                   (FromJSON, Object, parseJSON,
                                                withObject, withText, (.:),
                                                (.:?))
 import           Data.Aeson.Types             (Parser, modifyFailure)
 import qualified Data.ByteString              as B
+import           Data.Either                  (lefts, rights)
 import           Data.List                    (groupBy, sortOn)
-import           Data.Text                    (Text)
+import           Data.Text                    (Text, unpack)
 import           Data.Time                    (Day, defaultTimeLocale,
                                                readSTime)
 import           Data.Version                 (Version, parseVersion)
-import           Data.Yaml                    (decodeEither')
+import           Data.Yaml                    (ParseException, decodeEither')
 import           GHC.Generics                 hiding (moduleName)
 import           Pipes                        (Producer)
 import           Pipes.Safe                   (MonadSafe)
@@ -95,6 +96,7 @@ instance FromJSON GenotypeFormatSpec where
     parseJSON = withText "format" $ \v -> case v of
         "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
         "PLINK"      -> pure GenotypeFormatPlink
+        _            -> fail ("unknown format " ++ unpack v)
 
 parseLastModified :: Object -> Parser Day
 parseLastModified v = do
@@ -113,10 +115,7 @@ parseModuleVersion v = do
         [(t, "")] -> return t
         otherwise -> fail ("could not parse version string " ++ versionString)
 
-data PoseidonException = PoseidonPackageParseException String
-    | PoseidonGenotypeFormatException String
-    | PoseidonNotYetImplemented String
-    deriving (Show)
+data PoseidonException = PoseidonYamlParseException FilePath ParseException deriving (Show)
 
 instance Exception PoseidonException
 
@@ -134,21 +133,29 @@ addFullPaths baseDir pac =
         }
 
 readPoseidonPackage :: FilePath -> IO PoseidonPackage
-readPoseidonPackage jsonPath = do
-    let baseDir = takeDirectory jsonPath
-    bs <- B.readFile jsonPath
+readPoseidonPackage yamlPath = do
+    let baseDir = takeDirectory yamlPath
+    bs <- B.readFile yamlPath
     fromJSON <- case decodeEither' bs of
-        Left err  -> throwIO $ PoseidonPackageParseException ("module YAML parsing error: " ++ show err)
+        Left err  -> throwIO $ PoseidonYamlParseException yamlPath err
         Right pac -> return pac
     return $ addFullPaths baseDir fromJSON
 
 findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
 findPoseidonPackages baseDir = do
     entries     <- listDirectory baseDir
-    posPac      <- mapM readPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    posPac      <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    forM_ (lefts posPac) $ \e ->
+        case e of 
+            PoseidonYamlParseException fp err -> do
+                putStrLn ("Warning: When parsing " ++ fp ++ ":")
+                print err
     subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
-    return $ posPac ++ morePosPacs
+    return $ (rights posPac) ++ morePosPacs
+  where
+    tryReadPoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
+    tryReadPoseidonPackage = try . readPoseidonPackage
 
 filterDuplicatePackages :: [PoseidonPackage] -> [PoseidonPackage]
 filterDuplicatePackages packages = map (\p -> last (sortOn posPacLastModified p)) . groupBy titleEq . sortOn posPacTitle $ packages

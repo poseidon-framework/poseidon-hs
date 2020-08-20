@@ -1,0 +1,14 @@
+poseidonVersion: 2.0.1
+title: Bad Package
+description: bla bla
+contributor:
+  name: Stephan Schiffels
+  email: schiffels@institute.org
+lastModified: 2010-06-19
+bibFile: sources.bib
+genotypeData:
+  format: EIGENSTRATSS
+  genoFile: geno.txt
+  snpFile: snp.txt
+  indFile: ind.txt
+jannoFile: Jeong_Modern_Siberian_2018.janno
