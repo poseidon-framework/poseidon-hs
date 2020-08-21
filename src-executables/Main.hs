@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Control.Monad       (forM, forM_, when)
-import           Data.List           (intercalate, isInfixOf)
+import           Data.List           (intercalate, isInfixOf, groupBy, sortOn, nub)
 import           Data.Text           (unpack)
 import           Data.Version        (showVersion)
 import           Options.Applicative as OP
@@ -10,7 +10,7 @@ import           Poseidon.Package    (EigenstratIndEntry (..),
                                       filterDuplicatePackages,
                                       findPoseidonPackages, getIndividuals)
 import           Text.Layout.Table   (asciiRoundS, column, def, expand, rowsG,
-                                      tableString, titlesH)
+                                      tableString, titlesH, expandUntil)
             
 
 data Options = CmdList ListOptions
@@ -83,7 +83,18 @@ runList (ListOptions baseDirs listEntity) = do
             let colSpecs = replicate 3 (column expand def def def)
             putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
         ListGroups -> do
-            putStrLn "listing group is not implemented yet."
+            allInds <- fmap concat . forM packages $ \pac -> do
+                inds <- getIndividuals pac
+                return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
+            let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
+                tableBody = do
+                    indGroup <- allIndsSortedByGroup
+                    let packages = nub [i!!0 | i <- indGroup]
+                    let nrInds = length indGroup
+                    return [(indGroup!!0)!!2, intercalate "," packages, show nrInds]
+            let tableH = ["Group", "Packages", "Nr Individuals"]
+                colSpecs = replicate 3 (column (expandUntil 50) def def def)
+            putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableBody]
         ListIndividuals -> do
             fullTable <- fmap concat . forM packages $ \pac -> do
                 inds <- getIndividuals pac

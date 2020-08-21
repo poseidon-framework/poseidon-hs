@@ -146,10 +146,9 @@ findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
 findPoseidonPackages baseDir = do
     entries <- listDirectory baseDir
     posPac  <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
-    forM_ (lefts posPac) $ \e ->
-        case e of
-            PoseidonYamlParseException fp err -> do
-                putStrLn ("Warning: When parsing " ++ fp ++ ": " ++ show err
+    forM_ (lefts posPac) $ (\e -> case e of
+        PoseidonYamlParseException fp err ->
+            putStrLn ("Warning: When parsing " ++ fp ++ ": " ++ show err))
     subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
     return $ (rights posPac) ++ morePosPacs
