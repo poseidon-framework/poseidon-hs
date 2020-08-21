@@ -115,7 +115,8 @@ parseModuleVersion v = do
         [(t, "")] -> return t
         otherwise -> fail ("could not parse version string " ++ versionString)
 
-data PoseidonException = PoseidonYamlParseException FilePath ParseException deriving (Show)
+data PoseidonException = PoseidonYamlParseException FilePath ParseException
+    deriving (Show)
 
 instance Exception PoseidonException
 
@@ -143,13 +144,12 @@ readPoseidonPackage yamlPath = do
 
 findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
 findPoseidonPackages baseDir = do
-    entries     <- listDirectory baseDir
-    posPac      <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    entries <- listDirectory baseDir
+    posPac  <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
     forM_ (lefts posPac) $ \e ->
-        case e of 
+        case e of
             PoseidonYamlParseException fp err -> do
-                putStrLn ("Warning: When parsing " ++ fp ++ ":")
-                print err
+                putStrLn ("Warning: When parsing " ++ fp ++ ": " ++ show err
     subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
     return $ (rights posPac) ++ morePosPacs

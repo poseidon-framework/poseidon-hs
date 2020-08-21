@@ -1,28 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
-import           Control.Monad               (forM, when, forM_)
-import Data.List (intercalate, isInfixOf)
-import           Data.Text                   (unpack)
-import           Data.Version                (showVersion)
-import           Options.Applicative         as OP
-import           Poseidon.Package            (PoseidonPackage (..),
-                                              filterDuplicatePackages,
-                                              findPoseidonPackages,
-                                              getIndividuals, EigenstratIndEntry(..))
-import           Text.Layout.Table           (asciiRoundS, column, def, expand,
-                                              rowsG, tableString, titlesH)
+import           Control.Monad       (forM, forM_, when)
+import           Data.List           (intercalate, isInfixOf)
+import           Data.Text           (unpack)
+import           Data.Version        (showVersion)
+import           Options.Applicative as OP
+import System.IO (hPutStrLn, stderr)
+import           Poseidon.Package    (EigenstratIndEntry (..),
+                                      PoseidonPackage (..),
+                                      filterDuplicatePackages,
+                                      findPoseidonPackages, getIndividuals)
+import           Text.Layout.Table   (asciiRoundS, column, def, expand, rowsG,
+                                      tableString, titlesH)
+            
 
-data Options = CmdView ViewOptions
-    | CmdSearch SearchOptions
+data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
 
-data ViewOptions = ViewOptions
-    { _voBaseDirs :: [FilePath]
+data ListOptions = ListOptions
+    { _loBaseDirs   :: [FilePath]
+    , _loListEntity :: ListEntity
     }
 
-data SearchOptions = SearchOptions
-    { _soBaseDirs     :: [FilePath]
-    , _soSearchString :: String
-    }
+data ListEntity = ListPackages
+    | ListGroups
+    | ListIndividuals
 
 data FstatsOptions = FstatsOptions
     { _foBaseDirs :: [FilePath]
@@ -32,8 +33,7 @@ main :: IO ()
 main = do
     cmdOpts <- OP.execParser optParserInfo
     case cmdOpts of
-        CmdView opts   -> runView opts
-        CmdSearch opts -> runSearch opts
+        CmdList opts   -> runList opts
         CmdFstats opts -> runFstats opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -43,25 +43,16 @@ optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
 
 optParser :: OP.Parser Options
 optParser = OP.subparser $
-    OP.command "view" viewOptInfo <>
-    OP.command "search" searchOptInfo <>
+    OP.command "list" listOptInfo <>
     OP.command "fstats" fstatsOptInfo
   where
-    viewOptInfo = OP.info (OP.helper <*> (CmdView <$> viewOptParser))
-        (OP.progDesc "view: show all packages with \
-            \nr of samples, or only packages with selected samples and pops")
-    searchOptInfo = OP.info (OP.helper <*> (CmdSearch <$> searchOptParser))
-        (OP.progDesc "search: showing all \
-            \packages and individuals where the individual or pop-name contains \
-            \a search string")
+    listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
+        (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "fstat: running fstats")
 
-viewOptParser :: OP.Parser ViewOptions
-viewOptParser = ViewOptions <$> parseBasePaths
-
-searchOptParser :: OP.Parser SearchOptions
-searchOptParser = SearchOptions <$> parseBasePaths <*> parseSearchString
+listOptParser :: OP.Parser ListOptions
+listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity
 
 fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths
@@ -72,36 +63,35 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages"))
 
-parseSearchString :: OP.Parser String
-parseSearchString = OP.strOption (OP.long "searchString" <>
-    OP.short 's' <>
-    OP.metavar "STR" <>
-    OP.help "A search string for individuals or populations")
+parseListEntity :: OP.Parser ListEntity
+parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
+  where
+    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list packages")
+    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list groups")
+    parseListIndividuals = OP.flag' ListIndividuals (OP.long "individuals" <> OP.help "list individuals")
 
-runView :: ViewOptions -> IO ()
-runView (ViewOptions baseDirs) = do
+runList :: ListOptions -> IO ()
+runList (ListOptions baseDirs listEntity) = do
     packages <- getPackages $ baseDirs
-    putStrLn $ (show . length $ packages) ++ " packages found:"
-    let tableH = ["Title", "Date", "Nr Individuals"]
-    tableB <- forM packages $ \pac -> do
-        inds <- getIndividuals pac
-        return [posPacTitle pac, show (posPacLastModified pac), show (length inds)]
-    let colSpecs = replicate 3 (column expand def def def)
-    putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-
-runSearch :: SearchOptions -> IO ()
-runSearch (SearchOptions baseDirs searchString) = do
-    packages <- getPackages $ baseDirs
-    fullTable <- fmap concat . forM packages $ \pac -> do
-        inds <- getIndividuals pac
-        return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
-    let tableB = filter (\[pacT, name, pop] -> searchString `isInfixOf` name || searchString `isInfixOf` pop) fullTable
-        tableH = ["Package", "Individual", "Population"]
-        colSpecs = replicate 3 (column expand def def def)
-    putStrLn $ "Searched in " ++ show (length packages) ++ " packages:"
-    if length tableB == 0
-    then putStrLn "Nothing found"
-    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    hPutStrLn stderr $ (show . length $ packages) ++ " packages found"
+    case listEntity of
+        ListPackages -> do
+            let tableH = ["Title", "Date", "Nr Individuals"]
+            tableB <- forM packages $ \pac -> do
+                inds <- getIndividuals pac
+                return [posPacTitle pac, show (posPacLastModified pac), show (length inds)]
+            let colSpecs = replicate 3 (column expand def def def)
+            putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+        ListGroups -> do
+            putStrLn "listing group is not implemented yet."
+        ListIndividuals -> do
+            fullTable <- fmap concat . forM packages $ \pac -> do
+                inds <- getIndividuals pac
+                return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
+            hPutStrLn stderr ("found " ++ show (length fullTable) ++ " individuals.")
+            let tableH = ["Package", "Individual", "Population"]
+                colSpecs = replicate 3 (column expand def def def)
+            putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG fullTable]
 
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs) = do
