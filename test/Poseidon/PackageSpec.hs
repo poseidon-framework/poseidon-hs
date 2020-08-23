@@ -33,8 +33,8 @@ poseidonVersion: 2.0.1
 title: Schiffels_2016
 description: Genetic data published in Schiffels et al. 2016
 contributor:
-  name: Stephan Schiffels
-  email: schiffels@institute.org
+  - name: Stephan Schiffels
+    email: schiffels@institute.org
 lastModified: 2020-02-28
 bibFile: sources.bib
 genotypeData:
@@ -54,9 +54,9 @@ truePackage :: PoseidonPackage
 truePackage = PoseidonPackage {
     posPacPoseidonVersion = makeVersion [2, 0, 1],
     posPacTitle = "Schiffels_2016",
-    posPacDescription = "Genetic data published in Schiffels et al. 2016",
-    posPacContributor = ContributorSpec "Stephan Schiffels" "schiffels@institute.org",
-    posPacLastModified = fromGregorian 2020 2 28,
+    posPacDescription = Just "Genetic data published in Schiffels et al. 2016",
+    posPacContributor = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    posPacLastModified = Just $ fromGregorian 2020 2 28,
     posPacBibFile = Just "sources.bib",
     posPacGenotypeData = GenotypeDataSpec {
         format = GenotypeFormatPlink,
@@ -93,9 +93,9 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     it "should fail with poseidonVersion missing" $ do
         show err `shouldBe` "AesonException \"Error in $: key \\\"poseidonVersion\\\" not found\""
     let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with lastModified missing" $ do
-        show err `shouldBe` "AesonException \"Error in $: key \\\"lastModified\\\" not found\""
+        p `shouldBe` truePackage {posPacLastModified = Nothing}
 
 testReadPoseidonYAML :: Spec
 testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
@@ -115,5 +115,7 @@ testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
     it "should handle duplicate names correctly" $ do
         pac <- fmap filterDuplicatePackages . findPoseidonPackages $ dir
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
-        sort (map posPacLastModified pac) `shouldBe` [fromGregorian 2020 2 20, fromGregorian 2020 2 28, fromGregorian 2020 05 20]
+        sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
+                                                      Just (fromGregorian 2020 2 28),
+                                                      Just (fromGregorian 2020 05 20)]
         

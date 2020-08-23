@@ -2,8 +2,8 @@ poseidonVersion: 2.0.1
 title: Wang_Plink_test_2020
 description: Genetic data published in Wang et al. 2020, Plink test
 contributor:
-  name: Ke Wang
-  email: wang@institute.org
+  - name: Ke Wang
+    email: wang@institute.org
 lastModified: 2020-05-20
 bibFile: sources.bib
 genotypeData:

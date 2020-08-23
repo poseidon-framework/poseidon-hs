@@ -42,9 +42,9 @@ import           Text.ParserCombinators.ReadP (readP_to_S)
 data PoseidonPackage = PoseidonPackage
     { posPacPoseidonVersion :: Version
     , posPacTitle           :: String
-    , posPacDescription     :: String
-    , posPacContributor     :: ContributorSpec
-    , posPacLastModified    :: Day
+    , posPacDescription     :: Maybe String
+    , posPacContributor     :: [ContributorSpec]
+    , posPacLastModified    :: Maybe Day
     , posPacBibFile         :: Maybe FilePath
     , posPacGenotypeData    :: GenotypeDataSpec
     , posPacJannoFile       :: FilePath
@@ -71,14 +71,14 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat
 
 instance FromJSON PoseidonPackage where
     parseJSON = withObject "PoseidonPackage" $ \v -> PoseidonPackage
-        <$> v .:  "poseidonVersion" --parseModuleVersion
-        <*> v .:  "title"
-        <*> v .:  "description"
-        <*> v .:  "contributor"
-        <*> v .:  "lastModified" --parseLastModified
-        <*> v .:? "bibFile"
-        <*> v .:  "genotypeData"
-        <*> v .:  "jannoFile"
+        <$> v .:   "poseidonVersion" --parseModuleVersion
+        <*> v .:   "title"
+        <*> v .:?  "description"
+        <*> v .:   "contributor"
+        <*> v .:?  "lastModified" --parseLastModified
+        <*> v .:?  "bibFile"
+        <*> v .:   "genotypeData"
+        <*> v .:   "jannoFile"
 
 instance FromJSON ContributorSpec where
     parseJSON = withObject "contributor" $ \v -> ContributorSpec
