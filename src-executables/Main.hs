@@ -73,7 +73,7 @@ parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
     parseListIndividuals = OP.flag' ListIndividuals (OP.long "individuals" <> OP.help "list individuals")
 
 parseRawOutput :: OP.Parser Bool
-parseRawOutput = OP.switch (OP.long "raw" <> OP.short 'r' <> OP.help "output table as tsv without header. Useful for pipeing into group")
+parseRawOutput = OP.switch (OP.long "raw" <> OP.short 'r' <> OP.help "output table as tsv without header. Useful for piping into group")
 
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
