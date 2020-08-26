@@ -79,7 +79,7 @@ runList (ListOptions baseDirs listEntity) = do
             let tableH = ["Title", "Date", "Nr Individuals"]
             tableB <- forM packages $ \pac -> do
                 inds <- getIndividuals pac
-                return [posPacTitle pac, show (posPacLastModified pac), show (length inds)]
+                return [posPacTitle pac, showMaybeDate (posPacLastModified pac), show (length inds)]
             let colSpecs = replicate 3 (column expand def def def)
             putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
         ListGroups -> do
@@ -103,6 +103,10 @@ runList (ListOptions baseDirs listEntity) = do
             let tableH = ["Package", "Individual", "Population"]
                 colSpecs = replicate 3 (column expand def def def)
             putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG fullTable]
+  where
+    showMaybeDate (Just d) = show d
+    showMaybeDate Nothing = "n/a"
+
 
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs) = do
