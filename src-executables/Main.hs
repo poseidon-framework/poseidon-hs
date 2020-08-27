@@ -1,17 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
-import           Control.Monad       (forM)
-import Data.ByteString.Char8 (pack, splitWith)
-import           Data.List           (groupBy, intercalate, nub,
-                                      sortOn)
-import           Options.Applicative as OP
-import           Poseidon.Package    (EigenstratIndEntry (..),
-                                      PoseidonPackage (..),
-                                      filterDuplicatePackages,
-                                      findPoseidonPackages, getIndividuals)
-import           System.IO           (hPutStrLn, stderr)
-import SequenceFormats.Utils (Chrom(..))
-import           Text.Layout.Table   (asciiRoundS, column, def, expand,
-                                      expandUntil, rowsG, tableString, titlesH)
+import           Control.Monad         (forM)
+import           Data.ByteString.Char8 (pack, splitWith)
+import           Data.List             (groupBy, intercalate, nub, sortOn)
+import           Options.Applicative   as OP
+import           Poseidon.Package      (EigenstratIndEntry (..),
+                                        PoseidonPackage (..),
+                                        loadPoseidonPackages,
+                                        getIndividuals)
+import           SequenceFormats.Utils (Chrom (..))
+import           System.IO             (hPutStrLn, stderr)
+import           Text.Layout.Table     (asciiRoundS, column, def, expand,
+                                        expandUntil, rowsG, tableString,
+                                        titlesH)
 
 
 
@@ -29,13 +29,14 @@ data ListEntity = ListPackages
     | ListIndividuals
 
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs :: [FilePath],
-      _foBootstrapBlockSize :: Maybe Int,
-      _foExcludeChroms :: [Chrom],
-      _foStatSpec :: StatSpec
+    { _foBaseDirs           :: [FilePath]
+    , _foBootstrapBlockSize :: Maybe Int
+    , _foExcludeChroms      :: [Chrom]
+    , _foStatSpec           :: StatSpec
     }
 
-data StatSpec = StatSpecByFile FilePath | StatSpecByString String
+data StatSpec = StatSpecByFile FilePath
+    | StatSpecByString String
 
 main :: IO ()
 main = do
@@ -103,7 +104,7 @@ parseRawOutput = OP.switch (OP.long "raw" <> OP.short 'r' <> OP.help "output tab
 
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
-    packages <- getPackages $ baseDirs
+    packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " packages found"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
@@ -131,7 +132,7 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
             let tableH = ["Package", "Individual", "Population"]
             return (tableH, tableB)
-      
+
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else
@@ -148,8 +149,6 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
 
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs _ _ _) = do
-    packages <- getPackages $ baseDirs
+    packages <- loadPoseidonPackages baseDirs
     print packages
 
-getPackages :: [FilePath] -> IO [PoseidonPackage]
-getPackages = fmap (filterDuplicatePackages . concat) . mapM findPoseidonPackages

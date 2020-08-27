@@ -7,7 +7,7 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             GenotypeFormatSpec (..),
                                             PoseidonPackage (..),
                                             findPoseidonPackages,
-                                            readPoseidonPackage, filterDuplicatePackages)
+                                            readPoseidonPackage, filterDuplicatePackages, loadPoseidonPackages)
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.Trans.Class (lift)
@@ -113,7 +113,7 @@ testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
         pac <- findPoseidonPackages dir
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
     it "should handle duplicate names correctly" $ do
-        pac <- fmap filterDuplicatePackages . findPoseidonPackages $ dir
+        pac <- loadPoseidonPackages [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),
