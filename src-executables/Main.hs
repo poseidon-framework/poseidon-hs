@@ -110,13 +110,10 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else
         case listEntity of
-            ListPackages -> do
-                let colSpecs = replicate 3 (column expand def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
             ListGroups -> do
                 let colSpecs = replicate 3 (column (expandUntil 50) def def def)
                 putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-            ListIndividuals -> do
+            _ -> do
                 let colSpecs = replicate 3 (column expand def def def)
                 putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
