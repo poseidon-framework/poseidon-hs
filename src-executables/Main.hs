@@ -1,17 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
-import           Control.Monad       (forM, forM_, when)
-import           Data.List           (groupBy, intercalate, isInfixOf, nub,
+import           Control.Monad       (forM)
+import Data.ByteString.Char8 (pack, splitWith)
+import           Data.List           (groupBy, intercalate, nub,
                                       sortOn)
-import           Data.Text           (unpack)
-import           Data.Version        (showVersion)
 import           Options.Applicative as OP
 import           Poseidon.Package    (EigenstratIndEntry (..),
                                       PoseidonPackage (..),
                                       filterDuplicatePackages,
                                       findPoseidonPackages, getIndividuals)
 import           System.IO           (hPutStrLn, stderr)
+import SequenceFormats.Utils (Chrom(..))
 import           Text.Layout.Table   (asciiRoundS, column, def, expand,
                                       expandUntil, rowsG, tableString, titlesH)
+
 
 
 data Options = CmdList ListOptions
@@ -28,8 +29,13 @@ data ListEntity = ListPackages
     | ListIndividuals
 
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs :: [FilePath]
+    { _foBaseDirs :: [FilePath],
+      _foBootstrapBlockSize :: Maybe Int,
+      _foExcludeChroms :: [Chrom],
+      _foStatSpec :: StatSpec
     }
+
+data StatSpec = StatSpecByFile FilePath | StatSpecByString String
 
 main :: IO ()
 main = do
@@ -57,7 +63,27 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 fstatsOptParser :: OP.Parser FstatsOptions
-fstatsOptParser = FstatsOptions <$> parseBasePaths
+fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseBootstrap <*> parseExcludeChroms <*> parseStatSpec
+
+parseBootstrap :: OP.Parser (Maybe Int)
+parseBootstrap = OP.option (Just <$> OP.auto) (OP.long "blocksize" <> OP.short 'b' <>
+    OP.help "Bootstrap block size. Leave blank for \
+        \chromosome-wise bootstrap. Otherwise give the block size in nr of Snps (e.g. \
+        \5000)" <> OP.value Nothing)
+
+parseExcludeChroms :: OP.Parser [Chrom]
+parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str) (OP.long "excludeChroms" <> OP.short 'e' <>
+    OP.help "List of chromosome names to exclude chromosomes, given as comma-separated \
+        \list. Defaults to X, Y, MT, chrX, chrY, chrMT, 23,24,90" <> OP.value [Chrom "X", Chrom "Y", Chrom "MT",
+        Chrom "chrX", Chrom "chrY", Chrom "chrMT", Chrom "23", Chrom "24", Chrom "90"])
+
+parseStatSpec :: OP.Parser StatSpec
+parseStatSpec = parseStatSpecByFile <|> parseStatSpecByString
+  where
+    parseStatSpecByFile = OP.option (StatSpecByFile <$> OP.str) (OP.long "statsByFile" <>
+        OP.help "specify a file listing the statistics to be measured")
+    parseStatSpecByString = OP.option (StatSpecByString <$> OP.str) (OP.long "statsByString" <>
+        OP.help "specify a string listing the statistics to be measured")
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -93,9 +119,9 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
             let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
                 tableB = do
                     indGroup <- allIndsSortedByGroup
-                    let packages = nub [i!!0 | i <- indGroup]
+                    let packages_ = nub [i!!0 | i <- indGroup]
                     let nrInds = length indGroup
-                    return [(indGroup!!0)!!2, intercalate "," packages, show nrInds]
+                    return [(indGroup!!0)!!2, intercalate "," packages_, show nrInds]
             let tableH = ["Group", "Packages", "Nr Individuals"]
             return (tableH, tableB)
         ListIndividuals -> do
@@ -120,9 +146,8 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate (Just d) = show d
     showMaybeDate Nothing  = "n/a"
 
-
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs) = do
+runFstats (FstatsOptions baseDirs _ _ _) = do
     packages <- getPackages $ baseDirs
     print packages
 
