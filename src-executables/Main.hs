@@ -1,19 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
+
+import           Poseidon.FStats       (FStatSpec (..))
+import           Poseidon.Package      (EigenstratIndEntry (..),
+                                        PoseidonPackage (..), getIndividuals,
+                                        loadPoseidonPackages)
+
 import           Control.Monad         (forM)
 import           Data.ByteString.Char8 (pack, splitWith)
 import           Data.List             (groupBy, intercalate, nub, sortOn)
 import           Options.Applicative   as OP
-import           Poseidon.Package      (EigenstratIndEntry (..),
-                                        PoseidonPackage (..),
-                                        loadPoseidonPackages,
-                                        getIndividuals)
 import           SequenceFormats.Utils (Chrom (..))
 import           System.IO             (hPutStrLn, stderr)
 import           Text.Layout.Table     (asciiRoundS, column, def, expand,
                                         expandUntil, rowsG, tableString,
                                         titlesH)
-
-
 
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
@@ -32,11 +32,8 @@ data FstatsOptions = FstatsOptions
     { _foBaseDirs           :: [FilePath]
     , _foBootstrapBlockSize :: Maybe Int
     , _foExcludeChroms      :: [Chrom]
-    , _foStatSpec           :: StatSpec
+    , _foStatSpec           :: [FStatSpec]
     }
-
-data StatSpec = StatSpecByFile FilePath
-    | StatSpecByString String
 
 main :: IO ()
 main = do
@@ -64,7 +61,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 fstatsOptParser :: OP.Parser FstatsOptions
-fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseBootstrap <*> parseExcludeChroms <*> parseStatSpec
+fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseBootstrap <*> parseExcludeChroms <*> OP.some parseStatSpec
 
 parseBootstrap :: OP.Parser (Maybe Int)
 parseBootstrap = OP.option (Just <$> OP.auto) (OP.long "blocksize" <> OP.short 'b' <>
@@ -78,13 +75,12 @@ parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str)
         \list. Defaults to X, Y, MT, chrX, chrY, chrMT, 23,24,90" <> OP.value [Chrom "X", Chrom "Y", Chrom "MT",
         Chrom "chrX", Chrom "chrY", Chrom "chrMT", Chrom "23", Chrom "24", Chrom "90"])
 
-parseStatSpec :: OP.Parser StatSpec
-parseStatSpec = parseStatSpecByFile <|> parseStatSpecByString
-  where
-    parseStatSpecByFile = OP.option (StatSpecByFile <$> OP.str) (OP.long "statsByFile" <>
-        OP.help "specify a file listing the statistics to be measured")
-    parseStatSpecByString = OP.option (StatSpecByString <$> OP.str) (OP.long "statsByString" <>
-        OP.help "specify a string listing the statistics to be measured")
+parseStatSpec :: OP.Parser FStatSpec
+parseStatSpec = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
+    OP.help "Specify a summary statistic to be computed. Can be given multiple times.")
+
+readStatSpecSpring :: String -> Either String FStatSpec
+readStatSpecSpring
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -148,7 +144,9 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate Nothing  = "n/a"
 
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs _ _ _) = do
+runFstats (FstatsOptions baseDirs _ _ spatSpec) = do
     packages <- loadPoseidonPackages baseDirs
+    statDefinitions <- parseStatSpec statSpec
     print packages
 
+parseStatSpec :: StatSpec -> IO
