@@ -13,7 +13,7 @@ data FStatSpec = F4Spec PopSpec PopSpec PopSpec PopSpec |
 data PopSpec = PopSpecGroup String | PopSpecInd String deriving (Show, Eq)
 
 fStatSpecParser :: P.Parser FStatSpec
-fStatSpecParser = f4SpecParser <|> f3SpecParser <|> f2SpecParser <|> pwmSpecParser
+fStatSpecParser = P.try f4SpecParser <|> P.try f3SpecParser <|> P.try f2SpecParser <|> pwmSpecParser
 
 f4SpecParser :: P.Parser FStatSpec
 f4SpecParser = do
