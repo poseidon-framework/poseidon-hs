@@ -1,52 +1,60 @@
-module Poseidon.FStats where
+module Poseidon.FStats (FStatSpec(..), fStatSpecParser, P.runParser, PopSpec(..)) where
 
-import Text.Parsec.String (Parser)
+import Control.Applicative ((<|>))
+import Data.Char (isSpace)
+import qualified Text.Parsec as P
+import qualified Text.Parsec.String as P
 
 data FStatSpec = F4Spec PopSpec PopSpec PopSpec PopSpec |
     F3Spec PopSpec PopSpec PopSpec |
     F2Spec PopSpec PopSpec |
-    PairwiseMismatchSpec PopSpec PopSpec
+    PairwiseMismatchSpec PopSpec PopSpec deriving (Show, Eq)
 
-data PopSpec = PopSpecGroup String | PopSpecInd String
+data PopSpec = PopSpecGroup String | PopSpecInd String deriving (Show, Eq)
 
-fStatSpecParser :: Parser FStatSpec
+fStatSpecParser :: P.Parser FStatSpec
 fStatSpecParser = f4SpecParser <|> f3SpecParser <|> f2SpecParser <|> pwmSpecParser
 
-f4SpecParser :: Parser FStatSpec
+f4SpecParser :: P.Parser FStatSpec
 f4SpecParser = do
     _ <- P.string "F4"
-    _ <- P.between (P.char "(") (P.char ")") (parsePopSpecs 4)
+    [a, b, c, d] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 4)
+    return $ F4Spec a b c d
 
-parsePopSpecsN :: Int -> Parser [PopSpec]
+
+parsePopSpecsN :: Int -> P.Parser [PopSpec]
 parsePopSpecsN n = sepByN n parsePopSpec (P.char ',')
 
-sepByN :: Int -> Parser a -> Parser sep -> Parser [a]
+sepByN :: Int -> P.Parser a -> P.Parser sep -> P.Parser [a]
 sepByN 0 _ _ = return []
-sepByN 1 p _ = fmap (\x -> return [x]) p
+sepByN 1 p _ = fmap (\x -> [x]) p
 sepByN n p s = do
     x <- p
     _ <- s
     xs <- sepByN (n - 1) p s
-    return (reverse (x:xs))
+    return (x:xs)
 
 parsePopSpec :: P.Parser PopSpec 
 parsePopSpec = parseIndividualSpec <|> parseGroupSpec
   where
     parseIndividualSpec = PopSpecInd <$> P.between (P.char '<') (P.char '>') parseName
     parseGroupSpec = PopSpecGroup <$> parseName
-    parseName = P.takeTill isSpace
+    parseName = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>()")))
 
-f3SpecParser :: Parser FStatSpec
+f3SpecParser :: P.Parser FStatSpec
 f3SpecParser = do
     _ <- P.string "F3"
-    _ <- P.between (P.char "(") (P.char ")") (parsePopSpecs 3)
+    [a, b, c] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 3)
+    return $ F3Spec a b c
 
-f2SpecParser :: Parser FStatSpec
+f2SpecParser :: P.Parser FStatSpec
 f2SpecParser = do
     _ <- P.string "F2"
-    _ <- P.between (P.char "(") (P.char ")") (parsePopSpecs 2)
+    [a, b] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 2)
+    return $ F2Spec a b
 
-pwmSpecParser :: Parser FStatSpec
+pwmSpecParser :: P.Parser FStatSpec
 pwmSpecParser = do
     _ <- P.string "PWM"
-    _ <- P.between (P.char "(") (P.char ")") (parsePopSpecs 2)
+    [a, b] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 2)
+    return $ PairwiseMismatchSpec a b

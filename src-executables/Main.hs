@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.FStats       (FStatSpec (..))
+import           Poseidon.FStats       (FStatSpec (..), fStatSpecParser, runParser)
 import           Poseidon.Package      (EigenstratIndEntry (..),
                                         PoseidonPackage (..), getIndividuals,
                                         loadPoseidonPackages)
@@ -79,8 +79,10 @@ parseStatSpec :: OP.Parser FStatSpec
 parseStatSpec = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
     OP.help "Specify a summary statistic to be computed. Can be given multiple times.")
 
-readStatSpecSpring :: String -> Either String FStatSpec
-readStatSpecSpring
+readStatSpecString :: String -> Either String FStatSpec
+readStatSpecString s = case runParser fStatSpecParser () "" s of
+    Left p -> Left (show p)
+    Right x -> Right x
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -144,9 +146,7 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate Nothing  = "n/a"
 
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs _ _ spatSpec) = do
+runFstats (FstatsOptions baseDirs _ _ statSpec) = do
     packages <- loadPoseidonPackages baseDirs
-    statDefinitions <- parseStatSpec statSpec
+    print statSpec
     print packages
-
-parseStatSpec :: StatSpec -> IO
