@@ -19,12 +19,12 @@ packages:
   original:
     hackage: data-default-instances-base-0.1.0.1
 - completed:
-    hackage: sequence-formats-1.5.0@sha256:a1570e26ad5f88350e5108e4098878b83e029fa5814761ed27659619ebf0f466,2509
+    hackage: sequence-formats-1.5.1.2@sha256:aa2dc7e26b843f8a900abf21f2af9696de4d2a585ab9196dbd7e6260b01ce55f,2833
     pantry-tree:
-      size: 2011
-      sha256: b926719a79f3aa2f33ab51b7ca28c3247765a5b650bbf978227c62a702867377
+      size: 2264
+      sha256: 0d5d8876f2094d43c1180f6db71d5544d14f1496dedc2537c02111802c6a289d
   original:
-    hackage: sequence-formats-1.5.0
+    hackage: sequence-formats-1.5.1.2
 snapshots:
 - completed:
     size: 531718

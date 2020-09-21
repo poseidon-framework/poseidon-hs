@@ -1,7 +1,7 @@
 module Poseidon.FStatsSpec (spec) where
 
 import           Poseidon.FStats (FStatSpec (..), PopSpec (..), fStatSpecParser,
-                                  runParser)
+                                  runParser, ParseError(..))
 import           Test.Hspec
 
 spec = do
@@ -21,5 +21,11 @@ testParseStatSpec = describe "Poseidon.FStatsSpec.fStatSpecParser" $ do
     it "should parse PWM correctly" $
         let f = PairwiseMismatchSpec (PopSpecGroup "aa") (PopSpecInd "bb")
         in  runParser fStatSpecParser () "" "PWM(aa,<bb>)" `shouldBe` Right f
+    it "should not parse wrong header" $
+        show (runParser fStatSpecParser () "" "BlaBla(aa,<bb>)") `shouldBe` "Left (line 1, column 1):\nunexpected \"B\"\nexpecting \"F4\", \"F3\", \"F2\" or \"PWM\""
+    it "should not parse too few args" $
+        show (runParser fStatSpecParser () "" "F4(aa,<bb>,cc)") `shouldBe` "Left (line 1, column 14):\nunexpected \")\"\nexpecting \",\""
+    it "should not parse too many args" $
+        show (runParser fStatSpecParser () "" "F4(aa,<bb>,cc,dd,ee)") `shouldBe` "Left (line 1, column 17):\nunexpected \",\"\nexpecting \")\""
 
 

@@ -1,4 +1,4 @@
-module Poseidon.FStats (FStatSpec(..), fStatSpecParser, P.runParser, PopSpec(..)) where
+module Poseidon.FStats (FStatSpec(..), fStatSpecParser, P.runParser, P.ParseError, PopSpec(..)) where
 
 import Control.Applicative ((<|>))
 import Data.Char (isSpace)

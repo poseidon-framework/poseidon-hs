@@ -1,13 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.FStats       (FStatSpec (..), fStatSpecParser, runParser)
+added import           Poseidon.FStats       (FStatSpec (..), PopSpec (..),
+                                        fStatSpecParser, runParser)
 import           Poseidon.Package      (EigenstratIndEntry (..),
                                         PoseidonPackage (..), getIndividuals,
+                                        -- getJointGenotypeData,
                                         loadPoseidonPackages)
+import           Poseidon.Utils        (PoseidonException (..))
 
-import           Control.Monad         (forM)
+import           Control.Exception     (throwIO)
+import           Control.Monad         (forM, forM_, when)
 import           Data.ByteString.Char8 (pack, splitWith)
-import           Data.List             (groupBy, intercalate, nub, sortOn)
+import           Data.List             (groupBy, intercalate, intersect, nub,
+                                        sortOn)
+import           Data.Maybe            (catMaybes)
 import           Options.Applicative   as OP
 import           SequenceFormats.Utils (Chrom (..))
 import           System.IO             (hPutStrLn, stderr)
@@ -77,11 +83,11 @@ parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str)
 
 parseStatSpec :: OP.Parser FStatSpec
 parseStatSpec = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
-    OP.help "Specify a summary statistic to be computed. Can be given multiple times.")
+    OP.help "Specify a summary statistic to be computed. Can be given multiple times. Possible options are: F4(name1,name2,name3,name4), and similarly F3 and F2 stats, as well as PWM(name1,name2) for pairwise mismatch rates. Group names are by default matched with group names as indicated in the PLINK or Eigenstrat files in the Poseidon dataset. You can also specify individual names using the syntax \"<Ind_name>\", so enclosing them in angular brackets. You can also mix groups and individuals, like in \"F4(<Ind1>,Group2,Group3,<Ind4>)\".")
 
 readStatSpecString :: String -> Either String FStatSpec
 readStatSpecString s = case runParser fStatSpecParser () "" s of
-    Left p -> Left (show p)
+    Left p  -> Left (show p)
     Right x -> Right x
 
 parseBasePaths :: OP.Parser [FilePath]
@@ -146,7 +152,41 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate Nothing  = "n/a"
 
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs _ _ statSpec) = do
+runFstats (FstatsOptions baseDirs _ _ statSpecs) = do
     packages <- loadPoseidonPackages baseDirs
-    print statSpec
-    print packages
+    hPutStrLn stderr $ (show . length $ packages) ++ " packages found"
+    let collectedStats = collectStatSpecGroups statSpecs
+    relevantPackages <- findRelevantPackages collectedStats packages
+    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics found"
+
+collectStatSpecGroups :: [FStatSpec] -> [PopSpec]
+collectStatSpecGroups statSpecs = nub . concat $ do
+    stat <- statSpecs
+    case stat of
+        F4Spec a b c d           -> return [a, b, c, d]
+        F3Spec a b c             -> return [a, b, c]
+        F2Spec a b               -> return [a, b]
+        PairwiseMismatchSpec a b -> return [a, b]
+
+findRelevantPackages :: [PopSpec] -> [PoseidonPackage] -> IO [PoseidonPackage]
+findRelevantPackages popSpecs packages = do
+    let indNamesStats   = [ind   | PopSpecInd   ind   <- popSpecs]
+        groupNamesStats = [group | PopSpecGroup group <- popSpecs]
+    relevantPacsWithNames <- fmap catMaybes . forM packages $ \pac -> do
+        inds <- getIndividuals pac
+        let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
+            groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
+        if   length (intersect indNamesPac indNamesStats) > 0 || length (intersect groupNamesPac groupNamesStats) > 0
+        then return (Just (pac, indNamesPac, groupNamesPac))
+        else return Nothing
+    let relevantPacs   = map (\(p, _, _) -> p) relevantPacsWithNames
+        indNamesPacs   = concat . map (\(_, n, _) -> n) $ relevantPacsWithNames
+        groupNamesPacs = concat . map (\(_, _, n) -> n) $ relevantPacsWithNames
+    forM_ indNamesStats $ \indName -> when (indName `notElem` indNamesPacs) $
+        throwIO $ PoseidonIndSearchException ("Individual name " ++ indName ++ " not found")
+    forM_ groupNamesStats $ \groupName -> when (groupName `notElem` groupNamesPacs) $
+        throwIO $ PoseidonIndSearchException ("Group name " ++ groupName ++ " not found")
+    return relevantPacs
+
+
+

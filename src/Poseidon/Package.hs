@@ -12,10 +12,13 @@ module Poseidon.Package (
     filterDuplicatePackages,
     getIndividuals,
     loadPoseidonPackages,
+    getJointGenotypeData,
     EigenstratIndEntry(..)
 ) where
 
-import           Control.Exception          (Exception, throwIO, try)
+import Poseidon.Utils (PoseidonException(..))
+
+import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_)
 import           Data.Aeson                 (FromJSON, parseJSON, withObject,
                                              withText, (.:), (.:?))
@@ -25,11 +28,18 @@ import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
 import           Data.Text                  (unpack)
 import           Data.Time                  (Day)
+import qualified Data.Vector                as V
 import           Data.Version               (Version)
-import           Data.Yaml                  (ParseException, decodeEither')
+import           Data.Yaml                  (decodeEither')
+import           Pipes                      (Producer, (>->))
+import qualified Pipes.Prelude              as P
+import Pipes.Safe (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             readEigenstratInd)
-import           SequenceFormats.Plink      (readFamFile)
+                                             EigenstratSnpEntry(..),
+                                             GenoLine,
+                                             readEigenstratInd,
+                                             readEigenstrat)
+import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
@@ -93,11 +103,6 @@ instance FromJSON GenotypeFormatSpec where
         "PLINK"      -> pure GenotypeFormatPlink
         _            -> fail ("unknown format " ++ unpack v)
 
-data PoseidonException = PoseidonYamlParseException FilePath ParseException
-    | PoseidonPackageException String
-    deriving (Show)
-
-instance Exception PoseidonException
 
 addFullPaths :: FilePath -> PoseidonPackage -> PoseidonPackage
 addFullPaths baseDir pac =
@@ -169,3 +174,22 @@ getIndividuals pac = do
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstratInd indF
         GenotypeFormatPlink      -> readFamFile indF
+
+getGenotypeData :: (MonadSafe m) => PoseidonPackage -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+getGenotypeData pac = do
+    let (GenotypeDataSpec format_ genoF snpF indF) = posPacGenotypeData pac
+    case format_ of
+        GenotypeFormatEigenstrat -> readEigenstrat genoF snpF indF
+        GenotypeFormatPlink      -> readPlink genoF snpF indF
+
+getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+getJointGenotypeData pacs = do
+    genotypeTuples <- mapM getGenotypeData pacs
+    let jointIndEntries = concat . map fst $ genotypeTuples
+        jointProducer = (zipAll . map snd) genotypeTuples >-> P.map (\l -> (fst (head l), V.concat (map snd l)))
+    return (jointIndEntries, jointProducer)
+
+zipAll :: Monad m => [Producer a m r] -> Producer [a] m r
+zipAll []            = error "zipAll - should never happen"
+zipAll [prod]        = prod >-> P.map (\x ->[x])
+zipAll (prod1:prods) = P.zip prod1 (zipAll prods) >-> P.map (\(a, as) -> a:as)
