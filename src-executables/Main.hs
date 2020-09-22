@@ -202,16 +202,10 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutpu
 
 computeJackknife :: [Int] -> [Double] -> (Double, Double)
 computeJackknife weights values =
-    let sumValues   = sum values
-        m           = map fromIntegral weights
-        n           = sum m
-        theta       = sumValues / n
-        thetaMinus  = [(sumValues - c) / (n - mj) | (c, mj) <- zip values m]
-        g           = fromIntegral (length m)
-        thetaJ      = g * theta - sum [(n - mj) * thetaMinusJ / n | (mj, thetaMinusJ) <- zip m thetaMinus]
-        h           = [n / mj | mj <- m]
-        tau         = [hj * theta - (hj - 1.0) * thetaMinusJ | (hj, thetaMinusJ) <- zip h thetaMinus]
-        sigmaSquare = sum [(tauJ - thetaJ) ^ (2 :: Int) / (hj - 1.0) | (tauJ, hj) <- zip tau h] / g
+    let weights'    = map fromIntegral weights
+        sumWeights  = sum weights'
+        theta       = sum [mj * val | (mj, val) <- zip weights' values] / sumWeights
+        sigmaSquare = sum [mj * (val - theta) ^ (2 :: Int) / (sumWeights - mj) | (mj, val) <- zip weights' values] / g
     in  (theta, sqrt sigmaSquare)
 
 collectStatSpecGroups :: [FStatSpec] -> [PopSpec]
