@@ -165,7 +165,8 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutpu
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     let collectedStats = collectStatSpecGroups statSpecs
     relevantPackages <- findRelevantPackages collectedStats packages
-    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified"
+    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
+    forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
     hPutStrLn stderr $ "Computing stats " ++ show statSpecs 
     blockData <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
