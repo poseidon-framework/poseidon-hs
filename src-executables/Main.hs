@@ -204,6 +204,7 @@ computeJackknife :: [Int] -> [Double] -> (Double, Double)
 computeJackknife weights values =
     let weights'    = map fromIntegral weights
         sumWeights  = sum weights'
+        g           = fromIntegral (length weights)
         theta       = sum [mj * val | (mj, val) <- zip weights' values] / sumWeights
         sigmaSquare = sum [mj * (val - theta) ^ (2 :: Int) / (sumWeights - mj) | (mj, val) <- zip weights' values] / g
     in  (theta, sqrt sigmaSquare)
