@@ -113,7 +113,7 @@ statSpecFold iE fStatSpec = do
             newEndPos = Just (c, p)
         in  case computeFStat fstat genoLine of
                 Just v  -> (newStartPos, newEndPos, count + 1, val + v)
-                Nothing -> (newStartPos, newEndPos, count, val)
+                Nothing -> (newStartPos, newEndPos, count + 1, val)
     initialize :: (Maybe GenomPos, Maybe GenomPos, Int, Double)
     initialize = (Nothing, Nothing, 0, 0.0)
     extract :: (Maybe GenomPos, Maybe GenomPos, Int, Double) -> BlockData
