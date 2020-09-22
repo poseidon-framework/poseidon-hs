@@ -10,7 +10,7 @@ category:            Bioinformatics
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.md,
-                     Changelog.md
+                     CHANGELOG.md
 
 library
     exposed-modules:    Poseidon.Package, Poseidon.FStats, Poseidon.Utils
