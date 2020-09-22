@@ -1,25 +1,32 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-added import           Poseidon.FStats       (FStatSpec (..), PopSpec (..),
-                                        fStatSpecParser, runParser)
-import           Poseidon.Package      (EigenstratIndEntry (..),
-                                        PoseidonPackage (..), getIndividuals,
-                                        -- getJointGenotypeData,
-                                        loadPoseidonPackages)
-import           Poseidon.Utils        (PoseidonException (..))
-
-import           Control.Exception     (throwIO)
-import           Control.Monad         (forM, forM_, when)
-import           Data.ByteString.Char8 (pack, splitWith)
-import           Data.List             (groupBy, intercalate, intersect, nub,
-                                        sortOn)
-import           Data.Maybe            (catMaybes)
-import           Options.Applicative   as OP
-import           SequenceFormats.Utils (Chrom (..))
-import           System.IO             (hPutStrLn, stderr)
-import           Text.Layout.Table     (asciiRoundS, column, def, expand,
-                                        expandUntil, rowsG, tableString,
-                                        titlesH)
+import           Poseidon.FStats            (FStatSpec (..), PopSpec (..),
+                                             fStatSpecParser, runParser,
+                                             statSpecsFold)
+import           Poseidon.Package           (EigenstratIndEntry (..),
+                                             PoseidonPackage (..),
+                                             getIndividuals,
+                                             getJointGenotypeData,
+                                             loadPoseidonPackages)
+import           Control.Foldl              (purely)
+import           Control.Monad              (forM)
+import Control.Monad.Catch (throwM)
+import           Data.ByteString.Char8      (pack, splitWith)
+import           Data.List                  (groupBy, intercalate, intersect,
+                                             nub, sortOn)
+import           Data.Maybe                 (catMaybes)
+import           Lens.Family2               (view)
+import           Options.Applicative        as OP
+import           Pipes                      (runEffect, (>->))
+import           Pipes.Group                (chunksOf, folds, groupsBy)
+import qualified Pipes.Prelude              as P
+import           Pipes.Safe                 (runSafeT)
+import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..))
+import           SequenceFormats.Utils      (Chrom (..))
+import           System.IO                  (hPutStrLn, stderr)
+import           Text.Layout.Table          (asciiRoundS, column, def, expand,
+                                             expandUntil, rowsG, tableString,
+                                             titlesH)
 
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
@@ -152,41 +159,50 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate Nothing  = "n/a"
 
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs _ _ statSpecs) = do
+runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " packages found"
     let collectedStats = collectStatSpecGroups statSpecs
     relevantPackages <- findRelevantPackages collectedStats packages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics found"
+    runSafeT $ do
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
+        let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
+            eigenstratProdInChunks = case bootstrapSize of
+                Nothing -> chunkEigenstratByChromosome eigenstratProdFiltered
+                Just chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
+        statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
+            Left e ->  throwM e
+            Right f -> return f
+        let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
+        runEffect $ summaryStatsProd >-> P.map show >-> P.stdoutLn
+  where
+    chromFilter (EigenstratSnpEntry chrom _ _ _ _ _, _) = chrom `notElem` exclusionList
+    chunkEigenstratByChromosome = view (groupsBy sameChrom)
+    sameChrom (EigenstratSnpEntry chrom1 _ _ _ _ _, _) (EigenstratSnpEntry chrom2 _ _ _ _ _, _) =
+        chrom1 == chrom2
+    chunkEigenstratByNrSnps chunkSize = view (chunksOf chunkSize)
 
 collectStatSpecGroups :: [FStatSpec] -> [PopSpec]
 collectStatSpecGroups statSpecs = nub . concat $ do
     stat <- statSpecs
     case stat of
-        F4Spec a b c d           -> return [a, b, c, d]
-        F3Spec a b c             -> return [a, b, c]
-        F2Spec a b               -> return [a, b]
-        PairwiseMismatchSpec a b -> return [a, b]
+        F4Spec  a b c d -> return [a, b, c, d]
+        F3Spec  a b c   -> return [a, b, c]
+        F2Spec  a b     -> return [a, b]
+        PWMspec a b     -> return [a, b]
 
 findRelevantPackages :: [PopSpec] -> [PoseidonPackage] -> IO [PoseidonPackage]
 findRelevantPackages popSpecs packages = do
     let indNamesStats   = [ind   | PopSpecInd   ind   <- popSpecs]
         groupNamesStats = [group | PopSpecGroup group <- popSpecs]
-    relevantPacsWithNames <- fmap catMaybes . forM packages $ \pac -> do
+    fmap catMaybes . forM packages $ \pac -> do
         inds <- getIndividuals pac
         let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
             groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
         if   length (intersect indNamesPac indNamesStats) > 0 || length (intersect groupNamesPac groupNamesStats) > 0
-        then return (Just (pac, indNamesPac, groupNamesPac))
+        then return (Just pac)
         else return Nothing
-    let relevantPacs   = map (\(p, _, _) -> p) relevantPacsWithNames
-        indNamesPacs   = concat . map (\(_, n, _) -> n) $ relevantPacsWithNames
-        groupNamesPacs = concat . map (\(_, _, n) -> n) $ relevantPacsWithNames
-    forM_ indNamesStats $ \indName -> when (indName `notElem` indNamesPacs) $
-        throwIO $ PoseidonIndSearchException ("Individual name " ++ indName ++ " not found")
-    forM_ groupNamesStats $ \groupName -> when (groupName `notElem` groupNamesPacs) $
-        throwIO $ PoseidonIndSearchException ("Group name " ++ groupName ++ " not found")
-    return relevantPacs
 
 
 
