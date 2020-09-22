@@ -1,4 +1,5 @@
-module Poseidon.FStats (FStatSpec(..), fStatSpecParser, P.runParser, P.ParseError, PopSpec(..), statSpecsFold) where
+module Poseidon.FStats (FStatSpec(..), fStatSpecParser, P.runParser, P.ParseError, PopSpec(..), statSpecsFold,
+BlockData(..)) where
 
 import Poseidon.Utils (PoseidonException(..))
 
@@ -7,20 +8,40 @@ import Control.Foldl (Fold(..))
 import Data.Char (isSpace)
 import Data.Vector ((!))
 import SequenceFormats.Eigenstrat (EigenstratSnpEntry(..), GenoLine, EigenstratIndEntry(..), GenoEntry(..))
+import SequenceFormats.Utils (Chrom)
 import qualified Text.Parsec as P
 import qualified Text.Parsec.String as P
 
 data FStatSpec = F4Spec PopSpec PopSpec PopSpec PopSpec |
     F3Spec PopSpec PopSpec PopSpec |
     F2Spec PopSpec PopSpec |
-    PWMspec PopSpec PopSpec deriving (Show, Eq)
+    PWMspec PopSpec PopSpec deriving (Eq)
+
+instance Show FStatSpec where
+    show (F4Spec  a b c d) = "F4("  ++ show a ++ "," ++ show b ++ "," ++ show c ++ "," ++ show d ++ ")"
+    show (F3Spec  a b c  ) = "F3("  ++ show a ++ "," ++ show b ++ "," ++ show c ++ ")"
+    show (F2Spec  a b    ) = "F2("  ++ show a ++ "," ++ show b ++ ")"
+    show (PWMspec a b    ) = "PWM(" ++ show a ++ "," ++ show b ++ ")"
 
 data FStat = F4 [Int] [Int] [Int] [Int] |
     F3 [Int] [Int] [Int] |
     F2 [Int] [Int] |
     PWM [Int] [Int]
 
-data PopSpec = PopSpecGroup String | PopSpecInd String deriving (Show, Eq)
+data PopSpec = PopSpecGroup String | PopSpecInd String deriving (Eq)
+
+instance Show PopSpec where
+    show (PopSpecGroup n) = n
+    show (PopSpecInd   n) = "<" ++ n ++ ">"
+
+type GenomPos = (Chrom, Int)
+
+data BlockData = BlockData {
+    blockStartPos :: GenomPos,
+    blockEndPos :: GenomPos,
+    blockSiteCount :: Int,
+    blockVal :: Double
+} deriving (Show)
 
 fStatSpecParser :: P.Parser FStatSpec
 fStatSpecParser = P.try f4SpecParser <|> P.try f3SpecParser <|> P.try f2SpecParser <|> pwmSpecParser
@@ -69,13 +90,12 @@ pwmSpecParser = do
     [a, b] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 2)
     return $ PWMspec a b
 
-statSpecsFold :: [EigenstratIndEntry] -> [FStatSpec] -> Either PoseidonException (Fold (EigenstratSnpEntry, GenoLine) (Int, [Double]))
+statSpecsFold :: [EigenstratIndEntry] -> [FStatSpec] -> Either PoseidonException (Fold (EigenstratSnpEntry, GenoLine) [BlockData])
 statSpecsFold indEntries fStatSpecs = do
     listOfFolds <- mapM (statSpecFold indEntries) fStatSpecs
-    let foldOfList = sequenceA listOfFolds
-    return $ fmap (\list -> (fst (head list), map snd list)) foldOfList
+    return $ sequenceA listOfFolds
 
-statSpecFold :: [EigenstratIndEntry] -> FStatSpec -> Either PoseidonException (Fold (EigenstratSnpEntry, GenoLine) (Int, Double))
+statSpecFold :: [EigenstratIndEntry] -> FStatSpec -> Either PoseidonException (Fold (EigenstratSnpEntry, GenoLine) BlockData)
 statSpecFold iE fStatSpec = do
     fStat <- case fStatSpec of
         F4Spec  a b c d -> F4  <$> getPopIndices iE a <*> getPopIndices iE b <*> getPopIndices iE c <*> getPopIndices iE d
@@ -84,15 +104,23 @@ statSpecFold iE fStatSpec = do
         PWMspec a b     -> PWM <$> getPopIndices iE a <*> getPopIndices iE b
     return $ Fold (step fStat) initialize extract
   where
-    step :: FStat -> (Int, Double) -> (EigenstratSnpEntry, GenoLine) -> (Int, Double)
-    step fStat (count, val) (_, genoLine) =
-        case computeFStat fStat genoLine of
-            Just v  -> (count + 1, val + v)
-            Nothing -> (count + 1, val)
-    initialize :: (Int, Double)
-    initialize = (0, 0.0)
-    extract :: (Int, Double) -> (Int, Double)
-    extract = id
+    step :: FStat -> (Maybe GenomPos, Maybe GenomPos, Int, Double) ->
+        (EigenstratSnpEntry, GenoLine) -> (Maybe GenomPos, Maybe GenomPos, Int, Double)
+    step fstat (maybeStartPos, maybeEndPos, count, val) (EigenstratSnpEntry c p _ _ _ _, genoLine) =
+        let newStartPos = case maybeStartPos of
+                Nothing -> Just (c, p)
+                Just (c', p') -> Just (c', p')
+            newEndPos = Just (c, p)
+        in  case computeFStat fstat genoLine of
+                Just v  -> (newStartPos, newEndPos, count + 1, val + v)
+                Nothing -> (newStartPos, newEndPos, count, val)
+    initialize :: (Maybe GenomPos, Maybe GenomPos, Int, Double)
+    initialize = (Nothing, Nothing, 0, 0.0)
+    extract :: (Maybe GenomPos, Maybe GenomPos, Int, Double) -> BlockData
+    extract (maybeStartPos, maybeEndPos, count, totalVal) =
+        let Just startPos = maybeStartPos
+            Just endPos = maybeEndPos
+        in  BlockData startPos endPos count (totalVal / fromIntegral count)
 
 computeFStat :: FStat -> GenoLine -> Maybe Double
 computeFStat fStat gL = case fStat of

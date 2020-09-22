@@ -2,18 +2,18 @@
 
 import           Poseidon.FStats            (FStatSpec (..), PopSpec (..),
                                              fStatSpecParser, runParser,
-                                             statSpecsFold)
+                                             statSpecsFold, BlockData(..))
 import           Poseidon.Package           (EigenstratIndEntry (..),
                                              PoseidonPackage (..),
                                              getIndividuals,
                                              getJointGenotypeData,
                                              loadPoseidonPackages)
-import           Control.Foldl              (purely)
-import           Control.Monad              (forM)
+import           Control.Foldl              (purely, list)
+import           Control.Monad              (forM, forM_)
 import Control.Monad.Catch (throwM)
 import           Data.ByteString.Char8      (pack, splitWith)
 import           Data.List                  (groupBy, intercalate, intersect,
-                                             nub, sortOn)
+                                             nub, sortOn, transpose)
 import           Data.Maybe                 (catMaybes)
 import           Lens.Family2               (view)
 import           Options.Applicative        as OP
@@ -46,6 +46,7 @@ data FstatsOptions = FstatsOptions
     , _foBootstrapBlockSize :: Maybe Int
     , _foExcludeChroms      :: [Chrom]
     , _foStatSpec           :: [FStatSpec]
+    , _foRawOutput          :: Bool
     }
 
 main :: IO ()
@@ -74,7 +75,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 fstatsOptParser :: OP.Parser FstatsOptions
-fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseBootstrap <*> parseExcludeChroms <*> OP.some parseStatSpec
+fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseBootstrap <*> parseExcludeChroms <*> OP.some parseStatSpec <*> parseRawOutput
 
 parseBootstrap :: OP.Parser (Maybe Int)
 parseBootstrap = OP.option (Just <$> OP.auto) (OP.long "blocksize" <> OP.short 'b' <>
@@ -116,7 +117,7 @@ parseRawOutput = OP.switch (OP.long "raw" <> OP.short 'r' <> OP.help "output tab
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " packages found"
+    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]
@@ -159,13 +160,14 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate Nothing  = "n/a"
 
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs) = do
+runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " packages found"
+    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     let collectedStats = collectStatSpecGroups statSpecs
     relevantPackages <- findRelevantPackages collectedStats packages
-    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics found"
-    runSafeT $ do
+    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified"
+    hPutStrLn stderr $ "Computing stats " ++ show statSpecs 
+    blockData <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
             eigenstratProdInChunks = case bootstrapSize of
@@ -175,13 +177,41 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs) = do
             Left e ->  throwM e
             Right f -> return f
         let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
-        runEffect $ summaryStatsProd >-> P.map show >-> P.stdoutLn
+        purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
+    let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
+        colSpecs = replicate 4 (column expand def def def)
+        tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
+        tableB = do
+            (fstat, result) <- zip statSpecs jackknifeEstimates
+            return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
+    if   rawOutput
+    then do 
+        putStrLn $ intercalate "\t" tableH
+        forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
+    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
     chromFilter (EigenstratSnpEntry chrom _ _ _ _ _, _) = chrom `notElem` exclusionList
     chunkEigenstratByChromosome = view (groupsBy sameChrom)
     sameChrom (EigenstratSnpEntry chrom1 _ _ _ _ _, _) (EigenstratSnpEntry chrom2 _ _ _ _ _, _) =
         chrom1 == chrom2
     chunkEigenstratByNrSnps chunkSize = view (chunksOf chunkSize)
+    showBlockLogOutput blocks = "computing chunk range " ++ show (blockStartPos (head blocks)) ++ " - " ++
+        show (blockEndPos (head blocks)) ++ ", size " ++ (show . blockSiteCount . head) blocks ++ ", values " ++
+        (show . map blockVal) blocks
+
+computeJackknife :: [Int] -> [Double] -> (Double, Double)
+computeJackknife weights values =
+    let sumValues   = sum values
+        m           = map fromIntegral weights
+        n           = sum m
+        theta       = sumValues / n
+        thetaMinus  = [(sumValues - c) / (n - mj) | (c, mj) <- zip values m]
+        g           = fromIntegral (length m)
+        thetaJ      = g * theta - sum [(n - mj) * thetaMinusJ / n | (mj, thetaMinusJ) <- zip m thetaMinus]
+        h           = [n / mj | mj <- m]
+        tau         = [hj * theta - (hj - 1.0) * thetaMinusJ | (hj, thetaMinusJ) <- zip h thetaMinus]
+        sigmaSquare = sum [(tauJ - thetaJ) ^ (2 :: Int) / (hj - 1.0) | (tauJ, hj) <- zip tau h] / g
+    in  (theta, sqrt sigmaSquare)
 
 collectStatSpecGroups :: [FStatSpec] -> [PopSpec]
 collectStatSpecGroups statSpecs = nub . concat $ do
