@@ -19,7 +19,7 @@ module Poseidon.Package (
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM, forM_, when)
+import           Control.Monad              (filterM, forM, forM_)
 import           Control.Monad.Catch        (throwM)
 import           Data.Aeson                 (FromJSON, parseJSON, withObject,
                                              withText, (.:), (.:?))
@@ -33,6 +33,7 @@ import qualified Data.Vector                as V
 import           Data.Version               (Version)
 import           Data.Yaml                  (decodeEither')
 import           Pipes                      (Producer, (>->))
+import           Pipes.OrderedZip           (orderedZip, orderCheckPipe)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -185,19 +186,17 @@ getGenotypeData pac = do
 getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointGenotypeData pacs = do
     genotypeTuples <- mapM getGenotypeData pacs
-    let jointIndEntries = concat . map fst $ genotypeTuples
-        jointProducer = (zipAll . map snd) genotypeTuples >-> P.mapM joinEntries
-    return (jointIndEntries, jointProducer)
+    let indEntries      = map fst genotypeTuples
+        jointIndEntries = concat indEntries
+        nrInds          = map length indEntries
+        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM joinEntries
+    return (jointIndEntries, jointProducer >> return ())
   where
     joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
     joinEntries tupleList = do
         let allSnpEntries                                    = map fst tupleList
             allGenoEntries                                   = map snd tupleList
-            (EigenstratSnpEntry chrom1 pos1 _ _ refA1 altA1) = head allSnpEntries
-        -- check for positions being the same across files
-        when (or [(c, p) /= (chrom1, pos1) | EigenstratSnpEntry c p _ _ _ _ <- tail allSnpEntries]) $
-            throwM (PoseidonGenotypeException ("SNP positions don't match: " ++ show allSnpEntries))
-        -- check for alleles to be alignable
+            (EigenstratSnpEntry _ _ _ _ refA1 altA1) = head allSnpEntries
         allGenoEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(EigenstratSnpEntry _ _ _ _ refA altA, genoLine) ->
             if (refA, altA) == (refA1, altA1)
             then return genoLine
@@ -212,7 +211,22 @@ getJointGenotypeData pacs = do
         HomAlt  -> HomRef
         Missing -> Missing)
 
-zipAll :: Monad m => [Producer a m r] -> Producer [a] m r
-zipAll []            = error "zipAll - should never happen"
-zipAll [prod]        = prod >-> P.map (\x ->[x])
-zipAll (prod1:prods) = P.zip prod1 (zipAll prods) >-> P.map (\(a, as) -> a:as)
+zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
+zipAll _                   []            = error "zipAll - should never happen (1)"
+zipAll []                  _             = error "zipAll - should never happen (2)"
+zipAll _                   [prod]        = fmap (\x -> [x]) (prod >-> orderCheckPipe compFunc1) >-> P.map (\x ->[x])
+zipAll (nrHaps:restNrHaps) (prod1:prods) =
+    fmap (\(r, rs) -> (r:rs)) (orderedZip compFunc2 (prod1 >-> orderCheckPipe compFunc1) (zipAll restNrHaps prods)) >-> P.map processMaybeTuples
+  where
+    processMaybeTuples :: (Maybe (EigenstratSnpEntry, GenoLine), Maybe [(EigenstratSnpEntry, GenoLine)]) -> [(EigenstratSnpEntry, GenoLine)]
+    processMaybeTuples (Nothing,        Nothing)          = error "processMaybeTuples: should never happen"
+    processMaybeTuples (Just (es, gl),  Nothing)          = (es, gl) : [(es, V.replicate l Missing) | l <- restNrHaps]
+    processMaybeTuples (Nothing,        Just restEntries) = (fst (head restEntries), V.replicate nrHaps Missing) : restEntries
+    processMaybeTuples (Just (es, gl1), Just restEntries) = (es, gl1) : restEntries
+
+compFunc1 :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
+compFunc1 (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
+
+compFunc2 :: (EigenstratSnpEntry, GenoLine) -> [(EigenstratSnpEntry, GenoLine)] -> Ordering
+compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _ _, _):_) = compare (c1, p1) (c2, p2)
+compFunc2 _                                     []                                        = error "compFunc2 - should never happen"

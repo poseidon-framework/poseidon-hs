@@ -9,7 +9,7 @@ import           Data.List                  (groupBy, intercalate, intersect,
 import           Data.Maybe                 (catMaybes)
 import           Lens.Family2               (view)
 import           Options.Applicative        as OP
-import           Pipes                      (runEffect, (>->))
+import           Pipes                      ((>->))
 import           Pipes.Group                (chunksOf, folds, groupsBy)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
