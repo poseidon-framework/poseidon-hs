@@ -6,6 +6,7 @@ import           Data.Yaml                  (ParseException)
 data PoseidonException = PoseidonYamlParseException FilePath ParseException
     | PoseidonPackageException String
     | PoseidonIndSearchException String
+    | PoseidonGenotypeException String
     deriving (Show)
 
 instance Exception PoseidonException

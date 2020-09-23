@@ -1,16 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.FStats            (FStatSpec (..), PopSpec (..),
-                                             fStatSpecParser, runParser,
-                                             statSpecsFold, BlockData(..))
-import           Poseidon.Package           (EigenstratIndEntry (..),
-                                             PoseidonPackage (..),
-                                             getIndividuals,
-                                             getJointGenotypeData,
-                                             loadPoseidonPackages)
-import           Control.Foldl              (purely, list)
+import           Control.Foldl              (list, purely)
 import           Control.Monad              (forM, forM_)
-import Control.Monad.Catch (throwM)
+import           Control.Monad.Catch        (throwM)
 import           Data.ByteString.Char8      (pack, splitWith)
 import           Data.List                  (groupBy, intercalate, intersect,
                                              nub, sortOn, transpose)
@@ -21,6 +13,14 @@ import           Pipes                      (runEffect, (>->))
 import           Pipes.Group                (chunksOf, folds, groupsBy)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
+import           Poseidon.FStats            (BlockData (..), FStatSpec (..),
+                                             PopSpec (..), fStatSpecParser,
+                                             runParser, statSpecsFold)
+import           Poseidon.Package           (EigenstratIndEntry (..),
+                                             PoseidonPackage (..),
+                                             getIndividuals,
+                                             getJointGenotypeData,
+                                             loadPoseidonPackages)
 import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..))
 import           SequenceFormats.Utils      (Chrom (..))
 import           System.IO                  (hPutStrLn, stderr)
@@ -167,7 +167,7 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutpu
     relevantPackages <- findRelevantPackages collectedStats packages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
     forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
-    hPutStrLn stderr $ "Computing stats " ++ show statSpecs 
+    hPutStrLn stderr $ "Computing stats " ++ show statSpecs
     blockData <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
@@ -175,7 +175,7 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutpu
                 Nothing -> chunkEigenstratByChromosome eigenstratProdFiltered
                 Just chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
         statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
-            Left e ->  throwM e
+            Left e  ->  throwM e
             Right f -> return f
         let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
         purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
@@ -186,7 +186,7 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutpu
             (fstat, result) <- zip statSpecs jackknifeEstimates
             return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
     if   rawOutput
-    then do 
+    then do
         putStrLn $ intercalate "\t" tableH
         forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
     else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]

@@ -26,6 +26,8 @@ import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
+import           Control.Monad                 (when)
+import           Control.Monad.Catch        (throwM)
 import           Data.Text                  (unpack)
 import           Data.Time                  (Day)
 import qualified Data.Vector                as V
@@ -186,8 +188,16 @@ getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -> m ([EigenstratIndE
 getJointGenotypeData pacs = do
     genotypeTuples <- mapM getGenotypeData pacs
     let jointIndEntries = concat . map fst $ genotypeTuples
-        jointProducer = (zipAll . map snd) genotypeTuples >-> P.map (\l -> (fst (head l), V.concat (map snd l)))
+        jointProducer = (zipAll . map snd) genotypeTuples >-> P.mapM joinEntries
     return (jointIndEntries, jointProducer)
+  where
+    joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+    joinEntries tupleList = do
+        let allSnpEntries  = map fst tupleList
+            allGenoEntries = map snd tupleList
+        when (length (nub allSnpEntries) /= 1) $
+            throwM (PoseidonGenotypeException ("SNP entries don't match: " ++ show allSnpEntries))
+        return (head allSnpEntries, V.concat allGenoEntries)
 
 zipAll :: Monad m => [Producer a m r] -> Producer [a] m r
 zipAll []            = error "zipAll - should never happen"
