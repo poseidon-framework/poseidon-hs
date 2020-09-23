@@ -194,29 +194,39 @@ getJointGenotypeData pacs = do
   where
     joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
     joinEntries tupleList = do
-        let allSnpEntries                                    = map fst tupleList
-            allGenoEntries                                   = map snd tupleList
+        let allSnpEntries                            = map fst tupleList
+            allGenoEntries                           = map snd tupleList
             (EigenstratSnpEntry _ _ _ _ refA1 altA1) = head allSnpEntries
-        allGenoEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(EigenstratSnpEntry _ _ _ _ refA altA, genoLine) ->
+        allEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(es@(EigenstratSnpEntry _ _ _ _ refA altA), genoLine) ->
             if alleleConcordant refA refA1 && alleleConcordant altA altA1
-            then return genoLine
+            then return (es, genoLine)
             else if alleleConcordant refA altA1 && alleleConcordant altA refA1
-                    then return (flipGenotypes genoLine)
+                    then return (es {snpRef = altA, snpAlt = refA}, flipGenotypes genoLine)
                     else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
-        return (head allSnpEntries, V.concat (head allGenoEntries : allGenoEntriesFlipped))
+        let allSnpEntriesFlipped  = (head allSnpEntries) : map fst allEntriesFlipped
+            allGenoEntriesFlipped = (head allGenoEntries) : map snd allEntriesFlipped
+        return (makeSnpEntriesConcordant allSnpEntriesFlipped, V.concat allGenoEntriesFlipped)
     alleleConcordant :: Char -> Char -> Bool
     alleleConcordant '0' _   = True
     alleleConcordant _   '0' = True
     alleleConcordant 'N' _   = True
     alleleConcordant _   'N' = True
     alleleConcordant a1  a2  = a1 == a2
-
     flipGenotypes :: GenoLine -> GenoLine
     flipGenotypes = V.map (\a -> case a of
         HomRef  -> HomAlt
         Het     -> Het
         HomAlt  -> HomRef
         Missing -> Missing)
+    makeSnpEntriesConcordant :: [EigenstratSnpEntry] -> EigenstratSnpEntry
+    makeSnpEntriesConcordant snpEntries@(e:_) =
+        let allRefs            = map snpRef snpEntries
+            allAlts            = map snpAlt snpEntries
+            allInformativeRefs = filter (\c -> c /= '0' && c /= 'N') allRefs
+            allInformativeAlts = filter (\c -> c /= '0' && c /= 'N') allAlts
+            ref = if not (null allInformativeRefs) then head allInformativeRefs else head allRefs
+            alt = if not (null allInformativeAlts) then head allInformativeAlts else head allAlts
+        in  e {snpRef = ref, snpAlt = alt}
     
 
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
