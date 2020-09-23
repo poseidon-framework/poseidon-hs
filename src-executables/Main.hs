@@ -27,6 +27,7 @@ import           System.IO                  (hPutStrLn, stderr)
 import           Text.Layout.Table          (asciiRoundS, column, def, expand,
                                              expandUntil, rowsG, tableString,
                                              titlesH)
+import           Text.Read                  (readEither)
 
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
@@ -42,12 +43,14 @@ data ListEntity = ListPackages
     | ListIndividuals
 
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs           :: [FilePath]
-    , _foBootstrapBlockSize :: Maybe Int
-    , _foExcludeChroms      :: [Chrom]
-    , _foStatSpec           :: [FStatSpec]
-    , _foRawOutput          :: Bool
+    { _foBaseDirs      :: [FilePath]
+    , _foJackknifeMode :: JackknifeMode
+    , _foExcludeChroms :: [Chrom]
+    , _foStatSpec      :: [FStatSpec]
+    , _foRawOutput     :: Bool
     }
+
+data JackknifeMode = JackknifePerN Int | JackknifePerChromosome
 
 main :: IO ()
 main = do
@@ -75,13 +78,20 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 fstatsOptParser :: OP.Parser FstatsOptions
-fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseBootstrap <*> parseExcludeChroms <*> OP.some parseStatSpec <*> parseRawOutput
+fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseJackknife <*> parseExcludeChroms <*> OP.some parseStatSpec <*> parseRawOutput
 
-parseBootstrap :: OP.Parser (Maybe Int)
-parseBootstrap = OP.option (Just <$> OP.auto) (OP.long "blocksize" <> OP.short 'b' <>
-    OP.help "Bootstrap block size. Leave blank for \
-        \chromosome-wise bootstrap. Otherwise give the block size in nr of Snps (e.g. \
-        \5000)" <> OP.value Nothing)
+parseJackknife :: OP.Parser JackknifeMode
+parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
+    OP.help "Jackknife setting. If given an integer number, this defines the block size in SNPs. \
+        \Set to \"CHR\" if you want jackknife blocks defined as entire chromosomes. The default is at 5000 SNPs" <> OP.value (JackknifePerN 5000))
+  where
+    readJackknifeString :: String -> Either String JackknifeMode
+    readJackknifeString s = case s of
+        "CHR"  -> Right JackknifePerChromosome
+        numStr -> let num = readEither numStr
+                  in  case num of
+                        Left e  -> Left e
+                        Right n -> Right (JackknifePerN n)
 
 parseExcludeChroms :: OP.Parser [Chrom]
 parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str) (OP.long "excludeChroms" <> OP.short 'e' <>
@@ -91,7 +101,13 @@ parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str)
 
 parseStatSpec :: OP.Parser FStatSpec
 parseStatSpec = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
-    OP.help "Specify a summary statistic to be computed. Can be given multiple times. Possible options are: F4(name1,name2,name3,name4), and similarly F3 and F2 stats, as well as PWM(name1,name2) for pairwise mismatch rates. Group names are by default matched with group names as indicated in the PLINK or Eigenstrat files in the Poseidon dataset. You can also specify individual names using the syntax \"<Ind_name>\", so enclosing them in angular brackets. You can also mix groups and individuals, like in \"F4(<Ind1>,Group2,Group3,<Ind4>)\".")
+    OP.help "Specify a summary statistic to be computed. Can be given multiple times. \
+        \Possible options are: F4(name1,name2,name3,name4), and similarly F3 and F2 stats, \
+        \as well as PWM(name1,name2) for pairwise mismatch rates. Group names are by default \
+        \matched with group names as indicated in the PLINK or Eigenstrat files in the Poseidon dataset. \
+        \You can also specify individual names using the syntax \"<Ind_name>\", so enclosing them \
+        \in angular brackets. You can also mix groups and individuals, like in \
+        \\"F4(<Ind1>,Group2,Group3,<Ind4>)\".")
 
 readStatSpecString :: String -> Either String FStatSpec
 readStatSpecString s = case runParser fStatSpecParser () "" s of
@@ -160,7 +176,7 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
     showMaybeDate Nothing  = "n/a"
 
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutput) = do
+runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     let collectedStats = collectStatSpecGroups statSpecs
@@ -171,9 +187,9 @@ runFstats (FstatsOptions baseDirs bootstrapSize exclusionList statSpecs rawOutpu
     blockData <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
-            eigenstratProdInChunks = case bootstrapSize of
-                Nothing -> chunkEigenstratByChromosome eigenstratProdFiltered
-                Just chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
+            eigenstratProdInChunks = case jackknifeMode of
+                JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered
+                JackknifePerN chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
         statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
             Left e  ->  throwM e
             Right f -> return f
