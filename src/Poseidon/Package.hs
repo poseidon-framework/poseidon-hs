@@ -204,7 +204,7 @@ getJointGenotypeData pacs = do
             else if (refA, altA) == (altA1, refA1)
                     then return (flipGenotypes genoLine)
                     else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
-        return (head allSnpEntries, V.concat allGenoEntriesFlipped)
+        return (head allSnpEntries, V.concat (head allGenoEntries : allGenoEntriesFlipped))
     flipGenotypes :: GenoLine -> GenoLine
     flipGenotypes = V.map (\a -> case a of
         HomRef  -> HomAlt
