@@ -16,18 +16,17 @@ module Poseidon.Package (
     EigenstratIndEntry(..)
 ) where
 
-import Poseidon.Utils (PoseidonException(..))
+import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM_)
+import           Control.Monad              (filterM, forM, forM_, when)
+import           Control.Monad.Catch        (throwM)
 import           Data.Aeson                 (FromJSON, parseJSON, withObject,
                                              withText, (.:), (.:?))
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
-import           Control.Monad                 (when)
-import           Control.Monad.Catch        (throwM)
 import           Data.Text                  (unpack)
 import           Data.Time                  (Day)
 import qualified Data.Vector                as V
@@ -35,12 +34,11 @@ import           Data.Version               (Version)
 import           Data.Yaml                  (decodeEither')
 import           Pipes                      (Producer, (>->))
 import qualified Pipes.Prelude              as P
-import Pipes.Safe (MonadSafe)
+import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry(..),
-                                             GenoLine,
-                                             readEigenstratInd,
-                                             readEigenstrat)
+                                             EigenstratSnpEntry (..),
+                                             GenoEntry (..), GenoLine,
+                                             readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
@@ -193,11 +191,26 @@ getJointGenotypeData pacs = do
   where
     joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
     joinEntries tupleList = do
-        let allSnpEntries  = map fst tupleList
-            allGenoEntries = map snd tupleList
-        when (length (nub allSnpEntries) /= 1) $
-            throwM (PoseidonGenotypeException ("SNP entries don't match: " ++ show allSnpEntries))
-        return (head allSnpEntries, V.concat allGenoEntries)
+        let allSnpEntries                                    = map fst tupleList
+            allGenoEntries                                   = map snd tupleList
+            (EigenstratSnpEntry chrom1 pos1 _ _ refA1 altA1) = head allSnpEntries
+        -- check for positions being the same across files
+        when (or [(c, p) /= (chrom1, pos1) | EigenstratSnpEntry c p _ _ _ _ <- tail allSnpEntries]) $
+            throwM (PoseidonGenotypeException ("SNP positions don't match: " ++ show allSnpEntries))
+        -- check for alleles to be alignable
+        allGenoEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(EigenstratSnpEntry _ _ _ _ refA altA, genoLine) ->
+            if (refA, altA) == (refA1, altA1)
+            then return genoLine
+            else if (refA, altA) == (altA1, refA1)
+                    then return (flipGenotypes genoLine)
+                    else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
+        return (head allSnpEntries, V.concat allGenoEntriesFlipped)
+    flipGenotypes :: GenoLine -> GenoLine
+    flipGenotypes = V.map (\a -> case a of
+        HomRef  -> HomAlt
+        Het     -> Het
+        HomAlt  -> HomRef
+        Missing -> Missing)
 
 zipAll :: Monad m => [Producer a m r] -> Producer [a] m r
 zipAll []            = error "zipAll - should never happen"
