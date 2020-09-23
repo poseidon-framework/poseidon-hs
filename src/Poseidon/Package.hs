@@ -198,18 +198,26 @@ getJointGenotypeData pacs = do
             allGenoEntries                                   = map snd tupleList
             (EigenstratSnpEntry _ _ _ _ refA1 altA1) = head allSnpEntries
         allGenoEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(EigenstratSnpEntry _ _ _ _ refA altA, genoLine) ->
-            if (refA, altA) == (refA1, altA1)
+            if alleleConcordant refA refA1 && alleleConcordant altA altA1
             then return genoLine
-            else if (refA, altA) == (altA1, refA1)
+            else if alleleConcordant refA altA1 && alleleConcordant altA refA1
                     then return (flipGenotypes genoLine)
                     else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
         return (head allSnpEntries, V.concat (head allGenoEntries : allGenoEntriesFlipped))
+    alleleConcordant :: Char -> Char -> Bool
+    alleleConcordant '0' _   = True
+    alleleConcordant _   '0' = True
+    alleleConcordant 'N' _   = True
+    alleleConcordant _   'N' = True
+    alleleConcordant a1  a2  = a1 == a2
+
     flipGenotypes :: GenoLine -> GenoLine
     flipGenotypes = V.map (\a -> case a of
         HomRef  -> HomAlt
         Het     -> Het
         HomAlt  -> HomRef
         Missing -> Missing)
+    
 
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
 zipAll _                   []            = error "zipAll - should never happen (1)"
