@@ -174,6 +174,7 @@ Example output:
 | 2015_1000Genomes_1240K_haploid_pulldown | HG00112.SG       | GBR.SG               |
 | 2015_1000Genomes_1240K_haploid_pulldown | HG00113.SG       | GBR.SG               |
 '-----------------------------------------'-----------------------------------------'
+```
 
 which lists all individuals with their package, group and individual name.
 
@@ -214,7 +215,19 @@ This shows you the progress of the command. Each logging row here denotes a bloc
 
 The final output of the `fstats` command looks like this:
 
-
+```
+.----------------------------------------------------.-----------------------.-----------------------.---------------------.
+|                     Statistic                      |       Estimate        |        StdErr         |       Z score       |
+:====================================================:=======================:=======================:=====================:
+| F4(<Chimp.REF>,<Altai_published.DG>,Yoruba,French) | 3.158944901394701e-3  | 3.9396628452534067e-4 | 8.018312798519467   |
+| F4(<Chimp.REF>,<Altai_snpAD.DG>,Spanish,French)    | 6.224416129499041e-5  | 6.593273670495018e-5  | 0.9440554784421251  |
+| F4(Mbuti,Nganasan,Saami.DG,Finnish)                | -8.203181515666918e-3 | 5.722102735664199e-4  | -14.335956368869223 |
+| F3(French,Spanish,Mbuti)                           | 0.13473315812634057   | 1.366496126392123e-3  | 98.5975412034781    |
+| F2(French,Spanish)                                 | 3.16793648777051e-3   | 3.4084098466298525e-5 | 92.94470531185924   |
+| PWM(French,Spanish)                                | -1.19837777631975     | 8.820206514282228e-3  | -135.86731494089872 |
+'----------------------------------------------------'-----------------------'-----------------------'---------------------'
+```
+which lists each statistic, the genome-wide estimate, its standard error and its Z-score.
 
 ### Get more help
 
