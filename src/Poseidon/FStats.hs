@@ -12,6 +12,7 @@ import SequenceFormats.Utils (Chrom)
 import qualified Text.Parsec as P
 import qualified Text.Parsec.String as P
 
+-- | A datatype to represent Summary Statistics to be computed from genotype data.
 data FStatSpec = F4Spec PopSpec PopSpec PopSpec PopSpec |
     F3Spec PopSpec PopSpec PopSpec |
     F2Spec PopSpec PopSpec |
@@ -23,19 +24,23 @@ instance Show FStatSpec where
     show (F2Spec  a b    ) = "F2("  ++ show a ++ "," ++ show b ++ ")"
     show (PWMspec a b    ) = "PWM(" ++ show a ++ "," ++ show b ++ ")"
 
+-- | An internal datatype to represent Summary statistics with indices of individuals given as integers
 data FStat = F4 [Int] [Int] [Int] [Int] |
     F3 [Int] [Int] [Int] |
     F2 [Int] [Int] |
     PWM [Int] [Int]
 
+-- | A datatype to represent a group or an individual
 data PopSpec = PopSpecGroup String | PopSpecInd String deriving (Eq)
 
 instance Show PopSpec where
     show (PopSpecGroup n) = n
     show (PopSpecInd   n) = "<" ++ n ++ ">"
 
+-- | A helper type to represent a genomic position.
 type GenomPos = (Chrom, Int)
 
+-- | An internal datatype to represent information about a summary statistics computed for a genomic block (for Jackknifing)
 data BlockData = BlockData {
     blockStartPos :: GenomPos,
     blockEndPos :: GenomPos,
@@ -43,16 +48,18 @@ data BlockData = BlockData {
     blockVal :: Double
 } deriving (Show)
 
+-- | A parser to parse Summary Statistic specifications.
 fStatSpecParser :: P.Parser FStatSpec
 fStatSpecParser = P.try f4SpecParser <|> P.try f3SpecParser <|> P.try f2SpecParser <|> pwmSpecParser
 
+-- | A parser to parse F4Stats
 f4SpecParser :: P.Parser FStatSpec
 f4SpecParser = do
     _ <- P.string "F4"
     [a, b, c, d] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 4)
     return $ F4Spec a b c d
 
-
+-- | A parser to parse exactly N different popSpecs spearated by commas
 parsePopSpecsN :: Int -> P.Parser [PopSpec]
 parsePopSpecsN n = sepByN n parsePopSpec (P.char ',')
 

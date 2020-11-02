@@ -45,52 +45,59 @@ import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
 
+-- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
-    { posPacPoseidonVersion :: Version
-    , posPacTitle           :: String
-    , posPacDescription     :: Maybe String
-    , posPacContributor     :: [ContributorSpec]
-    , posPacLastModified    :: Maybe Day
-    , posPacBibFile         :: Maybe FilePath
-    , posPacGenotypeData    :: GenotypeDataSpec
-    , posPacJannoFile       :: FilePath
+    { posPacPoseidonVersion :: Version -- ^ The version of the package
+    , posPacTitle           :: String -- ^ The title of the package
+    , posPacDescription     :: Maybe String -- ^ the optional description string of the package
+    , posPacContributor     :: [ContributorSpec] -- ^ the contributor(s) of the package
+    , posPacLastModified    :: Maybe Day -- ^ the optional date of last update
+    , posPacBibFile         :: Maybe FilePath -- ^ the optional path to the bibliography file
+    , posPacGenotypeData    :: GenotypeDataSpec -- ^ the paths to the genotype files
+    , posPacJannoFile       :: FilePath -- ^ the path to the janno file 
     }
     deriving (Show, Eq)
 
+-- | A data type to represent a contributor
 data ContributorSpec = ContributorSpec
-    { contributorName  :: String
-    , contributorEmail :: String
+    { contributorName  :: String -- ^ the name of a contributor
+    , contributorEmail :: String -- ^ the email address of a contributor
     }
     deriving (Show, Eq)
 
+-- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
-    { format   :: GenotypeFormatSpec
-    , genoFile :: FilePath
-    , snpFile  :: FilePath
-    , indFile  :: FilePath
+    { format   :: GenotypeFormatSpec -- ^ the genotype format
+    , genoFile :: FilePath -- ^ path to the geno file
+    , snpFile  :: FilePath -- ^ path to the snp file
+    , indFile  :: FilePath -- ^ path to the ind file
     }
     deriving (Show, Eq)
 
-data GenotypeFormatSpec = GenotypeFormatEigenstrat
-    | GenotypeFormatPlink
+-- | A data type representing the options fo the genotype format
+data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
+    | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
 
+-- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
 instance FromJSON PoseidonPackage where
     parseJSON = withObject "PoseidonPackage" $ \v -> PoseidonPackage
-        <$> v .:   "poseidonVersion" --parseModuleVersion
+        <$> v .:   "poseidonVersion"
         <*> v .:   "title"
         <*> v .:?  "description"
         <*> v .:   "contributor"
-        <*> v .:?  "lastModified" --parseLastModified
+        <*> v .:?  "lastModified"
         <*> v .:?  "bibFile"
         <*> v .:   "genotypeData"
         <*> v .:   "jannoFile"
 
+-- | To facilitate automatic parsing of ContributorSpec from JSON files
 instance FromJSON ContributorSpec where
     parseJSON = withObject "contributor" $ \v -> ContributorSpec
         <$> v .: "name"
         <*> v .: "email"
 
+-- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
 instance FromJSON GenotypeDataSpec where
     parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
         <$> v .: "format"
@@ -98,14 +105,20 @@ instance FromJSON GenotypeDataSpec where
         <*> v .: "snpFile"
         <*> v .: "indFile"
 
+-- | To facilitate automatic parsing of GenotypeFormatSpec from JSON files
 instance FromJSON GenotypeFormatSpec where
     parseJSON = withText "format" $ \v -> case v of
         "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
         "PLINK"      -> pure GenotypeFormatPlink
         _            -> fail ("unknown format " ++ unpack v)
 
-
-addFullPaths :: FilePath -> PoseidonPackage -> PoseidonPackage
+-- | A helper function to add a base directory path to all file paths in a poseidon package.
+-- By using the (</>) operator from System.FilePath.Posix, this automatically ensures that paths are only
+-- added if the given paths in the Poseidon package are in fact relative. If they are absolute (which would be bad practice
+-- but anyway), the (</>) operator would simply return the second argument, so it wouldn't attach the base path.
+addFullPaths :: FilePath -- ^ the base file path to use as prefix for relative paths in the package
+             -> PoseidonPackage -- ^ the original package
+             -> PoseidonPackage -- ^ the new package with prefixed paths
 addFullPaths baseDir pac =
     let bibFileFullPath                      = (baseDir </>) <$> posPacBibFile pac
         jannoFileFullPath                    = baseDir </> (posPacJannoFile pac)
@@ -118,7 +131,10 @@ addFullPaths baseDir pac =
             posPacGenotypeData = genotypeDataFullPath
         }
 
-readPoseidonPackage :: FilePath -> IO PoseidonPackage
+-- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
+-- make paths absolute.
+readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
+                    -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
 readPoseidonPackage yamlPath = do
     let baseDir = takeDirectory yamlPath
     bs <- B.readFile yamlPath
@@ -127,7 +143,10 @@ readPoseidonPackage yamlPath = do
         Right pac -> return pac
     return $ addFullPaths baseDir fromJSON
 
-findPoseidonPackages :: FilePath -> IO [PoseidonPackage]
+-- | a helper function to return all poseidon packages, found by recursively searching a directory tree.
+-- If a package is encountered that throws a parsing error, it will be skipped and a warning will be issued.
+findPoseidonPackages :: FilePath -- ^ the base directory to search from
+                     -> IO [PoseidonPackage] -- ^ the returned list of poseidon packages.
 findPoseidonPackages baseDir = do
     entries <- listDirectory baseDir
     posPac  <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
@@ -142,7 +161,9 @@ findPoseidonPackages baseDir = do
     tryReadPoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
     tryReadPoseidonPackage = try . readPoseidonPackage
 
-loadPoseidonPackages :: [FilePath] -> IO [PoseidonPackage]
+-- | a utility function to load all poseidon packages found recursively in multiple base directories.
+loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
+                     -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 loadPoseidonPackages dirs = do
     allPackages <- concat <$> mapM findPoseidonPackages dirs
     let checked = filterDuplicatePackages allPackages
@@ -150,7 +171,9 @@ loadPoseidonPackages dirs = do
         hPutStrLn stderr err
     return $ rights checked
 
-filterDuplicatePackages :: [PoseidonPackage] -> [Either PoseidonException PoseidonPackage]
+-- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
+filterDuplicatePackages :: [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
+                        -> [Either PoseidonException PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
 filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn posPacTitle
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
@@ -169,21 +192,29 @@ filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn 
                         msg = "duplicate package with missing lastModified field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
-getIndividuals :: PoseidonPackage -> IO [EigenstratIndEntry]
+-- | A function to return a list of all individuals in the genotype files of a package.
+getIndividuals :: PoseidonPackage -- ^ the Poseidon package
+               -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
 getIndividuals pac = do
     let (GenotypeDataSpec format_ _ _ indF) = posPacGenotypeData pac
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstratInd indF
         GenotypeFormatPlink      -> readFamFile indF
 
-getGenotypeData :: (MonadSafe m) => PoseidonPackage -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+-- | A function to read the genotype data of a package
+getGenotypeData :: (MonadSafe m) => PoseidonPackage -- ^ the package
+                -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+                -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
 getGenotypeData pac = do
     let (GenotypeDataSpec format_ genoF snpF indF) = posPacGenotypeData pac
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstrat genoF snpF indF
         GenotypeFormatPlink      -> readPlink genoF snpF indF
 
-getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+-- | A function to read genotype data jointly from multiple packages
+getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -- ^ A list of poseidon packages.
+                     -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+                     -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
 getJointGenotypeData pacs = do
     genotypeTuples <- mapM getGenotypeData pacs
     let indEntries      = map fst genotypeTuples
@@ -228,7 +259,7 @@ getJointGenotypeData pacs = do
             alt = if not (null allInformativeAlts) then head allInformativeAlts else head allAlts
         in  e {snpRef = ref, snpAlt = alt}
     
-
+-- | a helper function to zip together multiple genotype producers
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
 zipAll _                   []            = error "zipAll - should never happen (1)"
 zipAll []                  _             = error "zipAll - should never happen (2)"
