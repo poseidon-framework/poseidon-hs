@@ -10,5 +10,4 @@ data PoseidonException = PoseidonYamlParseException FilePath ParseException -- ^
     | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data.
     deriving (Show)
 
--- | Making PoseidonExcepton a Haskell Exception.
 instance Exception PoseidonException

@@ -1,13 +1,11 @@
 module Poseidon.CmdFStats (
       FStatSpec(..)
-    , fStatSpecParser
-    , P.runParser
     , P.ParseError
     , PopSpec(..)
-    , statSpecsFold
-    , BlockData(..)
     , FstatsOptions(..)
     , JackknifeMode(..)
+    , fStatSpecParser
+    , P.runParser
     , runFstats
 ) where
 
@@ -42,22 +40,24 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
 
+-- | A datatype representing the command line options for the F-Statistics command
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs      :: [FilePath]
-    , _foJackknifeMode :: JackknifeMode
-    , _foExcludeChroms :: [Chrom]
-    , _foStatSpec      :: [FStatSpec]
-    , _foRawOutput     :: Bool
+    { _foBaseDirs      :: [FilePath] -- ^ the list of base directories to search for packages
+    , _foJackknifeMode :: JackknifeMode -- ^ The way the Jackknife is performed
+    , _foExcludeChroms :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
+    , _foStatSpec      :: [FStatSpec] -- ^ A list of F-statistics to compute
+    , _foRawOutput     :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
     }
 
-data JackknifeMode = JackknifePerN Int
-    | JackknifePerChromosome
+-- | A datatype representing the two options for how to run the Block-Jackknife
+data JackknifeMode = JackknifePerN Int -- ^ Run the Jackknife in blocks of N consecutive SNPs
+    | JackknifePerChromosome -- ^ Run the Jackknife in blocks defined as entire chromosomes.
 
 -- | A datatype to represent Summary Statistics to be computed from genotype data.
-data FStatSpec = F4Spec PopSpec PopSpec PopSpec PopSpec
-    | F3Spec PopSpec PopSpec PopSpec
-    | F2Spec PopSpec PopSpec
-    | PWMspec PopSpec PopSpec
+data FStatSpec = F4Spec PopSpec PopSpec PopSpec PopSpec -- ^ F4 Statistics
+    | F3Spec PopSpec PopSpec PopSpec -- ^ F3 Statistics
+    | F2Spec PopSpec PopSpec -- ^ F2 Statistics
+    | PWMspec PopSpec PopSpec -- ^ Pairwise Mismatch Rates between two groups
     deriving (Eq)
 
 instance Show FStatSpec where
@@ -73,8 +73,8 @@ data FStat = F4 [Int] [Int] [Int] [Int]
     | PWM [Int] [Int]
 
 -- | A datatype to represent a group or an individual
-data PopSpec = PopSpecGroup String
-    | PopSpecInd String
+data PopSpec = PopSpecGroup String -- ^ Define a group name
+    | PopSpecInd String -- ^ Define an individual name
     deriving (Eq)
 
 instance Show PopSpec where
@@ -84,9 +84,8 @@ instance Show PopSpec where
 -- | A helper type to represent a genomic position.
 type GenomPos = (Chrom, Int)
 
--- | An internal datatype to represent information about a summary statistics computed for a genomic block (for Jackknifing)
 data BlockData = BlockData
-    { blockStartPos  :: GenomPos
+    { blockStartPos  :: GenomPos 
     , blockEndPos    :: GenomPos
     , blockSiteCount :: Int
     , blockVal       :: Double
@@ -104,7 +103,6 @@ f4SpecParser = do
     [a, b, c, d] <- P.between (P.char '(') (P.char ')') (parsePopSpecsN 4)
     return $ F4Spec a b c d
 
--- | A parser to parse exactly N different popSpecs spearated by commas
 parsePopSpecsN :: Int -> P.Parser [PopSpec]
 parsePopSpecsN n = sepByN n parsePopSpec (P.char ',')
 
@@ -214,6 +212,7 @@ getPopIndices indEntries popSpec =
             PopSpecInd   n -> Left $ PoseidonIndSearchException ("Individual name " ++ n ++ " not found")
         else Right ret
 
+-- | The main function running the FStats command.
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutput) = do
     packages <- loadPoseidonPackages baseDirs

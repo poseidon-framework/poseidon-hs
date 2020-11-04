@@ -12,6 +12,13 @@ A toolset to work with modular genotype databases formatted using Poseidon.
 
 You can install the internal documentation using `stack haddock` and open it subsequently using `stack haddock --open`. This will then open a HTML page with all dependency packages and the `poseidon-hs` library itself. The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
 
+Important packages to look into to understand the architecture of this tool:
+* Start with `Poseidon.Package`: It defines the main package format and provides some functions how to access the data inside packages.
+* The `Poseidon.Utils` module only provides the definition of an Exception type.
+* The two modules `Poseidon.CmdFStats` and `Poseidon.CmdList` define the functionality provided in the two command line functions `list` and `fstats`.
+* The `list` command might be a good place to start and understanding what's going on and how to use the `Poseidon.Package` interface.
+* The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
+
 ## Guide
 
 ### Poseidon package repositories

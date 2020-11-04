@@ -10,16 +10,19 @@ import           System.IO                 (hPutStrLn, stderr)
 import           Text.Layout.Table         (asciiRoundS, column, def, expand,
                                             rowsG, tableString, titlesH, expandUntil)
 
+-- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _loBaseDirs   :: [FilePath]
-    , _loListEntity :: ListEntity
-    , _loRawOutput  :: Bool
+    { _loBaseDirs   :: [FilePath] -- ^ the list of base directories to search for packages
+    , _loListEntity :: ListEntity -- ^ what to list 
+    , _loRawOutput  :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     }
 
-data ListEntity = ListPackages
-    | ListGroups
-    | ListIndividuals
+-- | A datatype to represent the options what to list
+data ListEntity = ListPackages -- ^ list packages
+    | ListGroups -- ^ list groups across all found packages, as defined in the Genotype Individual file
+    | ListIndividuals -- ^ list individuals across all found packages
 
+-- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
     packages <- loadPoseidonPackages baseDirs

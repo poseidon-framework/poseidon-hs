@@ -260,7 +260,7 @@ getJointGenotypeData pacs = do
         in  e {snpRef = ref, snpAlt = alt}
     makeSnpEntriesConcordant _ = error "should not happen"
     
--- | a helper function to zip together multiple genotype producers
+
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
 zipAll _                   []            = error "zipAll - should never happen (1)"
 zipAll []                  _             = error "zipAll - should never happen (2)"
