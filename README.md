@@ -8,6 +8,10 @@ A toolset to work with modular genotype databases formatted using Poseidon.
 3. If you're a developer and would like to run teh tests, execute `stack test` inside the repository to build and run tests. This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
 4. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path)
 
+## Development Quickstart
+
+You can install the internal documentation using `stack haddock` and open it subsequently using `stack haddock --open`. This will then open a HTML page with all dependency packages and the `poseidon-hs` library itself. The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
+
 ## Guide
 
 ### Poseidon package repositories

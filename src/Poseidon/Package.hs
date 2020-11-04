@@ -258,6 +258,7 @@ getJointGenotypeData pacs = do
             ref = if not (null allInformativeRefs) then head allInformativeRefs else head allRefs
             alt = if not (null allInformativeAlts) then head allInformativeAlts else head allAlts
         in  e {snpRef = ref, snpAlt = alt}
+    makeSnpEntriesConcordant _ = error "should not happen"
     
 -- | a helper function to zip together multiple genotype producers
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]

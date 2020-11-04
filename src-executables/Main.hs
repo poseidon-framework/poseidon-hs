@@ -1,56 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Control.Foldl              (list, purely)
-import           Control.Monad              (forM, forM_)
-import           Control.Monad.Catch        (throwM)
-import           Data.ByteString.Char8      (pack, splitWith)
-import           Data.List                  (groupBy, intercalate, intersect,
-                                             nub, sortOn, transpose)
-import           Data.Maybe                 (catMaybes)
-import           Lens.Family2               (view)
-import           Options.Applicative        as OP
-import           Pipes                      ((>->))
-import           Pipes.Group                (chunksOf, folds, groupsBy)
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (runSafeT)
-import           Poseidon.FStats            (BlockData (..), FStatSpec (..),
-                                             PopSpec (..), fStatSpecParser,
-                                             runParser, statSpecsFold)
-import           Poseidon.Package           (EigenstratIndEntry (..),
-                                             PoseidonPackage (..),
-                                             getIndividuals,
-                                             getJointGenotypeData,
-                                             loadPoseidonPackages)
-import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..))
-import           SequenceFormats.Utils      (Chrom (..))
-import           System.IO                  (hPutStrLn, stderr)
-import           Text.Layout.Table          (asciiRoundS, column, def, expand,
-                                             expandUntil, rowsG, tableString,
-                                             titlesH)
-import           Text.Read                  (readEither)
+import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
+                                        JackknifeMode (..), fStatSpecParser,
+                                        runFstats, runParser)
+import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
+                                        runList)
+
+import           Data.ByteString.Char8 (pack, splitWith)
+import           Options.Applicative   as OP
+import           SequenceFormats.Utils (Chrom (..))
+import           Text.Read             (readEither)
+
 
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
-
-data ListOptions = ListOptions
-    { _loBaseDirs   :: [FilePath]
-    , _loListEntity :: ListEntity
-    , _loRawOutput  :: Bool
-    }
-
-data ListEntity = ListPackages
-    | ListGroups
-    | ListIndividuals
-
-data FstatsOptions = FstatsOptions
-    { _foBaseDirs      :: [FilePath]
-    , _foJackknifeMode :: JackknifeMode
-    , _foExcludeChroms :: [Chrom]
-    , _foStatSpec      :: [FStatSpec]
-    , _foRawOutput     :: Bool
-    }
-
-data JackknifeMode = JackknifePerN Int | JackknifePerChromosome
 
 main :: IO ()
 main = do
@@ -129,122 +92,4 @@ parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (OP.long "raw" <> OP.short 'r' <> OP.help "output table as tsv without header. Useful for piping into grep or awk.")
-
-runList :: ListOptions -> IO ()
-runList (ListOptions baseDirs listEntity rawOutput) = do
-    packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    (tableH, tableB) <- case listEntity of
-        ListPackages -> do
-            let tableH = ["Title", "Date", "Nr Individuals"]
-            tableB <- forM packages $ \pac -> do
-                inds <- getIndividuals pac
-                return [posPacTitle pac, showMaybeDate (posPacLastModified pac), show (length inds)]
-            return (tableH, tableB)
-        ListGroups -> do
-            allInds <- fmap concat . forM packages $ \pac -> do
-                inds <- getIndividuals pac
-                return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
-            let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
-                tableB = do
-                    indGroup <- allIndsSortedByGroup
-                    let packages_ = nub [i!!0 | i <- indGroup]
-                    let nrInds = length indGroup
-                    return [(indGroup!!0)!!2, intercalate "," packages_, show nrInds]
-            let tableH = ["Group", "Packages", "Nr Individuals"]
-            return (tableH, tableB)
-        ListIndividuals -> do
-            tableB <- fmap concat . forM packages $ \pac -> do
-                inds <- getIndividuals pac
-                return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
-            let tableH = ["Package", "Individual", "Population"]
-            return (tableH, tableB)
-
-    if rawOutput then
-        putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    else
-        case listEntity of
-            ListGroups -> do
-                let colSpecs = replicate 3 (column (expandUntil 50) def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-            _ -> do
-                let colSpecs = replicate 3 (column expand def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-  where
-    showMaybeDate (Just d) = show d
-    showMaybeDate Nothing  = "n/a"
-
-runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutput) = do
-    packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    let collectedStats = collectStatSpecGroups statSpecs
-    relevantPackages <- findRelevantPackages collectedStats packages
-    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
-    forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
-    hPutStrLn stderr $ "Computing stats " ++ show statSpecs
-    blockData <- runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
-        let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
-            eigenstratProdInChunks = case jackknifeMode of
-                JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered
-                JackknifePerN chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
-        statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
-            Left e  ->  throwM e
-            Right f -> return f
-        let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
-        purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
-    let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
-        colSpecs = replicate 4 (column expand def def def)
-        tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
-        tableB = do
-            (fstat, result) <- zip statSpecs jackknifeEstimates
-            return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
-    if   rawOutput
-    then do
-        putStrLn $ intercalate "\t" tableH
-        forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
-    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-  where
-    chromFilter (EigenstratSnpEntry chrom _ _ _ _ _, _) = chrom `notElem` exclusionList
-    chunkEigenstratByChromosome = view (groupsBy sameChrom)
-    sameChrom (EigenstratSnpEntry chrom1 _ _ _ _ _, _) (EigenstratSnpEntry chrom2 _ _ _ _ _, _) =
-        chrom1 == chrom2
-    chunkEigenstratByNrSnps chunkSize = view (chunksOf chunkSize)
-    showBlockLogOutput blocks = "computing chunk range " ++ show (blockStartPos (head blocks)) ++ " - " ++
-        show (blockEndPos (head blocks)) ++ ", size " ++ (show . blockSiteCount . head) blocks ++ ", values " ++
-        (show . map blockVal) blocks
-
-computeJackknife :: [Int] -> [Double] -> (Double, Double)
-computeJackknife weights values =
-    let weights'    = map fromIntegral weights
-        sumWeights  = sum weights'
-        g           = fromIntegral (length weights)
-        theta       = sum [mj * val | (mj, val) <- zip weights' values] / sumWeights
-        sigmaSquare = sum [mj * (val - theta) ^ (2 :: Int) / (sumWeights - mj) | (mj, val) <- zip weights' values] / g
-    in  (theta, sqrt sigmaSquare)
-
-collectStatSpecGroups :: [FStatSpec] -> [PopSpec]
-collectStatSpecGroups statSpecs = nub . concat $ do
-    stat <- statSpecs
-    case stat of
-        F4Spec  a b c d -> return [a, b, c, d]
-        F3Spec  a b c   -> return [a, b, c]
-        F2Spec  a b     -> return [a, b]
-        PWMspec a b     -> return [a, b]
-
-findRelevantPackages :: [PopSpec] -> [PoseidonPackage] -> IO [PoseidonPackage]
-findRelevantPackages popSpecs packages = do
-    let indNamesStats   = [ind   | PopSpecInd   ind   <- popSpecs]
-        groupNamesStats = [group | PopSpecGroup group <- popSpecs]
-    fmap catMaybes . forM packages $ \pac -> do
-        inds <- getIndividuals pac
-        let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
-            groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
-        if   length (intersect indNamesPac indNamesStats) > 0 || length (intersect groupNamesPac groupNamesStats) > 0
-        then return (Just pac)
-        else return Nothing
-
-
 
