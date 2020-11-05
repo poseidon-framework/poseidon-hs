@@ -44,7 +44,7 @@ fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths
                                 <*> parseJackknife
                                 <*> parseExcludeChroms
-                                <*> OP.some parseStatSpecsDirect
+                                <*> OP.many parseStatSpecsDirect
                                 <*> parseStatSpecsFromFile
                                 <*> parseRawOutput
 
@@ -77,9 +77,9 @@ parseStatSpecsDirect = OP.option (OP.eitherReader readStatSpecString) (OP.long "
         \in angular brackets. You can also mix groups and individuals, like in \
         \\"F4(<Ind1>,Group2,Group3,<Ind4>)\".")
 
-parseStatSpecsFromFile :: OP.Parser FilePath
-parseStatSpecsFromFile = OP.strOption (OP.long "statFile" <> OP.help "Specify a file with F-Statistics specified \
-    \similarly as specified for option --stat. One line per statistics")
+parseStatSpecsFromFile :: OP.Parser (Maybe FilePath)
+parseStatSpecsFromFile = OP.option (Just <$> OP.str) (OP.long "statFile" <> OP.help "Specify a file with F-Statistics specified \
+    \similarly as specified for option --stat. One line per statistics" <> OP.value Nothing)
 
 readStatSpecString :: String -> Either String FStatSpec
 readStatSpecString s = case runParser fStatSpecParser () "" s of

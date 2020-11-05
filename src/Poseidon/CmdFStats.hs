@@ -48,7 +48,7 @@ data FstatsOptions = FstatsOptions
     , _foJackknifeMode   :: JackknifeMode -- ^ The way the Jackknife is performed
     , _foExcludeChroms   :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
     , _foStatSpecsDirect :: [FStatSpec] -- ^ A list of F-statistics to compute
-    , _foStatSpecsFile   :: FilePath -- ^ a file listing F-statistics to compute
+    , _foStatSpecsFile   :: Maybe FilePath -- ^ a file listing F-statistics to compute
     , _foRawOutput       :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
     }
 
@@ -217,38 +217,43 @@ getPopIndices indEntries popSpec =
 
 -- | The main function running the FStats command.
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect statSpecsFile rawOutput) = do
+runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    statSpecsFromFile <- readStatSpecsFromFile statSpecsFile
+    statSpecsFromFile <- case maybeStatSpecsFile of
+        Nothing -> return []
+        Just f -> readStatSpecsFromFile f
     let statSpecs = statSpecsFromFile ++ statSpecsDirect
-    let collectedStats = collectStatSpecGroups statSpecs
-    relevantPackages <- findRelevantPackages collectedStats packages
-    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
-    forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
-    hPutStrLn stderr $ "Computing stats " ++ show statSpecs
-    blockData <- runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
-        let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
-            eigenstratProdInChunks = case jackknifeMode of
-                JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered
-                JackknifePerN chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
-        statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
-            Left e  ->  throwM e
-            Right f -> return f
-        let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
-        purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
-    let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
-        colSpecs = replicate 4 (column expand def def def)
-        tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
-        tableB = do
-            (fstat, result) <- zip statSpecs jackknifeEstimates
-            return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
-    if   rawOutput
-    then do
-        putStrLn $ intercalate "\t" tableH
-        forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
-    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    if null statSpecs then
+        hPutStrLn stderr $ "No statistics to be computed"
+    else do
+        let collectedStats = collectStatSpecGroups statSpecs
+        relevantPackages <- findRelevantPackages collectedStats packages
+        hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
+        forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
+        hPutStrLn stderr $ "Computing stats " ++ show statSpecs
+        blockData <- runSafeT $ do
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
+            let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
+                eigenstratProdInChunks = case jackknifeMode of
+                    JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered
+                    JackknifePerN chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
+            statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
+                Left e  ->  throwM e
+                Right f -> return f
+            let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
+            purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
+        let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
+            colSpecs = replicate 4 (column expand def def def)
+            tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
+            tableB = do
+                (fstat, result) <- zip statSpecs jackknifeEstimates
+                return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
+        if   rawOutput
+        then do
+            putStrLn $ intercalate "\t" tableH
+            forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
+        else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
     chromFilter (EigenstratSnpEntry chrom _ _ _ _ _, _) = chrom `notElem` exclusionList
     chunkEigenstratByChromosome = view (groupsBy sameChrom)
