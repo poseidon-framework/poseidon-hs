@@ -197,8 +197,8 @@ Here is an example command for computing several F-Statistics:
 
 ```
 poet fstats -d ... -d ... \
-  --stat "F4(<Chimp.REF>,<Altai_published.DG>,Yoruba,French)" \
-  --stat "F4(<Chimp.REF>,<Altai_snpAD.DG>,Spanish,French)" \
+  --stat "F4(<Chimp.REF>, <Altai_published.DG>, Yoruba, French)" \
+  --stat "F4(<Chimp.REF>, <Altai_snpAD.DG>, Spanish, French)" \
   --stat "F4(Mbuti,Nganasan,Saami.DG,Finnish)" \
   --stat "F3(French,Spanish,Mbuti)" \
   --stat "F2(French,Spanish)" \
@@ -208,9 +208,20 @@ poet fstats -d ... -d ... \
 This showcases a couple of points:
 * You can compute F2, F3 and F4 statistics, as well as Pairwise-Mismatch-Rates between groups. Note that in F3 statistics, the third population has the outgroup-role (or the target-admixture role depending on how you use it).
 * Use the `--stat` option to enter a single statistic. Use it multiple times to compute several statistics in one go
-* Use opening and closing brackets to list the groups, separated by comma, without spaces.
+* Use opening and closing brackets to list the groups, separated by comma followed by zero or more spaces.
 * Enclose a statistic with double-quotes, to not have bash interpret the brackets wrongly.
 * A normal name is interpreted as the name of a group, while a name enclosed by angular brackets, like "<Chimp.REF>" refers to an _individual_. This can be useful if you want to analyse some individuals in a group separately.
+
+You can also load these statistics from a file. Say you have a file named `fstats.txt` with the following content:
+
+```
+F4(<Chimp.REF>, <Altai_published.DG>, Yoruba, French)
+F4(<Chimp.REF>, <Altai_snpAD.DG>, Spanish, French)
+F4(Mbuti,Nganasan,Saami.DG,Finnish)
+```
+
+you can then load these statistics using the option `--statFile fstats.txt`. You can also combine statistics read from
+a file and statistics read from the command line.
 
 While running the command, you will see a lot of log messages of the form:
 
