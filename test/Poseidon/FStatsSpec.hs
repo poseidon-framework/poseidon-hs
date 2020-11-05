@@ -1,11 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.FStatsSpec (spec) where
 
 import           Poseidon.CmdFStats (FStatSpec (..), PopSpec (..), fStatSpecParser,
-                                  runParser, ParseError(..))
+                                  runParser, ParseError(..), readStatSpecsFromFile)
+
+import qualified Data.ByteString.Char8     as B
+import           System.IO (withFile, IOMode(..))
 import           Test.Hspec
+import           Text.RawString.QQ
 
 spec = do
     testParseStatSpec
+    testParseStatSpecFromFile
 
 testParseStatSpec :: Spec
 testParseStatSpec = describe "Poseidon.FStatsSpec.fStatSpecParser" $ do
@@ -28,4 +35,21 @@ testParseStatSpec = describe "Poseidon.FStatsSpec.fStatSpecParser" $ do
     it "should not parse too many args" $
         show (runParser fStatSpecParser () "" "F4(aa,<bb>,cc,dd,ee)") `shouldBe` "Left (line 1, column 17):\nunexpected \",\"\nexpecting \")\""
 
+fStatTestSpec :: B.ByteString
+fStatTestSpec = [r|
+F4(English, French, Mbuti, Saami)
+
+F3(English, French, <German1>)
+PWM(English, <French1>)|]
+
+testParseStatSpecFromFile :: Spec
+testParseStatSpecFromFile = describe "Poseidon.FStatsSpec.readStatSpecsFromFile" $ do
+    let fn = "/tmp/fstats_test.txt"
+    it "should parse a set of Fstats correctly from a file" $ do
+        withFile fn WriteMode $ \h -> B.hPutStr h fStatTestSpec
+        stats <- readStatSpecsFromFile fn
+        stats `shouldBe` [
+            F4Spec (PopSpecGroup "English") (PopSpecGroup "French") (PopSpecGroup "Mbuti") (PopSpecGroup "Saami"),
+            F3Spec (PopSpecGroup "English") (PopSpecGroup "French") (PopSpecInd "German1"),
+            PWMspec (PopSpecGroup "English") (PopSpecInd "French1")]
 

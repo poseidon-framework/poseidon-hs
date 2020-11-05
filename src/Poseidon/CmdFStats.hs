@@ -7,6 +7,7 @@ module Poseidon.CmdFStats (
     , fStatSpecParser
     , P.runParser
     , runFstats
+    , readStatSpecsFromFile
 ) where
 
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -107,7 +108,7 @@ f4SpecParser = do
     return $ F4Spec a b c d
 
 parsePopSpecsN :: Int -> P.Parser [PopSpec]
-parsePopSpecsN n = sepByN n parsePopSpec (P.char ',')
+parsePopSpecsN n = sepByN n parsePopSpec (P.char ',' <* P.spaces)
 
 sepByN :: Int -> P.Parser a -> P.Parser sep -> P.Parser [a]
 sepByN 0 _ _ = return []
@@ -266,7 +267,8 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect ma
 
 readStatSpecsFromFile :: FilePath -> IO [FStatSpec]
 readStatSpecsFromFile statSpecsFile = do
-    eitherParseResult <- P.parseFromFile (fStatSpecParser `P.sepBy1` P.newline) statSpecsFile
+    let multiFstatSpecParser = fStatSpecParser `P.sepBy1` (P.newline *> P.spaces)
+    eitherParseResult <- P.parseFromFile (P.spaces *> multiFstatSpecParser <* P.spaces) statSpecsFile
     case eitherParseResult of
         Left err -> throwIO (PoseidonFStatsFormatException (show err))
         Right r -> return r
