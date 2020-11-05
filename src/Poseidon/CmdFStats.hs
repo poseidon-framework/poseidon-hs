@@ -16,7 +16,8 @@ import           Poseidon.Package           (PoseidonPackage (..),
 import           Poseidon.Utils             (PoseidonException (..))
 
 
-import           Control.Applicative        ((<|>))
+import           Control.Applicative        ((<|>), many)
+import           Control.Exception          (throwIO)
 import           Control.Foldl              (Fold (..), list, purely)
 import           Control.Monad              (forM, forM_)
 import           Control.Monad.Catch        (throwM)
@@ -39,14 +40,16 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
                                              rowsG, tableString, titlesH)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
+import qualified Text.Parsec.Char           as P
 
 -- | A datatype representing the command line options for the F-Statistics command
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs      :: [FilePath] -- ^ the list of base directories to search for packages
-    , _foJackknifeMode :: JackknifeMode -- ^ The way the Jackknife is performed
-    , _foExcludeChroms :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
-    , _foStatSpec      :: [FStatSpec] -- ^ A list of F-statistics to compute
-    , _foRawOutput     :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
+    { _foBaseDirs        :: [FilePath] -- ^ the list of base directories to search for packages
+    , _foJackknifeMode   :: JackknifeMode -- ^ The way the Jackknife is performed
+    , _foExcludeChroms   :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
+    , _foStatSpecsDirect :: [FStatSpec] -- ^ A list of F-statistics to compute
+    , _foStatSpecsFile   :: FilePath -- ^ a file listing F-statistics to compute
+    , _foRawOutput       :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
     }
 
 -- | A datatype representing the two options for how to run the Block-Jackknife
@@ -214,9 +217,11 @@ getPopIndices indEntries popSpec =
 
 -- | The main function running the FStats command.
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutput) = do
+runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect statSpecsFile rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    statSpecsFromFile <- readStatSpecsFromFile statSpecsFile
+    let statSpecs = statSpecsFromFile ++ statSpecsDirect
     let collectedStats = collectStatSpecGroups statSpecs
     relevantPackages <- findRelevantPackages collectedStats packages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
@@ -253,6 +258,13 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutpu
     showBlockLogOutput blocks = "computing chunk range " ++ show (blockStartPos (head blocks)) ++ " - " ++
         show (blockEndPos (head blocks)) ++ ", size " ++ (show . blockSiteCount . head) blocks ++ ", values " ++
         (show . map blockVal) blocks
+
+readStatSpecsFromFile :: FilePath -> IO [FStatSpec]
+readStatSpecsFromFile statSpecsFile = do
+    eitherParseResult <- P.parseFromFile (fStatSpecParser `P.sepBy` P.newline) statSpecsFile
+    case eitherParseResult of
+        Left err -> throwIO (PoseidonFStatsFormatException (show err))
+        Right r -> return r
 
 computeJackknife :: [Int] -> [Double] -> (Double, Double)
 computeJackknife weights values =

@@ -8,6 +8,7 @@ data PoseidonException = PoseidonYamlParseException FilePath ParseException -- ^
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data.
+    | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     deriving (Show)
 
 instance Exception PoseidonException
