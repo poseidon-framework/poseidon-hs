@@ -22,24 +22,22 @@ decodingOptions = Csv.defaultDecodeOptions {
 
 instance Csv.FromRecord PoseidonSample
 
--- replace :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
--- replace from to s =
---    let (h, t) = B.breakSubstring from s
---    in  B.concat [h, to, B.drop (B.length from) t]
-
--- replaceNA :: B.ByteString -> B.ByteString
--- replaceNA jannoFile =
---    let na = B.pack "n/a" in
---    replace na B.empty jannoFile
+replaceNA :: B.ByteString -> B.ByteString
+replaceNA tsv =
+   let tsvRows = B.lines tsv
+       tsvCells = map (\x -> B.splitWith (=='\t') x) tsvRows
+       tsvCellsUpdated = map (\x -> map (\y -> if y == (B.pack "n/a") then B.empty else y) x) tsvCells
+       tsvRowsUpdated = map (\x -> B.intercalate (B.pack "\t") x) tsvCellsUpdated
+   in B.unlines tsvRowsUpdated
 
 -- | The main function running the janno command
 runJanno :: JannoOptions -> IO ()
 runJanno (JannoOptions jannoPath) = do 
     jannoFile <- B.readFile jannoPath
     -- replace n/a with empty
-    -- let jannoFile = replaceNA jannoFile
+    let jannoFileUpdated = replaceNA jannoFile
 
-    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFile of
+    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
         Left err -> do
             Prelude.putStrLn ("Unable to parse data: " ++ err)
         Right (poseidonSamples :: Vector PoseidonSample) -> do
