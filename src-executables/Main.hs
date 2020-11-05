@@ -5,6 +5,7 @@ import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
                                         runFstats, runParser)
 import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
                                         runList)
+import           Poseidon.CmdJanno      (JannoOptions(..), runJanno)
 
 import           Data.ByteString.Char8 (pack, splitWith)
 import           Options.Applicative   as OP
@@ -14,6 +15,7 @@ import           Text.Read             (readEither)
 
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
+    | CmdJanno JannoOptions
 
 main :: IO ()
 main = do
@@ -21,6 +23,7 @@ main = do
     case cmdOpts of
         CmdList opts   -> runList opts
         CmdFstats opts -> runFstats opts
+        CmdJanno opts  -> runJanno opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
@@ -30,18 +33,28 @@ optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
 optParser :: OP.Parser Options
 optParser = OP.subparser $
     OP.command "list" listOptInfo <>
-    OP.command "fstats" fstatsOptInfo
+    OP.command "fstats" fstatsOptInfo <>
+    OP.command "janno" jannoOptInfo
   where
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "fstat: running fstats")
+    jannoOptInfo = OP.info (OP.helper <*> (CmdJanno <$> jannoOptParser))
+        (OP.progDesc "janno: do stuff")
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseJackknife <*> parseExcludeChroms <*> OP.some parseStatSpec <*> parseRawOutput
+
+jannoOptParser :: OP.Parser JannoOptions
+jannoOptParser = JannoOptions <$> parseJannoPath
+
+parseJannoPath :: OP.Parser [FilePath]
+parseJannoPath = OP.some (OP.strOption (OP.long "jannoPath" <>
+    OP.short 'j'))
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
