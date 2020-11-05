@@ -7,6 +7,7 @@ module Poseidon.Package (
     GenotypeFormatSpec(..),
     ContributorSpec(..),
     PoseidonException(..),
+    PoseidonSample(..),
     readPoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
@@ -44,6 +45,7 @@ import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
+import GHC.Generics ( Generic )
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -84,24 +86,24 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
 -- for more details
 data PoseidonSample = PoseidonSample
     { posSamIndividualID        :: String
-    , posSamGroupName           :: [String]
     , posSamCollectionID        :: Maybe String
-    , posSamSourceTissue        :: Maybe [String]
+    , posSamSourceTissue        :: Maybe String -- :: Maybe [String]
     , posSamCountry             :: Maybe String
     , posSamLocation            :: Maybe String
     , posSamSite                :: Maybe String
     , posSamLatitude            :: Maybe Double
     , posSamLongitude           :: Maybe Double
-    , posSamDateC14Labnr        :: Maybe [String]
-    , posSamDateC14UncalBP      :: Maybe [Double]
-    , posSamDateC14UncalBPErr   :: Maybe [Double]
+    , posSamDateC14Labnr        :: Maybe String -- :: Maybe [String]
+    , posSamDateC14UncalBP      :: Maybe String -- :: Maybe [Double]
+    , posSamDateC14UncalBPErr   :: Maybe String -- :: Maybe [Double]
     , posSamDateBCADMedian      :: Maybe Integer
     , posSamDateBCADStart       :: Maybe Integer
     , posSamDateBCADStop        :: Maybe Integer
     , posSamDateType            :: Maybe String
     , posSamNrLibraries         :: Maybe Integer
-    , posSamDataType            :: Maybe [String]
+    , posSamDataType            :: Maybe String -- :: Maybe [String]
     , posSamGenotypePloidy      :: Maybe String
+    , posSamGroupName           :: String -- :: [String]
     , posSamGeneticSex          :: Char
     , posSamNrAutosomalSNPs     :: Maybe Integer
     , posSamCoverage1240K       :: Maybe Double
@@ -118,9 +120,9 @@ data PoseidonSample = PoseidonSample
     , posSamPrimaryContact      :: Maybe String
     , posSamPublication         :: Maybe String
     , posSamComments            :: Maybe String
-    , posSamKeywords            :: Maybe [String]
+    , posSamKeywords            :: Maybe String -- :: Maybe [String]
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
 
 -- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
 instance FromJSON PoseidonPackage where

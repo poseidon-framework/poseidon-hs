@@ -53,10 +53,10 @@ jannoOptParser :: OP.Parser JannoOptions
 jannoOptParser = JannoOptions <$> parseJannoPath
 
 parseJannoPath :: OP.Parser FilePath
-parseJannoPath = strOption
-    ( long "jannoPath"
-   <> short 'j'
-   <> metavar "FILENAME" )
+parseJannoPath = OP.strOption
+    ( OP.long "jannoPath"
+   <> OP.short 'j'
+   <> OP.metavar "FILENAME" )
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
