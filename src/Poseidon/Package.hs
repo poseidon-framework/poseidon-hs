@@ -79,6 +79,49 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
     | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
 
+-- | A data type to represent a sample/janno file row
+-- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
+-- for more details
+data PoseidonSample = PoseidonSample
+    { posSamIndividualID        :: String
+    , posSamGroupName           :: [String]
+    , posSamCollectionID        :: Maybe String
+    , posSamSourceTissue        :: Maybe [String]
+    , posSamCountry             :: Maybe String
+    , posSamLocation            :: Maybe String
+    , posSamSite                :: Maybe String
+    , posSamLatitude            :: Maybe Double
+    , posSamLongitude           :: Maybe Double
+    , posSamDateC14Labnr        :: Maybe [String]
+    , posSamDateC14UncalBP      :: Maybe [Double]
+    , posSamDateC14UncalBPErr   :: Maybe [Double]
+    , posSamDateBCADMedian      :: Maybe Integer
+    , posSamDateBCADStart       :: Maybe Integer
+    , posSamDateBCADStop        :: Maybe Integer
+    , posSamDateType            :: Maybe String
+    , posSamNrLibraries         :: Maybe Integer
+    , posSamDataType            :: Maybe [String]
+    , posSamGenotypePloidy      :: Maybe String
+    , posSamGeneticSex          :: Char
+    , posSamNrAutosomalSNPs     :: Maybe Integer
+    , posSamCoverage1240K       :: Maybe Double
+    , posSamMTHaplogroup        :: Maybe String
+    , posSamYHaplogroup         :: Maybe String
+    , posSamEndogenous          :: Maybe Double
+    , posSamUDG                 :: Maybe String
+    , posSamLibraryBuilt        :: Maybe String
+    , posSamDamage              :: Maybe Double
+    , posSamNuclearContam       :: Maybe Double
+    , posSamNuclearContamErr    :: Maybe Double
+    , posSamMTContam            :: Maybe Double
+    , posSamMTContamErr         :: Maybe Double
+    , posSamPrimaryContact      :: Maybe String
+    , posSamPublication         :: Maybe String
+    , posSamComments            :: Maybe String
+    , posSamKeywords            :: Maybe [String]
+    }
+    deriving (Show, Eq)
+
 -- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
 instance FromJSON PoseidonPackage where
     parseJSON = withObject "PoseidonPackage" $ \v -> PoseidonPackage
