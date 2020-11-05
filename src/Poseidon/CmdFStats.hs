@@ -266,7 +266,7 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect ma
 
 readStatSpecsFromFile :: FilePath -> IO [FStatSpec]
 readStatSpecsFromFile statSpecsFile = do
-    eitherParseResult <- P.parseFromFile (fStatSpecParser `P.sepBy` P.newline) statSpecsFile
+    eitherParseResult <- P.parseFromFile (fStatSpecParser `P.sepBy1` P.newline) statSpecsFile
     case eitherParseResult of
         Left err -> throwIO (PoseidonFStatsFormatException (show err))
         Right r -> return r
