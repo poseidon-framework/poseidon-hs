@@ -52,9 +52,11 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseJackknife <*> parseE
 jannoOptParser :: OP.Parser JannoOptions
 jannoOptParser = JannoOptions <$> parseJannoPath
 
-parseJannoPath :: OP.Parser [FilePath]
-parseJannoPath = OP.some (OP.strOption (OP.long "jannoPath" <>
-    OP.short 'j'))
+parseJannoPath :: OP.Parser FilePath
+parseJannoPath = strOption
+    ( long "jannoPath"
+   <> short 'j'
+   <> metavar "FILENAME" )
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
