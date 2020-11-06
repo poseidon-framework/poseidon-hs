@@ -87,23 +87,23 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
 data PoseidonSample = PoseidonSample
     { posSamIndividualID        :: String
     , posSamCollectionID        :: Maybe String
-    , posSamSourceTissue        :: Maybe String -- :: Maybe [String]
+    , posSamSourceTissue        :: Maybe [String]
     , posSamCountry             :: Maybe String
     , posSamLocation            :: Maybe String
     , posSamSite                :: Maybe String
     , posSamLatitude            :: Maybe Double
     , posSamLongitude           :: Maybe Double
-    , posSamDateC14Labnr        :: Maybe String -- :: Maybe [String]
-    , posSamDateC14UncalBP      :: Maybe [Double]
-    , posSamDateC14UncalBPErr   :: Maybe String -- :: Maybe [Double]
+    , posSamDateC14Labnr        :: Maybe [String]
+    , posSamDateC14UncalBP      :: Maybe [Integer]
+    , posSamDateC14UncalBPErr   :: Maybe [Integer]
     , posSamDateBCADMedian      :: Maybe Integer
     , posSamDateBCADStart       :: Maybe Integer
     , posSamDateBCADStop        :: Maybe Integer
     , posSamDateType            :: Maybe String
     , posSamNrLibraries         :: Maybe Integer
-    , posSamDataType            :: Maybe String -- :: Maybe [String]
+    , posSamDataType            :: Maybe [String]
     , posSamGenotypePloidy      :: Maybe String
-    , posSamGroupName           :: String -- :: [String]
+    , posSamGroupName           :: [String]
     , posSamGeneticSex          :: Char
     , posSamNrAutosomalSNPs     :: Maybe Integer
     , posSamCoverage1240K       :: Maybe Double
@@ -120,7 +120,7 @@ data PoseidonSample = PoseidonSample
     , posSamPrimaryContact      :: Maybe String
     , posSamPublication         :: Maybe String
     , posSamComments            :: Maybe String
-    , posSamKeywords            :: Maybe String -- :: Maybe [String]
+    , posSamKeywords            :: Maybe [String]
     }
     deriving (Show, Eq, Generic)
 

@@ -24,17 +24,26 @@ decodingOptions = Csv.defaultDecodeOptions {
 
 instance Csv.FromRecord PoseidonSample
 
-stringToDouble :: [B.ByteString] -> [Double]
-stringToDouble [] = []
-stringToDouble (x:xs) = (read (B.unpack x) :: Double) : stringToDouble xs
-
--- parseDoubles :: B.ByteString -> Csv.Parser [Double]
--- parseDoubles s = fmap (\x -> read x :: Double) . fmap T.unpack . s
-    
-    -- stringToDouble . B.splitWith (==';') s
+bytestringToDouble :: [B.ByteString] -> [Double]
+bytestringToDouble [] = []
+bytestringToDouble (x:xs) = (read (B.unpack x) :: Double) : bytestringToDouble xs
 
 instance Csv.FromField [Double] where
-    parseField = fmap stringToDouble . fmap (\x -> B.splitWith (==';') x) . Csv.parseField
+    parseField = fmap bytestringToDouble . fmap (\x -> B.splitWith (==';') x) . Csv.parseField
+
+bytestringToInteger :: [B.ByteString] -> [Integer]
+bytestringToInteger [] = []
+bytestringToInteger (x:xs) = (read (B.unpack x) :: Integer) : bytestringToInteger xs
+
+instance Csv.FromField [Integer] where
+    parseField = fmap bytestringToInteger . fmap (\x -> B.splitWith (==';') x) . Csv.parseField
+
+bytestringToString :: [B.ByteString] -> [String]
+bytestringToString [] = []
+bytestringToString (x:xs) = (B.unpack x) : bytestringToString xs
+
+instance Csv.FromField [String] where
+    parseField = fmap bytestringToString . fmap (\x -> B.splitWith (==';') x) . Csv.parseField
 
 replaceNA :: B.ByteString -> B.ByteString
 replaceNA tsv =
