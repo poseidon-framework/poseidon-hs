@@ -10,6 +10,7 @@ import qualified Data.Csv as Csv
 import           Data.Vector (Vector, toList)
 import           Data.Char ( ord )
 import qualified Data.List as L
+import qualified Data.Maybe as DM
 
 -- | A datatype representing command line options for the janno command
 data JannoOptions = JannoOptions
@@ -52,10 +53,21 @@ replaceNA tsv =
        tsvRowsUpdated = map (\x -> B.intercalate (B.pack "\t") x) tsvCellsUpdated
    in B.unlines tsvRowsUpdated
 
+pasteFirst3 :: [String] -> String
+pasteFirst3 [] = "no values"
+pasteFirst3 xs = 
+    (L.intercalate ", " $ take 3 xs) ++ if (length xs > 3) then ", ..." else ""
+
+removeNothing :: [Maybe a] -> [a]
+removeNothing xs =
+    let onlyJust = filter DM.isJust xs
+    in DM.catMaybes onlyJust
+
 summarisePoseidonSamples :: [PoseidonSample] -> IO()
 summarisePoseidonSamples v = do
     putStrLn ("Number of samples: " ++ (show $ length v))
-    putStrLn ("Individuals: " ++ (L.intercalate ", " $ map posSamIndividualID v))
+    putStrLn $ "Individuals: " ++ pasteFirst3 (map posSamIndividualID v)
+    putStrLn $ "Countries: " ++ pasteFirst3 (removeNothing (map posSamCountry v))
 
 -- | The main function running the janno command
 runJanno :: JannoOptions -> IO ()
