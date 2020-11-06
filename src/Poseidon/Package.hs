@@ -94,7 +94,7 @@ data PoseidonSample = PoseidonSample
     , posSamLatitude            :: Maybe Double
     , posSamLongitude           :: Maybe Double
     , posSamDateC14Labnr        :: Maybe String -- :: Maybe [String]
-    , posSamDateC14UncalBP      :: Maybe String -- :: Maybe [Double]
+    , posSamDateC14UncalBP      :: Maybe [Double]
     , posSamDateC14UncalBPErr   :: Maybe String -- :: Maybe [Double]
     , posSamDateBCADMedian      :: Maybe Integer
     , posSamDateBCADStart       :: Maybe Integer

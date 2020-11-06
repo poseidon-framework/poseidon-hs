@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -9,6 +10,7 @@ import qualified Data.Csv as Csv
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
 import           Data.Char ( ord )
+import qualified Data.Text as T
 
 -- | A datatype representing command line options for the janno command
 data JannoOptions = JannoOptions
@@ -21,6 +23,18 @@ decodingOptions = Csv.defaultDecodeOptions {
 }
 
 instance Csv.FromRecord PoseidonSample
+
+stringToDouble :: [B.ByteString] -> [Double]
+stringToDouble [] = []
+stringToDouble (x:xs) = (read (B.unpack x) :: Double) : stringToDouble xs
+
+-- parseDoubles :: B.ByteString -> Csv.Parser [Double]
+-- parseDoubles s = fmap (\x -> read x :: Double) . fmap T.unpack . s
+    
+    -- stringToDouble . B.splitWith (==';') s
+
+instance Csv.FromField [Double] where
+    parseField = fmap stringToDouble . fmap (\x -> B.splitWith (==';') x) . Csv.parseField
 
 replaceNA :: B.ByteString -> B.ByteString
 replaceNA tsv =
@@ -41,4 +55,5 @@ runJanno (JannoOptions jannoPath) = do
         Left err -> do
             Prelude.putStrLn ("Unable to parse data: " ++ err)
         Right (poseidonSamples :: Vector PoseidonSample) -> do
-            Prelude.putStrLn ("Parsed janno file: data for " ++ show (V.length poseidonSamples) ++ " poseidonSamples")
+            -- Prelude.putStrLn ("Parsed janno file: data for " ++ show (V.length poseidonSamples) ++ " poseidonSamples")
+            Prelude.putStrLn (show poseidonSamples)
