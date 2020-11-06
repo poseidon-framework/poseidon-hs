@@ -7,10 +7,9 @@ module Poseidon.CmdJanno (runJanno, JannoOptions(..)) where
 import           Poseidon.Package          (PoseidonSample(..))
 import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.Csv as Csv
-import           Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Data.Vector (Vector, toList)
 import           Data.Char ( ord )
-import qualified Data.Text as T
+import qualified Data.List as L
 
 -- | A datatype representing command line options for the janno command
 data JannoOptions = JannoOptions
@@ -53,6 +52,11 @@ replaceNA tsv =
        tsvRowsUpdated = map (\x -> B.intercalate (B.pack "\t") x) tsvCellsUpdated
    in B.unlines tsvRowsUpdated
 
+summarisePoseidonSamples :: [PoseidonSample] -> IO()
+summarisePoseidonSamples v = do
+    putStrLn ("Number of samples: " ++ (show $ length v))
+    putStrLn ("Individuals: " ++ (L.intercalate ", " $ map posSamIndividualID v))
+
 -- | The main function running the janno command
 runJanno :: JannoOptions -> IO ()
 runJanno (JannoOptions jannoPath) = do 
@@ -62,7 +66,6 @@ runJanno (JannoOptions jannoPath) = do
 
     case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
         Left err -> do
-            Prelude.putStrLn ("Unable to parse data: " ++ err)
+            putStrLn ("Unable to parse data: " ++ err)
         Right (poseidonSamples :: Vector PoseidonSample) -> do
-            -- Prelude.putStrLn ("Parsed janno file: data for " ++ show (V.length poseidonSamples) ++ " poseidonSamples")
-            Prelude.putStrLn (show poseidonSamples)
+            summarisePoseidonSamples $ toList poseidonSamples
