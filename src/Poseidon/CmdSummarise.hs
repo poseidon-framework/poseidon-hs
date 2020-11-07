@@ -42,6 +42,14 @@ meanAndSdRoundTo n xs = (show $ roundTo n $ avg xs) ++ " ± " ++ (show $ roundTo
 meanAndSdInteger :: [Double] -> String
 meanAndSdInteger xs = (show $ round $ avg xs) ++ " ± " ++ (show $ round $ stdev xs)
 
+frequency :: Ord a => [a] -> [(Int,a)] 
+frequency list = map (\l -> (length l, head l)) (L.group (L.sort list))
+
+printFrequency :: Show a => [(Int,a)] -> String
+printFrequency [] = ""
+printFrequency (x:[]) = show(snd(x)) ++ ": " ++ show(fst(x))
+printFrequency (x:xs) = show(snd(x)) ++ ": " ++ show(fst(x)) ++ " " ++ printFrequency xs
+
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
     putStrLn $ "Number of samples:\t" ++ 
@@ -55,12 +63,18 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Mean age BC/AD:\t\t" ++ 
                meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
     putStrLn "---"
+    putStrLn $ "Sex distribution:\t" ++ 
+                printFrequency (frequency (map posSamGeneticSex xs))
     putStrLn $ "% endogenous human DNA:\t" ++ 
                 meanAndSdRoundTo 2 (removeNothing $ map posSamEndogenous xs)
     putStrLn $ "# of SNPs on 1240K:\t" ++ 
                meanAndSdInteger (map fromIntegral (removeNothing $ map posSamNrAutosomalSNPs xs))
     putStrLn $ "Coverage on 1240K:\t" ++ 
                 meanAndSdRoundTo 2 (removeNothing $ map posSamCoverage1240K xs)
+    putStrLn $ "UDG treatment:\t\t" ++ 
+                printFrequency (frequency (map posSamUDG xs))
+    putStrLn $ "Library type:\t\t" ++ 
+                printFrequency (frequency (map posSamLibraryBuilt xs))
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
