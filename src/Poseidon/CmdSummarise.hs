@@ -44,17 +44,30 @@ meanAndSdInteger xs = (show $ round $ avg xs) ++ " ± " ++ (show $ round $ stdev
 
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
-    putStrLn $ "Number of samples:\t" ++ (show $ length xs)
-    putStrLn $ "Individuals:\t\t" ++ pasteFirst3 (map posSamIndividualID xs)
-    putStrLn $ "Populations:\t\t" ++ pasteFirst3 (L.nub $ map head (map posSamGroupName xs))
-    putStrLn $ "Countries:\t\t" ++ pasteFirst3 (L.nub $ removeNothing $ map posSamCountry xs)
-    putStrLn $ "Mean age BC/AD:\t\t" ++ meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
+    putStrLn $ "Number of samples:\t" ++ 
+                (show $ length xs)
+    putStrLn $ "Individuals:\t\t" ++ 
+                pasteFirst3 (map posSamIndividualID xs)
+    putStrLn $ "Populations:\t\t" ++ 
+                pasteFirst3 (L.nub $ map head (map posSamGroupName xs))
+    putStrLn $ "Countries:\t\t" ++ 
+                pasteFirst3 (L.nub $ removeNothing $ map posSamCountry xs)
+    putStrLn $ "Mean age BC/AD:\t\t" ++ 
+               meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
+    putStrLn "---"
+    putStrLn $ "% endogenous human DNA:\t" ++ 
+                meanAndSdRoundTo 2 (removeNothing $ map posSamEndogenous xs)
+    putStrLn $ "# of SNPs on 1240K:\t" ++ 
+               meanAndSdInteger (map fromIntegral (removeNothing $ map posSamNrAutosomalSNPs xs))
+    putStrLn $ "Coverage on 1240K:\t" ++ 
+                meanAndSdRoundTo 2 (removeNothing $ map posSamCoverage1240K xs)
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs) = do 
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    putStrLn "---"
     let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
