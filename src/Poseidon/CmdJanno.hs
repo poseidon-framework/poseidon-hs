@@ -67,8 +67,9 @@ removeNothing xs =
 
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
-    putStrLn ("Number of samples: " ++ (show $ length xs))
+    putStrLn $ "Number of samples: " ++ (show $ length xs)
     putStrLn $ "Individuals: " ++ pasteFirst3 (map posSamIndividualID xs)
+    putStrLn $ "Populations: " ++ pasteFirst3 (map head (map posSamGroupName xs))
     putStrLn $ "Countries: " ++ pasteFirst3 (removeNothing (map posSamCountry xs))
 
 -- | The main function running the janno command
