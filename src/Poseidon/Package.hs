@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Poseidon.Package (
     PoseidonPackage(..),
@@ -13,6 +15,7 @@ module Poseidon.Package (
     filterDuplicatePackages,
     getIndividuals,
     loadPoseidonPackages,
+    loadJannoFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..)
 ) where
@@ -25,6 +28,7 @@ import           Control.Monad.Catch        (throwM)
 import           Data.Aeson                 (FromJSON, parseJSON, withObject,
                                              withText, (.:), (.:?))
 import qualified Data.ByteString            as B
+import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
@@ -46,6 +50,8 @@ import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
 import GHC.Generics ( Generic )
+import qualified Data.Csv                   as Csv
+import           Data.Char                  (ord)
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -305,7 +311,6 @@ getJointGenotypeData pacs = do
         in  e {snpRef = ref, snpAlt = alt}
     makeSnpEntriesConcordant _ = error "should not happen"
     
-
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
 zipAll _                   []            = error "zipAll - should never happen (1)"
 zipAll []                  _             = error "zipAll - should never happen (2)"
@@ -325,3 +330,56 @@ compFunc1 (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ 
 compFunc2 :: (EigenstratSnpEntry, GenoLine) -> [(EigenstratSnpEntry, GenoLine)] -> Ordering
 compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _ _, _):_) = compare (c1, p1) (c2, p2)
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
+
+-- Janno file loading
+
+decodingOptions :: Csv.DecodeOptions
+decodingOptions = Csv.defaultDecodeOptions { 
+    Csv.decDelimiter = fromIntegral (ord '\t')
+}
+
+instance Csv.FromRecord PoseidonSample
+
+bytestringToDouble :: [Bch.ByteString] -> [Double]
+bytestringToDouble [] = []
+bytestringToDouble (x:xs) = (read (Bch.unpack x) :: Double) : bytestringToDouble xs
+
+instance Csv.FromField [Double] where
+    parseField = fmap bytestringToDouble . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+bytestringToInteger :: [Bch.ByteString] -> [Integer]
+bytestringToInteger [] = []
+bytestringToInteger (x:xs) = (read (Bch.unpack x) :: Integer) : bytestringToInteger xs
+
+instance Csv.FromField [Integer] where
+    parseField = fmap bytestringToInteger . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+bytestringToString :: [Bch.ByteString] -> [String]
+bytestringToString [] = []
+bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
+
+instance Csv.FromField [String] where
+    parseField = fmap bytestringToString . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
+loadJannoFiles jannoPaths = do
+    sequence (map loadJannoFile jannoPaths)
+
+replaceNA :: Bch.ByteString -> Bch.ByteString
+replaceNA tsv =
+   let tsvRows = Bch.lines tsv
+       tsvCells = map (\x -> Bch.splitWith (=='\t') x) tsvRows
+       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
+       tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
+   in Bch.unlines tsvRowsUpdated
+
+loadJannoFile :: FilePath -> IO [PoseidonSample]
+loadJannoFile jannoPath = do
+    jannoFile <- Bch.readFile jannoPath
+    -- replace n/a with empty
+    let jannoFileUpdated = replaceNA jannoFile
+    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
+        -- Left err -> do
+        --    putStrLn ("Unable to parse data: " ++ err)
+        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
+            return $ V.toList poseidonSamples
