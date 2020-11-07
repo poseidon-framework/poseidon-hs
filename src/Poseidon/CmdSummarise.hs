@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdJanno (runJanno, JannoOptions(..)) where
+module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
@@ -11,9 +11,8 @@ import qualified Data.Maybe         as DM
 import           System.IO          (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the janno command
-data JannoOptions = JannoOptions
+data SummariseOptions = SummariseOptions
     { _jaBaseDirs  :: [FilePath]
-    -- , _jannoPath   :: FilePath 
     }
 
 pasteFirst3 :: [String] -> String
@@ -34,8 +33,8 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Countries: " ++ pasteFirst3 (removeNothing (map posSamCountry xs))
 
 -- | The main function running the janno command
-runJanno :: JannoOptions -> IO ()
-runJanno (JannoOptions baseDirs) = do 
+runSummarise :: SummariseOptions -> IO ()
+runSummarise (SummariseOptions baseDirs) = do 
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     let jannoFilePaths = map posPacJannoFile packages

@@ -13,7 +13,7 @@ extra-source-files:  README.md,
                      CHANGELOG.md
 
 library
-    exposed-modules:    Poseidon.Package, Poseidon.CmdFStats, Poseidon.CmdList, Poseidon.CmdJanno, Poseidon.Utils
+    exposed-modules:    Poseidon.Package, Poseidon.CmdFStats, Poseidon.CmdList, Poseidon.CmdSummarise, Poseidon.Utils
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,

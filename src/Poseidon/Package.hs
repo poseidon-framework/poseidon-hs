@@ -49,7 +49,7 @@ import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import GHC.Generics ( Generic )
+import           GHC.Generics               (Generic)
 import qualified Data.Csv                   as Csv
 import           Data.Char                  (ord)
 
