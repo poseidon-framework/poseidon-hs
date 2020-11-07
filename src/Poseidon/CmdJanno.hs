@@ -76,10 +76,10 @@ runJanno :: JannoOptions -> IO ()
 runJanno (JannoOptions baseDirs) = do 
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    let jannoFilePaths = (fmap posPacJannoFile packages)
+    let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = readMultipleJannoFiles jannoFilePaths
-    let jannoSamples = fmap concat jannoFiles
-    fmap summarisePoseidonSamples jannoSamples
+    jannoSamples <- fmap concat jannoFiles
+    summarisePoseidonSamples jannoSamples
 
 readMultipleJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
 readMultipleJannoFiles jannoPaths = do
