@@ -4,17 +4,19 @@
 
 module Poseidon.CmdJanno (runJanno, JannoOptions(..)) where
 
-import           Poseidon.Package          (PoseidonSample(..))
+import           Poseidon.Package (loadPoseidonPackages, PoseidonPackage(..), PoseidonSample(..))
 import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.Csv as Csv
 import           Data.Vector (Vector, toList)
 import           Data.Char ( ord )
 import qualified Data.List as L
 import qualified Data.Maybe as DM
+import           System.IO (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the janno command
 data JannoOptions = JannoOptions
-    { _jannoPath   :: FilePath 
+    { _jaBaseDirs  :: [FilePath]
+    -- , _jannoPath   :: FilePath 
     }
 
 decodingOptions :: Csv.DecodeOptions
@@ -63,21 +65,33 @@ removeNothing xs =
     let onlyJust = filter DM.isJust xs
     in DM.catMaybes onlyJust
 
-summarisePoseidonSamples :: [PoseidonSample] -> IO()
-summarisePoseidonSamples v = do
-    putStrLn ("Number of samples: " ++ (show $ length v))
-    putStrLn $ "Individuals: " ++ pasteFirst3 (map posSamIndividualID v)
-    putStrLn $ "Countries: " ++ pasteFirst3 (removeNothing (map posSamCountry v))
+summarisePoseidonSamples :: [PoseidonSample] -> IO ()
+summarisePoseidonSamples xs = do
+    putStrLn ("Number of samples: " ++ (show $ length xs))
+    putStrLn $ "Individuals: " ++ pasteFirst3 (map posSamIndividualID xs)
+    putStrLn $ "Countries: " ++ pasteFirst3 (removeNothing (map posSamCountry xs))
 
 -- | The main function running the janno command
 runJanno :: JannoOptions -> IO ()
-runJanno (JannoOptions jannoPath) = do 
+runJanno (JannoOptions baseDirs) = do 
+    packages <- loadPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    let jannoFilePaths = (fmap posPacJannoFile packages)
+    let jannoFiles = readMultipleJannoFiles jannoFilePaths
+    let jannoSamples = fmap concat jannoFiles
+    fmap summarisePoseidonSamples jannoSamples
+
+readMultipleJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
+readMultipleJannoFiles jannoPaths = do
+    sequence (map readOneJannoFile jannoPaths)
+
+readOneJannoFile :: FilePath -> IO [PoseidonSample]
+readOneJannoFile jannoPath = do
     jannoFile <- B.readFile jannoPath
     -- replace n/a with empty
     let jannoFileUpdated = replaceNA jannoFile
-
     case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
-        Left err -> do
-            putStrLn ("Unable to parse data: " ++ err)
+        -- Left err -> do
+        --     putStrLn ("Unable to parse data: " ++ err)
         Right (poseidonSamples :: Vector PoseidonSample) -> do
-            summarisePoseidonSamples $ toList poseidonSamples
+            return $ toList poseidonSamples

@@ -50,7 +50,7 @@ fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseJackknife <*> parseExcludeChroms <*> OP.some parseStatSpec <*> parseRawOutput
 
 jannoOptParser :: OP.Parser JannoOptions
-jannoOptParser = JannoOptions <$> parseJannoPath
+jannoOptParser = JannoOptions <$> parseBasePaths -- <|> parseJannoPath
 
 parseJannoPath :: OP.Parser FilePath
 parseJannoPath = OP.strOption
