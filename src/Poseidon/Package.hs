@@ -379,7 +379,7 @@ loadJannoFile jannoPath = do
     -- replace n/a with empty
     let jannoFileUpdated = replaceNA jannoFile
     case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
-        -- Left err -> do
-        --    putStrLn ("Unable to parse data: " ++ err)
+        Left err -> do
+           throwIO $ PoseidonJannoException err
         Right (poseidonSamples :: V.Vector PoseidonSample) -> do
             return $ V.toList poseidonSamples
