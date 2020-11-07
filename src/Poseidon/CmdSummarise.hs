@@ -33,8 +33,14 @@ roundTo :: Int -> Double -> Double
 roundTo n x = (fromIntegral (floor (x * t))) / t
     where t = 10^n
 
-avgRoundTo :: Int -> [Double] -> Double
-avgRoundTo n xs = roundTo n $ avg xs
+stdev :: [Double] -> Double
+stdev xs = sqrt . avg . map ((^2) . (-) (avg xs)) $ xs
+
+meanAndSdRoundTo :: Int -> [Double] -> String
+meanAndSdRoundTo n xs = (show $ roundTo n $ avg xs) ++ " ± " ++ (show $ roundTo n $ stdev xs)
+
+meanAndSdInteger :: [Double] -> String
+meanAndSdInteger xs = (show $ round $ avg xs) ++ " ± " ++ (show $ round $ stdev xs)
 
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
@@ -42,7 +48,7 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Individuals:\t\t" ++ pasteFirst3 (map posSamIndividualID xs)
     putStrLn $ "Populations:\t\t" ++ pasteFirst3 (L.nub $ map head (map posSamGroupName xs))
     putStrLn $ "Countries:\t\t" ++ pasteFirst3 (L.nub $ removeNothing $ map posSamCountry xs)
-    putStrLn $ "Mean age BC/AD:\t\t" ++ show (avgRoundTo 0 $ map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
+    putStrLn $ "Mean age BC/AD:\t\t" ++ meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
