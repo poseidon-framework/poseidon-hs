@@ -20,7 +20,6 @@ runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs) = do 
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    putStrLn "---"
     let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
@@ -29,29 +28,44 @@ runSummarise (SummariseOptions baseDirs) = do
 -- | A function to print meaningful summary information for a list of poseidon samples
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
+    putStrLn "---"
     putStrLn $ "Number of samples:\t" ++ 
                 (show $ length xs)
     putStrLn $ "Individuals:\t\t" ++ 
-                pasteFirstN 4 (map posSamIndividualID xs)
+                pasteFirstN 5 (map posSamIndividualID xs)
+    putStrLn $ "Sex distribution:\t" ++ 
+                printFrequency " " (frequency (map posSamGeneticSex xs))
     putStrLn $ "Populations:\t\t" ++ 
                 pasteFirstN 2 (L.nub $ map head (map posSamGroupName xs))
+    putStrLn $ "Publications:\t\t" ++ 
+                pasteFirstN 2 (L.nub $ removeNothing $ map posSamPublication xs)
     putStrLn $ "Countries:\t\t" ++ 
-                pasteFirstN 4 (L.nub $ removeNothing $ map posSamCountry xs)
+                pasteFirstN 5 (L.nub $ removeNothing $ map posSamCountry xs)
     putStrLn $ "Mean age BC/AD:\t\t" ++ 
                meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
+    putStrLn $ "Dating type:\t\t" ++ 
+                printFrequency "\n\t\t\t" (frequency (map posSamDateType xs))
     putStrLn "---"
-    putStrLn $ "Sex distribution:\t" ++ 
-                printFrequency (frequency (map posSamGeneticSex xs))
+    putStrLn $ "MT haplogroups:\t\t" ++ 
+                pasteFirstN 5 (L.nub $ removeNothing $ map posSamMTHaplogroup xs)
+    putStrLn $ "Y haplogroups:\t\t" ++ 
+                pasteFirstN 5 (L.nub $ removeNothing $ map posSamYHaplogroup xs)
     putStrLn $ "% endogenous human DNA:\t" ++ 
                 meanAndSdRoundTo 2 (removeNothing $ map posSamEndogenous xs)
     putStrLn $ "# of SNPs on 1240K:\t" ++ 
-               meanAndSdInteger (map fromIntegral (removeNothing $ map posSamNrAutosomalSNPs xs))
+                meanAndSdInteger (map fromIntegral (removeNothing $ map posSamNrAutosomalSNPs xs))
     putStrLn $ "Coverage on 1240K:\t" ++ 
                 meanAndSdRoundTo 2 (removeNothing $ map posSamCoverage1240K xs)
-    putStrLn $ "UDG treatment:\t\t" ++ 
-                printFrequency (frequency (map posSamUDG xs))
+    -- putStrLn $ "Damage:\t\t\t" ++ 
+    --             meanAndSdRoundTo 2 (removeNothing $ map posSamDamage xs)
+    -- putStrLn $ "Nuclear contamination:\t" ++ 
+    --             meanAndSdRoundTo 2 (removeNothing $ map posSamNuclearContam xs)
+    -- putStrLn $ "MT contamination:\t" ++ 
+    --             meanAndSdRoundTo 2 (removeNothing $ map posSamMTContam xs)
     putStrLn $ "Library type:\t\t" ++ 
-                printFrequency (frequency (map posSamLibraryBuilt xs))
+                printFrequency "\n\t\t\t" (frequency (map posSamLibraryBuilt xs))
+    putStrLn $ "UDG treatment:\t\t" ++ 
+                printFrequency "\n\t\t\t" (frequency (map posSamUDG xs))
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
@@ -94,7 +108,7 @@ frequency :: Ord a => [a] -> [(a,Int)]
 frequency list = map (\l -> (head l, length l)) (L.group (L.sort list))
 
 -- | A helper function to print the output of frequency nicely
-printFrequency :: Show a => [(a,Int)] -> String
-printFrequency [] = ""
-printFrequency (x:[]) = show(fst(x)) ++ ": " ++ show(snd(x))
-printFrequency (x:xs) = show(fst(x)) ++ ": " ++ show(snd(x)) ++ "\n\t\t\t" ++ printFrequency xs
+printFrequency :: Show a => String -> [(a,Int)] -> String
+printFrequency _ [] = ""
+printFrequency _ (x:[]) = show(fst(x)) ++ ": " ++ show(snd(x))
+printFrequency sep (x:xs) = show(fst(x)) ++ ": " ++ show(snd(x)) ++ sep ++ printFrequency sep xs
