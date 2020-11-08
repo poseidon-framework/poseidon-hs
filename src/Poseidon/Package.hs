@@ -340,6 +340,7 @@ decodingOptions = Csv.defaultDecodeOptions {
 
 instance Csv.FromRecord PoseidonSample
 
+-- | A helper function for parsing double lists
 bytestringToDouble :: [Bch.ByteString] -> [Double]
 bytestringToDouble [] = []
 bytestringToDouble (x:xs) = (read (Bch.unpack x) :: Double) : bytestringToDouble xs
@@ -347,6 +348,7 @@ bytestringToDouble (x:xs) = (read (Bch.unpack x) :: Double) : bytestringToDouble
 instance Csv.FromField [Double] where
     parseField = fmap bytestringToDouble . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
 
+-- | A helper function for parsing integer lists
 bytestringToInteger :: [Bch.ByteString] -> [Integer]
 bytestringToInteger [] = []
 bytestringToInteger (x:xs) = (read (Bch.unpack x) :: Integer) : bytestringToInteger xs
@@ -354,6 +356,7 @@ bytestringToInteger (x:xs) = (read (Bch.unpack x) :: Integer) : bytestringToInte
 instance Csv.FromField [Integer] where
     parseField = fmap bytestringToInteger . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
 
+-- | A helper function for parsing string lists
 bytestringToString :: [Bch.ByteString] -> [String]
 bytestringToString [] = []
 bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
@@ -361,10 +364,12 @@ bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
 instance Csv.FromField [String] where
     parseField = fmap bytestringToString . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
 
+-- | A utility function to load multiple janno files
 loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
 loadJannoFiles jannoPaths = do
     sequence (map loadJannoFile jannoPaths)
 
+-- | A helper function to replace n/a values in janno files with empty bytestrings 
 replaceNA :: Bch.ByteString -> Bch.ByteString
 replaceNA tsv =
    let tsvRows = Bch.lines tsv
@@ -373,6 +378,7 @@ replaceNA tsv =
        tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
+-- | A function to load one janno file
 loadJannoFile :: FilePath -> IO [PoseidonSample]
 loadJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
