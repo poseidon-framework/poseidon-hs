@@ -7,6 +7,7 @@ module Poseidon.CmdFStats (
     , fStatSpecParser
     , P.runParser
     , runFstats
+    , readStatSpecsFromFile
 ) where
 
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -16,7 +17,8 @@ import           Poseidon.Package           (PoseidonPackage (..),
 import           Poseidon.Utils             (PoseidonException (..))
 
 
-import           Control.Applicative        ((<|>))
+import           Control.Applicative        ((<|>), many)
+import           Control.Exception          (throwIO)
 import           Control.Foldl              (Fold (..), list, purely)
 import           Control.Monad              (forM, forM_)
 import           Control.Monad.Catch        (throwM)
@@ -39,14 +41,16 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
                                              rowsG, tableString, titlesH)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
+import qualified Text.Parsec.Char           as P
 
 -- | A datatype representing the command line options for the F-Statistics command
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs      :: [FilePath] -- ^ the list of base directories to search for packages
-    , _foJackknifeMode :: JackknifeMode -- ^ The way the Jackknife is performed
-    , _foExcludeChroms :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
-    , _foStatSpec      :: [FStatSpec] -- ^ A list of F-statistics to compute
-    , _foRawOutput     :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
+    { _foBaseDirs        :: [FilePath] -- ^ the list of base directories to search for packages
+    , _foJackknifeMode   :: JackknifeMode -- ^ The way the Jackknife is performed
+    , _foExcludeChroms   :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
+    , _foStatSpecsDirect :: [FStatSpec] -- ^ A list of F-statistics to compute
+    , _foStatSpecsFile   :: Maybe FilePath -- ^ a file listing F-statistics to compute
+    , _foRawOutput       :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
     }
 
 -- | A datatype representing the two options for how to run the Block-Jackknife
@@ -104,7 +108,7 @@ f4SpecParser = do
     return $ F4Spec a b c d
 
 parsePopSpecsN :: Int -> P.Parser [PopSpec]
-parsePopSpecsN n = sepByN n parsePopSpec (P.char ',')
+parsePopSpecsN n = sepByN n parsePopSpec (P.char ',' <* P.spaces)
 
 sepByN :: Int -> P.Parser a -> P.Parser sep -> P.Parser [a]
 sepByN 0 _ _ = return []
@@ -214,36 +218,43 @@ getPopIndices indEntries popSpec =
 
 -- | The main function running the FStats command.
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutput) = do
+runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    let collectedStats = collectStatSpecGroups statSpecs
-    relevantPackages <- findRelevantPackages collectedStats packages
-    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
-    forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
-    hPutStrLn stderr $ "Computing stats " ++ show statSpecs
-    blockData <- runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
-        let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
-            eigenstratProdInChunks = case jackknifeMode of
-                JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered
-                JackknifePerN chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
-        statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
-            Left e  ->  throwM e
-            Right f -> return f
-        let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
-        purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
-    let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
-        colSpecs = replicate 4 (column expand def def def)
-        tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
-        tableB = do
-            (fstat, result) <- zip statSpecs jackknifeEstimates
-            return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
-    if   rawOutput
-    then do
-        putStrLn $ intercalate "\t" tableH
-        forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
-    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    statSpecsFromFile <- case maybeStatSpecsFile of
+        Nothing -> return []
+        Just f -> readStatSpecsFromFile f
+    let statSpecs = statSpecsFromFile ++ statSpecsDirect
+    if null statSpecs then
+        hPutStrLn stderr $ "No statistics to be computed"
+    else do
+        let collectedStats = collectStatSpecGroups statSpecs
+        relevantPackages <- findRelevantPackages collectedStats packages
+        hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
+        forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
+        hPutStrLn stderr $ "Computing stats " ++ show statSpecs
+        blockData <- runSafeT $ do
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
+            let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
+                eigenstratProdInChunks = case jackknifeMode of
+                    JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered
+                    JackknifePerN chunkSize -> chunkEigenstratByNrSnps chunkSize eigenstratProdFiltered
+            statsFold <- case statSpecsFold eigenstratIndEntries statSpecs of
+                Left e  ->  throwM e
+                Right f -> return f
+            let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
+            purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
+        let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
+            colSpecs = replicate 4 (column expand def def def)
+            tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
+            tableB = do
+                (fstat, result) <- zip statSpecs jackknifeEstimates
+                return [show fstat, show (fst result), show (snd result), show (fst result / snd result)]
+        if   rawOutput
+        then do
+            putStrLn $ intercalate "\t" tableH
+            forM_ tableB $ \row -> putStrLn (intercalate "\t" row)
+        else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
     chromFilter (EigenstratSnpEntry chrom _ _ _ _ _, _) = chrom `notElem` exclusionList
     chunkEigenstratByChromosome = view (groupsBy sameChrom)
@@ -253,6 +264,14 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecs rawOutpu
     showBlockLogOutput blocks = "computing chunk range " ++ show (blockStartPos (head blocks)) ++ " - " ++
         show (blockEndPos (head blocks)) ++ ", size " ++ (show . blockSiteCount . head) blocks ++ ", values " ++
         (show . map blockVal) blocks
+
+readStatSpecsFromFile :: FilePath -> IO [FStatSpec]
+readStatSpecsFromFile statSpecsFile = do
+    let multiFstatSpecParser = fStatSpecParser `P.sepBy1` (P.newline *> P.spaces)
+    eitherParseResult <- P.parseFromFile (P.spaces *> multiFstatSpecParser <* P.spaces) statSpecsFile
+    case eitherParseResult of
+        Left err -> throwIO (PoseidonFStatsFormatException (show err))
+        Right r -> return r
 
 computeJackknife :: [Int] -> [Double] -> (Double, Double)
 computeJackknife weights values =

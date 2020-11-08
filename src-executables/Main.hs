@@ -47,7 +47,12 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 fstatsOptParser :: OP.Parser FstatsOptions
-fstatsOptParser = FstatsOptions <$> parseBasePaths <*> parseJackknife <*> parseExcludeChroms <*> OP.some parseStatSpec <*> parseRawOutput
+fstatsOptParser = FstatsOptions <$> parseBasePaths
+                                <*> parseJackknife
+                                <*> parseExcludeChroms
+                                <*> OP.many parseStatSpecsDirect
+                                <*> parseStatSpecsFromFile
+                                <*> parseRawOutput
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -77,15 +82,20 @@ parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str)
         \list. Defaults to X, Y, MT, chrX, chrY, chrMT, 23,24,90" <> OP.value [Chrom "X", Chrom "Y", Chrom "MT",
         Chrom "chrX", Chrom "chrY", Chrom "chrMT", Chrom "23", Chrom "24", Chrom "90"])
 
-parseStatSpec :: OP.Parser FStatSpec
-parseStatSpec = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
+parseStatSpecsDirect :: OP.Parser FStatSpec
+parseStatSpecsDirect = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
     OP.help "Specify a summary statistic to be computed. Can be given multiple times. \
-        \Possible options are: F4(name1,name2,name3,name4), and similarly F3 and F2 stats, \
+        \Possible options are: F4(name1, name2, name3, name4), and similarly F3 and F2 stats, \
         \as well as PWM(name1,name2) for pairwise mismatch rates. Group names are by default \
         \matched with group names as indicated in the PLINK or Eigenstrat files in the Poseidon dataset. \
         \You can also specify individual names using the syntax \"<Ind_name>\", so enclosing them \
         \in angular brackets. You can also mix groups and individuals, like in \
-        \\"F4(<Ind1>,Group2,Group3,<Ind4>)\".")
+        \\"F4(<Ind1>,Group2,Group3,<Ind4>)\". Group or individual names are separated by commas, and a comma \
+        \can be followed by any number of spaces, as in some of the examples in this help text.")
+
+parseStatSpecsFromFile :: OP.Parser (Maybe FilePath)
+parseStatSpecsFromFile = OP.option (Just <$> OP.str) (OP.long "statFile" <> OP.help "Specify a file with F-Statistics specified \
+    \similarly as specified for option --stat. One line per statistics, and no new-line at the end" <> OP.value Nothing)
 
 readStatSpecString :: String -> Either String FStatSpec
 readStatSpecString s = case runParser fStatSpecParser () "" s of
