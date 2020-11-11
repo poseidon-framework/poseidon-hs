@@ -87,6 +87,12 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
     | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
 
+-- |A datatype to represent Sex in a janno file
+data Sex = Male
+    | Female
+    | Unknown
+    deriving (Eq, Show, Ord)
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -110,7 +116,7 @@ data PoseidonSample = PoseidonSample
     , posSamDataType            :: Maybe [String]
     , posSamGenotypePloidy      :: Maybe String
     , posSamGroupName           :: [String]
-    , posSamGeneticSex          :: Char
+    , posSamGeneticSex          :: Sex
     , posSamNrAutosomalSNPs     :: Maybe Integer
     , posSamCoverage1240K       :: Maybe Double
     , posSamMTHaplogroup        :: Maybe String
@@ -363,6 +369,15 @@ bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
 
 instance Csv.FromField [String] where
     parseField = fmap bytestringToString . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+-- | A helper function for Sex values
+stringToSex :: String -> Sex
+stringToSex "F" = Female
+stringToSex "M" = Male
+stringToSex "U" = Unknown
+
+instance Csv.FromField Sex where
+    parseField = fmap stringToSex . fmap Bch.unpack . Csv.parseField
 
 -- | A utility function to load multiple janno files
 loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
