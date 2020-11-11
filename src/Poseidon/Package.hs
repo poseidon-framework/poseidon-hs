@@ -87,10 +87,41 @@ data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
     | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
 
--- |A datatype to represent Sex in a janno file
+-- |A datatype to represent Genetic_Sex in a janno file
 data Sex = Male
     | Female
     | Unknown
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Date_Type in a janno file
+data JannoDateType = C14
+    | Contextual
+    | Modern
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Data_Type in a janno file
+data JannoDataType = Shotgun
+    | A1240K
+    | OtherCapture
+    | ReferenceGenome
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Genotype_Ploidy in a janno file
+data JannoGenotypePloidy = Diploid
+    | Haploid
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent UDG in a janno file
+data JannoUDG = Minus
+    | Half
+    | Plus
+    | Mixed
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Library_Built in a janno file
+data JannoLibraryBuilt = DS
+    | SS
+    | Other
     deriving (Eq, Show, Ord)
 
 -- | A data type to represent a sample/janno file row
@@ -111,10 +142,10 @@ data PoseidonSample = PoseidonSample
     , posSamDateBCADMedian      :: Maybe Integer
     , posSamDateBCADStart       :: Maybe Integer
     , posSamDateBCADStop        :: Maybe Integer
-    , posSamDateType            :: Maybe String
+    , posSamDateType            :: Maybe JannoDateType
     , posSamNrLibraries         :: Maybe Integer
-    , posSamDataType            :: Maybe [String]
-    , posSamGenotypePloidy      :: Maybe String
+    , posSamDataType            :: Maybe [JannoDataType]
+    , posSamGenotypePloidy      :: Maybe JannoGenotypePloidy
     , posSamGroupName           :: [String]
     , posSamGeneticSex          :: Sex
     , posSamNrAutosomalSNPs     :: Maybe Integer
@@ -122,8 +153,8 @@ data PoseidonSample = PoseidonSample
     , posSamMTHaplogroup        :: Maybe String
     , posSamYHaplogroup         :: Maybe String
     , posSamEndogenous          :: Maybe Double
-    , posSamUDG                 :: Maybe String
-    , posSamLibraryBuilt        :: Maybe String
+    , posSamUDG                 :: Maybe JannoUDG
+    , posSamLibraryBuilt        :: Maybe JannoLibraryBuilt
     , posSamDamage              :: Maybe Double
     , posSamNuclearContam       :: Maybe Double
     , posSamNuclearContamErr    :: Maybe Double
@@ -339,6 +370,33 @@ compFunc2 _                                     []                              
 
 -- Janno file loading
 
+-- | A utility function to load multiple janno files
+loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
+loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
+
+-- | A helper function to replace n/a values in janno files with empty bytestrings 
+replaceNA :: Bch.ByteString -> Bch.ByteString
+replaceNA tsv =
+   let tsvRows = Bch.lines tsv
+       tsvCells = map (\x -> Bch.splitWith (=='\t') x) tsvRows
+       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
+       tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
+   in Bch.unlines tsvRowsUpdated
+
+-- | A function to load one janno file
+loadJannoFile :: FilePath -> IO [PoseidonSample]
+loadJannoFile jannoPath = do
+    jannoFile <- Bch.readFile jannoPath
+    -- replace n/a with empty
+    let jannoFileUpdated = replaceNA jannoFile
+    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
+        Left err -> do
+           throwIO $ PoseidonJannoException err
+        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
+            return $ V.toList poseidonSamples
+
+-- Janno file loading helper functions and definitions
+
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions { 
     Csv.decDelimiter = fromIntegral (ord '\t')
@@ -370,7 +428,7 @@ bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
 instance Csv.FromField [String] where
     parseField = fmap bytestringToString . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
 
--- | A helper function for Sex values
+-- | A helper function to parse Genetic_Sex values
 stringToSex :: String -> Sex
 stringToSex "F" = Female
 stringToSex "M" = Male
@@ -379,27 +437,53 @@ stringToSex "U" = Unknown
 instance Csv.FromField Sex where
     parseField = fmap stringToSex . fmap Bch.unpack . Csv.parseField
 
--- | A utility function to load multiple janno files
-loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
-loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
+-- | A helper function to parse Date_Type values
+stringToJannoDateType :: String -> JannoDateType
+stringToJannoDateType "C14" = C14
+stringToJannoDateType "contextual" = Contextual
+stringToJannoDateType "modern" = Modern
 
--- | A helper function to replace n/a values in janno files with empty bytestrings 
-replaceNA :: Bch.ByteString -> Bch.ByteString
-replaceNA tsv =
-   let tsvRows = Bch.lines tsv
-       tsvCells = map (\x -> Bch.splitWith (=='\t') x) tsvRows
-       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
-       tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
-   in Bch.unlines tsvRowsUpdated
+instance Csv.FromField JannoDateType where
+    parseField = fmap stringToJannoDateType . fmap Bch.unpack . Csv.parseField
 
--- | A function to load one janno file
-loadJannoFile :: FilePath -> IO [PoseidonSample]
-loadJannoFile jannoPath = do
-    jannoFile <- Bch.readFile jannoPath
-    -- replace n/a with empty
-    let jannoFileUpdated = replaceNA jannoFile
-    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
-        Left err -> do
-           throwIO $ PoseidonJannoException err
-        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
-            return $ V.toList poseidonSamples
+-- | A helper function to parse Data_Type values
+stringToJannoDataType :: String -> JannoDataType
+stringToJannoDataType "Shotgun" = Shotgun
+stringToJannoDataType "1240K" = A1240K
+stringToJannoDataType "OtherCapture" = OtherCapture
+stringToJannoDataType "ReferenceGenome" = ReferenceGenome
+
+-- | A helper function for parsing Data_Type lists
+bytestringToJannoDataType :: [Bch.ByteString] -> [JannoDataType]
+bytestringToJannoDataType [] = []
+bytestringToJannoDataType (x:xs) = (stringToJannoDataType $ Bch.unpack x) : bytestringToJannoDataType xs
+
+instance Csv.FromField [JannoDataType] where
+    parseField = fmap bytestringToJannoDataType . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+-- | A helper function to parse Genotype_Ploidy values
+stringToJannoGenotypePloidy :: String -> JannoGenotypePloidy
+stringToJannoGenotypePloidy "diploid" = Diploid
+stringToJannoGenotypePloidy "haploid" = Haploid
+
+instance Csv.FromField JannoGenotypePloidy where
+    parseField = fmap stringToJannoGenotypePloidy . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse UDG values
+stringToJannoUDG :: String -> JannoUDG
+stringToJannoUDG "minus" = Minus
+stringToJannoUDG "half" = Half
+stringToJannoUDG "plus" = Plus
+stringToJannoUDG "mixed" = Mixed
+
+instance Csv.FromField JannoUDG where
+    parseField = fmap stringToJannoUDG . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse Library_Built values
+stringToJannoLibraryBuilt :: String -> JannoLibraryBuilt
+stringToJannoLibraryBuilt "ds" = DS
+stringToJannoLibraryBuilt "ss" = SS
+stringToJannoLibraryBuilt "other" = Other
+
+instance Csv.FromField JannoLibraryBuilt where
+    parseField = fmap stringToJannoLibraryBuilt . fmap Bch.unpack . Csv.parseField
