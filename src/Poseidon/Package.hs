@@ -366,8 +366,7 @@ instance Csv.FromField [String] where
 
 -- | A utility function to load multiple janno files
 loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
-loadJannoFiles jannoPaths = do
-    sequence (map loadJannoFile jannoPaths)
+loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
 
 -- | A helper function to replace n/a values in janno files with empty bytestrings 
 replaceNA :: Bch.ByteString -> Bch.ByteString
