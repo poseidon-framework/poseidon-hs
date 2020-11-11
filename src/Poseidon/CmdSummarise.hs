@@ -34,7 +34,7 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Individuals:\t\t" ++ 
                 pasteFirstN 5 (map posSamIndividualID xs)
     putStrLn $ "Sex distribution:\t" ++ 
-                printFrequency " " (frequency (map posSamGeneticSex xs))
+                printFrequency ", " (frequency (map posSamGeneticSex xs))
     putStrLn $ "Populations:\t\t" ++ 
                 pasteFirstN 2 (L.nub $ map head (map posSamGroupName xs))
     putStrLn $ "Publications:\t\t" ++ 
@@ -44,7 +44,7 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Mean age BC/AD:\t\t" ++ 
                meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
     putStrLn $ "Dating type:\t\t" ++ 
-                printFrequency "\n\t\t\t" (frequency (map posSamDateType xs))
+                printFrequencyMaybe ", " (frequency (map posSamDateType xs))
     putStrLn "---"
     putStrLn $ "MT haplogroups:\t\t" ++ 
                 pasteFirstN 5 (L.nub $ removeNothing $ map posSamMTHaplogroup xs)
@@ -63,9 +63,9 @@ summarisePoseidonSamples xs = do
     -- putStrLn $ "MT contamination:\t" ++ 
     --             meanAndSdRoundTo 2 (removeNothing $ map posSamMTContam xs)
     putStrLn $ "Library type:\t\t" ++ 
-                printFrequency "\n\t\t\t" (frequency (map posSamLibraryBuilt xs))
+                printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
     putStrLn $ "UDG treatment:\t\t" ++ 
-                printFrequency "\n\t\t\t" (frequency (map posSamUDG xs))
+                printFrequencyMaybe ", " (frequency (map posSamUDG xs))
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
@@ -110,5 +110,16 @@ frequency list = map (\l -> (head l, length l)) (L.group (L.sort list))
 -- | A helper function to print the output of frequency nicely
 printFrequency :: Show a => String -> [(a,Int)] -> String
 printFrequency _ [] = ""
-printFrequency _ (x:[]) = show(fst(x)) ++ ": " ++ show(snd(x))
-printFrequency sep (x:xs) = show(fst(x)) ++ ": " ++ show(snd(x)) ++ sep ++ printFrequency sep xs
+printFrequency _ (x:[]) = show (fst x) ++ ": " ++ show (snd x)
+printFrequency sep (x:xs) = show (fst x) ++ ": " ++ show (snd x) ++ sep ++ printFrequency sep xs
+
+-- | A helper function to print the output of frequency over Maybe values nicely
+printFrequencyMaybe :: Show a => String -> [(Maybe a,Int)] -> String
+printFrequencyMaybe _ [] = ""
+printFrequencyMaybe _ (x:[]) = (maybeShow (fst x)) ++ ": " ++ show (snd x)
+printFrequencyMaybe sep (x:xs) = (maybeShow (fst x)) ++ ": " ++ show (snd x) ++ sep ++ printFrequencyMaybe sep xs
+
+-- | A helper function to unwrap a maybe
+maybeShow :: Show a => Maybe a -> String
+maybeShow (Just x) = show x
+maybeShow Nothing  = "n/a"
