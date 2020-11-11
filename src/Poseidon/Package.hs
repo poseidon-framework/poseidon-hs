@@ -10,6 +10,7 @@ module Poseidon.Package (
     ContributorSpec(..),
     PoseidonException(..),
     PoseidonSample(..),
+    latitudeToDouble,
     readPoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
@@ -83,46 +84,67 @@ data GenotypeDataSpec = GenotypeDataSpec
     deriving (Show, Eq)
 
 -- | A data type representing the options fo the genotype format
-data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
+data GenotypeFormatSpec = 
+      GenotypeFormatEigenstrat -- ^ the Eigenstrat format
     | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
 
 -- |A datatype to represent Genetic_Sex in a janno file
-data Sex = Male
+data Sex = 
+      Male
     | Female
     | Unknown
     deriving (Eq, Show, Ord)
 
 -- |A datatype to represent Date_Type in a janno file
-data JannoDateType = C14
+data JannoDateType = 
+      C14
     | Contextual
     | Modern
     deriving (Eq, Show, Ord)
 
 -- |A datatype to represent Data_Type in a janno file
-data JannoDataType = Shotgun
+data JannoDataType = 
+      Shotgun
     | A1240K
     | OtherCapture
     | ReferenceGenome
     deriving (Eq, Show, Ord)
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
-data JannoGenotypePloidy = Diploid
+data JannoGenotypePloidy = 
+      Diploid
     | Haploid
     deriving (Eq, Show, Ord)
 
 -- |A datatype to represent UDG in a janno file
-data JannoUDG = Minus
+data JannoUDG = 
+      Minus
     | Half
     | Plus
     | Mixed
     deriving (Eq, Show, Ord)
 
 -- |A datatype to represent Library_Built in a janno file
-data JannoLibraryBuilt = DS
+data JannoLibraryBuilt = 
+      DS
     | SS
     | Other
     deriving (Eq, Show, Ord)
+
+-- | A datatype for Latitudes
+data Latitude = 
+      Latitude Double
+    deriving (Eq, Show, Ord)
+
+-- | A smart constructor for Latitudes
+strictLatitude :: Double -> Latitude
+strictLatitude d | d < -90 || d > 90 = error "Invalid coordinate" 
+                 | otherwise         = Latitude d
+
+-- | A smart constructor for Latitudes
+latitudeToDouble :: Latitude -> Double
+latitudeToDouble (Latitude x) = x
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
@@ -134,7 +156,7 @@ data PoseidonSample = PoseidonSample
     , posSamCountry             :: Maybe String
     , posSamLocation            :: Maybe String
     , posSamSite                :: Maybe String
-    , posSamLatitude            :: Maybe Double
+    , posSamLatitude            :: Maybe Latitude
     , posSamLongitude           :: Maybe Double
     , posSamDateC14Labnr        :: Maybe [String]
     , posSamDateC14UncalBP      :: Maybe [Integer]
@@ -487,3 +509,10 @@ stringToJannoLibraryBuilt "other" = Other
 
 instance Csv.FromField JannoLibraryBuilt where
     parseField = fmap stringToJannoLibraryBuilt . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse Latitude values
+stringToLatitude :: String -> Latitude
+stringToLatitude x = strictLatitude $ read x
+
+instance Csv.FromField Latitude where
+    parseField = fmap stringToLatitude . fmap Bch.unpack . Csv.parseField

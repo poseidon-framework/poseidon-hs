@@ -5,7 +5,8 @@ module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
                                     PoseidonPackage(..), 
-                                    PoseidonSample(..))
+                                    PoseidonSample(..),
+                                    latitudeToDouble)
 import qualified Data.List          as L
 import qualified Data.Maybe         as DM
 import           System.IO          (hPutStrLn, stderr)
@@ -66,6 +67,7 @@ summarisePoseidonSamples xs = do
                 printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
     putStrLn $ "UDG treatment:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamUDG xs))
+    -- putStrLn $ "test" ++  meanAndSdRoundTo 2 (map latitudeToDouble (removeNothing $ map posSamLatitude xs))
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
