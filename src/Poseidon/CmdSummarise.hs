@@ -25,7 +25,7 @@ runSummarise (SummariseOptions baseDirs) = do
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
     -- show all parsing errors
-    print (E.lefts jannoSamples)
+    mapM_ (\x -> putStrLn $ show x) (E.lefts jannoSamples)
     -- show actual summary
     summarisePoseidonSamples (E.rights jannoSamples)
 
