@@ -10,7 +10,6 @@ module Poseidon.Package (
     ContributorSpec(..),
     PoseidonException(..),
     PoseidonSample(..),
-    latitudeToDouble,
     readPoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
@@ -24,12 +23,13 @@ module Poseidon.Package (
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM, forM_)
+import           Control.Monad              (filterM, forM, forM_, mzero)
 import           Control.Monad.Catch        (throwM)
 import           Data.Aeson                 (FromJSON, parseJSON, withObject,
                                              withText, (.:), (.:?))
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as Bch
+import qualified Data.ByteString.Char8      as Bchs
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
@@ -67,12 +67,30 @@ data PoseidonPackage = PoseidonPackage
     }
     deriving (Show, Eq)
 
+-- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
+instance FromJSON PoseidonPackage where
+    parseJSON = withObject "PoseidonPackage" $ \v -> PoseidonPackage
+        <$> v .:   "poseidonVersion"
+        <*> v .:   "title"
+        <*> v .:?  "description"
+        <*> v .:   "contributor"
+        <*> v .:?  "lastModified"
+        <*> v .:?  "bibFile"
+        <*> v .:   "genotypeData"
+        <*> v .:   "jannoFile"
+
 -- | A data type to represent a contributor
 data ContributorSpec = ContributorSpec
     { contributorName  :: String -- ^ the name of a contributor
     , contributorEmail :: String -- ^ the email address of a contributor
     }
     deriving (Show, Eq)
+
+-- | To facilitate automatic parsing of ContributorSpec from JSON files
+instance FromJSON ContributorSpec where
+    parseJSON = withObject "contributor" $ \v -> ContributorSpec
+        <$> v .: "name"
+        <*> v .: "email"
 
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
@@ -83,11 +101,26 @@ data GenotypeDataSpec = GenotypeDataSpec
     }
     deriving (Show, Eq)
 
+-- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
+instance FromJSON GenotypeDataSpec where
+    parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
+        <$> v .: "format"
+        <*> v .: "genoFile"
+        <*> v .: "snpFile"
+        <*> v .: "indFile"
+
 -- | A data type representing the options fo the genotype format
 data GenotypeFormatSpec = 
       GenotypeFormatEigenstrat -- ^ the Eigenstrat format
     | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
+
+-- | To facilitate automatic parsing of GenotypeFormatSpec from JSON files
+instance FromJSON GenotypeFormatSpec where
+    parseJSON = withText "format" $ \v -> case v of
+        "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
+        "PLINK"      -> pure GenotypeFormatPlink
+        _            -> fail ("unknown format " ++ unpack v)
 
 -- |A datatype to represent Genetic_Sex in a janno file
 data Sex = 
@@ -96,12 +129,26 @@ data Sex =
     | Unknown
     deriving (Eq, Show, Ord)
 
+instance Csv.FromField Sex where
+    parseField x
+        | x == "F" = pure Female
+        | x == "M" = pure Male
+        | x == "U" = pure Unknown
+        | otherwise = mzero
+
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = 
       C14
     | Contextual
     | Modern
     deriving (Eq, Show, Ord)
+
+instance Csv.FromField JannoDateType where
+    parseField x
+        | x == "C14" = pure C14
+        | x == "contextual" = pure Contextual
+        | x == "modern" = pure Modern
+        | otherwise = mzero
 
 -- |A datatype to represent Data_Type in a janno file
 data JannoDataType = 
@@ -111,11 +158,25 @@ data JannoDataType =
     | ReferenceGenome
     deriving (Eq, Show, Ord)
 
+instance Csv.FromField JannoDataType where
+    parseField x 
+        | x == "Shotgun" = pure Shotgun
+        | x == "1240K" = pure A1240K
+        | x == "OtherCapture" = pure OtherCapture
+        | x == "ReferenceGenome" = pure ReferenceGenome
+        | otherwise = mzero
+
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = 
       Diploid
     | Haploid
     deriving (Eq, Show, Ord)
+
+instance Csv.FromField JannoGenotypePloidy where
+    parseField x
+        | x == "diploid" = pure Diploid
+        | x == "haploid" = pure Haploid
+        | otherwise = mzero
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = 
@@ -125,6 +186,14 @@ data JannoUDG =
     | Mixed
     deriving (Eq, Show, Ord)
 
+instance Csv.FromField JannoUDG where
+    parseField x
+        | x == "minus" = pure Minus
+        | x == "half" = pure Half
+        | x == "plus" = pure Plus
+        | x == "mixed" = pure Mixed
+        | otherwise = mzero
+
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = 
       DS
@@ -132,19 +201,35 @@ data JannoLibraryBuilt =
     | Other
     deriving (Eq, Show, Ord)
 
+instance Csv.FromField JannoLibraryBuilt where
+    parseField x
+        | x == "ds" = pure DS
+        | x == "ss" = pure SS
+        | x == "other" = pure Other
+        | otherwise = mzero
+
 -- | A datatype for Latitudes
-data Latitude = 
-      Latitude Double
+newtype Latitude = 
+        Latitude Double
     deriving (Eq, Show, Ord)
 
--- | A smart constructor for Latitudes
-strictLatitude :: Double -> Latitude
-strictLatitude d | d < -90 || d > 90 = error "Invalid coordinate" 
-                 | otherwise         = Latitude d
+instance Csv.FromField Latitude where
+    parseField x = do
+        val <- Csv.parseField x
+        if val < -90 || val > 90
+        then mzero
+        else pure (Latitude val)
 
--- | A smart constructor for Latitudes
-latitudeToDouble :: Latitude -> Double
-latitudeToDouble (Latitude x) = x
+newtype Longitude =
+        Longitude Double
+    deriving (Eq, Show, Ord)
+
+instance Csv.FromField Longitude where
+    parseField x = do
+        val <- Csv.parseField x
+        if val < -180 || val > 180
+        then mzero
+        else pure (Longitude val)
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
@@ -159,18 +244,18 @@ data PoseidonSample = PoseidonSample
     , posSamLatitude            :: Maybe Latitude
     , posSamLongitude           :: Maybe Double
     , posSamDateC14Labnr        :: Maybe [String]
-    , posSamDateC14UncalBP      :: Maybe [Integer]
-    , posSamDateC14UncalBPErr   :: Maybe [Integer]
-    , posSamDateBCADMedian      :: Maybe Integer
-    , posSamDateBCADStart       :: Maybe Integer
-    , posSamDateBCADStop        :: Maybe Integer
+    , posSamDateC14UncalBP      :: Maybe [Int]
+    , posSamDateC14UncalBPErr   :: Maybe [Int]
+    , posSamDateBCADMedian      :: Maybe Int
+    , posSamDateBCADStart       :: Maybe Int
+    , posSamDateBCADStop        :: Maybe Int
     , posSamDateType            :: Maybe JannoDateType
-    , posSamNrLibraries         :: Maybe Integer
+    , posSamNrLibraries         :: Maybe Int
     , posSamDataType            :: Maybe [JannoDataType]
     , posSamGenotypePloidy      :: Maybe JannoGenotypePloidy
     , posSamGroupName           :: [String]
     , posSamGeneticSex          :: Sex
-    , posSamNrAutosomalSNPs     :: Maybe Integer
+    , posSamNrAutosomalSNPs     :: Maybe Int
     , posSamCoverage1240K       :: Maybe Double
     , posSamMTHaplogroup        :: Maybe String
     , posSamYHaplogroup         :: Maybe String
@@ -189,38 +274,23 @@ data PoseidonSample = PoseidonSample
     }
     deriving (Show, Eq, Generic)
 
--- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
-instance FromJSON PoseidonPackage where
-    parseJSON = withObject "PoseidonPackage" $ \v -> PoseidonPackage
-        <$> v .:   "poseidonVersion"
-        <*> v .:   "title"
-        <*> v .:?  "description"
-        <*> v .:   "contributor"
-        <*> v .:?  "lastModified"
-        <*> v .:?  "bibFile"
-        <*> v .:   "genotypeData"
-        <*> v .:   "jannoFile"
+instance Csv.FromRecord PoseidonSample
 
--- | To facilitate automatic parsing of ContributorSpec from JSON files
-instance FromJSON ContributorSpec where
-    parseJSON = withObject "contributor" $ \v -> ContributorSpec
-        <$> v .: "name"
-        <*> v .: "email"
+-- | A helper function to parse semi-colon separated field values into lists
+parseFieldList :: (Csv.FromField a) => Csv.Field -> Csv.Parser [a]
+parseFieldList x = do
+    fieldStr <- Csv.parseField x
+    let subStrings = Bchs.splitWith (==';') fieldStr
+    mapM Csv.parseField subStrings
 
--- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
-instance FromJSON GenotypeDataSpec where
-    parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
-        <$> v .: "format"
-        <*> v .: "genoFile"
-        <*> v .: "snpFile"
-        <*> v .: "indFile"
+instance Csv.FromField [String] where
+    parseField = parseFieldList
 
--- | To facilitate automatic parsing of GenotypeFormatSpec from JSON files
-instance FromJSON GenotypeFormatSpec where
-    parseJSON = withText "format" $ \v -> case v of
-        "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
-        "PLINK"      -> pure GenotypeFormatPlink
-        _            -> fail ("unknown format " ++ unpack v)
+instance Csv.FromField [Int] where
+    parseField = parseFieldList
+
+instance Csv.FromField [JannoDataType] where
+    parseField = parseFieldList
 
 -- | A helper function to add a base directory path to all file paths in a poseidon package.
 -- By using the (</>) operator from System.FilePath.Posix, this automatically ensures that paths are only
@@ -423,96 +493,3 @@ decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions { 
     Csv.decDelimiter = fromIntegral (ord '\t')
 }
-
-instance Csv.FromRecord PoseidonSample
-
--- | A helper function for parsing double lists
-bytestringToDouble :: [Bch.ByteString] -> [Double]
-bytestringToDouble [] = []
-bytestringToDouble (x:xs) = (read (Bch.unpack x) :: Double) : bytestringToDouble xs
-
-instance Csv.FromField [Double] where
-    parseField = fmap bytestringToDouble . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
-
--- | A helper function for parsing integer lists
-bytestringToInteger :: [Bch.ByteString] -> [Integer]
-bytestringToInteger [] = []
-bytestringToInteger (x:xs) = (read (Bch.unpack x) :: Integer) : bytestringToInteger xs
-
-instance Csv.FromField [Integer] where
-    parseField = fmap bytestringToInteger . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
-
--- | A helper function for parsing string lists
-bytestringToString :: [Bch.ByteString] -> [String]
-bytestringToString [] = []
-bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
-
-instance Csv.FromField [String] where
-    parseField = fmap bytestringToString . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
-
--- | A helper function to parse Genetic_Sex values
-stringToSex :: String -> Sex
-stringToSex "F" = Female
-stringToSex "M" = Male
-stringToSex "U" = Unknown
-
-instance Csv.FromField Sex where
-    parseField = fmap stringToSex . fmap Bch.unpack . Csv.parseField
-
--- | A helper function to parse Date_Type values
-stringToJannoDateType :: String -> JannoDateType
-stringToJannoDateType "C14" = C14
-stringToJannoDateType "contextual" = Contextual
-stringToJannoDateType "modern" = Modern
-
-instance Csv.FromField JannoDateType where
-    parseField = fmap stringToJannoDateType . fmap Bch.unpack . Csv.parseField
-
--- | A helper function to parse Data_Type values
-stringToJannoDataType :: String -> JannoDataType
-stringToJannoDataType "Shotgun" = Shotgun
-stringToJannoDataType "1240K" = A1240K
-stringToJannoDataType "OtherCapture" = OtherCapture
-stringToJannoDataType "ReferenceGenome" = ReferenceGenome
-
--- | A helper function for parsing Data_Type lists
-bytestringToJannoDataType :: [Bch.ByteString] -> [JannoDataType]
-bytestringToJannoDataType [] = []
-bytestringToJannoDataType (x:xs) = (stringToJannoDataType $ Bch.unpack x) : bytestringToJannoDataType xs
-
-instance Csv.FromField [JannoDataType] where
-    parseField = fmap bytestringToJannoDataType . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
-
--- | A helper function to parse Genotype_Ploidy values
-stringToJannoGenotypePloidy :: String -> JannoGenotypePloidy
-stringToJannoGenotypePloidy "diploid" = Diploid
-stringToJannoGenotypePloidy "haploid" = Haploid
-
-instance Csv.FromField JannoGenotypePloidy where
-    parseField = fmap stringToJannoGenotypePloidy . fmap Bch.unpack . Csv.parseField
-
--- | A helper function to parse UDG values
-stringToJannoUDG :: String -> JannoUDG
-stringToJannoUDG "minus" = Minus
-stringToJannoUDG "half" = Half
-stringToJannoUDG "plus" = Plus
-stringToJannoUDG "mixed" = Mixed
-
-instance Csv.FromField JannoUDG where
-    parseField = fmap stringToJannoUDG . fmap Bch.unpack . Csv.parseField
-
--- | A helper function to parse Library_Built values
-stringToJannoLibraryBuilt :: String -> JannoLibraryBuilt
-stringToJannoLibraryBuilt "ds" = DS
-stringToJannoLibraryBuilt "ss" = SS
-stringToJannoLibraryBuilt "other" = Other
-
-instance Csv.FromField JannoLibraryBuilt where
-    parseField = fmap stringToJannoLibraryBuilt . fmap Bch.unpack . Csv.parseField
-
--- | A helper function to parse Latitude values
-stringToLatitude :: String -> Latitude
-stringToLatitude x = strictLatitude $ read x
-
-instance Csv.FromField Latitude where
-    parseField = fmap stringToLatitude . fmap Bch.unpack . Csv.parseField

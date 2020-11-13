@@ -5,8 +5,7 @@ module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
                                     PoseidonPackage(..), 
-                                    PoseidonSample(..),
-                                    latitudeToDouble)
+                                    PoseidonSample(..))
 import qualified Data.List          as L
 import qualified Data.Maybe         as DM
 import           System.IO          (hPutStrLn, stderr)
