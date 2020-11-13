@@ -464,7 +464,7 @@ compFunc2 _                                     []                              
 
 -- | A utility function to load multiple janno files
 loadJannoFiles :: [FilePath] -> IO [[Either PoseidonException PoseidonSample]]
-loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
+loadJannoFiles = mapM loadJannoFile
 
 -- | A function to load one janno file
 loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
@@ -473,7 +473,7 @@ loadJannoFile jannoPath = do
     let jannoFileUpdated = replaceNA jannoFile
     let jannoFileRows = Bch.lines jannoFileUpdated
     -- tupel with row number and row bytestring
-    let jannoFileRowsWithNumber = zip [1..(length $ jannoFileRows)] jannoFileRows
+    let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     mapM (loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
 
 -- | A function to load one row of a janno file    
@@ -494,9 +494,9 @@ decodingOptions = Csv.defaultDecodeOptions {
 replaceNA :: Bch.ByteString -> Bch.ByteString
 replaceNA tsv =
    let tsvRows = Bch.lines tsv
-       tsvCells = map (\x -> Bch.splitWith (=='\t') x) tsvRows
+       tsvCells = map (Bch.splitWith (=='\t')) tsvRows
        tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
-       tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
+       tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
 
