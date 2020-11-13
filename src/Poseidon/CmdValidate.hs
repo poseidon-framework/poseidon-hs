@@ -19,8 +19,19 @@ runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    -- POSEIDON.yml consistency
+    -- ...
+    -- Janno file consistency
     let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
-    -- show all parsing errors
     mapM_ printPoseidonJannoException (E.lefts jannoSamples)
+    -- Genotype file consistency (if available and without loading them completely!)
+    -- ...
+    -- Bibtex file consistency
+    -- ...
+    -- Cross-file consistency
+    -- ...
+    -- Final report: Error code generation
+    -- ...
+
