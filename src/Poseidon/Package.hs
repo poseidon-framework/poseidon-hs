@@ -481,11 +481,17 @@ loadJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
     -- replace n/a with empty
     let jannoFileUpdated = replaceNA jannoFile
-    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
+    let jannoFileRows = Bch.lines jannoFileUpdated
+    mapM loadJannoFileRow (tail jannoFileRows)
+    
+loadJannoFileRow :: Bch.ByteString -> IO PoseidonSample
+loadJannoFileRow row = do
+    case Csv.decodeWith decodingOptions Csv.NoHeader row of
         Left err -> do
            throwIO $ PoseidonJannoException err
         Right (poseidonSamples :: V.Vector PoseidonSample) -> do
-            return $ V.toList poseidonSamples
+            return $ V.head poseidonSamples
+
 
 -- Janno file loading helper functions and definitions
 
