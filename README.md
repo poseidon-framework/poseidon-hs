@@ -1,3 +1,5 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/poseidon-framework/poseidon-hs/CI)
+
 # poseidon-tools
 A toolset to work with modular genotype databases formatted using Poseidon.
 
