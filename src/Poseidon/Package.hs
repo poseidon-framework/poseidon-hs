@@ -20,7 +20,7 @@ module Poseidon.Package (
     EigenstratIndEntry(..)
 ) where
 
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (PoseidonException(..))
 
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM, forM_, mzero)
@@ -463,8 +463,30 @@ compFunc2 _                                     []                              
 -- Janno file loading
 
 -- | A utility function to load multiple janno files
-loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
+loadJannoFiles :: [FilePath] -> IO [[Either PoseidonException PoseidonSample]]
 loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
+
+-- | A function to load one janno file
+loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
+loadJannoFile jannoPath = do
+    jannoFile <- Bch.readFile jannoPath
+    let jannoFileUpdated = replaceNA jannoFile
+    let jannoFileRows = Bch.lines jannoFileUpdated
+    mapM loadJannoFileRow (tail jannoFileRows)
+    
+loadJannoFileRow :: Bch.ByteString -> IO (Either PoseidonException PoseidonSample)
+loadJannoFileRow row = do
+    case Csv.decodeWith decodingOptions Csv.NoHeader row of
+        Left err -> do
+           return $ Left (PoseidonJannoException err)
+        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
+           return $ Right $ V.head poseidonSamples
+
+
+decodingOptions :: Csv.DecodeOptions
+decodingOptions = Csv.defaultDecodeOptions { 
+    Csv.decDelimiter = fromIntegral (ord '\t')
+}
 
 -- | A helper function to replace n/a values in janno files with empty bytestrings 
 replaceNA :: Bch.ByteString -> Bch.ByteString
@@ -475,27 +497,4 @@ replaceNA tsv =
        tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
--- | A function to load one janno file
-loadJannoFile :: FilePath -> IO [PoseidonSample]
-loadJannoFile jannoPath = do
-    jannoFile <- Bch.readFile jannoPath
-    -- replace n/a with empty
-    let jannoFileUpdated = replaceNA jannoFile
-    let jannoFileRows = Bch.lines jannoFileUpdated
-    mapM loadJannoFileRow (tail jannoFileRows)
-    
-loadJannoFileRow :: Bch.ByteString -> IO PoseidonSample
-loadJannoFileRow row = do
-    case Csv.decodeWith decodingOptions Csv.NoHeader row of
-        Left err -> do
-           throwIO $ PoseidonJannoException err
-        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
-            return $ V.head poseidonSamples
 
-
--- Janno file loading helper functions and definitions
-
-decodingOptions :: Csv.DecodeOptions
-decodingOptions = Csv.defaultDecodeOptions { 
-    Csv.decDelimiter = fromIntegral (ord '\t')
-}

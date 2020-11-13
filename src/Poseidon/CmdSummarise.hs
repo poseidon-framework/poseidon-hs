@@ -9,6 +9,7 @@ import           Poseidon.Package   (loadPoseidonPackages,
 import qualified Data.List          as L
 import qualified Data.Maybe         as DM
 import           System.IO          (hPutStrLn, stderr)
+import qualified Data.Either        as E
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -23,7 +24,10 @@ runSummarise (SummariseOptions baseDirs) = do
     let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
-    summarisePoseidonSamples jannoSamples
+    -- show all parsing errors
+    print (E.lefts jannoSamples)
+    -- show actual summary
+    summarisePoseidonSamples (E.rights jannoSamples)
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
