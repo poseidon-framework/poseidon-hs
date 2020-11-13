@@ -472,16 +472,18 @@ loadJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
     let jannoFileUpdated = replaceNA jannoFile
     let jannoFileRows = Bch.lines jannoFileUpdated
-    mapM loadJannoFileRow (tail jannoFileRows)
-    
-loadJannoFileRow :: Bch.ByteString -> IO (Either PoseidonException PoseidonSample)
-loadJannoFileRow row = do
-    case Csv.decodeWith decodingOptions Csv.NoHeader row of
+    -- tupel with row number and row bytestring
+    let jannoFileRowsWithNumber = zip [1..(length $ jannoFileRows)] jannoFileRows
+    mapM (loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
+
+-- | A function to load one row of a janno file    
+loadJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException PoseidonSample)
+loadJannoFileRow jannoPath row = do
+    case Csv.decodeWith decodingOptions Csv.NoHeader (snd row) of
         Left err -> do
-           return $ Left (PoseidonJannoException err)
+           return $ Left (PoseidonJannoException jannoPath (fst row) err)
         Right (poseidonSamples :: V.Vector PoseidonSample) -> do
            return $ Right $ V.head poseidonSamples
-
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions { 
