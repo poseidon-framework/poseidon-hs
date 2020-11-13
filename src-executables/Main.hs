@@ -5,6 +5,7 @@ import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
                                         runFstats, runParser)
 import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
                                         runList)
+import           Poseidon.CmdSummarise (SummariseOptions(..), runSummarise)
 
 import           Data.ByteString.Char8 (pack, splitWith)
 import           Options.Applicative   as OP
@@ -14,6 +15,7 @@ import           Text.Read             (readEither)
 
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
+    | CmdSummarise SummariseOptions
 
 main :: IO ()
 main = do
@@ -21,6 +23,7 @@ main = do
     case cmdOpts of
         CmdList opts   -> runList opts
         CmdFstats opts -> runFstats opts
+        CmdSummarise opts  -> runSummarise opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
@@ -30,12 +33,15 @@ optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
 optParser :: OP.Parser Options
 optParser = OP.subparser $
     OP.command "list" listOptInfo <>
-    OP.command "fstats" fstatsOptInfo
+    OP.command "fstats" fstatsOptInfo <>
+    OP.command "summarise" summariseOptInfo
   where
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "fstat: running fstats")
+    summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
+        (OP.progDesc "summarise: get an overview over the content of one or multiple packages")
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
@@ -47,6 +53,15 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
                                 <*> OP.many parseStatSpecsDirect
                                 <*> parseStatSpecsFromFile
                                 <*> parseRawOutput
+
+summariseOptParser :: OP.Parser SummariseOptions
+summariseOptParser = SummariseOptions <$> parseBasePaths
+
+-- parseJannoPath :: OP.Parser FilePath
+-- parseJannoPath = OP.strOption
+--     ( OP.long "jannoPath"
+--    <> OP.short 'j'
+--    <> OP.metavar "FILENAME" )
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>

@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Poseidon.Package (
     PoseidonPackage(..),
@@ -7,11 +9,14 @@ module Poseidon.Package (
     GenotypeFormatSpec(..),
     ContributorSpec(..),
     PoseidonException(..),
+    PoseidonSample(..),
+    latitudeToDouble,
     readPoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
     getIndividuals,
     loadPoseidonPackages,
+    loadJannoFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..)
 ) where
@@ -24,6 +29,7 @@ import           Control.Monad.Catch        (throwM)
 import           Data.Aeson                 (FromJSON, parseJSON, withObject,
                                              withText, (.:), (.:?))
 import qualified Data.ByteString            as B
+import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
@@ -44,6 +50,9 @@ import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
+import           GHC.Generics               (Generic)
+import qualified Data.Csv                   as Csv
+import           Data.Char                  (ord)
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -75,9 +84,110 @@ data GenotypeDataSpec = GenotypeDataSpec
     deriving (Show, Eq)
 
 -- | A data type representing the options fo the genotype format
-data GenotypeFormatSpec = GenotypeFormatEigenstrat -- ^ the Eigenstrat format
+data GenotypeFormatSpec = 
+      GenotypeFormatEigenstrat -- ^ the Eigenstrat format
     | GenotypeFormatPlink -- ^ the Plink format
     deriving (Show, Eq)
+
+-- |A datatype to represent Genetic_Sex in a janno file
+data Sex = 
+      Male
+    | Female
+    | Unknown
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Date_Type in a janno file
+data JannoDateType = 
+      C14
+    | Contextual
+    | Modern
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Data_Type in a janno file
+data JannoDataType = 
+      Shotgun
+    | A1240K
+    | OtherCapture
+    | ReferenceGenome
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Genotype_Ploidy in a janno file
+data JannoGenotypePloidy = 
+      Diploid
+    | Haploid
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent UDG in a janno file
+data JannoUDG = 
+      Minus
+    | Half
+    | Plus
+    | Mixed
+    deriving (Eq, Show, Ord)
+
+-- |A datatype to represent Library_Built in a janno file
+data JannoLibraryBuilt = 
+      DS
+    | SS
+    | Other
+    deriving (Eq, Show, Ord)
+
+-- | A datatype for Latitudes
+data Latitude = 
+      Latitude Double
+    deriving (Eq, Show, Ord)
+
+-- | A smart constructor for Latitudes
+strictLatitude :: Double -> Latitude
+strictLatitude d | d < -90 || d > 90 = error "Invalid coordinate" 
+                 | otherwise         = Latitude d
+
+-- | A smart constructor for Latitudes
+latitudeToDouble :: Latitude -> Double
+latitudeToDouble (Latitude x) = x
+
+-- | A data type to represent a sample/janno file row
+-- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
+-- for more details
+data PoseidonSample = PoseidonSample
+    { posSamIndividualID        :: String
+    , posSamCollectionID        :: Maybe String
+    , posSamSourceTissue        :: Maybe [String]
+    , posSamCountry             :: Maybe String
+    , posSamLocation            :: Maybe String
+    , posSamSite                :: Maybe String
+    , posSamLatitude            :: Maybe Latitude
+    , posSamLongitude           :: Maybe Double
+    , posSamDateC14Labnr        :: Maybe [String]
+    , posSamDateC14UncalBP      :: Maybe [Integer]
+    , posSamDateC14UncalBPErr   :: Maybe [Integer]
+    , posSamDateBCADMedian      :: Maybe Integer
+    , posSamDateBCADStart       :: Maybe Integer
+    , posSamDateBCADStop        :: Maybe Integer
+    , posSamDateType            :: Maybe JannoDateType
+    , posSamNrLibraries         :: Maybe Integer
+    , posSamDataType            :: Maybe [JannoDataType]
+    , posSamGenotypePloidy      :: Maybe JannoGenotypePloidy
+    , posSamGroupName           :: [String]
+    , posSamGeneticSex          :: Sex
+    , posSamNrAutosomalSNPs     :: Maybe Integer
+    , posSamCoverage1240K       :: Maybe Double
+    , posSamMTHaplogroup        :: Maybe String
+    , posSamYHaplogroup         :: Maybe String
+    , posSamEndogenous          :: Maybe Double
+    , posSamUDG                 :: Maybe JannoUDG
+    , posSamLibraryBuilt        :: Maybe JannoLibraryBuilt
+    , posSamDamage              :: Maybe Double
+    , posSamNuclearContam       :: Maybe Double
+    , posSamNuclearContamErr    :: Maybe Double
+    , posSamMTContam            :: Maybe Double
+    , posSamMTContamErr         :: Maybe Double
+    , posSamPrimaryContact      :: Maybe String
+    , posSamPublication         :: Maybe String
+    , posSamComments            :: Maybe String
+    , posSamKeywords            :: Maybe [String]
+    }
+    deriving (Show, Eq, Generic)
 
 -- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
 instance FromJSON PoseidonPackage where
@@ -260,7 +370,6 @@ getJointGenotypeData pacs = do
         in  e {snpRef = ref, snpAlt = alt}
     makeSnpEntriesConcordant _ = error "should not happen"
     
-
 zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
 zipAll _                   []            = error "zipAll - should never happen (1)"
 zipAll []                  _             = error "zipAll - should never happen (2)"
@@ -280,3 +389,130 @@ compFunc1 (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ 
 compFunc2 :: (EigenstratSnpEntry, GenoLine) -> [(EigenstratSnpEntry, GenoLine)] -> Ordering
 compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _ _, _):_) = compare (c1, p1) (c2, p2)
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
+
+-- Janno file loading
+
+-- | A utility function to load multiple janno files
+loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
+loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
+
+-- | A helper function to replace n/a values in janno files with empty bytestrings 
+replaceNA :: Bch.ByteString -> Bch.ByteString
+replaceNA tsv =
+   let tsvRows = Bch.lines tsv
+       tsvCells = map (\x -> Bch.splitWith (=='\t') x) tsvRows
+       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
+       tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
+   in Bch.unlines tsvRowsUpdated
+
+-- | A function to load one janno file
+loadJannoFile :: FilePath -> IO [PoseidonSample]
+loadJannoFile jannoPath = do
+    jannoFile <- Bch.readFile jannoPath
+    -- replace n/a with empty
+    let jannoFileUpdated = replaceNA jannoFile
+    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
+        Left err -> do
+           throwIO $ PoseidonJannoException err
+        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
+            return $ V.toList poseidonSamples
+
+-- Janno file loading helper functions and definitions
+
+decodingOptions :: Csv.DecodeOptions
+decodingOptions = Csv.defaultDecodeOptions { 
+    Csv.decDelimiter = fromIntegral (ord '\t')
+}
+
+instance Csv.FromRecord PoseidonSample
+
+-- | A helper function for parsing double lists
+bytestringToDouble :: [Bch.ByteString] -> [Double]
+bytestringToDouble [] = []
+bytestringToDouble (x:xs) = (read (Bch.unpack x) :: Double) : bytestringToDouble xs
+
+instance Csv.FromField [Double] where
+    parseField = fmap bytestringToDouble . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+-- | A helper function for parsing integer lists
+bytestringToInteger :: [Bch.ByteString] -> [Integer]
+bytestringToInteger [] = []
+bytestringToInteger (x:xs) = (read (Bch.unpack x) :: Integer) : bytestringToInteger xs
+
+instance Csv.FromField [Integer] where
+    parseField = fmap bytestringToInteger . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+-- | A helper function for parsing string lists
+bytestringToString :: [Bch.ByteString] -> [String]
+bytestringToString [] = []
+bytestringToString (x:xs) = (Bch.unpack x) : bytestringToString xs
+
+instance Csv.FromField [String] where
+    parseField = fmap bytestringToString . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+-- | A helper function to parse Genetic_Sex values
+stringToSex :: String -> Sex
+stringToSex "F" = Female
+stringToSex "M" = Male
+stringToSex "U" = Unknown
+
+instance Csv.FromField Sex where
+    parseField = fmap stringToSex . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse Date_Type values
+stringToJannoDateType :: String -> JannoDateType
+stringToJannoDateType "C14" = C14
+stringToJannoDateType "contextual" = Contextual
+stringToJannoDateType "modern" = Modern
+
+instance Csv.FromField JannoDateType where
+    parseField = fmap stringToJannoDateType . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse Data_Type values
+stringToJannoDataType :: String -> JannoDataType
+stringToJannoDataType "Shotgun" = Shotgun
+stringToJannoDataType "1240K" = A1240K
+stringToJannoDataType "OtherCapture" = OtherCapture
+stringToJannoDataType "ReferenceGenome" = ReferenceGenome
+
+-- | A helper function for parsing Data_Type lists
+bytestringToJannoDataType :: [Bch.ByteString] -> [JannoDataType]
+bytestringToJannoDataType [] = []
+bytestringToJannoDataType (x:xs) = (stringToJannoDataType $ Bch.unpack x) : bytestringToJannoDataType xs
+
+instance Csv.FromField [JannoDataType] where
+    parseField = fmap bytestringToJannoDataType . fmap (\x -> Bch.splitWith (==';') x) . Csv.parseField
+
+-- | A helper function to parse Genotype_Ploidy values
+stringToJannoGenotypePloidy :: String -> JannoGenotypePloidy
+stringToJannoGenotypePloidy "diploid" = Diploid
+stringToJannoGenotypePloidy "haploid" = Haploid
+
+instance Csv.FromField JannoGenotypePloidy where
+    parseField = fmap stringToJannoGenotypePloidy . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse UDG values
+stringToJannoUDG :: String -> JannoUDG
+stringToJannoUDG "minus" = Minus
+stringToJannoUDG "half" = Half
+stringToJannoUDG "plus" = Plus
+stringToJannoUDG "mixed" = Mixed
+
+instance Csv.FromField JannoUDG where
+    parseField = fmap stringToJannoUDG . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse Library_Built values
+stringToJannoLibraryBuilt :: String -> JannoLibraryBuilt
+stringToJannoLibraryBuilt "ds" = DS
+stringToJannoLibraryBuilt "ss" = SS
+stringToJannoLibraryBuilt "other" = Other
+
+instance Csv.FromField JannoLibraryBuilt where
+    parseField = fmap stringToJannoLibraryBuilt . fmap Bch.unpack . Csv.parseField
+
+-- | A helper function to parse Latitude values
+stringToLatitude :: String -> Latitude
+stringToLatitude x = strictLatitude $ read x
+
+instance Csv.FromField Latitude where
+    parseField = fmap stringToLatitude . fmap Bch.unpack . Csv.parseField
