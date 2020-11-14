@@ -1,14 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import           Control.Applicative ((<|>))
 import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
 import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
                                         runList)
 import           Poseidon.CmdSummarise (SummariseOptions(..), runSummarise)
-
+import           Poseidon.CmdValidate  (ValidateOptions(..), runValidate)
 import           Data.ByteString.Char8 (pack, splitWith)
-import           Options.Applicative   as OP
+import qualified Options.Applicative as OP
 import           SequenceFormats.Utils (Chrom (..))
 import           Text.Read             (readEither)
 
@@ -16,6 +17,7 @@ import           Text.Read             (readEither)
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
     | CmdSummarise SummariseOptions
+    | CmdValidate ValidateOptions
 
 main :: IO ()
 main = do
@@ -24,6 +26,7 @@ main = do
         CmdList opts   -> runList opts
         CmdFstats opts -> runFstats opts
         CmdSummarise opts  -> runSummarise opts
+        CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
@@ -34,7 +37,9 @@ optParser :: OP.Parser Options
 optParser = OP.subparser $
     OP.command "list" listOptInfo <>
     OP.command "fstats" fstatsOptInfo <>
-    OP.command "summarise" summariseOptInfo
+    OP.command "summarise" summariseOptInfo <>
+    OP.command "validate" validateOptInfo
+
   where
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
@@ -42,6 +47,8 @@ optParser = OP.subparser $
         (OP.progDesc "fstat: running fstats")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "summarise: get an overview over the content of one or multiple packages")
+    validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
+        (OP.progDesc "validate: check one or multiple packages for structural correctness")
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
@@ -56,6 +63,9 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
+
+validateOptParser :: OP.Parser ValidateOptions
+validateOptParser = ValidateOptions <$> parseBasePaths
 
 -- parseJannoPath :: OP.Parser FilePath
 -- parseJannoPath = OP.strOption

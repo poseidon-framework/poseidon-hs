@@ -16,11 +16,12 @@ module Poseidon.Package (
     getIndividuals,
     loadPoseidonPackages,
     loadJannoFiles,
+    loadBibTeXFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..)
 ) where
 
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (PoseidonException(..))
 
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM, forM_, mzero)
@@ -53,6 +54,8 @@ import           System.IO                  (hPutStrLn, stderr)
 import           GHC.Generics               (Generic)
 import qualified Data.Csv                   as Csv
 import           Data.Char                  (ord)
+import qualified Text.CSL.Input.Bibtex      as Bib
+import           Text.CSL.Reference         (Reference(..))
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -332,7 +335,7 @@ findPoseidonPackages baseDir = do
     posPac  <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
     forM_ (lefts posPac) $ (\e -> case e of
         PoseidonYamlParseException fp err ->
-            putStrLn ("Skipping package at " ++ fp ++ " due to YAML parsing error: " ++ show err)
+            putStrLn ("Can't read package at " ++ fp ++ " due to YAML parsing error: " ++ show err)
         _ -> error "this should never happen")
     subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
@@ -463,33 +466,52 @@ compFunc2 _                                     []                              
 -- Janno file loading
 
 -- | A utility function to load multiple janno files
-loadJannoFiles :: [FilePath] -> IO [[PoseidonSample]]
-loadJannoFiles jannoPaths = mapM loadJannoFile jannoPaths
-
--- | A helper function to replace n/a values in janno files with empty bytestrings 
-replaceNA :: Bch.ByteString -> Bch.ByteString
-replaceNA tsv =
-   let tsvRows = Bch.lines tsv
-       tsvCells = map (\x -> Bch.splitWith (=='\t') x) tsvRows
-       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
-       tsvRowsUpdated = map (\x -> Bch.intercalate (Bch.pack "\t") x) tsvCellsUpdated
-   in Bch.unlines tsvRowsUpdated
+loadJannoFiles :: [FilePath] -> IO [[Either PoseidonException PoseidonSample]]
+loadJannoFiles = mapM loadJannoFile
 
 -- | A function to load one janno file
-loadJannoFile :: FilePath -> IO [PoseidonSample]
+loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
 loadJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
-    -- replace n/a with empty
     let jannoFileUpdated = replaceNA jannoFile
-    case Csv.decodeWith decodingOptions Csv.HasHeader jannoFileUpdated of
-        Left err -> do
-           throwIO $ PoseidonJannoException err
-        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
-            return $ V.toList poseidonSamples
+    let jannoFileRows = Bch.lines jannoFileUpdated
+    -- tupel with row number and row bytestring
+    let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
+    mapM (loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
 
--- Janno file loading helper functions and definitions
+-- | A function to load one row of a janno file    
+loadJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException PoseidonSample)
+loadJannoFileRow jannoPath row = do
+    case Csv.decodeWith decodingOptions Csv.NoHeader (snd row) of
+        Left err -> do
+           return $ Left (PoseidonJannoException jannoPath (fst row) err)
+        Right (poseidonSamples :: V.Vector PoseidonSample) -> do
+           return $ Right $ V.head poseidonSamples
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions { 
     Csv.decDelimiter = fromIntegral (ord '\t')
 }
+
+-- | A helper function to replace n/a values in janno files with empty bytestrings 
+replaceNA :: Bch.ByteString -> Bch.ByteString
+replaceNA tsv =
+   let tsvRows = Bch.lines tsv
+       tsvCells = map (Bch.splitWith (=='\t')) tsvRows
+       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
+       tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
+   in Bch.unlines tsvRowsUpdated
+
+-- BibTeX file parsing
+
+loadBibTeXFiles :: [FilePath] -> IO [Either PoseidonException [Reference]]
+loadBibTeXFiles bibPaths = do
+    mapM loadBibTeXFile bibPaths
+
+loadBibTeXFile :: FilePath -> IO (Either PoseidonException [Reference])
+loadBibTeXFile bibPath = do
+     try (Bib.readBibtex (const True) True False bibPath)
+
+     
+
+
