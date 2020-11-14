@@ -53,6 +53,8 @@ import           System.IO                  (hPutStrLn, stderr)
 import           GHC.Generics               (Generic)
 import qualified Data.Csv                   as Csv
 import           Data.Char                  (ord)
+import qualified Text.CSL.Input.Bibtex      as Bib
+import           Text.CSL.Reference         (Reference(..))
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -498,5 +500,23 @@ replaceNA tsv =
        tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
+
+-- BibTeX file parsing
+
+loadBibTeXFiles :: [FilePath] -> IO [Either PoseidonException [Reference]]
+loadBibTeXFiles bibPaths = do
+    mapM loadBibTeXFile bibPaths
+
+loadBibTeXFile :: FilePath -> IO (Either PoseidonException [Reference])
+loadBibTeXFile bibPath = do
+     try (Bib.readBibtex (const True) True False bibPath)
+
+     
+    --  of
+    --     Left err -> do
+    --         return (PoseidonBibTeXException bibPath err)
+    --     Right (bibEntries :: [Reference]) -> do
+    --         return bibEntries
+     
 
 
