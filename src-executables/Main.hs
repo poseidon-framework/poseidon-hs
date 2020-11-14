@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import           Control.Applicative ((<|>))
 import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
@@ -8,28 +9,7 @@ import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
 import           Poseidon.CmdSummarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CmdValidate  (ValidateOptions(..), runValidate)
 import           Data.ByteString.Char8 (pack, splitWith)
-import Options.Applicative as OP
-    ( Alternative((<|>), many, some),
-      briefDesc,
-      command,
-      eitherReader,
-      flag',
-      help,
-      info,
-      long,
-      metavar,
-      option,
-      progDesc,
-      short,
-      str,
-      strOption,
-      subparser,
-      switch,
-      value,
-      execParser,
-      helper,
-      Parser,
-      ParserInfo )
+import qualified Options.Applicative as OP
 import           SequenceFormats.Utils (Chrom (..))
 import           Text.Read             (readEither)
 
