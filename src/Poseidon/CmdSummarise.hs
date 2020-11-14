@@ -6,11 +6,12 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
                                     PoseidonPackage(..), 
                                     PoseidonSample(..))
-import           Poseidon.Utils     (printPoseidonJannoException,
-                                    removeNothing)
+import           Poseidon.Utils     (printPoseidonJannoException)
+
+import qualified Data.Either        as E
+import           Data.Maybe         (catMaybes)
 import qualified Data.List          as L
 import           System.IO          (hPutStrLn, stderr)
-import qualified Data.Either        as E
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -42,35 +43,35 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Populations:\t\t" ++ 
                 pasteFirstN 2 (L.nub $ map (head . posSamGroupName) xs)
     putStrLn $ "Publications:\t\t" ++ 
-                pasteFirstN 2 (L.nub $ removeNothing $ map posSamPublication xs)
+                pasteFirstN 2 (L.nub $ catMaybes $ map posSamPublication xs)
     putStrLn $ "Countries:\t\t" ++ 
-                pasteFirstN 5 (L.nub $ removeNothing $ map posSamCountry xs)
+                pasteFirstN 5 (L.nub $ catMaybes $ map posSamCountry xs)
     putStrLn $ "Mean age BC/AD:\t\t" ++ 
-               meanAndSdInteger (map fromIntegral (removeNothing $ map posSamDateBCADMedian xs))
+               meanAndSdInteger (map fromIntegral (catMaybes $ map posSamDateBCADMedian xs))
     putStrLn $ "Dating type:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamDateType xs))
     putStrLn "---"
     putStrLn $ "MT haplogroups:\t\t" ++ 
-                pasteFirstN 5 (L.nub $ removeNothing $ map posSamMTHaplogroup xs)
+                pasteFirstN 5 (L.nub $ catMaybes $ map posSamMTHaplogroup xs)
     putStrLn $ "Y haplogroups:\t\t" ++ 
-                pasteFirstN 5 (L.nub $ removeNothing $ map posSamYHaplogroup xs)
+                pasteFirstN 5 (L.nub $ catMaybes $ map posSamYHaplogroup xs)
     putStrLn $ "% endogenous human DNA:\t" ++ 
-                meanAndSdRoundTo 2 (removeNothing $ map posSamEndogenous xs)
+                meanAndSdRoundTo 2 (catMaybes $ map posSamEndogenous xs)
     putStrLn $ "# of SNPs on 1240K:\t" ++ 
-                meanAndSdInteger (map fromIntegral (removeNothing $ map posSamNrAutosomalSNPs xs))
+                meanAndSdInteger (map fromIntegral (catMaybes $ map posSamNrAutosomalSNPs xs))
     putStrLn $ "Coverage on 1240K:\t" ++ 
-                meanAndSdRoundTo 2 (removeNothing $ map posSamCoverage1240K xs)
+                meanAndSdRoundTo 2 (catMaybes $ map posSamCoverage1240K xs)
     -- putStrLn $ "Damage:\t\t\t" ++ 
-    --             meanAndSdRoundTo 2 (removeNothing $ map posSamDamage xs)
+    --             meanAndSdRoundTo 2 (catMaybes $ map posSamDamage xs)
     -- putStrLn $ "Nuclear contamination:\t" ++ 
-    --             meanAndSdRoundTo 2 (removeNothing $ map posSamNuclearContam xs)
+    --             meanAndSdRoundTo 2 (catMaybes $ map posSamNuclearContam xs)
     -- putStrLn $ "MT contamination:\t" ++ 
-    --             meanAndSdRoundTo 2 (removeNothing $ map posSamMTContam xs)
+    --             meanAndSdRoundTo 2 (catMaybes $ map posSamMTContam xs)
     putStrLn $ "Library type:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
     putStrLn $ "UDG treatment:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamUDG xs))
-    -- putStrLn $ "test" ++  meanAndSdRoundTo 2 (map latitudeToDouble (removeNothing $ map posSamLatitude xs))
+    -- putStrLn $ "test" ++  meanAndSdRoundTo 2 (map latitudeToDouble (catMaybes $ map posSamLatitude xs))
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String

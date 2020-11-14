@@ -6,10 +6,11 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
                                     PoseidonPackage(..),
                                     loadBibTeXFiles)
-import           Poseidon.Utils     (printPoseidonJannoException,
-                                    removeNothing)
-import           System.IO          (hPutStrLn, stderr)
+import           Poseidon.Utils     (printPoseidonJannoException)
+
 import qualified Data.Either        as E
+import           Data.Maybe         (catMaybes)
+import           System.IO          (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -37,7 +38,7 @@ runValidate (ValidateOptions baseDirs) = do
     -- ...
     -- 
     putStrLn "BIBTEX file consistency:"
-    let bibFilePaths = removeNothing $ map posPacBibFile packages
+    let bibFilePaths = catMaybes $ map posPacBibFile packages
     let bibFiles = loadBibTeXFiles bibFilePaths
     references <- fmap (\x -> concat $ E.rights x) bibFiles
     hPutStrLn stderr $ (show . length $ references) 
