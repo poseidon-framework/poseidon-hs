@@ -332,7 +332,7 @@ findPoseidonPackages baseDir = do
     posPac  <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
     forM_ (lefts posPac) $ (\e -> case e of
         PoseidonYamlParseException fp err ->
-            putStrLn ("Skipping package at " ++ fp ++ " due to YAML parsing error: " ++ show err)
+            putStrLn ("Can't read package at " ++ fp ++ " due to YAML parsing error: " ++ show err)
         _ -> error "this should never happen")
     subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs

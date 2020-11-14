@@ -17,15 +17,18 @@ data ValidateOptions = ValidateOptions
 -- | The main function running the janno command
 runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs) = do
+    --
+    putStrLn "POSEIDON.yml consistency:"
     packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
-    -- POSEIDON.yml consistency
-    -- ...
-    -- Janno file consistency
+    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages seem to be fine"
+    --
+    putStrLn "POSEIDON.yml consistency:"
     let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
     mapM_ printPoseidonJannoException (E.lefts jannoSamples)
+    hPutStrLn stderr $ (show . length $ E.rights jannoSamples) ++ " samples seem to be fine"
+    --
     -- Genotype file consistency (if available and without loading them completely!)
     -- ...
     -- Bibtex file consistency

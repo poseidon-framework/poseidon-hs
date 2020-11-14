@@ -17,6 +17,7 @@ instance Exception PoseidonException
 
 printPoseidonJannoException :: PoseidonException -> IO()
 printPoseidonJannoException (PoseidonJannoException f i s) = 
-    putStrLn $  "Parsing error in " ++ f 
-                ++ " in line " ++ (show i) 
-                -- ++ ": " ++ s
+    putStrLn $  "Can't read sample in " ++ f 
+                ++ " in line " ++ (show i)
+                ++ " due to .janno parsing error: "
+                ++ s
