@@ -4,8 +4,10 @@ module Poseidon.CmdValidate (runValidate, ValidateOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
-                                    PoseidonPackage(..))
-import           Poseidon.Utils     (printPoseidonJannoException)
+                                    PoseidonPackage(..),
+                                    loadBibTeXFiles)
+import           Poseidon.Utils     (printPoseidonJannoException,
+                                    removeNothing)
 import           System.IO          (hPutStrLn, stderr)
 import qualified Data.Either        as E
 
@@ -18,23 +20,31 @@ data ValidateOptions = ValidateOptions
 runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs) = do
     --
-    putStrLn "POSEIDON.yml consistency:"
+    putStrLn "POSEIDON.yml file consistency:"
     packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages seem to be fine"
+    hPutStrLn stderr $ (show . length $ packages) 
+        ++ " Poseidon packages seem to be fine"
     --
-    putStrLn "POSEIDON.yml consistency:"
+    putStrLn "JANNO file consistency:"
     let jannoFilePaths = map posPacJannoFile packages
     let jannoFiles = loadJannoFiles jannoFilePaths
     jannoSamples <- fmap concat jannoFiles
     mapM_ printPoseidonJannoException (E.lefts jannoSamples)
-    hPutStrLn stderr $ (show . length $ E.rights jannoSamples) ++ " samples seem to be fine"
+    hPutStrLn stderr $ (show . length $ E.rights jannoSamples) 
+        ++ " samples seem to be fine"
     --
     -- Genotype file consistency (if available and without loading them completely!)
     -- ...
-    -- Bibtex file consistency
-    -- ...
+    -- 
+    putStrLn "BIBTEX file consistency:"
+    let bibFilePaths = removeNothing $ map posPacBibFile packages
+    let bibFiles = loadBibTeXFiles bibFilePaths
+    references <- fmap (\x -> concat $ E.rights x) bibFiles
+    hPutStrLn stderr $ (show . length $ references) 
+        ++ " literature references seem to be fine"
+    --
     -- Cross-file consistency
     -- ...
+    --
     -- Final report: Error code generation
     -- ...
-

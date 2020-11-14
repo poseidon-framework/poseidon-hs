@@ -6,9 +6,9 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
                                     PoseidonPackage(..), 
                                     PoseidonSample(..))
-import           Poseidon.Utils     (printPoseidonJannoException)
+import           Poseidon.Utils     (printPoseidonJannoException,
+                                    removeNothing)
 import qualified Data.List          as L
-import qualified Data.Maybe         as DM
 import           System.IO          (hPutStrLn, stderr)
 import qualified Data.Either        as E
 
@@ -78,12 +78,6 @@ pasteFirstN :: Int -> [String] -> String
 pasteFirstN _ [] = "no values"
 pasteFirstN n xs = 
     (L.intercalate ", " $ take n xs) ++ if (length xs > n) then ", ..." else ""
-
--- | A helper function to remove all nothings from a list of maybes
-removeNothing :: [Maybe a] -> [a]
-removeNothing xs =
-    let onlyJust = filter DM.isJust xs
-    in DM.catMaybes onlyJust
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double

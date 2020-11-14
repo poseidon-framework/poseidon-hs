@@ -16,6 +16,7 @@ module Poseidon.Package (
     getIndividuals,
     loadPoseidonPackages,
     loadJannoFiles,
+    loadBibTeXFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..)
 ) where
@@ -511,12 +512,6 @@ loadBibTeXFile :: FilePath -> IO (Either PoseidonException [Reference])
 loadBibTeXFile bibPath = do
      try (Bib.readBibtex (const True) True False bibPath)
 
-     
-    --  of
-    --     Left err -> do
-    --         return (PoseidonBibTeXException bibPath err)
-    --     Right (bibEntries :: [Reference]) -> do
-    --         return bibEntries
      
 
 

@@ -1,7 +1,12 @@
-module Poseidon.Utils (PoseidonException(..), printPoseidonJannoException) where
+module Poseidon.Utils (
+    PoseidonException(..), 
+    printPoseidonJannoException,
+    removeNothing
+) where
 
 import           Control.Exception          (Exception)
 import           Data.Yaml                  (ParseException)
+import qualified Data.Maybe                 as DM
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
@@ -22,3 +27,9 @@ printPoseidonJannoException (PoseidonJannoException f i s) =
                 ++ " in line " ++ (show i)
                 ++ " due to .janno parsing error: "
                 ++ s
+
+-- | A helper function to remove all nothings from a list of maybes
+removeNothing :: [Maybe a] -> [a]
+removeNothing xs =
+    let onlyJust = filter DM.isJust xs
+    in DM.catMaybes onlyJust
