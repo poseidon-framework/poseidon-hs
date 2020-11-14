@@ -23,8 +23,7 @@ runSummarise (SummariseOptions baseDirs) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     let jannoFilePaths = map posPacJannoFile packages
-    let jannoFiles = loadJannoFiles jannoFilePaths
-    jannoSamples <- fmap concat jannoFiles
+    jannoSamples <- fmap concat . loadJannoFiles $ jannoFilePaths
     -- show all parsing errors
     mapM_ printPoseidonJannoException (E.lefts jannoSamples)
     -- show actual summary
