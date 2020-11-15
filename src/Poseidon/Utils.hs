@@ -16,6 +16,7 @@ data PoseidonException =
     | PoseidonJannoException FilePath Int String-- ^ An exception to represent errors when trying to parse the .janno file
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
+    | PoseidonValidationException -- ^ An exception to indicate failed package validation
     deriving (Show)
 
 instance Exception PoseidonException
@@ -26,4 +27,3 @@ renderPoseidonJannoException (PoseidonJannoException f i s) =
     ++ " in line " ++ (show i)
     ++ " due to a .janno parsing error"
     -- ++ s -- this error message is pretty useless and can be omitted
-

@@ -7,7 +7,8 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     PoseidonPackage(..),
                                     PoseidonSample(..),
                                     loadBibTeXFiles)
-import           Poseidon.Utils     (renderPoseidonJannoException)
+import           Poseidon.Utils     (PoseidonException(..),
+                                    renderPoseidonJannoException)
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
@@ -16,6 +17,7 @@ import           Text.CSL.Exception (renderError)
 import           Text.CSL.Reference (refId, unLiteral)
 import           Data.List          (nub, (\\), intercalate)
 import           Data.Text          (unpack)
+import           Control.Exception  (throw)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -64,4 +66,6 @@ runValidate (ValidateOptions baseDirs) = do
                         intercalate ", " literatureNotInBibButInJanno
     --
     -- Final report: Error code generation
-    -- ...
+    if not (null jannoExceptions && null bibExceptions) -- || ...
+        then throw PoseidonValidationException
+        else putStrLn "==> Validation passed ✓"
