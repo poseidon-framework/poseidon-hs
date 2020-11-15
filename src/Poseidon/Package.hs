@@ -54,8 +54,9 @@ import           System.IO                  (hPutStrLn, stderr)
 import           GHC.Generics               (Generic)
 import qualified Data.Csv                   as Csv
 import           Data.Char                  (ord)
-import qualified Text.CSL.Input.Bibtex      as Bib
+import           Text.CSL.Input.Bibtex      (readBibtex)
 import           Text.CSL.Reference         (Reference(..))
+import           Text.CSL.Exception         (CiteprocException)
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -504,13 +505,13 @@ replaceNA tsv =
 
 -- BibTeX file parsing
 
-loadBibTeXFiles :: [FilePath] -> IO [Either PoseidonException [Reference]]
+loadBibTeXFiles :: [FilePath] -> IO [Either CiteprocException [Reference]]
 loadBibTeXFiles bibPaths = do
     mapM (try . loadBibTeXFile) bibPaths
 
 loadBibTeXFile :: FilePath -> IO [Reference]
 loadBibTeXFile bibPath = do
-     Bib.readBibtex (const True) True False bibPath
+     readBibtex (const True) True False bibPath
 
      
 

@@ -11,6 +11,7 @@ import           Poseidon.Utils     (printPoseidonJannoException)
 import qualified Data.Either        as E
 import           Data.Maybe         (catMaybes)
 import           System.IO          (hPutStrLn, stderr)
+import           Text.CSL.Exception (renderError)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -40,8 +41,10 @@ runValidate (ValidateOptions baseDirs) = do
     putStrLn "BIBTEX file consistency:"
     let bibFilePaths = catMaybes $ map posPacBibFile packages
     let bibFiles = loadBibTeXFiles bibFilePaths
-    references <- fmap (\x -> concat $ E.rights x) bibFiles
-    hPutStrLn stderr $ (show . length $ references) 
+    bibReferences <- fmap (concat . E.rights) bibFiles
+    bibExceptions <- fmap E.lefts bibFiles
+    mapM_ (putStrLn . renderError) bibExceptions
+    hPutStrLn stderr $ (show . length $ bibReferences) 
         ++ " literature references seem to be fine"
     --
     -- Cross-file consistency
