@@ -10,7 +10,7 @@ import           Poseidon.Package   (loadPoseidonPackages,
 import           Poseidon.Utils     (printPoseidonJannoException)
 
 import qualified Data.Either        as E
-import           Data.Maybe         (catMaybes)
+import           Data.Maybe         (mapMaybe)
 import qualified Data.List          as L
 import           System.IO          (hPutStrLn, stderr)
 
@@ -44,24 +44,24 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Populations:\t\t" ++ 
                 pasteFirstN 2 (L.nub $ map (head . posSamGroupName) xs)
     putStrLn $ "Publications:\t\t" ++ 
-                pasteFirstN 2 (L.nub $ catMaybes $ map posSamPublication xs)
+                pasteFirstN 2 (L.nub $ mapMaybe posSamPublication xs)
     putStrLn $ "Countries:\t\t" ++ 
-                pasteFirstN 5 (L.nub $ catMaybes $ map posSamCountry xs)
+                pasteFirstN 5 (L.nub $ mapMaybe posSamCountry xs)
     putStrLn $ "Mean age BC/AD:\t\t" ++ 
-               meanAndSdInteger (map fromIntegral (catMaybes $ map posSamDateBCADMedian xs))
+               meanAndSdInteger (map fromIntegral (mapMaybe posSamDateBCADMedian xs))
     putStrLn $ "Dating type:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamDateType xs))
     putStrLn "---"
     putStrLn $ "MT haplogroups:\t\t" ++ 
-                pasteFirstN 5 (L.nub $ catMaybes $ map posSamMTHaplogroup xs)
+                pasteFirstN 5 (L.nub $ mapMaybe posSamMTHaplogroup xs)
     putStrLn $ "Y haplogroups:\t\t" ++ 
-                pasteFirstN 5 (L.nub $ catMaybes $ map posSamYHaplogroup xs)
+                pasteFirstN 5 (L.nub $ mapMaybe posSamYHaplogroup xs)
     putStrLn $ "% endogenous human DNA:\t" ++ 
-                meanAndSdRoundTo 2 (map (\(Percent x) -> x) (catMaybes $ map posSamEndogenous xs))
+                meanAndSdRoundTo 2 (map (\(Percent x) -> x) (mapMaybe posSamEndogenous xs))
     putStrLn $ "# of SNPs on 1240K:\t" ++ 
-                meanAndSdInteger (map fromIntegral (catMaybes $ map posSamNrAutosomalSNPs xs))
+                meanAndSdInteger (map fromIntegral (mapMaybe posSamNrAutosomalSNPs xs))
     putStrLn $ "Coverage on 1240K:\t" ++ 
-                meanAndSdRoundTo 2 (catMaybes $ map posSamCoverage1240K xs)
+                meanAndSdRoundTo 2 (mapMaybe posSamCoverage1240K xs)
     putStrLn $ "Library type:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
     putStrLn $ "UDG treatment:\t\t" ++ 
