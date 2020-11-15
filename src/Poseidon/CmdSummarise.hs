@@ -7,7 +7,7 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     PoseidonPackage(..), 
                                     PoseidonSample(..),
                                     Percent(..))
-import           Poseidon.Utils     (printPoseidonJannoException)
+import           Poseidon.Utils     (renderPoseidonJannoException)
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
@@ -27,7 +27,7 @@ runSummarise (SummariseOptions baseDirs) = do
     let jannoFilePaths = map posPacJannoFile packages
     jannoSamples <- fmap concat . loadJannoFiles $ jannoFilePaths
     -- show all parsing errors
-    mapM_ printPoseidonJannoException (E.lefts jannoSamples)
+    mapM_ (putStrLn . renderPoseidonJannoException) (E.lefts jannoSamples)
     -- show actual summary
     summarisePoseidonSamples (E.rights jannoSamples)
 

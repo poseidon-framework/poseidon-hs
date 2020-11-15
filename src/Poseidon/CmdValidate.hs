@@ -7,7 +7,7 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     PoseidonPackage(..),
                                     PoseidonSample(..),
                                     loadBibTeXFiles)
-import           Poseidon.Utils     (printPoseidonJannoException)
+import           Poseidon.Utils     (renderPoseidonJannoException)
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
@@ -37,7 +37,7 @@ runValidate (ValidateOptions baseDirs) = do
     jannoSamplesRaw <- fmap concat jannoFiles
     let jannoSamples = E.rights jannoSamplesRaw
     let jannoExceptions = E.lefts jannoSamplesRaw
-    mapM_ printPoseidonJannoException jannoExceptions
+    mapM_ (putStrLn . renderPoseidonJannoException) jannoExceptions
     hPutStrLn stderr $ (show . length $ jannoSamples) 
         ++ " samples seem to be fine"
     --

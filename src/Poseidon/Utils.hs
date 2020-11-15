@@ -1,6 +1,6 @@
 module Poseidon.Utils (
     PoseidonException(..), 
-    printPoseidonJannoException
+    renderPoseidonJannoException
 ) where
 
 import           Control.Exception          (Exception)
@@ -20,10 +20,10 @@ data PoseidonException =
 
 instance Exception PoseidonException
 
-printPoseidonJannoException :: PoseidonException -> IO()
-printPoseidonJannoException (PoseidonJannoException f i s) = 
-    putStrLn $  "Can't read sample in " ++ f 
-                ++ " in line " ++ (show i)
-                ++ " due to .janno parsing error: "
-                ++ s
+renderPoseidonJannoException :: PoseidonException -> String
+renderPoseidonJannoException (PoseidonJannoException f i s) = 
+    "Can't read sample in " ++ f 
+    ++ " in line " ++ (show i)
+    ++ " due to a .janno parsing error"
+    -- ++ s -- this error message is pretty useless and can be omitted
 
