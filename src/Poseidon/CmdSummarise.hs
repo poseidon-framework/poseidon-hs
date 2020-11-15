@@ -5,7 +5,8 @@ module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 import           Poseidon.Package   (loadPoseidonPackages,
                                     loadJannoFiles,
                                     PoseidonPackage(..), 
-                                    PoseidonSample(..))
+                                    PoseidonSample(..),
+                                    Percent(..))
 import           Poseidon.Utils     (printPoseidonJannoException)
 
 import qualified Data.Either        as E
@@ -56,22 +57,15 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Y haplogroups:\t\t" ++ 
                 pasteFirstN 5 (L.nub $ catMaybes $ map posSamYHaplogroup xs)
     putStrLn $ "% endogenous human DNA:\t" ++ 
-                meanAndSdRoundTo 2 (catMaybes $ map posSamEndogenous xs)
+                meanAndSdRoundTo 2 (map (\(Percent x) -> x) (catMaybes $ map posSamEndogenous xs))
     putStrLn $ "# of SNPs on 1240K:\t" ++ 
                 meanAndSdInteger (map fromIntegral (catMaybes $ map posSamNrAutosomalSNPs xs))
     putStrLn $ "Coverage on 1240K:\t" ++ 
                 meanAndSdRoundTo 2 (catMaybes $ map posSamCoverage1240K xs)
-    -- putStrLn $ "Damage:\t\t\t" ++ 
-    --             meanAndSdRoundTo 2 (catMaybes $ map posSamDamage xs)
-    -- putStrLn $ "Nuclear contamination:\t" ++ 
-    --             meanAndSdRoundTo 2 (catMaybes $ map posSamNuclearContam xs)
-    -- putStrLn $ "MT contamination:\t" ++ 
-    --             meanAndSdRoundTo 2 (catMaybes $ map posSamMTContam xs)
     putStrLn $ "Library type:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
     putStrLn $ "UDG treatment:\t\t" ++ 
                 printFrequencyMaybe ", " (frequency (map posSamUDG xs))
-    -- putStrLn $ "test" ++  meanAndSdRoundTo 2 (map latitudeToDouble (catMaybes $ map posSamLatitude xs))
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String

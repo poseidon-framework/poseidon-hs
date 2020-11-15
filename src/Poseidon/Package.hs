@@ -18,7 +18,8 @@ module Poseidon.Package (
     loadJannoFiles,
     loadBibTeXFiles,
     getJointGenotypeData,
-    EigenstratIndEntry(..)
+    EigenstratIndEntry(..),
+    Percent(..)
 ) where
 
 import           Poseidon.Utils             (PoseidonException(..))
@@ -235,6 +236,17 @@ instance Csv.FromField Longitude where
         then mzero
         else pure (Longitude val)
 
+newtype Percent =
+        Percent Double
+    deriving (Eq, Show, Ord)
+
+instance Csv.FromField Percent where
+    parseField x = do
+        val <- Csv.parseField x
+        if val < 0  || val > 100
+        then mzero
+        else pure (Percent val)
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -263,10 +275,10 @@ data PoseidonSample = PoseidonSample
     , posSamCoverage1240K       :: Maybe Double
     , posSamMTHaplogroup        :: Maybe String
     , posSamYHaplogroup         :: Maybe String
-    , posSamEndogenous          :: Maybe Double
+    , posSamEndogenous          :: Maybe Percent
     , posSamUDG                 :: Maybe JannoUDG
     , posSamLibraryBuilt        :: Maybe JannoLibraryBuilt
-    , posSamDamage              :: Maybe Double
+    , posSamDamage              :: Maybe Percent
     , posSamNuclearContam       :: Maybe Double
     , posSamNuclearContamErr    :: Maybe Double
     , posSamMTContam            :: Maybe Double
