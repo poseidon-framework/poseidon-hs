@@ -30,7 +30,7 @@ runValidate (ValidateOptions baseDirs) = do
     -- POSEIDON.yml
     putStrLn "POSEIDON.yml file consistency:"
     packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) 
+    putStrLn $ show (length packages) 
         ++ " Poseidon packages seem to be fine"
     -- JANNO
     putStrLn "JANNO file consistency:"
@@ -40,7 +40,7 @@ runValidate (ValidateOptions baseDirs) = do
     let jannoSamples = E.rights jannoSamplesRaw
     let jannoExceptions = E.lefts jannoSamplesRaw
     mapM_ (putStrLn . renderPoseidonJannoException) jannoExceptions
-    hPutStrLn stderr $ (show . length $ jannoSamples) 
+    putStrLn $ show (length jannoSamples) 
         ++ " samples seem to be fine"
     --
     -- Genotype file consistency (if available and without loading them completely!)
@@ -52,7 +52,7 @@ runValidate (ValidateOptions baseDirs) = do
     bibReferences <- fmap (concat . E.rights) bibFiles
     bibExceptions <- fmap E.lefts bibFiles
     mapM_ (putStrLn . renderError) bibExceptions
-    hPutStrLn stderr $ (show . length $ bibReferences) 
+    putStrLn $ show (length bibReferences) 
         ++ " literature references seem to be fine"
     --
     -- Cross-file consistency
