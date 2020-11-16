@@ -7,6 +7,7 @@ import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
 import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
                                         runList)
 import           Poseidon.CmdSummarise (SummariseOptions(..), runSummarise)
+import           Poseidon.CmdSurvey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CmdValidate  (ValidateOptions(..), runValidate)
 import           Data.ByteString.Char8 (pack, splitWith)
 import qualified Options.Applicative as OP
@@ -17,15 +18,17 @@ import           Text.Read             (readEither)
 data Options = CmdList ListOptions
     | CmdFstats FstatsOptions
     | CmdSummarise SummariseOptions
+    | CmdSurvey SurveyOptions
     | CmdValidate ValidateOptions
 
 main :: IO ()
 main = do
     cmdOpts <- OP.execParser optParserInfo
     case cmdOpts of
-        CmdList opts   -> runList opts
-        CmdFstats opts -> runFstats opts
-        CmdSummarise opts  -> runSummarise opts
+        CmdList opts      -> runList opts
+        CmdFstats opts    -> runFstats opts
+        CmdSummarise opts -> runSummarise opts
+        CmdSurvey opts    -> runSurvey opts
         CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -38,6 +41,7 @@ optParser = OP.subparser $
     OP.command "list" listOptInfo <>
     OP.command "fstats" fstatsOptInfo <>
     OP.command "summarise" summariseOptInfo <>
+    OP.command "survey" surveyOptInfo <>
     OP.command "validate" validateOptInfo
 
   where
@@ -47,6 +51,8 @@ optParser = OP.subparser $
         (OP.progDesc "fstat: running fstats")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "summarise: get an overview over the content of one or multiple packages")
+    surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
+        (OP.progDesc "survey: survey the degree of completeness of package information")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "validate: check one or multiple packages for structural correctness")
 
@@ -64,14 +70,11 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
 
+surveyOptParser :: OP.Parser SurveyOptions
+surveyOptParser = SurveyOptions <$> parseBasePaths
+
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
-
--- parseJannoPath :: OP.Parser FilePath
--- parseJannoPath = OP.strOption
---     ( OP.long "jannoPath"
---    <> OP.short 'j'
---    <> OP.metavar "FILENAME" )
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>

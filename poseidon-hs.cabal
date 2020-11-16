@@ -14,7 +14,8 @@ extra-source-files:  README.md,
 
 library
     exposed-modules:    Poseidon.Package, Poseidon.CmdFStats, Poseidon.CmdList, 
-                        Poseidon.CmdSummarise, Poseidon.CmdValidate, Poseidon.Utils
+                        Poseidon.CmdSummarise, Poseidon.CmdValidate, Poseidon.Utils,
+                        Poseidon.CmdSurvey
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
