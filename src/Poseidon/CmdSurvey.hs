@@ -5,12 +5,12 @@ module Poseidon.CmdSurvey (runSurvey, SurveyOptions(..)) where
 import           Poseidon.Package       (PoseidonPackage(..),
                                         loadPoseidonPackages,
                                         loadJannoFiles,
-                                        PoseidonSample(..))
+                                        PoseidonSample(..),
+                                        GenotypeDataSpec(..))
 import qualified Data.Either            as E
-import           Data.Maybe             (isNothing, isJust, maybe)
+import           Data.Maybe             (isNothing, maybe)
 import           System.Directory       (doesFileExist)
-import           System.FilePath.Posix  (FilePath(..))
-import Control.Exception                (evaluate)      
+import           Data.List              (zip4)  
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -22,21 +22,33 @@ runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs) = do
     packages <- loadPoseidonPackages baseDirs
     -- putStrLn $ show (length packages) ++ " Poseidon packages found"
+    -- collect information
     let packageNames = map posPacTitle packages
-    let bibLinkInDescription = map posPacBibFile packages
-    bibExists <- mapM (maybe (return False) doesFileExist) bibLinkInDescription
+    -- geno
+    let genotypeData = map posPacGenotypeData packages
+    let genoFiles = map genoFile genotypeData
+    let snpFiles = map snpFile genotypeData
+    let indFiles = map indFile genotypeData
+    genoFilesExist <- mapM doesFileExist genoFiles 
+    snpFilesExist <- mapM doesFileExist snpFiles 
+    indFilesExist <- mapM doesFileExist indFiles 
+    let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
+    -- janno
     let jannoFilePaths = map posPacJannoFile packages
     jannoSamples <- loadJannoFiles jannoFilePaths
-    -- let headerAndFooter = replicate 41 ' ' ++ "Geno" ++ " " ++ "Bib" ++ " " ++ "Janno"
+    -- bib
+    let bibLinkInDescription = map posPacBibFile packages
+    bibExists <- mapM (maybe (return False) doesFileExist) bibLinkInDescription
+    -- print information
     mapM_ 
         (putStrLn . renderPackageWithCompleteness) 
-        (zip3 packageNames (map E.rights jannoSamples) bibExists)
+        (zip4 packageNames genoTypeDataExists (map E.rights jannoSamples) bibExists)
 
-renderPackageWithCompleteness :: (String,[PoseidonSample],Bool) -> String
-renderPackageWithCompleteness (packageName,jannoSamples,bibExists) =
+renderPackageWithCompleteness :: (String,Bool,[PoseidonSample],Bool) -> String
+renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibExists) =
     take 40 (packageName ++ repeat ' ') 
     ++ " "
-    ++ "G"
+    ++ if genoTypeDataExists then "G" else "."
     ++ "-"
     ++ renderJannoCompleteness jannoSamples
     ++ "-"
