@@ -16,6 +16,7 @@ module Poseidon.Package (
     getIndividuals,
     loadPoseidonPackages,
     loadJannoFiles,
+    loadJannoFile,
     loadBibTeXFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..),
