@@ -8,9 +8,10 @@ import           Poseidon.Package       (PoseidonPackage(..),
                                         PoseidonSample(..),
                                         GenotypeDataSpec(..))
 import qualified Data.Either            as E
-import           Data.Maybe             (isNothing, maybe)
+import           Data.Maybe             (isNothing)
 import           System.Directory       (doesFileExist)
-import           Data.List              (zip4)  
+import           Data.List              (zip4)
+import           System.IO              (hPutStrLn, stderr)  
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -21,17 +22,14 @@ data SurveyOptions = SurveyOptions
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs) = do
     packages <- loadPoseidonPackages baseDirs
-    -- putStrLn $ show (length packages) ++ " Poseidon packages found"
+    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- collect information
     let packageNames = map posPacTitle packages
     -- geno
     let genotypeData = map posPacGenotypeData packages
-    let genoFiles = map genoFile genotypeData
-    let snpFiles = map snpFile genotypeData
-    let indFiles = map indFile genotypeData
-    genoFilesExist <- mapM doesFileExist genoFiles 
-    snpFilesExist <- mapM doesFileExist snpFiles 
-    indFilesExist <- mapM doesFileExist indFiles 
+    genoFilesExist <- mapM (doesFileExist . genoFile) genotypeData 
+    snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData 
+    indFilesExist <- mapM (doesFileExist . indFile) genotypeData 
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
     let jannoFilePaths = map posPacJannoFile packages
