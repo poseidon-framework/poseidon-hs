@@ -5,10 +5,11 @@ module Poseidon.CmdSurvey (runSurvey, SurveyOptions(..)) where
 import           Poseidon.Package       (PoseidonPackage(..),
                                         loadPoseidonPackages,
                                         maybeLoadJannoFiles,
+                                        maybeLoadBibTeXFiles,
                                         PoseidonSample(..),
                                         GenotypeDataSpec(..))
 import qualified Data.Either            as E
-import           Data.Maybe             (isNothing)
+import           Data.Maybe             (isNothing, isJust)
 import           System.Directory       (doesFileExist)
 import           Data.List              (zip4)
 import           System.IO              (hPutStrLn, stderr)  
@@ -35,12 +36,16 @@ runSurvey (SurveyOptions baseDirs) = do
     jannoFiles <- maybeLoadJannoFiles packages
     let jannoMaybeList = map (maybe Nothing (\x -> if all E.isRight x then Just (E.rights x) else Nothing) . rightToMaybe) jannoFiles
     -- bib
-    let bibLinkInDescription = map posPacBibFile packages
-    bibExists <- mapM (maybe (return False) doesFileExist) bibLinkInDescription
+    -- let bibLinkInDescription = map posPacBibFile packages
+    -- bibExists <- mapM (maybe (return False) doesFileExist) bibLinkInDescription
+    bibFiles <- maybeLoadBibTeXFiles packages
+    let bibMaybeList = map (maybe Nothing rightToMaybe . rightToMaybe) bibFiles
+    let bibAreAlright = map isJust bibMaybeList
+    --let bibIsAlright = map (maybe False E.isRight . E.fromRight False) bibFiles
     -- print information
     mapM_ 
         (putStrLn . renderPackageWithCompleteness) 
-        (zip4 packageNames genoTypeDataExists jannoMaybeList bibExists)
+        (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright)
 
 rightToMaybe :: Either a b -> Maybe b
 rightToMaybe = either (const Nothing) Just

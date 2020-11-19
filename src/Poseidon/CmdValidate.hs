@@ -6,7 +6,7 @@ import           Poseidon.Package   (loadPoseidonPackages,
                                     maybeLoadJannoFiles,
                                     PoseidonPackage(..),
                                     PoseidonSample(..),
-                                    loadBibTeXFiles)
+                                    maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
                                     renderPoseidonException)
 
@@ -48,11 +48,13 @@ runValidate (ValidateOptions baseDirs) = do
     -- ...
     -- BIBTEX
     putStrLn "BIBTEX file consistency:"
-    let bibFilePaths = mapMaybe posPacBibFile packages
-    let bibFiles = loadBibTeXFiles bibFilePaths
-    bibReferences <- fmap (concat . E.rights) bibFiles
-    bibExceptions <- fmap E.lefts bibFiles
-    mapM_ (putStrLn . renderError) bibExceptions
+    bibFiles <- maybeLoadBibTeXFiles packages
+    let bibFileExistenceExceptions = E.lefts bibFiles
+    let bibReferencesRaw = E.rights bibFiles
+    let bibFileReadingExceptions = E.lefts bibReferencesRaw
+    let bibReferences = concat $ E.rights bibReferencesRaw
+    mapM_ (putStrLn . renderPoseidonException) bibFileExistenceExceptions
+    mapM_ (putStrLn . renderError) bibFileReadingExceptions
     putStrLn $ show (length bibReferences) 
         ++ " literature references seem to be fine"
     --
@@ -67,6 +69,6 @@ runValidate (ValidateOptions baseDirs) = do
                         intercalate ", " literatureNotInBibButInJanno
     --
     -- Final report: Error code generation
-    if not (null jannoFileReadingExceptions && null bibExceptions) -- || ...
+    if not (null jannoFileReadingExceptions && null bibFileExistenceExceptions) -- && ...
         then throw PoseidonValidationException
         else putStrLn "==> Validation passed ✓"

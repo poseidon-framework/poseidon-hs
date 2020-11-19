@@ -15,11 +15,9 @@ module Poseidon.Package (
     filterDuplicatePackages,
     getIndividuals,
     loadPoseidonPackages,
-    loadJannoFiles,
-    loadJannoFile,
     maybeLoadJannoFiles,
     maybeLoadJannoFile,
-    loadBibTeXFiles,
+    maybeLoadBibTeXFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..),
     Percent(..)
@@ -540,13 +538,34 @@ replaceNA tsv =
 
 -- BibTeX file parsing
 
+maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
+maybeLoadBibTeXFiles pacs = do
+    mapM maybeLoadBibTeXFile pacs
+
+maybeLoadBibTeXFile :: PoseidonPackage -> IO (Either PoseidonException (Either CiteprocException [Reference]))
+maybeLoadBibTeXFile pac = do
+    let maybeBibPath = posPacBibFile pac
+    case maybeBibPath of
+        Nothing -> do
+            return $ Left $ PoseidonFileExistenceException $
+                posPacTitle pac ++ ": Can't find .bib file path in the POSEIDON.yml"
+        Just x  -> do
+            fileExists <- doesFileExist x
+            if not fileExists 
+            then do
+                return $ Left $ PoseidonFileExistenceException $
+                    posPacTitle pac ++ ": Can't find .bib file " ++ show x
+            else do
+                references <- loadBibTeXFile x
+                return $ Right references
+
 loadBibTeXFiles :: [FilePath] -> IO [Either CiteprocException [Reference]]
 loadBibTeXFiles bibPaths = do
-    mapM (try . loadBibTeXFile) bibPaths
+    mapM loadBibTeXFile bibPaths
 
-loadBibTeXFile :: FilePath -> IO [Reference]
+loadBibTeXFile :: FilePath -> IO (Either CiteprocException [Reference])
 loadBibTeXFile bibPath = do
-     readBibtex (const True) True False bibPath
+     try (readBibtex (const True) True False bibPath)
 
      
 
