@@ -17,8 +17,8 @@ module Poseidon.Package (
     loadPoseidonPackages,
     loadJannoFiles,
     loadJannoFile,
-    loadMaybeJannoFiles,
-    loadMaybeJannoFile,
+    maybeLoadJannoFiles,
+    maybeLoadJannoFile,
     loadBibTeXFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..),
@@ -26,7 +26,6 @@ module Poseidon.Package (
 ) where
 
 import           Poseidon.Utils             (PoseidonException(..))
-
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM, forM_, mzero)
 import           Control.Monad.Catch        (throwM)
@@ -481,21 +480,23 @@ compFunc2 _                                     []                              
 
 -- Janno file loading
 
-loadMaybeJannoFiles :: [Maybe FilePath] -> IO [Either PoseidonException [Either PoseidonException PoseidonSample]]
-loadMaybeJannoFiles = mapM loadMaybeJannoFile
+maybeLoadJannoFiles :: [PoseidonPackage] -> IO [Either PoseidonException [Either PoseidonException PoseidonSample]]
+maybeLoadJannoFiles pacs = do
+    mapM maybeLoadJannoFile pacs
 
-loadMaybeJannoFile :: Maybe FilePath -> IO (Either PoseidonException [Either PoseidonException PoseidonSample])
-loadMaybeJannoFile jannoPath = do
-    case jannoPath of 
+maybeLoadJannoFile :: PoseidonPackage -> IO (Either PoseidonException [Either PoseidonException PoseidonSample])
+maybeLoadJannoFile pac = do
+    let maybeJannoPath = posPacJannoFile pac
+    case maybeJannoPath of 
         Nothing -> do 
-            return $ Left $ PoseidonFileExistenceException 
-                "Can't find .janno file path in the POSEIDON.yml"
+            return $ Left $ PoseidonFileExistenceException $
+                posPacTitle pac ++ ": Can't find .janno file path in the POSEIDON.yml"
         Just x  -> do 
             fileExists <- doesFileExist x
             if not fileExists 
             then do 
                 return $ Left $ PoseidonFileExistenceException $
-                    "Can't find .janno file with the file path in the POSEIDON.yml: " ++ show x
+                    posPacTitle pac ++ ": Can't find .janno file " ++ show x
             else do 
                 samples <- loadJannoFile x
                 return $ Right samples

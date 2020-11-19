@@ -3,12 +3,10 @@
 module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
-                                    loadMaybeJannoFiles,
+                                    maybeLoadJannoFiles,
                                     PoseidonPackage(..), 
                                     PoseidonSample(..),
                                     Percent(..))
-import           Poseidon.Utils     (renderPoseidonJannoException)
-
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
 import qualified Data.List          as L
@@ -25,8 +23,7 @@ runSummarise (SummariseOptions baseDirs) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- JANNO
-    let jannoFilePaths = map posPacJannoFile packages
-    jannoFiles <- loadMaybeJannoFiles jannoFilePaths
+    jannoFiles <- maybeLoadJannoFiles packages
     let jannoSamplesRaw = E.rights jannoFiles
     let jannoSamples = E.rights $ concat jannoSamplesRaw
     -- show actual summary

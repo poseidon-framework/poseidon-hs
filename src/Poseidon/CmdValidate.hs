@@ -3,12 +3,12 @@
 module Poseidon.CmdValidate (runValidate, ValidateOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
-                                    loadMaybeJannoFiles,
+                                    maybeLoadJannoFiles,
                                     PoseidonPackage(..),
                                     PoseidonSample(..),
                                     loadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
-                                    renderPoseidonJannoException)
+                                    renderPoseidonException)
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
@@ -34,14 +34,13 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " Poseidon packages seem to be fine"
     -- JANNO
     putStrLn "JANNO file consistency:"
-    let jannoFilePaths = map posPacJannoFile packages
-    jannoFiles <- loadMaybeJannoFiles jannoFilePaths
+    jannoFiles <- maybeLoadJannoFiles packages
     let jannoFileExistenceExceptions = E.lefts jannoFiles
     let jannoSamplesRaw = E.rights jannoFiles
     let jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
     let jannoSamples = E.rights $ concat jannoSamplesRaw
-    mapM_ print jannoFileExistenceExceptions
-    mapM_ (putStrLn . renderPoseidonJannoException) jannoFileReadingExceptions
+    mapM_ (putStrLn . renderPoseidonException) jannoFileExistenceExceptions
+    mapM_ (putStrLn . renderPoseidonException) jannoFileReadingExceptions
     putStrLn $ show (length jannoSamples) 
         ++ " samples seem to be fine"
     --
