@@ -4,7 +4,6 @@ module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     maybeLoadJannoFiles,
-                                    PoseidonPackage(..), 
                                     PoseidonSample(..),
                                     Percent(..))
 import qualified Data.Either        as E

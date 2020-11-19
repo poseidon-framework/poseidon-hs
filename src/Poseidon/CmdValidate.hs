@@ -4,7 +4,6 @@ module Poseidon.CmdValidate (runValidate, ValidateOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     maybeLoadJannoFiles,
-                                    PoseidonPackage(..),
                                     PoseidonSample(..),
                                     maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
@@ -12,7 +11,6 @@ import           Poseidon.Utils     (PoseidonException(..),
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
-import           System.IO          (hPutStrLn, stderr)
 import           Text.CSL.Exception (renderError)
 import           Text.CSL.Reference (refId, unLiteral)
 import           Data.List          (nub, (\\), intercalate)
