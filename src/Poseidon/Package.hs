@@ -17,7 +17,9 @@ module Poseidon.Package (
     loadPoseidonPackages,
     maybeLoadJannoFiles,
     maybeLoadJannoFile,
+    jannoToSimpleMaybeList,
     maybeLoadBibTeXFiles,
+    bibToSimpleMaybeList,
     getJointGenotypeData,
     EigenstratIndEntry(..),
     Percent(..)
@@ -32,7 +34,7 @@ import           Data.Aeson                 (FromJSON, parseJSON, withObject,
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.ByteString.Char8      as Bchs
-import           Data.Either                (lefts, rights)
+import           Data.Either                (isRight, lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
 import           Data.Text                  (unpack)
@@ -475,6 +477,17 @@ compFunc1 (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ 
 compFunc2 :: (EigenstratSnpEntry, GenoLine) -> [(EigenstratSnpEntry, GenoLine)] -> Ordering
 compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _ _, _):_) = compare (c1, p1) (c2, p2)
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
+
+--
+
+bibToSimpleMaybeList :: [Either PoseidonException (Either CiteprocException [Reference])] -> [Maybe [Reference]]
+bibToSimpleMaybeList = map (maybe Nothing rightToMaybe . rightToMaybe)
+
+jannoToSimpleMaybeList :: [Either PoseidonException [Either PoseidonException PoseidonSample]] -> [Maybe [PoseidonSample]]
+jannoToSimpleMaybeList = map (maybe Nothing (\x -> if all isRight x then Just (rights x) else Nothing) . rightToMaybe)
+
+rightToMaybe :: Either a b -> Maybe b
+rightToMaybe = either (const Nothing) Just
 
 -- Janno file loading
 

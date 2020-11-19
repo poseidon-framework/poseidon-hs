@@ -4,12 +4,14 @@ module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     maybeLoadJannoFiles,
+                                    jannoToSimpleMaybeList,
                                     PoseidonSample(..),
                                     Percent(..))
 import qualified Data.Either        as E
-import           Data.Maybe         (mapMaybe)
+import           Data.Maybe         (mapMaybe, isJust, catMaybes)
 import qualified Data.List          as L
 import           System.IO          (hPutStrLn, stderr)
+import           Control.Monad      (when)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -23,10 +25,14 @@ runSummarise (SummariseOptions baseDirs) = do
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles packages
-    let jannoSamplesRaw = E.rights jannoFiles
-    let jannoSamples = E.rights $ concat jannoSamplesRaw
-    -- show actual summary
+    let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
+    let jannoSamples = concat $ catMaybes jannoMaybeList
+    let anyJannoIssues = not $ all isJust jannoMaybeList
+    -- print information
     summarisePoseidonSamples jannoSamples
+    -- print read issue warning
+    when anyJannoIssues $
+        putStrLn "\nThere were issues with missing, incomplete or invalid data. Run poet validate to learn more."
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()

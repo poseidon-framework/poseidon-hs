@@ -6,6 +6,8 @@ import           Poseidon.Package       (PoseidonPackage(..),
                                         loadPoseidonPackages,
                                         maybeLoadJannoFiles,
                                         maybeLoadBibTeXFiles,
+                                        bibToSimpleMaybeList,
+                                        jannoToSimpleMaybeList,
                                         PoseidonSample(..),
                                         GenotypeDataSpec(..))
 import qualified Data.Either            as E
@@ -13,6 +15,7 @@ import           Data.Maybe             (isNothing, isJust)
 import           System.Directory       (doesFileExist)
 import           Data.List              (zip4)
 import           System.IO              (hPutStrLn, stderr)  
+import           Control.Monad          (when)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -34,28 +37,30 @@ runSurvey (SurveyOptions baseDirs) = do
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles packages
-    let jannoMaybeList = map (maybe Nothing (\x -> if all E.isRight x then Just (E.rights x) else Nothing) . rightToMaybe) jannoFiles
+    let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
+    let anyJannoIssues = not $ all isJust jannoMaybeList
     -- bib
     bibFiles <- maybeLoadBibTeXFiles packages
-    let bibMaybeList = map (maybe Nothing rightToMaybe . rightToMaybe) bibFiles
+    let bibMaybeList = bibToSimpleMaybeList bibFiles
     let bibAreAlright = map isJust bibMaybeList
+    let anyBibIssues = not $ all isJust bibMaybeList
     -- print information
     mapM_ 
         (putStrLn . renderPackageWithCompleteness) 
         (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright)
-
-rightToMaybe :: Either a b -> Maybe b
-rightToMaybe = either (const Nothing) Just
+    -- print read issue warning
+    when (anyJannoIssues || anyBibIssues) $
+        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run poet validate to learn more."
 
 renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
-renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibExists) =
+renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibIsAlright) =
     take 40 (packageName ++ repeat ' ') 
     ++ " "
     ++ if genoTypeDataExists then "G" else "."
     ++ "-"
     ++ maybe (replicate 35 '.') renderJannoCompleteness jannoSamples
     ++ "-"
-    ++ if bibExists then "B" else "."
+    ++ if bibIsAlright then "B" else "."
 
 renderJannoCompleteness :: [PoseidonSample] -> String
 renderJannoCompleteness jS =
