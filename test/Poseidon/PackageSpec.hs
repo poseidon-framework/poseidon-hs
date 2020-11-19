@@ -64,7 +64,7 @@ truePackage = PoseidonPackage {
         snpFile = "Schiffels_2016.bim",
         indFile = "Schiffels_2016.fam"
     },
-    posPacJannoFile = "Schiffels_2016.janno"
+    posPacJannoFile = Just "Schiffels_2016.janno"
 }
 
 testPoseidonFromYAML :: Spec
