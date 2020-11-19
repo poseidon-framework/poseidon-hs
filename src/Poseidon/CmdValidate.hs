@@ -3,7 +3,7 @@
 module Poseidon.CmdValidate (runValidate, ValidateOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
-                                    loadJannoFiles,
+                                    loadMaybeJannoFiles,
                                     PoseidonPackage(..),
                                     PoseidonSample(..),
                                     loadBibTeXFiles)
@@ -34,12 +34,16 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " Poseidon packages seem to be fine"
     -- JANNO
     putStrLn "JANNO file consistency:"
+    ---- Load and report JANNO block
     let jannoFilePaths = map posPacJannoFile packages
-    let jannoFiles = loadJannoFiles jannoFilePaths
-    jannoSamplesRaw <- fmap concat jannoFiles
-    let jannoSamples = E.rights jannoSamplesRaw
-    let jannoExceptions = E.lefts jannoSamplesRaw
-    mapM_ (putStrLn . renderPoseidonJannoException) jannoExceptions
+    jannoFiles <- loadMaybeJannoFiles jannoFilePaths
+    let jannoFileExistenceExceptions = E.lefts jannoFiles
+    let jannoSamplesRaw = E.rights jannoFiles
+    let jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
+    let jannoSamples = E.rights $ concat jannoSamplesRaw
+    mapM_ print jannoFileExistenceExceptions
+    mapM_ (putStrLn . renderPoseidonJannoException) jannoFileReadingExceptions
+    ----
     putStrLn $ show (length jannoSamples) 
         ++ " samples seem to be fine"
     --
@@ -66,6 +70,6 @@ runValidate (ValidateOptions baseDirs) = do
                         intercalate ", " literatureNotInBibButInJanno
     --
     -- Final report: Error code generation
-    if not (null jannoExceptions && null bibExceptions) -- || ...
+    if not (null jannoFileReadingExceptions && null bibExceptions) -- || ...
         then throw PoseidonValidationException
         else putStrLn "==> Validation passed ✓"

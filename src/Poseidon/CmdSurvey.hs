@@ -4,7 +4,7 @@ module Poseidon.CmdSurvey (runSurvey, SurveyOptions(..)) where
 
 import           Poseidon.Package       (PoseidonPackage(..),
                                         loadPoseidonPackages,
-                                        loadJannoFiles,
+                                        loadMaybeJannoFiles,
                                         PoseidonSample(..),
                                         GenotypeDataSpec(..))
 import qualified Data.Either            as E
@@ -31,16 +31,18 @@ runSurvey (SurveyOptions baseDirs) = do
     snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData 
     indFilesExist <- mapM (doesFileExist . indFile) genotypeData 
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
-    -- janno
+    -- JANNO
     let jannoFilePaths = map posPacJannoFile packages
-    jannoSamples <- loadJannoFiles jannoFilePaths
+    jannoFiles <- loadMaybeJannoFiles jannoFilePaths
+    let jannoSamplesRaw = E.rights jannoFiles
+    let jannoSamples = map E.rights jannoSamplesRaw
     -- bib
     let bibLinkInDescription = map posPacBibFile packages
     bibExists <- mapM (maybe (return False) doesFileExist) bibLinkInDescription
     -- print information
     mapM_ 
         (putStrLn . renderPackageWithCompleteness) 
-        (zip4 packageNames genoTypeDataExists (map E.rights jannoSamples) bibExists)
+        (zip4 packageNames genoTypeDataExists jannoSamples bibExists)
 
 renderPackageWithCompleteness :: (String,Bool,[PoseidonSample],Bool) -> String
 renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibExists) =

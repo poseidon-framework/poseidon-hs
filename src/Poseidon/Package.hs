@@ -17,6 +17,8 @@ module Poseidon.Package (
     loadPoseidonPackages,
     loadJannoFiles,
     loadJannoFile,
+    loadMaybeJannoFiles,
+    loadMaybeJannoFile,
     loadBibTeXFiles,
     getJointGenotypeData,
     EigenstratIndEntry(..),
@@ -69,7 +71,7 @@ data PoseidonPackage = PoseidonPackage
     , posPacLastModified    :: Maybe Day -- ^ the optional date of last update
     , posPacBibFile         :: Maybe FilePath -- ^ the optional path to the bibliography file
     , posPacGenotypeData    :: GenotypeDataSpec -- ^ the paths to the genotype files
-    , posPacJannoFile       :: FilePath -- ^ the path to the janno file 
+    , posPacJannoFile       :: Maybe FilePath -- ^ the path to the janno file 
     }
     deriving (Show, Eq)
 
@@ -318,7 +320,7 @@ addFullPaths :: FilePath -- ^ the base file path to use as prefix for relative p
              -> PoseidonPackage -- ^ the new package with prefixed paths
 addFullPaths baseDir pac =
     let bibFileFullPath                      = (baseDir </>) <$> posPacBibFile pac
-        jannoFileFullPath                    = baseDir </> (posPacJannoFile pac)
+        jannoFileFullPath                    = (baseDir </>) <$> posPacJannoFile pac
         GenotypeDataSpec format_ geno snp ind = posPacGenotypeData pac
         genotypeDataFullPath                 =
             GenotypeDataSpec format_ (baseDir </> geno) (baseDir </> snp) (baseDir </> ind)
@@ -478,6 +480,18 @@ compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
 
 -- Janno file loading
+
+loadMaybeJannoFiles :: [Maybe FilePath] -> IO [Either PoseidonException [Either PoseidonException PoseidonSample]]
+loadMaybeJannoFiles = mapM loadMaybeJannoFile
+
+loadMaybeJannoFile :: Maybe FilePath -> IO (Either PoseidonException [Either PoseidonException PoseidonSample])
+loadMaybeJannoFile jannoPath = do
+    case jannoPath of 
+        Nothing -> do 
+            return $ Left $ PoseidonFileExistenceException "Can't find .janno file path in POSEIDON.yml"
+        Just x  -> do 
+            samples <- loadJannoFile x
+            return $ Right samples
 
 -- | A utility function to load multiple janno files
 loadJannoFiles :: [FilePath] -> IO [[Either PoseidonException PoseidonSample]]
