@@ -52,7 +52,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
-import           System.Directory           (doesDirectoryExist, listDirectory)
+import           System.Directory           (doesDirectoryExist, listDirectory, doesFileExist)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
 import           GHC.Generics               (Generic)
@@ -488,10 +488,17 @@ loadMaybeJannoFile :: Maybe FilePath -> IO (Either PoseidonException [Either Pos
 loadMaybeJannoFile jannoPath = do
     case jannoPath of 
         Nothing -> do 
-            return $ Left $ PoseidonFileExistenceException "Can't find .janno file path in POSEIDON.yml"
+            return $ Left $ PoseidonFileExistenceException 
+                "Can't find .janno file path in the POSEIDON.yml"
         Just x  -> do 
-            samples <- loadJannoFile x
-            return $ Right samples
+            fileExists <- doesFileExist x
+            if not fileExists 
+            then do 
+                return $ Left $ PoseidonFileExistenceException $
+                    "Can't find .janno file with the file path in the POSEIDON.yml: " ++ show x
+            else do 
+                samples <- loadJannoFile x
+                return $ Right samples
 
 -- | A utility function to load multiple janno files
 loadJannoFiles :: [FilePath] -> IO [[Either PoseidonException PoseidonSample]]
