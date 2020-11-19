@@ -34,23 +34,25 @@ runSurvey (SurveyOptions baseDirs) = do
     -- JANNO
     let jannoFilePaths = map posPacJannoFile packages
     jannoFiles <- loadMaybeJannoFiles jannoFilePaths
-    let jannoSamplesRaw = E.rights jannoFiles
-    let jannoSamples = map E.rights jannoSamplesRaw
+    let jannoMaybeList = map (maybe Nothing (\x -> if all E.isRight x then Just (E.rights x) else Nothing) . rightToMaybe) jannoFiles
     -- bib
     let bibLinkInDescription = map posPacBibFile packages
     bibExists <- mapM (maybe (return False) doesFileExist) bibLinkInDescription
     -- print information
     mapM_ 
         (putStrLn . renderPackageWithCompleteness) 
-        (zip4 packageNames genoTypeDataExists jannoSamples bibExists)
+        (zip4 packageNames genoTypeDataExists jannoMaybeList bibExists)
 
-renderPackageWithCompleteness :: (String,Bool,[PoseidonSample],Bool) -> String
+rightToMaybe :: Either a b -> Maybe b
+rightToMaybe = either (const Nothing) Just
+
+renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
 renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibExists) =
     take 40 (packageName ++ repeat ' ') 
     ++ " "
     ++ if genoTypeDataExists then "G" else "."
     ++ "-"
-    ++ renderJannoCompleteness jannoSamples
+    ++ maybe (replicate 35 '.') renderJannoCompleteness jannoSamples
     ++ "-"
     ++ if bibExists then "B" else "."
 

@@ -34,7 +34,6 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " Poseidon packages seem to be fine"
     -- JANNO
     putStrLn "JANNO file consistency:"
-    ---- Load and report JANNO block
     let jannoFilePaths = map posPacJannoFile packages
     jannoFiles <- loadMaybeJannoFiles jannoFilePaths
     let jannoFileExistenceExceptions = E.lefts jannoFiles
@@ -43,7 +42,6 @@ runValidate (ValidateOptions baseDirs) = do
     let jannoSamples = E.rights $ concat jannoSamplesRaw
     mapM_ print jannoFileExistenceExceptions
     mapM_ (putStrLn . renderPoseidonJannoException) jannoFileReadingExceptions
-    ----
     putStrLn $ show (length jannoSamples) 
         ++ " samples seem to be fine"
     --
