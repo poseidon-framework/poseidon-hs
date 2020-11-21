@@ -18,6 +18,7 @@ module Poseidon.Package (
     maybeLoadJannoFiles,
     maybeLoadJannoFile,
     jannoToSimpleMaybeList,
+    writeJannoFile,
     maybeLoadBibTeXFiles,
     bibToSimpleMaybeList,
     getJointGenotypeData,
@@ -35,8 +36,8 @@ import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.ByteString.Char8      as Bchs
 import           Data.Either                (isRight, lefts, rights)
-import           Data.List                  (groupBy, nub, sortOn)
-import           Data.Maybe                 (catMaybes)
+import           Data.List                  (groupBy, nub, sortOn, intercalate)
+import           Data.Maybe                 (catMaybes,fromMaybe)
 import           Data.Text                  (unpack)
 import           Data.Time                  (Day)
 import qualified Data.Vector                as V
@@ -143,6 +144,11 @@ instance Csv.FromField Sex where
         | x == "U" = pure Unknown
         | otherwise = mzero
 
+instance Csv.ToField Sex where
+    toField Female  = "F"
+    toField Male    = "M"
+    toField Unknown = "U"
+
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = 
       C14
@@ -156,6 +162,11 @@ instance Csv.FromField JannoDateType where
         | x == "contextual" = pure Contextual
         | x == "modern" = pure Modern
         | otherwise = mzero
+
+instance Csv.ToField JannoDateType where
+    toField C14        = "C14"
+    toField Contextual = "contextual"
+    toField Modern     = "modern"
 
 -- |A datatype to represent Data_Type in a janno file
 data JannoDataType = 
@@ -173,6 +184,12 @@ instance Csv.FromField JannoDataType where
         | x == "ReferenceGenome" = pure ReferenceGenome
         | otherwise = mzero
 
+instance Csv.ToField JannoDataType where
+    toField Shotgun         = "Shotgun"
+    toField A1240K          = "1240K"
+    toField OtherCapture    = "OtherCapture"
+    toField ReferenceGenome = "ReferenceGenome"
+
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = 
       Diploid
@@ -184,6 +201,10 @@ instance Csv.FromField JannoGenotypePloidy where
         | x == "diploid" = pure Diploid
         | x == "haploid" = pure Haploid
         | otherwise = mzero
+
+instance Csv.ToField JannoGenotypePloidy where
+    toField Diploid = "diploid"
+    toField Haploid = "haploid"
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = 
@@ -201,6 +222,12 @@ instance Csv.FromField JannoUDG where
         | x == "mixed" = pure Mixed
         | otherwise = mzero
 
+instance Csv.ToField JannoUDG where
+    toField Minus = "minus"
+    toField Half  = "half"
+    toField Plus  = "plus"
+    toField Mixed = "mixed"
+
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = 
       DS
@@ -215,6 +242,11 @@ instance Csv.FromField JannoLibraryBuilt where
         | x == "other" = pure Other
         | otherwise = mzero
 
+instance Csv.ToField JannoLibraryBuilt where
+    toField DS    = "ds"
+    toField SS    = "ss"
+    toField Other = "other"
+
 -- | A datatype for Latitudes
 newtype Latitude = 
         Latitude Double
@@ -227,6 +259,10 @@ instance Csv.FromField Latitude where
         then mzero
         else pure (Latitude val)
 
+instance Csv.ToField Latitude where
+    toField (Latitude x) = Csv.toField x
+
+-- | A datatype for Longitudes
 newtype Longitude =
         Longitude Double
     deriving (Eq, Show, Ord)
@@ -238,6 +274,10 @@ instance Csv.FromField Longitude where
         then mzero
         else pure (Longitude val)
 
+instance Csv.ToField Longitude where
+    toField (Longitude x) = Csv.toField x
+
+-- | A datatype for Percent values
 newtype Percent =
         Percent Double
     deriving (Eq, Show, Ord)
@@ -248,6 +288,9 @@ instance Csv.FromField Percent where
         if val < 0  || val > 100
         then mzero
         else pure (Percent val)
+
+instance Csv.ToField Percent where
+    toField (Percent x) = Csv.toField x
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
@@ -260,7 +303,7 @@ data PoseidonSample = PoseidonSample
     , posSamLocation            :: Maybe String
     , posSamSite                :: Maybe String
     , posSamLatitude            :: Maybe Latitude
-    , posSamLongitude           :: Maybe Double
+    , posSamLongitude           :: Maybe Longitude
     , posSamDateC14Labnr        :: Maybe [String]
     , posSamDateC14UncalBP      :: Maybe [Int]
     , posSamDateC14UncalBPErr   :: Maybe [Int]
@@ -293,6 +336,21 @@ data PoseidonSample = PoseidonSample
     deriving (Show, Eq, Generic)
 
 instance Csv.FromRecord PoseidonSample
+instance Csv.ToRecord PoseidonSample 
+
+-- | A helper function to create semi-colon separated field values from lists
+deparseFieldList :: (Show a) => [a] -> Csv.Field
+deparseFieldList xs = do
+    Csv.toField $ intercalate ";" (map show xs)
+
+instance Csv.ToField [String] where
+    toField = deparseFieldList
+
+instance Csv.ToField [Int] where
+    toField = deparseFieldList
+
+instance Csv.ToField [JannoDataType] where
+    toField = deparseFieldList
 
 -- | A helper function to parse semi-colon separated field values into lists
 parseFieldList :: (Csv.FromField a) => Csv.Field -> Csv.Parser [a]
@@ -488,6 +546,19 @@ jannoToSimpleMaybeList = map (maybe Nothing (\x -> if all isRight x then Just (r
 
 rightToMaybe :: Either a b -> Maybe b
 rightToMaybe = either (const Nothing) Just
+
+-- Janno file writing
+
+writeJannoFile :: FilePath -> [PoseidonSample] -> IO ()
+writeJannoFile path samples = do
+    let jannoAsBytestring = Csv.encodeWith encodingOptions samples
+    Bch.writeFile path jannoAsBytestring
+
+encodingOptions :: Csv.EncodeOptions
+encodingOptions = Csv.defaultEncodeOptions { 
+      Csv.encDelimiter = fromIntegral (ord '\t')
+    , Csv.encIncludeHeader = True
+}
 
 -- Janno file loading
 

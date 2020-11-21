@@ -83,7 +83,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 mergeOptParser :: OP.Parser MergeOptions
-mergeOptParser = MergeOptions <$> parseBasePaths
+mergeOptParser = MergeOptions <$> parseBasePaths <*> parseOutPackagePath
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -138,6 +138,11 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages"))
+
+parseOutPackagePath :: OP.Parser FilePath
+parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
+    OP.short 'o' <>
+    OP.help "the output package directory path")
 
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
