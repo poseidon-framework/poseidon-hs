@@ -35,6 +35,7 @@ runMerge (MergeOptions baseDirs outPath) = do
     -- create new package
     createDirectory outPath
     writeJannoFile (outPath </> "test.janno") goodJannoRows
-        -- print read issue warning
+    -- print read issue warning
     when anyJannoIssues $
         putStrLn "\nThere were issues with incomplete, missing or invalid data. Run poet validate to learn more."
+

@@ -551,8 +551,18 @@ rightToMaybe = either (const Nothing) Just
 
 writeJannoFile :: FilePath -> [PoseidonSample] -> IO ()
 writeJannoFile path samples = do
-    let jannoAsBytestring = Csv.encodeWith encodingOptions samples
+    let jannoAsBytestring = jannoHeader `Bch.append` "\n" `Bch.append` Csv.encodeWith encodingOptions samples
     Bch.writeFile path jannoAsBytestring
+
+jannoHeader :: Bch.ByteString
+jannoHeader = Bch.intercalate "\t" ["Individual_ID","Collection_ID","Source_Tissue","Country",
+    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
+    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
+    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
+    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
+    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
+    "mtContam_stderr","Primary_Contact","Publication_Status","Note","Keywords"
+    ]
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions { 
