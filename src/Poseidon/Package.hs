@@ -551,8 +551,10 @@ rightToMaybe = either (const Nothing) Just
 
 writeJannoFile :: FilePath -> [PoseidonSample] -> IO ()
 writeJannoFile path samples = do
-    let jannoAsBytestring = jannoHeader `Bch.append` "\n" `Bch.append` Csv.encodeWith encodingOptions samples
-    Bch.writeFile path jannoAsBytestring
+    let jannoHeaderLine = jannoHeader `Bch.append` "\n"
+    let jannoAsBytestring = jannoHeaderLine `Bch.append` Csv.encodeWith encodingOptions samples
+    let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
+    Bch.writeFile path jannoAsBytestringwithNA
 
 jannoHeader :: Bch.ByteString
 jannoHeader = Bch.intercalate "\t" ["Individual_ID","Collection_ID","Source_Tissue","Country",
@@ -627,6 +629,14 @@ replaceNA tsv =
    let tsvRows = Bch.lines tsv
        tsvCells = map (Bch.splitWith (=='\t')) tsvRows
        tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
+       tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
+   in Bch.unlines tsvRowsUpdated
+
+explicitNA :: Bch.ByteString -> Bch.ByteString
+explicitNA tsv =
+   let tsvRows = Bch.lines tsv
+       tsvCells = map (Bch.splitWith (=='\t')) tsvRows
+       tsvCellsUpdated = map (\x -> map (\y -> if y == Bch.empty then (Bch.pack "n/a") else y) x) tsvCells
        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
