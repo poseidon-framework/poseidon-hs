@@ -344,7 +344,7 @@ deparseFieldList xs = do
     Csv.toField $ intercalate ";" (map show xs)
 
 instance Csv.ToField [String] where
-    toField = deparseFieldList
+    toField = Csv.toField . intercalate ";"
 
 instance Csv.ToField [Int] where
     toField = deparseFieldList
@@ -570,6 +570,7 @@ encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions { 
       Csv.encDelimiter = fromIntegral (ord '\t')
     , Csv.encIncludeHeader = True
+    , Csv.encQuoting = Csv.QuoteNone
 }
 
 -- Janno file loading
@@ -623,21 +624,20 @@ decodingOptions = Csv.defaultDecodeOptions {
     Csv.decDelimiter = fromIntegral (ord '\t')
 }
 
--- | A helper function to replace n/a values in janno files with empty bytestrings 
+-- | A helper functions to replace n/a values in janno files with 
 replaceNA :: Bch.ByteString -> Bch.ByteString
-replaceNA tsv =
-   let tsvRows = Bch.lines tsv
-       tsvCells = map (Bch.splitWith (=='\t')) tsvRows
-       tsvCellsUpdated = map (\x -> map (\y -> if y == (Bch.pack "n/a") then Bch.empty else y) x) tsvCells
-       tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
-   in Bch.unlines tsvRowsUpdated
+replaceNA = replaceInJannoBytestring "n/a" Bch.empty
 
+-- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
 explicitNA :: Bch.ByteString -> Bch.ByteString
-explicitNA tsv =
-   let tsvRows = Bch.lines tsv
-       tsvCells = map (Bch.splitWith (=='\t')) tsvRows
-       tsvCellsUpdated = map (\x -> map (\y -> if y == Bch.empty then (Bch.pack "n/a") else y) x) tsvCells
-       tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
+explicitNA = replaceInJannoBytestring Bch.empty "n/a"
+
+replaceInJannoBytestring :: Bch.ByteString -> Bch.ByteString -> Bch.ByteString -> Bch.ByteString 
+replaceInJannoBytestring from to tsv =
+    let tsvRows = Bch.lines tsv
+        tsvCells = map (Bch.splitWith (=='\t')) tsvRows
+        tsvCellsUpdated = map (map (\y -> if y == from then to else y)) tsvCells
+        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
 -- BibTeX file parsing
