@@ -19,6 +19,7 @@ module Poseidon.Package (
     maybeLoadJannoFile,
     jannoToSimpleMaybeList,
     writeJannoFile,
+    writeBibTeXFile,
     maybeLoadBibTeXFiles,
     bibToSimpleMaybeList,
     getJointGenotypeData,
@@ -641,6 +642,10 @@ replaceInJannoBytestring from to tsv =
    in Bch.unlines tsvRowsUpdated
 
 -- BibTeX file parsing
+writeBibTeXFile ::  FilePath -> [Reference] -> IO()
+writeBibTeXFile path references = do
+    let bytestringReferences = Bch.intercalate "\n" $ map (Bch.pack . show) references
+    Bch.writeFile path bytestringReferences
 
 maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
 maybeLoadBibTeXFiles pacs = do
@@ -670,7 +675,3 @@ loadBibTeXFiles bibPaths = do
 loadBibTeXFile :: FilePath -> IO (Either CiteprocException [Reference])
 loadBibTeXFile bibPath = do
      try (readBibtex (const True) True False bibPath)
-
-     
-
-
