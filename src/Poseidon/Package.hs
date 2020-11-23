@@ -62,6 +62,8 @@ import           Data.Char                  (ord)
 import           Text.CSL.Input.Bibtex      (readBibtex)
 import           Text.CSL.Reference         (Reference(..))
 import           Text.CSL.Exception         (CiteprocException)
+import           Text.CSL                   (renderPlain, procOpts, processBibliography, readCSLFile)
+import           Paths_poseidon_hs
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -644,7 +646,11 @@ replaceInJannoBytestring from to tsv =
 -- BibTeX file parsing
 writeBibTeXFile ::  FilePath -> [Reference] -> IO()
 writeBibTeXFile path references = do
-    let bytestringReferences = Bch.intercalate "\n" $ map (Bch.pack . show) references
+    bibTeXCSLPath <- getDataFileName "bibtex.csl"
+    bibTeXCSLStyle <- readCSLFile Nothing bibTeXCSLPath
+    let renderedReferences = processBibliography procOpts bibTeXCSLStyle references
+    let referencesString = concat $ map (show . renderPlain) renderedReferences
+    let bytestringReferences = Bch.pack referencesString
     Bch.writeFile path bytestringReferences
 
 maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
