@@ -39,7 +39,7 @@ import qualified Data.ByteString.Char8      as Bchs
 import           Data.Either                (isRight, lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn, intercalate)
 import           Data.Maybe                 (catMaybes,fromMaybe)
-import           Data.Text                  (unpack)
+import           Data.Text                  (unpack, replace, Text(..))
 import           Data.Time                  (Day)
 import qualified Data.Vector                as V
 import           Data.Version               (Version)
@@ -649,9 +649,14 @@ writeBibTeXFile path references = do
     bibTeXCSLPath <- getDataFileName "bibtex.csl"
     bibTeXCSLStyle <- readCSLFile Nothing bibTeXCSLPath
     let renderedReferences = processBibliography procOpts bibTeXCSLStyle references
-    let referencesString = concat $ map (show . renderPlain) renderedReferences
-    let bytestringReferences = Bch.pack referencesString
+    let referencesTexts = map renderPlain renderedReferences
+    let referencesTextsFixed = map cleanBibTeXString referencesTexts
+    let bytestringReferences = Bch.pack $ concat (map unpack referencesTextsFixed)
     Bch.writeFile path bytestringReferences
+
+cleanBibTeXString :: Text -> Text
+cleanBibTeXString = 
+    replace ", title=" "\n\ttitle=" . replace "@" "\n@" . replace "\t " "\t" . replace "}," "},\n\t" . replace "\n" " "
 
 maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
 maybeLoadBibTeXFiles pacs = do
