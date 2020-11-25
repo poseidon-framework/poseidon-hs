@@ -39,8 +39,7 @@ main = do
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
-    OP.progDesc "poet (working title) is an analysis tool for \
-        \poseidon databases.")
+    OP.progDesc "trident is an analysis tool for poseidon databases.")
 
 optParser :: OP.Parser Options
 optParser = OP.subparser $
