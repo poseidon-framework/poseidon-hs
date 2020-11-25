@@ -82,7 +82,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 mergeOptParser :: OP.Parser MergeOptions
-mergeOptParser = MergeOptions <$> parseBasePaths <*> parseOutPackagePath
+mergeOptParser = MergeOptions <$> parseBasePaths <*> parseOutPackagePath <*> parseOutPackageName
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -142,6 +142,11 @@ parseOutPackagePath :: OP.Parser FilePath
 parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
     OP.short 'o' <>
     OP.help "the output package directory path")
+
+parseOutPackageName :: OP.Parser FilePath
+parseOutPackageName = OP.strOption (OP.long "outPackageName" <>
+    OP.short 'n' <>
+    OP.help "the output package name")
 
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
