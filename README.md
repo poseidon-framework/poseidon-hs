@@ -1,7 +1,7 @@
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/poseidon-framework/poseidon-hs/CI)](https://github.com/poseidon-framework/poseidon-hs/actions?query=workflow%3ACI)
 
 # poseidon-tools
-A toolset to work with modular genotype databases formatted using Poseidon.
+A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
 
 ## Installation Quickstart
 
@@ -21,10 +21,10 @@ Important packages to look into to understand the architecture of this tool:
 * The `list` command might be a good place to start and understanding what's going on and how to use the `Poseidon.Package` interface.
 * The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
 
-## Guide
+## Guide for the command line utility `trident`
 
 ### Poseidon package repositories
-Poet generally requires Poseidon datasets to work with. All poet subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `poet <subcommand> -d /path/to/poseidon/dirs/` and `poet` would automatically search all subdirectories inside of the repository for valid poseidon packages.
+Trident generally requires Poseidon datasets to work with. All trident subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `trident <subcommand> -d /path/to/poseidon/dirs/` and `trident` would automatically search all subdirectories inside of the repository for valid poseidon packages.
 
 We typically recommend arranging a poseidon repository in a hierarchical way. For example:
 
@@ -49,13 +49,13 @@ You can use this structure to select only the level of packages you're intereste
 Let's use the `list` command to list all packages in the `modern` and `Reference_Genomes`:
 
 ```
-poet list -d /path/to/poseidon/packages/modern \
+trident list -d /path/to/poseidon/packages/modern \
   -d /path/to/poseidon/packages/ReferenceGenomes --packages
 ```
 
 ### Analysing your own dataset outside of the main repository
 
-Being able to specify one or multiple repositories is often not enough, as you may have your own data to co-analyse with the main repository. This is easy to do, as you simply need to provide your own genotype data as yet another poseidon package to be added to you `poet list` command. For example, let's say you have genotype data in `EIGENSTRAT` format:
+Being able to specify one or multiple repositories is often not enough, as you may have your own data to co-analyse with the main repository. This is easy to do, as you simply need to provide your own genotype data as yet another poseidon package to be added to you `trident list` command. For example, let's say you have genotype data in `EIGENSTRAT` format:
 
 ```
 ~/my_project/my_project.geno
@@ -82,14 +82,14 @@ genotypeData:
 jannoFile: my_project.janno
 ```
 
-Two remarks: 1) all file paths are considered _relative_ to the directory in which `POSEIDON.yml` resides. Here I assume that you put this file into the same directory as the three genotype files. 2) There are two files referenced by this `POSEIDON.yml` file that aren't yet there: `sources.bib` and `my_project.janno`. That means that this is not a fully valid Poseidon package. However, `poet` will still accept this (it won't even look for these files) as long as the genotype files are there and in the right format.
+Two remarks: 1) all file paths are considered _relative_ to the directory in which `POSEIDON.yml` resides. Here I assume that you put this file into the same directory as the three genotype files. 2) There are two files referenced by this `POSEIDON.yml` file that aren't yet there: `sources.bib` and `my_project.janno`. That means that this is not a fully valid Poseidon package. However, `trident` will still accept this (it won't even look for these files) as long as the genotype files are there and in the right format.
 
-Note that at the time of this writing, `poet` supports `EIGENSTRAT` and `PLINK` as formats.
+Note that at the time of this writing, `trident` supports `EIGENSTRAT` and `PLINK` as formats.
 
-Once you have set up your own "Poseidon" package (which is really only a skeleton), you can add it to your `poet` analysis, by simply adding your project directory to the command using `-d`:
+Once you have set up your own "Poseidon" package (which is really only a skeleton), you can add it to your `trident` analysis, by simply adding your project directory to the command using `-d`:
 
 ```
-poet list -d /path/to/poseidon/packages/modern \
+trident list -d /path/to/poseidon/packages/modern \
   -d /path/to/poseidon/packages/ReferenceGenomes
   -d ~/my_project --packages
 ```
@@ -101,7 +101,7 @@ The most basic command is the `list` command. It simply lists packages, groups a
 To list packages, as seen above you run
 
 ```
-poet list -d ... -d ... --packages
+trident list -d ... -d ... --packages
 ```
 which will output some log messages, for example about packages that were skipped because of formatting issues of the `POSEIDON.yml` file. T
 
@@ -125,7 +125,7 @@ so a nicely formatted table of all packages, their last update and the number of
 You can also list groups, as defined in the third column of Eigenstrat Ind files (or the first column of a PLINK fam file):
 
 ```
-poet list -d ... -d ... --groups
+trident list -d ... -d ... --groups
 ```
 for which an example output may contain:
 
@@ -161,7 +161,7 @@ Note that if you want a less fancy table, for example because you want to load t
 
 Finally, you can query for individuals, using the `--individual` option:
 ```
-poet list -d ... -d ... --individuals
+trident list -d ... -d ... --individuals
 ```
 
 Example output:
@@ -193,12 +193,12 @@ which lists all individuals with their package, group and individual name.
 
 ### Running F-Statistics
 
-Poet allows you to analyse genotype data across poseidon packages, including your own, as explained above by "hooking" in your own package via a `--baseDir` (or `-d`) parameter. This has the advantage that you can compute arbitrary F-Statistics across groups and individuals distributed in many packages, without the need to explicitly merge the data. Poet also takes care of merging PLINK and EIGENSTRAT data on the fly. It also takes care of different genotype base sets, like Human-Origins vs. 1240K. It also flips alleles automatically across genotype files, and throws an error if the alleles in different packages are incongruent with each other. Poet is also smart enough to select only the packages relevant for the statistics that you need, and then streams through only those genotype data.
+Trident allows you to analyse genotype data across poseidon packages, including your own, as explained above by "hooking" in your own package via a `--baseDir` (or `-d`) parameter. This has the advantage that you can compute arbitrary F-Statistics across groups and individuals distributed in many packages, without the need to explicitly merge the data. Trident also takes care of merging PLINK and EIGENSTRAT data on the fly. It also takes care of different genotype base sets, like Human-Origins vs. 1240K. It also flips alleles automatically across genotype files, and throws an error if the alleles in different packages are incongruent with each other. Trident is also smart enough to select only the packages relevant for the statistics that you need, and then streams through only those genotype data.
 
 Here is an example command for computing several F-Statistics:
 
 ```
-poet fstats -d ... -d ... \
+trident fstats -d ... -d ... \
   --stat "F4(<Chimp.REF>, <Altai_published.DG>, Yoruba, French)" \
   --stat "F4(<Chimp.REF>, <Altai_snpAD.DG>, Spanish, French)" \
   --stat "F4(Mbuti,Nganasan,Saami.DG,Finnish)" \
@@ -255,5 +255,5 @@ which lists each statistic, the genome-wide estimate, its standard error and its
 
 ### Get more help
 
-You can use `poet --help`, `poet list --help` and `poet fstats --help` to get information about each parameter, including some that I haven't covered in this guide.
+You can use `trident --help`, `trident list --help` and `trident fstats --help` to get information about each parameter, including some that I haven't covered in this guide.
 
