@@ -658,7 +658,7 @@ writeBibTeXFile path references = do
 cleanBibTeXString :: T.Text -> T.Text
 cleanBibTeXString = 
     T.replace "} }" "}\n}"
-    . T.replace ", title=" "\n  title="
+    . T.replace ", title=" ",\n  title="
     . T.replace "   " "  "
     . T.replace "}," "},\n  "
     . T.replace "\n" " "
