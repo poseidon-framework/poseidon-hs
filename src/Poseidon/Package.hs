@@ -39,7 +39,8 @@ import qualified Data.ByteString.Char8      as Bchs
 import           Data.Either                (isRight, lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn, intercalate)
 import           Data.Maybe                 (catMaybes,fromMaybe)
-import           Data.Text                  (unpack, replace, Text(..))
+import qualified Data.Text                  as T
+import qualified Data.Text.IO               as Tio
 import           Data.Time                  (Day)
 import qualified Data.Vector                as V
 import           Data.Version               (Version)
@@ -131,7 +132,7 @@ instance FromJSON GenotypeFormatSpec where
     parseJSON = withText "format" $ \v -> case v of
         "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
         "PLINK"      -> pure GenotypeFormatPlink
-        _            -> fail ("unknown format " ++ unpack v)
+        _            -> fail ("unknown format " ++ T.unpack v)
 
 -- |A datatype to represent Genetic_Sex in a janno file
 data Sex = 
@@ -651,16 +652,16 @@ writeBibTeXFile path references = do
     let renderedReferences = processBibliography procOpts bibTeXCSLStyle references
     let referencesTexts = map renderPlain renderedReferences
     let referencesTextsFixed = map cleanBibTeXString referencesTexts
-    let bytestringReferences = Bch.intercalate "\n\n" (map (Bch.pack . unpack) referencesTextsFixed)
-    Bch.writeFile path bytestringReferences
+    let huup = T.intercalate "\n\n" referencesTextsFixed
+    Tio.writeFile path huup
 
-cleanBibTeXString :: Text -> Text
+cleanBibTeXString :: T.Text -> T.Text
 cleanBibTeXString = 
-    replace "} }" "}\n}"
-    . replace ", title=" "\n  title="
-    . replace "   " "  "
-    . replace "}," "},\n  "
-    . replace "\n" " "
+    T.replace "} }" "}\n}"
+    . T.replace ", title=" "\n  title="
+    . T.replace "   " "  "
+    . T.replace "}," "},\n  "
+    . T.replace "\n" " "
 
 maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
 maybeLoadBibTeXFiles pacs = do

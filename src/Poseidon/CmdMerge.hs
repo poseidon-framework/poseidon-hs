@@ -16,7 +16,7 @@ import           System.FilePath        ((</>))
 import           System.Directory       (createDirectory)
 import           Control.Monad          (when)
 import           Data.List              (nub, sortOn)
-import           Text.CSL.Reference     (refId, page)
+import           Text.CSL.Reference     (refId)
 
 -- | A datatype representing command line options for the survey command
 data MergeOptions = MergeOptions
@@ -40,7 +40,6 @@ runMerge (MergeOptions baseDirs outPath) = do
     let bibMaybeList = bibToSimpleMaybeList bibFiles
     let anyBibIssues = not $ all isJust bibMaybeList
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
-    -- putStrLn $ show $ page (head goodBibEntries)
     -- create new package
     createDirectory outPath
     writeJannoFile (outPath </> "test.janno") goodJannoRows
