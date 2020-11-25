@@ -46,5 +46,5 @@ runMerge (MergeOptions baseDirs outPath) = do
     writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
     -- print read issue warning
     when (anyJannoIssues || anyBibIssues) $
-        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run poet validate to learn more."
+        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
 
