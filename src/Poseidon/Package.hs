@@ -651,12 +651,16 @@ writeBibTeXFile path references = do
     let renderedReferences = processBibliography procOpts bibTeXCSLStyle references
     let referencesTexts = map renderPlain renderedReferences
     let referencesTextsFixed = map cleanBibTeXString referencesTexts
-    let bytestringReferences = Bch.pack $ concat (map unpack referencesTextsFixed)
+    let bytestringReferences = Bch.intercalate "\n\n" (map (Bch.pack . unpack) referencesTextsFixed)
     Bch.writeFile path bytestringReferences
 
 cleanBibTeXString :: Text -> Text
 cleanBibTeXString = 
-    replace ", title=" "\n\ttitle=" . replace "@" "\n@" . replace "\t " "\t" . replace "}," "},\n\t" . replace "\n" " "
+    replace "} }" "}\n}"
+    . replace ", title=" "\n  title="
+    . replace "   " "  "
+    . replace "}," "},\n  "
+    . replace "\n" " "
 
 maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
 maybeLoadBibTeXFiles pacs = do
