@@ -28,8 +28,11 @@ import           Text.RawString.QQ
 spec = do
     testPoseidonFromYAML
     testReadPoseidonPackage
-    testWritePoseidonPackage
+    testReadWritePoseidonPackageRoundtrip
     testFindPoseidonPackages
+
+yamlTestPath :: FilePath
+yamlTestPath = "/tmp/poseidon_test.yml"
 
 yamlPackage :: B.ByteString
 yamlPackage = [r|
@@ -54,28 +57,46 @@ replace from to s =
     let (h, t) = B.breakSubstring from s
     in  B.concat [h, to, B.drop (B.length from) t]
 
-truePackage :: PoseidonPackage
-truePackage = PoseidonPackage {
+truePackageRelPaths :: PoseidonPackage
+truePackageRelPaths = PoseidonPackage {
     posPacPoseidonVersion = makeVersion [2, 0, 1],
-    posPacTitle = "Schiffels_2016",
-    posPacDescription = Just "Genetic data published in Schiffels et al. 2016",
-    posPacContributor = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
-    posPacLastModified = Just $ fromGregorian 2020 2 28,
-    posPacBibFile = Just "sources.bib",
-    posPacGenotypeData = GenotypeDataSpec {
-        format = GenotypeFormatPlink,
+    posPacTitle           = "Schiffels_2016",
+    posPacDescription     = Just "Genetic data published in Schiffels et al. 2016",
+    posPacContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    posPacLastModified    = Just $ fromGregorian 2020 2 28,
+    posPacBibFile         = Just "sources.bib",
+    posPacGenotypeData    = GenotypeDataSpec {
+        format   = GenotypeFormatPlink,
         genoFile = "Schiffels_2016.bed",
-        snpFile = "Schiffels_2016.bim",
-        indFile = "Schiffels_2016.fam"
+        snpFile  = "Schiffels_2016.bim",
+        indFile  = "Schiffels_2016.fam"
     },
-    posPacJannoFile = Just "Schiffels_2016.janno"
+    posPacJannoFile       = Just "Schiffels_2016.janno"
 }
+
+truePackageAbsPaths :: PoseidonPackage
+truePackageAbsPaths = PoseidonPackage {
+    posPacPoseidonVersion = makeVersion [2, 0, 1],
+    posPacTitle           = "Schiffels_2016",
+    posPacDescription     = Just "Genetic data published in Schiffels et al. 2016",
+    posPacContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    posPacLastModified    = Just $ fromGregorian 2020 2 28,
+    posPacBibFile         = Just "/tmp/sources.bib",
+    posPacGenotypeData    = GenotypeDataSpec {
+        format   = GenotypeFormatPlink,
+        genoFile = "/tmp/Schiffels_2016.bed",
+        snpFile  = "/tmp/Schiffels_2016.bim",
+        indFile  = "/tmp/Schiffels_2016.fam"
+    },
+    posPacJannoFile       = Just "/tmp/Schiffels_2016.janno"
+}
+
 
 testPoseidonFromYAML :: Spec
 testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     let (Right p) = decodeEither' yamlPackage :: Either ParseException PoseidonPackage
     it "should parse correct YAML data" $
-        p `shouldBe` truePackage
+        p `shouldBe` truePackageRelPaths
     let yamlPackage2 = replace "2020-02-28" "2019-07-10sss" yamlPackage
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should give error with incorrect date string" $ do
@@ -87,7 +108,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     let yamlPackage2 = replace "bibFile: sources.bib\n" "" yamlPackage
         (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should give Nothing for missing bibFile" $ do
-        p `shouldBe` truePackage {posPacBibFile = Nothing}
+        p `shouldBe` truePackageRelPaths {posPacBibFile = Nothing}
     let yamlPackage2 = replace "title: Schiffels_2016\n" "" yamlPackage
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with title missing" $ do
@@ -99,25 +120,22 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
         (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should fail with lastModified missing" $ do
-        p `shouldBe` truePackage {posPacLastModified = Nothing}
+        p `shouldBe` truePackageRelPaths {posPacLastModified = Nothing}
 
 testReadPoseidonPackage :: Spec
 testReadPoseidonPackage = describe "PoseidonPackage.readPoseidonPackage" $ do
-    let fn = "/tmp/poseidon_test.yml"
     it "should return correct package from file read" $ do
-        B.writeFile fn yamlPackage
-        pac <- readPoseidonPackage fn
-        posPacBibFile pac `shouldBe` Just "/tmp/sources.bib"
-        (genoFile . posPacGenotypeData) pac `shouldBe` "/tmp/Schiffels_2016.bed"
+        B.writeFile yamlTestPath yamlPackage
+        pac <- readPoseidonPackage yamlTestPath
+        pac `shouldBe` truePackageAbsPaths
 
-testWritePoseidonPackage :: Spec
-testWritePoseidonPackage = describe "PoseidonPackage.JSONparsing" $ do
-    let fn = "/tmp/poseidon_test.yml"
-    it "should write correct YAML file from package" $ do
-        writePoseidonPackage fn truePackage
-        pacYaml <- B.readFile fn
-        pacYaml `shouldBe` yamlPackage
-
+testReadWritePoseidonPackageRoundtrip :: Spec
+testReadWritePoseidonPackageRoundtrip = describe "PoseidonPackage.readWritePoseidonPackageRoundtrip" $ do
+    it "writing and reading should make no difference" $ do
+        writePoseidonPackage yamlTestPath truePackageAbsPaths
+        pac <- readPoseidonPackage yamlTestPath
+        pac `shouldBe` truePackageAbsPaths
+    
 testFindPoseidonPackages :: Spec
 testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"

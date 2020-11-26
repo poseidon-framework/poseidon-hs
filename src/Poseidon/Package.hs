@@ -31,6 +31,7 @@ module Poseidon.Package (
 
 import           Poseidon.Utils             (PoseidonException(..))
 
+import           Control.Error              (assertErr)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM, forM_, mzero)
 import           Control.Monad.Catch        (throwM)
@@ -186,7 +187,10 @@ instance FromJSON GenotypeFormatSpec where
         _            -> fail ("unknown format " ++ T.unpack v)
 
 instance ToJSON GenotypeFormatSpec where
-    toJSON a  = object ["format" .= T.pack (show a)]
+    toJSON a = case a of
+        GenotypeFormatPlink -> "PLINK"
+        GenotypeFormatEigenstrat -> "EIGENSTRAT"
+
 
 -- |A datatype to represent Genetic_Sex in a janno file
 data Sex = 
@@ -445,11 +449,33 @@ addFullPaths baseDir pac =
             posPacGenotypeData = genotypeDataFullPath
         }
 
--- | A helper function to revert the effect of addFullPaths. It takes out the base path from each path in the package
+-- | A helper function to revert the effect of addFullPaths. It takes out the base path from each path in the package.
+-- Note that - for now - this function will require strictly file paths to be given without directory names.
+-- So it assumes (and checks) that all file names have the same paths as the yaml file to be written to.
 relativizePaths :: FilePath -- ^ the path to the yaml file from which the path should be taken to relativize
                 -> PoseidonPackage -- ^ the Poseidon Package
-                -> PoseidonPackage -- ^ the resulting Poseidon Package with corrected paths
-relativizePaths yamlFilePath pac = undefined
+                -> Either PoseidonException PoseidonPackage -- ^ the resulting Poseidon Package with corrected paths. Will
+                                                            -- give a Left if there is a path problem
+relativizePaths yamlFilePath pac = do -- working in the Either Monad with Do notation.
+    let baseDir = takeDirectory yamlFilePath
+    case posPacJannoFile pac of
+        Just fn -> assertErr (makeErr fn) (takeDirectory fn == baseDir)
+        Nothing -> return ()
+    case posPacBibFile pac of
+        Just fn -> assertErr (makeErr fn) (takeDirectory fn == baseDir)
+        Nothing -> return ()
+    let (GenotypeDataSpec fmt genoF snpF indF) = posPacGenotypeData pac
+    assertErr (makeErr genoF) (takeDirectory genoF == baseDir)
+    assertErr (makeErr snpF) (takeDirectory snpF == baseDir)
+    assertErr (makeErr indF) (takeDirectory indF == baseDir)
+    return $ pac {
+        posPacJannoFile = takeFileName <$> (posPacJannoFile pac),
+        posPacBibFile = takeFileName <$> (posPacBibFile pac),
+        posPacGenotypeData = GenotypeDataSpec fmt (takeFileName genoF) (takeFileName snpF) (takeFileName indF)
+    }
+  where
+    makeErr fn = PoseidonPackageException $ "In package " ++ posPacTitle pac ++ " in file " ++ fn ++
+        ": Need base path to be the same as the one you're writing the package to"
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
@@ -468,7 +494,10 @@ readPoseidonPackage yamlPath = do
 writePoseidonPackage :: FilePath -- ^ the file path to the yaml file
                      -> PoseidonPackage -- ^ the package to be written
                      -> IO ()
-writePoseidonPackage outPath = encodeFile outPath . relativizePaths outPath
+writePoseidonPackage outPath pac = do
+    case relativizePaths outPath pac of
+        Left e -> throwIO e
+        Right pac' -> encodeFile outPath pac'
 
 -- | a helper function to return all poseidon packages, found by recursively searching a directory tree.
 -- If a package is encountered that throws a parsing error, it will be skipped and a warning will be issued.

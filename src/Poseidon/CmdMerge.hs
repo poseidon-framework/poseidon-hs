@@ -49,6 +49,7 @@ runMerge (MergeOptions baseDirs outPath outName) = do
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
     -- create new package
     createDirectory outPath
+    let yamlFile = outPath </> "POSEIDON.yml"
     encodeFile (outPath </> "POSEIDON.yml") newPackageTemplate
     writeJannoFile (outPath </> outName <.> "janno") goodJannoRows
     writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
