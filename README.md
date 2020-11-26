@@ -3,6 +3,22 @@
 # poseidon-tools
 A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
 
+* [Installation Quickstart](#installation-quickstart)
+* [Guide for the command line utility](#guide-for-the-command-line-utility)
+  + [Poseidon package repositories](#poseidon-package-repositories)
+  + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
+  + [Inspection Commands](#inspection-commands)
+    - [List Command](#list-command)
+    - [Summarise command](#summarise-command)
+    - [Survey Command](#survey-command)
+    - [Validate Command](#validate-command)
+  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands)
+    - [Forge Command](#forge-command)
+  + [Analysis Commands](#analysis-commands)
+    - [Running F-Statistics](#running-f-statistics)
+  + [Get more help](#get-more-help)
+* [Development Quickstart](#development-quickstart)
+
 ## Installation Quickstart
 
 (For DAG-Members: `trident` is already available on the cluster)
@@ -12,7 +28,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 3. If you're a developer and would like to run teh tests, execute `stack test` inside the repository to build and run tests. This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
 4. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path)
 
-## Guide for the command line utility `trident`
+## Guide for the command line utility
 
 ### Poseidon package repositories
 Trident generally requires Poseidon datasets to work with. All trident subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `trident <subcommand> -d /path/to/poseidon/dirs/` and `trident` would automatically search all subdirectories inside of the repository for valid poseidon packages.
