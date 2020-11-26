@@ -1,4 +1,4 @@
-module Poseidon.CmdMerge (runMerge, MergeOptions(..)) where
+module Poseidon.CLI.Merge (runMerge, MergeOptions(..)) where
 
 import           Poseidon.Package           (PoseidonPackage(..),
                                             loadPoseidonPackages,

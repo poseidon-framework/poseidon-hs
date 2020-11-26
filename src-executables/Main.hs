@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Control.Applicative ((<|>))
-import           Poseidon.CmdExtract   (runExtract, ExtractOptions(..))
-import           Poseidon.CmdFStats    (FStatSpec (..), FstatsOptions (..),
+import           Poseidon.CLI.Extract   (runExtract, ExtractOptions(..))
+import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
-import           Poseidon.CmdList      (ListEntity (..), ListOptions (..),
+import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
-import           Poseidon.CmdMerge     (runMerge, MergeOptions(..))                                        
-import           Poseidon.CmdSummarise (SummariseOptions(..), runSummarise)
-import           Poseidon.CmdSurvey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CmdValidate  (ValidateOptions(..), runValidate)
+import           Poseidon.CLI.Merge     (runMerge, MergeOptions(..))                                        
+import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
+import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
+import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
 import           Data.ByteString.Char8 (pack, splitWith)
 import qualified Options.Applicative as OP
 import           SequenceFormats.Utils (Chrom (..))

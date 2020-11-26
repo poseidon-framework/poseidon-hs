@@ -1,4 +1,4 @@
-module Poseidon.CmdFStats (
+module Poseidon.CLI.FStats (
       FStatSpec(..)
     , P.ParseError
     , PopSpec(..)

@@ -1,4 +1,4 @@
-module Poseidon.CmdExtract (runExtract, ExtractOptions(..)) where
+module Poseidon.CLI.Extract (runExtract, ExtractOptions(..)) where
 
 -- | A datatype representing command line options for the survey command
 data ExtractOptions = ExtractOptions

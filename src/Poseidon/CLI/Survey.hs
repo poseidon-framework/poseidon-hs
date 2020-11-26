@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdSurvey (runSurvey, SurveyOptions(..)) where
+module Poseidon.CLI.Survey (runSurvey, SurveyOptions(..)) where
 
 import           Poseidon.Package       (PoseidonPackage(..),
                                         loadPoseidonPackages,

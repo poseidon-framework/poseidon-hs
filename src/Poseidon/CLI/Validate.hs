@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdValidate (runValidate, ValidateOptions(..)) where
+module Poseidon.CLI.Validate (runValidate, ValidateOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     maybeLoadJannoFiles,

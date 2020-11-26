@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
+module Poseidon.CLI.Summarise (runSummarise, SummariseOptions(..)) where
 
 import           Poseidon.Package   (loadPoseidonPackages,
                                     maybeLoadJannoFiles,

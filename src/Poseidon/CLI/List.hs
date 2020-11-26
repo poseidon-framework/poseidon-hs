@@ -1,4 +1,4 @@
-module Poseidon.CmdList (runList, ListOptions(..), ListEntity(..)) where
+module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
 import           Poseidon.Package          (getIndividuals,
                                             loadPoseidonPackages, PoseidonPackage(..))
