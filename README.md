@@ -7,17 +7,10 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 * [Guide for the command line utility](#guide-for-the-command-line-utility)
   + [Poseidon package repositories](#poseidon-package-repositories)
   + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
-  + [Inspection Commands](#inspection-commands)
-    - [List Command](#list-command)
-    - [Summarise command](#summarise-command)
-    - [Survey Command](#survey-command)
-    - [Validate Command](#validate-command)
-  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands)
-    - [Merge Command](#merge-command)
-    - [Extract Command](#extract-command)
-  + [Analysis Commands](#analysis-commands)
-    - [Running F-Statistics](#running-f-statistics)
-  + [Get more help](#get-more-help)
+  + [Inspection Commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
+  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`merge`](#merge-command), [`extract`](#extract-command)
+  + [Analysis Commands](#analysis-commands): [`fstats`](#fstats-command)
+  + [Getting help](#getting-help)
 * [Development Quickstart](#development-quickstart)
 
 ## Installation Quickstart
@@ -169,7 +162,7 @@ Example output:
 
 which lists all individuals with their package, group and individual name.
 
-#### Summarise command
+#### Summarise Command
 
 ...
 
@@ -193,7 +186,7 @@ which lists all individuals with their package, group and individual name.
 
 ### Analysis Commands
 
-#### Running F-Statistics
+#### Fstats Command
 
 Trident allows you to analyse genotype data across poseidon packages, including your own, as explained above by "hooking" in your own package via a `--baseDir` (or `-d`) parameter. This has the advantage that you can compute arbitrary F-Statistics across groups and individuals distributed in many packages, without the need to explicitly merge the data. Trident also takes care of merging PLINK and EIGENSTRAT data on the fly. It also takes care of different genotype base sets, like Human-Origins vs. 1240K. It also flips alleles automatically across genotype files, and throws an error if the alleles in different packages are incongruent with each other. Trident is also smart enough to select only the packages relevant for the statistics that you need, and then streams through only those genotype data.
 
@@ -255,7 +248,7 @@ The final output of the `fstats` command looks like this:
 ```
 which lists each statistic, the genome-wide estimate, its standard error and its Z-score.
 
-### Get more help
+### Getting help
 
 You can use `trident --help`, `trident list --help` and `trident fstats --help` to get information about each parameter, including some that I haven't covered in this guide.
 
