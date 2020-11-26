@@ -10,8 +10,8 @@ import           Poseidon.Package           (PoseidonPackage(..),
                                             writeBibTeXFile,
                                             PoseidonSample(..),
                                             GenotypeDataSpec(..),
-                                            getJointGenotypeData)
-    
+                                            getJointGenotypeData,
+                                            newPackageTemplate)    
 import           Control.Monad              (when)
 import           Data.List                  (nub, sortOn)
 import           Data.Maybe                 (catMaybes, isJust)
@@ -22,6 +22,7 @@ import           System.IO                  (hPutStrLn, stderr)
 import           System.FilePath            ((</>), (<.>))
 import           System.Directory           (createDirectory)
 import           Text.CSL.Reference         (refId)
+import           Data.Aeson                 (encodeFile)
 
 -- | A datatype representing command line options for the survey command
 data MergeOptions = MergeOptions
@@ -48,6 +49,7 @@ runMerge (MergeOptions baseDirs outPath outName) = do
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
     -- create new package
     createDirectory outPath
+    encodeFile (outPath </> "POSEIDON.yml") newPackageTemplate
     writeJannoFile (outPath </> outName <.> "janno") goodJannoRows
     writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
     -- combine genotype data

@@ -23,6 +23,7 @@ module Poseidon.Package (
     maybeLoadBibTeXFiles,
     bibToSimpleMaybeList,
     getJointGenotypeData,
+    newPackageTemplate,
     EigenstratIndEntry(..),
     Percent(..)
 ) where
@@ -31,8 +32,9 @@ import           Poseidon.Utils             (PoseidonException(..))
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM, forM_, mzero)
 import           Control.Monad.Catch        (throwM)
-import           Data.Aeson                 (FromJSON, parseJSON, withObject,
-                                             withText, (.:), (.:?))
+import           Data.Aeson                 (FromJSON, ToJSON, parseJSON, toJSON,
+                                            withObject, withText, (.:), (.:?), object,
+                                            (.=), genericToJSON, defaultOptions)
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.ByteString.Char8      as Bchs
@@ -65,6 +67,8 @@ import           Text.CSL.Reference         (Reference(..))
 import           Text.CSL.Exception         (CiteprocException)
 import           Text.CSL                   (renderPlain, procOpts, processBibliography, readCSLFile)
 import           Paths_poseidon_hs
+import           Data.Time                 (fromGregorian)
+import           Data.Version              (makeVersion)
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -77,7 +81,7 @@ data PoseidonPackage = PoseidonPackage
     , posPacGenotypeData    :: GenotypeDataSpec -- ^ the paths to the genotype files
     , posPacJannoFile       :: Maybe FilePath -- ^ the path to the janno file 
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
 
 -- | The FromJSON instance for the PoseidonPackage data type. Necessary to facilitate automatic reading from JSON files
 instance FromJSON PoseidonPackage where
@@ -91,6 +95,30 @@ instance FromJSON PoseidonPackage where
         <*> v .:   "genotypeData"
         <*> v .:   "jannoFile"
 
+newPackageTemplate :: PoseidonPackage
+newPackageTemplate = PoseidonPackage {
+    posPacPoseidonVersion = makeVersion [2, 0, 1],
+    posPacTitle = "New Package",
+    posPacDescription = Just "Empty package template",
+    posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
+    posPacLastModified = Just $ fromGregorian 2020 2 28,
+    posPacBibFile = Just "LITERATURE.bib",
+    posPacGenotypeData = GenotypeDataSpec {
+        format = GenotypeFormatPlink,
+        genoFile = "doe2018.bed",
+        snpFile = "doe2018.bim",
+        indFile = "doe2018.fam"
+    },
+    posPacJannoFile = Just "doe2018.janno"
+}
+
+instance ToJSON PoseidonPackage where
+    -- this encodes directly to a bytestring Builder
+    toJSON x = object [
+        "poseidonVersion" .= posPacPoseidonVersion x,
+        "title" .= posPacTitle x
+        ]
+
 -- | A data type to represent a contributor
 data ContributorSpec = ContributorSpec
     { contributorName  :: String -- ^ the name of a contributor
@@ -103,6 +131,13 @@ instance FromJSON ContributorSpec where
     parseJSON = withObject "contributor" $ \v -> ContributorSpec
         <$> v .: "name"
         <*> v .: "email"
+
+instance ToJSON ContributorSpec where
+    -- this encodes directly to a bytestring Builder
+    toJSON x = object [
+        "name" .= contributorName x,
+        "email" .= contributorEmail x
+        ]
 
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
@@ -121,6 +156,15 @@ instance FromJSON GenotypeDataSpec where
         <*> v .: "snpFile"
         <*> v .: "indFile"
 
+instance ToJSON GenotypeDataSpec where
+    -- this encodes directly to a bytestring Builder
+    toJSON x = object [
+        "format" .= format x,
+        "genoFile" .= genoFile x,
+        "snpFile" .= snpFile x,
+        "indFile" .= indFile x
+        ]
+
 -- | A data type representing the options fo the genotype format
 data GenotypeFormatSpec = 
       GenotypeFormatEigenstrat -- ^ the Eigenstrat format
@@ -133,6 +177,9 @@ instance FromJSON GenotypeFormatSpec where
         "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
         "PLINK"      -> pure GenotypeFormatPlink
         _            -> fail ("unknown format " ++ T.unpack v)
+
+instance ToJSON GenotypeFormatSpec where
+    toJSON a  = object ["format" .= T.pack (show a)]
 
 -- |A datatype to represent Genetic_Sex in a janno file
 data Sex = 
