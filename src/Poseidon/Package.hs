@@ -11,7 +11,6 @@ module Poseidon.Package (
     PoseidonException(..),
     PoseidonSample(..),
     readPoseidonPackage,
-    writePoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
     getIndividuals,
@@ -24,7 +23,6 @@ module Poseidon.Package (
     maybeLoadBibTeXFiles,
     bibToSimpleMaybeList,
     getJointGenotypeData,
-    newPackageTemplate,
     EigenstratIndEntry(..),
     Percent(..)
 ) where
@@ -70,24 +68,6 @@ import           Text.CSL                   (renderPlain, procOpts, processBibli
 import           Text.CSL.Exception         (CiteprocException)
 import           Text.CSL.Input.Bibtex      (readBibtex)
 import           Text.CSL.Reference         (Reference(..))
-
--- | A default POSEIDON.yml template
-newPackageTemplate :: PoseidonPackage
-newPackageTemplate = PoseidonPackage {
-    posPacPoseidonVersion = makeVersion [2, 0, 1],
-    posPacTitle = "New Package",
-    posPacDescription = Just "Empty package template",
-    posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
-    posPacLastModified = Just $ fromGregorian 2020 2 28,
-    posPacBibFile = Just "LITERATURE.bib",
-    posPacGenotypeData = GenotypeDataSpec {
-        format = GenotypeFormatPlink,
-        genoFile = "doe2018.bed",
-        snpFile = "doe2018.bim",
-        indFile = "doe2018.fam"
-    },
-    posPacJannoFile = Just "doe2018.janno"
-}
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -449,34 +429,6 @@ addFullPaths baseDir pac =
             posPacGenotypeData = genotypeDataFullPath
         }
 
--- | A helper function to revert the effect of addFullPaths. It takes out the base path from each path in the package.
--- Note that - for now - this function will require strictly file paths to be given without directory names.
--- So it assumes (and checks) that all file names have the same paths as the yaml file to be written to.
-relativizePaths :: FilePath -- ^ the path to the yaml file from which the path should be taken to relativize
-                -> PoseidonPackage -- ^ the Poseidon Package
-                -> Either PoseidonException PoseidonPackage -- ^ the resulting Poseidon Package with corrected paths. Will
-                                                            -- give a Left if there is a path problem
-relativizePaths yamlFilePath pac = do -- working in the Either Monad with Do notation.
-    let baseDir = takeDirectory yamlFilePath
-    case posPacJannoFile pac of
-        Just fn -> assertErr (makeErr fn) (takeDirectory fn == baseDir)
-        Nothing -> return ()
-    case posPacBibFile pac of
-        Just fn -> assertErr (makeErr fn) (takeDirectory fn == baseDir)
-        Nothing -> return ()
-    let (GenotypeDataSpec fmt genoF snpF indF) = posPacGenotypeData pac
-    assertErr (makeErr genoF) (takeDirectory genoF == baseDir)
-    assertErr (makeErr snpF) (takeDirectory snpF == baseDir)
-    assertErr (makeErr indF) (takeDirectory indF == baseDir)
-    return $ pac {
-        posPacJannoFile = takeFileName <$> (posPacJannoFile pac),
-        posPacBibFile = takeFileName <$> (posPacBibFile pac),
-        posPacGenotypeData = GenotypeDataSpec fmt (takeFileName genoF) (takeFileName snpF) (takeFileName indF)
-    }
-  where
-    makeErr fn = PoseidonPackageException $ "In package " ++ posPacTitle pac ++ " in file " ++ fn ++
-        ": Need base path to be the same as the one you're writing the package to"
-
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
 readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
@@ -488,16 +440,6 @@ readPoseidonPackage yamlPath = do
         Left err  -> throwIO $ PoseidonYamlParseException yamlPath err
         Right pac -> return pac
     return $ addFullPaths baseDir fromJSON
-
--- | A function to write a poseidon package to a YAML file. Note that this function calls relativizePaths to make
--- paths relative to the target directory.
-writePoseidonPackage :: FilePath -- ^ the file path to the yaml file
-                     -> PoseidonPackage -- ^ the package to be written
-                     -> IO ()
-writePoseidonPackage outPath pac = do
-    case relativizePaths outPath pac of
-        Left e -> throwIO e
-        Right pac' -> encodeFile outPath pac'
 
 -- | a helper function to return all poseidon packages, found by recursively searching a directory tree.
 -- If a package is encountered that throws a parsing error, it will be skipped and a warning will be issued.

@@ -9,8 +9,7 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             findPoseidonPackages,
                                             readPoseidonPackage,
                                             filterDuplicatePackages,
-                                            loadPoseidonPackages,
-                                            writePoseidonPackage)
+                                            loadPoseidonPackages)
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.Trans.Class (lift)
@@ -19,7 +18,7 @@ import Data.List (sort)
 import           Data.Time                 (defaultTimeLocale, fromGregorian,
                                             parseTimeOrError)
 import           Data.Version              (makeVersion)
-import           Data.Yaml                 (ParseException, decodeEither')
+import           Data.Yaml                 (ParseException, decodeEither', encodeFile)
 import           System.IO                 (IOMode (..), hPutStrLn, stderr,
                                             withFile)
 import           Test.Hspec
@@ -132,7 +131,7 @@ testReadPoseidonPackage = describe "PoseidonPackage.readPoseidonPackage" $ do
 testReadWritePoseidonPackageRoundtrip :: Spec
 testReadWritePoseidonPackageRoundtrip = describe "PoseidonPackage.readWritePoseidonPackageRoundtrip" $ do
     it "writing and reading should make no difference" $ do
-        writePoseidonPackage yamlTestPath truePackageAbsPaths
+        encodeFile yamlTestPath truePackageRelPaths
         pac <- readPoseidonPackage yamlTestPath
         pac `shouldBe` truePackageAbsPaths
     

@@ -10,11 +10,15 @@ import           Poseidon.Package           (PoseidonPackage(..),
                                             writeBibTeXFile,
                                             PoseidonSample(..),
                                             GenotypeDataSpec(..),
-                                            getJointGenotypeData,
-                                            newPackageTemplate)    
+                                            GenotypeFormatSpec(..),
+                                            ContributorSpec(..),
+                                            getJointGenotypeData)    
 import           Control.Monad              (when)
+import           Data.Aeson                 (encodeFile)
 import           Data.List                  (nub, sortOn)
 import           Data.Maybe                 (catMaybes, isJust)
+import           Data.Time                  (UTCTime(..), getCurrentTime)
+import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
@@ -22,7 +26,6 @@ import           System.IO                  (hPutStrLn, stderr)
 import           System.FilePath            ((</>), (<.>))
 import           System.Directory           (createDirectory)
 import           Text.CSL.Reference         (refId)
-import           Data.Aeson                 (encodeFile)
 
 -- | A datatype representing command line options for the survey command
 data MergeOptions = MergeOptions
@@ -49,18 +52,34 @@ runMerge (MergeOptions baseDirs outPath outName) = do
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
     -- create new package
     createDirectory outPath
-    let yamlFile = outPath </> "POSEIDON.yml"
-    encodeFile (outPath </> "POSEIDON.yml") newPackageTemplate
-    writeJannoFile (outPath </> outName <.> "janno") goodJannoRows
+    let jannoFile = outName <.> "janno"
+    writeJannoFile (outPath </> jannoFile) goodJannoRows
     writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
     -- combine genotype data
-    blockData <- runSafeT $ do
+    let outInd = outName <.> "eigenstrat.ind"
+        outSnp = outName <.> "eigenstrat.snp"
+        outGeno = outName <.> "eigenstrat.geno"
+    runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData packages
-        let outInd = outPath </> outName <.> "eigenstrat.ind"
-            outSnp = outPath </> outName <.> "eigenstrat.snp"
-            outGeno = outPath </> outName <.> "eigenstrat.geno"
-        runEffect $ eigenstratProd >-> writeEigenstrat outGeno outSnp outInd eigenstratIndEntries
+        let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
+        runEffect $ eigenstratProd >-> writeEigenstrat outG outS outI eigenstratIndEntries
+    let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
     -- print read issue warning
     when (anyJannoIssues || anyBibIssues) $
         putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+    pac <- newPackageTemplate outName genotypeData jannoFile
+    encodeFile (outPath </> "POSEIDON.yml") pac
 
+newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> IO PoseidonPackage
+newPackageTemplate n gd janno = do
+    (UTCTime today _) <- getCurrentTime
+    return PoseidonPackage {
+        posPacPoseidonVersion = makeVersion [2, 0, 1],
+        posPacTitle = n,
+        posPacDescription = Just "Empty package template. Please add a description",
+        posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
+        posPacLastModified = Just today,
+        posPacBibFile = Just "LITERATURE.bib",
+        posPacGenotypeData = gd,
+        posPacJannoFile = Just janno
+    }
