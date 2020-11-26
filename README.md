@@ -13,7 +13,8 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
     - [Survey Command](#survey-command)
     - [Validate Command](#validate-command)
   + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands)
-    - [Forge Command](#forge-command)
+    - [Merge Command](#merge-command)
+    - [Extract Command](#extract-command)
   + [Analysis Commands](#analysis-commands)
     - [Running F-Statistics](#running-f-statistics)
   + [Get more help](#get-more-help)
@@ -182,7 +183,11 @@ which lists all individuals with their package, group and individual name.
 
 ### Package Creation and Manipulation Commands
 
-#### Forge Command
+#### Merge Command
+
+...
+
+#### Extract Command
 
 ...
 
