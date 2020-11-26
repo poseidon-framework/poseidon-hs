@@ -30,6 +30,7 @@ module Poseidon.Package (
 ) where
 
 import           Poseidon.Utils             (PoseidonException(..))
+
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM, forM_, mzero)
 import           Control.Monad.Catch        (throwM)
@@ -39,15 +40,19 @@ import           Data.Aeson                 (FromJSON, ToJSON, parseJSON, toJSON
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.ByteString.Char8      as Bchs
+import           Data.Char                  (ord)
+import qualified Data.Csv                   as Csv
 import           Data.Either                (isRight, lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn, intercalate)
 import           Data.Maybe                 (catMaybes,fromMaybe)
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as Tio
-import           Data.Time                  (Day)
+import           Data.Time                  (Day, fromGregorian)
 import qualified Data.Vector                as V
-import           Data.Version               (Version)
-import           Data.Yaml                  (decodeEither')
+import           Data.Version               (Version, makeVersion)
+import           Data.Yaml                  (decodeEither', encodeFile)
+import           GHC.Generics               (Generic)
+import           Paths_poseidon_hs
 import           Pipes                      (Producer, (>->))
 import           Pipes.OrderedZip           (orderedZip, orderCheckPipe)
 import qualified Pipes.Prelude              as P
@@ -60,16 +65,10 @@ import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesDirectoryExist, listDirectory, doesFileExist)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import           GHC.Generics               (Generic)
-import qualified Data.Csv                   as Csv
-import           Data.Char                  (ord)
+import           Text.CSL                   (renderPlain, procOpts, processBibliography, readCSLFile)
+import           Text.CSL.Exception         (CiteprocException)
 import           Text.CSL.Input.Bibtex      (readBibtex)
 import           Text.CSL.Reference         (Reference(..))
-import           Text.CSL.Exception         (CiteprocException)
-import           Text.CSL                   (renderPlain, procOpts, processBibliography, readCSLFile)
-import           Paths_poseidon_hs
-import           Data.Time                 (fromGregorian)
-import           Data.Version              (makeVersion)
 
 -- | A default POSEIDON.yml template
 newPackageTemplate :: PoseidonPackage
@@ -447,8 +446,10 @@ addFullPaths baseDir pac =
         }
 
 -- | A helper function to revert the effect of addFullPaths. It takes out the base path from each path in the package
-relativizePaths :: FilePath -> PoseidonPackage -> PoseidonPackage
-relativizePaths pathToBeRemoved pac = undefined
+relativizePaths :: FilePath -- ^ the path to the yaml file from which the path should be taken to relativize
+                -> PoseidonPackage -- ^ the Poseidon Package
+                -> PoseidonPackage -- ^ the resulting Poseidon Package with corrected paths
+relativizePaths yamlFilePath pac = undefined
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
@@ -465,10 +466,9 @@ readPoseidonPackage yamlPath = do
 -- | A function to write a poseidon package to a YAML file. Note that this function calls relativizePaths to make
 -- paths relative to the target directory.
 writePoseidonPackage :: FilePath -- ^ the file path to the yaml file
-                      -> PoseidonPackage -- ^ the package to be written
-                      -> IO ()
-writePoseidonPackage outPath pac = undefined
-
+                     -> PoseidonPackage -- ^ the package to be written
+                     -> IO ()
+writePoseidonPackage outPath = encodeFile outPath . relativizePaths outPath
 
 -- | a helper function to return all poseidon packages, found by recursively searching a directory tree.
 -- If a package is encountered that throws a parsing error, it will be skipped and a warning will be issued.

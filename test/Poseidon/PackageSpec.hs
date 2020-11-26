@@ -7,7 +7,10 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             GenotypeFormatSpec (..),
                                             PoseidonPackage (..),
                                             findPoseidonPackages,
-                                            readPoseidonPackage, filterDuplicatePackages, loadPoseidonPackages)
+                                            readPoseidonPackage,
+                                            filterDuplicatePackages,
+                                            loadPoseidonPackages,
+                                            writePoseidonPackage)
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.Trans.Class (lift)
@@ -98,8 +101,8 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     it "should fail with lastModified missing" $ do
         p `shouldBe` truePackage {posPacLastModified = Nothing}
 
-testReadPoseidonYAML :: Spec
-testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
+testReadPoseidonPackage :: Spec
+testReadPoseidonPackage = describe "PoseidonPackage.readPoseidonPackage" $ do
     let fn = "/tmp/poseidon_test.yml"
     it "should return correct package from file read" $ do
         B.writeFile fn yamlPackage
@@ -107,8 +110,8 @@ testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
         posPacBibFile pac `shouldBe` Just "/tmp/sources.bib"
         (genoFile . posPacGenotypeData) pac `shouldBe` "/tmp/Schiffels_2016.bed"
 
-testWritePoseidonYAML :: Spec
-testWritePoseidonYAML = describe "PoseidonPackage.JSONparsing" $ do
+testWritePoseidonPackage :: Spec
+testWritePoseidonPackage = describe "PoseidonPackage.JSONparsing" $ do
     let fn = "/tmp/poseidon_test.yml"
     it "should write correct YAML file from package" $ do
         writePoseidonPackage fn truePackage
