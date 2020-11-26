@@ -11,6 +11,7 @@ module Poseidon.Package (
     PoseidonException(..),
     PoseidonSample(..),
     readPoseidonPackage,
+    writePoseidonPackage,
     findPoseidonPackages,
     filterDuplicatePackages,
     getIndividuals,
@@ -438,6 +439,10 @@ addFullPaths baseDir pac =
             posPacGenotypeData = genotypeDataFullPath
         }
 
+-- | A helper function to revert the effect of addFullPaths. It takes out the base path from each path in the package
+relativizePaths :: FilePath -> PoseidonPackage -> PoseidonPackage
+relativizePaths pathToBeRemoved pac = undefined
+
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
 readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
@@ -449,6 +454,14 @@ readPoseidonPackage yamlPath = do
         Left err  -> throwIO $ PoseidonYamlParseException yamlPath err
         Right pac -> return pac
     return $ addFullPaths baseDir fromJSON
+
+-- | A function to write a poseidon package to a YAML file. Note that this function calls relativizePaths to make
+-- paths relative to the target directory.
+writePoseidonPackage :: FilePath -- ^ the file path to the yaml file
+                      -> PoseidonPackage -- ^ the package to be written
+                      -> IO ()
+writePoseidonPackage outPath pac = undefined
+
 
 -- | a helper function to return all poseidon packages, found by recursively searching a directory tree.
 -- If a package is encountered that throws a parsing error, it will be skipped and a warning will be issued.

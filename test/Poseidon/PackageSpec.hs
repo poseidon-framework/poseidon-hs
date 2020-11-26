@@ -24,7 +24,8 @@ import           Text.RawString.QQ
 
 spec = do
     testPoseidonFromYAML
-    testReadPoseidonYAML
+    testReadPoseidonPackage
+    testWritePoseidonPackage
     testFindPoseidonPackages
 
 yamlPackage :: B.ByteString
@@ -101,10 +102,18 @@ testReadPoseidonYAML :: Spec
 testReadPoseidonYAML = describe "PoseidonPackage.readPoseidonPackage" $ do
     let fn = "/tmp/poseidon_test.yml"
     it "should return correct package from file read" $ do
-        withFile fn WriteMode $ \h -> B.hPutStr h yamlPackage
+        B.writeFile fn yamlPackage
         pac <- readPoseidonPackage fn
         posPacBibFile pac `shouldBe` Just "/tmp/sources.bib"
         (genoFile . posPacGenotypeData) pac `shouldBe` "/tmp/Schiffels_2016.bed"
+
+testWritePoseidonYAML :: Spec
+testWritePoseidonYAML = describe "PoseidonPackage.JSONparsing" $ do
+    let fn = "/tmp/poseidon_test.yml"
+    it "should write correct YAML file from package" $ do
+        writePoseidonPackage fn truePackage
+        pacYaml <- B.readFile fn
+        pacYaml `shouldBe` yamlPackage
 
 testFindPoseidonPackages :: Spec
 testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
