@@ -71,6 +71,24 @@ import           Paths_poseidon_hs
 import           Data.Time                 (fromGregorian)
 import           Data.Version              (makeVersion)
 
+-- | A default POSEIDON.yml template
+newPackageTemplate :: PoseidonPackage
+newPackageTemplate = PoseidonPackage {
+    posPacPoseidonVersion = makeVersion [2, 0, 1],
+    posPacTitle = "New Package",
+    posPacDescription = Just "Empty package template",
+    posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
+    posPacLastModified = Just $ fromGregorian 2020 2 28,
+    posPacBibFile = Just "LITERATURE.bib",
+    posPacGenotypeData = GenotypeDataSpec {
+        format = GenotypeFormatPlink,
+        genoFile = "doe2018.bed",
+        snpFile = "doe2018.bim",
+        indFile = "doe2018.fam"
+    },
+    posPacJannoFile = Just "doe2018.janno"
+}
+
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
     { posPacPoseidonVersion :: Version -- ^ The version of the package
@@ -96,28 +114,17 @@ instance FromJSON PoseidonPackage where
         <*> v .:   "genotypeData"
         <*> v .:   "jannoFile"
 
-newPackageTemplate :: PoseidonPackage
-newPackageTemplate = PoseidonPackage {
-    posPacPoseidonVersion = makeVersion [2, 0, 1],
-    posPacTitle = "New Package",
-    posPacDescription = Just "Empty package template",
-    posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
-    posPacLastModified = Just $ fromGregorian 2020 2 28,
-    posPacBibFile = Just "LITERATURE.bib",
-    posPacGenotypeData = GenotypeDataSpec {
-        format = GenotypeFormatPlink,
-        genoFile = "doe2018.bed",
-        snpFile = "doe2018.bim",
-        indFile = "doe2018.fam"
-    },
-    posPacJannoFile = Just "doe2018.janno"
-}
-
 instance ToJSON PoseidonPackage where
     -- this encodes directly to a bytestring Builder
     toJSON x = object [
         "poseidonVersion" .= posPacPoseidonVersion x,
-        "title" .= posPacTitle x
+        "title" .= posPacTitle x,
+        "description" .= posPacDescription x,
+        "contributor" .= posPacContributor x,
+        "lastModified" .= posPacLastModified x,
+        "bibFile" .= posPacBibFile x,
+        "genotypeData" .= posPacGenotypeData x,
+        "jannoFile" .= posPacJannoFile x
         ]
 
 -- | A data type to represent a contributor
