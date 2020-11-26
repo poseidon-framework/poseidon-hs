@@ -3,25 +3,26 @@
 # poseidon-tools
 A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
 
+* [Installation Quickstart](#installation-quickstart)
+* [Guide for the command line utility](#guide-for-the-command-line-utility)
+  + [Poseidon package repositories](#poseidon-package-repositories)
+  + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
+  + [Inspection Commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
+  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`merge`](#merge-command), [`extract`](#extract-command)
+  + [Analysis Commands](#analysis-commands): [`fstats`](#fstats-command)
+  + [Getting help](#getting-help)
+* [Development Quickstart](#development-quickstart)
+
 ## Installation Quickstart
+
+(For DAG-Members: `trident` is already available on the cluster)
 
 1. Install the Haskell build tool [Stack](https://docs.haskellstack.org/en/stable/README/)
 2. Clone the repository
 3. If you're a developer and would like to run teh tests, execute `stack test` inside the repository to build and run tests. This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
 4. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path)
 
-## Development Quickstart
-
-You can install the internal documentation using `stack haddock` and open it subsequently using `stack haddock --open`. This will then open a HTML page with all dependency packages and the `poseidon-hs` library itself. The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
-
-Important packages to look into to understand the architecture of this tool:
-* Start with `Poseidon.Package`: It defines the main package format and provides some functions how to access the data inside packages.
-* The `Poseidon.Utils` module only provides the definition of an Exception type.
-* The two modules `Poseidon.CmdFStats` and `Poseidon.CmdList` define the functionality provided in the two command line functions `list` and `fstats`.
-* The `list` command might be a good place to start and understanding what's going on and how to use the `Poseidon.Package` interface.
-* The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
-
-## Guide for the command line utility `trident`
+## Guide for the command line utility
 
 ### Poseidon package repositories
 Trident generally requires Poseidon datasets to work with. All trident subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `trident <subcommand> -d /path/to/poseidon/dirs/` and `trident` would automatically search all subdirectories inside of the repository for valid poseidon packages.
@@ -94,9 +95,10 @@ trident list -d /path/to/poseidon/packages/modern \
   -d ~/my_project --packages
 ```
 
+### Inspection Commands
 
-### List Command
-The most basic command is the `list` command. It simply lists packages, groups and individuals of the datasets you use.
+#### List Command
+`list` lists packages, groups and individuals of the datasets you use.
 
 To list packages, as seen above you run
 
@@ -113,11 +115,7 @@ Example for the final output:
 | 2015_1000Genomes_1240K_haploid_pulldown | 2020-08-10 | 2535           |
 | 2016_Mallick_SGDP1240K_diploid_pulldown | 2020-08-10 | 280            |
 | 2018_BostonDatashare_modern_published   | 2020-08-10 | 2772           |
-| 2019_Biagini_Spain                      | 2020-08-10 | 120            |
-| 2019_Jeong_InnerEurasia                 | 2020-08-10 | 763            |
-| 2019_Lamnidis_Fennoscandia              | 2020-08-10 | 1              |
-| Archaic_Humans                          | 2020-08-10 | 14             |
-| Reference_Genomes                       | 2020-08-10 | 11             |
+| ...                                     | ...        |                |
 '-----------------------------------------'------------'----------------'
 ```
 so a nicely formatted table of all packages, their last update and the number of individuals in it.
@@ -135,22 +133,7 @@ for which an example output may contain:
 :===============================================:====================================================:================:
 | AA                                            | 2018_BostonDatashare_modern_published              | 12             |
 | ACB.SG                                        | 2015_1000Genomes_1240K_haploid_pulldown            | 96             |
-| ASW.SG                                        | 2015_1000Genomes_1240K_haploid_pulldown            | 66             |
 | Abazin                                        | 2019_Jeong_InnerEurasia                            | 8              |
-| Abazin_outlier                                | 2019_Jeong_InnerEurasia                            | 2              |
-| Abkhasian                                     | 2018_BostonDatashare_modern_published              | 9              |
-| Adygei                                        | 2018_BostonDatashare_modern_published,2019_Jeong_… | 31             |
-| Adygei.DG                                     | 2016_Mallick_SGDP1240K_diploid_pulldown            | 2              |
-| Afar.WGA                                      | 2018_BostonDatashare_modern_published              | 5              |
-| Ain_Touta.WGA                                 | 2018_BostonDatashare_modern_published              | 3              |
-| Albanian                                      | 2018_BostonDatashare_modern_published              | 6              |
-| Albanian.DG                                   | 2016_Mallick_SGDP1240K_diploid_pulldown            | 1              |
-| Aleut                                         | 2018_BostonDatashare_modern_published              | 7              |
-| Aleut.DG                                      | 2016_Mallick_SGDP1240K_diploid_pulldown            | 2              |
-| Algerian                                      | 2018_BostonDatashare_modern_published              | 7              |
-| Altai_Neanderthal.DG                          | Archaic_Humans                                     | 1              |
-| Altai_Neanderthal_published.DG                | Archaic_Humans                                     | 1              |
-| Altaian                                       | 2018_BostonDatashare_modern_published,2019_Jeong_… | 24             |
 | ...                                           | ...                                                |                |
 '-----------------------------------------------'----------------------------------------------------'----------------'
 ```
@@ -173,25 +156,37 @@ Example output:
 | 2015_1000Genomes_1240K_haploid_pulldown | HG00096.SG       | GBR.SG               |
 | 2015_1000Genomes_1240K_haploid_pulldown | HG00097.SG       | GBR.SG               |
 | 2015_1000Genomes_1240K_haploid_pulldown | HG00099.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00100.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00101.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00102.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00103.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00105.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00106.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00107.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00108.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00109.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00110.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00111.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00112.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00113.SG       | GBR.SG               |
+| ...                                     | ...              | ...                  |
 '-----------------------------------------'-----------------------------------------'
 ```
 
 which lists all individuals with their package, group and individual name.
 
-### Running F-Statistics
+#### Summarise Command
+
+...
+
+#### Survey Command
+
+...
+
+#### Validate Command
+
+...
+
+### Package Creation and Manipulation Commands
+
+#### Merge Command
+
+...
+
+#### Extract Command
+
+...
+
+### Analysis Commands
+
+#### Fstats Command
 
 Trident allows you to analyse genotype data across poseidon packages, including your own, as explained above by "hooking" in your own package via a `--baseDir` (or `-d`) parameter. This has the advantage that you can compute arbitrary F-Statistics across groups and individuals distributed in many packages, without the need to explicitly merge the data. Trident also takes care of merging PLINK and EIGENSTRAT data on the fly. It also takes care of different genotype base sets, like Human-Origins vs. 1240K. It also flips alleles automatically across genotype files, and throws an error if the alleles in different packages are incongruent with each other. Trident is also smart enough to select only the packages relevant for the statistics that you need, and then streams through only those genotype data.
 
@@ -253,7 +248,17 @@ The final output of the `fstats` command looks like this:
 ```
 which lists each statistic, the genome-wide estimate, its standard error and its Z-score.
 
-### Get more help
+### Getting help
 
 You can use `trident --help`, `trident list --help` and `trident fstats --help` to get information about each parameter, including some that I haven't covered in this guide.
 
+## Development Quickstart
+
+You can install the internal documentation using `stack haddock` and open it subsequently using `stack haddock --open`. This will then open a HTML page with all dependency packages and the `poseidon-hs` library itself. The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
+
+Important packages to look into to understand the architecture of this tool:
+* Start with `Poseidon.Package`: It defines the main package format and provides some functions how to access the data inside packages.
+* The `Poseidon.Utils` module only provides the definition of an Exception type.
+* The two modules `Poseidon.CmdFStats` and `Poseidon.CmdList` define the functionality provided in the two command line functions `list` and `fstats`.
+* The `list` command might be a good place to start and understanding what's going on and how to use the `Poseidon.Package` interface.
+* The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
