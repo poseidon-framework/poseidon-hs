@@ -1,5 +1,5 @@
-module Poseidon.CLI.Merge (
-    runMerge, MergeOptions(..), ForgeEntity(..), forgeEntitiesParser
+module Poseidon.CLI.Forge (
+    runForge, ForgeOptions(..), ForgeEntity(..), forgeEntitiesParser
     ) where
 
 import           Poseidon.BibFile           (bibToSimpleMaybeList,
@@ -36,7 +36,7 @@ import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
 
 -- | A datatype representing command line options for the survey command
-data MergeOptions = MergeOptions
+data ForgeOptions = ForgeOptions
     { _jaBaseDirs :: [FilePath]
     , _entityList :: [ForgeEntity]
     , _outPacPath :: FilePath
@@ -103,8 +103,8 @@ filterBibEntries samples references =
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
 -- | The main function running the janno command
-runMerge :: MergeOptions -> IO ()
-runMerge (MergeOptions baseDirs entities outPath outName) = do
+runForge :: ForgeOptions -> IO ()
+runForge (ForgeOptions baseDirs entities outPath outName) = do
     -- load packages
     allPackages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"

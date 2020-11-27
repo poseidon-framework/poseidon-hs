@@ -18,7 +18,7 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.CLI.FStats, Poseidon.CLI.List, 
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
-                        Poseidon.CLI.Survey, Poseidon.CLI.Extract, Poseidon.CLI.Merge
+                        Poseidon.CLI.Survey, Poseidon.CLI.Forge
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats, text, time, pipes-safe,

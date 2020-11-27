@@ -1,13 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Control.Applicative ((<|>))
-import           Poseidon.CLI.Extract   (runExtract, ExtractOptions(..))
 import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
-import           Poseidon.CLI.Merge     (runMerge, MergeOptions(..),
+import           Poseidon.CLI.Forge     (runForge, ForgeOptions(..),
                                         ForgeEntity(..), forgeEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
@@ -18,10 +17,9 @@ import           SequenceFormats.Utils (Chrom (..))
 import           Text.Read             (readEither)
 
 
-data Options = CmdExtract ExtractOptions
-    | CmdFstats FstatsOptions
+data Options = CmdFstats FstatsOptions
     | CmdList ListOptions
-    | CmdMerge MergeOptions
+    | CmdForge ForgeOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
     | CmdValidate ValidateOptions
@@ -30,10 +28,9 @@ main :: IO ()
 main = do
     cmdOpts <- OP.execParser optParserInfo
     case cmdOpts of
-        CmdExtract opts   -> runExtract opts
         CmdFstats opts    -> runFstats opts
         CmdList opts      -> runList opts
-        CmdMerge opts     -> runMerge opts
+        CmdForge opts     -> runForge opts
         CmdSummarise opts -> runSummarise opts
         CmdSurvey opts    -> runSurvey opts
         CmdValidate opts  -> runValidate opts
@@ -44,32 +41,26 @@ optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
 
 optParser :: OP.Parser Options
 optParser = OP.subparser $
-    OP.command "extract" extractOptInfo <>
     OP.command "fstats" fstatsOptInfo <>
     OP.command "list" listOptInfo <>
-    OP.command "merge" mergeOptInfo <>
+    OP.command "forge" forgeOptInfo <>
     OP.command "summarise" summariseOptInfo <>
     OP.command "survey" surveyOptInfo <>
     OP.command "validate" validateOptInfo
 
   where
-    extractOptInfo = OP.info (OP.helper <*> (CmdExtract <$> extractOptParser))
-        (OP.progDesc "extract: extract groups or individuals from the specified packages and create a new package")
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "fstat: running fstats")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
-    mergeOptInfo = OP.info (OP.helper <*> (CmdMerge <$> mergeOptParser))
-        (OP.progDesc "merge: merge the specified entities and create a new package")
+    forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
+        (OP.progDesc "forge: forge the specified entities and create a new package")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "summarise: get an overview over the content of one or multiple packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "survey: survey the degree of completeness of package information")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "validate: check one or multiple packages for structural correctness")
-
-extractOptParser :: OP.Parser ExtractOptions
-extractOptParser = ExtractOptions <$> parseBasePaths
 
 fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths
@@ -82,8 +73,8 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
-mergeOptParser :: OP.Parser MergeOptions
-mergeOptParser = MergeOptions <$> parseBasePaths
+forgeOptParser :: OP.Parser ForgeOptions
+forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesDirect
                               <*> parseOutPackagePath
                               <*> parseOutPackageName
