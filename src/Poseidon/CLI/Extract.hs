@@ -7,5 +7,5 @@ data ExtractOptions = ExtractOptions
 
 -- | The main function running the janno command
 runExtract :: ExtractOptions -> IO ()
-runExtract (ExtractOptions baseDirs) = do
+runExtract (ExtractOptions _) = do
     putStrLn "extract"

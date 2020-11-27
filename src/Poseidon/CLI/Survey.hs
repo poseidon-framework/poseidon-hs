@@ -4,12 +4,14 @@ module Poseidon.CLI.Survey (runSurvey, SurveyOptions(..)) where
 
 import           Poseidon.Package       (PoseidonPackage(..),
                                         loadPoseidonPackages,
-                                        maybeLoadJannoFiles,
-                                        maybeLoadBibTeXFiles,
-                                        bibToSimpleMaybeList,
-                                        jannoToSimpleMaybeList,
                                         PoseidonSample(..),
                                         GenotypeDataSpec(..))
+import           Poseidon.Janno         (maybeLoadJannoFiles,
+                                        jannoToSimpleMaybeList)
+import           Poseidon.BibFile       (maybeLoadBibTeXFiles,
+                                        bibToSimpleMaybeList)
+
+
 import qualified Data.Either            as E
 import           Data.Maybe             (isNothing, isJust)
 import           System.Directory       (doesFileExist)

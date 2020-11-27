@@ -11,11 +11,10 @@ module Poseidon.CLI.FStats (
 ) where
 
 import           Poseidon.Package           (PoseidonPackage (..),
+                                             loadPoseidonPackages,
                                              getIndividuals,
-                                             getJointGenotypeData,
-                                             loadPoseidonPackages)
+                                             getJointGenotypeData)
 import           Poseidon.Utils             (PoseidonException (..))
-
 
 import           Control.Applicative        ((<|>), many)
 import           Control.Exception          (throwIO)

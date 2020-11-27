@@ -1,7 +1,8 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
-import           Poseidon.Package          (getIndividuals,
-                                            loadPoseidonPackages, PoseidonPackage(..))
+import           Poseidon.Package          (loadPoseidonPackages,
+                                           PoseidonPackage(..),
+                                           getIndividuals)
 
 import           Control.Monad             (forM)
 import           Data.List                 (groupBy, intercalate, nub, sortOn)

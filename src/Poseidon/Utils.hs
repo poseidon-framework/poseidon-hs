@@ -1,11 +1,10 @@
 module Poseidon.Utils (
-    PoseidonException(..), 
+    PoseidonException(..),
     renderPoseidonException
 ) where
 
 import           Control.Exception          (Exception)
 import           Data.Yaml                  (ParseException)
-import qualified Data.Maybe                 as DM
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 

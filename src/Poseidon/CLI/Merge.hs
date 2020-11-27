@@ -2,17 +2,18 @@ module Poseidon.CLI.Merge (runMerge, MergeOptions(..)) where
 
 import           Poseidon.Package           (PoseidonPackage(..),
                                             loadPoseidonPackages,
-                                            maybeLoadJannoFiles,
-                                            maybeLoadBibTeXFiles,
-                                            bibToSimpleMaybeList,
-                                            jannoToSimpleMaybeList,
-                                            writeJannoFile,
-                                            writeBibTeXFile,
                                             PoseidonSample(..),
                                             GenotypeDataSpec(..),
                                             GenotypeFormatSpec(..),
                                             ContributorSpec(..),
                                             getJointGenotypeData)    
+import           Poseidon.Janno             (maybeLoadJannoFiles,
+                                            jannoToSimpleMaybeList,
+                                            writeJannoFile)
+import           Poseidon.BibFile           (maybeLoadBibTeXFiles,
+                                            bibToSimpleMaybeList,
+                                            writeBibTeXFile)
+
 import           Control.Monad              (when)
 import           Data.Aeson                 (encodeFile)
 import           Data.List                  (nub, sortOn)
