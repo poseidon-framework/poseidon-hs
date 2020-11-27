@@ -39,11 +39,10 @@ import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoLine)
-import           System.Directory           (doesDirectoryExist, doesFileExist,
+import           System.Directory           (doesDirectoryExist,
                                              listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.CSL.Exception         (CiteprocException)
 import           Text.CSL.Reference         (Reference (..))
 
 -- | A data type to represent a Poseidon Package
@@ -207,45 +206,23 @@ getJointGenotypeData = loadJointGenotypeData . map posPacGenotypeData
 -- Janno file loading
 
 maybeLoadJannoFiles :: [PoseidonPackage] -> IO [Either PoseidonException [Either PoseidonException PoseidonSample]]
-maybeLoadJannoFiles pacs = do
-    mapM maybeLoadJannoFile pacs
+maybeLoadJannoFiles = mapM (try . maybeLoadJannoFile)
 
-maybeLoadJannoFile :: PoseidonPackage -> IO (Either PoseidonException [Either PoseidonException PoseidonSample])
-maybeLoadJannoFile pac = do
-    let maybeJannoPath = posPacJannoFile pac
-    case maybeJannoPath of
-        Nothing -> do
-            return $ Left $ PoseidonFileExistenceException $
-                posPacTitle pac ++ ": Can't find .janno file path in the POSEIDON.yml"
-        Just x  -> do
-            fileExists <- doesFileExist x
-            if not fileExists
-            then do
-                return $ Left $ PoseidonFileExistenceException $
-                    posPacTitle pac ++ ": Can't find .janno file " ++ show x
-            else do
-                samples <- loadJannoFile x
-                return $ Right samples
+maybeLoadJannoFile :: PoseidonPackage -> IO [Either PoseidonException PoseidonSample]
+maybeLoadJannoFile pac = case posPacJannoFile pac of
+    Nothing ->
+        throwIO $ PoseidonFileExistenceException
+            (posPacTitle pac ++ ": Can't find .janno file path in the POSEIDON.yml")
+    Just x  -> loadJannoFile x
 
 -- BibFile file loading
 
-maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
-maybeLoadBibTeXFiles pacs = do
-    mapM maybeLoadBibTeXFile pacs
+maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException [Reference]]
+maybeLoadBibTeXFiles = mapM (try . maybeLoadBibTeXFile)
 
-maybeLoadBibTeXFile :: PoseidonPackage -> IO (Either PoseidonException (Either CiteprocException [Reference]))
-maybeLoadBibTeXFile pac = do
-    let maybeBibPath = posPacBibFile pac
-    case maybeBibPath of
-        Nothing -> do
-            return $ Left $ PoseidonFileExistenceException $
-                posPacTitle pac ++ ": Can't find .bib file path in the POSEIDON.yml"
-        Just x  -> do
-            fileExists <- doesFileExist x
-            if not fileExists
-            then do
-                return $ Left $ PoseidonFileExistenceException $
-                    posPacTitle pac ++ ": Can't find .bib file " ++ show x
-            else do
-                references_ <- loadBibTeXFile x
-                return $ Right references_
+maybeLoadBibTeXFile :: PoseidonPackage -> IO [Reference]
+maybeLoadBibTeXFile pac = case posPacBibFile pac of
+    Nothing -> do
+        throwIO $ PoseidonFileExistenceException
+            (posPacTitle pac ++ ": Can't find .bib file path in the POSEIDON.yml")
+    Just x  -> loadBibTeXFile x

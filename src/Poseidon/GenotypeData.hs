@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import Poseidon.Utils (PoseidonException(..))
+import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM)
+import           Control.Monad              (forM, forM_, when)
 import           Control.Monad.Catch        (throwM)
+import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.=))
@@ -19,6 +20,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
+import           System.Directory           (doesFileExist)
 
 
 -- | A datatype to specify genotype files
@@ -100,7 +102,10 @@ loadIndividuals (GenotypeDataSpec format_ _ _ indF) =
 loadGenotypeData :: (MonadSafe m) => GenotypeDataSpec -- ^ the genotype spec
                 -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-loadGenotypeData (GenotypeDataSpec format_ genoF snpF indF) =
+loadGenotypeData (GenotypeDataSpec format_ genoF snpF indF) = do
+    forM_ [genoF, snpF, indF] $ (\f -> do
+        fileE <- liftIO (doesFileExist f)
+        when (not fileE) $ throwM (PoseidonFileExistenceException ("File " ++ f ++ " does not exist")))
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstrat genoF snpF indF
         GenotypeFormatPlink      -> readPlink genoF snpF indF
