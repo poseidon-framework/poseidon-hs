@@ -128,14 +128,14 @@ trident list -d ... -d ... --groups
 for which an example output may contain:
 
 ```
-.-----------------------------------------------.----------------------------------------------------.----------------.
-|                     Group                     |                      Packages                      | Nr Individuals |
-:===============================================:====================================================:================:
-| AA                                            | 2018_BostonDatashare_modern_published              | 12             |
-| ACB.SG                                        | 2015_1000Genomes_1240K_haploid_pulldown            | 96             |
-| Abazin                                        | 2019_Jeong_InnerEurasia                            | 8              |
-| ...                                           | ...                                                |                |
-'-----------------------------------------------'----------------------------------------------------'----------------'
+.--------.-----------------------------------------.----------------.
+| Group  |                      Packages           | Nr Individuals |
+:========:=========================================:================:
+| AA     | 2018_BostonDatashare_modern_published   | 12             |
+| ACB.SG | 2015_1000Genomes_1240K_haploid_pulldown | 96             |
+| Abazin | 2019_Jeong_InnerEurasia                 | 8              |
+| ...    | ...                                     |                |
+'--------'-----------------------------------------'----------------'
 ```
 
 which lists all groups, the packages those groups are in, the total number of individuals in each group.
@@ -150,25 +150,50 @@ trident list -d ... -d ... --individuals
 Example output:
 
 ```
-.-----------------------------------------.------------------.----------------------.
-|                 Package                 |    Individual    |      Population      |
-:=========================================:==================:======================:
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00096.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00097.SG       | GBR.SG               |
-| 2015_1000Genomes_1240K_haploid_pulldown | HG00099.SG       | GBR.SG               |
-| ...                                     | ...              | ...                  |
-'-----------------------------------------'-----------------------------------------'
+.-----------------------------------------.------------.------------.
+|                 Package                 | Individual | Population |
+:=========================================:============:============:
+| 2015_1000Genomes_1240K_haploid_pulldown | HG00096.SG | GBR.SG     |
+| 2015_1000Genomes_1240K_haploid_pulldown | HG00097.SG | GBR.SG     |
+| 2015_1000Genomes_1240K_haploid_pulldown | HG00099.SG | GBR.SG     |
+| ...                                     | ...        | ...        |
+'-----------------------------------------'-------------------------'
 ```
 
 which lists all individuals with their package, group and individual name.
 
 #### Summarise Command
+`summarise` prints some general summary statistics for a given poseidon dataset taken from the .janno files.
 
-...
+You can run it with
+
+```
+trident summarise -d ... -d ...
+```
+
+which will show you context information like -- among others -- the number of samples in the dataset, its sex distribution, the mean age of the samples (for ancient data) or the mean coverage on the 1240K SNP array. `summarise` depends on complete .janno files and will silently ignore missing information for some statistics.
 
 #### Survey Command
+`survey` tries to indicate package completeness for poseidon datasets. 
 
-...
+Running
+
+```
+trident survey -d ... -d ...
+```
+
+will yield a table with one row for each package. Completeness is encoded with the following terms:
+
+- column 1: **Genotype data**
+  - `G`: Genotype data is present
+  - `.`: Genotype data is missing
+- column 2-35: **.janno file columns**
+  - `M`: Mandatory column that has to be complete
+  - `X`: There are some valid entries in this column
+  - `.`: The column only contains `n/a` values and was therefore most likely not filled out
+- column 1: **BibTeX file**
+  - `B`: BibTeX file is present
+  - `.`: BibTeX file is missing
 
 #### Validate Command
 
