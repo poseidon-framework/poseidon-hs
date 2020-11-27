@@ -2,18 +2,21 @@
 
 module Poseidon.CLI.Survey (runSurvey, SurveyOptions(..)) where
 
-import           Poseidon.BibFile (bibToSimpleMaybeList)
-import           Poseidon.Janno   (PoseidonSample (..), jannoToSimpleMaybeList)
-import           Poseidon.Package (GenotypeDataSpec (..), PoseidonPackage (..),
-                                   loadPoseidonPackages, maybeLoadBibTeXFiles,
-                                   maybeLoadJannoFiles)
+import           Poseidon.BibFile      (bibToSimpleMaybeList)
+import           Poseidon.GenotypeData (GenotypeDataSpec (..))
+import           Poseidon.Janno        (PoseidonSample (..),
+                                        jannoToSimpleMaybeList)
+import           Poseidon.Package      (PoseidonPackage (..),
+                                        loadPoseidonPackages,
+                                        maybeLoadBibTeXFiles,
+                                        maybeLoadJannoFiles)
 
 
-import           Control.Monad    (when)
-import           Data.List        (zip4)
-import           Data.Maybe       (isJust, isNothing)
-import           System.Directory (doesFileExist)
-import           System.IO        (hPutStrLn, stderr)
+import           Control.Monad         (when)
+import           Data.List             (zip4)
+import           Data.Maybe            (isJust, isNothing)
+import           System.Directory      (doesFileExist)
+import           System.IO             (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions

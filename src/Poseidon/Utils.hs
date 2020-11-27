@@ -28,4 +28,5 @@ renderPoseidonException (PoseidonJannoException f i _) =
     ++ " due to a .janno parsing error"
     -- ++ s -- this error message is pretty useless and can be omitted
 renderPoseidonException (PoseidonFileExistenceException s) = s
+renderPoseidonException (PoseidonBibTeXException f s) = "BibText problem in file " ++ f ++ ": " ++ s
 renderPoseidonException _ = error "should never happen"

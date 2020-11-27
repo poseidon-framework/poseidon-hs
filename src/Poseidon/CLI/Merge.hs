@@ -2,16 +2,17 @@ module Poseidon.CLI.Merge (
     runMerge, MergeOptions(..), ForgeEntity(..), forgeEntitiesParser
     ) where
 
-import           Poseidon.Package           (PoseidonPackage(..),
-                                            loadPoseidonPackages,
-                                            GenotypeDataSpec(..),
-                                            GenotypeFormatSpec(..),
-                                            ContributorSpec(..),
-                                            getJointGenotypeData, maybeLoadJannoFiles, maybeLoadBibTeXFiles) 
-import           Poseidon.Janno             (jannoToSimpleMaybeList,
-                                            writeJannoFile)
 import           Poseidon.BibFile           (bibToSimpleMaybeList,
-                                            writeBibTeXFile)
+                                             writeBibTeXFile)
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..), GenotypeFormatSpec (..))
+import           Poseidon.Janno             (jannoToSimpleMaybeList,
+                                             writeJannoFile)
+import           Poseidon.Package           (ContributorSpec (..),
+                                             PoseidonPackage (..),
+                                             getJointGenotypeData,
+                                             loadPoseidonPackages,
+                                             maybeLoadBibTeXFiles,
+                                             maybeLoadJannoFiles)
 
 import           Control.Applicative        ((<|>))
 import           Control.Monad              (when)
@@ -19,14 +20,14 @@ import           Data.Aeson                 (encodeFile)
 import           Data.Char                  (isSpace)
 import           Data.List                  (nub, sortOn)
 import           Data.Maybe                 (catMaybes, isJust)
-import           Data.Time                  (UTCTime(..), getCurrentTime)
+import           Data.Time                  (UTCTime (..), getCurrentTime)
 import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
-import           System.IO                  (hPutStrLn, stderr)
-import           System.FilePath            ((</>), (<.>))
 import           System.Directory           (createDirectory)
+import           System.FilePath            ((<.>), (</>))
+import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (refId)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P

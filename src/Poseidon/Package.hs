@@ -3,8 +3,6 @@
 
 module Poseidon.Package (
     PoseidonPackage(..),
-    GenotypeDataSpec(..),
-    GenotypeFormatSpec(..),
     ContributorSpec(..),
     PoseidonException(..),
     readPoseidonPackage,
@@ -17,42 +15,35 @@ module Poseidon.Package (
     getIndividuals
 ) where
 
-import           Poseidon.GenotypeData      (zipAll)
+import           Poseidon.BibFile           (loadBibTeXFile)
+import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
 import           Poseidon.Janno             (PoseidonSample (..), loadJannoFile)
 import           Poseidon.Utils             (PoseidonException (..))
-import           Poseidon.BibFile           (loadBibTeXFile)
 
 
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM, forM_)
-import           Control.Monad.Catch        (throwM)
-import           Data.Aeson                 (FromJSON, ToJSON, object, parseJSON,
-                                             toJSON, withObject, withText, (.:),
-                                             (.:?), (.=))
+import           Control.Monad              (filterM, forM_)
+import           Data.Aeson                 (FromJSON, ToJSON, object,
+                                             parseJSON, toJSON, withObject,
+                                             (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
-import qualified Data.Text                  as T
 import           Data.Time                  (Day)
-import qualified Data.Vector                as V
 import           Data.Version               (Version)
 import           Data.Yaml                  (decodeEither')
 import           GHC.Generics               (Generic)
-import           Pipes                      (Producer, (>->))
-import qualified Pipes.Prelude              as P
+import           Pipes                      (Producer)
 import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine,
-                                             readEigenstrat, readEigenstratInd)
-import           SequenceFormats.Plink      (readFamFile, readPlink)
-import           System.Directory           (doesDirectoryExist, doesFileExist,
+                                             GenoLine)
+import           System.Directory           (doesDirectoryExist,
                                              listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.CSL.Exception         (CiteprocException)
-import           Text.CSL.Reference         (Reference(..))
+import           Text.CSL.Reference         (Reference (..))
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -120,52 +111,6 @@ instance ToJSON ContributorSpec where
         "name" .= contributorName x,
         "email" .= contributorEmail x
         ]
-
--- | A datatype to specify genotype files
-data GenotypeDataSpec = GenotypeDataSpec
-    { format   :: GenotypeFormatSpec -- ^ the genotype format
-    -- ^ path to the geno file
-    , genoFile :: FilePath -- ^ path to the geno file
-    -- ^ path to the snp file
-    , snpFile  :: FilePath -- ^ path to the snp file
-    -- ^ path to the ind file
-    , indFile  :: FilePath -- ^ path to the ind file
-    }
-    deriving (Show, Eq)
-
--- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
-instance FromJSON GenotypeDataSpec where
-    parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
-        <$> v .: "format"
-        <*> v .: "genoFile"
-        <*> v .: "snpFile"
-        <*> v .: "indFile"
-
-instance ToJSON GenotypeDataSpec where
-    -- this encodes directly to a bytestring Builder
-    toJSON x = object [
-        "format" .= format x,
-        "genoFile" .= genoFile x,
-        "snpFile" .= snpFile x,
-        "indFile" .= indFile x
-        ]
-
--- | A data type representing the options fo the genotype format
-data GenotypeFormatSpec = GenotypeFormatEigenstrat
-    | GenotypeFormatPlink
-    deriving (Show, Eq)
-
--- | To facilitate automatic parsing of GenotypeFormatSpec from JSON files
-instance FromJSON GenotypeFormatSpec where
-    parseJSON = withText "format" $ \v -> case v of
-        "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
-        "PLINK"      -> pure GenotypeFormatPlink
-        _            -> fail ("unknown format " ++ T.unpack v)
-
-instance ToJSON GenotypeFormatSpec where
-    toJSON a = case a of
-        GenotypeFormatPlink      -> "PLINK"
-        GenotypeFormatEigenstrat -> "EIGENSTRAT"
 
 -- | A helper function to add a base directory path to all file paths in a poseidon package.
 -- By using the (</>) operator from System.FilePath.Posix, this automatically ensures that paths are only
@@ -250,113 +195,34 @@ filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn 
 -- | A function to return a list of all individuals in the genotype files of a package.
 getIndividuals :: PoseidonPackage -- ^ the Poseidon package
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-getIndividuals pac = do
-    let (GenotypeDataSpec format_ _ _ indF) = posPacGenotypeData pac
-    case format_ of
-        GenotypeFormatEigenstrat -> readEigenstratInd indF
-        GenotypeFormatPlink      -> readFamFile indF
-
--- | A function to read the genotype data of a package
-getGenotypeData :: (MonadSafe m) => PoseidonPackage -- ^ the package
-                -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-                -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-getGenotypeData pac = do
-    let (GenotypeDataSpec format_ genoF snpF indF) = posPacGenotypeData pac
-    case format_ of
-        GenotypeFormatEigenstrat -> readEigenstrat genoF snpF indF
-        GenotypeFormatPlink      -> readPlink genoF snpF indF
+getIndividuals = loadIndividuals . posPacGenotypeData
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData pacs = do
-    genotypeTuples <- mapM getGenotypeData pacs
-    let indEntries      = map fst genotypeTuples
-        jointIndEntries = concat indEntries
-        nrInds          = map length indEntries
-        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM joinEntries
-    return (jointIndEntries, jointProducer >> return ())
-  where
-    joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-    joinEntries tupleList = do
-        let allSnpEntries                            = map fst tupleList
-            allGenoEntries                           = map snd tupleList
-            (EigenstratSnpEntry _ _ _ _ refA1 altA1) = head allSnpEntries
-        allEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(es@(EigenstratSnpEntry _ _ _ _ refA altA), genoLine) ->
-            if alleleConcordant refA refA1 && alleleConcordant altA altA1
-            then return (es, genoLine)
-            else if alleleConcordant refA altA1 && alleleConcordant altA refA1
-                    then return (es {snpRef = altA, snpAlt = refA}, flipGenotypes genoLine)
-                    else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
-        let allSnpEntriesFlipped  = (head allSnpEntries) : map fst allEntriesFlipped
-            allGenoEntriesFlipped = (head allGenoEntries) : map snd allEntriesFlipped
-        return (makeSnpEntriesConcordant allSnpEntriesFlipped, V.concat allGenoEntriesFlipped)
-    alleleConcordant :: Char -> Char -> Bool
-    alleleConcordant '0' _   = True
-    alleleConcordant _   '0' = True
-    alleleConcordant 'N' _   = True
-    alleleConcordant _   'N' = True
-    alleleConcordant a1  a2  = a1 == a2
-    flipGenotypes :: GenoLine -> GenoLine
-    flipGenotypes = V.map (\a -> case a of
-        HomRef  -> HomAlt
-        Het     -> Het
-        HomAlt  -> HomRef
-        Missing -> Missing)
-    makeSnpEntriesConcordant :: [EigenstratSnpEntry] -> EigenstratSnpEntry
-    makeSnpEntriesConcordant snpEntries@(e:_) =
-        let allRefs            = map snpRef snpEntries
-            allAlts            = map snpAlt snpEntries
-            allInformativeRefs = filter (\c -> c /= '0' && c /= 'N') allRefs
-            allInformativeAlts = filter (\c -> c /= '0' && c /= 'N') allAlts
-            ref = if not (null allInformativeRefs) then head allInformativeRefs else head allRefs
-            alt = if not (null allInformativeAlts) then head allInformativeAlts else head allAlts
-        in  e {snpRef = ref, snpAlt = alt}
-    makeSnpEntriesConcordant _ = error "should not happen"
+getJointGenotypeData = loadJointGenotypeData . map posPacGenotypeData
 
 -- Janno file loading
 
 maybeLoadJannoFiles :: [PoseidonPackage] -> IO [Either PoseidonException [Either PoseidonException PoseidonSample]]
-maybeLoadJannoFiles pacs = do
-    mapM maybeLoadJannoFile pacs
+maybeLoadJannoFiles = mapM (try . maybeLoadJannoFile)
 
-maybeLoadJannoFile :: PoseidonPackage -> IO (Either PoseidonException [Either PoseidonException PoseidonSample])
-maybeLoadJannoFile pac = do
-    let maybeJannoPath = posPacJannoFile pac
-    case maybeJannoPath of
-        Nothing -> do
-            return $ Left $ PoseidonFileExistenceException $
-                posPacTitle pac ++ ": Can't find .janno file path in the POSEIDON.yml"
-        Just x  -> do
-            fileExists <- doesFileExist x
-            if not fileExists
-            then do
-                return $ Left $ PoseidonFileExistenceException $
-                    posPacTitle pac ++ ": Can't find .janno file " ++ show x
-            else do
-                samples <- loadJannoFile x
-                return $ Right samples
+maybeLoadJannoFile :: PoseidonPackage -> IO [Either PoseidonException PoseidonSample]
+maybeLoadJannoFile pac = case posPacJannoFile pac of
+    Nothing ->
+        throwIO $ PoseidonFileExistenceException
+            (posPacTitle pac ++ ": Can't find .janno file path in the POSEIDON.yml")
+    Just x  -> loadJannoFile x
 
 -- BibFile file loading
 
-maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException (Either CiteprocException [Reference])]
-maybeLoadBibTeXFiles pacs = do
-    mapM maybeLoadBibTeXFile pacs
+maybeLoadBibTeXFiles :: [PoseidonPackage] -> IO [Either PoseidonException [Reference]]
+maybeLoadBibTeXFiles = mapM (try . maybeLoadBibTeXFile)
 
-maybeLoadBibTeXFile :: PoseidonPackage -> IO (Either PoseidonException (Either CiteprocException [Reference]))
-maybeLoadBibTeXFile pac = do
-    let maybeBibPath = posPacBibFile pac
-    case maybeBibPath of
-        Nothing -> do
-            return $ Left $ PoseidonFileExistenceException $
-                posPacTitle pac ++ ": Can't find .bib file path in the POSEIDON.yml"
-        Just x  -> do
-            fileExists <- doesFileExist x
-            if not fileExists 
-            then do
-                return $ Left $ PoseidonFileExistenceException $
-                    posPacTitle pac ++ ": Can't find .bib file " ++ show x
-            else do
-                references_ <- loadBibTeXFile x
-                return $ Right references_
+maybeLoadBibTeXFile :: PoseidonPackage -> IO [Reference]
+maybeLoadBibTeXFile pac = case posPacBibFile pac of
+    Nothing -> do
+        throwIO $ PoseidonFileExistenceException
+            (posPacTitle pac ++ ": Can't find .bib file path in the POSEIDON.yml")
+    Just x  -> loadBibTeXFile x

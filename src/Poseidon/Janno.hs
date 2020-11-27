@@ -15,6 +15,7 @@ import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Applicative        (empty)
 import           Control.Exception          (throwIO, try)
+import           Control.Monad              (when)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Char                  (ord)
@@ -24,6 +25,7 @@ import           Data.Either.Combinators    (rightToMaybe)
 import           Data.List                  (intercalate)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
+import           System.Directory           (doesFileExist)
 
 -- |A datatype to represent Genetic_Sex in a janno file
 data Sex = Male
@@ -286,6 +288,8 @@ encodingOptions = Csv.defaultEncodeOptions {
 -- | A function to load one janno file
 loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
 loadJannoFile jannoPath = do
+    fileE <- doesFileExist jannoPath
+    when (not fileE) . throwIO $ PoseidonFileExistenceException ("Cannot find Janno file " ++ jannoPath)
     jannoFile <- Bch.readFile jannoPath
     let jannoFileUpdated = replaceNA jannoFile
     let jannoFileRows = Bch.lines jannoFileUpdated
