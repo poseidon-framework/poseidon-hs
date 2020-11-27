@@ -31,7 +31,7 @@ import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.CSL.Reference         (refId, unLiteral)
+import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
 
@@ -66,8 +66,8 @@ parseForgeEntity = parsePac <|> parseGroup <|> parseInd
     parseInd = ForgeInd <$> P.between (P.char '<') (P.char '>') parseName
     parseName = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
-findRelevantPackages :: [ForgeEntity] -> [PoseidonPackage] -> IO [PoseidonPackage]
-findRelevantPackages entities packages = do
+filterPackages :: [ForgeEntity] -> [PoseidonPackage] -> IO [PoseidonPackage]
+filterPackages entities packages = do
     let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
         groupNamesStats = [ group | ForgeGroup group <- entities]
         indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
@@ -81,20 +81,26 @@ findRelevantPackages entities packages = do
         then return (Just pac)
         else return Nothing
 
+filterJannoRows :: [ForgeEntity] -> [PoseidonSample] -> [PoseidonSample]
+filterJannoRows entities samples =
+    let groupNamesStats = [ group | ForgeGroup group <- entities]
+        indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
+        comparison = (\x -> posSamIndividualID x `elem` indNamesStats
+                     || head (posSamGroupName x) `elem` groupNamesStats)
+    in filter comparison samples
+
+filterBibEntries :: [PoseidonSample] -> [Reference] -> [Reference]
+filterBibEntries samples references =
+    let relevantPublications = mapMaybe posSamPublication samples
+    in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
+
 -- | The main function running the janno command
 runMerge :: MergeOptions -> IO ()
 runMerge (MergeOptions baseDirs entities outPath outName) = do
-    -- get requested entities
-    let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
-        requestedGroups = [ group | ForgeGroup group <- entities]
-        requestedInds   = [ ind   | ForgeInd   ind   <- entities]
-    mapM_ putStrLn requestedPacs
-    mapM_ putStrLn requestedGroups
-    mapM_ putStrLn requestedInds
     -- load packages
     allPackages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
-    relevantPackages <- findRelevantPackages entities allPackages
+    relevantPackages <- filterPackages entities allPackages
     putStrLn $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     -- collect data
     -- JANNO
@@ -102,16 +108,13 @@ runMerge (MergeOptions baseDirs entities outPath outName) = do
     let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     let anyJannoIssues = not $ all isJust jannoMaybeList
     let goodJannoRows = concat $ catMaybes jannoMaybeList
-    let relevantJannoRows = filter (\x -> posSamIndividualID x `elem` requestedInds
-                                          || head (posSamGroupName x) `elem` requestedGroups
-                            ) goodJannoRows
+    let relevantJannoRows = filterJannoRows entities goodJannoRows
     -- bib
     bibFiles <- maybeLoadBibTeXFiles relevantPackages
     let bibMaybeList = bibToSimpleMaybeList bibFiles
     let anyBibIssues = not $ all isJust bibMaybeList
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
-    let relevantPublications = mapMaybe posSamPublication relevantJannoRows
-    let relevantBibEntries = filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) goodBibEntries
+    let relevantBibEntries = filterBibEntries relevantJannoRows goodBibEntries
     -- create new package
     createDirectory outPath
     let jannoFile = outName <.> "janno"
