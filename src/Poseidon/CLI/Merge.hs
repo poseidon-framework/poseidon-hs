@@ -85,9 +85,17 @@ filterJannoRows :: [ForgeEntity] -> [PoseidonSample] -> [PoseidonSample]
 filterJannoRows entities samples =
     let groupNamesStats = [ group | ForgeGroup group <- entities]
         indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
-        comparison = (\x -> posSamIndividualID x `elem` indNamesStats
-                     || head (posSamGroupName x) `elem` groupNamesStats)
+        comparison x =  posSamIndividualID x `elem` indNamesStats
+                        || head (posSamGroupName x) `elem` groupNamesStats
     in filter comparison samples
+
+filterJannoFiles :: [ForgeEntity] -> [(String, [PoseidonSample])] -> [PoseidonSample]
+filterJannoFiles entities packages =
+    let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
+        filterJannoOrNot (a,b) = if a `elem` requestedPacs 
+                                 then b
+                                 else filterJannoRows entities b
+    in concatMap filterJannoOrNot packages
 
 filterBibEntries :: [PoseidonSample] -> [Reference] -> [Reference]
 filterBibEntries samples references =
@@ -107,8 +115,9 @@ runMerge (MergeOptions baseDirs entities outPath outName) = do
     jannoFiles <- maybeLoadJannoFiles relevantPackages
     let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     let anyJannoIssues = not $ all isJust jannoMaybeList
-    let goodJannoRows = concat $ catMaybes jannoMaybeList
-    let relevantJannoRows = filterJannoRows entities goodJannoRows
+    let goodJannoRows = catMaybes jannoMaybeList
+    let namesOfRelevantPackages = map posPacTitle relevantPackages
+    let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages goodJannoRows
     -- bib
     bibFiles <- maybeLoadBibTeXFiles relevantPackages
     let bibMaybeList = bibToSimpleMaybeList bibFiles
