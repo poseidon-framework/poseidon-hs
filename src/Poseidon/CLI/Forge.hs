@@ -50,23 +50,25 @@ data ForgeEntity = ForgePac String
     deriving (Eq)
 
 instance Show ForgeEntity where
-    show (ForgePac n) = "*" ++ n ++ "*"
+    show (ForgePac   n) = "*" ++ n ++ "*"
     show (ForgeGroup n) = n
     show (ForgeInd   n) = "<" ++ n ++ ">"
 
+type ForgeRecipe = [ForgeEntity]
+
 -- | A parser to parse forge entities
-forgeEntitiesParser :: P.Parser [ForgeEntity]
+forgeEntitiesParser :: P.Parser ForgeRecipe
 forgeEntitiesParser = P.try (P.sepBy parseForgeEntity (P.char ',' <* P.spaces))
 
 parseForgeEntity :: P.Parser ForgeEntity
 parseForgeEntity = parsePac <|> parseGroup <|> parseInd
   where
-    parsePac = ForgePac <$> P.between (P.char '*') (P.char '*') parseName
+    parsePac   = ForgePac   <$> P.between (P.char '*') (P.char '*') parseName
     parseGroup = ForgeGroup <$> parseName
-    parseInd = ForgeInd <$> P.between (P.char '<') (P.char '>') parseName
-    parseName = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
+    parseInd   = ForgeInd   <$> P.between (P.char '<') (P.char '>') parseName
+    parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
-filterPackages :: [ForgeEntity] -> [PoseidonPackage] -> IO [PoseidonPackage]
+filterPackages :: ForgeRecipe -> [PoseidonPackage] -> IO [PoseidonPackage]
 filterPackages entities packages = do
     let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
         groupNamesStats = [ group | ForgeGroup group <- entities]
@@ -81,20 +83,20 @@ filterPackages entities packages = do
         then return (Just pac)
         else return Nothing
 
-filterJannoRows :: [ForgeEntity] -> [PoseidonSample] -> [PoseidonSample]
+filterJannoRows :: ForgeRecipe -> [PoseidonSample] -> [PoseidonSample]
 filterJannoRows entities samples =
     let groupNamesStats = [ group | ForgeGroup group <- entities]
         indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
-        comparison x =  posSamIndividualID x `elem` indNamesStats
-                        || head (posSamGroupName x) `elem` groupNamesStats
+        comparison x    =  posSamIndividualID x `elem` indNamesStats
+                           || head (posSamGroupName x) `elem` groupNamesStats
     in filter comparison samples
 
-filterJannoFiles :: [ForgeEntity] -> [(String, [PoseidonSample])] -> [PoseidonSample]
+filterJannoFiles :: ForgeRecipe -> [(String, [PoseidonSample])] -> [PoseidonSample]
 filterJannoFiles entities packages =
-    let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
-        filterJannoOrNot (a,b) = if a `elem` requestedPacs 
-                                 then b
-                                 else filterJannoRows entities b
+    let requestedPacs           = [ pac | ForgePac pac <- entities]
+        filterJannoOrNot (a, b) = if a `elem` requestedPacs 
+                                  then b
+                                  else filterJannoRows entities b
     in concatMap filterJannoOrNot packages
 
 filterBibEntries :: [PoseidonSample] -> [Reference] -> [Reference]
