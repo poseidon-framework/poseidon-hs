@@ -52,11 +52,7 @@ instance Show ForgeEntity where
 
 -- | A parser to parse forge entities
 forgeEntitiesParser :: P.Parser [ForgeEntity]
-forgeEntitiesParser = P.try feParser
-
--- | A parser to parse F4Stats
-feParser :: P.Parser [ForgeEntity]
-feParser = do P.sepBy parseForgeEntity (P.char ',' <* P.spaces)
+forgeEntitiesParser = P.try (P.sepBy parseForgeEntity (P.char ',' <* P.spaces))
 
 parseForgeEntity :: P.Parser ForgeEntity
 parseForgeEntity = parsePac <|> parseGroup <|> parseInd
@@ -69,8 +65,14 @@ parseForgeEntity = parsePac <|> parseGroup <|> parseInd
 -- | The main function running the janno command
 runMerge :: MergeOptions -> IO ()
 runMerge (MergeOptions baseDirs entities outPath outName) = do
-    mapM_ (putStrLn . show) entities
-    
+    -- get requested entities
+    let requestedPacs = [ show x | x@ForgePac {} <- entities]
+    let requestedGroups = [ show x | x@ForgeGroup {} <- entities]
+    let requestedInds = [ show x | x@ForgeInd {} <- entities]
+    mapM_ putStrLn requestedPacs
+    mapM_ putStrLn requestedGroups
+    mapM_ putStrLn requestedInds
+    -- load packages
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- collect data
