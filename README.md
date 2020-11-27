@@ -196,8 +196,23 @@ will yield a table with one row for each package. Completeness is encoded with t
   - `.`: BibTeX file is missing
 
 #### Validate Command
+`validate` checks poseidon datasets for structural correctness. 
 
-...
+You can run it with
+
+```
+trident validate -d ... -d ...
+```
+
+and it will either report a success (`Validation passed ✓`) or failure with specific error messages to simplify fixing the issues. 
+
+`validate` tries to ensure that each package in the dataset adheres to the [schema definition](https://github.com/poseidon-framework/poseidon2-schema) of a poseidon package. Here is a list of what is checked:
+
+- Presence of the necessary files
+- Full structural correctness of .bib and .janno file
+- Superficial correctness of genotype data files. A full check would be too computationally expensive
+- Correspondence of BibTeX keys in .bib and .janno
+- Correspondence of individual and group IDs in .janno and genotype data files
 
 ### Package Creation and Manipulation Commands
 
