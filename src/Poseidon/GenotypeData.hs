@@ -1,9 +1,7 @@
 module Poseidon.GenotypeData where
 
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..),
-                                             GenoEntry(..), GenoLine,
-                                             readEigenstrat, readEigenstratInd)
+import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
+                                             GenoEntry(..), GenoLine)
 
 import qualified Data.Vector                as V
 import           Pipes                      (Producer, (>->))

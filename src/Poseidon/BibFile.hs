@@ -18,10 +18,10 @@ bibToSimpleMaybeList = map (maybe Nothing rightToMaybe . rightToMaybe)
 
 -- BibTeX file parsing
 writeBibTeXFile ::  FilePath -> [Reference] -> IO()
-writeBibTeXFile path references = do
+writeBibTeXFile path references_ = do
     bibTeXCSLPath <- getDataFileName "bibtex.csl"
     bibTeXCSLStyle <- readCSLFile Nothing bibTeXCSLPath
-    let renderedReferences = processBibliography procOpts bibTeXCSLStyle references
+    let renderedReferences = processBibliography procOpts bibTeXCSLStyle references_
     let referencesTexts = map renderPlain renderedReferences
     let referencesTextsFixed = map cleanBibTeXString referencesTexts
     let huup = T.intercalate "\n\n" referencesTextsFixed
@@ -34,10 +34,6 @@ cleanBibTeXString =
     . T.replace "   " "  "
     . T.replace "}," "},\n  "
     . T.replace "\n" " "
-
-loadBibTeXFiles :: [FilePath] -> IO [Either CiteprocException [Reference]]
-loadBibTeXFiles bibPaths = do
-    mapM loadBibTeXFile bibPaths
 
 loadBibTeXFile :: FilePath -> IO (Either CiteprocException [Reference])
 loadBibTeXFile bibPath = do

@@ -16,7 +16,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              getJointGenotypeData)
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Applicative        ((<|>), many)
+import           Control.Applicative        ((<|>))
 import           Control.Exception          (throwIO)
 import           Control.Foldl              (Fold (..), list, purely)
 import           Control.Monad              (forM, forM_)
@@ -40,7 +40,6 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
                                              rowsG, tableString, titlesH)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
-import qualified Text.Parsec.Char           as P
 
 -- | A datatype representing the command line options for the F-Statistics command
 data FstatsOptions = FstatsOptions

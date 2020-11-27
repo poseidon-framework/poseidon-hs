@@ -10,7 +10,6 @@ import           Poseidon.Package (GenotypeDataSpec (..), PoseidonPackage (..),
 
 
 import           Control.Monad    (when)
-import qualified Data.Either      as E
 import           Data.List        (zip4)
 import           Data.Maybe       (isJust, isNothing)
 import           System.Directory (doesFileExist)

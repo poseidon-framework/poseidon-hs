@@ -283,10 +283,6 @@ encodingOptions = Csv.defaultEncodeOptions {
     , Csv.encQuoting = Csv.QuoteNone
 }
 
--- | A utility function to load multiple janno files
-loadJannoFiles :: [FilePath] -> IO [[Either PoseidonException PoseidonSample]]
-loadJannoFiles = mapM loadJannoFile
-
 -- | A function to load one janno file
 loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
 loadJannoFile jannoPath = do

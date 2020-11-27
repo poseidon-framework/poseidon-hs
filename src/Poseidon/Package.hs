@@ -23,25 +23,21 @@ import           Poseidon.Utils             (PoseidonException (..))
 import           Poseidon.BibFile           (loadBibTeXFile)
 
 
-import           Control.Error              (assertErr)
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM, forM_, mzero)
+import           Control.Monad              (filterM, forM, forM_)
 import           Control.Monad.Catch        (throwM)
-import           Data.Aeson                 (FromJSON, ToJSON, defaultOptions,
-                                             genericToJSON, object, parseJSON,
+import           Data.Aeson                 (FromJSON, ToJSON, object, parseJSON,
                                              toJSON, withObject, withText, (.:),
                                              (.:?), (.=))
 import qualified Data.ByteString            as B
-import           Data.Either                (isRight, lefts, rights)
-import           Data.Either.Combinators    (rightToMaybe)
-import           Data.List                  (groupBy, intercalate, nub, sortOn)
-import           Data.Maybe                 (catMaybes, fromMaybe)
+import           Data.Either                (lefts, rights)
+import           Data.List                  (groupBy, nub, sortOn)
+import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
-import qualified Data.Text.IO               as Tio
-import           Data.Time                  (Day, fromGregorian)
+import           Data.Time                  (Day)
 import qualified Data.Vector                as V
-import           Data.Version               (Version, makeVersion)
-import           Data.Yaml                  (decodeEither', encodeFile)
+import           Data.Version               (Version)
+import           Data.Yaml                  (decodeEither')
 import           GHC.Generics               (Generic)
 import           Pipes                      (Producer, (>->))
 import qualified Pipes.Prelude              as P
@@ -362,5 +358,5 @@ maybeLoadBibTeXFile pac = do
                 return $ Left $ PoseidonFileExistenceException $
                     posPacTitle pac ++ ": Can't find .bib file " ++ show x
             else do
-                references <- loadBibTeXFile x
-                return $ Right references
+                references_ <- loadBibTeXFile x
+                return $ Right references_

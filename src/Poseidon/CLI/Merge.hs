@@ -7,7 +7,7 @@ import           Poseidon.Package           (PoseidonPackage(..),
                                             ContributorSpec(..),
                                             getJointGenotypeData, maybeLoadJannoFiles, maybeLoadBibTeXFiles) 
 import           Poseidon.Janno             (jannoToSimpleMaybeList,
-                                            writeJannoFile, PoseidonSample(..))
+                                            writeJannoFile)
 import           Poseidon.BibFile           (bibToSimpleMaybeList,
                                             writeBibTeXFile)
 

@@ -22,10 +22,10 @@ data PoseidonException =
 instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
-renderPoseidonException (PoseidonJannoException f i s) = 
+renderPoseidonException (PoseidonJannoException f i _) = 
     "Can't read sample in " ++ f 
     ++ " in line " ++ (show i)
     ++ " due to a .janno parsing error"
     -- ++ s -- this error message is pretty useless and can be omitted
-renderPoseidonException (PoseidonFileExistenceException s) = 
-    s
+renderPoseidonException (PoseidonFileExistenceException s) = s
+renderPoseidonException _ = error "should never happen"

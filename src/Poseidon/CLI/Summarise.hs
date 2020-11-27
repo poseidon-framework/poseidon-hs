@@ -3,7 +3,6 @@
 module Poseidon.CLI.Summarise (runSummarise, SummariseOptions(..)) where
 
 import           Control.Monad    (when)
-import qualified Data.Either      as E
 import qualified Data.List        as L
 import           Data.Maybe       (catMaybes, isJust, mapMaybe)
 import           Poseidon.Janno   (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
@@ -75,13 +74,15 @@ pasteFirstN n xs =
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double
-avg xs = let sum = L.foldl' (+) 0 xs
-         in sum / fromIntegral (length xs)
+avg xs = let sum_ = L.foldl' (+) 0 xs
+         in sum_ / fromIntegral (length xs)
 
 -- | A helper function to round doubles
 roundTo :: Int -> Double -> Double
-roundTo n x = fromIntegral (floor (x * t)) / t
-    where t = 10^n
+roundTo n x = fromIntegral val / t
+  where
+    val = floor (x * t) :: Int
+    t = 10^n
 
 -- | A helper function to calculate the standard deviation of a list of doubles
 stdev :: [Double] -> Double
