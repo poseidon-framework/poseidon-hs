@@ -1,25 +1,26 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdSurvey (runSurvey, SurveyOptions(..)) where
+module Poseidon.CLI.Survey (runSurvey, SurveyOptions(..)) where
 
-import           Poseidon.Package       (PoseidonPackage(..),
+import           Poseidon.BibFile      (bibToSimpleMaybeList)
+import           Poseidon.GenotypeData (GenotypeDataSpec (..))
+import           Poseidon.Janno        (PoseidonSample (..),
+                                        jannoToSimpleMaybeList)
+import           Poseidon.Package      (PoseidonPackage (..),
                                         loadPoseidonPackages,
-                                        maybeLoadJannoFiles,
                                         maybeLoadBibTeXFiles,
-                                        bibToSimpleMaybeList,
-                                        jannoToSimpleMaybeList,
-                                        PoseidonSample(..),
-                                        GenotypeDataSpec(..))
-import qualified Data.Either            as E
-import           Data.Maybe             (isNothing, isJust)
-import           System.Directory       (doesFileExist)
-import           Data.List              (zip4)
-import           System.IO              (hPutStrLn, stderr)  
-import           Control.Monad          (when)
+                                        maybeLoadJannoFiles)
+
+
+import           Control.Monad         (when)
+import           Data.List             (zip4)
+import           Data.Maybe            (isJust, isNothing)
+import           System.Directory      (doesFileExist)
+import           System.IO             (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _jaBaseDirs  :: [FilePath]
+    { _jaBaseDirs :: [FilePath]
     }
 
 -- | The main function running the janno command
@@ -31,9 +32,9 @@ runSurvey (SurveyOptions baseDirs) = do
     let packageNames = map posPacTitle packages
     -- geno
     let genotypeData = map posPacGenotypeData packages
-    genoFilesExist <- mapM (doesFileExist . genoFile) genotypeData 
-    snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData 
-    indFilesExist <- mapM (doesFileExist . indFile) genotypeData 
+    genoFilesExist <- mapM (doesFileExist . genoFile) genotypeData
+    snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData
+    indFilesExist <- mapM (doesFileExist . indFile) genotypeData
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles packages
@@ -45,8 +46,8 @@ runSurvey (SurveyOptions baseDirs) = do
     let bibAreAlright = map isJust bibMaybeList
     let anyBibIssues = not $ all isJust bibMaybeList
     -- print information
-    mapM_ 
-        (putStrLn . renderPackageWithCompleteness) 
+    mapM_
+        (putStrLn . renderPackageWithCompleteness)
         (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright)
     -- print read issue warning
     when (anyJannoIssues || anyBibIssues) $
@@ -54,7 +55,7 @@ runSurvey (SurveyOptions baseDirs) = do
 
 renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
 renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibIsAlright) =
-    take 40 (packageName ++ repeat ' ') 
+    take 40 (packageName ++ repeat ' ')
     ++ " "
     ++ if genoTypeDataExists then "G" else "."
     ++ "-"
@@ -64,9 +65,9 @@ renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibIs
 
 renderJannoCompleteness :: [PoseidonSample] -> String
 renderJannoCompleteness jS =
-    "M" 
-    ++ allNothing posSamCollectionID jS 
-    ++ allNothing posSamSourceTissue jS 
+    "M"
+    ++ allNothing posSamCollectionID jS
+    ++ allNothing posSamSourceTissue jS
     ++ allNothing posSamCountry jS
     ++ allNothing posSamLocation jS
     ++ allNothing posSamSite jS

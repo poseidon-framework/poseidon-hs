@@ -1,37 +1,36 @@
-module Poseidon.CmdMerge (runMerge, MergeOptions(..)) where
+module Poseidon.CLI.Merge (runMerge, MergeOptions(..)) where
 
-import           Poseidon.Package           (PoseidonPackage(..),
-                                            loadPoseidonPackages,
-                                            maybeLoadJannoFiles,
-                                            maybeLoadBibTeXFiles,
-                                            bibToSimpleMaybeList,
-                                            jannoToSimpleMaybeList,
-                                            writeJannoFile,
-                                            writeBibTeXFile,
-                                            PoseidonSample(..),
-                                            GenotypeDataSpec(..),
-                                            GenotypeFormatSpec(..),
-                                            ContributorSpec(..),
-                                            getJointGenotypeData)    
+import           Poseidon.BibFile           (bibToSimpleMaybeList,
+                                             writeBibTeXFile)
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..), GenotypeFormatSpec (..))
+import           Poseidon.Janno             (jannoToSimpleMaybeList,
+                                             writeJannoFile)
+import           Poseidon.Package           (ContributorSpec (..),
+                                             PoseidonPackage (..),
+                                             getJointGenotypeData,
+                                             loadPoseidonPackages,
+                                             maybeLoadBibTeXFiles,
+                                             maybeLoadJannoFiles)
+
 import           Control.Monad              (when)
 import           Data.Aeson                 (encodeFile)
 import           Data.List                  (nub, sortOn)
 import           Data.Maybe                 (catMaybes, isJust)
-import           Data.Time                  (UTCTime(..), getCurrentTime)
+import           Data.Time                  (UTCTime (..), getCurrentTime)
 import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
-import           System.IO                  (hPutStrLn, stderr)
-import           System.FilePath            ((</>), (<.>))
 import           System.Directory           (createDirectory)
+import           System.FilePath            ((<.>), (</>))
+import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (refId)
 
 -- | A datatype representing command line options for the survey command
 data MergeOptions = MergeOptions
-    { _jaBaseDirs  :: [FilePath]
-    , _outPacPath  :: FilePath
-    , _outPacName  :: String
+    { _jaBaseDirs :: [FilePath]
+    , _outPacPath :: FilePath
+    , _outPacName :: String
     }
 
 -- | The main function running the janno command

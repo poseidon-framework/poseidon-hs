@@ -1,17 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdValidate (runValidate, ValidateOptions(..)) where
+module Poseidon.CLI.Validate (runValidate, ValidateOptions(..)) where
 
-import           Poseidon.Package   (loadPoseidonPackages,
-                                    maybeLoadJannoFiles,
-                                    PoseidonSample(..),
-                                    maybeLoadBibTeXFiles)
+import           Poseidon.Package   (loadPoseidonPackages, maybeLoadJannoFiles, maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
                                     renderPoseidonException)
+import           Poseidon.Janno     (PoseidonSample(..))
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
-import           Text.CSL.Exception (renderError)
 import           Text.CSL.Reference (refId, unLiteral)
 import           Data.List          (nub, (\\), intercalate)
 import           Data.Text          (unpack)
@@ -47,12 +44,9 @@ runValidate (ValidateOptions baseDirs) = do
     -- BIBTEX
     putStrLn "BIBTEX file consistency:"
     bibFiles <- maybeLoadBibTeXFiles packages
-    let bibFileExistenceExceptions = E.lefts bibFiles
-    let bibReferencesRaw = E.rights bibFiles
-    let bibFileReadingExceptions = E.lefts bibReferencesRaw
-    let bibReferences = concat $ E.rights bibReferencesRaw
-    mapM_ (putStrLn . renderPoseidonException) bibFileExistenceExceptions
-    mapM_ (putStrLn . renderError) bibFileReadingExceptions
+    let bibFileExceptions = E.lefts bibFiles
+    let bibReferences = concat $ E.rights bibFiles
+    mapM_ (putStrLn . renderPoseidonException) bibFileExceptions
     putStrLn $ show (length bibReferences) 
         ++ " literature references seem to be fine"
     --
@@ -67,6 +61,6 @@ runValidate (ValidateOptions baseDirs) = do
                         intercalate ", " literatureNotInBibButInJanno
     --
     -- Final report: Error code generation
-    if not (null jannoFileReadingExceptions && null bibFileExistenceExceptions) -- && ...
+    if not (null jannoFileReadingExceptions && null bibFileExceptions) -- && ...
         then throw PoseidonValidationException
         else putStrLn "==> Validation passed ✓"

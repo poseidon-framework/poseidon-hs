@@ -2,23 +2,25 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.PackageSpec (spec) where
 
+import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
+                                            GenotypeFormatSpec (..))
 import           Poseidon.Package          (ContributorSpec (..),
-                                            GenotypeDataSpec (..),
-                                            GenotypeFormatSpec (..),
                                             PoseidonPackage (..),
-                                            findPoseidonPackages,
-                                            readPoseidonPackage,
                                             filterDuplicatePackages,
-                                            loadPoseidonPackages)
+                                            findPoseidonPackages,
+                                            loadPoseidonPackages,
+                                            readPoseidonPackage)
+
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.Trans.Class (lift)
 import qualified Data.ByteString.Char8     as B
-import Data.List (sort)
+import           Data.List                 (sort)
 import           Data.Time                 (defaultTimeLocale, fromGregorian,
                                             parseTimeOrError)
 import           Data.Version              (makeVersion)
-import           Data.Yaml                 (ParseException, decodeEither', encodeFile)
+import           Data.Yaml                 (ParseException, decodeEither',
+                                            encodeFile)
 import           System.IO                 (IOMode (..), hPutStrLn, stderr,
                                             withFile)
 import           Test.Hspec
@@ -134,7 +136,7 @@ testReadWritePoseidonPackageRoundtrip = describe "PoseidonPackage.readWritePosei
         encodeFile yamlTestPath truePackageRelPaths
         pac <- readPoseidonPackage yamlTestPath
         pac `shouldBe` truePackageAbsPaths
-    
+
 testFindPoseidonPackages :: Spec
 testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
@@ -147,4 +149,4 @@ testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),
                                                       Just (fromGregorian 2020 05 20)]
-        
+

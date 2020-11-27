@@ -1,11 +1,10 @@
 module Poseidon.Utils (
-    PoseidonException(..), 
+    PoseidonException(..),
     renderPoseidonException
 ) where
 
 import           Control.Exception          (Exception)
 import           Data.Yaml                  (ParseException)
-import qualified Data.Maybe                 as DM
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
@@ -23,10 +22,11 @@ data PoseidonException =
 instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
-renderPoseidonException (PoseidonJannoException f i s) = 
+renderPoseidonException (PoseidonJannoException f i _) = 
     "Can't read sample in " ++ f 
     ++ " in line " ++ (show i)
     ++ " due to a .janno parsing error"
     -- ++ s -- this error message is pretty useless and can be omitted
-renderPoseidonException (PoseidonFileExistenceException s) = 
-    s
+renderPoseidonException (PoseidonFileExistenceException s) = s
+renderPoseidonException (PoseidonBibTeXException f s) = "BibText problem in file " ++ f ++ ": " ++ s
+renderPoseidonException _ = error "should never happen"

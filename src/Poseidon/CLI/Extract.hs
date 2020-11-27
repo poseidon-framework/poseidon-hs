@@ -1,4 +1,4 @@
-module Poseidon.CmdExtract (runExtract, ExtractOptions(..)) where
+module Poseidon.CLI.Extract (runExtract, ExtractOptions(..)) where
 
 -- | A datatype representing command line options for the survey command
 data ExtractOptions = ExtractOptions
@@ -7,5 +7,5 @@ data ExtractOptions = ExtractOptions
 
 -- | The main function running the janno command
 runExtract :: ExtractOptions -> IO ()
-runExtract (ExtractOptions baseDirs) = do
+runExtract (ExtractOptions _) = do
     putStrLn "extract"

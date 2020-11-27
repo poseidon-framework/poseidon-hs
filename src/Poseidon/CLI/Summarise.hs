@@ -1,26 +1,22 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CmdSummarise (runSummarise, SummariseOptions(..)) where
+module Poseidon.CLI.Summarise (runSummarise, SummariseOptions(..)) where
 
-import           Poseidon.Package   (loadPoseidonPackages,
-                                    maybeLoadJannoFiles,
-                                    jannoToSimpleMaybeList,
-                                    PoseidonSample(..),
-                                    Percent(..))
-import qualified Data.Either        as E
-import           Data.Maybe         (mapMaybe, isJust, catMaybes)
-import qualified Data.List          as L
-import           System.IO          (hPutStrLn, stderr)
-import           Control.Monad      (when)
+import           Control.Monad    (when)
+import qualified Data.List        as L
+import           Data.Maybe       (catMaybes, isJust, mapMaybe)
+import           Poseidon.Janno   (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
+import           Poseidon.Package (loadPoseidonPackages, maybeLoadJannoFiles)
+import           System.IO        (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _jaBaseDirs  :: [FilePath]
+    { _jaBaseDirs :: [FilePath]
     }
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
-runSummarise (SummariseOptions baseDirs) = do 
+runSummarise (SummariseOptions baseDirs) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- JANNO
@@ -38,53 +34,55 @@ runSummarise (SummariseOptions baseDirs) = do
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
     putStrLn "---"
-    putStrLn $ "Number of samples:\t" ++ 
+    putStrLn $ "Number of samples:\t" ++
                 show (length xs)
-    putStrLn $ "Individuals:\t\t" ++ 
+    putStrLn $ "Individuals:\t\t" ++
                 pasteFirstN 5 (map posSamIndividualID xs)
-    putStrLn $ "Sex distribution:\t" ++ 
+    putStrLn $ "Sex distribution:\t" ++
                 printFrequency ", " (frequency (map posSamGeneticSex xs))
-    putStrLn $ "Populations:\t\t" ++ 
+    putStrLn $ "Populations:\t\t" ++
                 pasteFirstN 2 (L.nub $ map (head . posSamGroupName) xs)
-    putStrLn $ "Publications:\t\t" ++ 
+    putStrLn $ "Publications:\t\t" ++
                 pasteFirstN 2 (L.nub $ mapMaybe posSamPublication xs)
-    putStrLn $ "Countries:\t\t" ++ 
+    putStrLn $ "Countries:\t\t" ++
                 pasteFirstN 5 (L.nub $ mapMaybe posSamCountry xs)
-    putStrLn $ "Mean age BC/AD:\t\t" ++ 
+    putStrLn $ "Mean age BC/AD:\t\t" ++
                meanAndSdInteger (map fromIntegral (mapMaybe posSamDateBCADMedian xs))
-    putStrLn $ "Dating type:\t\t" ++ 
+    putStrLn $ "Dating type:\t\t" ++
                 printFrequencyMaybe ", " (frequency (map posSamDateType xs))
     putStrLn "---"
-    putStrLn $ "MT haplogroups:\t\t" ++ 
+    putStrLn $ "MT haplogroups:\t\t" ++
                 pasteFirstN 5 (L.nub $ mapMaybe posSamMTHaplogroup xs)
-    putStrLn $ "Y haplogroups:\t\t" ++ 
+    putStrLn $ "Y haplogroups:\t\t" ++
                 pasteFirstN 5 (L.nub $ mapMaybe posSamYHaplogroup xs)
-    putStrLn $ "% endogenous human DNA:\t" ++ 
+    putStrLn $ "% endogenous human DNA:\t" ++
                 meanAndSdRoundTo 2 (map (\(Percent x) -> x) (mapMaybe posSamEndogenous xs))
-    putStrLn $ "# of SNPs on 1240K:\t" ++ 
+    putStrLn $ "# of SNPs on 1240K:\t" ++
                 meanAndSdInteger (map fromIntegral (mapMaybe posSamNrAutosomalSNPs xs))
-    putStrLn $ "Coverage on 1240K:\t" ++ 
+    putStrLn $ "Coverage on 1240K:\t" ++
                 meanAndSdRoundTo 2 (mapMaybe posSamCoverage1240K xs)
-    putStrLn $ "Library type:\t\t" ++ 
+    putStrLn $ "Library type:\t\t" ++
                 printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
-    putStrLn $ "UDG treatment:\t\t" ++ 
+    putStrLn $ "UDG treatment:\t\t" ++
                 printFrequencyMaybe ", " (frequency (map posSamUDG xs))
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
 pasteFirstN _ [] = "no values"
-pasteFirstN n xs = 
+pasteFirstN n xs =
     (L.intercalate ", " $ take n xs) ++ if (length xs > n) then ", ..." else ""
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double
-avg xs = let sum = L.foldl' (+) 0 xs
-         in sum / fromIntegral (length xs)
+avg xs = let sum_ = L.foldl' (+) 0 xs
+         in sum_ / fromIntegral (length xs)
 
 -- | A helper function to round doubles
 roundTo :: Int -> Double -> Double
-roundTo n x = fromIntegral (floor (x * t)) / t
-    where t = 10^n
+roundTo n x = fromIntegral val / t
+  where
+    val = floor (x * t) :: Int
+    t = 10^n
 
 -- | A helper function to calculate the standard deviation of a list of doubles
 stdev :: [Double] -> Double
@@ -94,14 +92,14 @@ stdev xs = sqrt . avg . map ((^2) . (-) (avg xs)) $ xs
 meanAndSdRoundTo :: Int -> [Double] -> String
 meanAndSdRoundTo n xs = (show $ roundTo n $ avg xs) ++ " ± " ++ (show $ roundTo n $ stdev xs)
 
--- | A helper function to get a nice string with mean and sd for a list of doubles 
+-- | A helper function to get a nice string with mean and sd for a list of doubles
 -- (here rounded to integer)
 meanAndSdInteger :: [Double] -> String
 meanAndSdInteger xs = (show $ round $ avg xs) ++ " ± " ++ (show $ round $ stdev xs)
 
--- | A helper function to determine the frequency of objects in a list 
+-- | A helper function to determine the frequency of objects in a list
 -- (similar to the table function in R)
-frequency :: Ord a => [a] -> [(a,Int)] 
+frequency :: Ord a => [a] -> [(a,Int)]
 frequency list = map (\l -> (head l, length l)) (L.group (L.sort list))
 
 -- | A helper function to print the output of frequency nicely
