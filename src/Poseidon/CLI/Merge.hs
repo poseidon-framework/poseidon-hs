@@ -9,22 +9,23 @@ import           Poseidon.Janno             (jannoToSimpleMaybeList,
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
                                              PoseidonPackage (..),
+                                             getIndividuals,
                                              getJointGenotypeData,
                                              loadPoseidonPackages,
                                              maybeLoadBibTeXFiles,
                                              maybeLoadJannoFiles)
 
 import           Control.Applicative        ((<|>))
-import           Control.Monad              (when)
+import           Control.Monad              (when, forM)
 import           Data.Aeson                 (encodeFile)
 import           Data.Char                  (isSpace)
-import           Data.List                  (nub, sortOn)
+import           Data.List                  (nub, sortOn, intersect)
 import           Data.Maybe                 (catMaybes, isJust)
 import           Data.Time                  (UTCTime (..), getCurrentTime)
 import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
-import           SequenceFormats.Eigenstrat (writeEigenstrat)
+import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..))
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
@@ -63,19 +64,36 @@ parseForgeEntity = parsePac <|> parseGroup <|> parseInd
     parseInd = ForgeInd <$> P.between (P.char '<') (P.char '>') parseName
     parseName = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
+findRelevantPackages :: [ForgeEntity] -> [PoseidonPackage] -> IO [PoseidonPackage]
+findRelevantPackages entities packages = do
+    let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
+        groupNamesStats = [ group | ForgeGroup group <- entities]
+        indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
+    fmap catMaybes . forM packages $ \pac -> do
+        inds <- getIndividuals pac
+        let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
+            groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
+        if  posPacTitle pac `elem` requestedPacs
+            ||  length (intersect indNamesPac indNamesStats) > 0
+            ||  length (intersect groupNamesPac groupNamesStats) > 0
+        then return (Just pac)
+        else return Nothing
+
 -- | The main function running the janno command
 runMerge :: MergeOptions -> IO ()
 runMerge (MergeOptions baseDirs entities outPath outName) = do
     -- get requested entities
-    let requestedPacs = [ show x | x@ForgePac {} <- entities]
-    let requestedGroups = [ show x | x@ForgeGroup {} <- entities]
-    let requestedInds = [ show x | x@ForgeInd {} <- entities]
+    let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
+        requestedGroups = [ group | ForgeGroup group <- entities]
+        requestedInds   = [ ind   | ForgeInd   ind   <- entities]
     mapM_ putStrLn requestedPacs
     mapM_ putStrLn requestedGroups
     mapM_ putStrLn requestedInds
     -- load packages
-    packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allPackages <- loadPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
+    packages <- findRelevantPackages entities allPackages
+    putStrLn $ (show . length $ packages) ++ " packages contain data for this forging operation"
     -- collect data
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles packages
@@ -90,8 +108,8 @@ runMerge (MergeOptions baseDirs entities outPath outName) = do
     -- create new package
     createDirectory outPath
     let jannoFile = outName <.> "janno"
-    --writeJannoFile (outPath </> jannoFile) goodJannoRows
-    --writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
+    writeJannoFile (outPath </> jannoFile) goodJannoRows
+    writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
     -- combine genotype data
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
