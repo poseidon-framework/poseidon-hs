@@ -24,10 +24,12 @@ import           Data.List                  (nub, sortOn, intersect)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
 import           Data.Time                  (UTCTime (..), getCurrentTime)
+import qualified Data.Vector as V
 import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
+import qualified Pipes.Prelude as P
 import           Pipes.Safe                 (runSafeT)
-import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..))
+import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
@@ -101,10 +103,18 @@ filterJannoFiles entities packages =
 
 filterBibEntries :: [PoseidonSample] -> [Reference] -> [Reference]
 filterBibEntries samples references =
-    let relevantPublications = mapMaybe posSamPublication samples
+    let relevantPublications = nub $ mapMaybe posSamPublication samples
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
--- | The main function running the janno command
+extractEntityIndices :: ForgeRecipe -> [PoseidonPackage] -> IO [Int]
+extractEntityIndices entities relevantPackages = do
+    let groupNames = [ group | ForgeGroup group <- entities]
+        indNames   = [ ind   | ForgeInd   ind   <- entities]
+    allIndEntries <- fmap concat . mapM getIndividuals $ relevantPackages
+    let filterFunc (_, EigenstratIndEntry ind _ group) = ind `elem` indNames || group `elem` groupNames 
+    return . map fst . filter filterFunc . zip [0..] $ allIndEntries
+
+-- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entities outPath outName) = do
     -- load packages
@@ -135,16 +145,21 @@ runForge (ForgeOptions baseDirs entities outPath outName) = do
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
         outGeno = outName <.> "eigenstrat.geno"
+    indices <- extractEntityIndices entities relevantPackages
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
-        let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
-        runEffect $ eigenstratProd >-> writeEigenstrat outG outS outI eigenstratIndEntries
+        let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
+        runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
+            writeEigenstrat outG outS outI eigenstratIndEntries
     let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
     -- print read issue warning
     when (anyJannoIssues || anyBibIssues) $
         putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
     pac <- newPackageTemplate outName genotypeData jannoFile
     encodeFile (outPath </> "POSEIDON.yml") pac
+  where
+    selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
+    selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
 
 newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> IO PoseidonPackage
 newPackageTemplate n gd janno = do
