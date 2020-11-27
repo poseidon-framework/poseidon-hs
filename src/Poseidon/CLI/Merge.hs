@@ -2,16 +2,13 @@ module Poseidon.CLI.Merge (runMerge, MergeOptions(..)) where
 
 import           Poseidon.Package           (PoseidonPackage(..),
                                             loadPoseidonPackages,
-                                            PoseidonSample(..),
                                             GenotypeDataSpec(..),
                                             GenotypeFormatSpec(..),
                                             ContributorSpec(..),
-                                            getJointGenotypeData)    
-import           Poseidon.Janno             (maybeLoadJannoFiles,
-                                            jannoToSimpleMaybeList,
-                                            writeJannoFile)
-import           Poseidon.BibFile           (maybeLoadBibTeXFiles,
-                                            bibToSimpleMaybeList,
+                                            getJointGenotypeData, maybeLoadJannoFiles, maybeLoadBibTeXFiles) 
+import           Poseidon.Janno             (jannoToSimpleMaybeList,
+                                            writeJannoFile, PoseidonSample(..))
+import           Poseidon.BibFile           (bibToSimpleMaybeList,
                                             writeBibTeXFile)
 
 import           Control.Monad              (when)

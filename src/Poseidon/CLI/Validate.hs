@@ -2,12 +2,10 @@
 
 module Poseidon.CLI.Validate (runValidate, ValidateOptions(..)) where
 
-import           Poseidon.Package   (loadPoseidonPackages,
-                                    PoseidonSample(..))
+import           Poseidon.Package   (loadPoseidonPackages, maybeLoadJannoFiles, maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
                                     renderPoseidonException)
-import           Poseidon.Janno     (maybeLoadJannoFiles)
-import           Poseidon.BibFile   (maybeLoadBibTeXFiles)
+import           Poseidon.Janno     (PoseidonSample(..))
 
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)

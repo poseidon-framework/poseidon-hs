@@ -1,11 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (loadBibTeXFile) where
+module Poseidon.BibFile (loadBibTeXFile, bibToSimpleMaybeList, writeBibTeXFile) where
 
 import Poseidon.Utils (PoseidonException)
 
+import           Control.Exception          (try)
 import           Data.Either.Combinators    (rightToMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as Tio
+import           Paths_poseidon_hs          (getDataFileName)
 import           Text.CSL                   (renderPlain, procOpts, processBibliography, readCSLFile)
 import           Text.CSL.Exception         (CiteprocException)
 import           Text.CSL.Input.Bibtex      (readBibtex)

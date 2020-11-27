@@ -12,6 +12,7 @@ module Poseidon.Package (
     filterDuplicatePackages,
     loadPoseidonPackages,
     maybeLoadJannoFiles,
+    maybeLoadBibTeXFiles,
     getJointGenotypeData,
     getIndividuals
 ) where
@@ -42,7 +43,6 @@ import qualified Data.Vector                as V
 import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither', encodeFile)
 import           GHC.Generics               (Generic)
-import           Paths_poseidon_hs
 import           Pipes                      (Producer, (>->))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe)
