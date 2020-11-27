@@ -108,8 +108,8 @@ runMerge (MergeOptions baseDirs entities outPath outName) = do
     -- create new package
     createDirectory outPath
     let jannoFile = outName <.> "janno"
-    writeJannoFile (outPath </> jannoFile) goodJannoRows
-    writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
+    --writeJannoFile (outPath </> jannoFile) goodJannoRows
+    --writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
     -- combine genotype data
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
