@@ -6,6 +6,7 @@ import           Poseidon.BibFile           (bibToSimpleMaybeList,
                                              writeBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), GenotypeFormatSpec (..))
 import           Poseidon.Janno             (jannoToSimpleMaybeList,
+                                             PoseidonSample (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
                                              PoseidonPackage (..),
@@ -20,7 +21,8 @@ import           Control.Monad              (when, forM)
 import           Data.Aeson                 (encodeFile)
 import           Data.Char                  (isSpace)
 import           Data.List                  (nub, sortOn, intersect)
-import           Data.Maybe                 (catMaybes, isJust)
+import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
+import           Data.Text                  (unpack)
 import           Data.Time                  (UTCTime (..), getCurrentTime)
 import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
@@ -29,7 +31,7 @@ import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.CSL.Reference         (refId)
+import           Text.CSL.Reference         (refId, unLiteral)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
 
@@ -92,30 +94,35 @@ runMerge (MergeOptions baseDirs entities outPath outName) = do
     -- load packages
     allPackages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
-    packages <- findRelevantPackages entities allPackages
-    putStrLn $ (show . length $ packages) ++ " packages contain data for this forging operation"
+    relevantPackages <- findRelevantPackages entities allPackages
+    putStrLn $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     -- collect data
     -- JANNO
-    jannoFiles <- maybeLoadJannoFiles packages
+    jannoFiles <- maybeLoadJannoFiles relevantPackages
     let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     let anyJannoIssues = not $ all isJust jannoMaybeList
     let goodJannoRows = concat $ catMaybes jannoMaybeList
+    let relevantJannoRows = filter (\x -> posSamIndividualID x `elem` requestedInds
+                                          || head (posSamGroupName x) `elem` requestedGroups
+                            ) goodJannoRows
     -- bib
-    bibFiles <- maybeLoadBibTeXFiles packages
+    bibFiles <- maybeLoadBibTeXFiles relevantPackages
     let bibMaybeList = bibToSimpleMaybeList bibFiles
     let anyBibIssues = not $ all isJust bibMaybeList
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
+    let relevantPublications = mapMaybe posSamPublication relevantJannoRows
+    let relevantBibEntries = filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) goodBibEntries
     -- create new package
     createDirectory outPath
     let jannoFile = outName <.> "janno"
-    writeJannoFile (outPath </> jannoFile) goodJannoRows
-    writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
+    writeJannoFile (outPath </> jannoFile) relevantJannoRows
+    writeBibTeXFile (outPath </> "LITERATURE.bib") relevantBibEntries
     -- combine genotype data
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
         outGeno = outName <.> "eigenstrat.geno"
     runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData packages
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
         runEffect $ eigenstratProd >-> writeEigenstrat outG outS outI eigenstratIndEntries
     let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
