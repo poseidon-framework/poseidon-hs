@@ -1,6 +1,4 @@
-module Poseidon.CLI.Merge (
-    runMerge, MergeOptions(..), ForgeEntity(..), forgeEntitiesParser
-    ) where
+module Poseidon.CLI.Merge (runMerge, MergeOptions(..)) where
 
 import           Poseidon.BibFile           (bibToSimpleMaybeList,
                                              writeBibTeXFile)
@@ -14,10 +12,8 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              maybeLoadBibTeXFiles,
                                              maybeLoadJannoFiles)
 
-import           Control.Applicative        ((<|>))
 import           Control.Monad              (when)
 import           Data.Aeson                 (encodeFile)
-import           Data.Char                  (isSpace)
 import           Data.List                  (nub, sortOn)
 import           Data.Maybe                 (catMaybes, isJust)
 import           Data.Time                  (UTCTime (..), getCurrentTime)
@@ -29,51 +25,17 @@ import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (refId)
-import qualified Text.Parsec                as P
-import qualified Text.Parsec.String         as P
 
 -- | A datatype representing command line options for the survey command
 data MergeOptions = MergeOptions
     { _jaBaseDirs :: [FilePath]
-    , _entityList :: [ForgeEntity]
     , _outPacPath :: FilePath
     , _outPacName :: String
     }
 
--- | A datatype to represent a package, a group or an individual
-data ForgeEntity = ForgePac String
-    | ForgeGroup String
-    | ForgeInd String
-    deriving (Eq)
-
-instance Show ForgeEntity where
-    show (ForgePac n) = "*" ++ n ++ "*"
-    show (ForgeGroup n) = n
-    show (ForgeInd   n) = "<" ++ n ++ ">"
-
--- | A parser to parse forge entities
-forgeEntitiesParser :: P.Parser [ForgeEntity]
-forgeEntitiesParser = P.try (P.sepBy parseForgeEntity (P.char ',' <* P.spaces))
-
-parseForgeEntity :: P.Parser ForgeEntity
-parseForgeEntity = parsePac <|> parseGroup <|> parseInd
-  where
-    parsePac = ForgePac <$> P.between (P.char '*') (P.char '*') parseName
-    parseGroup = ForgeGroup <$> parseName
-    parseInd = ForgeInd <$> P.between (P.char '<') (P.char '>') parseName
-    parseName = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
-
 -- | The main function running the janno command
 runMerge :: MergeOptions -> IO ()
-runMerge (MergeOptions baseDirs entities outPath outName) = do
-    -- get requested entities
-    let requestedPacs = [ show x | x@ForgePac {} <- entities]
-    let requestedGroups = [ show x | x@ForgeGroup {} <- entities]
-    let requestedInds = [ show x | x@ForgeInd {} <- entities]
-    mapM_ putStrLn requestedPacs
-    mapM_ putStrLn requestedGroups
-    mapM_ putStrLn requestedInds
-    -- load packages
+runMerge (MergeOptions baseDirs outPath outName) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- collect data
@@ -90,8 +52,8 @@ runMerge (MergeOptions baseDirs entities outPath outName) = do
     -- create new package
     createDirectory outPath
     let jannoFile = outName <.> "janno"
-    --writeJannoFile (outPath </> jannoFile) goodJannoRows
-    --writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
+    writeJannoFile (outPath </> jannoFile) goodJannoRows
+    writeBibTeXFile (outPath </> "LITERATURE.bib") goodBibEntries
     -- combine genotype data
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"

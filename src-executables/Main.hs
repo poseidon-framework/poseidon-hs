@@ -7,8 +7,7 @@ import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         runFstats, runParser)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
-import           Poseidon.CLI.Merge     (runMerge, MergeOptions(..), 
-                                        ForgeEntity(..), forgeEntitiesParser)                                        
+import           Poseidon.CLI.Merge     (runMerge, MergeOptions(..))                                        
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
@@ -60,7 +59,7 @@ optParser = OP.subparser $
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
     mergeOptInfo = OP.info (OP.helper <*> (CmdMerge <$> mergeOptParser))
-        (OP.progDesc "merge: merge the specified entities and create a new package")
+        (OP.progDesc "merge: merge the specified packages and create a new package")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "summarise: get an overview over the content of one or multiple packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
@@ -83,10 +82,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
 
 mergeOptParser :: OP.Parser MergeOptions
-mergeOptParser = MergeOptions <$> parseBasePaths 
-                              <*> parseForgeEntitiesDirect
-                              <*> parseOutPackagePath 
-                              <*> parseOutPackageName
+mergeOptParser = MergeOptions <$> parseBasePaths <*> parseOutPackagePath <*> parseOutPackageName
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -133,15 +129,6 @@ parseStatSpecsFromFile = OP.option (Just <$> OP.str) (OP.long "statFile" <> OP.h
 
 readStatSpecString :: String -> Either String FStatSpec
 readStatSpecString s = case runParser fStatSpecParser () "" s of
-    Left p  -> Left (show p)
-    Right x -> Right x
-
-parseForgeEntitiesDirect :: OP.Parser [ForgeEntity]
-parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forge" <>
-    OP.help "...")
-
-readForgeEntitiesString :: String -> Either String [ForgeEntity]
-readForgeEntitiesString s = case runParser forgeEntitiesParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
