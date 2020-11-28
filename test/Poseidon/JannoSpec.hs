@@ -13,7 +13,7 @@ import           Poseidon.Janno            (PoseidonSample (..),
                                             loadJannoFile)
 
 import qualified Data.ByteString.Char8     as B
-import           Data.Either               (isRight, rights)
+import           Data.Either               (isRight, rights, isLeft)
 import           Test.Hspec
 
 spec = do
@@ -22,7 +22,8 @@ spec = do
 testPoseidonSampleFromJannoFile :: Spec
 testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.loadJannoFile" $ do
     let minimalJannoPath = "test/testDat/testJannoFiles/minimal.janno"
-    let normalJannoPath = "test/testDat/testJannoFiles/normal.janno"
+    let normalJannoPath  = "test/testDat/testJannoFiles/normal.janno"
+    let borkedJannoPath  = "test/testDat/testJannoFiles/borked.janno"
     it "should read a minimal janno file correctly" $ do
         janno <- loadJannoFile minimalJannoPath
         length janno `shouldBe` 3
@@ -63,3 +64,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.loadJannoFile" $ do
         map posSamUDG (rights janno)            `shouldBe` [Just Minus, Just Half, Just Plus]
         map posSamLibraryBuilt (rights janno)   `shouldBe` [Just DS, Just SS, Just Other]
         map posSamDamage (rights janno)         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
+    it "should gracefully fail to read borked janno file rows" $ do
+        janno <- loadJannoFile borkedJannoPath
+        length janno `shouldBe` 36
+        all isLeft janno `shouldBe` True
+
