@@ -5,10 +5,18 @@
 
 module Poseidon.Janno (
     PoseidonSample(..),
+    Sex (..),
+    Latitude (..),
+    Longitude (..),
+    JannoDateType (..),
+    JannoDataType (..),
+    JannoGenotypePloidy (..),
+    Percent (..),
+    JannoUDG (..),
+    JannoLibraryBuilt (..),
     jannoToSimpleMaybeList,
     writeJannoFile,
     loadJannoFile,
-    Percent(..)
 ) where
 
 import           Poseidon.Utils             (PoseidonException (..))
