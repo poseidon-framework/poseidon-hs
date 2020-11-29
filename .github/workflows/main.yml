@@ -32,6 +32,12 @@ jobs:
         path: ~/.stack
         key: ${{ runner.os }}-${{ matrix.ghc }}-stack-v2
 
+    - uses: actions/cache@v1
+      name: Cache ~/hpc-codecov (for coverage report generation)
+      with:
+        path: ~/hpc-codecov
+        key: ${{ runner.os }}-${{ matrix.ghc }}-hpc-codecov-v1
+
     - name: Build
       run: |
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
@@ -42,11 +48,11 @@ jobs:
 
     - name: Generate coverage report
       run: |
-        stack install hpc-codecov
+        stack install hpc-codecov --local-bin-path ~/hpc-codecov
         HPCROOT=$(stack path --local-hpc-root)
         TIX=$(find $HPCROOT -name 'poseidon-tools-tests.tix')
         MIX=$(stack path --dist-dir)/hpc
-        stack exec -- hpc-codecov --mix=$MIX -o codecov.json $TIX
+        stack exec -- ~/hpc-codecov/hpc-codecov --mix=$MIX -o codecov.json $TIX
 
     - name: Upload coverage report
       run: bash <(curl -s https://codecov.io/bash)
