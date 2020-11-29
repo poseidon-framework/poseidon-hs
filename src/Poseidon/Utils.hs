@@ -12,7 +12,7 @@ data PoseidonException =
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
-    | PoseidonJannoException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
+    | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
     | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
     | PoseidonFileExistenceException String -- ^ An exception to represent missing files
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
@@ -23,11 +23,10 @@ data PoseidonException =
 instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
-renderPoseidonException (PoseidonJannoException f i _) = 
+renderPoseidonException (PoseidonJannoRowException f i s) = 
     "Can't read sample in " ++ f 
     ++ " in line " ++ (show i)
-    ++ " due to a .janno parsing error"
-    -- ++ s -- this error message is pretty useless and can be omitted
+    ++ ": " ++ s
 renderPoseidonException (PoseidonFileExistenceException s) = s
 renderPoseidonException (PoseidonBibTeXException f s) = "BibText problem in file " ++ f ++ ": " ++ s
 renderPoseidonException (PoseidonJannoConsistencyException f s) = "Consistency issues in " ++ f ++ ": " ++ s

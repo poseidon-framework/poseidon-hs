@@ -31,6 +31,7 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (isRight, rights)
 import           Data.Either.Combinators    (rightToMaybe)
 import           Data.List                  (intercalate, nub)
+import           Data.Maybe                 (catMaybes, fromMaybe)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           System.Directory           (doesFileExist)
@@ -314,10 +315,14 @@ loadJannoFile jannoPath = do
 loadJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO PoseidonSample
 loadJannoFileRow jannoPath row = do
     case Csv.decodeWith decodingOptions Csv.NoHeader (snd row) of
-        Left err -> do
-           throwIO $ PoseidonJannoException jannoPath (fst row) err
+        Left _ -> do
+           throwIO $ PoseidonJannoRowException jannoPath (fst row) "Type error (e.g. Text in a numeric field)"
         Right (poseidonSamples :: V.Vector PoseidonSample) -> do
-           return $ V.head poseidonSamples
+            case checkJannoRowConsistency $ V.head poseidonSamples of
+                Left err -> do
+                    throwIO $ PoseidonJannoRowException jannoPath (fst row) err
+                Right x -> do
+                    return x
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
@@ -353,3 +358,25 @@ checkJannoConsistency x =
 
 checkIndividualUnique :: [Either PoseidonException PoseidonSample] -> Bool
 checkIndividualUnique x = length (rights x) == length (nub $ map posSamIndividualID $ rights x)
+
+checkJannoRowConsistency :: PoseidonSample -> Either String PoseidonSample
+checkJannoRowConsistency x = 
+    if not $ checkC14ColsConsistent x 
+    then Left $ "The columns "
+                ++ "Date_C14_Labnr, Date_C14_Uncal_BP, " 
+                ++ "Date_C14_Uncal_BP_Err and Date_Type " 
+                ++ "are not consistent"
+    else Right x
+
+checkC14ColsConsistent :: PoseidonSample -> Bool
+checkC14ColsConsistent x = 
+    let lLabnr = maybe 0 length $ posSamDateC14Labnr x
+        lUncalBP = maybe 0 length $ posSamDateC14UncalBP x
+        lUncalBPErr = maybe 0 length $ posSamDateC14UncalBPErr x
+        shouldBeTypeC14 = lLabnr > 0
+        isTypeC14 = posSamDateType x == Just C14
+    in 
+        lLabnr == lUncalBP
+        && lLabnr == lUncalBPErr
+        && lUncalBP == lUncalBPErr
+        && shouldBeTypeC14 == isTypeC14
