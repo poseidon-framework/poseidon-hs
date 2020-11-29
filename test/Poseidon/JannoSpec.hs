@@ -13,8 +13,9 @@ import           Poseidon.Janno            (PoseidonSample (..),
                                             loadJannoFile)
 
 import qualified Data.ByteString.Char8     as B
-import           Data.Either               (isRight, rights, isLeft)
+import           Data.Either               (isRight, rights, isLeft, lefts)
 import           Test.Hspec
+import Poseidon.Utils (renderPoseidonException)
 
 spec = do
     testPoseidonSampleFromJannoFile
@@ -66,6 +67,6 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.loadJannoFile" $ do
         map posSamDamage (rights janno)         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
     it "should gracefully fail to read borked janno file rows" $ do
         janno <- loadJannoFile borkedJannoPath
-        length janno `shouldBe` 36
-        all isLeft janno `shouldBe` True
+        length janno `shouldBe` 23
+        map isRight janno `shouldBe` replicate 23 False
 
