@@ -30,7 +30,7 @@ import           Data.Char                  (ord)
 import qualified Data.Csv                   as Csv
 import           Data.Either                (isRight, rights)
 import           Data.Either.Combinators    (rightToMaybe)
-import           Data.List                  (intercalate)
+import           Data.List                  (intercalate, nub)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           System.Directory           (doesFileExist)
@@ -303,7 +303,12 @@ loadJannoFile jannoPath = do
     let jannoFileRows = Bch.lines jannoFileUpdated
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
-    mapM (try . loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
+    jannoRepresentation <- mapM (try . loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
+    case checkJannoConsistency jannoRepresentation of
+        Left err -> do
+            throwIO $ PoseidonJannoConsistencyException jannoPath err
+        Right x -> do
+            return x
 
 -- | A function to load one row of a janno file
 loadJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO PoseidonSample
@@ -338,3 +343,13 @@ replaceInJannoBytestring from to tsv =
 jannoToSimpleMaybeList :: [Either PoseidonException [Either PoseidonException PoseidonSample]] -> [Maybe [PoseidonSample]]
 jannoToSimpleMaybeList = map (maybe Nothing (\x -> if all isRight x then Just (rights x) else Nothing) . rightToMaybe)
 
+-- Janno consistency checks
+
+checkJannoConsistency :: [Either PoseidonException PoseidonSample] -> Either String [Either PoseidonException PoseidonSample]
+checkJannoConsistency x = 
+    if not $ checkIndividualUnique x 
+    then Left "The Individual_IDs are not unique" 
+    else Right x
+
+checkIndividualUnique :: [Either PoseidonException PoseidonSample] -> Bool
+checkIndividualUnique x = length (rights x) == length (nub $ map posSamIndividualID $ rights x)
