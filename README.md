@@ -1,4 +1,5 @@
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/poseidon-framework/poseidon-hs/CI)](https://github.com/poseidon-framework/poseidon-hs/actions?query=workflow%3ACI)
+[![Coverage Status](https://img.shields.io/codecov/c/github/poseidon-framework/poseidon-hs/master.svg)](https://codecov.io/github/poseidon-framework/poseidon-hs?branch=master)
 
 # poseidon-tools
 A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.

@@ -49,7 +49,9 @@ jobs:
     - name: Generate coverage report
       run: |
         stack install hpc-codecov --local-bin-path ~/hpc-codecov
-        HPCROOT=$(stack path --local-hpc-root)
+        # this should actually be the search location below,
+        # but does not work, so we search in .
+        # HPCROOT=$(stack path --local-hpc-root)
         TIX=$(find . -name 'poseidon-tools-tests.tix')
         MIX=$(stack path --dist-dir)/hpc
         stack exec -- ~/hpc-codecov/hpc-codecov --mix=$MIX -o codecov.json $TIX
