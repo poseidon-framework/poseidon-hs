@@ -31,7 +31,6 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (isRight, rights)
 import           Data.Either.Combinators    (rightToMaybe)
 import           Data.List                  (intercalate, nub)
-import           Data.Maybe                 (catMaybes, fromMaybe)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           System.Directory           (doesFileExist)
@@ -351,22 +350,34 @@ jannoToSimpleMaybeList = map (maybe Nothing (\x -> if all isRight x then Just (r
 -- Janno consistency checks
 
 checkJannoConsistency :: [Either PoseidonException PoseidonSample] -> Either String [Either PoseidonException PoseidonSample]
-checkJannoConsistency x = 
-    if not $ checkIndividualUnique x 
-    then Left "The Individual_IDs are not unique" 
-    else Right x
+checkJannoConsistency x
+    | not $ checkIndividualUnique x =
+        Left "The Individual_IDs are not unique"
+    | otherwise =
+        Right x
 
 checkIndividualUnique :: [Either PoseidonException PoseidonSample] -> Bool
 checkIndividualUnique x = length (rights x) == length (nub $ map posSamIndividualID $ rights x)
 
 checkJannoRowConsistency :: PoseidonSample -> Either String PoseidonSample
-checkJannoRowConsistency x = 
-    if not $ checkC14ColsConsistent x 
-    then Left $ "The columns "
-                ++ "Date_C14_Labnr, Date_C14_Uncal_BP, " 
-                ++ "Date_C14_Uncal_BP_Err and Date_Type " 
-                ++ "are not consistent"
-    else Right x
+checkJannoRowConsistency x
+    | not $ checkMandatoryStringNotEmpty x =
+        Left $ "The mandatory columns "
+        ++ "Individual_ID and Group_Name "
+        ++ "contain empty values"
+    | not $ checkC14ColsConsistent x =
+        Left $ "The columns "
+        ++ "Date_C14_Labnr, Date_C14_Uncal_BP, "
+        ++ "Date_C14_Uncal_BP_Err and Date_Type "
+        ++ "are not consistent"
+    | otherwise =
+        Right x
+
+checkMandatoryStringNotEmpty :: PoseidonSample -> Bool
+checkMandatoryStringNotEmpty x =
+    not (null $ posSamIndividualID x)
+    && not (null (posSamGroupName x))
+    && not (null $ head $ posSamGroupName x)
 
 checkC14ColsConsistent :: PoseidonSample -> Bool
 checkC14ColsConsistent x = 
