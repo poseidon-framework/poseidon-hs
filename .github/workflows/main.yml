@@ -39,3 +39,14 @@ jobs:
     - name: Test
       run: |
         stack test --system-ghc
+
+    - name: Generate coverage report
+      run: |
+        stack install hpc-codecov
+        HPCROOT=$(stack path --local-hpc-root)
+        TIX=$(find $HPCROOT -name 'poseidon-tools-tests.tix')
+        MIX=$(stack path --dist-dir)/hpc
+        stack exec -- hpc-codecov --mix=$MIX -o codecov.json $TIX
+
+    - name: Upload coverage report
+      run: bash <(curl -s https://codecov.io/bash)
