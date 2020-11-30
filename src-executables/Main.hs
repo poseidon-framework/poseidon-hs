@@ -87,6 +87,10 @@ surveyOptParser = SurveyOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
+                                    <*> parseIgnoreGeno
+
+parseIgnoreGeno :: OP.Parser Bool
+parseIgnoreGeno = OP.switch (OP.long "ignoreGeno" <> OP.help "...")
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
