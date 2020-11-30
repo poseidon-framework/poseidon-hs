@@ -2,17 +2,22 @@
 
 module Poseidon.CLI.Validate (runValidate, ValidateOptions(..)) where
 
-import           Poseidon.Package   (loadPoseidonPackages, maybeLoadJannoFiles, maybeLoadBibTeXFiles)
+import           Poseidon.Package   (getIndividuals,
+                                     loadPoseidonPackages, 
+                                     maybeLoadJannoFiles, 
+                                     maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
                                     renderPoseidonException)
 import           Poseidon.Janno     (PoseidonSample(..))
 
+import           Control.Monad      (when, unless)
 import qualified Data.Either        as E
 import           Data.Maybe         (mapMaybe)
 import           Text.CSL.Reference (refId, unLiteral)
 import           Data.List          (nub, (\\), intercalate)
 import           Data.Text          (unpack)
 import           Control.Exception  (throw)
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
 import           System.IO          (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
@@ -30,43 +35,64 @@ runValidate (ValidateOptions baseDirs) = do
     putStrLn $ u "POSEIDON.yml file consistency:"
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " valid POSEIDON.yml files found"
+    -- Genotype file consistency (without loading them completely!)
+    putStrLn $ u "Genotype data consistency:"
+    indEntries <- mapM getIndividuals packages
+    let allIndEntries = concat indEntries
+    putStrLn $ show (length allIndEntries)
+        ++ " valid genotype data entries found"
     -- janno
     putStrLn $ u ".janno file consistency:"
     jannoFiles <- maybeLoadJannoFiles packages
     let jannoFileExistenceExceptions = E.lefts jannoFiles
-    let jannoSamplesRaw = E.rights jannoFiles
-    let jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
-    let jannoSamples = E.rights $ concat jannoSamplesRaw
+        jannoSamplesRaw = E.rights jannoFiles
+        jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
+        jannoSamples = map E.rights jannoSamplesRaw
+        allJannoSamples = concat jannoSamples
     mapM_ (putStrLn . renderPoseidonException) jannoFileExistenceExceptions
     mapM_ (putStrLn . renderPoseidonException) jannoFileReadingExceptions
-    putStrLn $ show (length jannoSamples) 
-        ++ " valid samples found"
+    putStrLn $ show (length allJannoSamples) 
+        ++ " valid context data entries found"
     -- bib
     putStrLn $ u ".bib file consistency:"
     bibFiles <- maybeLoadBibTeXFiles packages
     let bibFileExceptions = E.lefts bibFiles
-    let bibReferences = concat $ E.rights bibFiles
+        bibReferences = E.rights bibFiles
+        allbibReferences = concat bibReferences
     mapM_ (putStrLn . renderPoseidonException) bibFileExceptions
-    putStrLn $ show (length bibReferences) 
+    putStrLn $ show (length allbibReferences) 
         ++ " valid literature references found"
-    -- Genotype file consistency (without loading them completely!)
-    putStrLn $ u "Genotype data consistency:"
-    putStrLn "not tested so far"
     -- Cross-file consistency
+    -- janno + genotype
+    putStrLn $ u ".janno-Genotype data interaction:"
+    let genoIDs     = [ x | EigenstratIndEntry  x _ _ <- allIndEntries]
+        genoSexs    = [ x | EigenstratIndEntry  _ x _ <- allIndEntries]
+        genoGroups  = [ x | EigenstratIndEntry  _ _ x <- allIndEntries]
+    let jannoIDs    = map posSamIndividualID allJannoSamples
+        jannoSexs   = map posSamGeneticSex allJannoSamples
+        jannoGroups = map (head . posSamGroupName) allJannoSamples
+    let idMis = genoIDs /= jannoIDs
+        sexMis = genoSexs /= jannoSexs
+        groupMis = genoGroups /= jannoGroups
+        anyJannoGenoMis = idMis || sexMis || groupMis
+    when idMis $ putStrLn "Individual ID mismatch between .janno files and genotype data"
+    when sexMis $ putStrLn "Individual Sex mismatch between .janno files and genotype data"
+    when groupMis $ putStrLn "Individual GroupID mismatch between .janno files and genotype data"
+    unless anyJannoGenoMis $ putStrLn "All main IDs in the .janno files match the genotype data"
     -- janno + bib
     putStrLn $ u ".janno-.bib interaction:"
-    let literatureInJanno = nub $ mapMaybe posSamPublication jannoSamples
-    let literatureInBib = nub $ map (unpack . unLiteral . refId) bibReferences
-    let literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
+    let literatureInJanno = nub $ mapMaybe posSamPublication allJannoSamples
+        literatureInBib = nub $ map (unpack . unLiteral . refId) allbibReferences
+        literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     if null literatureNotInBibButInJanno
-        then putStrLn "All literature in the .janno files has BibTeX entries"
-        else putStrLn $ "The following papers lack BibTeX entries: " ++ 
-                        intercalate ", " literatureNotInBibButInJanno
-    -- janno - genotype
-    putStrLn $ u ".janno-Genotype data interaction:"
-    putStrLn "not tested so far"
+    then putStrLn "All literature in the .janno files has BibTeX entries"
+    else putStrLn $ "The following papers lack BibTeX entries: " ++ 
+        intercalate ", " literatureNotInBibButInJanno
     -- Final report: Error code generation
     putStrLn ""
-    if not (null jannoFileReadingExceptions && null bibFileExceptions) -- && ...
-        then throw PoseidonValidationException
-        else putStrLn "==> Validation passed ✓"
+    if not (null jannoFileReadingExceptions)
+        || not (null bibFileExceptions) 
+        || anyJannoGenoMis
+    then throw PoseidonValidationException
+    else putStrLn "==> Validation passed ✓"
+
