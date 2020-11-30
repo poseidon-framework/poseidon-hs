@@ -40,7 +40,7 @@ runValidate (ValidateOptions baseDirs) = do
     indEntries <- mapM getIndividuals packages
     let allIndEntries = concat indEntries
     putStrLn $ show (length allIndEntries)
-        ++ " valid genotype data entries found"
+        ++ " (superficially) valid genotype data entries found"
     -- janno
     putStrLn $ u ".janno file consistency:"
     jannoFiles <- maybeLoadJannoFiles packages
@@ -75,9 +75,12 @@ runValidate (ValidateOptions baseDirs) = do
         sexMis = genoSexs /= jannoSexs
         groupMis = genoGroups /= jannoGroups
         anyJannoGenoMis = idMis || sexMis || groupMis
-    when idMis $ putStrLn "Individual ID mismatch between .janno files and genotype data"
-    when sexMis $ putStrLn "Individual Sex mismatch between .janno files and genotype data"
-    when groupMis $ putStrLn "Individual GroupID mismatch between .janno files and genotype data"
+    when idMis $ putStrLn $ "Individual ID mismatch between genotype data (left) and .janno files (right):\n" ++
+        renderMismatch genoIDs jannoIDs
+    when sexMis $ putStrLn $ "Individual Sex mismatch between genotype data (left) and .janno files (right):\n" ++
+        renderMismatch (map show genoSexs) (map show jannoSexs)
+    when groupMis $ putStrLn $ "Individual GroupID mismatch between genotype data (left) and .janno files (right):\n" ++
+        renderMismatch genoGroups jannoGroups
     unless anyJannoGenoMis $ putStrLn "All main IDs in the .janno files match the genotype data"
     -- janno + bib
     putStrLn $ u ".janno-.bib interaction:"
@@ -86,7 +89,7 @@ runValidate (ValidateOptions baseDirs) = do
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     if null literatureNotInBibButInJanno
     then putStrLn "All literature in the .janno files has BibTeX entries"
-    else putStrLn $ "The following papers lack BibTeX entries: " ++ 
+    else putStrLn $ "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
     -- Final report: Error code generation
     putStrLn ""
@@ -96,3 +99,13 @@ runValidate (ValidateOptions baseDirs) = do
     then throw PoseidonValidationException
     else putStrLn "==> Validation passed ✓"
 
+
+renderMismatch :: [String] -> [String] -> String
+renderMismatch a b = 
+    intercalate "\n" (map (\(x,y) -> "(" ++ x ++ " = " ++ y ++ ")") (filter (\(x,y) -> x /= y) $ 
+    zipWithPadding "?" "?" a b))
+
+zipWithPadding :: a -> b -> [a] -> [b] -> [(a,b)]
+zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
+zipWithPadding a _ []     ys     = zip (repeat a) ys
+zipWithPadding _ b xs     []     = zip xs (repeat b)
