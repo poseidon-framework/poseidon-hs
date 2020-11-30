@@ -18,7 +18,7 @@ import           Poseidon.Package           (ContributorSpec (..),
 
 import           Control.Applicative        ((<|>))
 import           Control.Monad              (when, forM)
-import           Data.Aeson                 (encodeFile)
+import           Data.Yaml                  (encodeFile)
 import           Data.Char                  (isSpace)
 import           Data.List                  (nub, sortOn, intersect)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
@@ -117,13 +117,13 @@ extractEntityIndices entities relevantPackages = do
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entities outPath outName) = do
-    -- load packages
+    -- load packages --
     allPackages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     relevantPackages <- filterPackages entities allPackages
     putStrLn $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
-    -- collect data
-    -- JANNO
+    -- collect data --
+    -- janno
     jannoFiles <- maybeLoadJannoFiles relevantPackages
     let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     let anyJannoIssues = not $ all isJust jannoMaybeList
@@ -136,30 +136,34 @@ runForge (ForgeOptions baseDirs entities outPath outName) = do
     let anyBibIssues = not $ all isJust bibMaybeList
     let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
     let relevantBibEntries = filterBibEntries relevantJannoRows goodBibEntries
-    -- create new package
+    -- genotype data
+    indices <- extractEntityIndices entities relevantPackages
+    -- print read issue warning
+    when (anyJannoIssues || anyBibIssues) $
+        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+    -- create new package --
     createDirectory outPath
-    let jannoFile = outName <.> "janno"
-    writeJannoFile (outPath </> jannoFile) relevantJannoRows
-    writeBibTeXFile (outPath </> "LITERATURE.bib") relevantBibEntries
-    -- combine genotype data
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
         outGeno = outName <.> "eigenstrat.geno"
-    indices <- extractEntityIndices entities relevantPackages
+        genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
+        outJanno = outName <.> "janno"
+    -- POSEIDON.yml
+    pac <- newPackageTemplate outName genotypeData outJanno
+    encodeFile (outPath </> "POSEIDON.yml") pac
+    -- janno
+    writeJannoFile (outPath </> outJanno) relevantJannoRows
+    -- bib
+    writeBibTeXFile (outPath </> "LITERATURE.bib") relevantBibEntries
+    -- genotype data
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI eigenstratIndEntries
-    let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
-    -- print read issue warning
-    when (anyJannoIssues || anyBibIssues) $
-        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
-    pac <- newPackageTemplate outName genotypeData jannoFile
-    encodeFile (outPath </> "POSEIDON.yml") pac
-  where
-    selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
-    selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
+
+selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
+selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
 
 newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> IO PoseidonPackage
 newPackageTemplate n gd janno = do
