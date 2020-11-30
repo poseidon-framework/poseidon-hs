@@ -1,0 +1,6 @@
+Individual_ID	Collection_ID	Source_Tissue	Country	Location	Site	Latitude	Longitude	Date_C14_Labnr	Date_C14_Uncal_BP	Date_C14_Uncal_BP_Err	Date_BC_AD_Median	Date_BC_AD_Start	Date_BC_AD_Stop	Date_Type	No_of_Libraries	Data_Type	Genotype_Ploidy	Group_Name	Genetic_Sex	Nr_autosomal_SNPs	Coverage_1240K	MT_Haplogroup	Y_Haplogroup	Endogenous	UDG	Library_Built	Damage	Xcontam	Xcontam_stderr	mtContam	mtContam_stderr	Primary_Contact	Publication_Status	Note	Keywords
+SAMPLE0	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	1	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	Wang2020	n/a	n/a
+SAMPLE1	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	2	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	Wang2020	n/a	n/a
+SAMPLE2	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	3	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	Wang2020	n/a	n/a
+SAMPLE3	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	4	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	Wang2020	n/a	n/a
+SAMPLE4	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	5	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	Wang2020	n/a	n/a
