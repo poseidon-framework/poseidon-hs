@@ -33,13 +33,12 @@ import           Data.Either.Combinators    (rightToMaybe)
 import           Data.List                  (intercalate, nub)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
+import           SequenceFormats.Eigenstrat (Sex (..))
 import           System.Directory           (doesFileExist)
 
--- |A datatype to represent Genetic_Sex in a janno file
-data Sex = Male
-    | Female
-    | Unknown
-    deriving (Eq, Show, Ord)
+instance Ord Sex where
+    compare Female Male = GT
+    compare Male Unknown = GT
 
 instance Csv.FromField Sex where
     parseField x
