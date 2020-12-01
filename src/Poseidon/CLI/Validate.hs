@@ -82,16 +82,19 @@ runValidate (ValidateOptions baseDirs) = do
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
         anyJannoGenoMis = idMis || sexMis || groupMis
-    when idMis $ putStrLn $ 
-        "Individual ID mismatch between genotype data (left) and .janno files (right):\n" ++
-        renderMismatch genoIDs jannoIDs
-    when sexMis $ putStrLn $ 
-        "Individual Sex mismatch between genotype data (left) and .janno files (right):\n" ++
-        renderMismatch (map show genoSexs) (map show jannoSexs)
-    when groupMis $ putStrLn $ 
-        "Individual GroupID mismatch between genotype data (left) and .janno files (right):\n" ++
-        renderMismatch genoGroups jannoGroups
-    unless anyJannoGenoMis $ putStrLn "All main IDs in the .janno files match the genotype data"
+    if not (null jannoFileReadingExceptions) -- + any genotype errors?
+    then putStrLn "There are already issues with the .janno files or the genotype data"
+    else do
+        when idMis $ putStrLn $ 
+            "Individual ID mismatch between genotype data (left) and .janno files (right):\n" ++ 
+            renderMismatch genoIDs jannoIDs
+        when sexMis $ putStrLn $ 
+            "Individual Sex mismatch between genotype data (left) and .janno files (right):\n" ++
+            renderMismatch (map show genoSexs) (map show jannoSexs)
+        when groupMis $ putStrLn $ 
+            "Individual GroupID mismatch between genotype data (left) and .janno files (right):\n" ++
+            renderMismatch genoGroups jannoGroups
+        unless anyJannoGenoMis $ putStrLn "All main IDs in the .janno files match the genotype data"
     -- janno + bib
     putStrLn $ u ".janno-.bib interaction:"
     let literatureInJanno = nub $ mapMaybe posSamPublication allJannoSamples
