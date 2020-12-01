@@ -76,6 +76,7 @@ listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawO
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesDirect
+                              <*> parseForgeEntitiesFromFile
                               <*> parseOutPackagePath
                               <*> parseOutPackageName
 
@@ -133,6 +134,10 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
 parseForgeEntitiesDirect :: OP.Parser [ForgeEntity]
 parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forge" <>
     OP.help "...")
+
+parseForgeEntitiesFromFile :: OP.Parser (Maybe FilePath)
+parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <> 
+    OP.help "..." <> OP.value Nothing)
 
 readForgeEntitiesString :: String -> Either String [ForgeEntity]
 readForgeEntitiesString s = case runParser forgeEntitiesParser () "" s of

@@ -15,8 +15,11 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              loadPoseidonPackages,
                                              maybeLoadBibTeXFiles,
                                              maybeLoadJannoFiles)
+import           Poseidon.Utils             (PoseidonException(..),
+                                             renderPoseidonException)
 
 import           Control.Applicative        ((<|>))
+import           Control.Exception          (throwIO, try)
 import           Control.Monad              (when, forM)
 import           Data.Yaml                  (encodeFile)
 import           Data.Char                  (isSpace)
@@ -41,6 +44,7 @@ import qualified Text.Parsec.String         as P
 data ForgeOptions = ForgeOptions
     { _jaBaseDirs :: [FilePath]
     , _entityList :: [ForgeEntity]
+    , _entityFile :: Maybe FilePath
     , _outPacPath :: FilePath
     , _outPacName :: String
     }
@@ -114,9 +118,22 @@ extractEntityIndices entities relevantPackages = do
     let filterFunc (_, EigenstratIndEntry ind _ group) = ind `elem` indNames || group `elem` groupNames 
     return . map fst . filter filterFunc . zip [0..] $ allIndEntries
 
+readEntitiesFromFile :: FilePath -> IO ForgeRecipe
+readEntitiesFromFile entitiesFile = do
+    let multiEntityParser = forgeEntitiesParser `P.sepBy1` (P.newline *> P.spaces)
+    eitherParseResult <- P.parseFromFile (P.spaces *> multiEntityParser <* P.spaces) entitiesFile
+    case eitherParseResult of
+        Left err -> throwIO (PoseidonForgeEntityParsingException (show err))
+        Right r -> return (concat r)
+
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entities outPath outName) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = do
+    -- compile entities
+    entitiesFromFile <- case entitiesFile of
+        Nothing -> return []
+        Just f -> readEntitiesFromFile f
+    let entities = entitiesDirect ++ entitiesFromFile
     -- load packages --
     allPackages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"

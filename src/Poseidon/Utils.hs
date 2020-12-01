@@ -18,6 +18,7 @@ data PoseidonException =
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
     | PoseidonValidationException -- ^ An exception to indicate failed package validation
+    | PoseidonForgeEntityParsingException String -- ^ An exception to indicate failed entity parsing
     deriving (Show)
 
 instance Exception PoseidonException
