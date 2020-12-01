@@ -135,11 +135,17 @@ parseForgeEntitiesDirect :: OP.Parser [ForgeEntity]
 parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forge" <>
     OP.short 'f' <>
     OP.value [] <>
-    OP.help "...")
+    OP.help "List of packages, groups or individual samples that should be in the newly forged package. \
+        \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
+        \<individual_id>. You can combine multiple values with comma, so for example: \
+        \\"*package_1*, <individual_1>, <individual_2>, group_1\"")
 
 parseForgeEntitiesFromFile :: OP.Parser (Maybe FilePath)
 parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <>
-    OP.help "..." <> OP.value Nothing)
+    OP.value Nothing <>
+    OP.help "A file with packages, groups or individual samples that should be in the newly forged package. \
+    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
+    \-f and --forgeFile can be combined.")
 
 readForgeEntitiesString :: String -> Either String [ForgeEntity]
 readForgeEntitiesString s = case runParser forgeEntitiesParser () "" s of
