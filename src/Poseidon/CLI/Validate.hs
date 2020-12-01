@@ -112,8 +112,11 @@ runValidate (ValidateOptions baseDirs) = do
 
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b = 
-    intercalate "\n" (map (\(x,y) -> "(" ++ x ++ " = " ++ y ++ ")") (filter (\(x,y) -> x /= y) $ 
-    zipWithPadding "?" "?" a b))
+    let misMatchList = map (\ (x, y) -> "(" ++ x ++ " = " ++ y ++ ")")
+                       (filter (\ (x, y) -> x /= y) $ zipWithPadding "?" "?" a b)
+    in if length misMatchList > 10 
+       then intercalate "\n" (take 10 misMatchList) ++ "\n..."
+       else intercalate "\n" misMatchList
 
 zipWithPadding :: a -> b -> [a] -> [b] -> [(a,b)]
 zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
