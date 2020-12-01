@@ -383,10 +383,10 @@ checkC14ColsConsistent x =
     let lLabnr = maybe 0 length $ posSamDateC14Labnr x
         lUncalBP = maybe 0 length $ posSamDateC14UncalBP x
         lUncalBPErr = maybe 0 length $ posSamDateC14UncalBPErr x
-        shouldBeTypeC14 = lLabnr > 0
+        shouldBeTypeC14 = lUncalBP > 0
         isTypeC14 = posSamDateType x == Just C14
     in 
-        lLabnr == lUncalBP
-        && lLabnr == lUncalBPErr
+        (lLabnr == 0 || lLabnr == lUncalBP) -- labnr is allowed to be empty
+        && (lLabnr == 0 || lLabnr == lUncalBPErr)
         && lUncalBP == lUncalBPErr
         && shouldBeTypeC14 == isTypeC14
