@@ -179,7 +179,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
         let jannoIndIds = map posSamIndividualID relevantJannoRows
         when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
-            throwM (PoseidonPackageException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
+            throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries

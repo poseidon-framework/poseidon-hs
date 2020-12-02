@@ -109,7 +109,7 @@ runValidate (ValidateOptions baseDirs) = do
     if not (null jannoFileReadingExceptions)
         || not (null bibFileExceptions) 
         || anyJannoGenoMis
-    then throw PoseidonValidationException
+    then throw (PoseidonValidationException "")
     else putStrLn "==> Validation passed ✓"
 
 
