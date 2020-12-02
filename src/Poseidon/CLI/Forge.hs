@@ -31,7 +31,7 @@ import qualified Data.Vector as V
 import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
 import qualified Pipes.Prelude as P
-import           Pipes.Safe                 (runSafeT)
+import           Pipes.Safe                 (runSafeT, throwM)
 import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
@@ -176,9 +176,13 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
+        let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
+        let jannoIndIds = map posSamIndividualID relevantJannoRows
+        when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
+            throwM (PoseidonPackageException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
-            writeEigenstrat outG outS outI [eigenstratIndEntriesV V.! i | i <- indices]
+            writeEigenstrat outG outS outI newEigenstratIndEntries
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
