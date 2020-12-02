@@ -379,14 +379,14 @@ checkMandatoryStringNotEmpty x =
     && not (null $ head $ posSamGroupName x)
 
 checkC14ColsConsistent :: PoseidonSample -> Bool
-checkC14ColsConsistent x = 
+checkC14ColsConsistent x =
     let lLabnr = maybe 0 length $ posSamDateC14Labnr x
         lUncalBP = maybe 0 length $ posSamDateC14UncalBP x
         lUncalBPErr = maybe 0 length $ posSamDateC14UncalBPErr x
         shouldBeTypeC14 = lUncalBP > 0
         isTypeC14 = posSamDateType x == Just C14
-    in 
-        (lLabnr == 0 || lLabnr == lUncalBP) -- labnr is allowed to be empty
-        && (lLabnr == 0 || lLabnr == lUncalBPErr)
+    in
+        (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
+        && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)
         && lUncalBP == lUncalBPErr
         && shouldBeTypeC14 == isTypeC14
