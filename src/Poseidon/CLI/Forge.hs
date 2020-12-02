@@ -175,9 +175,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
     -- genotype data
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
+        let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
-            writeEigenstrat outG outS outI eigenstratIndEntries
+            writeEigenstrat outG outS outI [eigenstratIndEntriesV V.! i | i <- indices]
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
