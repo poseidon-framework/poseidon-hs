@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Control.Applicative ((<|>))
+import           Paths_poseidon_hs      (version)
 import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
@@ -11,10 +11,13 @@ import           Poseidon.CLI.Forge     (runForge, ForgeOptions(..),
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Data.ByteString.Char8 (pack, splitWith)
-import qualified Options.Applicative as OP
-import           SequenceFormats.Utils (Chrom (..))
-import           Text.Read             (readEither)
+
+import           Control.Applicative    ((<|>))
+import           Data.ByteString.Char8  (pack, splitWith)
+import           Data.Version           (showVersion)
+import qualified Options.Applicative    as OP
+import           SequenceFormats.Utils  (Chrom (..))
+import           Text.Read              (readEither)
 
 
 data Options = CmdFstats FstatsOptions
@@ -36,8 +39,11 @@ main = do
         CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> optParser) (OP.briefDesc <>
+optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (OP.briefDesc <>
     OP.progDesc "trident is an analysis tool for poseidon databases.")
+
+versionOption :: OP.Parser (a -> a)
+versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser Options
 optParser = OP.subparser $
