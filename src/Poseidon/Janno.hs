@@ -289,7 +289,7 @@ encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
       Csv.encDelimiter = fromIntegral (ord '\t')
     , Csv.encIncludeHeader = True
-    , Csv.encQuoting = Csv.QuoteNone
+    , Csv.encQuoting = Csv.QuoteMinimal
 }
 
 -- | A function to load one janno file
