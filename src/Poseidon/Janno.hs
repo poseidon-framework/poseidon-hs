@@ -237,12 +237,12 @@ instance Csv.FromRecord PoseidonSample
 instance Csv.ToRecord PoseidonSample
 
 -- | A helper function to create semi-colon separated field values from lists
-deparseFieldList :: (Show a) => [a] -> Csv.Field
+deparseFieldList :: (Csv.ToField a) => [a] -> Csv.Field
 deparseFieldList xs = do
-    Csv.toField $ intercalate ";" (map show xs)
+    Csv.toField $ intercalate ";" $ map (show . Csv.toField) xs
 
 instance Csv.ToField [String] where
-    toField = Csv.toField . intercalate ";"
+    toField = deparseFieldList
 
 instance Csv.ToField [Int] where
     toField = deparseFieldList
