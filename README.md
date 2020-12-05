@@ -223,7 +223,11 @@ and it will either report a success (`Validation passed ✓`) or failure with sp
 `forge` can be used with
 
 ```
-trident forge -d ... -d ... -f "*package_name*, group_id, <individual_id>" --forgeFile path/to/forgeFile -n new_package_name -o path/to/new_package_name 
+trident forge -d ... -d ... \
+  -f "*package_name*, group_id, <individual_id>" \
+  --forgeFile path/to/forgeFile \
+  -n new_package_name \
+  -o path/to/new_package_name 
 ```
 
 to combine all individuals from the package `*package_name*`, the population `group_id` and the one individual `<individual_id>` in a new package named with `-n` in the new directory `-o`. Of course the `-f/--forgeString` option can take an arbitrarily long string with entity names. This might become tedious soon, so as an alternative to `-f` entity names can also be supplied with an `--forgeFile`. This is a text file where each row is one `forgeString`.
