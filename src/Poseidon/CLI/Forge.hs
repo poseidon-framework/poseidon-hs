@@ -112,11 +112,24 @@ filterBibEntries samples references =
 
 extractEntityIndices :: ForgeRecipe -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities relevantPackages = do
-    let groupNames = [ group | ForgeGroup group <- entities]
+    let pacNames   = [ pac | ForgePac pac <- entities]
+        groupNames = [ group | ForgeGroup group <- entities]
         indNames   = [ ind   | ForgeInd   ind   <- entities]
-    allIndEntries <- fmap concat . mapM getIndividuals $ relevantPackages
-    let filterFunc (_, EigenstratIndEntry ind _ group) = ind `elem` indNames || group `elem` groupNames 
-    return . map fst . filter filterFunc . zip [0..] $ allIndEntries
+    let allPackageNames = map posPacTitle relevantPackages
+    allIndEntries <- mapM getIndividuals relevantPackages
+    let filterFunc (_ , pacName, EigenstratIndEntry ind _ group) = 
+            pacName `elem` pacNames || ind `elem` indNames || group `elem` groupNames
+    return $ map extractFirst $ filter filterFunc (zipGroup allPackageNames allIndEntries)
+
+extractFirst :: (a, b, c) -> a
+extractFirst (a,_,_) = a
+
+zipGroup :: [a] -> [[b]] -> [(Int,a,b)]
+zipGroup list nestedList =
+    let lenghtsNestedList = map length nestedList
+        listWithlenghtsNestedList = zip lenghtsNestedList list
+        longerA = map (uncurry replicate) listWithlenghtsNestedList
+    in zip3 [0..] (concat longerA) (concat nestedList)
 
 readEntitiesFromFile :: FilePath -> IO ForgeRecipe
 readEntitiesFromFile entitiesFile = do
