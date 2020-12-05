@@ -9,7 +9,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
   + [Poseidon package repositories](#poseidon-package-repositories)
   + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
   + [Inspection Commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
-  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`merge`](#merge-command), [`extract`](#extract-command)
+  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`forge`](#forge-command)
   + [Analysis Commands](#analysis-commands): [`fstats`](#fstats-command)
   + [Getting help](#getting-help)
 * [Development Quickstart](#development-quickstart)
@@ -217,13 +217,16 @@ and it will either report a success (`Validation passed ✓`) or failure with sp
 
 ### Package Creation and Manipulation Commands
 
-#### Merge Command
+#### Forge Command
+`forge` creates new poseidon packages by extracting and merging packages, populations and individuals from poseidon repositories.
 
-...
+`forge` can be used with
 
-#### Extract Command
+```
+trident forge -d ... -d ... -f "*package_name*, group_id, <individual_id>" --forgeFile path/to/forgeFile -n new_package_name -o path/to/new_package_name 
+```
 
-...
+to combine all individuals from the package `*package_name*`, the population `group_id` and the one individual `<individual_id>` in a new package named with `-n` in the new directory `-o`. Of course the `-f/--forgeString` option can take an arbitrarily long string with entity names. This might become tedious soon, so as an alternative to `-f` entity names can also be supplied with an `--forgeFile`. This is a text file where each row is one `forgeString`.
 
 ### Analysis Commands
 
