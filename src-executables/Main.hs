@@ -138,7 +138,7 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Right x -> Right x
 
 parseForgeEntitiesDirect :: OP.Parser [ForgeEntity]
-parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forge" <>
+parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.value [] <>
     OP.help "List of packages, groups or individual samples that should be in the newly forged package. \
