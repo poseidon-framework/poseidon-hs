@@ -339,7 +339,7 @@ replaceInJannoBytestring :: Bch.ByteString -> Bch.ByteString -> Bch.ByteString -
 replaceInJannoBytestring from to tsv =
     let tsvRows = Bch.lines tsv
         tsvCells = map (Bch.splitWith (=='\t')) tsvRows
-        tsvCellsUpdated = map (map (\y -> if y == from then to else y)) tsvCells
+        tsvCellsUpdated = map (map (\y -> if y == from || y == Bch.append from "\r" then to else y)) tsvCells
         tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
