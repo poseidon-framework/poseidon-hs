@@ -20,10 +20,10 @@ import           Poseidon.Utils             (PoseidonException(..),
 
 import           Control.Applicative        ((<|>))
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (when, forM)
+import           Control.Monad              (when, forM, unless)
 import           Data.Yaml                  (encodeFile)
 import           Data.Char                  (isSpace)
-import           Data.List                  (nub, sortOn, intersect)
+import           Data.List                  ((\\), nub, sortOn, intersect, intercalate)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
 import           Data.Time                  (UTCTime (..), getCurrentTime)
@@ -73,6 +73,20 @@ parseForgeEntity = parsePac <|> parseGroup <|> parseInd
     parseGroup = ForgeGroup <$> parseName
     parseInd   = ForgeInd   <$> P.between (P.char '<') (P.char '>') parseName
     parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
+
+findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
+findNonExistentEntities entities packages = do
+    inds <- concat <$> mapM getIndividuals packages
+    let titlesPac     = map posPacTitle packages
+        indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
+        groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
+    let titlesRequestedPacs = [ pac   | ForgePac   pac   <- entities]
+        groupNamesStats     = [ group | ForgeGroup group <- entities]
+        indNamesStats       = [ ind   | ForgeInd   ind   <- entities]
+    let missingPacs   = map ForgePac $ titlesRequestedPacs \\ titlesPac
+        missingInds   = map ForgeInd $ indNamesStats \\ indNamesPac
+        missingGroups = map ForgeGroup $ groupNamesStats \\ groupNamesPac
+    return $ missingPacs ++ missingInds ++ missingGroups
 
 filterPackages :: ForgeRecipe -> [PoseidonPackage] -> IO [PoseidonPackage]
 filterPackages entities packages = do
@@ -150,6 +164,12 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
     -- load packages --
     allPackages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
+    -- check for entities that do not exist this this dataset
+    nonExistentEntities <- findNonExistentEntities entities allPackages
+    unless (null nonExistentEntities) $
+        putStrLn $ "The following entities do not exist in this dataset and will be ignored: " ++
+        intercalate ", " (map show nonExistentEntities)
+    -- determine relevant packages
     relevantPackages <- filterPackages entities allPackages
     putStrLn $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     -- collect data --
