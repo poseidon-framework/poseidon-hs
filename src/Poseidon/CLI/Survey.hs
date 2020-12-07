@@ -57,11 +57,11 @@ renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> St
 renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibIsAlright) =
     take 40 (packageName ++ repeat ' ')
     ++ " "
-    ++ if genoTypeDataExists then "G" else "."
+    ++ (if genoTypeDataExists then "G" else ".")
     ++ "-"
     ++ maybe (replicate 35 '.') renderJannoCompleteness jannoSamples
     ++ "-"
-    ++ if bibIsAlright then "B" else "."
+    ++ (if bibIsAlright then "B" else ".")
 
 renderJannoCompleteness :: [PoseidonSample] -> String
 renderJannoCompleteness jS =
