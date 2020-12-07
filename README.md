@@ -218,7 +218,7 @@ and it will either report a success (`Validation passed ✓`) or failure with sp
 ### Package Creation and Manipulation Commands
 
 #### Forge Command
-`forge` creates new poseidon packages by extracting and merging packages, populations and individuals from poseidon repositories.
+`forge` creates new poseidon packages by extracting and merging packages, populations and individuals from your poseidon repositories.
 
 `forge` can be used with
 
@@ -230,7 +230,30 @@ trident forge -d ... -d ... \
   -o path/to/new_package_name 
 ```
 
-to combine all individuals from the package `*package_name*`, the population `group_id` and the one individual `<individual_id>` in a new package named with `-n` in the new directory `-o`. Of course the `-f/--forgeString` option can take an arbitrarily long string with entity names. This might become tedious soon, so as an alternative to `-f` entity names can also be supplied with an `--forgeFile`. This is a text file where each row is one `forgeString`.
+where the entities (packages, groups/populations, individuals/samples) you want in the output package can be denoted either as as simple string with comma-separated values (`-f`/`--forgeString`) or in a text file (`--forgeFile`). Entities have to be marked in a certain way: 
+
+- Each package is surrounded by `*`, so if you want all individuals of `2019_Jeong_InnerEurasia` in the output package you would add `*2019_Jeong_InnerEurasia*` to the list.
+- Groups/populations are not specially marked. So to get all individuals of the group `Swiss_Roman_period`, you would simply add `Swiss_Roman_period`.
+- Individuals/samples are surrounded by `<` and `>`, so `ALA026` becomes `<ALA026>`.
+
+You can either use `-f` or `--forgeFile` or even combine them. In the file each line is treated as a separate forge string, so the following files will yield identical results:
+
+```
+*package_name*, group_id, <individual_id>
+```
+
+```
+*package_name*, group_id
+<individual_id>
+```
+
+```
+*package_name*
+group_id
+<individual_id>
+```
+
+The output package of `forge` is created as a new directory `-o`, which should not already exist, and gets the name defined in `-n`.
 
 ### Analysis Commands
 
