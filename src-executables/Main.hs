@@ -6,8 +6,9 @@ import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         runFstats, runParser)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
-import           Poseidon.CLI.Forge     (runForge, ForgeOptions(..),
-                                        ForgeEntity(..), forgeEntitiesParser)
+import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
+import           Poseidon.ForgeRecipe   (ForgeEntity (..),
+                                        forgeEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)

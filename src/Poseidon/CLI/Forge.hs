@@ -1,10 +1,13 @@
 module Poseidon.CLI.Forge (
-    runForge, ForgeOptions(..), ForgeEntity(..), forgeEntitiesParser
+    runForge, ForgeOptions(..), ForgeEntity(..)
     ) where
 
 import           Poseidon.BibFile           (bibToSimpleMaybeList,
                                              writeBibTeXFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..), GenotypeFormatSpec (..))
+import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..), 
+                                             readEntitiesFromFile)
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
+                                             GenotypeFormatSpec (..))
 import           Poseidon.Janno             (jannoToSimpleMaybeList,
                                              PoseidonSample (..),
                                              writeJannoFile)
@@ -15,14 +18,10 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              loadPoseidonPackages,
                                              maybeLoadBibTeXFiles,
                                              maybeLoadJannoFiles)
-import           Poseidon.Utils             (PoseidonException(..),
-                                             renderPoseidonException)
+import           Poseidon.Utils             (PoseidonException(..))
 
-import           Control.Applicative        ((<|>))
-import           Control.Exception          (throwIO, try)
 import           Control.Monad              (when, forM, unless)
 import           Data.Yaml                  (encodeFile)
-import           Data.Char                  (isSpace)
 import           Data.List                  ((\\), nub, sortOn, intersect, intercalate)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
@@ -37,42 +36,15 @@ import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
-import qualified Text.Parsec                as P
-import qualified Text.Parsec.String         as P
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _jaBaseDirs :: [FilePath]
-    , _entityList :: [ForgeEntity]
+    , _entityList :: ForgeRecipe
     , _entityFile :: Maybe FilePath
     , _outPacPath :: FilePath
     , _outPacName :: String
     }
-
--- | A datatype to represent a package, a group or an individual
-data ForgeEntity = ForgePac String
-    | ForgeGroup String
-    | ForgeInd String
-    deriving (Eq)
-
-instance Show ForgeEntity where
-    show (ForgePac   n) = "*" ++ n ++ "*"
-    show (ForgeGroup n) = n
-    show (ForgeInd   n) = "<" ++ n ++ ">"
-
-type ForgeRecipe = [ForgeEntity]
-
--- | A parser to parse forge entities
-forgeEntitiesParser :: P.Parser ForgeRecipe
-forgeEntitiesParser = P.try (P.sepBy parseForgeEntity (P.char ',' <* P.spaces))
-
-parseForgeEntity :: P.Parser ForgeEntity
-parseForgeEntity = parsePac <|> parseGroup <|> parseInd
-  where
-    parsePac   = ForgePac   <$> P.between (P.char '*') (P.char '*') parseName
-    parseGroup = ForgeGroup <$> parseName
-    parseInd   = ForgeInd   <$> P.between (P.char '<') (P.char '>') parseName
-    parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
 findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
 findNonExistentEntities entities packages = do
@@ -144,14 +116,6 @@ zipGroup list nestedList =
         listWithlenghtsNestedList = zip lenghtsNestedList list
         longerA = map (uncurry replicate) listWithlenghtsNestedList
     in zip3 [0..] (concat longerA) (concat nestedList)
-
-readEntitiesFromFile :: FilePath -> IO ForgeRecipe
-readEntitiesFromFile entitiesFile = do
-    let multiEntityParser = forgeEntitiesParser `P.sepBy1` (P.newline *> P.spaces)
-    eitherParseResult <- P.parseFromFile (P.spaces *> multiEntityParser <* P.spaces) entitiesFile
-    case eitherParseResult of
-        Left err -> throwIO (PoseidonForgeEntityParsingException (show err))
-        Right r -> return (concat r)
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
