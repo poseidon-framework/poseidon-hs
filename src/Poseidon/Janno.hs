@@ -389,4 +389,4 @@ checkC14ColsConsistent x =
         (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
         && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)
         && lUncalBP == lUncalBPErr
-        && shouldBeTypeC14 == isTypeC14
+        && ((not shouldBeTypeC14) || isTypeC14)
