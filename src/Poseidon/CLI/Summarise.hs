@@ -69,8 +69,7 @@ summarisePoseidonSamples xs = do
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
 pasteFirstN _ [] = "no values"
-pasteFirstN n xs =
-    (L.intercalate ", " $ take n xs) ++ if (length xs > n) then ", ..." else ""
+pasteFirstN n xs = L.intercalate ", " (take n xs) ++ if length xs > n then ", ..." else ""
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double
@@ -90,12 +89,14 @@ stdev xs = sqrt . avg . map ((^2) . (-) (avg xs)) $ xs
 
 -- | A helper function to get a nice string with mean and sd for a list of doubles
 meanAndSdRoundTo :: Int -> [Double] -> String
-meanAndSdRoundTo n xs = (show $ roundTo n $ avg xs) ++ " ± " ++ (show $ roundTo n $ stdev xs)
+meanAndSdRoundTo _ [] = "no values"
+meanAndSdRoundTo n xs = show (roundTo n $ avg xs) ++ " ± " ++ show (roundTo n $ stdev xs)
 
 -- | A helper function to get a nice string with mean and sd for a list of doubles
 -- (here rounded to integer)
 meanAndSdInteger :: [Double] -> String
-meanAndSdInteger xs = (show $ round $ avg xs) ++ " ± " ++ (show $ round $ stdev xs)
+meanAndSdInteger [] = "no values"
+meanAndSdInteger xs = show (round $ avg xs) ++ " ± " ++ show (round $ stdev xs)
 
 -- | A helper function to determine the frequency of objects in a list
 -- (similar to the table function in R)
@@ -110,7 +111,8 @@ printFrequency sep (x:xs) = show (fst x) ++ ": " ++ show (snd x) ++ sep ++ print
 
 -- | A helper function to print the output of frequency over Maybe values nicely
 printFrequencyMaybe :: Show a => String -> [(Maybe a,Int)] -> String
-printFrequencyMaybe _ [] = ""
+printFrequencyMaybe _ [] = "no values"
+printFrequencyMaybe _ [(Nothing,_)] = "no values"
 printFrequencyMaybe _ [x] = maybeShow (fst x) ++ ": " ++ show (snd x)
 printFrequencyMaybe sep (x:xs) = maybeShow (fst x) ++ ": " ++ show (snd x) ++ sep ++ printFrequencyMaybe sep xs
 

@@ -38,7 +38,12 @@ import           System.Directory           (doesFileExist)
 
 instance Ord Sex where
     compare Female Male = GT
+    compare Male Female = LT
     compare Male Unknown = GT
+    compare Unknown Male = LT
+    compare Female Unknown = GT
+    compare Unknown Female = LT
+    compare _ _ = EQ
 
 instance Csv.FromField Sex where
     parseField x
