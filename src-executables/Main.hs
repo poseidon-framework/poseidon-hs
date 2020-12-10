@@ -4,6 +4,7 @@ import           Paths_poseidon_hs      (version)
 import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
+import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
