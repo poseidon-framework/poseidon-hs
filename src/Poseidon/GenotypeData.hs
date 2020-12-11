@@ -21,7 +21,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesFileExist)
-
+import           System.FilePath            (takeExtension)
 
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
@@ -89,6 +89,14 @@ compFunc1 (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ 
 compFunc2 :: (EigenstratSnpEntry, GenoLine) -> [(EigenstratSnpEntry, GenoLine)] -> Ordering
 compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _ _, _):_) = compare (c1, p1) (c2, p2)
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
+
+-- | Determine genotype format from geno files
+determineGenotypeFormat :: FilePath -> GenotypeFormatSpec
+determineGenotypeFormat inFile = 
+    let fileExtension = takeExtension inFile
+    in if fileExtension == ".geno" 
+       then GenotypeFormatEigenstrat
+       else GenotypeFormatPlink
 
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: GenotypeDataSpec -- ^ the Genotype spec

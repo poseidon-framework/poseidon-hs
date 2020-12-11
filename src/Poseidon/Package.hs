@@ -12,7 +12,8 @@ module Poseidon.Package (
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
-    getIndividuals
+    getIndividuals,
+    newPackageTemplate
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
@@ -30,8 +31,8 @@ import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (catMaybes)
-import           Data.Time                  (Day)
-import           Data.Version               (Version)
+import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
+import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           GHC.Generics               (Generic)
 import           Pipes                      (Producer)
@@ -203,6 +204,21 @@ getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -- ^ A list of poseid
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
 getJointGenotypeData = loadJointGenotypeData . map posPacGenotypeData
 
+-- | A function to create a dummy POSEIDON.yml file
+newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> IO PoseidonPackage
+newPackageTemplate n gd janno = do
+    (UTCTime today _) <- getCurrentTime
+    return PoseidonPackage {
+        posPacPoseidonVersion = makeVersion [2, 0, 1],
+        posPacTitle = n,
+        posPacDescription = Just "Empty package template. Please add a description",
+        posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
+        posPacLastModified = Just today,
+        posPacBibFile = Just "LITERATURE.bib",
+        posPacGenotypeData = gd,
+        posPacJannoFile = Just janno
+    }
+
 -- Janno file loading
 
 maybeLoadJannoFiles :: [PoseidonPackage] -> IO [Either PoseidonException [Either PoseidonException PoseidonSample]]
@@ -226,3 +242,4 @@ maybeLoadBibTeXFile pac = case posPacBibFile pac of
         throwIO $ PoseidonFileExistenceException
             (posPacTitle pac ++ ": Can't find .bib file path in the POSEIDON.yml")
     Just x  -> loadBibTeXFile x
+

@@ -17,7 +17,8 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              getJointGenotypeData,
                                              loadPoseidonPackages,
                                              maybeLoadBibTeXFiles,
-                                             maybeLoadJannoFiles)
+                                             maybeLoadJannoFiles,
+                                             newPackageTemplate)
 import           Poseidon.Utils             (PoseidonException(..))
 
 import           Control.Monad              (when, forM, unless)
@@ -25,9 +26,7 @@ import           Data.Yaml                  (encodeFile)
 import           Data.List                  ((\\), nub, sortOn, intersect, intercalate)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
-import           Data.Time                  (UTCTime (..), getCurrentTime)
 import qualified Data.Vector as V
-import           Data.Version               (makeVersion)
 import           Pipes                      (runEffect, (>->))
 import qualified Pipes.Prelude as P
 import           Pipes.Safe                 (runSafeT, throwM)
@@ -183,18 +182,3 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
-
-newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> IO PoseidonPackage
-newPackageTemplate n gd janno = do
-    (UTCTime today _) <- getCurrentTime
-    return PoseidonPackage {
-        posPacPoseidonVersion = makeVersion [2, 0, 1],
-        posPacTitle = n,
-        posPacDescription = Just "Empty package template. Please add a description",
-        posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
-        posPacLastModified = Just today,
-        posPacBibFile = Just "LITERATURE.bib",
-        posPacGenotypeData = gd,
-        posPacJannoFile = Just janno
-    }
-
