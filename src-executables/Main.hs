@@ -23,6 +23,7 @@ import           Text.Read              (readEither)
 
 
 data Options = CmdFstats FstatsOptions
+    | CmdInit InitOptions
     | CmdList ListOptions
     | CmdForge ForgeOptions
     | CmdSummarise SummariseOptions
@@ -34,6 +35,7 @@ main = do
     cmdOpts <- OP.execParser optParserInfo
     case cmdOpts of
         CmdFstats opts    -> runFstats opts
+        CmdInit opts      -> runInit opts
         CmdList opts      -> runList opts
         CmdForge opts     -> runForge opts
         CmdSummarise opts -> runSummarise opts
@@ -50,6 +52,7 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 optParser :: OP.Parser Options
 optParser = OP.subparser $
     OP.command "fstats" fstatsOptInfo <>
+    OP.command "init" initOptInfo <>
     OP.command "list" listOptInfo <>
     OP.command "forge" forgeOptInfo <>
     OP.command "summarise" summariseOptInfo <>
@@ -59,6 +62,8 @@ optParser = OP.subparser $
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "fstat: running fstats")
+    initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
+        (OP.progDesc "init: create a new package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
@@ -77,6 +82,13 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
                                 <*> OP.many parseStatSpecsDirect
                                 <*> parseStatSpecsFromFile
                                 <*> parseRawOutput
+
+initOptParser :: OP.Parser InitOptions
+initOptParser = InitOptions <$> parseInGenoFile
+                            <*> parseInSnpFile
+                            <*> parseInIndFile
+                            <*> parseOutPackagePath
+                            <*> parseOutPackageName
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
@@ -165,6 +177,18 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages"))
+
+parseInGenoFile :: OP.Parser FilePath
+parseInGenoFile = OP.strOption (OP.long "genoFile" <>
+    OP.help "the input geno file path")
+
+parseInSnpFile :: OP.Parser FilePath
+parseInSnpFile = OP.strOption (OP.long "snpFile" <>
+    OP.help "the input snp file path")
+
+parseInIndFile :: OP.Parser FilePath
+parseInIndFile = OP.strOption (OP.long "indFile" <>
+    OP.help "the input ind file path")
 
 parseOutPackagePath :: OP.Parser FilePath
 parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
