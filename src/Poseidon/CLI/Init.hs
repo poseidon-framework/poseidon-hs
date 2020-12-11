@@ -3,8 +3,7 @@ module Poseidon.CLI.Init (
     ) where
 
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
-                                             GenotypeFormatSpec (..),
-                                             determineGenotypeFormat)
+                                             GenotypeFormatSpec (..))
 import           Poseidon.Package           (newPackageTemplate)
 
 import           Data.Yaml                  (encodeFile)
@@ -12,7 +11,8 @@ import           System.Directory           (createDirectory, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName)
 
 data InitOptions = InitOptions
-    { _inGenoFile :: FilePath
+    { _inGenoFormat :: GenotypeFormatSpec
+    , _inGenoFile :: FilePath
     , _inSnpFile :: FilePath
     , _inIndFile :: FilePath
     , _outPacPath :: FilePath
@@ -20,22 +20,21 @@ data InitOptions = InitOptions
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions genoFile snpFile indFile outPath outName) = do
+runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     -- create new directory
     createDirectory outPath
     -- compile new paths
-    let outInd = outPath </> takeFileName genoFile
-        outSnp = outPath </> takeFileName snpFile
-        outGeno = outPath </> takeFileName indFile
-        outPosYml = outPath </> "POSEIDON.yml"
-        outJanno = outPath </> (outName <.> "janno")
-        outBib = outPath <.> "sources.bib"
+    let outInd = takeFileName genoFile
+        outSnp = takeFileName snpFile
+        outGeno = takeFileName indFile
+        outPosYml = "POSEIDON.yml"
+        outJanno = outName <.> "janno"
+        outBib = "sources.bib"
     -- POSEIDON.yml
-    let genotypeFormat = determineGenotypeFormat outGeno
-        genotypeData = GenotypeDataSpec genotypeFormat outGeno outSnp outInd
+    let genotypeData = GenotypeDataSpec format outGeno outSnp outInd
     pac <- newPackageTemplate outName genotypeData outJanno
     encodeFile outPosYml pac
     -- copy genotype files --
-    copyFile genoFile outInd
-    copyFile snpFile outSnp
-    copyFile indFile outGeno
+    copyFile genoFile $ outPath </> outInd
+    copyFile snpFile $ outPath </> outSnp
+    copyFile indFile $ outPath </> outGeno

@@ -4,6 +4,7 @@ import           Paths_poseidon_hs      (version)
 import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
+import           Poseidon.GenotypeData  (GenotypeFormatSpec (..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
@@ -84,7 +85,8 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
                                 <*> parseRawOutput
 
 initOptParser :: OP.Parser InitOptions
-initOptParser = InitOptions <$> parseInGenoFile
+initOptParser = InitOptions <$> parseInGenotypeFormat
+                            <*> parseInGenoFile
                             <*> parseInSnpFile
                             <*> parseInIndFile
                             <*> parseOutPackagePath
@@ -177,6 +179,16 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages"))
+
+parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
+parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
+    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK") 
+    where
+    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
+    readGenotypeFormat s = case s of
+        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
+        "PLINK"      -> Right GenotypeFormatPlink
+        _            -> Left s
 
 parseInGenoFile :: OP.Parser FilePath
 parseInGenoFile = OP.strOption (OP.long "genoFile" <>
