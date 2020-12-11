@@ -161,8 +161,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         outGeno = outName <.> "eigenstrat.geno"
         genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
         outJanno = outName <.> "janno"
+        outBib = outName <.> "bib"
     -- POSEIDON.yml
-    pac <- newPackageTemplate outName genotypeData outJanno
+    pac <- newPackageTemplate outName genotypeData outJanno outBib
     encodeFile (outPath </> "POSEIDON.yml") pac
     -- janno
     writeJannoFile (outPath </> outJanno) relevantJannoRows

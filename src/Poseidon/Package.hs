@@ -205,8 +205,8 @@ getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -- ^ A list of poseid
 getJointGenotypeData = loadJointGenotypeData . map posPacGenotypeData
 
 -- | A function to create a dummy POSEIDON.yml file
-newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> IO PoseidonPackage
-newPackageTemplate n gd janno = do
+newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> FilePath -> IO PoseidonPackage
+newPackageTemplate n gd janno bib = do
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
         posPacPoseidonVersion = makeVersion [2, 0, 1],
@@ -214,7 +214,7 @@ newPackageTemplate n gd janno = do
         posPacDescription = Just "Empty package template. Please add a description",
         posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
         posPacLastModified = Just today,
-        posPacBibFile = Just "LITERATURE.bib",
+        posPacBibFile = Just bib,
         posPacGenotypeData = gd,
         posPacJannoFile = Just janno
     }

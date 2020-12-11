@@ -27,13 +27,15 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     let outInd = takeFileName genoFile
         outSnp = takeFileName snpFile
         outGeno = takeFileName indFile
-        outPosYml = "POSEIDON.yml"
+        genotypeData = GenotypeDataSpec format outGeno outSnp outInd
         outJanno = outName <.> "janno"
-        outBib = "sources.bib"
+        outBib = outName <.> "bib"
     -- POSEIDON.yml
-    let genotypeData = GenotypeDataSpec format outGeno outSnp outInd
-    pac <- newPackageTemplate outName genotypeData outJanno
-    encodeFile outPosYml pac
+    pac <- newPackageTemplate outName genotypeData outJanno outBib
+    encodeFile (outPath </> "POSEIDON.yml") pac
+    -- janno
+    
+    -- bib
     -- copy genotype files --
     copyFile genoFile $ outPath </> outInd
     copyFile snpFile $ outPath </> outSnp

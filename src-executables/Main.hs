@@ -188,7 +188,7 @@ parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long 
     readGenotypeFormat s = case s of
         "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
         "PLINK"      -> Right GenotypeFormatPlink
-        _            -> Left s
+        _            -> Left "must be EIGENSTRAT or PLINK"
 
 parseInGenoFile :: OP.Parser FilePath
 parseInGenoFile = OP.strOption (OP.long "genoFile" <>
