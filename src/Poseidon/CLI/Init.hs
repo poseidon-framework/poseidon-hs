@@ -43,7 +43,7 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     copyFile snpFile $ outPath </> outSnp
     copyFile genoFile $ outPath </> outGeno
     -- janno (needs the genotype files!)
-    new_package <- readPoseidonPackage outPath
+    new_package <- readPoseidonPackage $ outPath </> "POSEIDON.yml"
     indEntries <- getIndividuals new_package
     let jannoRows = createMinimalSamplesList indEntries
     writeJannoFile (outPath </> outJanno) jannoRows
