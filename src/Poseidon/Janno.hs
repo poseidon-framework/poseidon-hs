@@ -17,6 +17,7 @@ module Poseidon.Janno (
     jannoToSimpleMaybeList,
     writeJannoFile,
     loadJannoFile,
+    createMinimalSamplesList
 ) where
 
 import           Poseidon.Utils             (PoseidonException (..))
@@ -33,7 +34,8 @@ import           Data.Either.Combinators    (rightToMaybe)
 import           Data.List                  (intercalate, nub)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
-import           SequenceFormats.Eigenstrat (Sex (..))
+import           SequenceFormats.Eigenstrat (Sex (..),
+                                             EigenstratIndEntry (..))
 import           System.Directory           (doesFileExist)
 
 instance Ord Sex where
@@ -350,6 +352,52 @@ replaceInJannoBytestring from to tsv =
 
 jannoToSimpleMaybeList :: [Either PoseidonException [Either PoseidonException PoseidonSample]] -> [Maybe [PoseidonSample]]
 jannoToSimpleMaybeList = map (maybe Nothing (\x -> if all isRight x then Just (rights x) else Nothing) . rightToMaybe)
+
+-- | A function to create empty janno rows for a set of individuals
+createMinimalSamplesList :: [EigenstratIndEntry] -> [PoseidonSample]
+createMinimalSamplesList = map createMinimalSample 
+
+-- | A function to create an empty janno row for an individual
+createMinimalSample :: EigenstratIndEntry -> PoseidonSample
+createMinimalSample (EigenstratIndEntry id sex pop) = 
+    PoseidonSample
+        { posSamIndividualID      = id
+        , posSamCollectionID      = Nothing
+        , posSamSourceTissue      = Nothing
+        , posSamCountry           = Nothing
+        , posSamLocation          = Nothing
+        , posSamSite              = Nothing
+        , posSamLatitude          = Nothing
+        , posSamLongitude         = Nothing
+        , posSamDateC14Labnr      = Nothing
+        , posSamDateC14UncalBP    = Nothing
+        , posSamDateC14UncalBPErr = Nothing
+        , posSamDateBCADMedian    = Nothing
+        , posSamDateBCADStart     = Nothing
+        , posSamDateBCADStop      = Nothing
+        , posSamDateType          = Nothing
+        , posSamNrLibraries       = Nothing
+        , posSamDataType          = Nothing
+        , posSamGenotypePloidy    = Nothing
+        , posSamGroupName         = [pop]
+        , posSamGeneticSex        = sex
+        , posSamNrAutosomalSNPs   = Nothing
+        , posSamCoverage1240K     = Nothing
+        , posSamMTHaplogroup      = Nothing
+        , posSamYHaplogroup       = Nothing
+        , posSamEndogenous        = Nothing
+        , posSamUDG               = Nothing
+        , posSamLibraryBuilt      = Nothing
+        , posSamDamage            = Nothing
+        , posSamNuclearContam     = Nothing
+        , posSamNuclearContamErr  = Nothing
+        , posSamMTContam          = Nothing
+        , posSamMTContamErr       = Nothing
+        , posSamPrimaryContact    = Nothing
+        , posSamPublication       = Nothing
+        , posSamComments          = Nothing
+        , posSamKeywords          = Nothing
+    }
 
 -- Janno consistency checks
 

@@ -2,9 +2,13 @@ module Poseidon.CLI.Init (
     runInit, InitOptions (..),
     ) where
 
+import           Poseidon.BibFile           (writeBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
                                              GenotypeFormatSpec (..))
-import           Poseidon.Package           (newPackageTemplate)
+import           Poseidon.Janno             (createMinimalSamplesList, 
+                                             writeJannoFile)
+import           Poseidon.Package           (newPackageTemplate,
+                                             getIndividuals)
 
 import           Data.Yaml                  (encodeFile)
 import           System.Directory           (createDirectory, copyFile)
@@ -23,20 +27,23 @@ runInit :: InitOptions -> IO ()
 runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     -- create new directory
     createDirectory outPath
-    -- compile new paths
-    let outInd = takeFileName genoFile
+    -- compile file names
+    let outInd = takeFileName indFile
         outSnp = takeFileName snpFile
-        outGeno = takeFileName indFile
+        outGeno = takeFileName genoFile
         genotypeData = GenotypeDataSpec format outGeno outSnp outInd
         outJanno = outName <.> "janno"
         outBib = outName <.> "bib"
     -- POSEIDON.yml
     pac <- newPackageTemplate outName genotypeData outJanno outBib
     encodeFile (outPath </> "POSEIDON.yml") pac
-    -- janno
-    
-    -- bib
-    -- copy genotype files --
-    copyFile genoFile $ outPath </> outInd
+    -- genotype data
+    copyFile indFile $ outPath </> outInd
     copyFile snpFile $ outPath </> outSnp
-    copyFile indFile $ outPath </> outGeno
+    copyFile genoFile $ outPath </> outGeno
+    -- janno (needs the genotype files!)
+    indEntries <- getIndividuals pac
+    let jannoRows = createMinimalSamplesList indEntries
+    writeJannoFile (outPath </> outJanno) jannoRows
+    -- bib
+    writeBibTeXFile (outPath </> outBib) []

@@ -165,10 +165,6 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
     -- POSEIDON.yml
     pac <- newPackageTemplate outName genotypeData outJanno outBib
     encodeFile (outPath </> "POSEIDON.yml") pac
-    -- janno
-    writeJannoFile (outPath </> outJanno) relevantJannoRows
-    -- bib
-    writeBibTeXFile (outPath </> "LITERATURE.bib") relevantBibEntries
     -- genotype data
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
@@ -180,6 +176,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
+    -- janno
+    writeJannoFile (outPath </> outJanno) relevantJannoRows
+    -- bib
+    writeBibTeXFile (outPath </> outBib) relevantBibEntries
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
