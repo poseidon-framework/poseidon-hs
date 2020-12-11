@@ -8,20 +8,18 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 * [Guide for the command line utility](#guide-for-the-command-line-utility)
   + [Poseidon package repositories](#poseidon-package-repositories)
   + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
-  + [Inspection Commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
-  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`forge`](#forge-command)
-  + [Analysis Commands](#analysis-commands): [`fstats`](#fstats-command)
+  + [Package creation and manipulation commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`forge`](#forge-command)
+  + [Inspection commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
+  + [Analysis commands](#analysis-commands): [`fstats`](#fstats-command)
   + [Getting help](#getting-help)
 * [Development Quickstart](#development-quickstart)
 
 ## Installation Quickstart
 
-(For DAG-Members: `trident` is already available on the cluster)
-
 1. Install the Haskell build tool [Stack](https://docs.haskellstack.org/en/stable/README/)
 2. Clone the repository
-3. If you're a developer and would like to run teh tests, execute `stack test` inside the repository to build and run tests. This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
-4. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path)
+3. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path). This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
+4. If you're a developer and would like to run the tests, execute `stack test` inside the repository to build and run tests.
 
 ## Guide for the command line utility
 
@@ -65,7 +63,7 @@ Being able to specify one or multiple repositories is often not enough, as you m
 ~/my_project/my_project.ind
 ```
 
-then you can make that to a skeleton Poseidon package with the [`init`](#init-command) module. You can also do it manually by simply adding a `POSEIDON.yml` file, with the following content:
+then you can make that to a skeleton Poseidon package with the [`init`](#init-command) command. You can also do it manually by simply adding a `POSEIDON.yml` file, with the following content:
 
 ```
 poseidonVersion: 2.0.1
@@ -96,9 +94,74 @@ trident list -d /path/to/poseidon/packages/modern \
   -d ~/my_project --packages
 ```
 
-### Inspection Commands
+### Package creation and manipulation commands
 
-#### List Command
+#### Init command
+`init` creates a new, valid poseidon package from genotype data files. It adds a valid `POSEIDON.yml` file, a dummy .janno file for context information and an empty .bib file for literature references.
+
+The command
+
+```
+trident init \
+  --inFormat genotype_data_format \
+  --genoFile path/to/geno_file \
+  --snpFile path/to/snp_file \
+  --indFile path/to/ind_file \
+  -n new_package_name \
+  -o path/to/new_package_name
+```
+
+requires the format (`--inFormat`) of your input data (either `EIGENSTRAT` or `PLINK`) and the paths to the respective files in `--genoFile`, `--snpFile` and `--indFile`.
+
+|          | EIGENSTRAT | PLINK |
+|----------|------------|-------|
+| genoFile | .geno      | .bed  |
+| snpFile  | .snp       | .bim  |
+| indFile  | .ind       | .fam  |
+
+The output package of `init` is created as a new directory `-o`, which should not already exist, and gets the name defined in `-n`.
+
+#### Forge command
+`forge` creates new poseidon packages by extracting and merging packages, populations and individuals from your poseidon repositories.
+
+`forge` can be used with
+
+```
+trident forge -d ... -d ... \
+  -f "*package_name*, group_id, <individual_id>" \
+  --forgeFile path/to/forgeFile \
+  -n new_package_name \
+  -o path/to/new_package_name
+```
+
+where the entities (packages, groups/populations, individuals/samples) you want in the output package can be denoted either as as simple string with comma-separated values (`-f`/`--forgeString`) or in a text file (`--forgeFile`). Entities have to be marked in a certain way: 
+
+- Each package is surrounded by `*`, so if you want all individuals of `2019_Jeong_InnerEurasia` in the output package you would add `*2019_Jeong_InnerEurasia*` to the list.
+- Groups/populations are not specially marked. So to get all individuals of the group `Swiss_Roman_period`, you would simply add `Swiss_Roman_period`.
+- Individuals/samples are surrounded by `<` and `>`, so `ALA026` becomes `<ALA026>`.
+
+You can either use `-f` or `--forgeFile` or even combine them. In the file each line is treated as a separate forge string, so the following files will yield identical results:
+
+```
+*package_name*, group_id, <individual_id>
+```
+
+```
+*package_name*, group_id
+<individual_id>
+```
+
+```
+*package_name*
+group_id
+<individual_id>
+```
+
+Just as for `init` the output package of `forge` is created as a new directory `-o` and gets the name defined in `-n`.
+
+### Inspection commands
+
+#### List command
 `list` lists packages, groups and individuals of the datasets you use.
 
 To list packages, as seen above you run
@@ -163,7 +226,7 @@ Example output:
 
 which lists all individuals with their package, group and individual name.
 
-#### Summarise Command
+#### Summarise command
 `summarise` prints some general summary statistics for a given poseidon dataset taken from the .janno files.
 
 You can run it with
@@ -174,7 +237,7 @@ trident summarise -d ... -d ...
 
 which will show you context information like -- among others -- the number of samples in the dataset, its sex distribution, the mean age of the samples (for ancient data) or the mean coverage on the 1240K SNP array. `summarise` depends on complete .janno files and will silently ignore missing information for some statistics.
 
-#### Survey Command
+#### Survey command
 `survey` tries to indicate package completeness for poseidon datasets. 
 
 Running
@@ -196,7 +259,7 @@ will yield a table with one row for each package. Completeness is encoded with t
   - `B`: BibTeX file is present
   - `.`: BibTeX file is missing
 
-#### Validate Command
+#### Validate command
 `validate` checks poseidon datasets for structural correctness. 
 
 You can run it with
@@ -215,74 +278,9 @@ and it will either report a success (`Validation passed ✓`) or failure with sp
 - Correspondence of BibTeX keys in .bib and .janno
 - Correspondence of individual and group IDs in .janno and genotype data files
 
-### Package Creation and Manipulation Commands
+### Analysis commands
 
-#### Init Command
-`init` creates a new, valid poseidon package from genotype data files. It adds a valid `POSEIDON.yml` file, a dummy .janno file for context information and an empty .bib file for literature references.
-
-The command
-
-```
-trident init \
-  --inFormat genotype_data_format \
-  --genoFile path/to/geno_file \
-  --snpFile path/to/snp_file \
-  --indFile path/to/ind_file \
-  -n new_package_name \
-  -o path/to/new_package_name
-```
-
-requires the format (`--inFormat`) of your input data (either `EIGENSTRAT` or `PLINK`) and the paths to the respective files in `--genoFile`, `--snpFile` and `--indFile`.
-
-|          | EIGENSTRAT | PLINK |
-|----------|------------|-------|
-| genoFile | .geno      | .bed  |
-| snpFile  | .snp       | .bim  |
-| indFile  | .ind       | .fam  |
-
-The output package of `init` is created as a new directory `-o`, which should not already exist, and gets the name defined in `-n`.
-
-#### Forge Command
-`forge` creates new poseidon packages by extracting and merging packages, populations and individuals from your poseidon repositories.
-
-`forge` can be used with
-
-```
-trident forge -d ... -d ... \
-  -f "*package_name*, group_id, <individual_id>" \
-  --forgeFile path/to/forgeFile \
-  -n new_package_name \
-  -o path/to/new_package_name
-```
-
-where the entities (packages, groups/populations, individuals/samples) you want in the output package can be denoted either as as simple string with comma-separated values (`-f`/`--forgeString`) or in a text file (`--forgeFile`). Entities have to be marked in a certain way: 
-
-- Each package is surrounded by `*`, so if you want all individuals of `2019_Jeong_InnerEurasia` in the output package you would add `*2019_Jeong_InnerEurasia*` to the list.
-- Groups/populations are not specially marked. So to get all individuals of the group `Swiss_Roman_period`, you would simply add `Swiss_Roman_period`.
-- Individuals/samples are surrounded by `<` and `>`, so `ALA026` becomes `<ALA026>`.
-
-You can either use `-f` or `--forgeFile` or even combine them. In the file each line is treated as a separate forge string, so the following files will yield identical results:
-
-```
-*package_name*, group_id, <individual_id>
-```
-
-```
-*package_name*, group_id
-<individual_id>
-```
-
-```
-*package_name*
-group_id
-<individual_id>
-```
-
-Just as for `init` the output package of `forge` is created as a new directory `-o` and gets the name defined in `-n`.
-
-### Analysis Commands
-
-#### Fstats Command
+#### Fstats command
 
 Trident allows you to analyse genotype data across poseidon packages, including your own, as explained above by "hooking" in your own package via a `--baseDir` (or `-d`) parameter. This has the advantage that you can compute arbitrary F-Statistics across groups and individuals distributed in many packages, without the need to explicitly merge the data. Trident also takes care of merging PLINK and EIGENSTRAT data on the fly. It also takes care of different genotype base sets, like Human-Origins vs. 1240K. It also flips alleles automatically across genotype files, and throws an error if the alleles in different packages are incongruent with each other. Trident is also smart enough to select only the packages relevant for the statistics that you need, and then streams through only those genotype data.
 
