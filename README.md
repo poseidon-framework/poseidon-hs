@@ -9,7 +9,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
   + [Poseidon package repositories](#poseidon-package-repositories)
   + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
   + [Inspection Commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
-  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`forge`](#forge-command)
+  + [Package Creation and Manipulation Commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`forge`](#forge-command)
   + [Analysis Commands](#analysis-commands): [`fstats`](#fstats-command)
   + [Getting help](#getting-help)
 * [Development Quickstart](#development-quickstart)
@@ -26,7 +26,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 ## Guide for the command line utility
 
 ### Poseidon package repositories
-Trident generally requires Poseidon datasets to work with. All trident subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `trident <subcommand> -d /path/to/poseidon/dirs/` and `trident` would automatically search all subdirectories inside of the repository for valid poseidon packages.
+Trident generally requires Poseidon datasets to work with. Most trident subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `trident <subcommand> -d /path/to/poseidon/dirs/` and `trident` would automatically search all subdirectories inside of the repository for valid poseidon packages.
 
 We typically recommend arranging a poseidon repository in a hierarchical way. For example:
 
@@ -65,7 +65,7 @@ Being able to specify one or multiple repositories is often not enough, as you m
 ~/my_project/my_project.ind
 ```
 
-then you can make that to a skeleton Poseidon package by simply adding a `POSEIDON.yml` file, with the following content:
+then you can make that to a skeleton Poseidon package with the [`init`](#init-command) module. You can also do it manually by simply adding a `POSEIDON.yml` file, with the following content:
 
 ```
 poseidonVersion: 2.0.1
@@ -84,7 +84,7 @@ genotypeData:
 jannoFile: my_project.janno
 ```
 
-Two remarks: 1) all file paths are considered _relative_ to the directory in which `POSEIDON.yml` resides. Here I assume that you put this file into the same directory as the three genotype files. 2) There are two files referenced by this `POSEIDON.yml` file that aren't yet there: `sources.bib` and `my_project.janno`. That means that this is not a fully valid Poseidon package. However, `trident` will still accept this (it won't even look for these files) as long as the genotype files are there and in the right format.
+Two remarks: 1) all file paths are considered _relative_ to the directory in which `POSEIDON.yml` resides. Here I assume that you put this file into the same directory as the three genotype files. 2) There are two files referenced by this `POSEIDON.yml` file that aren't yet there: `sources.bib` and `my_project.janno`. That means that this is not a fully valid Poseidon package. However, `trident` will still accept this as long as the genotype files are there and in the right format.
 
 Note that at the time of this writing, `trident` supports `EIGENSTRAT` and `PLINK` as formats.
 
@@ -217,6 +217,31 @@ and it will either report a success (`Validation passed ✓`) or failure with sp
 
 ### Package Creation and Manipulation Commands
 
+#### Init Command
+`init` creates a new, valid poseidon package from genotype data files. It adds a valid `POSEIDON.yml` file, a dummy .janno file for context information and an empty .bib file for literature references.
+
+The command
+
+```
+trident init \
+  --inFormat genotype_data_format \
+  --genoFile path/to/geno_file \
+  --snpFile path/to/snp_file \
+  --indFile path/to/ind_file \
+  -n new_package_name \
+  -o path/to/new_package_name
+```
+
+requires the format (`--inFormat`) of your input data (either `EIGENSTRAT` or `PLINK`) and the paths to the respective files in `--genoFile`, `--snpFile` and `--indFile`.
+
+|          | EIGENSTRAT | PLINK |
+|----------|------------|-------|
+| genoFile | .geno      | .bed  |
+| snpFile  | .snp       | .bim  |
+| indFile  | .ind       | .fam  |
+
+The output package of `init` is created as a new directory `-o`, which should not already exist, and gets the name defined in `-n`.
+
 #### Forge Command
 `forge` creates new poseidon packages by extracting and merging packages, populations and individuals from your poseidon repositories.
 
@@ -227,7 +252,7 @@ trident forge -d ... -d ... \
   -f "*package_name*, group_id, <individual_id>" \
   --forgeFile path/to/forgeFile \
   -n new_package_name \
-  -o path/to/new_package_name 
+  -o path/to/new_package_name
 ```
 
 where the entities (packages, groups/populations, individuals/samples) you want in the output package can be denoted either as as simple string with comma-separated values (`-f`/`--forgeString`) or in a text file (`--forgeFile`). Entities have to be marked in a certain way: 
@@ -253,7 +278,7 @@ group_id
 <individual_id>
 ```
 
-The output package of `forge` is created as a new directory `-o`, which should not already exist, and gets the name defined in `-n`.
+Just as for `init` the output package of `forge` is created as a new directory `-o` and gets the name defined in `-n`.
 
 ### Analysis Commands
 
