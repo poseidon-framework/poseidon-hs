@@ -65,8 +65,9 @@ testFilterJannoFiles =
     describe "Poseidon.CLI.Forge.filterJannoFiles" $ do
     it "should select all relevant individuals" $ do
         ps <- loadPoseidonPackages testBaseDir
-        let namesPs = map posPacTitle ps
-        jFs <- maybeLoadJannoFiles ps
+        rps <- filterPackages goodEntities ps
+        let namesPs = map posPacTitle rps
+        jFs <- maybeLoadJannoFiles rps
         let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
         let jRs = filterJannoFiles goodEntities $ zip namesPs gJrs
         map posSamIndividualID jRs `shouldMatchList` [
@@ -80,8 +81,9 @@ testFilterJannoFiles =
             ]
     it "should drop all irrelevant individuals" $ do
         ps <- loadPoseidonPackages testBaseDir
-        let namesPs = map posPacTitle ps
-        jFs <- maybeLoadJannoFiles ps
+        rps <- filterPackages badEntities ps
+        let namesPs = map posPacTitle rps
+        jFs <- maybeLoadJannoFiles rps
         let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
         let jRs = filterJannoFiles badEntities $ zip namesPs gJrs
         jRs `shouldBe` []
