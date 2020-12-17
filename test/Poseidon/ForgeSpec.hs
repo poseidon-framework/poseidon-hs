@@ -1,10 +1,14 @@
 module Poseidon.ForgeSpec (spec) where
 
 import           Poseidon.CLI.Forge
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             loadPoseidonPackages)
 import           Poseidon.ForgeRecipe       (ForgeEntity (..), 
                                              ForgeRecipe (..))
+import           Poseidon.Janno             (jannoToSimpleMaybeList, PoseidonSample (..))
+import           Poseidon.Package           (PoseidonPackage (..),
+                                             loadPoseidonPackages,
+                                             maybeLoadJannoFiles)
+
+import           Data.Maybe                 (catMaybes)
 import           Test.Hspec
 import           Text.RawString.QQ
 
@@ -59,8 +63,28 @@ testFilterPackages =
 testFilterJannoFiles :: Spec
 testFilterJannoFiles = 
     describe "Poseidon.CLI.Forge.filterJannoFiles" $ do
-    it "should " $ do
-        1 `shouldBe` 1
+    it "should select all relevant individuals" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        let namesPs = map posPacTitle ps
+        jFs <- maybeLoadJannoFiles ps
+        let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
+        let jRs = filterJannoFiles goodEntities $ zip namesPs gJrs
+        map posSamIndividualID jRs `shouldMatchList` [
+                -- Schiffels 2016
+                "XXX001", "XXX002", "XXX003", "XXX004", "XXX005",
+                "XXX006", "XXX007", "XXX008", "XXX009", "XXX010",
+                -- Lamnidis 2018
+                "XXX011", "XXX013", "XXX017", "XXX019",
+                -- Wang 2020
+                "SAMPLE3"
+            ]
+    it "should drop all irrelevant individuals" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        let namesPs = map posPacTitle ps
+        jFs <- maybeLoadJannoFiles ps
+        let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
+        let jRs = filterJannoFiles badEntities $ zip namesPs gJrs
+        jRs `shouldBe` []
 
 testFilterBibEntries :: Spec
 testFilterBibEntries = 
