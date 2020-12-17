@@ -19,7 +19,6 @@ spec = do
     testFindNonExistentEntities
     testFilterPackages
     testFilterJannoFiles
-    testFilterBibEntries
     testExtractEntityIndices
 
 testBaseDir :: [FilePath]
@@ -90,12 +89,6 @@ testFilterJannoFiles =
         let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
         let jRs = filterJannoFiles badEntities $ zip namesPs gJrs
         jRs `shouldBe` []
-
-testFilterBibEntries :: Spec
-testFilterBibEntries = 
-    describe "Poseidon.CLI.Forge.filterBibEntries" $ do
-    it "should select all relevant references" $ do
-        1 `shouldBe` 1
 
 testExtractEntityIndices :: Spec
 testExtractEntityIndices = 
