@@ -25,8 +25,8 @@ goodEntities = [
         ForgeInd "SAMPLE3"
     ]
 
-withBadEntities :: ForgeRecipe
-withBadEntities = [
+badEntities :: ForgeRecipe
+badEntities = [
         ForgePac "Schiffels_2015",
         ForgeGroup "foo",
         ForgeInd "bar"
@@ -35,20 +35,26 @@ withBadEntities = [
 testFindNonExistentEntities :: Spec
 testFindNonExistentEntities = 
     describe "Poseidon.CLI.Forge.findNonExistentEntities" $ do
-        it "should ignore good entities" $ do
-            ps <- loadPoseidonPackages testBaseDir
-            g <- findNonExistentEntities goodEntities ps  
-            g `shouldBe` []
-        it "should find bad entities" $ do
-            ps <- loadPoseidonPackages testBaseDir
-            g <- findNonExistentEntities withBadEntities ps  
-            g `shouldMatchList` withBadEntities
+    it "should ignore good entities" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        ents <- findNonExistentEntities goodEntities ps  
+        ents `shouldBe` []
+    it "should find bad entities" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        ents <- findNonExistentEntities badEntities ps  
+        ents `shouldMatchList` badEntities
 
 testFilterPackages :: Spec
 testFilterPackages = 
     describe "Poseidon.CLI.Forge.filterPackages" $ do
-    it "should " $ do
-        1 `shouldBe` 1
+    it "should select all relevant packages" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        pacs <- filterPackages goodEntities ps  
+        map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_Plink_test_2020", "Lamnidis_2018"]
+    it "should drop all irrelevant packages" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        pacs <- filterPackages badEntities ps
+        pacs `shouldBe` []
 
 testFilterJannoFiles :: Spec
 testFilterJannoFiles = 
