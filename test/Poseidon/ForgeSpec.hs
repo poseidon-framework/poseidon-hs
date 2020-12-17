@@ -3,12 +3,15 @@ module Poseidon.ForgeSpec (spec) where
 import           Poseidon.CLI.Forge
 import           Poseidon.ForgeRecipe       (ForgeEntity (..), 
                                              ForgeRecipe (..))
-import           Poseidon.Janno             (jannoToSimpleMaybeList, PoseidonSample (..))
+import           Poseidon.Janno             (jannoToSimpleMaybeList, 
+                                             PoseidonSample (..),
+                                             createMinimalSamplesList)
 import           Poseidon.Package           (PoseidonPackage (..),
                                              loadPoseidonPackages,
                                              maybeLoadJannoFiles)
 
 import           Data.Maybe                 (catMaybes)
+import           Text.CSL                   (Reference (..) )
 import           Test.Hspec
 import           Text.RawString.QQ
 
@@ -91,11 +94,17 @@ testFilterJannoFiles =
 testFilterBibEntries :: Spec
 testFilterBibEntries = 
     describe "Poseidon.CLI.Forge.filterBibEntries" $ do
-    it "should " $ do
+    it "should select all relevant references" $ do
         1 `shouldBe` 1
 
 testExtractEntityIndices :: Spec
 testExtractEntityIndices = 
     describe "Poseidon.CLI.Forge.extractEntityIndices" $ do
-    it "should " $ do
-        1 `shouldBe` 1
+    it "should select all relevant individuals" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        indInts <- extractEntityIndices goodEntities ps  
+        indInts `shouldMatchList` [0, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23]
+    it "should drop all irrelevant individuals" $ do
+        ps <- loadPoseidonPackages testBaseDir
+        indInts <- extractEntityIndices badEntities ps
+        indInts `shouldBe` []
