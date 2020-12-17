@@ -1,6 +1,4 @@
-module Poseidon.CLI.Forge (
-    runForge, ForgeOptions(..), ForgeEntity(..)
-    ) where
+module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile           (bibToSimpleMaybeList,
                                              writeBibTeXFile)
