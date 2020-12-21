@@ -2,12 +2,14 @@
 
 module Poseidon.CLI.Summarise (runSummarise, SummariseOptions(..)) where
 
-import           Control.Monad    (when)
-import qualified Data.List        as L
-import           Data.Maybe       (catMaybes, isJust, mapMaybe)
-import           Poseidon.Janno   (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
-import           Poseidon.Package (loadPoseidonPackages, maybeLoadJannoFiles)
-import           System.IO        (hPutStrLn, stderr)
+import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
+
+import           Control.Monad          (when)
+import           Data.List              (nub, group, sort, intercalate)
+import           Data.Maybe             (catMaybes, isJust, mapMaybe)
+import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
+import           Poseidon.Package       (loadPoseidonPackages, maybeLoadJannoFiles)
+import           System.IO              (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -41,20 +43,20 @@ summarisePoseidonSamples xs = do
     putStrLn $ "Sex distribution:\t" ++
                 printFrequency ", " (frequency (map posSamGeneticSex xs))
     putStrLn $ "Populations:\t\t" ++
-                pasteFirstN 2 (L.nub $ map (head . posSamGroupName) xs)
+                pasteFirstN 2 (nub $ map (head . posSamGroupName) xs)
     putStrLn $ "Publications:\t\t" ++
-                pasteFirstN 2 (L.nub $ mapMaybe posSamPublication xs)
+                pasteFirstN 2 (nub $ mapMaybe posSamPublication xs)
     putStrLn $ "Countries:\t\t" ++
-                pasteFirstN 5 (L.nub $ mapMaybe posSamCountry xs)
+                pasteFirstN 5 (nub $ mapMaybe posSamCountry xs)
     putStrLn $ "Mean age BC/AD:\t\t" ++
                meanAndSdInteger (map fromIntegral (mapMaybe posSamDateBCADMedian xs))
     putStrLn $ "Dating type:\t\t" ++
                 printFrequencyMaybe ", " (frequency (map posSamDateType xs))
     putStrLn "---"
     putStrLn $ "MT haplogroups:\t\t" ++
-                pasteFirstN 5 (L.nub $ mapMaybe posSamMTHaplogroup xs)
+                pasteFirstN 5 (nub $ mapMaybe posSamMTHaplogroup xs)
     putStrLn $ "Y haplogroups:\t\t" ++
-                pasteFirstN 5 (L.nub $ mapMaybe posSamYHaplogroup xs)
+                pasteFirstN 5 (nub $ mapMaybe posSamYHaplogroup xs)
     putStrLn $ "% endogenous human DNA:\t" ++
                 meanAndSdRoundTo 2 (map (\(Percent x) -> x) (mapMaybe posSamEndogenous xs))
     putStrLn $ "# of SNPs on 1240K:\t" ++
@@ -69,39 +71,12 @@ summarisePoseidonSamples xs = do
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
 pasteFirstN _ [] = "no values"
-pasteFirstN n xs = L.intercalate ", " (take n xs) ++ if length xs > n then ", ..." else ""
-
--- | A helper function to calculate the mean of a list of doubles
-avg :: [Double] -> Double
-avg xs = let sum_ = L.foldl' (+) 0 xs
-         in sum_ / fromIntegral (length xs)
-
--- | A helper function to round doubles
-roundTo :: Int -> Double -> Double
-roundTo n x = fromIntegral val / t
-  where
-    val = floor (x * t) :: Int
-    t = 10^n
-
--- | A helper function to calculate the standard deviation of a list of doubles
-stdev :: [Double] -> Double
-stdev xs = sqrt . avg . map ((^2) . (-) (avg xs)) $ xs
-
--- | A helper function to get a nice string with mean and sd for a list of doubles
-meanAndSdRoundTo :: Int -> [Double] -> String
-meanAndSdRoundTo _ [] = "no values"
-meanAndSdRoundTo n xs = show (roundTo n $ avg xs) ++ " ± " ++ show (roundTo n $ stdev xs)
-
--- | A helper function to get a nice string with mean and sd for a list of doubles
--- (here rounded to integer)
-meanAndSdInteger :: [Double] -> String
-meanAndSdInteger [] = "no values"
-meanAndSdInteger xs = show (round $ avg xs) ++ " ± " ++ show (round $ stdev xs)
+pasteFirstN n xs = intercalate ", " (take n xs) ++ if length xs > n then ", ..." else ""
 
 -- | A helper function to determine the frequency of objects in a list
 -- (similar to the table function in R)
 frequency :: Ord a => [a] -> [(a,Int)]
-frequency list = map (\l -> (head l, length l)) (L.group (L.sort list))
+frequency list = map (\l -> (head l, length l)) (group (sort list))
 
 -- | A helper function to print the output of frequency nicely
 printFrequency :: Show a => String -> [(a,Int)] -> String
