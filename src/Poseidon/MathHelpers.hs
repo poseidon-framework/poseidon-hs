@@ -4,7 +4,6 @@ import          Data.List        (foldl')
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double
---avg [] = 0/0
 avg xs = let sum_ = foldl' (+) 0 xs
          in sum_ / fromIntegral (length xs)
 
@@ -12,7 +11,7 @@ avg xs = let sum_ = foldl' (+) 0 xs
 roundTo :: Int -> Double -> Double
 roundTo n x = fromIntegral val / t
   where
-    val = floor (x * t) :: Int
+    val = round (x * t) :: Int
     t = 10^n
 
 -- | A helper function to calculate the standard deviation of a list of doubles
