@@ -2,14 +2,13 @@ module Poseidon.MathHelpersSpec (spec) where
 
 import           Poseidon.MathHelpers
 
-import           Data.Vector            (fromList)
-import           Statistics.Sample      (mean)
 import           Test.Hspec
 import           Test.QuickCheck
 
 spec = do
     testAvg
     testRoundTo
+    testStdev
 
 testAvg :: Spec
 testAvg = 
@@ -41,5 +40,16 @@ testRoundTo =
     where
         test :: Int -> Double -> Bool
         test i x = abs (x - roundTo i x) <= (10**(-(fromIntegral i)))
+
+testStdev :: Spec
+testStdev = 
+    describe "Poseidon.MathHelpers.stdev" $ do
+    it "should calculate the sd correctly for single element lists" $ do
+        stdev [1] `shouldBe` 0.0
+    it "should calculate the sd correctly for normal lists" $ do
+        roundTo 2 (stdev [1,2,3,4]) `shouldBe` 1.12
+    it "should calculate the sd correctly for lists with negative values" $ do
+        stdev [-1,1] `shouldBe` 1.0
+
 
 
