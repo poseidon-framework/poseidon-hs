@@ -43,6 +43,6 @@ Test-Suite poseidon-tools-tests
                        raw-strings-qq, yaml, time, stringsearch, transformers,
                        pandoc-citeproc, text
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
-                       Poseidon.BibFileSpec, Poseidon.ForgeSpec
+                       Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec
   default-language:    Haskell2010
 
