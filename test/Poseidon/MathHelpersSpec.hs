@@ -20,12 +20,16 @@ testAvg =
         test [] = True 
         test x = minimum x <= avg x && maximum x >= avg x
 
+genSmallCounts :: Gen Int
+genSmallCounts = choose (0, 10)
+
 testRoundTo :: Spec
 testRoundTo = 
     describe "Poseidon.MathHelpers.roundTo" $ do
-    it "should always round to the desired precision" $ property test
+    it "should always round to the desired precision" $ 
+        property $ forAll genSmallCounts test
     where
         test :: Int -> Double -> Bool
-        test _ x = abs (x - roundTo 3 x ) < 0.001
+        test i x = abs (x - roundTo i x) <= (10**(-(fromIntegral i)))
 
 
