@@ -4,6 +4,7 @@ import          Data.List        (foldl')
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double
+--avg [] = 0/0
 avg xs = let sum_ = foldl' (+) 0 xs
          in sum_ / fromIntegral (length xs)
 

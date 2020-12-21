@@ -41,7 +41,8 @@ Test-Suite poseidon-tools-tests
   hs-source-dirs:      test
   build-depends:       base, hspec, poseidon-hs, bytestring,
                        raw-strings-qq, yaml, time, stringsearch, transformers,
-                       pandoc-citeproc, text
+                       pandoc-citeproc, text, QuickCheck, statistics,
+                       vector
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec
   default-language:    Haskell2010

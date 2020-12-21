@@ -2,7 +2,10 @@ module Poseidon.MathHelpersSpec (spec) where
 
 import           Poseidon.MathHelpers
 
+import           Data.Vector            (fromList)
+import           Statistics.Sample      (mean)
 import           Test.Hspec
+import           Test.QuickCheck
 
 spec = do
     testAvg
@@ -10,10 +13,10 @@ spec = do
 testAvg :: Spec
 testAvg = 
     describe "Poseidon.MathHelpers.avg" $ do
-    it "should calculate the mean correctly for single element lists" $ do
-        avg [1] `shouldBe` 1
-    it "should calculate the mean correctly for normal lists" $ do
-        avg [1,2,3,4] `shouldBe` 2.5
-    it "should calculate the mean correctly for lists with negative values" $ do
-        avg [-1,1] `shouldBe` 0
+    it "should always be within the range of the input list" $ property test
+        where 
+            test :: [Double] -> Bool
+            test [] = True 
+            test x = minimum x <= avg x && maximum x >= avg x
+                       
 
