@@ -47,36 +47,48 @@ main = do
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (OP.briefDesc <>
-    OP.progDesc "trident is an analysis tool for poseidon databases.")
+    OP.progDesc "trident is an analysis tool for Poseidon databases")
 
 versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser Options
-optParser = OP.subparser $
-    OP.command "fstats" fstatsOptInfo <>
-    OP.command "init" initOptInfo <>
-    OP.command "list" listOptInfo <>
-    OP.command "forge" forgeOptInfo <>
-    OP.command "summarise" summariseOptInfo <>
-    OP.command "survey" surveyOptInfo <>
-    OP.command "validate" validateOptInfo
+optParser = OP.subparser (
+        OP.command "list" listOptInfo <>
+        OP.command "summarise" summariseOptInfo <>
+        OP.command "survey" surveyOptInfo <>
+        OP.command "validate" validateOptInfo <>
+        OP.commandGroup "Package inspection commands:"
+    ) <|>
+    OP.subparser (
+        OP.command "init" initOptInfo <>
+        OP.command "forge" forgeOptInfo <>
+        OP.commandGroup "Package manipulation commands:"
+    ) <|>
+    OP.subparser (
+        OP.command "fstats" fstatsOptInfo <>
+        OP.commandGroup "Analysis commands:"
+    )
+
+
+    
+    
 
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
-        (OP.progDesc "Run fstats")
+        (OP.progDesc "Run fstats on groups and invidiuals within and across Poseidon packages")
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
-        (OP.progDesc "Create a new package from genotype data")
+        (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
-        (OP.progDesc "List packages, groups or individuals available in the specified packages")
+        (OP.progDesc "List packages, groups or individuals")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
-        (OP.progDesc "Forge the specified entities and create a new package")
+        (OP.progDesc "Select packages, groups or individuals and create a new Poseidon package from them")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
-        (OP.progDesc "Get an overview over the content of one or multiple packages")
+        (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
-        (OP.progDesc "Survey the degree of completeness of package information")
+        (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
-        (OP.progDesc "Check one or multiple packages for structural correctness")
+        (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
 fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths
@@ -180,7 +192,7 @@ parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
-    OP.help "a base directory to search for Poseidon Packages"))
+    OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
