@@ -64,19 +64,19 @@ optParser = OP.subparser $
 
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
-        (OP.progDesc "fstat: running fstats")
+        (OP.progDesc "Run fstats")
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
-        (OP.progDesc "init: create a new package from genotype data")
+        (OP.progDesc "Create a new package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
-        (OP.progDesc "list: list packages, groups or individuals available in the specified packages")
+        (OP.progDesc "List packages, groups or individuals available in the specified packages")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
-        (OP.progDesc "forge: forge the specified entities and create a new package")
+        (OP.progDesc "Forge the specified entities and create a new package")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
-        (OP.progDesc "summarise: get an overview over the content of one or multiple packages")
+        (OP.progDesc "Get an overview over the content of one or multiple packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
-        (OP.progDesc "survey: survey the degree of completeness of package information")
+        (OP.progDesc "Survey the degree of completeness of package information")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
-        (OP.progDesc "validate: check one or multiple packages for structural correctness")
+        (OP.progDesc "Check one or multiple packages for structural correctness")
 
 fstatsOptParser :: OP.Parser FstatsOptions
 fstatsOptParser = FstatsOptions <$> parseBasePaths
