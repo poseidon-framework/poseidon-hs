@@ -33,7 +33,7 @@ data Options = CmdFstats FstatsOptions
 
 main :: IO ()
 main = do
-    cmdOpts <- OP.execParser optParserInfo
+    cmdOpts <- OP.customExecParser p optParserInfo
     case cmdOpts of
         CmdFstats opts    -> runFstats opts
         CmdInit opts      -> runInit opts
@@ -42,6 +42,8 @@ main = do
         CmdSummarise opts -> runSummarise opts
         CmdSurvey opts    -> runSurvey opts
         CmdValidate opts  -> runValidate opts
+    where
+        p = OP.prefs OP.showHelpOnEmpty
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (OP.briefDesc <>
