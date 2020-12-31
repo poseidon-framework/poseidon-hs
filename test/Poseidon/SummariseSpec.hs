@@ -65,5 +65,7 @@ testPrintFrequencyMaybe =
 testMaybeShow :: Spec
 testMaybeShow = 
     describe "Poseidon.CLI.Summarise.maybeShow" $ do
-    it "should" $ do
-        1 `shouldBe` 1
+    it "should show a in case of Maybe a" $ do
+        maybeShow (Just "test") `shouldBe` "\"test\""
+    it "should show \"n/a\" in case of Nothing" $ do
+        maybeShow (Nothing :: Maybe Int) `shouldBe` "n/a"
