@@ -80,7 +80,7 @@ frequency list = map (\l -> (head l, length l)) (group (sort list))
 
 -- | A helper function to print the output of frequency nicely
 printFrequency :: Show a => String -> [(a,Int)] -> String
-printFrequency _ [] = ""
+printFrequency _ [] = "no values"
 printFrequency _ [x] = show (fst x) ++ ": " ++ show (snd x)
 printFrequency sep (x:xs) = show (fst x) ++ ": " ++ show (snd x) ++ sep ++ printFrequency sep xs
 

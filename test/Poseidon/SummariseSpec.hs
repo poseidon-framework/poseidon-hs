@@ -38,8 +38,14 @@ testFrequency =
 testPrintFrequency :: Spec
 testPrintFrequency = 
     describe "Poseidon.CLI.Summarise.printFrequency" $ do
-    it "should" $ do
-        1 `shouldBe` 1
+    it "should deal with an empty list correctly" $ do
+        printFrequency ":-)" ([] :: [(Int, Int)]) `shouldBe` "no values"
+    it "should display frequencies correctly for strings" $ do
+        printFrequency ", " (frequency ["ab", "bc", "cd", "cd", "ab"]) `shouldBe` 
+            "\"ab\": 2, \"bc\": 1, \"cd\": 2"
+    it "should display frequencies correctly for integers" $ do
+        printFrequency " | " (frequency [1, 2, 3, 1, 1]) `shouldBe` 
+            "1: 3 | 2: 1 | 3: 1"
 
 testPrintFrequencyMaybe :: Spec
 testPrintFrequencyMaybe = 
