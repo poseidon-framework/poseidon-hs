@@ -1,6 +1,6 @@
 module Poseidon.SummariseSpec (spec) where
 
-import Poseidon.CLI.Summarise ()
+import Poseidon.CLI.Summarise
 
 import           Test.Hspec
 
@@ -14,8 +14,14 @@ spec = do
 testPasteFirstN :: Spec
 testPasteFirstN = 
     describe "Poseidon.CLI.Summarise.pasteFirstN" $ do
-    it "should" $ do
-        1 `shouldBe` 1
+    it "should concat 1/1 correctly" $ do
+        pasteFirstN 1 ["a"] `shouldBe` "a"
+    it "should concat 2/1 correctly" $ do
+        pasteFirstN 2 ["a"] `shouldBe` "a"
+    it "should concat 1/2 correctly" $ do
+        pasteFirstN 1 ["a", "b"] `shouldBe` "a, ..."
+    it "should concat 2/2 correctly" $ do
+        pasteFirstN 2 ["a", "b"] `shouldBe` "a, b"
 
 testFrequency :: Spec
 testFrequency = 

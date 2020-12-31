@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CLI.Summarise (runSummarise, SummariseOptions(..)) where
+module Poseidon.CLI.Summarise where
 
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
 

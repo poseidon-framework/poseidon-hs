@@ -1,6 +1,6 @@
 module Poseidon.ValidateSpec (spec) where
 
-import Poseidon.CLI.Validate ()
+import Poseidon.CLI.Validate
 
 import           Test.Hspec
 
