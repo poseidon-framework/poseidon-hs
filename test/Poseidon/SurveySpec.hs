@@ -1,6 +1,6 @@
 module Poseidon.SurveySpec (spec) where
 
-import Poseidon.CLI.Survey ()
+import Poseidon.CLI.Survey
 
 import           Test.Hspec
 
