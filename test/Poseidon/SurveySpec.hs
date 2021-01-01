@@ -1,28 +1,34 @@
 module Poseidon.SurveySpec (spec) where
 
-import Poseidon.CLI.Survey
+import           Poseidon.CLI.Survey
+import           Poseidon.Janno
+import           Poseidon.Package
 
+import           Data.Either         (rights)
+import           Data.Maybe          (catMaybes)
 import           Test.Hspec
 
 spec = do
-    testRenderPackageWithCompleteness
     testRenderJannoCompleteness
-    testAllNothing
 
-testRenderPackageWithCompleteness :: Spec
-testRenderPackageWithCompleteness = 
-    describe "Poseidon.CLI.Survey.renderPackageWithCompleteness" $ do
-    it "should" $ do
-        1 `shouldBe` 1
+testJannoNormal :: FilePath
+testJannoNormal = "test/testDat/testJannoFiles/normal.janno"
+
+testJannoMinimal :: FilePath
+testJannoMinimal = "test/testDat/testJannoFiles/minimal.janno"
 
 testRenderJannoCompleteness :: Spec
 testRenderJannoCompleteness = 
     describe "Poseidon.CLI.Survey.renderJannoCompleteness" $ do
-    it "should" $ do
-        1 `shouldBe` 1
-
-testAllNothing :: Spec
-testAllNothing = 
-    describe "Poseidon.CLI.Survey.allNothing" $ do
-    it "should" $ do
-        1 `shouldBe` 1
+    it "should work for a full janno file" $ do
+        eJRs <- loadJannoFile testJannoNormal
+        let jRs = rights eJRs
+        renderJannoCompleteness jRs 
+            `shouldBe` 
+            "MXXXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXX"
+    it "should work for a minimum janno file" $ do
+        eJRs <- loadJannoFile testJannoMinimal
+        let jRs = rights eJRs
+        renderJannoCompleteness jRs 
+            `shouldBe`
+            "M.................MM..............."
