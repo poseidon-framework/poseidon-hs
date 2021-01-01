@@ -26,9 +26,21 @@ testRenderMismatch =
             `shouldBe` 
             "(a = b)\n(b = c)\n(c = d)\n(d = e)\n(e = f)\n(f = g)\
             \\n(g = h)\n(h = i)\n(i = j)\n(j = k)\n..."
+    it "should fill missing values with ?" $ do
+        renderMismatch 
+            ["a", "b", "c"] 
+            ["d"] 
+            `shouldBe`
+            "(a = d)\n(b = ?)\n(c = ?)"
 
 testZipWithPadding :: Spec
 testZipWithPadding = 
     describe "Poseidon.CLI.Validate.zipWithPadding" $ do
-    it "should" $ do
-        1 `shouldBe` 1
+    it "should zip normally for lists of equal length" $ do
+        zipWithPadding "?" "!" ["a", "b"] ["c", "d"] `shouldBe` [("a", "c"), ("b", "d")]
+    it "should fill for empty lists" $ do
+        zipWithPadding "?" "!" ["a"] [] `shouldBe` [("a", "!")]
+    it "should fill empty elements right" $ do
+        zipWithPadding "?" "!" ["a", "b"] ["c"] `shouldBe` [("a", "c"), ("b", "!")]
+    it "should fill empty elements left" $ do
+        zipWithPadding "?" "!" ["a"] ["b", "c"] `shouldBe` [("a", "b"), ("?", "c")]
