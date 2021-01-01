@@ -82,6 +82,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
     when (anyJannoIssues || anyBibIssues) $
         putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
     -- create new package --
+    putStrLn $ "Creating new package directory: " ++ outPath
     createDirectory outPath
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
@@ -90,9 +91,17 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         outJanno = outName <.> "janno"
         outBib = outName <.> "bib"
     -- POSEIDON.yml
+    putStrLn "Compiling POSEIDON.yml"
     pac <- newPackageTemplate outName genotypeData outJanno outBib
     encodeFile (outPath </> "POSEIDON.yml") pac
+    -- janno
+    putStrLn "Compiling .janno file"
+    writeJannoFile (outPath </> outJanno) relevantJannoRows
+    -- bib
+    putStrLn "Compiling .bib file"
+    writeBibTeXFile (outPath </> outBib) relevantBibEntries
     -- genotype data
+    putStrLn "Compiling genotype data"
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
@@ -103,10 +112,6 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
-    -- janno
-    writeJannoFile (outPath </> outJanno) relevantJannoRows
-    -- bib
-    writeBibTeXFile (outPath </> outBib) relevantBibEntries
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
