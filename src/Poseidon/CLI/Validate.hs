@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CLI.Validate (runValidate, ValidateOptions(..)) where
+module Poseidon.CLI.Validate where
 
 import           Poseidon.Package   (getIndividuals,
                                      loadPoseidonPackages, 

@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.CLI.Survey (runSurvey, SurveyOptions(..)) where
+module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile      (bibToSimpleMaybeList)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
