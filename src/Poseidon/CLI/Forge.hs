@@ -25,9 +25,9 @@ import           Data.List                  ((\\), nub, sortOn, intersect, inter
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
 import qualified Data.Vector as V
-import           Pipes                      (runEffect, (>->))
+import           Pipes                      (MonadIO(liftIO), runEffect, (>->), await, yield, lift, Pipe (..))
 import qualified Pipes.Prelude as P
-import           Pipes.Safe                 (runSafeT, throwM)
+import           Pipes.Safe                 (runSafeT, throwM, SafeT (..))
 import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
@@ -110,11 +110,28 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
             throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
-        runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
-            writeEigenstrat outG outS outI newEigenstratIndEntries
+        runEffect $ eigenstratProd >-> 
+            -- printCurrent >->
+            P.map (selectIndices indices) >->
+            writeEigenstrat outG outS outI newEigenstratIndEntries -- >->
+            -- progress (length eigenstratIndEntries)
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
+
+-- printCurrent :: Pipe a a (SafeT IO) ()
+-- printCurrent = do
+--     liftIO $ putStrLn ""
+--     x <- await
+--     yield x
+
+-- progress l = loop 0
+--   where
+--     loop n = do
+--         liftIO $ print n
+--         x <- await
+--         yield x
+--         loop (n+1)
 
 findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
 findNonExistentEntities entities packages = do
