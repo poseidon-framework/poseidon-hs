@@ -111,27 +111,21 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
             throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> 
-            -- printCurrent >->
+            printProgress 100  >->
             P.map (selectIndices indices) >->
-            writeEigenstrat outG outS outI newEigenstratIndEntries -- >->
-            -- progress (length eigenstratIndEntries)
+            writeEigenstrat outG outS outI newEigenstratIndEntries
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
 
--- printCurrent :: Pipe a a (SafeT IO) ()
--- printCurrent = do
---     liftIO $ putStrLn ""
---     x <- await
---     yield x
-
--- progress l = loop 0
---   where
---     loop n = do
---         liftIO $ print n
---         x <- await
---         yield x
---         loop (n+1)
+printProgress :: Int -> Pipe a a (SafeT IO) ()
+printProgress l = loop 0
+  where
+    loop n = do
+        liftIO $ putStrLn  (show n ++ " of " ++ show l)
+        x <- await
+        yield x
+        loop (n+1)
 
 findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
 findNonExistentEntities entities packages = do
