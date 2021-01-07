@@ -115,7 +115,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
             printProgress >->
             P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
-        liftIO $ putStr " Done"
+        liftIO clearLine
+        liftIO $ setCursorColumn 0
+        liftIO $ putStrLn "SNPs processed: All done"
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
