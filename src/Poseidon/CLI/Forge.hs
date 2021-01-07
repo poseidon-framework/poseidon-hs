@@ -29,6 +29,7 @@ import           Pipes                      (MonadIO(liftIO), runEffect, (>->), 
 import qualified Pipes.Prelude as P
 import           Pipes.Safe                 (runSafeT, throwM, SafeT (..))
 import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
+import           System.Console.ANSI        (clearLine, setCursorColumn)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
@@ -111,18 +112,21 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
             throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> 
-            printProgress 100  >->
+            printProgress >->
             P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
+        liftIO $ putStrLn ""
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
 
-printProgress :: Int -> Pipe a a (SafeT IO) ()
-printProgress l = loop 0
+printProgress :: Pipe a a (SafeT IO) ()
+printProgress = loop 0
   where
     loop n = do
-        liftIO $ putStrLn  (show n ++ " of " ++ show l)
+        liftIO clearLine
+        liftIO $ setCursorColumn 0
+        liftIO $ putStr ("SNPs processed: " ++ show n)
         x <- await
         yield x
         loop (n+1)
