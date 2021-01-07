@@ -32,7 +32,7 @@ import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry
 import           System.Console.ANSI        (clearLine, setCursorColumn)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr)
+import           System.IO                  (hPutStrLn, stderr, hFlush, stdout)
 import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
 
 -- | A datatype representing command line options for the survey command
@@ -115,7 +115,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
             printProgress >->
             P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
-        liftIO $ putStrLn "All SNPs are processed"
+        liftIO $ putStr " Done"
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
@@ -124,10 +124,11 @@ printProgress :: Pipe a a (SafeT IO) ()
 printProgress = loop 0
   where
     loop n = do
-        when (n `mod` 1000 == 0) $ do
-            liftIO $ putStr ("SNPs processed: " ++ show n)
+        when (n `rem` 1000 == 0) $ do
             liftIO clearLine
             liftIO $ setCursorColumn 0
+            liftIO $ putStr ("SNPs processed: " ++ show n)
+            liftIO $ hFlush stdout
         x <- await
         yield x
         loop (n+1)
