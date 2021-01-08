@@ -4,6 +4,7 @@ description: Genetic data published in Wang et al. 2020, Plink test
 contributor:
   - name: Ke Wang
     email: wang@institute.org
+packageVersion: 0.1.0
 lastModified: 2020-05-20
 bibFile: sources.bib
 genotypeData:

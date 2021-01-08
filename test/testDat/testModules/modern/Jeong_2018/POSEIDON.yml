@@ -4,6 +4,7 @@ description: Modern Genetic data published in Jeong et al. 2018
 contributor:
   - name: Stephan Schiffels
     email: schiffels@institute.org
+packageVersion: 1.0.0
 lastModified: 2018-06-19
 bibFile: sources.bib
 genotypeData:

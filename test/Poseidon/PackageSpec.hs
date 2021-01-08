@@ -43,6 +43,7 @@ description: Genetic data published in Schiffels et al. 2016
 contributor:
   - name: Stephan Schiffels
     email: schiffels@institute.org
+packageVersion: 1.0.0
 lastModified: 2020-02-28
 bibFile: sources.bib
 genotypeData:
@@ -64,6 +65,7 @@ truePackageRelPaths = PoseidonPackage {
     posPacTitle           = "Schiffels_2016",
     posPacDescription     = Just "Genetic data published in Schiffels et al. 2016",
     posPacContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    posPacPackageVersion  = Just $ makeVersion [1, 0, 0],
     posPacLastModified    = Just $ fromGregorian 2020 2 28,
     posPacBibFile         = Just "sources.bib",
     posPacGenotypeData    = GenotypeDataSpec {
@@ -81,6 +83,7 @@ truePackageAbsPaths = PoseidonPackage {
     posPacTitle           = "Schiffels_2016",
     posPacDescription     = Just "Genetic data published in Schiffels et al. 2016",
     posPacContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    posPacPackageVersion  = Just $ makeVersion [1, 0, 0],
     posPacLastModified    = Just $ fromGregorian 2020 2 28,
     posPacBibFile         = Just "/tmp/sources.bib",
     posPacGenotypeData    = GenotypeDataSpec {
@@ -104,8 +107,12 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         show err `shouldBe` "AesonException \"Error in $.lastModified: could not parse date: endOfInput\""
     let yamlPackage2 = replace "2.0.1" "1.0.0sss" yamlPackage
         (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
-    it "should give error with incorrect version string" $ do
+    it "should give error with incorrect poseidonVersion string" $ do
         show err `shouldBe` "AesonException \"Error in $.poseidonVersion: parsing Version failed\""
+    let yamlPackage2 = replace "1.0.0" "a.b.c" yamlPackage
+        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+    it "should give error with incorrect packageVersion string" $ do
+        show err `shouldBe` "AesonException \"Error in $.packageVersion: parsing Version failed\""
     let yamlPackage2 = replace "bibFile: sources.bib\n" "" yamlPackage
         (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
     it "should give Nothing for missing bibFile" $ do

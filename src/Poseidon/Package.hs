@@ -56,6 +56,8 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the optional description string of the package
     , posPacContributor     :: [ContributorSpec]
     -- ^ the contributor(s) of the package
+    , posPacPackageVersion  :: Maybe Version
+    -- ^ the optional version of the package
     , posPacLastModified    :: Maybe Day
     -- ^ the optional date of last update
     , posPacBibFile         :: Maybe FilePath
@@ -74,6 +76,7 @@ instance FromJSON PoseidonPackage where
         <*> v .:   "title"
         <*> v .:?  "description"
         <*> v .:   "contributor"
+        <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
         <*> v .:?  "bibFile"
         <*> v .:   "genotypeData"
@@ -86,6 +89,7 @@ instance ToJSON PoseidonPackage where
         "title" .= posPacTitle x,
         "description" .= posPacDescription x,
         "contributor" .= posPacContributor x,
+        "packageVersion" .= posPacPackageVersion x,
         "lastModified" .= posPacLastModified x,
         "bibFile" .= posPacBibFile x,
         "genotypeData" .= posPacGenotypeData x,
@@ -184,13 +188,13 @@ filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn 
         if length pacs == 1
         then return (head pacs)
         else
-            let maybeDates = map posPacLastModified pacs
-            in  if (length . nub . catMaybes) maybeDates == length maybeDates -- all dates need to be given and be unique
+            let maybeVersions = map posPacPackageVersion pacs
+            in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all dates need to be given and be unique
                 then
-                    return . last . sortOn posPacLastModified $ pacs
+                    return . last . sortOn posPacPackageVersion $ pacs
                 else
                     let t   = posPacTitle (head pacs)
-                        msg = "duplicate package with missing lastModified field: " ++ t
+                        msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
 -- | A function to return a list of all individuals in the genotype files of a package.
@@ -213,6 +217,7 @@ newPackageTemplate n gd janno bib = do
         posPacTitle = n,
         posPacDescription = Just "Empty package template. Please add a description",
         posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
+        posPacPackageVersion = Just $ makeVersion [0, 1, 0],
         posPacLastModified = Just today,
         posPacBibFile = Just bib,
         posPacGenotypeData = gd,
