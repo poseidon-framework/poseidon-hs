@@ -191,7 +191,8 @@ filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
         actualChecksums <- makeChecksumListForPackage pac
         if isNothing encodedChecksums || encodedChecksums == actualChecksums
         then return $ Right pac
-        else return $ Left $ PoseidonPackageException $ posPacTitle pac ++ ": Checksums do not match\n" ++
+        else return $ Left $ PoseidonPackageException $ posPacTitle pac ++
+          ": Checksums do not match (left: POSEIDON.yml, right: actual checksum)\n" ++
           if isJust encodedChecksums && isJust actualChecksums
           then renderCheckSumComparison (fromJust encodedChecksums) (fromJust actualChecksums)
           else ""

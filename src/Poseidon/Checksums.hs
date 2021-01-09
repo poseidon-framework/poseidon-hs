@@ -52,11 +52,11 @@ instance Eq ChecksumListSpec where
 
 renderCheckSumComparison :: ChecksumListSpec -> ChecksumListSpec -> String
 renderCheckSumComparison (ChecksumListSpec g1 s1 i1 j1 b1) (ChecksumListSpec g2 s2 i2 j2 b2) =
-    let gLine = if g1 /= g2 then "genoFile:  "  ++ maybeShow g1 ++ " <> " ++ maybeShow g2 ++ "\n" else ""
-        sLine = if s1 /= s2 then "snpFile:   "   ++ maybeShow s1 ++ " <> " ++ maybeShow s2 ++ "\n" else ""
-        iLine = if i1 /= i2 then "indFile:   "   ++ maybeShow i1 ++ " <> " ++ maybeShow i2 ++ "\n" else ""
-        jLine = if j1 /= j2 then "jannoFile: " ++ maybeShow j1 ++ " <> " ++ maybeShow j2 ++ "\n" else ""
-        bLine = if b1 /= b2 then "bibFile:   "   ++ maybeShow b1 ++ " <> " ++ maybeShow b2 ++ "\n" else ""
+    let gLine = if g1 /= g2 then "genoFile  "  ++ maybeShow g1 ++ " <> " ++ maybeShow g2 ++ "\n" else ""
+        sLine = if s1 /= s2 then "snpFile   "   ++ maybeShow s1 ++ " <> " ++ maybeShow s2 ++ "\n" else ""
+        iLine = if i1 /= i2 then "indFile   "   ++ maybeShow i1 ++ " <> " ++ maybeShow i2 ++ "\n" else ""
+        jLine = if j1 /= j2 then "jannoFile " ++ maybeShow j1 ++ " <> " ++ maybeShow j2 ++ "\n" else ""
+        bLine = if b1 /= b2 then "bibFile   "   ++ maybeShow b1 ++ " <> " ++ maybeShow b2 ++ "\n" else ""
     in gLine ++ sLine ++ iLine ++ jLine ++ bLine
 
 -- | A helper function to unwrap a maybe
