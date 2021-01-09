@@ -2,6 +2,7 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.PackageSpec (spec) where
 
+import           Poseidon.Checksums        (ChecksumListSpec (..), makeChecksumList)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFormatSpec (..))
 import           Poseidon.Package          (ContributorSpec (..),
@@ -74,7 +75,8 @@ truePackageRelPaths = PoseidonPackage {
         snpFile  = "Schiffels_2016.bim",
         indFile  = "Schiffels_2016.fam"
     },
-    posPacJannoFile       = Just "Schiffels_2016.janno"
+    posPacJannoFile       = Just "Schiffels_2016.janno",
+    posPacChecksumList    = Nothing
 }
 
 truePackageAbsPaths :: PoseidonPackage
@@ -92,9 +94,9 @@ truePackageAbsPaths = PoseidonPackage {
         snpFile  = "/tmp/Schiffels_2016.bim",
         indFile  = "/tmp/Schiffels_2016.fam"
     },
-    posPacJannoFile       = Just "/tmp/Schiffels_2016.janno"
+    posPacJannoFile       = Just "/tmp/Schiffels_2016.janno",
+    posPacChecksumList    = Nothing
 }
-
 
 testPoseidonFromYAML :: Spec
 testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do

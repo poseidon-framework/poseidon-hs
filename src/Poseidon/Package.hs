@@ -17,10 +17,10 @@ module Poseidon.Package (
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
+import           Poseidon.Checksums         (ChecksumListSpec (..), makeChecksumList)
 import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
 import           Poseidon.Janno             (PoseidonSample (..), loadJannoFile)
 import           Poseidon.Utils             (PoseidonException (..))
-
 
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_)
@@ -66,6 +66,7 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the paths to the genotype files
     , posPacJannoFile       :: Maybe FilePath
     -- ^ the path to the janno file
+    , posPacChecksumList    :: Maybe ChecksumListSpec
     }
     deriving (Show, Eq, Generic)
 
@@ -81,6 +82,7 @@ instance FromJSON PoseidonPackage where
         <*> v .:?  "bibFile"
         <*> v .:   "genotypeData"
         <*> v .:   "jannoFile"
+        <*> v .:?  "checksums"
 
 instance ToJSON PoseidonPackage where
     -- this encodes directly to a bytestring Builder
@@ -93,7 +95,8 @@ instance ToJSON PoseidonPackage where
         "lastModified" .= posPacLastModified x,
         "bibFile" .= posPacBibFile x,
         "genotypeData" .= posPacGenotypeData x,
-        "jannoFile" .= posPacJannoFile x
+        "jannoFile" .= posPacJannoFile x,
+        "checksums" .= posPacChecksumList x
         ]
 
 -- | A data type to represent a contributor
@@ -210,8 +213,9 @@ getJointGenotypeData = loadJointGenotypeData . map posPacGenotypeData
 
 -- | A function to create a dummy POSEIDON.yml file
 newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> FilePath -> IO PoseidonPackage
-newPackageTemplate n gd janno bib = do
+newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
     (UTCTime today _) <- getCurrentTime
+    checksums <- makeChecksumList (Just geno) (Just snp) (Just ind) (Just janno) (Just bib)
     return PoseidonPackage {
         posPacPoseidonVersion = makeVersion [2, 0, 1],
         posPacTitle = n,
@@ -220,8 +224,9 @@ newPackageTemplate n gd janno bib = do
         posPacPackageVersion = Just $ makeVersion [0, 1, 0],
         posPacLastModified = Just today,
         posPacBibFile = Just bib,
-        posPacGenotypeData = gd,
-        posPacJannoFile = Just janno
+        posPacGenotypeData = GenotypeDataSpec format geno snp ind,
+        posPacJannoFile = Just janno,
+        posPacChecksumList = checksums
     }
 
 -- Janno file loading
