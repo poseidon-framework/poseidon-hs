@@ -17,7 +17,7 @@ module Poseidon.Package (
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
-import           Poseidon.Checksums         (ChecksumListSpec (..), makeChecksumList)
+import           Poseidon.Checksums         (ChecksumListSpec (..), makeChecksumList, renderCheckSumComparison)
 import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
 import           Poseidon.Janno             (PoseidonSample (..), loadJannoFile)
 import           Poseidon.Utils             (PoseidonException (..))
@@ -30,7 +30,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
-import           Data.Maybe                 (isNothing, catMaybes)
+import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJust)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
@@ -191,7 +191,10 @@ filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
         actualChecksums <- makeChecksumListForPackage pac
         if isNothing encodedChecksums || encodedChecksums == actualChecksums
         then return $ Right pac
-        else return $ Left $ PoseidonPackageException $ posPacTitle pac ++ ": Checksums do not match" ++ show encodedChecksums ++ show actualChecksums
+        else return $ Left $ PoseidonPackageException $ posPacTitle pac ++ ": Checksums do not match\n" ++
+          if isJust encodedChecksums && isJust actualChecksums
+          then renderCheckSumComparison (fromJust encodedChecksums) (fromJust actualChecksums)
+          else ""
 
 makeChecksumListForPackage :: PoseidonPackage -> IO (Maybe ChecksumListSpec)
 makeChecksumListForPackage pac = do
