@@ -30,7 +30,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, nub, sortOn)
-import           Data.Maybe                 (catMaybes)
+import           Data.Maybe                 (isNothing, catMaybes)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
@@ -174,10 +174,33 @@ loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to sear
                      -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 loadPoseidonPackages dirs = do
     allPackages <- concat <$> mapM findPoseidonPackages dirs
-    let checked = filterDuplicatePackages allPackages
-    forM_ (lefts checked) $ \(PoseidonPackageException err) ->
+    let dupliChecked = filterDuplicatePackages allPackages
+    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
-    return $ rights checked
+    checksumChecked <- filterPackagesWithWrongChecksums $ rights dupliChecked
+    forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
+        hPutStrLn stderr err
+    return $ rights checksumChecked
+    
+filterPackagesWithWrongChecksums :: [PoseidonPackage] -> IO [Either PoseidonException PoseidonPackage]
+filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
+  where
+    checkPackageChecksums :: PoseidonPackage -> IO (Either PoseidonException PoseidonPackage)
+    checkPackageChecksums pac = do
+        let encodedChecksums = posPacChecksumList pac
+        actualChecksums <- makeChecksumListForPackage pac
+        if isNothing encodedChecksums || encodedChecksums == actualChecksums
+        then return $ Right pac
+        else return $ Left $ PoseidonPackageException $ posPacTitle pac ++ ": Checksums do not match" ++ show encodedChecksums ++ show actualChecksums
+
+makeChecksumListForPackage :: PoseidonPackage -> IO (Maybe ChecksumListSpec)
+makeChecksumListForPackage pac = do
+    let genoFile' = genoFile $ posPacGenotypeData pac
+    let snpFiles' = snpFile $ posPacGenotypeData pac
+    let indFiles' = indFile $ posPacGenotypeData pac
+    let jannoFile = posPacJannoFile pac
+    let bibFile   = posPacBibFile pac
+    makeChecksumList (Just genoFile') (Just snpFiles') (Just indFiles') jannoFile bibFile
 
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
 filterDuplicatePackages :: [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.

@@ -9,7 +9,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              withText, (.=), (.:?))
 import qualified Data.ByteString.Lazy       as LB
 import           Data.Digest.Pure.MD5       (md5, MD5Digest (..))
-import           Data.Maybe                 (Maybe (..), maybe)
+import           Data.Maybe                 (Maybe (..), maybe, isNothing)
 import           Data.Text                  (pack)
 
 -- | A datatype to specify a list of checksums in the POSEIDON.yml file
@@ -20,7 +20,7 @@ data ChecksumListSpec = ChecksumListSpec
     , jannoFileCheck  :: Maybe String
     , bibFileCheck  :: Maybe String
     }
-    deriving (Show, Eq)
+    deriving (Show)
 
 -- | To facilitate automatic parsing of ChecksumListSpec from JSON files
 instance FromJSON ChecksumListSpec where
@@ -40,6 +40,14 @@ instance ToJSON ChecksumListSpec where
         pack "jannoFileCheck" .= jannoFileCheck x,
         pack "bibFileCheck" .= bibFileCheck x
         ]
+
+instance Eq ChecksumListSpec where
+    (==) (ChecksumListSpec g1 s1 i1 j1 b1) (ChecksumListSpec g2 s2 i2 j2 b2) =
+           (Just g1 ==  Just g2 || isNothing g1 || isNothing g2) 
+        && (Just s1 ==  Just s2 || isNothing s1 || isNothing s2)
+        && (Just i1 ==  Just i2 || isNothing i1 || isNothing i2)
+        && (Just j1 ==  Just j2 || isNothing j1 || isNothing j2)
+        && (Just b1 ==  Just b2 || isNothing b1 || isNothing b2)
 
 makeChecksumList :: Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> IO (Maybe ChecksumListSpec)
 makeChecksumList Nothing Nothing Nothing Nothing Nothing = do return Nothing
