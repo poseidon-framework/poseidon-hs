@@ -182,6 +182,27 @@ loadPoseidonPackages dirs = do
         hPutStrLn stderr err
     return $ rights checksumChecked
     
+-- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
+filterDuplicatePackages :: [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
+                        -> [Either PoseidonException PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
+filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn posPacTitle
+  where
+    titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
+    titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
+    checkDuplicatePackages :: [PoseidonPackage] -> Either PoseidonException PoseidonPackage
+    checkDuplicatePackages pacs =
+        if length pacs == 1
+        then return (head pacs)
+        else
+            let maybeVersions = map posPacPackageVersion pacs
+            in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all dates need to be given and be unique
+                then
+                    return . last . sortOn posPacPackageVersion $ pacs
+                else
+                    let t   = posPacTitle (head pacs)
+                        msg = "duplicate package with missing packageVersion field: " ++ t
+                    in  Left $ PoseidonPackageException msg
+
 filterPackagesWithWrongChecksums :: [PoseidonPackage] -> IO [Either PoseidonException PoseidonPackage]
 filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
   where
@@ -205,27 +226,6 @@ makeChecksumListForPackage pac = do
     let jannoFile = posPacJannoFile pac
     let bibFile   = posPacBibFile pac
     makeChecksumList (Just genoFile') (Just snpFiles') (Just indFiles') jannoFile bibFile
-
--- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
-filterDuplicatePackages :: [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
-                        -> [Either PoseidonException PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
-filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn posPacTitle
-  where
-    titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
-    titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
-    checkDuplicatePackages :: [PoseidonPackage] -> Either PoseidonException PoseidonPackage
-    checkDuplicatePackages pacs =
-        if length pacs == 1
-        then return (head pacs)
-        else
-            let maybeVersions = map posPacPackageVersion pacs
-            in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all dates need to be given and be unique
-                then
-                    return . last . sortOn posPacPackageVersion $ pacs
-                else
-                    let t   = posPacTitle (head pacs)
-                        msg = "duplicate package with missing packageVersion field: " ++ t
-                    in  Left $ PoseidonPackageException msg
 
 -- | A function to return a list of all individuals in the genotype files of a package.
 getIndividuals :: PoseidonPackage -- ^ the Poseidon package
