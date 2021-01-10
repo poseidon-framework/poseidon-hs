@@ -9,7 +9,7 @@ module Poseidon.Package (
     findPoseidonPackages,
     filterDuplicatePackages,
     loadPoseidonPackages,
-    loadPoseidonPackagesIgnoreChecksums,
+    loadPoseidonPackagesForChecksumUpdate,
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
@@ -181,10 +181,11 @@ findAllPOSEIDONymlFiles baseDir = do
     morePosFiles <- fmap concat . mapM findAllPOSEIDONymlFiles $ subDirs
     return $ posFiles ++ morePosFiles
 
-loadPoseidonPackagesIgnoreChecksums :: [FilePath]
+loadPoseidonPackagesForChecksumUpdate :: [FilePath]
                      -> IO [PoseidonPackage]
-loadPoseidonPackagesIgnoreChecksums dirs = do
-    allPackages <- concat <$> mapM findPoseidonPackages dirs
+loadPoseidonPackagesForChecksumUpdate dirs = do
+    posFiles <- mapM findAllPOSEIDONymlFiles dirs
+    allPackages <- concat <$> mapM findPoseidonPackagesFromPosList posFiles
     let dupliChecked = filterDuplicatePackages allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err

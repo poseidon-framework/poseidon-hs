@@ -2,7 +2,7 @@ module Poseidon.CLI.Update (
     runUpdate, UpdateOptions (..),
     ) where
 
-import           Poseidon.Package       (loadPoseidonPackagesIgnoreChecksums,
+import           Poseidon.Package       (loadPoseidonPackagesForChecksumUpdate,
                                          updateChecksumsInPackage)
 
 import           Data.Yaml              (encodeFile)
@@ -15,7 +15,7 @@ data UpdateOptions = UpdateOptions
 runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs) = do
     putStrLn $ "Loading packages"
-    packages <- loadPoseidonPackagesIgnoreChecksums baseDirs
+    packages <- loadPoseidonPackagesForChecksumUpdate baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     putStrLn $ "Updating checksums in the packages"
     updatedPackages <- mapM updateChecksumsInPackage packages
