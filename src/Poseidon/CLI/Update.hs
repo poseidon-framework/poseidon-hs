@@ -14,10 +14,9 @@ data UpdateOptions = UpdateOptions
 
 runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs) = do
-    putStrLn "Loading packages"
     packages <- loadPoseidonPackagesForChecksumUpdate baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     putStrLn "Updating checksums in the packages"
     updatedPackages <- mapM (updateChecksumsInPackage . snd) packages
-    putStrLn "Updating checksums in the packages"
+    putStrLn "Writing modified POSEIDON.yml files"
     mapM_ (uncurry encodeFile) $ zip (map fst packages) updatedPackages
