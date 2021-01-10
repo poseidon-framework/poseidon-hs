@@ -24,6 +24,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividua
 import           Poseidon.Janno             (PoseidonSample (..), loadJannoFile)
 import           Poseidon.Utils             (PoseidonException (..))
 
+import           Control.Applicative        (Alternative((<|>)), ZipList (..))
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -45,7 +46,8 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              GenoLine)
 import           System.Directory           (doesDirectoryExist,
                                              listDirectory)
-import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
+import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
+                                             splitDirectories, dropDrive)
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..))
 
@@ -301,9 +303,10 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
         posPacChecksumList = checksums
     }
 
-updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
-updateChecksumsInPackage pac = do
+updateChecksumsInPackage :: (FilePath, PoseidonPackage) -> IO PoseidonPackage
+updateChecksumsInPackage (posPath, pac) = do
     newChecksumList <- makeChecksumListForPackage pac
+    let path = takeDirectory posPath
     return PoseidonPackage {
         posPacPoseidonVersion = posPacPoseidonVersion pac,
         posPacTitle = posPacTitle pac,
@@ -311,11 +314,26 @@ updateChecksumsInPackage pac = do
         posPacContributor = posPacContributor pac,
         posPacPackageVersion = posPacPackageVersion pac,
         posPacLastModified = posPacLastModified pac,
-        posPacBibFile = posPacBibFile pac,
-        posPacGenotypeData = posPacGenotypeData pac,
-        posPacJannoFile = posPacJannoFile pac,
+        posPacBibFile = (\x -> Just $ simplifyPath x path) =<< posPacBibFile pac,
+        posPacGenotypeData = simplifyPathsInGenotypeDataSpec path $ posPacGenotypeData pac,
+        posPacJannoFile = (\x -> Just $ simplifyPath x path) =<< posPacJannoFile pac,
         posPacChecksumList = newChecksumList
     } 
+
+simplifyPathsInGenotypeDataSpec :: FilePath -> GenotypeDataSpec -> GenotypeDataSpec
+simplifyPathsInGenotypeDataSpec path genoDat = 
+    GenotypeDataSpec {
+        format = format genoDat,
+        genoFile = simplifyPath (genoFile genoDat) path,
+        snpFile = simplifyPath (snpFile genoDat) path,
+        indFile = simplifyPath (indFile genoDat) path
+    }
+
+simplifyPath :: FilePath -> FilePath -> FilePath
+simplifyPath path1 path2 =
+    if takeDirectory path1 == takeDirectory path2
+    then takeFileName path1
+    else path1
 
 -- Janno file loading
 
