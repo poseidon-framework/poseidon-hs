@@ -182,11 +182,11 @@ findAllPOSEIDONymlFiles baseDir = do
     return $ posFiles ++ morePosFiles
 
 loadPoseidonPackagesForChecksumUpdate :: [FilePath]
-                     -> IO [PoseidonPackage]
+                     -> IO [(FilePath, PoseidonPackage)]
 loadPoseidonPackagesForChecksumUpdate dirs = do
-    posFiles <- mapM findAllPOSEIDONymlFiles dirs
-    allPackages <- concat <$> mapM findPoseidonPackagesFromPosList posFiles
-    let dupliChecked = filterDuplicatePackages allPackages
+    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
+    allPackages <- findPoseidonPackagesFromPosList posFiles
+    let dupliChecked = filterDuplicatePackages posFiles allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     return $ rights dupliChecked
@@ -195,33 +195,35 @@ loadPoseidonPackagesForChecksumUpdate dirs = do
 loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
                      -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 loadPoseidonPackages dirs = do
-    allPackages <- concat <$> mapM findPoseidonPackages dirs
-    let dupliChecked = filterDuplicatePackages allPackages
+    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
+    allPackages <- findPoseidonPackagesFromPosList posFiles
+    let dupliChecked = filterDuplicatePackages posFiles allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
-    checksumChecked <- filterPackagesWithWrongChecksums $ rights dupliChecked
+    checksumChecked <- filterPackagesWithWrongChecksums $ map snd $ rights dupliChecked
     forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     return $ rights checksumChecked
 
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
-filterDuplicatePackages :: [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
-                        -> [Either PoseidonException PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
-filterDuplicatePackages = map checkDuplicatePackages . groupBy titleEq . sortOn posPacTitle
+filterDuplicatePackages :: [FilePath] -- ^ a list paths to POSEIDON.yml files for the packages.
+                        -> [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
+                        -> [Either PoseidonException (FilePath, PoseidonPackage)] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
+filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleEq $ sortOn (posPacTitle . snd) (zip paths pacs)
   where
-    titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
-    titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
-    checkDuplicatePackages :: [PoseidonPackage] -> Either PoseidonException PoseidonPackage
-    checkDuplicatePackages pacs =
-        if length pacs == 1
-        then return (head pacs)
+    titleEq :: (FilePath, PoseidonPackage) -> (FilePath, PoseidonPackage) -> Bool
+    titleEq = (\(_, p1) (_, p2) -> posPacTitle p1 == posPacTitle p2)
+    checkDuplicatePackages :: [(FilePath, PoseidonPackage)] -> Either PoseidonException (FilePath, PoseidonPackage)
+    checkDuplicatePackages pacTuples =
+        if length pacTuples == 1
+        then return (head pacTuples)
         else
-            let maybeVersions = map posPacPackageVersion pacs
+            let maybeVersions = map (posPacPackageVersion . snd) (pacTuples)
             in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all dates need to be given and be unique
                 then
-                    return . last . sortOn posPacPackageVersion $ pacs
+                    return . last . sortOn (posPacPackageVersion . snd) $ pacTuples
                 else
-                    let t   = posPacTitle (head pacs)
+                    let t   = posPacTitle $ snd $ head pacTuples
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
