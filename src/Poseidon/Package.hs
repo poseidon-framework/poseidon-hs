@@ -36,6 +36,7 @@ import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJ
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
+import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..))
 import           GHC.Generics               (Generic)
 import           Pipes                      (Producer)
 import           Pipes.Safe                 (MonadSafe)
@@ -101,6 +102,20 @@ instance ToJSON PoseidonPackage where
         "checksums" .= posPacChecksumList x
         ]
 
+instance ToPrettyYaml PoseidonPackage where
+    fieldOrder = const [
+        "poseidonVersion",
+        "title",
+        "description",
+        "contributor",
+        "packageVersion",
+        "lastModified",
+        "bibFile",
+        "genotypeData",
+        "jannoFile",
+        "checksums"
+        ]
+
 -- | A data type to represent a contributor
 data ContributorSpec = ContributorSpec
     { contributorName  :: String -- ^ the name of a contributor
@@ -120,6 +135,12 @@ instance ToJSON ContributorSpec where
     toJSON x = object [
         "name" .= contributorName x,
         "email" .= contributorEmail x
+        ]
+
+instance ToPrettyYaml ContributorSpec where
+    fieldOrder = const [
+        "name",
+        "email"
         ]
 
 -- | A helper function to add a base directory path to all file paths in a poseidon package.

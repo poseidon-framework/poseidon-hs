@@ -11,6 +11,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              withText, (.:), (.=))
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
+import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..))
 import           Pipes                      (Producer, (>->))
 import           Pipes.OrderedZip           (orderCheckPipe, orderedZip)
 import qualified Pipes.Prelude              as P
@@ -50,6 +51,14 @@ instance ToJSON GenotypeDataSpec where
         "genoFile" .= genoFile x,
         "snpFile" .= snpFile x,
         "indFile" .= indFile x
+        ]
+
+instance ToPrettyYaml GenotypeDataSpec where
+    fieldOrder = const [
+        "format",
+        "genoFile",
+        "snpFile",
+        "indFile"
         ]
 
 -- | A data type representing the options fo the genotype format

@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy       as LB
 import           Data.Digest.Pure.MD5       (md5, MD5Digest (..))
 import           Data.Maybe                 (Maybe (..), maybe, isNothing)
 import           Data.Text                  (pack)
+import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..))
 
 -- | A datatype to specify a list of checksums in the POSEIDON.yml file
 data ChecksumListSpec = ChecksumListSpec
@@ -41,6 +42,16 @@ instance ToJSON ChecksumListSpec where
         pack "jannoFileCheck" .= jannoFileCheck x,
         pack "bibFileCheck" .= bibFileCheck x
         ]
+
+instance ToPrettyYaml ChecksumListSpec where
+    fieldOrder = const [
+        pack "genoFileCheck",
+        pack "snpFileCheck",
+        pack "indFileCheck",
+        pack "jannoFileCheck",
+        pack "bibFileCheck"
+        ]
+
 
 instance Eq ChecksumListSpec where
     (==) (ChecksumListSpec g1 s1 i1 j1 b1) (ChecksumListSpec g2 s2 i2 j2 b2) =
