@@ -13,6 +13,7 @@ import           Poseidon.ForgeRecipe   (ForgeEntity (..),
                                         forgeEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
+import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
 
 import           Control.Applicative    ((<|>))
@@ -29,6 +30,7 @@ data Options = CmdFstats FstatsOptions
     | CmdForge ForgeOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
+    | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
 
 main :: IO ()
@@ -41,6 +43,7 @@ main = do
         CmdForge opts     -> runForge opts
         CmdSummarise opts -> runSummarise opts
         CmdSurvey opts    -> runSurvey opts
+        CmdUpdate opts    -> runUpdate opts
         CmdValidate opts  -> runValidate opts
     where
         p = OP.prefs OP.showHelpOnEmpty
@@ -69,17 +72,13 @@ optParser = OP.subparser (
     OP.subparser (
         OP.command "init" initOptInfo <>
         OP.command "forge" forgeOptInfo <>
+        OP.command "update" updateOptInfo <>
         OP.commandGroup "Package manipulation commands:"
     ) <|>
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
         OP.commandGroup "Analysis commands:"
     )
-
-
-    
-    
-
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "Run fstats on groups and invidiuals within and across Poseidon packages")
@@ -93,6 +92,8 @@ optParser = OP.subparser (
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
+    updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
+        (OP.progDesc "Update checksums in POSEIDON.yml files")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
@@ -127,6 +128,9 @@ summariseOptParser = SummariseOptions <$> parseBasePaths
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
+
+updateOptParser :: OP.Parser UpdateOptions
+updateOptParser = UpdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths -- <*> parseIgnoreGeno

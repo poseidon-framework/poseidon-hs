@@ -19,7 +19,8 @@ library
                         Poseidon.ForgeRecipe, Poseidon.MathHelpers, Poseidon.Checksums
                         Poseidon.CLI.FStats, Poseidon.CLI.List, 
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
-                        Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init
+                        Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
+                        Poseidon.CLI.Update
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats, text, time, pipes-safe,

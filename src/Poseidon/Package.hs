@@ -9,11 +9,13 @@ module Poseidon.Package (
     findPoseidonPackages,
     filterDuplicatePackages,
     loadPoseidonPackages,
+    loadPoseidonPackagesIgnoreChecksums,
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
     getIndividuals,
-    newPackageTemplate
+    newPackageTemplate,
+    updateChecksumsInPackage
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
@@ -156,18 +158,33 @@ readPoseidonPackage yamlPath = do
 findPoseidonPackages :: FilePath -- ^ the base directory to search from
                      -> IO [PoseidonPackage] -- ^ the returned list of poseidon packages.
 findPoseidonPackages baseDir = do
-    entries <- listDirectory baseDir
-    posPac  <- mapM tryReadPoseidonPackage . map (baseDir </>) . filter ((=="POSEIDON.yml") . takeFileName) $ entries
+    posFiles <- findAllPOSEIDONymlFiles baseDir
+    posPac   <- mapM tryReadPoseidonPackage $ posFiles
     forM_ (lefts posPac) $ (\e -> case e of
         PoseidonYamlParseException fp err ->
             putStrLn ("Can't read package at " ++ fp ++ " due to YAML parsing error: " ++ show err)
         _ -> error "this should never happen")
-    subDirs     <- filterM doesDirectoryExist . map (baseDir </>) $ entries
-    morePosPacs <- fmap concat . mapM findPoseidonPackages $ subDirs
-    return $ (rights posPac) ++ morePosPacs
+    return $ rights posPac
   where
     tryReadPoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
     tryReadPoseidonPackage = try . readPoseidonPackage
+
+findAllPOSEIDONymlFiles :: FilePath -> IO [FilePath]
+findAllPOSEIDONymlFiles baseDir = do
+    entries <- listDirectory baseDir
+    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") $ map takeFileName entries
+    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
+    morePosFiles <- fmap concat . mapM findAllPOSEIDONymlFiles $ subDirs
+    return $ posFiles ++ morePosFiles
+
+loadPoseidonPackagesIgnoreChecksums :: [FilePath]
+                     -> IO [PoseidonPackage]
+loadPoseidonPackagesIgnoreChecksums dirs = do
+    allPackages <- concat <$> mapM findPoseidonPackages dirs
+    let dupliChecked = filterDuplicatePackages allPackages
+    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
+        hPutStrLn stderr err
+    return $ rights dupliChecked
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
 loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
@@ -181,7 +198,7 @@ loadPoseidonPackages dirs = do
     forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     return $ rights checksumChecked
-    
+
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
 filterDuplicatePackages :: [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
                         -> [Either PoseidonException PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
@@ -255,6 +272,22 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
         posPacJannoFile = Just janno,
         posPacChecksumList = checksums
     }
+
+updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
+updateChecksumsInPackage pac = do
+    newChecksumList <- makeChecksumListForPackage pac
+    return PoseidonPackage {
+        posPacPoseidonVersion = posPacPoseidonVersion pac,
+        posPacTitle = posPacTitle pac,
+        posPacDescription = posPacDescription pac,
+        posPacContributor = posPacContributor pac,
+        posPacPackageVersion = posPacPackageVersion pac,
+        posPacLastModified = posPacLastModified pac,
+        posPacBibFile = posPacBibFile pac,
+        posPacGenotypeData = posPacGenotypeData pac,
+        posPacJannoFile = posPacJannoFile pac,
+        posPacChecksumList = newChecksumList
+    } 
 
 -- Janno file loading
 
