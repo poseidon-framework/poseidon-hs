@@ -110,12 +110,23 @@ instance ToPrettyYaml PoseidonPackage where
         "title",
         "description",
         "contributor",
+        "name",
+        "email",
         "packageVersion",
         "lastModified",
         "bibFile",
         "genotypeData",
+        "format",
+        "genoFile",
+        "snpFile",
+        "indFile",
         "jannoFile",
-        "checksums"
+        "checksums",
+        "genoFileCheck",
+        "snpFileCheck",
+        "indFileCheck",
+        "jannoFileCheck",
+        "bibFileCheck"
         ]
 
 -- | A data type to represent a contributor
@@ -137,12 +148,6 @@ instance ToJSON ContributorSpec where
     toJSON x = object [
         "name" .= contributorName x,
         "email" .= contributorEmail x
-        ]
-
-instance ToPrettyYaml ContributorSpec where
-    fieldOrder = const [
-        "name",
-        "email"
         ]
 
 -- | A helper function to add a base directory path to all file paths in a poseidon package.
