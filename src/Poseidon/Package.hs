@@ -159,6 +159,10 @@ findPoseidonPackages :: FilePath -- ^ the base directory to search from
                      -> IO [PoseidonPackage] -- ^ the returned list of poseidon packages.
 findPoseidonPackages baseDir = do
     posFiles <- findAllPOSEIDONymlFiles baseDir
+    findPoseidonPackagesFromPosList posFiles
+
+findPoseidonPackagesFromPosList :: [FilePath] -> IO [PoseidonPackage]
+findPoseidonPackagesFromPosList posFiles = do
     posPac   <- mapM tryReadPoseidonPackage $ posFiles
     forM_ (lefts posPac) $ (\e -> case e of
         PoseidonYamlParseException fp err ->
