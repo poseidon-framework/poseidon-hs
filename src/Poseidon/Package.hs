@@ -47,7 +47,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
 import           System.Directory           (doesDirectoryExist,
                                              listDirectory)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
-                                             splitDirectories, dropDrive)
+                                             splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..))
 
@@ -333,7 +333,7 @@ simplifyPath :: FilePath -> FilePath -> FilePath
 simplifyPath path1 path2 =
     if takeDirectory path1 == takeDirectory path2
     then takeFileName path1
-    else path1
+    else makeRelative path2 path1
 
 -- Janno file loading
 
