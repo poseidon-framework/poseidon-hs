@@ -31,7 +31,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
-import           Data.Either                (lefts, rights)
+import           Data.Either                (lefts, rights, isRight)
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJust)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -50,6 +50,7 @@ import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>),
                                              splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..))
+import Data.Bifunctor (Bifunctor(second))
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -186,17 +187,20 @@ readPoseidonPackage yamlPath = do
 findPoseidonPackages :: FilePath -- ^ the base directory to search from
                      -> IO [PoseidonPackage] -- ^ the returned list of poseidon packages.
 findPoseidonPackages baseDir = do
-    posFiles <- findAllPOSEIDONymlFiles baseDir
-    findPoseidonPackagesFromPosList posFiles
+    paths <- findAllPOSEIDONymlFiles baseDir
+    allPackages <- findPoseidonPackagesFromPosList paths
+    return $ map snd allPackages
 
-findPoseidonPackagesFromPosList :: [FilePath] -> IO [PoseidonPackage]
-findPoseidonPackagesFromPosList posFiles = do
-    posPac   <- mapM tryReadPoseidonPackage $ posFiles
-    forM_ (lefts posPac) $ (\e -> case e of
+findPoseidonPackagesFromPosList :: [FilePath] -> IO [(FilePath, PoseidonPackage)]
+findPoseidonPackagesFromPosList paths = do
+    pacs <- mapM tryReadPoseidonPackage paths
+    let pacsPacWithPaths = zip paths pacs
+    -- filter out broken packages
+    forM_ (lefts $ map snd pacsPacWithPaths) $ (\e -> case e of
         PoseidonYamlParseException fp err ->
             putStrLn ("Can't read package at " ++ fp ++ " due to YAML parsing error: " ++ show err)
         _ -> error "this should never happen")
-    return $ rights posPac
+    return $ uncurry zip $ second rights $ unzip $ filter (\(_, a) -> isRight a) pacsPacWithPaths
   where
     tryReadPoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
     tryReadPoseidonPackage = try . readPoseidonPackage
@@ -214,7 +218,7 @@ loadPoseidonPackagesForChecksumUpdate :: [FilePath]
 loadPoseidonPackagesForChecksumUpdate dirs = do
     posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
     allPackages <- findPoseidonPackagesFromPosList posFiles
-    let dupliChecked = filterDuplicatePackages posFiles allPackages
+    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     return $ rights dupliChecked
@@ -225,7 +229,7 @@ loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to sear
 loadPoseidonPackages dirs = do
     posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
     allPackages <- findPoseidonPackagesFromPosList posFiles
-    let dupliChecked = filterDuplicatePackages posFiles allPackages
+    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     checksumChecked <- filterPackagesWithWrongChecksums $ map snd $ rights dupliChecked
