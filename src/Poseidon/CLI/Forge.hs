@@ -25,13 +25,14 @@ import           Data.List                  ((\\), nub, sortOn, intersect, inter
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
 import qualified Data.Vector as V
-import           Pipes                      (runEffect, (>->))
+import           Pipes                      (MonadIO(liftIO), runEffect, (>->), await, yield, lift, Pipe (..))
 import qualified Pipes.Prelude as P
-import           Pipes.Safe                 (runSafeT, throwM)
+import           Pipes.Safe                 (runSafeT, throwM, SafeT (..))
 import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
+import           System.Console.ANSI        (clearLine, setCursorColumn)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr)
+import           System.IO                  (hPutStrLn, stderr, hFlush, stdout)
 import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
 
 -- | A datatype representing command line options for the survey command
@@ -110,11 +111,29 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
             throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
-        runEffect $ eigenstratProd >-> P.map (selectIndices indices) >->
+        runEffect $ eigenstratProd >-> 
+            printProgress >->
+            P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
+        liftIO clearLine
+        liftIO $ setCursorColumn 0
+        liftIO $ putStrLn "SNPs processed: All done"
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
+
+printProgress :: Pipe a a (SafeT IO) ()
+printProgress = loop 0
+  where
+    loop n = do
+        when (n `rem` 1000 == 0) $ do
+            liftIO clearLine
+            liftIO $ setCursorColumn 0
+            liftIO $ putStr ("SNPs processed: " ++ show n)
+            liftIO $ hFlush stdout
+        x <- await
+        yield x
+        loop (n+1)
 
 findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
 findNonExistentEntities entities packages = do
