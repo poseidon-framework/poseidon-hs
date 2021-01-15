@@ -8,7 +8,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 * [Guide for the command line utility](#guide-for-the-command-line-utility)
   + [Poseidon package repositories](#poseidon-package-repositories)
   + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
-  + [Package creation and manipulation commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`forge`](#forge-command)
+  + [Package creation and manipulation commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`forge`](#forge-command), [`update`](#update-command)
   + [Inspection commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
   + [Analysis commands](#analysis-commands): [`fstats`](#fstats-command)
   + [Getting help](#getting-help)
@@ -158,6 +158,17 @@ group_id
 ```
 
 Just as for `init` the output package of `forge` is created as a new directory `-o` and gets the name defined in `-n`.
+
+#### Update command
+`update` adds or updates the [md5 checksums](https://en.wikipedia.org/wiki/Md5sum) in the POSEIDON.yml field `checksums` for one or multiple packages.
+
+It can be called simply with
+
+```
+trident update -d ... -d ...
+```
+
+:heavy_exclamation_mark: As `update` reads and rewrites POSEIDON.yml files, it may change their inner order, layout or even content (e.g. if they have fields which are not in the [Poseidon package definition](https://github.com/poseidon-framework/poseidon2-schema)). Create a backup of the POSEIDON.yml file before running `update` if you are uncertain.
 
 ### Inspection commands
 
