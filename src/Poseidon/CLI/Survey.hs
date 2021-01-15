@@ -8,6 +8,7 @@ import           Poseidon.Janno        (PoseidonSample (..),
                                         jannoToSimpleMaybeList)
 import           Poseidon.Package      (PoseidonPackage (..),
                                         loadPoseidonPackages,
+                                        loadPoseidonPackagesIgnoreChecksums,
                                         maybeLoadBibTeXFiles,
                                         maybeLoadJannoFiles)
 
@@ -21,12 +22,15 @@ import           System.IO             (hPutStrLn, stderr)
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
     { _jaBaseDirs :: [FilePath]
+    , _optIgnoreChecksums :: Bool
     }
 
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
-runSurvey (SurveyOptions baseDirs) = do
-    packages <- loadPoseidonPackages baseDirs
+runSurvey (SurveyOptions baseDirs ignoreChecksums) = do
+    packages <- if ignoreChecksums
+                then loadPoseidonPackagesIgnoreChecksums baseDirs
+                else loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- collect information
     let packageNames = map posPacTitle packages

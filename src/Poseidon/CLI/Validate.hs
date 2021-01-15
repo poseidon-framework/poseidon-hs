@@ -3,7 +3,8 @@
 module Poseidon.CLI.Validate where
 
 import           Poseidon.Package   (getIndividuals,
-                                     loadPoseidonPackages, 
+                                     loadPoseidonPackages,
+                                     loadPoseidonPackagesIgnoreChecksums,
                                      maybeLoadJannoFiles, 
                                      maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
@@ -26,6 +27,7 @@ data ValidateOptions = ValidateOptions
       --_ignoreGeno  :: Bool
       --_ignoreJanno :: Bool,
       --_ignoreBib   :: Bool
+      , _optIgnoreChecksums :: Bool
     }
 
 u :: String -> String
@@ -35,10 +37,12 @@ u x = "\x1b[4m" ++ x ++ "\x1b[0m"
 
 -- | The main function running the janno command
 runValidate :: ValidateOptions -> IO ()
-runValidate (ValidateOptions baseDirs) = do
+runValidate (ValidateOptions baseDirs ignoreChecksums) = do
     -- POSEIDON.yml
     putStrLn $ u "POSEIDON.yml file consistency:"
-    packages <- loadPoseidonPackages baseDirs
+    packages <- if ignoreChecksums
+                then loadPoseidonPackagesIgnoreChecksums baseDirs
+                else loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " valid POSEIDON.yml files found"
     -- Genotype file consistency (without loading them completely!)
     putStrLn $ u "Genotype data consistency:"

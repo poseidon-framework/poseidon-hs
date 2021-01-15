@@ -10,6 +10,7 @@ module Poseidon.Package (
     filterDuplicatePackages,
     loadPoseidonPackages,
     loadPoseidonPackagesForChecksumUpdate,
+    loadPoseidonPackagesIgnoreChecksums,
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
@@ -222,6 +223,16 @@ loadPoseidonPackagesForChecksumUpdate dirs = do
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     return $ rights dupliChecked
+
+loadPoseidonPackagesIgnoreChecksums :: [FilePath]
+                     -> IO [PoseidonPackage]
+loadPoseidonPackagesIgnoreChecksums dirs = do
+    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
+    allPackages <- findPoseidonPackagesFromPosList posFiles
+    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
+    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
+        hPutStrLn stderr err
+    return $ map snd $ rights dupliChecked
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
 loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in

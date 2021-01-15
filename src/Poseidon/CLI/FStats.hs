@@ -12,6 +12,7 @@ module Poseidon.CLI.FStats (
 
 import           Poseidon.Package           (PoseidonPackage (..),
                                              loadPoseidonPackages,
+                                             loadPoseidonPackagesIgnoreChecksums,
                                              getIndividuals,
                                              getJointGenotypeData)
 import           Poseidon.Utils             (PoseidonException (..))
@@ -49,6 +50,7 @@ data FstatsOptions = FstatsOptions
     , _foStatSpecsDirect :: [FStatSpec] -- ^ A list of F-statistics to compute
     , _foStatSpecsFile   :: Maybe FilePath -- ^ a file listing F-statistics to compute
     , _foRawOutput       :: Bool -- ^ whether to output the result table in raw TSV instead of nicely formatted ASCII table/
+    , _optIgnoreChecksums :: Bool
     }
 
 -- | A datatype representing the two options for how to run the Block-Jackknife
@@ -216,8 +218,10 @@ getPopIndices indEntries popSpec =
 
 -- | The main function running the FStats command.
 runFstats :: FstatsOptions -> IO ()
-runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
-    packages <- loadPoseidonPackages baseDirs
+runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput ignoreChecksums) = do
+    packages <- if ignoreChecksums 
+                then loadPoseidonPackagesIgnoreChecksums baseDirs
+                else loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     statSpecsFromFile <- case maybeStatSpecsFile of
         Nothing -> return []

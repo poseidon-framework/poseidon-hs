@@ -14,6 +14,7 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              getIndividuals,
                                              getJointGenotypeData,
                                              loadPoseidonPackages,
+                                             loadPoseidonPackagesIgnoreChecksums,
                                              maybeLoadBibTeXFiles,
                                              maybeLoadJannoFiles,
                                              newPackageTemplate)
@@ -42,18 +43,21 @@ data ForgeOptions = ForgeOptions
     , _entityFile :: Maybe FilePath
     , _outPacPath :: FilePath
     , _outPacName :: String
+    , _optIgnoreChecksums :: Bool
     }
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName ignoreChecksums) = do
     -- compile entities
     entitiesFromFile <- case entitiesFile of
         Nothing -> return []
         Just f -> readEntitiesFromFile f
     let entities = entitiesDirect ++ entitiesFromFile
     -- load packages --
-    allPackages <- loadPoseidonPackages baseDirs
+    allPackages <- if ignoreChecksums 
+                   then loadPoseidonPackagesIgnoreChecksums baseDirs
+                   else loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages

@@ -1,8 +1,9 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
 import           Poseidon.Package          (loadPoseidonPackages,
-                                           PoseidonPackage(..),
-                                           getIndividuals)
+                                            loadPoseidonPackagesIgnoreChecksums,
+                                            PoseidonPackage(..),
+                                            getIndividuals)
 
 import           Control.Monad             (forM)
 import           Data.List                 (groupBy, intercalate, nub, sortOn)
@@ -16,6 +17,7 @@ data ListOptions = ListOptions
     { _loBaseDirs   :: [FilePath] -- ^ the list of base directories to search for packages
     , _loListEntity :: ListEntity -- ^ what to list 
     , _loRawOutput  :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _optIgnoreChecksums :: Bool
     }
 
 -- | A datatype to represent the options what to list
@@ -25,8 +27,10 @@ data ListEntity = ListPackages -- ^ list packages
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
-runList (ListOptions baseDirs listEntity rawOutput) = do
-    packages <- loadPoseidonPackages baseDirs
+runList (ListOptions baseDirs listEntity rawOutput ignoreChecksums) = do
+    packages <- if ignoreChecksums
+                then loadPoseidonPackagesIgnoreChecksums baseDirs
+                else loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
