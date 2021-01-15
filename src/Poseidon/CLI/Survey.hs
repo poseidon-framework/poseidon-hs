@@ -51,7 +51,7 @@ runSurvey (SurveyOptions baseDirs) = do
         (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright)
     -- print read issue warning
     when (anyJannoIssues || anyBibIssues) $
-        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+        hPutStrLn stderr "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
 
 renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
 renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibIsAlright) =

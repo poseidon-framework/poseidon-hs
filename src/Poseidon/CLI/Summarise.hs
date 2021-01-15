@@ -30,7 +30,7 @@ runSummarise (SummariseOptions baseDirs) = do
     summarisePoseidonSamples jannoSamples
     -- print read issue warning
     when anyJannoIssues $
-        putStrLn "\nThere were issues with missing, incomplete or invalid data. Run trident validate to learn more."
+        hPutStrLn stderr "\nThere were issues with missing, incomplete or invalid data. Run trident validate to learn more."
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
