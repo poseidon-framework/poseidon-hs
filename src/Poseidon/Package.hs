@@ -31,8 +31,9 @@ import           Control.Monad              (filterM, forM_)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
+import           Data.Bifunctor             (Bifunctor(second))
 import qualified Data.ByteString            as B
-import           Data.Either                (lefts, rights, isRight)
+import           Data.Either                (lefts, rights, isRight, Either(..))
 import           Data.List                  (groupBy, nub, sortOn)
 import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJust)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -51,7 +52,7 @@ import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>),
                                              splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..))
-import Data.Bifunctor (Bifunctor(second))
+import Control.Exception.Base (IOException)
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -276,14 +277,20 @@ filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
     checkPackageChecksums :: PoseidonPackage -> IO (Either PoseidonException PoseidonPackage)
     checkPackageChecksums pac = do
         let encodedChecksums = posPacChecksumList pac
-        actualChecksums <- makeChecksumListForPackage pac
-        if isNothing encodedChecksums || encodedChecksums == actualChecksums
-        then return $ Right pac
-        else return $ Left $ PoseidonPackageException $ posPacTitle pac ++
-          ": Checksums do not match (left: POSEIDON.yml, right: actual checksum)\n" ++
-          if isJust encodedChecksums && isJust actualChecksums
-          then renderCheckSumComparison (fromJust encodedChecksums) (fromJust actualChecksums)
-          else ""
+        tryChecksums <- try $ makeChecksumListForPackage pac :: IO (Either IOException (Maybe ChecksumListSpec))
+        case tryChecksums of
+            Left err -> return $ Left $ PoseidonPackageException $ 
+                "Can't check checksums. Error: " ++
+                show err ++
+                " - Checksums can be ignored with --ignoreChecksums"
+            Right actualChecksums -> 
+                if isNothing encodedChecksums || encodedChecksums == actualChecksums
+                then return $ Right pac
+                else return $ Left $ PoseidonPackageException $ posPacTitle pac ++
+                    ": Checksums do not match (left: POSEIDON.yml, right: actual checksum)\n" ++
+                    if isJust encodedChecksums && isJust actualChecksums
+                    then renderCheckSumComparison (fromJust encodedChecksums) (fromJust actualChecksums)
+                    else ""
 
 makeChecksumListForPackage :: PoseidonPackage -> IO (Maybe ChecksumListSpec)
 makeChecksumListForPackage pac = do
