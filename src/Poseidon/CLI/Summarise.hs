@@ -15,8 +15,8 @@ import           Text.Layout.Table      (asciiRoundS, column, def, expand,
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _jaBaseDirs :: [FilePath],
-      _optRawOutput :: Bool
+    { _jaBaseDirs :: [FilePath]
+    , _optRawOutput :: Bool
     }
 
 -- | The main function running the janno command

@@ -128,6 +128,7 @@ summariseOptParser = SummariseOptions <$> parseBasePaths
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
+                                <*> parseRawOutput
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths -- <*> parseIgnoreGeno

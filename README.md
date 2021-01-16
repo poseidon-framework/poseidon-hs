@@ -261,6 +261,8 @@ will yield a table with one row for each package. Completeness is encoded with t
   - `B`: BibTeX file is present
   - `.`: BibTeX file is missing
 
+Also here you can use the `--raw` option to output the survey table as a simple tab-delimited file.
+
 #### Validate command
 `validate` checks poseidon datasets for structural correctness. 
 
