@@ -2,14 +2,16 @@
 
 module Poseidon.CLI.Summarise where
 
+import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
+import           Poseidon.Package       (loadPoseidonPackages, maybeLoadJannoFiles)
 
 import           Control.Monad          (when)
 import           Data.List              (nub, group, sort, intercalate)
 import           Data.Maybe             (catMaybes, isJust, mapMaybe)
-import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
-import           Poseidon.Package       (loadPoseidonPackages, maybeLoadJannoFiles)
 import           System.IO              (hPutStrLn, stderr)
+import           Text.Layout.Table      (asciiRoundS, column, def, expand,
+                                         rowsG, tableString, titlesH, expandUntil)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -35,38 +37,31 @@ runSummarise (SummariseOptions baseDirs) = do
 -- | A function to print meaningful summary information for a list of poseidon samples
 summarisePoseidonSamples :: [PoseidonSample] -> IO ()
 summarisePoseidonSamples xs = do
-    putStrLn "---"
-    putStrLn $ "Number of samples:\t" ++
-                show (length xs)
-    putStrLn $ "Individuals:\t\t" ++
-                pasteFirstN 5 (map posSamIndividualID xs)
-    putStrLn $ "Sex distribution:\t" ++
-                printFrequency ", " (frequency (map posSamGeneticSex xs))
-    putStrLn $ "Populations:\t\t" ++
-                pasteFirstN 2 (nub $ map (head . posSamGroupName) xs)
-    putStrLn $ "Publications:\t\t" ++
-                pasteFirstN 2 (nub $ mapMaybe posSamPublication xs)
-    putStrLn $ "Countries:\t\t" ++
-                pasteFirstN 5 (nub $ mapMaybe posSamCountry xs)
-    putStrLn $ "Mean age BC/AD:\t\t" ++
-               meanAndSdInteger (map fromIntegral (mapMaybe posSamDateBCADMedian xs))
-    putStrLn $ "Dating type:\t\t" ++
-                printFrequencyMaybe ", " (frequency (map posSamDateType xs))
-    putStrLn "---"
-    putStrLn $ "MT haplogroups:\t\t" ++
-                pasteFirstN 5 (nub $ mapMaybe posSamMTHaplogroup xs)
-    putStrLn $ "Y haplogroups:\t\t" ++
-                pasteFirstN 5 (nub $ mapMaybe posSamYHaplogroup xs)
-    putStrLn $ "% endogenous human DNA:\t" ++
-                meanAndSdRoundTo 2 (map (\(Percent x) -> x) (mapMaybe posSamEndogenous xs))
-    putStrLn $ "# of SNPs on 1240K:\t" ++
-                meanAndSdInteger (map fromIntegral (mapMaybe posSamNrAutosomalSNPs xs))
-    putStrLn $ "Coverage on 1240K:\t" ++
-                meanAndSdRoundTo 2 (mapMaybe posSamCoverage1240K xs)
-    putStrLn $ "Library type:\t\t" ++
-                printFrequencyMaybe ", " (frequency (map posSamLibraryBuilt xs))
-    putStrLn $ "UDG treatment:\t\t" ++
-                printFrequencyMaybe ", " (frequency (map posSamUDG xs))
+    (tableH, tableB) <- do
+        let tableH = ["Summary", "Value"]
+            tableB = [
+                ["Nr Individuals", show (length xs)],
+                ["Individuals", pasteFirstN 5 $ map posSamIndividualID xs],
+                ["Nr Groups", show $ length $ nub $ map posSamGroupName xs],
+                ["Groups", pasteFirstN 2 $ nub $ map (head . posSamGroupName) xs],
+                ["Nr Publications", show $ length $ nub $ map posSamPublication xs],
+                ["Publications", pasteFirstN 2 $ nub $ mapMaybe posSamPublication xs],
+                ["Nr Countries", show $ length $ nub $ map posSamCountry xs],
+                ["Countries", pasteFirstN 5 $ nub $ mapMaybe posSamCountry xs],
+                ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamDateBCADMedian xs],
+                ["Dating type", printFrequencyMaybe ", " $ frequency $ map posSamDateType xs],
+                ["Sex distribution", printFrequency ", " $ frequency $ map posSamGeneticSex xs],
+                ["MT haplogroups", pasteFirstN 5 $ nub $ mapMaybe posSamMTHaplogroup xs],
+                ["Y haplogroups", pasteFirstN 5 $ nub $ mapMaybe posSamYHaplogroup xs],
+                ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe posSamEndogenous xs],
+                ["Nr of SNPs on 1240K", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamNrAutosomalSNPs xs],
+                ["Coverage on 1240K", meanAndSdRoundTo 2 $ mapMaybe posSamCoverage1240K xs],
+                ["Library type", printFrequencyMaybe ", " $ frequency $ map posSamLibraryBuilt xs],
+                ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map posSamUDG xs]
+                ]
+        return (tableH, tableB)
+    let colSpecs = replicate 2 (column (expandUntil 60) def def def)
+    putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
