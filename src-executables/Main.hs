@@ -124,6 +124,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
+                                      <*> parseRawOutput
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths

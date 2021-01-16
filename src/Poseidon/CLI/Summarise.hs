@@ -15,12 +15,13 @@ import           Text.Layout.Table      (asciiRoundS, column, def, expand,
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _jaBaseDirs :: [FilePath]
+    { _jaBaseDirs :: [FilePath],
+      _optRawOutput :: Bool
     }
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
-runSummarise (SummariseOptions baseDirs) = do
+runSummarise (SummariseOptions baseDirs rawOutput) = do
     packages <- loadPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- JANNO
@@ -29,14 +30,14 @@ runSummarise (SummariseOptions baseDirs) = do
     let jannoSamples = concat $ catMaybes jannoMaybeList
     let anyJannoIssues = not $ all isJust jannoMaybeList
     -- print information
-    summarisePoseidonSamples jannoSamples
+    summarisePoseidonSamples jannoSamples rawOutput
     -- print read issue warning
     when anyJannoIssues $
         hPutStrLn stderr "\nThere were issues with missing, incomplete or invalid data. Run trident validate to learn more."
 
 -- | A function to print meaningful summary information for a list of poseidon samples
-summarisePoseidonSamples :: [PoseidonSample] -> IO ()
-summarisePoseidonSamples xs = do
+summarisePoseidonSamples :: [PoseidonSample] -> Bool -> IO ()
+summarisePoseidonSamples xs rawOutput = do
     (tableH, tableB) <- do
         let tableH = ["Summary", "Value"]
             tableB = [
@@ -61,7 +62,9 @@ summarisePoseidonSamples xs = do
                 ]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
-    putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    if rawOutput
+    then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 -- | A helper function to concat the first N elements of a string list in a nice way
 pasteFirstN :: Int -> [String] -> String
