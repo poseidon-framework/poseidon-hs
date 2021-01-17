@@ -1,10 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM, forM_, when)
-import           Control.Monad.Catch        (throwM)
+import           Control.Monad              (forM, forM_, when, void)
+import           Control.Monad.Catch        (throwM, MonadThrow)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -119,41 +119,63 @@ loadJointGenotypeData gds = do
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
         jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM joinEntries
-    return (jointIndEntries, jointProducer >> return ())
-  where
-    joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-    joinEntries tupleList = do
-        let allSnpEntries                            = map fst tupleList
-            allGenoEntries                           = map snd tupleList
-            (EigenstratSnpEntry _ _ _ _ refA1 altA1) = head allSnpEntries
-        allEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(es@(EigenstratSnpEntry _ _ _ _ refA altA), genoLine) ->
-            if alleleConcordant refA refA1 && alleleConcordant altA altA1
-            then return (es, genoLine)
+    return (jointIndEntries, void jointProducer)
+
+joinEntries :: (MonadThrow m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries tupleList = do
+    let allSnpEntries    = map fst tupleList
+        allGenoEntries   = map snd tupleList
+    snpEntry@(EigenstratSnpEntry _ _ _ _ refA, altA) <- getConsensusSnpEntry allSnpEntries
+    normalisedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \(es@(EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) -> do
+        when (not $ genotypesAreValid refA1 altA1 genoLine) $
+            throwM $ PoseidonGenotypeException ("encountered illegal genotypes at site " ++ show es ++ " with genotypes " ++ show genoLine)
+        if alleleConcordant refA refA1 && alleleConcordant altA altA1
+            then return genoLine
             else if alleleConcordant refA altA1 && alleleConcordant altA refA1
-                    then return (es {snpRef = altA, snpAlt = refA}, flipGenotypes genoLine)
-                    else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
-        let allSnpEntriesFlipped  = (head allSnpEntries) : map fst allEntriesFlipped
-            allGenoEntriesFlipped = (head allGenoEntries) : map snd allEntriesFlipped
-        return (makeSnpEntriesConcordant allSnpEntriesFlipped, V.concat allGenoEntriesFlipped)
-    alleleConcordant :: Char -> Char -> Bool
-    alleleConcordant '0' _   = True
-    alleleConcordant _   '0' = True
-    alleleConcordant 'N' _   = True
-    alleleConcordant _   'N' = True
-    alleleConcordant a1  a2  = a1 == a2
-    flipGenotypes :: GenoLine -> GenoLine
-    flipGenotypes = V.map (\a -> case a of
-        HomRef  -> HomAlt
-        Het     -> Het
-        HomAlt  -> HomRef
-        Missing -> Missing)
-    makeSnpEntriesConcordant :: [EigenstratSnpEntry] -> EigenstratSnpEntry
-    makeSnpEntriesConcordant snpEntries@(e:_) =
-        let allRefs            = map snpRef snpEntries
-            allAlts            = map snpAlt snpEntries
-            allInformativeRefs = filter (\c -> c /= '0' && c /= 'N') allRefs
-            allInformativeAlts = filter (\c -> c /= '0' && c /= 'N') allAlts
-            ref = if not (null allInformativeRefs) then head allInformativeRefs else head allRefs
-            alt = if not (null allInformativeAlts) then head allInformativeAlts else head allAlts
-        in  e {snpRef = ref, snpAlt = alt}
-    makeSnpEntriesConcordant _ = error "should not happen"
+                    then return (flipGenotypes genoLine)
+                    else error "This should not happen. Alleles should be congruent after running getConsensusSnpPair"
+    return (snpEntry, V.concat normalisedGenotypes)
+
+getConsensusSnpEntry :: (MonadThrow m) => [EigenstratSnpEntry] -> m EigenstratSnpEntry 
+getConsensusSnpEntry snpEntries = do
+    let chrom = snpChrom . head $ snpEntries
+        pos = snpPos . head $ snpEntries
+        uniqueIds = nub . map snpId $ snpEntries
+        uniqueGenPos = sort . nub . map snpGeneticPos $ snpEntries
+        allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
+        uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0') $ allAlleles
+    id_ <- case uniqueIds of
+        [i] -> return i
+        _ -> throwM $ PoseidonGenotypeException ("SNP IDs incongruent: " ++ show snpEntries)
+    genPos <- case uniqueGenPos of
+        [p] -> return p
+        [0.0, p] -> return p
+        _ -> throwM $ PoseidonGenotypeException ("SNP genetic positions incongruent: " ++ show snpEntries)
+    [ref, alt] <- case uniqueAlleles of
+        [] -> throwM $ PoseidonGenotypeException ("Illegal SNP, has only missing data: " ++ show snpEntries)
+        [r] -> throwM $ PoseidonGenotypeException ("Illegal SNP, monomorphic: " ++ show snpEntries)
+        [r, a] -> return [r, a]
+        _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
+    return (EigenstratSnpEntry chrom pos genoPos id_ ref alt)
+
+genotypesAreValid :: (MonadThrow m) => Char -> Char -> GenoLine -> Bool
+genotypesAreValid ref alt genoLine
+    | ref `elem` na && alt `notElem` na = V.all (\c `notElem` [HomRef, Het]) genoLine
+    | ref `notElem` na && alt `elem` na = V.all (\c `notElem` [HomAlt, Het]) genoLine
+    | otherwise                         = True
+  where
+    na = ['0', 'N']
+
+alleleConcordant :: Char -> Char -> Bool
+alleleConcordant '0' _   = True
+alleleConcordant _   '0' = True
+alleleConcordant 'N' _   = True
+alleleConcordant _   'N' = True
+alleleConcordant a1  a2  = a1 == a2
+
+flipGenotypes :: GenoLine -> GenoLine
+flipGenotypes = V.map (\case
+    HomRef  -> HomAlt
+    Het     -> Het
+    HomAlt  -> HomRef
+    Missing -> Missing)
