@@ -9,6 +9,7 @@ import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.=))
+import           Data.List                  (nub, sort)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
 import           Pipes                      (Producer, (>->))
@@ -125,7 +126,7 @@ joinEntries :: (MonadThrow m) => [(EigenstratSnpEntry, GenoLine)] -> m (Eigenstr
 joinEntries tupleList = do
     let allSnpEntries    = map fst tupleList
         allGenoEntries   = map snd tupleList
-    snpEntry@(EigenstratSnpEntry _ _ _ _ refA, altA) <- getConsensusSnpEntry allSnpEntries
+    snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry allSnpEntries
     normalisedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \(es@(EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) -> do
         when (not $ genotypesAreValid refA1 altA1 genoLine) $
             throwM $ PoseidonGenotypeException ("encountered illegal genotypes at site " ++ show es ++ " with genotypes " ++ show genoLine)
@@ -151,17 +152,16 @@ getConsensusSnpEntry snpEntries = do
         [p] -> return p
         [0.0, p] -> return p
         _ -> throwM $ PoseidonGenotypeException ("SNP genetic positions incongruent: " ++ show snpEntries)
-    [ref, alt] <- case uniqueAlleles of
+    case uniqueAlleles of
         [] -> throwM $ PoseidonGenotypeException ("Illegal SNP, has only missing data: " ++ show snpEntries)
         [r] -> throwM $ PoseidonGenotypeException ("Illegal SNP, monomorphic: " ++ show snpEntries)
-        [r, a] -> return [r, a]
+        [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
-    return (EigenstratSnpEntry chrom pos genoPos id_ ref alt)
 
-genotypesAreValid :: (MonadThrow m) => Char -> Char -> GenoLine -> Bool
+genotypesAreValid :: Char -> Char -> GenoLine -> Bool
 genotypesAreValid ref alt genoLine
-    | ref `elem` na && alt `notElem` na = V.all (\c `notElem` [HomRef, Het]) genoLine
-    | ref `notElem` na && alt `elem` na = V.all (\c `notElem` [HomAlt, Het]) genoLine
+    | ref `elem` na && alt `notElem` na = V.all (`notElem` [HomRef, Het]) genoLine
+    | ref `notElem` na && alt `elem` na = V.all (`notElem` [HomAlt, Het]) genoLine
     | otherwise                         = True
   where
     na = ['0', 'N']
