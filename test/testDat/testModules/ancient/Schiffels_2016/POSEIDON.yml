@@ -4,6 +4,7 @@ description: Genetic data published in Schiffels et al. 2016
 contributor:
   - name: Stephan Schiffels
     email: schiffels@institute.org
+packageVersion: 1.0.0
 lastModified: 2020-02-28
 bibFile: sources.bib
 genotypeData:
