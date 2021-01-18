@@ -127,15 +127,9 @@ joinEntries tupleList = do
     let allSnpEntries    = map fst tupleList
         allGenoEntries   = map snd tupleList
     snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry allSnpEntries
-    normalisedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \(es@(EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) -> do
-        when (not $ genotypesAreValid refA1 altA1 genoLine) $
-            throwM $ PoseidonGenotypeException ("encountered illegal genotypes at site " ++ show es ++ " with genotypes " ++ show genoLine)
-        if alleleConcordant refA refA1 && alleleConcordant altA altA1
-            then return genoLine
-            else if alleleConcordant refA altA1 && alleleConcordant altA refA1
-                    then return (flipGenotypes genoLine)
-                    else error "This should not happen. Alleles should be congruent after running getConsensusSnpPair"
-    return (snpEntry, V.concat normalisedGenotypes)
+    recodedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \((EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) ->
+        genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
+    return (snpEntry, V.concat recodedGenotypes)
 
 getConsensusSnpEntry :: (MonadThrow m) => [EigenstratSnpEntry] -> m EigenstratSnpEntry 
 getConsensusSnpEntry snpEntries = do
@@ -154,28 +148,38 @@ getConsensusSnpEntry snpEntries = do
         _ -> throwM $ PoseidonGenotypeException ("SNP genetic positions incongruent: " ++ show snpEntries)
     case uniqueAlleles of
         [] -> throwM $ PoseidonGenotypeException ("Illegal SNP, has only missing data: " ++ show snpEntries)
-        [r] -> throwM $ PoseidonGenotypeException ("Illegal SNP, monomorphic: " ++ show snpEntries)
+        [r] -> return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
-genotypesAreValid :: Char -> Char -> GenoLine -> Bool
-genotypesAreValid ref alt genoLine
-    | ref `elem` na && alt `notElem` na = V.all (`notElem` [HomRef, Het]) genoLine
-    | ref `notElem` na && alt `elem` na = V.all (`notElem` [HomAlt, Het]) genoLine
-    | otherwise                         = True
+genotypes2alleles :: (MonadThrow m) => Char -> Char -> GenoLine -> m (V.Vector (Char, Char))
+genotypes2alleles ref alt = V.mapM g2a
   where
+    g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
+    g2a HomRef =
+        if ref `notElem` na
+        then return (ref, ref)
+        else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Ref with Ref-Allele missing")
+    g2a Het = 
+        if ref `notElem` na && alt `notElem` na
+        then return (ref, alt)
+        else throwM (PoseidonGenotypeException "encountered illegal genotype Het with Ref-Allele or Alt-Allele missing")
+    g2a HomAlt =
+        if alt `notElem` na
+        then return (alt, alt)
+        else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Alt with Alt-Allele missing")
+    g2a Missing = return ('N', 'N')
     na = ['0', 'N']
-
-alleleConcordant :: Char -> Char -> Bool
-alleleConcordant '0' _   = True
-alleleConcordant _   '0' = True
-alleleConcordant 'N' _   = True
-alleleConcordant _   'N' = True
-alleleConcordant a1  a2  = a1 == a2
-
-flipGenotypes :: GenoLine -> GenoLine
-flipGenotypes = V.map (\case
-    HomRef  -> HomAlt
-    Het     -> Het
-    HomAlt  -> HomRef
-    Missing -> Missing)
+    
+recodeAlleles :: (MonadThrow m) => Char -> Char -> V.Vector (Char, Char) -> m GenoLine
+recodeAlleles ref alt = V.mapM a2g
+  where
+    a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
+    a2g (a1, a2)
+        | (a1, a2) == (ref, ref)                           = return HomRef 
+        | (a1, a2) == (ref, alt) || (a1, a2) == (alt, ref) = return Het
+        | (a1, a2) == (alt, alt)                           = return HomAlt
+        | a1 `elem` na && a2 `elem` na                     = return Missing
+        | otherwise                                        = throwM (err a1 a2)
+    err a1 a2 = PoseidonGenotypeException ("cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
+    na = ['0', 'N']
