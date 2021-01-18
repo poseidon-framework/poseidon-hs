@@ -122,7 +122,7 @@ loadJointGenotypeData gds = do
         jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM joinEntries
     return (jointIndEntries, void jointProducer)
 
-joinEntries :: (MonadThrow m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries tupleList = do
     let allSnpEntries    = map fst tupleList
         allGenoEntries   = map snd tupleList
@@ -131,7 +131,7 @@ joinEntries tupleList = do
         genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
     return (snpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadThrow m) => [EigenstratSnpEntry] -> m EigenstratSnpEntry 
+getConsensusSnpEntry :: (MonadSafe m) => [EigenstratSnpEntry] -> m EigenstratSnpEntry 
 getConsensusSnpEntry snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
@@ -147,7 +147,7 @@ getConsensusSnpEntry snpEntries = do
         [0.0, p] -> return p
         _ -> throwM $ PoseidonGenotypeException ("SNP genetic positions incongruent: " ++ show snpEntries)
     case uniqueAlleles of
-        [] -> throwM $ PoseidonGenotypeException ("Illegal SNP, has only missing data: " ++ show snpEntries)
+        [] -> return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
