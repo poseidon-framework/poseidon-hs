@@ -199,10 +199,11 @@ getIndividuals :: PoseidonPackage -- ^ the Poseidon package
 getIndividuals = loadIndividuals . posPacGenotypeData
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: (MonadSafe m) => [PoseidonPackage] -- ^ A list of poseidon packages.
+getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+                     -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData = loadJointGenotypeData . map posPacGenotypeData
+getJointGenotypeData showAllWarnings = loadJointGenotypeData showAllWarnings . map posPacGenotypeData
 
 -- | A function to create a dummy POSEIDON.yml file
 newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> FilePath -> IO PoseidonPackage

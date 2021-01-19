@@ -113,28 +113,29 @@ loadGenotypeData (GenotypeDataSpec format_ genoF snpF indF) = do
         GenotypeFormatPlink      -> readPlink genoF snpF indF
 
 -- | A function to read genotype data jointly from multiple packages
-loadJointGenotypeData :: (MonadSafe m) => [GenotypeDataSpec] -- ^ A list of genotype specifications
+loadJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+                     -> [GenotypeDataSpec] -- ^ A list of genotype specifications
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-loadJointGenotypeData gds = do
+loadJointGenotypeData showAllWarnings gds = do
     genotypeTuples <- mapM loadGenotypeData gds
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
-        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM joinEntries
+        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM (joinEntries showAllWarnings)
     return (jointIndEntries, void jointProducer)
 
-joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-joinEntries tupleList = do
+joinEntries :: (MonadSafe m) => Bool -> [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries showAllWarnings tupleList = do
     let allSnpEntries    = map fst tupleList
         allGenoEntries   = map snd tupleList
-    snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry allSnpEntries
+    snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry showAllWarnings allSnpEntries
     recodedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \((EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) ->
         genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
     return (snpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadSafe m) => [EigenstratSnpEntry] -> m EigenstratSnpEntry 
-getConsensusSnpEntry snpEntries = do
+getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry 
+getConsensusSnpEntry showAllWarnings snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
         uniqueIds = nub . map snpId $ snpEntries
@@ -149,8 +150,9 @@ getConsensusSnpEntry snpEntries = do
                 selectedId = case rsIds of
                     (i:_) -> i
                     _ -> head uniqueIds
-            liftIO . hPutStrLn stderr $ "Warning: Found inconsistent SNP IDs: " ++ show uniqueIds ++
-                ". Choosing " ++ show selectedId
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: Found inconsistent SNP IDs: " ++ show uniqueIds ++
+                    ". Choosing " ++ show selectedId
             return selectedId
     genPos <- case uniqueGenPos of
         [p] -> return p
@@ -158,17 +160,20 @@ getConsensusSnpEntry snpEntries = do
         _ -> do
             -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
-            liftIO . hPutStrLn stderr $ "Warning: Found inconsistent genetic positions in SNP " ++ show id_ ++
-                ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: Found inconsistent genetic positions in SNP " ++ show id_ ++
+                    ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
     case uniqueAlleles of
         [] -> do
             -- no non-missing alleles found
-            liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> do
             -- only one non-missing allele found
-            liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
