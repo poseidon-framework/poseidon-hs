@@ -6,25 +6,21 @@ import           Data.Maybe             (Maybe(..))
 import           Test.Hspec
 
 spec = do
-    testPasteFirstN
+    testPaste
     testFrequency
     testPrintFrequency
     testPrintFrequencyMaybe
     testMaybeShow
 
-testPasteFirstN :: Spec
-testPasteFirstN = 
-    describe "Poseidon.CLI.Summarise.pasteFirstN" $ do
+testPaste :: Spec
+testPaste = 
+    describe "Poseidon.CLI.Summarise.paste" $ do
     it "should deal with an empty list correctly" $ do
-        pasteFirstN 123 [] `shouldBe` "no values"
-    it "should concat 1/1 correctly" $ do
-        pasteFirstN 1 ["a"] `shouldBe` "a"
-    it "should concat 2/1 correctly" $ do
-        pasteFirstN 2 ["a"] `shouldBe` "a"
-    it "should concat 1/2 correctly" $ do
-        pasteFirstN 1 ["a", "b"] `shouldBe` "a, ..."
-    it "should concat 2/2 correctly" $ do
-        pasteFirstN 2 ["a", "b"] `shouldBe` "a, b"
+        paste [] `shouldBe` "no values"
+    it "should display singular elements correctly" $ do
+        paste ["a"] `shouldBe` "a"
+    it "should concat multiple elements correctly" $ do
+        paste ["a", "b", "c"] `shouldBe` "a, b, c"
 
 testFrequency :: Spec
 testFrequency = 

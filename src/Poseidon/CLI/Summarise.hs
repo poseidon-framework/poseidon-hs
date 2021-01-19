@@ -42,18 +42,18 @@ summarisePoseidonSamples xs rawOutput = do
         let tableH = ["Summary", "Value"]
             tableB = [
                 ["Nr Individuals", show (length xs)],
-                ["Individuals", pasteFirstN 5 $ map posSamIndividualID xs],
+                ["Individuals", paste $ map posSamIndividualID xs],
                 ["Nr Groups", show $ length $ nub $ map posSamGroupName xs],
-                ["Groups", pasteFirstN 2 $ nub $ map (head . posSamGroupName) xs],
+                ["Groups", paste $ nub $ map (head . posSamGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map posSamPublication xs],
-                ["Publications", pasteFirstN 2 $ nub $ mapMaybe posSamPublication xs],
+                ["Publications", paste $ nub $ mapMaybe posSamPublication xs],
                 ["Nr Countries", show $ length $ nub $ map posSamCountry xs],
-                ["Countries", pasteFirstN 5 $ nub $ mapMaybe posSamCountry xs],
+                ["Countries", paste $ nub $ mapMaybe posSamCountry xs],
                 ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamDateBCADMedian xs],
                 ["Dating type", printFrequencyMaybe ", " $ frequency $ map posSamDateType xs],
                 ["Sex distribution", printFrequency ", " $ frequency $ map posSamGeneticSex xs],
-                ["MT haplogroups", pasteFirstN 5 $ nub $ mapMaybe posSamMTHaplogroup xs],
-                ["Y haplogroups", pasteFirstN 5 $ nub $ mapMaybe posSamYHaplogroup xs],
+                ["MT haplogroups", paste $ nub $ mapMaybe posSamMTHaplogroup xs],
+                ["Y haplogroups", paste $ nub $ mapMaybe posSamYHaplogroup xs],
                 ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe posSamEndogenous xs],
                 ["Nr of SNPs on 1240K", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamNrAutosomalSNPs xs],
                 ["Coverage on 1240K", meanAndSdRoundTo 2 $ mapMaybe posSamCoverage1240K xs],
@@ -67,9 +67,9 @@ summarisePoseidonSamples xs rawOutput = do
     else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 -- | A helper function to concat the first N elements of a string list in a nice way
-pasteFirstN :: Int -> [String] -> String
-pasteFirstN _ [] = "no values"
-pasteFirstN n xs = intercalate ", " (take n xs) ++ if length xs > n then ", ..." else ""
+paste :: [String] -> String
+paste [] = "no values"
+paste xs = intercalate ", " xs
 
 -- | A helper function to determine the frequency of objects in a list
 -- (similar to the table function in R)
