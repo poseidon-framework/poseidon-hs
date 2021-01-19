@@ -7,7 +7,7 @@ import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
 import           Poseidon.Package       (loadPoseidonPackages, maybeLoadJannoFiles)
 
 import           Control.Monad          (when)
-import           Data.List              (nub, group, sort, intercalate)
+import           Data.List              (sortBy, nub, group, sort, intercalate)
 import           Data.Maybe             (catMaybes, isJust, mapMaybe)
 import           System.IO              (hPutStrLn, stderr)
 import           Text.Layout.Table      (asciiRoundS, column, def, expand,
@@ -42,18 +42,18 @@ summarisePoseidonSamples xs rawOutput = do
         let tableH = ["Summary", "Value"]
             tableB = [
                 ["Nr Individuals", show (length xs)],
-                ["Individuals", paste $ map posSamIndividualID xs],
+                ["Individuals", paste $ sort $ map posSamIndividualID xs],
                 ["Nr Groups", show $ length $ nub $ map posSamGroupName xs],
-                ["Groups", paste $ nub $ map (head . posSamGroupName) xs],
+                ["Groups", printFrequency ", " $ frequency $ map (head . posSamGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map posSamPublication xs],
-                ["Publications", paste $ nub $ mapMaybe posSamPublication xs],
+                ["Publications", printFrequencyMaybe ", " $ frequency $ map posSamPublication xs],
                 ["Nr Countries", show $ length $ nub $ map posSamCountry xs],
-                ["Countries", paste $ nub $ mapMaybe posSamCountry xs],
+                ["Countries", printFrequencyMaybe ", " $ frequency $ map posSamCountry xs],
                 ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamDateBCADMedian xs],
                 ["Dating type", printFrequencyMaybe ", " $ frequency $ map posSamDateType xs],
                 ["Sex distribution", printFrequency ", " $ frequency $ map posSamGeneticSex xs],
-                ["MT haplogroups", paste $ nub $ mapMaybe posSamMTHaplogroup xs],
-                ["Y haplogroups", paste $ nub $ mapMaybe posSamYHaplogroup xs],
+                ["MT haplogroups", printFrequencyMaybe ", " $ frequency $ map posSamMTHaplogroup xs],
+                ["Y haplogroups",printFrequencyMaybe ", " $ frequency $ map posSamYHaplogroup xs],
                 ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe posSamEndogenous xs],
                 ["Nr of SNPs on 1240K", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamNrAutosomalSNPs xs],
                 ["Coverage on 1240K", meanAndSdRoundTo 2 $ mapMaybe posSamCoverage1240K xs],
@@ -74,7 +74,13 @@ paste xs = intercalate ", " xs
 -- | A helper function to determine the frequency of objects in a list
 -- (similar to the table function in R)
 frequency :: Ord a => [a] -> [(a,Int)]
-frequency list = map (\l -> (head l, length l)) (group (sort list))
+frequency list = sortBy sortTupelsBySndDesc $ map (\l -> (head l, length l)) (group (sort list))
+
+sortTupelsBySndDesc :: (Ord a, Ord b) => (a, b) -> (a, b) -> Ordering
+sortTupelsBySndDesc (a1, b1) (a2, b2)
+  | b1 < b2 = GT
+  | b1 > b2 = LT
+  | b1 == b2 = compare a1 a2
 
 -- | A helper function to print the output of frequency nicely
 printFrequency :: Show a => String -> [(a,Int)] -> String
