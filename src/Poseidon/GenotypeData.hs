@@ -9,6 +9,7 @@ import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.=))
+import           Data.ByteString            (isPrefixOf)
 import           Data.List                  (nub, sort)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
@@ -22,6 +23,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesFileExist)
+import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
@@ -141,14 +143,33 @@ getConsensusSnpEntry snpEntries = do
         uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0') $ allAlleles
     id_ <- case uniqueIds of
         [i] -> return i
-        _ -> throwM $ PoseidonGenotypeException ("SNP IDs incongruent: " ++ show snpEntries)
+        _ -> do
+            -- multiple Ids: Picking the first rs-number if possible, otherwise the first one.
+            let rsIds = filter (isPrefixOf "rs") uniqueIds
+                selectedId = case rsIds of
+                    (i:_) -> i
+                    _ -> head uniqueIds
+            liftIO . hPutStrLn stderr $ "Warning: Found inconsistent SNP IDs: " ++ show uniqueIds ++
+                ". Choosing " ++ show selectedId
+            return selectedId
     genPos <- case uniqueGenPos of
         [p] -> return p
-        [0.0, p] -> return p
-        _ -> throwM $ PoseidonGenotypeException ("SNP genetic positions incongruent: " ++ show snpEntries)
+        [0.0, p] -> return p -- 0.0 is considered "no data" in genetic position column
+        _ -> do
+            -- multiple non-zero genetic positions. Choosing the largest one.
+            let selectedGenPos = maximum uniqueGenPos
+            liftIO . hPutStrLn stderr $ "Warning: Found inconsistent genetic positions in SNP " ++ show id_ ++
+                ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
+            return selectedGenPos
     case uniqueAlleles of
-        [] -> return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
-        [r] -> return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
+        [] -> do
+            -- no non-missing alleles found
+            liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+            return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
+        [r] -> do
+            -- only one non-missing allele found
+            liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+            return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
