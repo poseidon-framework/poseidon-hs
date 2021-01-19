@@ -27,7 +27,7 @@ testFrequency =
     describe "Poseidon.CLI.Summarise.frequency" $ do
     it "should calculate frequencies correctly for strings" $ do
         frequency ["ab", "bc", "cd", "cd", "ab"] `shouldBe` 
-            [("ab", 2), ("bc", 1), ("cd", 2)]
+            [("ab", 2), ("cd", 2), ("bc", 1)]
     it "should calculate frequencies correctly for integers" $ do
         frequency [1, 2, 3, 1, 1] `shouldBe` 
             [(1, 3), (2, 1), (3, 1)]
@@ -39,7 +39,7 @@ testPrintFrequency =
         printFrequency ":-)" ([] :: [(Int, Int)]) `shouldBe` "no values"
     it "should display frequencies correctly for strings" $ do
         printFrequency ", " (frequency ["ab", "bc", "cd", "cd", "ab"]) `shouldBe` 
-            "\"ab\": 2, \"bc\": 1, \"cd\": 2"
+            "\"ab\": 2, \"cd\": 2, \"bc\": 1"
     it "should display frequencies correctly for integers" $ do
         printFrequency " | " (frequency [1, 2, 3, 1, 1]) `shouldBe` 
             "1: 3 | 2: 1 | 3: 1"
@@ -50,10 +50,10 @@ testPrintFrequencyMaybe =
     it "should deal with an empty list correctly" $ do
         printFrequencyMaybe ":-)" ([] :: [(Maybe Int, Int)]) `shouldBe` "no values"
     it "should deal with an effectivly empty list correctly" $ do
-        printFrequencyMaybe ":-)" ([(Nothing, 3)] :: [(Maybe Int, Int)]) `shouldBe` "no values"
+        printFrequencyMaybe ":-)" ([(Nothing, 3)] :: [(Maybe Int, Int)]) `shouldBe` "n/a: 3"
     it "should display frequencies correctly for strings" $ do
         printFrequencyMaybe ", " (frequency [Just "ab", Just "bc", Nothing, Just "ab"]) `shouldBe` 
-            "n/a: 1, \"ab\": 2, \"bc\": 1"
+            "\"ab\": 2, n/a: 1, \"bc\": 1"
     it "should display frequencies correctly for integers" $ do
         printFrequencyMaybe " | " (frequency [Just 1, Just 2, Nothing, Just 1, Nothing]) `shouldBe` 
             "n/a: 2 | 1: 2 | 2: 1"
