@@ -141,7 +141,7 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         uniqueIds = nub . map snpId $ snpEntries
         uniqueGenPos = sort . nub . map snpGeneticPos $ snpEntries
         allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
-        uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0') $ allAlleles
+        uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0' && a /= 'X') $ allAlleles
     id_ <- case uniqueIds of
         [i] -> return i
         _ -> do
@@ -195,7 +195,7 @@ genotypes2alleles ref alt = V.mapM g2a
         then return (alt, alt)
         else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Alt with Alt-Allele missing")
     g2a Missing = return ('N', 'N')
-    na = ['0', 'N']
+    na = ['0', 'N', 'X']
     
 recodeAlleles :: (MonadThrow m) => Char -> Char -> V.Vector (Char, Char) -> m GenoLine
 recodeAlleles ref alt = V.mapM a2g
@@ -208,4 +208,4 @@ recodeAlleles ref alt = V.mapM a2g
         | a1 `elem` na && a2 `elem` na                                                                 = return Missing
         | otherwise                                                                                    = throwM (err a1 a2)
     err a1 a2 = PoseidonGenotypeException ("cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
-    na = ['0', 'N']
+    na = ['0', 'N', 'X']
