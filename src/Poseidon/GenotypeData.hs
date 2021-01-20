@@ -202,10 +202,10 @@ recodeAlleles ref alt = V.mapM a2g
   where
     a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
     a2g (a1, a2)
-        | (a1, a2) == (ref, ref)                           = return HomRef 
-        | (a1, a2) == (ref, alt) || (a1, a2) == (alt, ref) = return Het
-        | (a1, a2) == (alt, alt)                           = return HomAlt
-        | a1 `elem` na && a2 `elem` na                     = return Missing
-        | otherwise                                        = throwM (err a1 a2)
+        | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef 
+        | (a1, a2)  == (alt, alt)                            && alt `notElem` na                       = return HomAlt
+        | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
+        | a1 `elem` na && a2 `elem` na                                                                 = return Missing
+        | otherwise                                                                                    = throwM (err a1 a2)
     err a1 a2 = PoseidonGenotypeException ("cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
     na = ['0', 'N']
