@@ -47,7 +47,8 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoLine)
 import           System.Directory           (doesDirectoryExist,
-                                             listDirectory)
+                                             listDirectory,
+                                             doesFileExist)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
                                              splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPutStrLn, stderr)
@@ -153,6 +154,15 @@ instance ToJSON ContributorSpec where
         "email" .= contributorEmail x
         ]
 
+-- | Helper datatype to check if files linked in a POSEIDON.yml file exist
+data LinkedFilesExistence = LinkedFilesExistence
+    { genoFileExists :: Bool
+    , snpFileExists :: Bool
+    , indFileExists :: Bool
+    , jannoFileExists :: Bool
+    , bibFileExists :: Bool
+    }
+
 -- | A helper function to add a base directory path to all file paths in a poseidon package.
 -- By using the (</>) operator from System.FilePath.Posix, this automatically ensures that paths are only
 -- added if the given paths in the Poseidon package are in fact relative. If they are absolute (which would be bad practice
@@ -244,6 +254,7 @@ loadPoseidonPackages dirs = do
     let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
+    fileExistenceList <- findMissingFilesLinkedInThePOSEIDONyml $ map snd $ rights dupliChecked
     checksumChecked <- filterPackagesWithWrongChecksums $ map snd $ rights dupliChecked
     forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
@@ -270,6 +281,24 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
                     let t   = posPacTitle $ snd $ head pacTuples
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
+
+findMissingFilesLinkedInThePOSEIDONyml :: [PoseidonPackage] -> IO [LinkedFilesExistence]
+findMissingFilesLinkedInThePOSEIDONyml pacs = do mapM findMissing pacs
+    where
+        findMissing :: PoseidonPackage -> IO LinkedFilesExistence
+        findMissing pac = do
+            genoFileE  <- doesFileExist $ genoFile $ posPacGenotypeData pac
+            snpFileE   <- doesFileExist $ snpFile  $ posPacGenotypeData pac
+            indFileE   <- doesFileExist $ indFile  $ posPacGenotypeData pac
+            jannoFileE <- maybe (return False) doesFileExist $ posPacJannoFile pac
+            bibFileE   <- maybe (return False) doesFileExist $ posPacBibFile pac
+            return LinkedFilesExistence {
+                genoFileExists  = genoFileE
+            ,   snpFileExists   = snpFileE
+            ,   indFileExists   = indFileE
+            ,   jannoFileExists = jannoFileE
+            ,   bibFileExists   = bibFileE
+            }
 
 filterPackagesWithWrongChecksums :: [PoseidonPackage] -> IO [Either PoseidonException PoseidonPackage]
 filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
