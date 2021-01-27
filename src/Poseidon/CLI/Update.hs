@@ -15,7 +15,7 @@ data UpdateOptions = UpdateOptions
 
 runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs) = do
-    allMetaPackages <- loadPoseidonPackages baseDirs False
+    allMetaPackages <- loadPoseidonPackages baseDirs True
     hPutStrLn stderr $ (show . length $ allMetaPackages) ++ " Poseidon packages found"
     putStrLn "Updating checksums in the packages"
     updatedPackagesMeta <- mapM updateChecksumsInPackageMeta allMetaPackages
