@@ -315,9 +315,9 @@ reportMissingFiles pacsMeta = do mapM_ reportMissing pacsMeta
                              , if isNotExist $ bibFileState   pacMeta then "bibFile"   else ""
                              ]
                 reportString = intercalate ", " $ filter (/= "") reportList
-            when (reportString /= "") $ hPutStrLn stderr $ "Warning: The following files in package " 
+            when (reportString /= "") $ hPutStrLn stderr $ "Files missing in package " 
                                      ++ posPacTitle (posPac pacMeta) 
-                                     ++ " do not exist at the given location: " 
+                                     ++ ": " 
                                      ++ reportString
 
 
