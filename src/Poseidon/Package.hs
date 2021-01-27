@@ -360,7 +360,7 @@ getJointGenotypeData showAllWarnings = loadJointGenotypeData showAllWarnings . m
 newPackageTemplate :: String -> GenotypeDataSpec -> FilePath -> FilePath -> IO PoseidonPackage
 newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
     (UTCTime today _) <- getCurrentTime
-    checksums <- makeChecksumList (Just geno) (Just snp) (Just ind) Nothing Nothing
+    --checksums <- makeChecksumList (Just geno) (Just snp) (Just ind) Nothing Nothing
     return PoseidonPackage {
         posPacPoseidonVersion = makeVersion [2, 0, 1],
         posPacTitle = n,
@@ -371,7 +371,7 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
         posPacBibFile = Just bib,
         posPacGenotypeData = GenotypeDataSpec format geno snp ind,
         posPacJannoFile = Just janno,
-        posPacChecksumList = checksums
+        posPacChecksumList = Nothing --checksums
     }
 
 updateChecksumsInPackageMeta :: PoseidonPackageMeta -> IO PoseidonPackageMeta

@@ -9,7 +9,7 @@ import           Poseidon.Package           (newPackageTemplate,
                                              getIndividuals,
                                              decodePoseidonYml)
 
-import           Data.Yaml                  (encodeFile)
+import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           System.Directory           (createDirectory, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName)
 
@@ -37,7 +37,7 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     -- POSEIDON.yml
     putStrLn "Compiling POSEIDON.yml"
     pac <- newPackageTemplate outName genotypeData outJanno outBib
-    encodeFile (outPath </> "POSEIDON.yml") pac
+    encodeFilePretty (outPath </> "POSEIDON.yml") pac
     -- genotype data
     putStrLn "Copying genotype data"
     copyFile indFile $ outPath </> outInd

@@ -20,7 +20,7 @@ import           Poseidon.Package           (ContributorSpec (..),
 import           Poseidon.Utils             (PoseidonException(..))
 
 import           Control.Monad              (when, forM, unless)
-import           Data.Yaml                  (encodeFile)
+import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           Data.List                  ((\\), nub, sortOn, intersect, intercalate)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
@@ -95,7 +95,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- POSEIDON.yml
     putStrLn "Compiling POSEIDON.yml"
     pac <- newPackageTemplate outName genotypeData outJanno outBib
-    encodeFile (outPath </> "POSEIDON.yml") pac
+    encodeFilePretty (outPath </> "POSEIDON.yml") pac
     -- janno
     putStrLn "Compiling .janno file"
     writeJannoFile (outPath </> outJanno) relevantJannoRows
