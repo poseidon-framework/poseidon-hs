@@ -1,14 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM, forM_, when)
-import           Control.Monad.Catch        (throwM)
+import           Control.Monad              (forM, forM_, when, void)
+import           Control.Monad.Catch        (throwM, MonadThrow)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.=))
+import           Data.ByteString            (isPrefixOf)
+import           Data.List                  (nub, sort)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
 import           Pipes                      (Producer, (>->))
@@ -21,6 +23,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesFileExist)
+import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
@@ -110,50 +113,99 @@ loadGenotypeData (GenotypeDataSpec format_ genoF snpF indF) = do
         GenotypeFormatPlink      -> readPlink genoF snpF indF
 
 -- | A function to read genotype data jointly from multiple packages
-loadJointGenotypeData :: (MonadSafe m) => [GenotypeDataSpec] -- ^ A list of genotype specifications
+loadJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+                     -> [GenotypeDataSpec] -- ^ A list of genotype specifications
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-loadJointGenotypeData gds = do
+loadJointGenotypeData showAllWarnings gds = do
     genotypeTuples <- mapM loadGenotypeData gds
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
-        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM joinEntries
-    return (jointIndEntries, jointProducer >> return ())
+        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM (joinEntries showAllWarnings)
+    return (jointIndEntries, void jointProducer)
+
+joinEntries :: (MonadSafe m) => Bool -> [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries showAllWarnings tupleList = do
+    let allSnpEntries    = map fst tupleList
+        allGenoEntries   = map snd tupleList
+    snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry showAllWarnings allSnpEntries
+    recodedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \((EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) ->
+        genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
+    return (snpEntry, V.concat recodedGenotypes)
+
+getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry 
+getConsensusSnpEntry showAllWarnings snpEntries = do
+    let chrom = snpChrom . head $ snpEntries
+        pos = snpPos . head $ snpEntries
+        uniqueIds = nub . map snpId $ snpEntries
+        uniqueGenPos = sort . nub . map snpGeneticPos $ snpEntries
+        allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
+        uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0' && a /= 'X') $ allAlleles
+    id_ <- case uniqueIds of
+        [i] -> return i
+        _ -> do
+            -- multiple Ids: Picking the first rs-number if possible, otherwise the first one.
+            let rsIds = filter (isPrefixOf "rs") uniqueIds
+                selectedId = case rsIds of
+                    (i:_) -> i
+                    _ -> head uniqueIds
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: Found inconsistent SNP IDs: " ++ show uniqueIds ++
+                    ". Choosing " ++ show selectedId
+            return selectedId
+    genPos <- case uniqueGenPos of
+        [p] -> return p
+        [0.0, p] -> return p -- 0.0 is considered "no data" in genetic position column
+        _ -> do
+            -- multiple non-zero genetic positions. Choosing the largest one.
+            let selectedGenPos = maximum uniqueGenPos
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: Found inconsistent genetic positions in SNP " ++ show id_ ++
+                    ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
+            return selectedGenPos
+    case uniqueAlleles of
+        [] -> do
+            -- no non-missing alleles found
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+            return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
+        [r] -> do
+            -- only one non-missing allele found
+            when showAllWarnings $ 
+                liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+            return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
+        [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
+        _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
+
+genotypes2alleles :: (MonadThrow m) => Char -> Char -> GenoLine -> m (V.Vector (Char, Char))
+genotypes2alleles ref alt = V.mapM g2a
   where
-    joinEntries :: (MonadSafe m) => [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-    joinEntries tupleList = do
-        let allSnpEntries                            = map fst tupleList
-            allGenoEntries                           = map snd tupleList
-            (EigenstratSnpEntry _ _ _ _ refA1 altA1) = head allSnpEntries
-        allEntriesFlipped <- forM (zip (tail allSnpEntries) (tail allGenoEntries)) $ \(es@(EigenstratSnpEntry _ _ _ _ refA altA), genoLine) ->
-            if alleleConcordant refA refA1 && alleleConcordant altA altA1
-            then return (es, genoLine)
-            else if alleleConcordant refA altA1 && alleleConcordant altA refA1
-                    then return (es {snpRef = altA, snpAlt = refA}, flipGenotypes genoLine)
-                    else throwM (PoseidonGenotypeException ("SNP alleles are incongruent " ++ show allSnpEntries))
-        let allSnpEntriesFlipped  = (head allSnpEntries) : map fst allEntriesFlipped
-            allGenoEntriesFlipped = (head allGenoEntries) : map snd allEntriesFlipped
-        return (makeSnpEntriesConcordant allSnpEntriesFlipped, V.concat allGenoEntriesFlipped)
-    alleleConcordant :: Char -> Char -> Bool
-    alleleConcordant '0' _   = True
-    alleleConcordant _   '0' = True
-    alleleConcordant 'N' _   = True
-    alleleConcordant _   'N' = True
-    alleleConcordant a1  a2  = a1 == a2
-    flipGenotypes :: GenoLine -> GenoLine
-    flipGenotypes = V.map (\a -> case a of
-        HomRef  -> HomAlt
-        Het     -> Het
-        HomAlt  -> HomRef
-        Missing -> Missing)
-    makeSnpEntriesConcordant :: [EigenstratSnpEntry] -> EigenstratSnpEntry
-    makeSnpEntriesConcordant snpEntries@(e:_) =
-        let allRefs            = map snpRef snpEntries
-            allAlts            = map snpAlt snpEntries
-            allInformativeRefs = filter (\c -> c /= '0' && c /= 'N') allRefs
-            allInformativeAlts = filter (\c -> c /= '0' && c /= 'N') allAlts
-            ref = if not (null allInformativeRefs) then head allInformativeRefs else head allRefs
-            alt = if not (null allInformativeAlts) then head allInformativeAlts else head allAlts
-        in  e {snpRef = ref, snpAlt = alt}
-    makeSnpEntriesConcordant _ = error "should not happen"
+    g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
+    g2a HomRef =
+        if ref `notElem` na
+        then return (ref, ref)
+        else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Ref with Ref-Allele missing")
+    g2a Het = 
+        if ref `notElem` na && alt `notElem` na
+        then return (ref, alt)
+        else throwM (PoseidonGenotypeException "encountered illegal genotype Het with Ref-Allele or Alt-Allele missing")
+    g2a HomAlt =
+        if alt `notElem` na
+        then return (alt, alt)
+        else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Alt with Alt-Allele missing")
+    g2a Missing = return ('N', 'N')
+    na = ['0', 'N', 'X']
+    
+recodeAlleles :: (MonadThrow m) => Char -> Char -> V.Vector (Char, Char) -> m GenoLine
+recodeAlleles ref alt = V.mapM a2g
+  where
+    a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
+    a2g (a1, a2)
+        | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef 
+        | (a1, a2)  == (alt, alt)                            && alt `notElem` na                       = return HomAlt
+        | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
+        | a1 `elem` na && a2 `elem` na                                                                 = return Missing
+        | otherwise                                                                                    = throwM (err a1 a2)
+    err a1 a2 = PoseidonGenotypeException ("cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
+    na = ['0', 'N', 'X']

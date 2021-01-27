@@ -124,12 +124,15 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesFromFile
                               <*> parseOutPackagePath
                               <*> parseOutPackageName
+                              <*> parseShowWarnings
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
+                                      <*> parseRawOutput
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
+                                <*> parseRawOutput
 
 updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
@@ -237,6 +240,9 @@ parseOutPackageName :: OP.Parser FilePath
 parseOutPackageName = OP.strOption (OP.long "outPackageName" <>
     OP.short 'n' <>
     OP.help "the output package name")
+
+parseShowWarnings :: OP.Parser Bool
+parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
 
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals

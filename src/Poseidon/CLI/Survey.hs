@@ -12,20 +12,23 @@ import           Poseidon.Package      (PoseidonPackage (..),
                                         maybeLoadJannoFiles)
 
 
-import           Control.Monad         (when)
-import           Data.List             (zip4)
+import           Control.Monad         (forM, when)
+import           Data.List             (zip4, intercalate)
 import           Data.Maybe            (isJust, isNothing)
 import           System.Directory      (doesFileExist)
 import           System.IO             (hPutStrLn, stderr)
+import           Text.Layout.Table     (asciiRoundS, column, def, expand,
+                                        rowsG, tableString, titlesH, expandUntil)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
     { _jaBaseDirs :: [FilePath]
+    , _optRawOutput :: Bool
     }
 
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
-runSurvey (SurveyOptions baseDirs) = do
+runSurvey (SurveyOptions baseDirs rawOutput) = do
     allPackages <- readAllPoseidonPackages baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- collect information
@@ -46,18 +49,25 @@ runSurvey (SurveyOptions baseDirs) = do
     let bibAreAlright = map isJust bibMaybeList
     let anyBibIssues = not $ all isJust bibMaybeList
     -- print information
-    mapM_
-        (putStrLn . renderPackageWithCompleteness)
-        (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright)
+    (tableH, tableB) <- do
+        let tableH = ["Package", "Survey"]
+        tableB <- forM (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright) $ \pac -> do
+            return [extractFirst pac, renderPackageWithCompleteness pac]
+        return (tableH, tableB)
+    let colSpecs = replicate 2 (column (expandUntil 60) def def def)
+    if rawOutput
+    then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
     -- print read issue warning
     when (anyJannoIssues || anyBibIssues) $
-        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+        hPutStrLn stderr "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+
+extractFirst :: (a, b, c, d) -> a
+extractFirst (a,_,_,_) = a
 
 renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
-renderPackageWithCompleteness (packageName,genoTypeDataExists,jannoSamples,bibIsAlright) =
-    take 40 (packageName ++ repeat ' ')
-    ++ " "
-    ++ (if genoTypeDataExists then "G" else ".")
+renderPackageWithCompleteness (_,genoTypeDataExists,jannoSamples,bibIsAlright) =
+       (if genoTypeDataExists then "G" else ".")
     ++ "-"
     ++ maybe (replicate 35 '.') renderJannoCompleteness jannoSamples
     ++ "-"

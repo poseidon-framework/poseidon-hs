@@ -246,7 +246,9 @@ You can run it with
 trident summarise -d ... -d ...
 ```
 
-which will show you context information like -- among others -- the number of samples in the dataset, its sex distribution, the mean age of the samples (for ancient data) or the mean coverage on the 1240K SNP array. `summarise` depends on complete .janno files and will silently ignore missing information for some statistics.
+which will show you context information like -- among others -- the number of individuals in the dataset, their sex distribution, the mean age of the samples (for ancient data) or the mean coverage on the 1240K SNP array in a table. `summarise` depends on complete .janno files and will silently ignore missing information for some statistics.
+
+You can use the `--raw` option to output the summary table as a simple tab-delimited file.
 
 #### Survey command
 `survey` tries to indicate package completeness for poseidon datasets. 
@@ -269,6 +271,8 @@ will yield a table with one row for each package. Completeness is encoded with t
 - column 1: **BibTeX file**
   - `B`: BibTeX file is present
   - `.`: BibTeX file is missing
+
+Also here you can use the `--raw` option to output the survey table as a simple tab-delimited file.
 
 #### Validate command
 `validate` checks poseidon datasets for structural correctness. 

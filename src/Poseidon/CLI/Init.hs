@@ -1,6 +1,4 @@
-module Poseidon.CLI.Init (
-    runInit, InitOptions (..),
-    ) where
+module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
