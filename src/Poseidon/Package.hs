@@ -27,14 +27,14 @@ import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM_)
+import           Control.Monad              (when, filterM, forM_)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
 import           Data.Bifunctor             (Bifunctor(second))
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights, isRight, Either(..))
-import           Data.List                  (groupBy, nub, sortOn)
+import           Data.List                  (intercalate, groupBy, nub, sortOn)
 import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJust)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version, makeVersion)
@@ -156,12 +156,19 @@ instance ToJSON ContributorSpec where
 
 -- | Helper datatype to check if files linked in a POSEIDON.yml file exist
 data LinkedFilesExistence = LinkedFilesExistence
-    { genoFileExists :: Bool
-    , snpFileExists :: Bool
-    , indFileExists :: Bool
-    , jannoFileExists :: Bool
-    , bibFileExists :: Bool
+    { posPac :: PoseidonPackage
+    , genoFileState :: FileState
+    , snpFileState :: FileState
+    , indFileState :: FileState
+    , jannoFileState :: FileState
+    , bibFileState :: FileState
     }
+
+data FileState = NoPath | NotExist | Exist
+
+isNotExist :: FileState -> Bool
+isNotExist NotExist = True
+isNotExist _ = False
 
 -- | A helper function to add a base directory path to all file paths in a poseidon package.
 -- By using the (</>) operator from System.FilePath.Posix, this automatically ensures that paths are only
@@ -254,7 +261,8 @@ loadPoseidonPackages dirs = do
     let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
-    fileExistenceList <- findMissingFilesLinkedInThePOSEIDONyml $ map snd $ rights dupliChecked
+    pacsWithFileExistence <- canvassLinkedFiles $ map snd $ rights dupliChecked
+    reportMissingFiles pacsWithFileExistence
     checksumChecked <- filterPackagesWithWrongChecksums $ map snd $ rights dupliChecked
     forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
@@ -282,8 +290,8 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
-findMissingFilesLinkedInThePOSEIDONyml :: [PoseidonPackage] -> IO [LinkedFilesExistence]
-findMissingFilesLinkedInThePOSEIDONyml pacs = do mapM findMissing pacs
+canvassLinkedFiles :: [PoseidonPackage] -> IO [LinkedFilesExistence]
+canvassLinkedFiles pacs = do mapM findMissing pacs
     where
         findMissing :: PoseidonPackage -> IO LinkedFilesExistence
         findMissing pac = do
@@ -293,12 +301,33 @@ findMissingFilesLinkedInThePOSEIDONyml pacs = do mapM findMissing pacs
             jannoFileE <- maybe (return False) doesFileExist $ posPacJannoFile pac
             bibFileE   <- maybe (return False) doesFileExist $ posPacBibFile pac
             return LinkedFilesExistence {
-                genoFileExists  = genoFileE
-            ,   snpFileExists   = snpFileE
-            ,   indFileExists   = indFileE
-            ,   jannoFileExists = jannoFileE
-            ,   bibFileExists   = bibFileE
+                posPac          = pac
+            ,   genoFileState  = if genoFileE then Exist else NotExist
+            ,   snpFileState   = if snpFileE  then Exist else NotExist
+            ,   indFileState   = if indFileE  then Exist else NotExist
+            ,   jannoFileState = if isNothing $ posPacJannoFile pac then NoPath else
+                                      if jannoFileE  then Exist else NotExist
+            ,   bibFileState   = if isNothing $ posPacBibFile pac then NoPath else
+                                      if bibFileE    then Exist else NotExist
             }
+
+reportMissingFiles :: [LinkedFilesExistence] -> IO ()
+reportMissingFiles linkedFiles = do mapM_ reportMissing linkedFiles
+    where
+        reportMissing :: LinkedFilesExistence -> IO ()
+        reportMissing lfe = do 
+            let reportList = [ if isNotExist $ genoFileState  lfe then "genoFile"  else ""
+                             , if isNotExist $ snpFileState   lfe then "snpFile"   else ""
+                             , if isNotExist $ indFileState   lfe then "indFile"   else ""
+                             , if isNotExist $ jannoFileState lfe then "jannoFile" else "" 
+                             , if isNotExist $ bibFileState   lfe then "bibFile"   else ""
+                             ]
+                reportString = intercalate ", " $ filter (/= "") reportList
+            when (reportString /= "") $ hPutStrLn stderr $ "Warning: The following files in package " 
+                                     ++ posPacTitle (posPac lfe) 
+                                     ++ " do not exist at the given path: " 
+                                     ++ reportString
+    
 
 filterPackagesWithWrongChecksums :: [PoseidonPackage] -> IO [Either PoseidonException PoseidonPackage]
 filterPackagesWithWrongChecksums pacs = do mapM checkPackageChecksums pacs
