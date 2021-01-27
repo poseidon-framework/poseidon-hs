@@ -9,7 +9,7 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             PoseidonPackage (..),
                                             filterDuplicatePackages,
                                             readAllPoseidonPackages,
-                                            readPoseidonPackage)
+                                            decodePoseidonYml)
 
 
 import           Control.Monad.IO.Class    (liftIO)
@@ -28,7 +28,7 @@ import           Text.RawString.QQ
 
 spec = do
     testPoseidonFromYAML
-    testReadPoseidonPackage
+    testDecodePoseidonYml
     testReadWritePoseidonPackageRoundtrip
     testReadAllPoseidonPackages
 
@@ -131,18 +131,18 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     it "should fail with lastModified missing" $ do
         p `shouldBe` truePackageRelPaths {posPacLastModified = Nothing}
 
-testReadPoseidonPackage :: Spec
-testReadPoseidonPackage = describe "PoseidonPackage.readPoseidonPackage" $ do
+testDecodePoseidonYml :: Spec
+testDecodePoseidonYml = describe "PoseidonPackage.decodePoseidonYml" $ do
     it "should return correct package from file read" $ do
         B.writeFile yamlTestPath yamlPackage
-        pac <- readPoseidonPackage yamlTestPath
+        pac <- decodePoseidonYml yamlTestPath
         pac `shouldBe` truePackageAbsPaths
 
 testReadWritePoseidonPackageRoundtrip :: Spec
 testReadWritePoseidonPackageRoundtrip = describe "PoseidonPackage.readWritePoseidonPackageRoundtrip" $ do
     it "writing and reading should make no difference" $ do
         encodeFile yamlTestPath truePackageRelPaths
-        pac <- readPoseidonPackage yamlTestPath
+        pac <- decodePoseidonYml yamlTestPath
         pac `shouldBe` truePackageAbsPaths
 
 testReadAllPoseidonPackages :: Spec

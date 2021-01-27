@@ -9,7 +9,7 @@ import           Poseidon.Janno             (createMinimalSamplesList,
                                              writeJannoFile)
 import           Poseidon.Package           (newPackageTemplate,
                                              getIndividuals,
-                                             readPoseidonPackage)
+                                             decodePoseidonYml)
 
 import           Data.Yaml                  (encodeFile)
 import           System.Directory           (createDirectory, copyFile)
@@ -47,7 +47,7 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     copyFile genoFile $ outPath </> outGeno
     -- janno (needs the genotype files!)
     putStrLn "Creating empty .janno file"
-    new_package <- readPoseidonPackage $ outPath </> "POSEIDON.yml"
+    new_package <- decodePoseidonYml $ outPath </> "POSEIDON.yml"
     indEntries <- getIndividuals new_package
     let jannoRows = createMinimalSamplesList indEntries
     writeJannoFile (outPath </> outJanno) jannoRows

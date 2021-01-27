@@ -6,7 +6,7 @@ module Poseidon.Package (
     PoseidonPackage(..),
     ContributorSpec(..),
     PoseidonException(..),
-    readPoseidonPackage,
+    decodePoseidonYml,
     filterDuplicatePackages,
     readAllPoseidonPackages,
     readAllPoseidonPackagesMeta,
@@ -206,14 +206,14 @@ readAllPoseidonPackagesMeta :: [FilePath] -- ^ A list of base directories where 
                             -> Bool -- ^ Should checksums be ignored?
                             -> IO [PoseidonPackageMeta] -- ^ A list of returned poseidon packages.
 readAllPoseidonPackagesMeta dirs ignoreChecksums = do
-    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
-    allPackages <- readPoseidonPackagesFromYmlList posFiles
+    posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
+    allPackages <- decodePoseidonYmls posFiles
     -- duplication check
     let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     -- compile meta package info and wrap it around the package
-    pacsMeta <- collectPackagesMetaInfo $ rights dupliChecked
+    pacsMeta <- collectMetaInfoForPackages $ rights dupliChecked
     reportMissingFiles pacsMeta
     -- checksum check
     if not ignoreChecksums
@@ -225,17 +225,17 @@ readAllPoseidonPackagesMeta dirs ignoreChecksums = do
     else do
         return pacsMeta
 
-findAllPOSEIDONymlFiles :: FilePath -> IO [FilePath]
-findAllPOSEIDONymlFiles baseDir = do
+findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
+findAllPoseidonYmlFiles baseDir = do
     entries <- listDirectory baseDir
     let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") $ map takeFileName entries
     subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
-    morePosFiles <- fmap concat . mapM findAllPOSEIDONymlFiles $ subDirs
+    morePosFiles <- fmap concat . mapM findAllPoseidonYmlFiles $ subDirs
     return $ posFiles ++ morePosFiles
 
-readPoseidonPackagesFromYmlList :: [FilePath] -> IO [(FilePath, PoseidonPackage)]
-readPoseidonPackagesFromYmlList paths = do
-    pacs <- mapM tryReadPoseidonPackage paths
+decodePoseidonYmls :: [FilePath] -> IO [(FilePath, PoseidonPackage)]
+decodePoseidonYmls paths = do
+    pacs <- mapM tryDecodePoseidonPackage paths
     let pacsPacWithPaths = zip paths pacs
     -- filter out broken packages
     forM_ (lefts $ map snd pacsPacWithPaths) $ (\e -> case e of
@@ -244,14 +244,14 @@ readPoseidonPackagesFromYmlList paths = do
         _ -> error "this should never happen")
     return $ uncurry zip $ second rights $ unzip $ filter (\(_, a) -> isRight a) pacsPacWithPaths
   where
-    tryReadPoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
-    tryReadPoseidonPackage = try . readPoseidonPackage
+    tryDecodePoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage = try . decodePoseidonYml
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
-readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
-                    -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage yamlPath = do
+decodePoseidonYml :: FilePath -- ^ the file path to the yaml file
+                     -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
+decodePoseidonYml yamlPath = do
     let baseDir = takeDirectory yamlPath
     bs <- B.readFile yamlPath
     fromJSON <- case decodeEither' bs of
@@ -281,11 +281,11 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
-collectPackagesMetaInfo :: [(FilePath, PoseidonPackage)] -> IO [PoseidonPackageMeta]
-collectPackagesMetaInfo pacs = do mapM collectPackageMetaInfo pacs
+collectMetaInfoForPackages :: [(FilePath, PoseidonPackage)] -> IO [PoseidonPackageMeta]
+collectMetaInfoForPackages pacs = do mapM collectMetaInfoForPackage pacs
 
-collectPackageMetaInfo :: (FilePath, PoseidonPackage) -> IO PoseidonPackageMeta
-collectPackageMetaInfo (pacPath, pac) = do
+collectMetaInfoForPackage :: (FilePath, PoseidonPackage) -> IO PoseidonPackageMeta
+collectMetaInfoForPackage (pacPath, pac) = do
     genoFileE  <- doesFileExist $ genoFile $ posPacGenotypeData pac
     snpFileE   <- doesFileExist $ snpFile  $ posPacGenotypeData pac
     indFileE   <- doesFileExist $ indFile  $ posPacGenotypeData pac
