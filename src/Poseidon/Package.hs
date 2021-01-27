@@ -155,7 +155,7 @@ instance ToJSON ContributorSpec where
         ]
 
 -- | Helper datatype to check if files linked in a POSEIDON.yml file exist
-data PackageFilesExistence = PackageFilesExistence
+data PoseidonPackageMeta = PoseidonPackageMeta
     { posPac :: PoseidonPackage
     , genoFileState :: FileState
     , snpFileState :: FileState
@@ -265,9 +265,9 @@ loadPoseidonPackages dirs = do
     let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
-    pacsWithFileExistence <- canvassLinkedFiles $ map snd $ rights dupliChecked
-    reportMissingFiles pacsWithFileExistence
-    checksumChecked <- filterPackagesWithWrongChecksums pacsWithFileExistence
+    pacsMeta <- canvassAllLinkedFiles $ map snd $ rights dupliChecked
+    reportMissingFiles pacsMeta
+    checksumChecked <- filterPackagesWithWrongChecksums pacsMeta
     forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     return $ rights checksumChecked
@@ -294,17 +294,17 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
-canvassLinkedFiles :: [PoseidonPackage] -> IO [PackageFilesExistence]
-canvassLinkedFiles pacs = do mapM canvassLinkedFilesOnePackage pacs
+canvassAllLinkedFiles :: [PoseidonPackage] -> IO [PoseidonPackageMeta]
+canvassAllLinkedFiles pacs = do mapM canvassLinkedFiles pacs
 
-canvassLinkedFilesOnePackage :: PoseidonPackage -> IO PackageFilesExistence
-canvassLinkedFilesOnePackage pac = do
+canvassLinkedFiles :: PoseidonPackage -> IO PoseidonPackageMeta
+canvassLinkedFiles pac = do
     genoFileE  <- doesFileExist $ genoFile $ posPacGenotypeData pac
     snpFileE   <- doesFileExist $ snpFile  $ posPacGenotypeData pac
     indFileE   <- doesFileExist $ indFile  $ posPacGenotypeData pac
     jannoFileE <- maybe (return False) doesFileExist $ posPacJannoFile pac
     bibFileE   <- maybe (return False) doesFileExist $ posPacBibFile pac
-    return PackageFilesExistence {
+    return PoseidonPackageMeta {
         posPac          = pac
     ,   genoFileState  = if genoFileE then Exist else NotExist
     ,   snpFileState   = if snpFileE  then Exist else NotExist
@@ -315,46 +315,46 @@ canvassLinkedFilesOnePackage pac = do
                                 if bibFileE    then Exist else NotExist
     }
 
-reportMissingFiles :: [PackageFilesExistence] -> IO ()
-reportMissingFiles pacsWithFileExistence = do mapM_ reportMissing pacsWithFileExistence
+reportMissingFiles :: [PoseidonPackageMeta] -> IO ()
+reportMissingFiles pacsMeta = do mapM_ reportMissing pacsMeta
     where
-        reportMissing :: PackageFilesExistence -> IO ()
-        reportMissing pWFE = do 
-            let reportList = [ if isNotExist $ genoFileState  pWFE then "genoFile"  else ""
-                             , if isNotExist $ snpFileState   pWFE then "snpFile"   else ""
-                             , if isNotExist $ indFileState   pWFE then "indFile"   else ""
-                             , if isNotExist $ jannoFileState pWFE then "jannoFile" else "" 
-                             , if isNotExist $ bibFileState   pWFE then "bibFile"   else ""
+        reportMissing :: PoseidonPackageMeta -> IO ()
+        reportMissing pacMeta = do 
+            let reportList = [ if isNotExist $ genoFileState  pacMeta then "genoFile"  else ""
+                             , if isNotExist $ snpFileState   pacMeta then "snpFile"   else ""
+                             , if isNotExist $ indFileState   pacMeta then "indFile"   else ""
+                             , if isNotExist $ jannoFileState pacMeta then "jannoFile" else "" 
+                             , if isNotExist $ bibFileState   pacMeta then "bibFile"   else ""
                              ]
                 reportString = intercalate ", " $ filter (/= "") reportList
             when (reportString /= "") $ hPutStrLn stderr $ "Warning: The following files in package " 
-                                     ++ posPacTitle (posPac pWFE) 
+                                     ++ posPacTitle (posPac pacMeta) 
                                      ++ " do not exist at the given location: " 
                                      ++ reportString
     
 
-filterPackagesWithWrongChecksums :: [PackageFilesExistence] -> IO [Either PoseidonException PoseidonPackage]
-filterPackagesWithWrongChecksums pacsWithFileExistence = do mapM checkPackageChecksums pacsWithFileExistence
+filterPackagesWithWrongChecksums :: [PoseidonPackageMeta] -> IO [Either PoseidonException PoseidonPackage]
+filterPackagesWithWrongChecksums pacsMeta = do mapM checkPackageChecksums pacsMeta
   where
-    checkPackageChecksums :: PackageFilesExistence -> IO (Either PoseidonException PoseidonPackage)
-    checkPackageChecksums pWFE = do
-        let encodedChecksums = posPacChecksumList $ posPac pWFE
-        actualChecksums <- makeChecksumListForPackage pWFE :: IO (Maybe ChecksumListSpec)
+    checkPackageChecksums :: PoseidonPackageMeta -> IO (Either PoseidonException PoseidonPackage)
+    checkPackageChecksums pacMeta = do
+        let encodedChecksums = posPacChecksumList $ posPac pacMeta
+        actualChecksums <- makeChecksumListForPackage pacMeta :: IO (Maybe ChecksumListSpec)
         if isNothing encodedChecksums || encodedChecksums == actualChecksums
-        then return $ Right $ posPac pWFE
-        else return $ Left $ PoseidonPackageException $ posPacTitle (posPac pWFE) ++
+        then return $ Right $ posPac pacMeta
+        else return $ Left $ PoseidonPackageException $ posPacTitle (posPac pacMeta) ++
             ": Checksums do not match (left: POSEIDON.yml, right: actual checksum)\n" ++
             if isJust encodedChecksums && isJust actualChecksums
             then renderCheckSumComparison (fromJust encodedChecksums) (fromJust actualChecksums)
             else ""
 
-makeChecksumListForPackage :: PackageFilesExistence -> IO (Maybe ChecksumListSpec)
-makeChecksumListForPackage pWFE = do
-    let genoFile'  = if isExist $ genoFileState  pWFE then Just $ genoFile $ posPacGenotypeData $ posPac pWFE else Nothing
-    let snpFile'   = if isExist $ snpFileState   pWFE then Just $ snpFile  $ posPacGenotypeData $ posPac pWFE else Nothing
-    let indFile'   = if isExist $ indFileState   pWFE then Just $ indFile  $ posPacGenotypeData $ posPac pWFE else Nothing
-    let jannoFile' = if isExist $ jannoFileState pWFE then posPacJannoFile                      $ posPac pWFE else Nothing
-    let bibFile'   = if isExist $ bibFileState   pWFE then posPacBibFile                        $ posPac pWFE else Nothing
+makeChecksumListForPackage :: PoseidonPackageMeta -> IO (Maybe ChecksumListSpec)
+makeChecksumListForPackage pacMeta = do
+    let genoFile'  = if isExist $ genoFileState  pacMeta then Just $ genoFile $ posPacGenotypeData $ posPac pacMeta else Nothing
+    let snpFile'   = if isExist $ snpFileState   pacMeta then Just $ snpFile  $ posPacGenotypeData $ posPac pacMeta else Nothing
+    let indFile'   = if isExist $ indFileState   pacMeta then Just $ indFile  $ posPacGenotypeData $ posPac pacMeta else Nothing
+    let jannoFile' = if isExist $ jannoFileState pacMeta then posPacJannoFile                      $ posPac pacMeta else Nothing
+    let bibFile'   = if isExist $ bibFileState   pacMeta then posPacBibFile                        $ posPac pacMeta else Nothing
     makeChecksumList genoFile' snpFile' indFile' jannoFile' bibFile'
  
 -- | A function to return a list of all individuals in the genotype files of a package.
@@ -388,8 +388,8 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
 
 updateChecksumsInPackage :: (FilePath, PoseidonPackage) -> IO PoseidonPackage
 updateChecksumsInPackage (posPath, pac) = do
-    pacsWithFileExistence <- canvassLinkedFilesOnePackage pac
-    newChecksumList <- makeChecksumListForPackage pacsWithFileExistence
+    pacMeta <- canvassLinkedFiles pac
+    newChecksumList <- makeChecksumListForPackage pacMeta
     let path = takeDirectory posPath
     return PoseidonPackage {
         posPacPoseidonVersion = posPacPoseidonVersion pac,
