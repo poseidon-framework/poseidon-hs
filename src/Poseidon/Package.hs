@@ -206,8 +206,8 @@ loadPoseidonPackages dirs ignoreChecksums = do
     let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
-    -- file existence check (soft)
-    pacsMeta <- collectPackagesMetaInfo $ map snd $ rights dupliChecked
+    -- compile meta package info and wrap it around the package
+    pacsMeta <- collectPackagesMetaInfo $ rights dupliChecked
     reportMissingFiles pacsMeta
     -- checksum check
     if not ignoreChecksums
@@ -266,7 +266,7 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
         if length pacTuples == 1
         then return (head pacTuples)
         else
-            let maybeVersions = map (posPacPackageVersion . snd) (pacTuples)
+            let maybeVersions = map (posPacPackageVersion . snd) pacTuples
             in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all dates need to be given and be unique
                 then
                     return . last . sortOn (posPacPackageVersion . snd) $ pacTuples
@@ -275,11 +275,11 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
-collectPackagesMetaInfo :: [PoseidonPackage] -> IO [PoseidonPackageMeta]
+collectPackagesMetaInfo :: [(FilePath, PoseidonPackage)] -> IO [PoseidonPackageMeta]
 collectPackagesMetaInfo pacs = do mapM collectPackageMetaInfo pacs
 
-collectPackageMetaInfo :: PoseidonPackage -> IO PoseidonPackageMeta
-collectPackageMetaInfo pac = do
+collectPackageMetaInfo :: (FilePath, PoseidonPackage) -> IO PoseidonPackageMeta
+collectPackageMetaInfo (pacPath, pac) = do
     genoFileE  <- doesFileExist $ genoFile $ posPacGenotypeData pac
     snpFileE   <- doesFileExist $ snpFile  $ posPacGenotypeData pac
     indFileE   <- doesFileExist $ indFile  $ posPacGenotypeData pac
@@ -287,6 +287,7 @@ collectPackageMetaInfo pac = do
     bibFileE   <- maybe (return False) doesFileExist $ posPacBibFile pac
     return PoseidonPackageMeta {
         posPac         = pac
+    ,   posPacPath     = pacPath
     ,   genoFileState  = if genoFileE then Exist else NotExist
     ,   snpFileState   = if snpFileE  then Exist else NotExist
     ,   indFileState   = if indFileE  then Exist else NotExist
@@ -369,7 +370,7 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
 
 updateChecksumsInPackageMeta :: PoseidonPackageMeta -> IO PoseidonPackageMeta
 updateChecksumsInPackageMeta pacMeta = do
-    newPackage <- updateChecksumsInPackage (posPacPath pacMeta, posPac pacMeta)
+    newPackage <- updateChecksumsInPackage pacMeta
     return PoseidonPackageMeta {
         posPac = newPackage,
         posPacPath = posPacPath pacMeta,
@@ -380,11 +381,11 @@ updateChecksumsInPackageMeta pacMeta = do
         bibFileState = bibFileState pacMeta
     } 
 
-updateChecksumsInPackage :: (FilePath, PoseidonPackage) -> IO PoseidonPackage
-updateChecksumsInPackage (posPath, pac) = do
-    pacMeta <- collectPackageMetaInfo pac
+updateChecksumsInPackage :: PoseidonPackageMeta -> IO PoseidonPackage
+updateChecksumsInPackage pacMeta = do
+    let pac = posPac pacMeta
+        path = posPacPath pacMeta
     newChecksumList <- makeChecksumListForPackage pacMeta
-    let path = takeDirectory posPath
     return PoseidonPackage {
         posPacPoseidonVersion = posPacPoseidonVersion pac,
         posPacTitle = posPacTitle pac,
