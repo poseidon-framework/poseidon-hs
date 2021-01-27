@@ -1,6 +1,7 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
 import           Poseidon.Package          (loadPoseidonPackages,
+                                            PoseidonPackageMeta (..),
                                             PoseidonPackage(..),
                                             getIndividuals)
 
@@ -26,7 +27,8 @@ data ListEntity = ListPackages -- ^ list packages
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
-    packages <- loadPoseidonPackages baseDirs False
+    allMetaPackages <- loadPoseidonPackages baseDirs False
+    let packages = map posPac allMetaPackages
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do

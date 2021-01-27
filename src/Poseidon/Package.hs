@@ -2,20 +2,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Package (
+    PoseidonPackageMeta (..),
     PoseidonPackage(..),
     ContributorSpec(..),
     PoseidonException(..),
     readPoseidonPackage,
-    findPoseidonPackages,
     filterDuplicatePackages,
     loadPoseidonPackages,
-    loadPoseidonPackagesForChecksumUpdate,
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
     getIndividuals,
     newPackageTemplate,
-    updateChecksumsInPackage
+    updateChecksumsInPackageMeta
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
@@ -196,29 +195,40 @@ addFullPaths baseDir pac =
             posPacGenotypeData = genotypeDataFullPath
         }
 
--- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
--- make paths absolute.
-readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
-                    -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage yamlPath = do
-    let baseDir = takeDirectory yamlPath
-    bs <- B.readFile yamlPath
-    fromJSON <- case decodeEither' bs of
-        Left err  -> throwIO $ PoseidonYamlParseException yamlPath err
-        Right pac -> return pac
-    return $ addFullPaths baseDir fromJSON
+-- | a utility function to load all poseidon packages found recursively in multiple base directories.
+loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
+                     -> Bool -- ^ Should checksums be ignored?
+                     -> IO [PoseidonPackageMeta] -- ^ A list of returned poseidon packages.
+loadPoseidonPackages dirs ignoreChecksums = do
+    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
+    allPackages <- readPoseidonPackagesFromYmlList posFiles
+    -- duplication check
+    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
+    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
+        hPutStrLn stderr err
+    -- file existence check (soft)
+    pacsMeta <- collectPackagesMetaInfo $ map snd $ rights dupliChecked
+    reportMissingFiles pacsMeta
+    -- checksum check
+    if not ignoreChecksums
+    then do
+        pacsMetaChecksumChecked <- filterPackagesWithWrongChecksums pacsMeta
+        forM_ (lefts pacsMetaChecksumChecked) $ \(PoseidonPackageException err) ->
+            hPutStrLn stderr err
+        return $ rights pacsMetaChecksumChecked
+    else do
+        return pacsMeta
 
--- | a helper function to return all poseidon packages, found by recursively searching a directory tree.
--- If a package is encountered that throws a parsing error, it will be skipped and a warning will be issued.
-findPoseidonPackages :: FilePath -- ^ the base directory to search from
-                     -> IO [PoseidonPackage] -- ^ the returned list of poseidon packages.
-findPoseidonPackages baseDir = do
-    paths <- findAllPOSEIDONymlFiles baseDir
-    allPackages <- findPoseidonPackagesFromPosList paths
-    return $ map snd allPackages
+findAllPOSEIDONymlFiles :: FilePath -> IO [FilePath]
+findAllPOSEIDONymlFiles baseDir = do
+    entries <- listDirectory baseDir
+    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") $ map takeFileName entries
+    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
+    morePosFiles <- fmap concat . mapM findAllPOSEIDONymlFiles $ subDirs
+    return $ posFiles ++ morePosFiles
 
-findPoseidonPackagesFromPosList :: [FilePath] -> IO [(FilePath, PoseidonPackage)]
-findPoseidonPackagesFromPosList paths = do
+readPoseidonPackagesFromYmlList :: [FilePath] -> IO [(FilePath, PoseidonPackage)]
+readPoseidonPackagesFromYmlList paths = do
     pacs <- mapM tryReadPoseidonPackage paths
     let pacsPacWithPaths = zip paths pacs
     -- filter out broken packages
@@ -231,47 +241,17 @@ findPoseidonPackagesFromPosList paths = do
     tryReadPoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
     tryReadPoseidonPackage = try . readPoseidonPackage
 
-findAllPOSEIDONymlFiles :: FilePath -> IO [FilePath]
-findAllPOSEIDONymlFiles baseDir = do
-    entries <- listDirectory baseDir
-    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") $ map takeFileName entries
-    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
-    morePosFiles <- fmap concat . mapM findAllPOSEIDONymlFiles $ subDirs
-    return $ posFiles ++ morePosFiles
-
-loadPoseidonPackagesForChecksumUpdate :: [FilePath]
-                     -> IO [(FilePath, PoseidonPackage)]
-loadPoseidonPackagesForChecksumUpdate dirs = do
-    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
-    allPackages <- findPoseidonPackagesFromPosList posFiles
-    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
-    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
-        hPutStrLn stderr err
-    return $ rights dupliChecked
-
--- | a utility function to load all poseidon packages found recursively in multiple base directories.
-loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
-                     -> Bool -- ^ Should checksums be ignored?
-                     -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-loadPoseidonPackages dirs ignoreChecksums = do
-    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
-    allPackages <- findPoseidonPackagesFromPosList posFiles
-    -- duplication check
-    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
-    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
-        hPutStrLn stderr err
-    -- file existence check (soft)
-    pacsMeta <- collectPackagesMetaInfo $ map snd $ rights dupliChecked
-    reportMissingFiles pacsMeta
-    -- checksum check
-    if not ignoreChecksums
-    then do
-        checksumChecked <- filterPackagesWithWrongChecksums pacsMeta
-        forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
-            hPutStrLn stderr err
-        return $ rights checksumChecked
-    else do
-        return $ map snd $ rights dupliChecked
+-- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
+-- make paths absolute.
+readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
+                    -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
+readPoseidonPackage yamlPath = do
+    let baseDir = takeDirectory yamlPath
+    bs <- B.readFile yamlPath
+    fromJSON <- case decodeEither' bs of
+        Left err  -> throwIO $ PoseidonYamlParseException yamlPath err
+        Right pac -> return pac
+    return $ addFullPaths baseDir fromJSON
 
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
 filterDuplicatePackages :: [FilePath] -- ^ a list paths to POSEIDON.yml files for the packages.
@@ -332,17 +312,17 @@ reportMissingFiles pacsMeta = do mapM_ reportMissing pacsMeta
                                      ++ posPacTitle (posPac pacMeta) 
                                      ++ " do not exist at the given location: " 
                                      ++ reportString
-    
 
-filterPackagesWithWrongChecksums :: [PoseidonPackageMeta] -> IO [Either PoseidonException PoseidonPackage]
+
+filterPackagesWithWrongChecksums :: [PoseidonPackageMeta] -> IO [Either PoseidonException PoseidonPackageMeta]
 filterPackagesWithWrongChecksums pacsMeta = do mapM checkPackageChecksums pacsMeta
   where
-    checkPackageChecksums :: PoseidonPackageMeta -> IO (Either PoseidonException PoseidonPackage)
+    checkPackageChecksums :: PoseidonPackageMeta -> IO (Either PoseidonException PoseidonPackageMeta)
     checkPackageChecksums pacMeta = do
         let encodedChecksums = posPacChecksumList $ posPac pacMeta
         actualChecksums <- makeChecksumListForPackage pacMeta :: IO (Maybe ChecksumListSpec)
         if isNothing encodedChecksums || encodedChecksums == actualChecksums
-        then return $ Right $ posPac pacMeta
+        then return $ Right pacMeta
         else return $ Left $ PoseidonPackageException $ posPacTitle (posPac pacMeta) ++
             ": Checksums do not match (left: POSEIDON.yml, right: actual checksum)\n" ++
             if isJust encodedChecksums && isJust actualChecksums
@@ -386,6 +366,19 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
         posPacJannoFile = Just janno,
         posPacChecksumList = checksums
     }
+
+updateChecksumsInPackageMeta :: PoseidonPackageMeta -> IO PoseidonPackageMeta
+updateChecksumsInPackageMeta pacMeta = do
+    newPackage <- updateChecksumsInPackage (posPacPath pacMeta, posPac pacMeta)
+    return PoseidonPackageMeta {
+        posPac = newPackage,
+        posPacPath = posPacPath pacMeta,
+        genoFileState = genoFileState pacMeta,
+        snpFileState = snpFileState pacMeta,
+        indFileState = indFileState pacMeta,
+        jannoFileState = jannoFileState pacMeta,
+        bibFileState = bibFileState pacMeta
+    } 
 
 updateChecksumsInPackage :: (FilePath, PoseidonPackage) -> IO PoseidonPackage
 updateChecksumsInPackage (posPath, pac) = do

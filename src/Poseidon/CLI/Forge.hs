@@ -10,6 +10,7 @@ import           Poseidon.Janno             (jannoToSimpleMaybeList,
                                              PoseidonSample (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
+                                             PoseidonPackageMeta (..),
                                              PoseidonPackage (..),
                                              getIndividuals,
                                              getJointGenotypeData,
@@ -53,7 +54,8 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName) = d
         Just f -> readEntitiesFromFile f
     let entities = entitiesDirect ++ entitiesFromFile
     -- load packages --
-    allPackages <- loadPoseidonPackages baseDirs False
+    allMetaPackages <- loadPoseidonPackages baseDirs False
+    let allPackages = map posPac allMetaPackages
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages

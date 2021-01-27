@@ -2,8 +2,9 @@ module Poseidon.CLI.Update (
     runUpdate, UpdateOptions (..),
     ) where
 
-import           Poseidon.Package           (loadPoseidonPackagesForChecksumUpdate,
-                                             updateChecksumsInPackage)
+import           Poseidon.Package           (PoseidonPackageMeta (..),
+                                             loadPoseidonPackages,
+                                             updateChecksumsInPackageMeta)
 
 import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           System.IO                  (hPutStrLn, stderr)
@@ -14,9 +15,9 @@ data UpdateOptions = UpdateOptions
 
 runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs) = do
-    packages <- loadPoseidonPackagesForChecksumUpdate baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allMetaPackages <- loadPoseidonPackages baseDirs False
+    hPutStrLn stderr $ (show . length $ allMetaPackages) ++ " Poseidon packages found"
     putStrLn "Updating checksums in the packages"
-    updatedPackages <- mapM updateChecksumsInPackage packages
+    updatedPackagesMeta <- mapM updateChecksumsInPackageMeta allMetaPackages
     putStrLn "Writing modified POSEIDON.yml files"
-    mapM_ (uncurry encodeFilePretty) $ zip (map fst packages) updatedPackages
+    mapM_ (uncurry encodeFilePretty) $ zip (map posPacPath updatedPackagesMeta) (map posPac updatedPackagesMeta)

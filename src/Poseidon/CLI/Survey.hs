@@ -6,7 +6,8 @@ import           Poseidon.BibFile      (bibToSimpleMaybeList)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Janno        (PoseidonSample (..),
                                         jannoToSimpleMaybeList)
-import           Poseidon.Package      (PoseidonPackage (..),
+import           Poseidon.Package      (PoseidonPackageMeta (..),
+                                        PoseidonPackage (..),
                                         loadPoseidonPackages,
                                         maybeLoadBibTeXFiles,
                                         maybeLoadJannoFiles)
@@ -26,7 +27,8 @@ data SurveyOptions = SurveyOptions
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs) = do
-    packages <- loadPoseidonPackages baseDirs False
+    allMetaPackages <- loadPoseidonPackages baseDirs False
+    let packages = map posPac allMetaPackages
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- collect information
     let packageNames = map posPacTitle packages
