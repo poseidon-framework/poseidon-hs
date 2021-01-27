@@ -10,9 +10,8 @@ module Poseidon.CLI.FStats (
     , readStatSpecsFromFile
 ) where
 
-import           Poseidon.Package           (PoseidonPackageMeta (..), 
-                                             PoseidonPackage (..),
-                                             loadPoseidonPackages,
+import           Poseidon.Package           (PoseidonPackage (..),
+                                             readAllPoseidonPackages,
                                              getIndividuals,
                                              getJointGenotypeData)
 import           Poseidon.Utils             (PoseidonException (..))
@@ -219,9 +218,8 @@ getPopIndices indEntries popSpec =
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     -- load packages --
-    allMetaPackages <- loadPoseidonPackages baseDirs False
-    let packages = map posPac allMetaPackages
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allPackages <- readAllPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     statSpecsFromFile <- case maybeStatSpecsFile of
         Nothing -> return []
         Just f -> readStatSpecsFromFile f
@@ -230,7 +228,7 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect ma
         hPutStrLn stderr $ "No statistics to be computed"
     else do
         let collectedStats = collectStatSpecGroups statSpecs
-        relevantPackages <- findRelevantPackages collectedStats packages
+        relevantPackages <- findRelevantPackages collectedStats allPackages
         hPutStrLn stderr $ (show . length $ relevantPackages) ++ " relevant packages for chosen statistics identified:"
         forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
         hPutStrLn stderr $ "Computing stats " ++ show statSpecs

@@ -8,8 +8,7 @@ import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
 import           Poseidon.Package          (ContributorSpec (..),
                                             PoseidonPackage (..),
                                             filterDuplicatePackages,
-                                            findPoseidonPackages,
-                                            loadPoseidonPackages,
+                                            readAllPoseidonPackages,
                                             readPoseidonPackage)
 
 
@@ -31,7 +30,7 @@ spec = do
     testPoseidonFromYAML
     testReadPoseidonPackage
     testReadWritePoseidonPackageRoundtrip
-    testFindPoseidonPackages
+    testReadAllPoseidonPackages
 
 yamlTestPath :: FilePath
 yamlTestPath = "/tmp/poseidon_test.yml"
@@ -146,14 +145,11 @@ testReadWritePoseidonPackageRoundtrip = describe "PoseidonPackage.readWritePosei
         pac <- readPoseidonPackage yamlTestPath
         pac `shouldBe` truePackageAbsPaths
 
-testFindPoseidonPackages :: Spec
-testFindPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
+testReadAllPoseidonPackages :: Spec
+testReadAllPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
     it "should discover packages correctly" $ do
-        pac <- findPoseidonPackages dir
-        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
-    it "should handle duplicate names correctly" $ do
-        pac <- loadPoseidonPackages [dir]
+        pac <- readAllPoseidonPackages [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),

@@ -8,7 +8,8 @@ module Poseidon.Package (
     PoseidonException(..),
     readPoseidonPackage,
     filterDuplicatePackages,
-    loadPoseidonPackages,
+    readAllPoseidonPackages,
+    readAllPoseidonPackagesMeta,
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
@@ -195,11 +196,16 @@ addFullPaths baseDir pac =
             posPacGenotypeData = genotypeDataFullPath
         }
 
+readAllPoseidonPackages :: [FilePath] -> IO [PoseidonPackage]
+readAllPoseidonPackages paths = do 
+    pacsMeta <- readAllPoseidonPackagesMeta paths False
+    return $ map posPac pacsMeta
+
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
-loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
-                     -> Bool -- ^ Should checksums be ignored?
-                     -> IO [PoseidonPackageMeta] -- ^ A list of returned poseidon packages.
-loadPoseidonPackages dirs ignoreChecksums = do
+readAllPoseidonPackagesMeta :: [FilePath] -- ^ A list of base directories where to search in
+                            -> Bool -- ^ Should checksums be ignored?
+                            -> IO [PoseidonPackageMeta] -- ^ A list of returned poseidon packages.
+readAllPoseidonPackagesMeta dirs ignoreChecksums = do
     posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
     allPackages <- readPoseidonPackagesFromYmlList posFiles
     -- duplication check

@@ -1,7 +1,6 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
-import           Poseidon.Package          (loadPoseidonPackages,
-                                            PoseidonPackageMeta (..),
+import           Poseidon.Package          (readAllPoseidonPackages,
                                             PoseidonPackage(..),
                                             getIndividuals)
 
@@ -27,18 +26,17 @@ data ListEntity = ListPackages -- ^ list packages
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
-    allMetaPackages <- loadPoseidonPackages baseDirs False
-    let packages = map posPac allMetaPackages
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allPackages <- readAllPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]
-            tableB <- forM packages $ \pac -> do
+            tableB <- forM allPackages $ \pac -> do
                 inds <- getIndividuals pac
                 return [posPacTitle pac, showMaybeDate (posPacLastModified pac), show (length inds)]
             return (tableH, tableB)
         ListGroups -> do
-            allInds <- fmap concat . forM packages $ \pac -> do
+            allInds <- fmap concat . forM allPackages $ \pac -> do
                 inds <- getIndividuals pac
                 return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
             let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
@@ -50,7 +48,7 @@ runList (ListOptions baseDirs listEntity rawOutput) = do
             let tableH = ["Group", "Packages", "Nr Individuals"]
             return (tableH, tableB)
         ListIndividuals -> do
-            tableB <- fmap concat . forM packages $ \pac -> do
+            tableB <- fmap concat . forM allPackages $ \pac -> do
                 inds <- getIndividuals pac
                 return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")

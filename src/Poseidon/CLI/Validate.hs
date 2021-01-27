@@ -2,9 +2,8 @@
 
 module Poseidon.CLI.Validate where
 
-import           Poseidon.Package   (PoseidonPackageMeta (..),
-                                     getIndividuals,
-                                     loadPoseidonPackages,
+import           Poseidon.Package   (getIndividuals,
+                                     readAllPoseidonPackages,
                                      maybeLoadJannoFiles, 
                                      maybeLoadBibTeXFiles)
 import           Poseidon.Utils     (PoseidonException(..),
@@ -36,18 +35,17 @@ runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs) = do
     -- POSEIDON.yml
     putStrLn $ u "POSEIDON.yml file consistency:"
-    allMetaPackages <- loadPoseidonPackages baseDirs False
-    let packages = map posPac allMetaPackages
-    hPutStrLn stderr $ (show . length $ packages) ++ " valid POSEIDON.yml files found"
+    allPackages <- readAllPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ allPackages) ++ " valid POSEIDON.yml files found"
     -- Genotype file consistency (without loading them completely!)
     putStrLn $ u "Genotype data consistency:"
-    indEntries <- mapM getIndividuals packages
+    indEntries <- mapM getIndividuals allPackages
     let allIndEntries = concat indEntries
     putStrLn $ show (length allIndEntries)
         ++ " (superficially) valid genotype data entries found"
     -- janno
     putStrLn $ u ".janno file consistency:"
-    jannoFiles <- maybeLoadJannoFiles packages
+    jannoFiles <- maybeLoadJannoFiles allPackages
     let jannoFileExistenceExceptions = E.lefts jannoFiles
         jannoSamplesRaw = E.rights jannoFiles
         jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
@@ -59,7 +57,7 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " valid context data entries found"
     -- bib
     putStrLn $ u ".bib file consistency:"
-    bibFiles <- maybeLoadBibTeXFiles packages
+    bibFiles <- maybeLoadBibTeXFiles allPackages
     let bibFileExceptions = E.lefts bibFiles
         bibReferences = E.rights bibFiles
         allbibReferences = concat bibReferences
@@ -69,7 +67,7 @@ runValidate (ValidateOptions baseDirs) = do
     -- Cross-file consistency
     -- janno + genotype
     putStrLn $ u ".janno-Genotype data interaction:"
-    indEntries <- mapM getIndividuals packages
+    indEntries <- mapM getIndividuals allPackages
     let allIndEntries = concat indEntries
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- allIndEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- allIndEntries]

@@ -6,9 +6,8 @@ import           Poseidon.BibFile      (bibToSimpleMaybeList)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Janno        (PoseidonSample (..),
                                         jannoToSimpleMaybeList)
-import           Poseidon.Package      (PoseidonPackageMeta (..),
-                                        PoseidonPackage (..),
-                                        loadPoseidonPackages,
+import           Poseidon.Package      (PoseidonPackage (..),
+                                        readAllPoseidonPackages,
                                         maybeLoadBibTeXFiles,
                                         maybeLoadJannoFiles)
 
@@ -27,23 +26,22 @@ data SurveyOptions = SurveyOptions
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs) = do
-    allMetaPackages <- loadPoseidonPackages baseDirs False
-    let packages = map posPac allMetaPackages
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allPackages <- readAllPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- collect information
-    let packageNames = map posPacTitle packages
+    let packageNames = map posPacTitle allPackages
     -- geno
-    let genotypeData = map posPacGenotypeData packages
+    let genotypeData = map posPacGenotypeData allPackages
     genoFilesExist <- mapM (doesFileExist . genoFile) genotypeData
     snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData
     indFilesExist <- mapM (doesFileExist . indFile) genotypeData
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- JANNO
-    jannoFiles <- maybeLoadJannoFiles packages
+    jannoFiles <- maybeLoadJannoFiles allPackages
     let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     let anyJannoIssues = not $ all isJust jannoMaybeList
     -- bib
-    bibFiles <- maybeLoadBibTeXFiles packages
+    bibFiles <- maybeLoadBibTeXFiles allPackages
     let bibMaybeList = bibToSimpleMaybeList bibFiles
     let bibAreAlright = map isJust bibMaybeList
     let anyBibIssues = not $ all isJust bibMaybeList

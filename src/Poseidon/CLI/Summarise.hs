@@ -8,8 +8,7 @@ import           Control.Monad          (when)
 import           Data.List              (nub, group, sort, intercalate)
 import           Data.Maybe             (catMaybes, isJust, mapMaybe)
 import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
-import           Poseidon.Package       (PoseidonPackageMeta (..),
-                                         loadPoseidonPackages, 
+import           Poseidon.Package       (readAllPoseidonPackages, 
                                          maybeLoadJannoFiles)
 import           System.IO              (hPutStrLn, stderr)
 
@@ -21,11 +20,10 @@ data SummariseOptions = SummariseOptions
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs) = do
-    allMetaPackages <- loadPoseidonPackages baseDirs False
-    let packages = map posPac allMetaPackages
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allPackages <- readAllPoseidonPackages baseDirs
+    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- JANNO
-    jannoFiles <- maybeLoadJannoFiles packages
+    jannoFiles <- maybeLoadJannoFiles allPackages
     let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     let jannoSamples = concat $ catMaybes jannoMaybeList
     let anyJannoIssues = not $ all isJust jannoMaybeList
