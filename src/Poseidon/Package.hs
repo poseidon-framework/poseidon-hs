@@ -52,7 +52,6 @@ import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>),
                                              splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..))
-import Control.Exception.Base (IOException)
 
 -- | Datatype to store a Poseidon Package with meta information
 data PoseidonPackageMeta = PoseidonPackageMeta
