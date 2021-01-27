@@ -54,6 +54,17 @@ import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..))
 import Control.Exception.Base (IOException)
 
+-- | Datatype to store a Poseidon Package with meta information
+data PoseidonPackageMeta = PoseidonPackageMeta
+    { posPac :: PoseidonPackage
+    , posPacPath :: FilePath
+    , genoFileState :: FileState
+    , snpFileState :: FileState
+    , indFileState :: FileState
+    , jannoFileState :: FileState
+    , bibFileState :: FileState
+    }
+
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
     { posPacPoseidonVersion :: Version
@@ -153,17 +164,10 @@ instance ToJSON ContributorSpec where
         "email" .= contributorEmail x
         ]
 
--- | Helper datatype to check if files linked in a POSEIDON.yml file exist
-data PoseidonPackageMeta = PoseidonPackageMeta
-    { posPac :: PoseidonPackage
-    , genoFileState :: FileState
-    , snpFileState :: FileState
-    , indFileState :: FileState
-    , jannoFileState :: FileState
-    , bibFileState :: FileState
-    }
-
-data FileState = NoPath | NotExist | Exist
+-- | Helper datatype to document the state of files in Poseidon Packages
+data FileState = NoPath -- ^ There is no path to this file in the package
+               | NotExist -- ^ There is a path to this file in the package, but the file is not there
+               | Exist -- ^ There is a path and the file is there
 
 isNotExist :: FileState -> Bool
 isNotExist NotExist = True
@@ -257,7 +261,7 @@ loadPoseidonPackages dirs ignoreChecksums = do
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
     -- file existence check (soft)
-    pacsMeta <- canvassAllLinkedFiles $ map snd $ rights dupliChecked
+    pacsMeta <- collectPackagesMetaInfo $ map snd $ rights dupliChecked
     reportMissingFiles pacsMeta
     -- checksum check
     if not ignoreChecksums
@@ -291,18 +295,18 @@ filterDuplicatePackages paths pacs = map checkDuplicatePackages $ groupBy titleE
                         msg = "duplicate package with missing packageVersion field: " ++ t
                     in  Left $ PoseidonPackageException msg
 
-canvassAllLinkedFiles :: [PoseidonPackage] -> IO [PoseidonPackageMeta]
-canvassAllLinkedFiles pacs = do mapM canvassLinkedFiles pacs
+collectPackagesMetaInfo :: [PoseidonPackage] -> IO [PoseidonPackageMeta]
+collectPackagesMetaInfo pacs = do mapM collectPackageMetaInfo pacs
 
-canvassLinkedFiles :: PoseidonPackage -> IO PoseidonPackageMeta
-canvassLinkedFiles pac = do
+collectPackageMetaInfo :: PoseidonPackage -> IO PoseidonPackageMeta
+collectPackageMetaInfo pac = do
     genoFileE  <- doesFileExist $ genoFile $ posPacGenotypeData pac
     snpFileE   <- doesFileExist $ snpFile  $ posPacGenotypeData pac
     indFileE   <- doesFileExist $ indFile  $ posPacGenotypeData pac
     jannoFileE <- maybe (return False) doesFileExist $ posPacJannoFile pac
     bibFileE   <- maybe (return False) doesFileExist $ posPacBibFile pac
     return PoseidonPackageMeta {
-        posPac          = pac
+        posPac         = pac
     ,   genoFileState  = if genoFileE then Exist else NotExist
     ,   snpFileState   = if snpFileE  then Exist else NotExist
     ,   indFileState   = if indFileE  then Exist else NotExist
@@ -385,7 +389,7 @@ newPackageTemplate n (GenotypeDataSpec format geno snp ind) janno bib = do
 
 updateChecksumsInPackage :: (FilePath, PoseidonPackage) -> IO PoseidonPackage
 updateChecksumsInPackage (posPath, pac) = do
-    pacMeta <- canvassLinkedFiles pac
+    pacMeta <- collectPackageMetaInfo pac
     newChecksumList <- makeChecksumListForPackage pacMeta
     let path = takeDirectory posPath
     return PoseidonPackage {
