@@ -104,7 +104,6 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
                                 <*> OP.many parseStatSpecsDirect
                                 <*> parseStatSpecsFromFile
                                 <*> parseRawOutput
-                                <*> parseIgnoreChecksums
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeFormat
@@ -118,7 +117,6 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths 
                             <*> parseListEntity 
                             <*> parseRawOutput
-                            <*> parseIgnoreChecksums
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
@@ -126,22 +124,18 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesFromFile
                               <*> parseOutPackagePath
                               <*> parseOutPackageName
-                              <*> parseIgnoreChecksums
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
-                                      <*> parseIgnoreChecksums
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
-                                <*> parseIgnoreChecksums
 
 updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths -- <*> parseIgnoreGeno
-                                    <*> parseIgnoreChecksums
 
 -- parseIgnoreGeno :: OP.Parser Bool
 -- parseIgnoreGeno = OP.switch (OP.long "ignoreGeno" <> OP.help "...")
@@ -257,8 +251,8 @@ parseRawOutput = OP.switch (
     OP.help "output table as tsv without header. Useful for piping into grep or awk."
     )
 
-parseIgnoreChecksums :: OP.Parser Bool
-parseIgnoreChecksums = OP.switch (
-    OP.long "ignoreChecksums" <> 
-    OP.help "ignore the checksums in the POSEIDON.yml file when loading the packages"
-    )
+-- parseIgnoreChecksums :: OP.Parser Bool
+-- parseIgnoreChecksums = OP.switch (
+--     OP.long "ignoreChecksums" <> 
+--     OP.help "ignore the checksums in the POSEIDON.yml file when loading the packages"
+--     )

@@ -8,22 +8,18 @@ import           Control.Monad          (when)
 import           Data.List              (nub, group, sort, intercalate)
 import           Data.Maybe             (catMaybes, isJust, mapMaybe)
 import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
-import           Poseidon.Package       (loadPoseidonPackages, maybeLoadJannoFiles, 
-                                         loadPoseidonPackagesIgnoreChecksums)
+import           Poseidon.Package       (loadPoseidonPackages, maybeLoadJannoFiles)
 import           System.IO              (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
     { _jaBaseDirs :: [FilePath]
-    , _optIgnoreChecksums :: Bool
     }
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
-runSummarise (SummariseOptions baseDirs ignoreChecksums) = do
-    packages <- if ignoreChecksums
-                then loadPoseidonPackagesIgnoreChecksums baseDirs
-                else loadPoseidonPackages baseDirs
+runSummarise (SummariseOptions baseDirs) = do
+    packages <- loadPoseidonPackages baseDirs False
     hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles packages

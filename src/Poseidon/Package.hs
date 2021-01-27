@@ -10,7 +10,6 @@ module Poseidon.Package (
     filterDuplicatePackages,
     loadPoseidonPackages,
     loadPoseidonPackagesForChecksumUpdate,
-    loadPoseidonPackagesIgnoreChecksums,
     maybeLoadJannoFiles,
     maybeLoadBibTeXFiles,
     getJointGenotypeData,
@@ -246,31 +245,29 @@ loadPoseidonPackagesForChecksumUpdate dirs = do
         hPutStrLn stderr err
     return $ rights dupliChecked
 
-loadPoseidonPackagesIgnoreChecksums :: [FilePath]
-                     -> IO [PoseidonPackage]
-loadPoseidonPackagesIgnoreChecksums dirs = do
-    posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
-    allPackages <- findPoseidonPackagesFromPosList posFiles
-    let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
-    forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
-        hPutStrLn stderr err
-    return $ map snd $ rights dupliChecked
-
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
 loadPoseidonPackages :: [FilePath] -- ^ A list of base directories where to search in
+                     -> Bool -- ^ Should checksums be ignored?
                      -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-loadPoseidonPackages dirs = do
+loadPoseidonPackages dirs ignoreChecksums = do
     posFiles <- concat <$> mapM findAllPOSEIDONymlFiles dirs
     allPackages <- findPoseidonPackagesFromPosList posFiles
+    -- duplication check
     let dupliChecked = uncurry filterDuplicatePackages $ unzip allPackages
     forM_ (lefts dupliChecked) $ \(PoseidonPackageException err) ->
         hPutStrLn stderr err
+    -- file existence check (soft)
     pacsMeta <- canvassAllLinkedFiles $ map snd $ rights dupliChecked
     reportMissingFiles pacsMeta
-    checksumChecked <- filterPackagesWithWrongChecksums pacsMeta
-    forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
-        hPutStrLn stderr err
-    return $ rights checksumChecked
+    -- checksum check
+    if not ignoreChecksums
+    then do
+        checksumChecked <- filterPackagesWithWrongChecksums pacsMeta
+        forM_ (lefts checksumChecked) $ \(PoseidonPackageException err) ->
+            hPutStrLn stderr err
+        return $ rights checksumChecked
+    else do
+        return $ map snd $ rights dupliChecked
 
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
 filterDuplicatePackages :: [FilePath] -- ^ a list paths to POSEIDON.yml files for the packages.
