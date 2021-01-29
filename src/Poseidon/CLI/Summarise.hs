@@ -4,7 +4,7 @@ module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
-import           Poseidon.Package       (readAllPoseidonPackages, maybeLoadJannoFiles)
+import           Poseidon.Package       (readPoseidonPackageCollection)
 
 import           Control.Monad          (when)
 import           Data.List              (sortBy, nub, group, sort, intercalate)
@@ -22,7 +22,7 @@ data SummariseOptions = SummariseOptions
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
-    allPackages <- readAllPoseidonPackages baseDirs
+    allPackages <- readPoseidonPackageCollection baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles allPackages

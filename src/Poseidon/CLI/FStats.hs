@@ -11,7 +11,7 @@ module Poseidon.CLI.FStats (
 ) where
 
 import           Poseidon.Package           (PoseidonPackage (..),
-                                             readAllPoseidonPackages,
+                                             readPoseidonPackageCollection,
                                              getIndividuals,
                                              getJointGenotypeData)
 import           Poseidon.Utils             (PoseidonException (..))

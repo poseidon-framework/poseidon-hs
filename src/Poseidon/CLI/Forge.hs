@@ -13,9 +13,7 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              PoseidonPackage (..),
                                              getIndividuals,
                                              getJointGenotypeData,
-                                             readAllPoseidonPackages,
-                                             maybeLoadBibTeXFiles,
-                                             maybeLoadJannoFiles,
+                                             readPoseidonPackageCollection,
                                              newPackageTemplate)
 import           Poseidon.Utils             (PoseidonException(..))
 

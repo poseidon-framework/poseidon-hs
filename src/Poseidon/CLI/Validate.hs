@@ -2,25 +2,28 @@
 
 module Poseidon.CLI.Validate where
 
-import           Poseidon.Package   (getIndividuals,
-                                     readPoseidonPackageCollection)
-import           Poseidon.Utils     (PoseidonException(..),
-                                    renderPoseidonException)
-import           Poseidon.Janno     (PoseidonSample(..))
+import           Poseidon.BibFile           (loadBibTeXFile)
+import           Poseidon.Janno             (PoseidonSample (..), loadJannoFile)
+import           Poseidon.Package           (PoseidonPackage (..),
+                                             getIndividuals,
+                                             readPoseidonPackageCollection)
+import           Poseidon.Utils             (PoseidonException (..),
+                                             renderPoseidonException)
 
-import           Control.Monad      (when, unless)
-import qualified Data.Either        as E
-import           Data.Maybe         (mapMaybe)
-import           Text.CSL.Reference (refId, unLiteral)
-import           Data.List          (nub, (\\), intercalate)
-import           Data.Text          (unpack)
-import           Control.Exception  (throw)
+import           Control.Exception          (try)
+import           Control.Exception          (throw)
+import           Control.Monad              (forM, unless, when)
+import qualified Data.Either                as E
+import           Data.List                  (intercalate, nub, (\\))
+import           Data.Maybe                 (mapMaybe)
+import           Data.Text                  (unpack)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
-import           System.IO          (hPutStrLn, stderr)
+import           System.IO                  (hPutStrLn, stderr)
+import           Text.CSL.Reference         (refId, unLiteral)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
-    { _jaBaseDirs  :: [FilePath]
+    { _jaBaseDirs :: [FilePath]
     }
 
 u :: String -> String
@@ -43,24 +46,24 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " (superficially) valid genotype data entries found"
     -- janno
     putStrLn $ u ".janno file consistency:"
-    jannoFiles <- maybeLoadJannoFiles allPackages
-    let jannoFileExistenceExceptions = E.lefts jannoFiles
-        jannoSamplesRaw = E.rights jannoFiles
+    eitherJannoFiles <- sequence [(try . loadJannoFile) fn | Just fn <- map posPacJannoFile allPackages]
+    let jannoExceptions = E.lefts eitherJannoFiles
+        jannoSamplesRaw = E.rights eitherJannoFiles
         jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
         jannoSamples = map E.rights jannoSamplesRaw
         allJannoSamples = concat jannoSamples
-    mapM_ (putStrLn . renderPoseidonException) jannoFileExistenceExceptions
+    mapM_ (putStrLn . renderPoseidonException) jannoExceptions
     mapM_ (putStrLn . renderPoseidonException) jannoFileReadingExceptions
-    putStrLn $ show (length allJannoSamples) 
+    putStrLn $ show (length allJannoSamples)
         ++ " valid context data entries found"
     -- bib
     putStrLn $ u ".bib file consistency:"
-    bibFiles <- maybeLoadBibTeXFiles allPackages
-    let bibFileExceptions = E.lefts bibFiles
-        bibReferences = E.rights bibFiles
+    eitherBibFiles <- sequence [(try . loadBibTeXFile) fn | Just fn <- map posPacBibFile allPackages]
+    let bibFileExceptions = E.lefts eitherBibFiles
+        bibReferences = E.rights eitherBibFiles
         allbibReferences = concat bibReferences
     mapM_ (putStrLn . renderPoseidonException) bibFileExceptions
-    putStrLn $ show (length allbibReferences) 
+    putStrLn $ show (length allbibReferences)
         ++ " valid literature references found"
     -- Cross-file consistency
     -- janno + genotype
@@ -80,13 +83,13 @@ runValidate (ValidateOptions baseDirs) = do
     if not (null jannoFileReadingExceptions) -- + any genotype errors?
     then putStrLn "There are already issues with the .janno files or the genotype data"
     else do
-        when idMis $ putStrLn $ 
-            "Individual ID mismatch between genotype data (left) and .janno files (right):\n" ++ 
+        when idMis $ putStrLn $
+            "Individual ID mismatch between genotype data (left) and .janno files (right):\n" ++
             renderMismatch genoIDs jannoIDs
-        when sexMis $ putStrLn $ 
+        when sexMis $ putStrLn $
             "Individual Sex mismatch between genotype data (left) and .janno files (right):\n" ++
             renderMismatch (map show genoSexs) (map show jannoSexs)
-        when groupMis $ putStrLn $ 
+        when groupMis $ putStrLn $
             "Individual GroupID mismatch between genotype data (left) and .janno files (right):\n" ++
             renderMismatch genoGroups jannoGroups
         unless anyJannoGenoMis $ putStrLn "All main IDs in the .janno files match the genotype data"
@@ -102,17 +105,17 @@ runValidate (ValidateOptions baseDirs) = do
     -- Final report: Error code generation
     putStrLn ""
     if not (null jannoFileReadingExceptions)
-        || not (null bibFileExceptions) 
+        || not (null bibFileExceptions)
         || anyJannoGenoMis
     then throw (PoseidonValidationException "")
     else putStrLn "==> Validation passed ✓"
 
 
 renderMismatch :: [String] -> [String] -> String
-renderMismatch a b = 
+renderMismatch a b =
     let misMatchList = map (\ (x, y) -> "(" ++ x ++ " = " ++ y ++ ")")
                        (filter (\ (x, y) -> x /= y) $ zipWithPadding "?" "?" a b)
-    in if length misMatchList > 10 
+    in if length misMatchList > 10
        then intercalate "\n" (take 10 misMatchList) ++ "\n..."
        else intercalate "\n" misMatchList
 

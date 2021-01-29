@@ -302,8 +302,6 @@ encodingOptions = Csv.defaultEncodeOptions {
 -- | A function to load one janno file
 loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
 loadJannoFile jannoPath = do
-    fileE <- doesFileExist jannoPath
-    when (not fileE) . throwIO $ PoseidonFileExistenceException ("Cannot find Janno file " ++ jannoPath)
     jannoFile <- Bch.readFile jannoPath
     let jannoFileUpdated = replaceNA jannoFile
     let jannoFileRows = Bch.lines jannoFileUpdated

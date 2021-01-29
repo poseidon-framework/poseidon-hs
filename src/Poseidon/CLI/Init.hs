@@ -6,8 +6,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (createMinimalSamplesList, 
                                              writeJannoFile)
 import           Poseidon.Package           (newPackageTemplate,
-                                             getIndividuals,
-                                             decodePoseidonYml)
+                                             getIndividuals)
 
 import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           System.Directory           (createDirectory, copyFile)

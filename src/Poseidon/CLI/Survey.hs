@@ -7,7 +7,7 @@ import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Janno        (PoseidonSample (..),
                                         jannoToSimpleMaybeList)
 import           Poseidon.Package      (PoseidonPackage (..),
-                                        readAllPoseidonPackages,
+                                        readPoseidonPackageCollection,
                                         maybeLoadBibTeXFiles,
                                         maybeLoadJannoFiles)
 
@@ -34,10 +34,10 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- collect information
     let packageNames = map posPacTitle allPackages
     -- geno
-    let genotypeData = map posPacGenotypeData allPackages
-    genoFilesExist <- mapM (doesFileExist . genoFile) genotypeData
-    snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData
-    indFilesExist <- mapM (doesFileExist . indFile) genotypeData
+    let genotypeDataTuples = [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- allPackages]
+    genoFilesExist <- sequence [doesFileExist (d </> genoFile gd) | (d, gd) <- genotypeDataTuples]
+    snpFilesExist <- sequence [doesFileExist (d </> snpFile gd) | (d, gd) <- genotypeDataTuples]
+    indFilesExist <- sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- JANNO
     jannoFiles <- maybeLoadJannoFiles allPackages

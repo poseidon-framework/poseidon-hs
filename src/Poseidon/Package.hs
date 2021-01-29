@@ -12,7 +12,8 @@ module Poseidon.Package (
     getJointGenotypeData,
     getIndividuals,
     newPackageTemplate,
-    updateChecksumsInPackage
+    updateChecksumsInPackage,
+    writePoseidonPackage
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
@@ -37,7 +38,7 @@ import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJ
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
-import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..))
+import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..), encodeFilePretty)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Producer)
 import           Pipes.Safe                 (MonadSafe)
@@ -202,19 +203,20 @@ readPoseidonPackage ignoreGenotypeFilesMissing yamlPath = do
 checkFiles :: Bool -> PoseidonPackage -> IO ()
 checkFiles ignoreGenotypeFilesMissing pac = do
     -- Check Bib File
-    case (posPacBibFile pac) of
+    case (poseidonBibFile pac) of
         Nothing -> return ()
         Just fn -> checkFile fn (posPacBibFileChkSum pac)
     -- Check Janno File
-    case (posPacJannoFile pac) of
+    case (poseidonJannoFile pac) of
         Nothing -> return ()
         Just fn -> checkFile fn (posPacJannoFileChkSum pac)
     -- Check Genotype files
     when (not ignoreGenotypeFilesMissing) $ do
         let gd = posPacGenotypeData pac
-        checkFile (genoFile gd) (genoFileChkSum gd)
-        checkFile (snpFile gd) (snpFileChkSum gd)
-        checkFile (indFile gd) (indFileChkSum gd)
+            d = posPacBaseDir pac
+        checkFile (d </> genoFile gd) (genoFileChkSum gd)
+        checkFile (d </> snpFile gd) (snpFileChkSum gd)
+        checkFile (d </> indFile gd) (indFileChkSum gd)
 
 checkFile :: FilePath -> Maybe String -> IO ()
 checkFile fn maybeChkSum = do
@@ -287,7 +289,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
 -- | A function to return a list of all individuals in the genotype files of a package.
 getIndividuals :: PoseidonPackage -- ^ the Poseidon package
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-getIndividuals = loadIndividuals . posPacGenotypeData
+getIndividuals pac = loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac)
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
@@ -320,16 +322,17 @@ newPackageTemplate baseDir n (GenotypeDataSpec format geno _ snp _ ind _) janno 
 
 updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
 updateChecksumsInPackage pac = do
-    jannoChkSum <- case posPacJannoFile pac of
+    jannoChkSum <- case poseidonJannoFile pac of
         Nothing -> return Nothing
         Just fn -> Just <$> getChecksum fn
-    bibChkSum <- case posPacBibFile pac of
+    bibChkSum <- case poseidonBibFile pac of
         Nothing -> return Nothing
         Just fn -> Just <$> getChecksum fn
     let gd = posPacGenotypeData pac
-    genoChkSum <- Just <$> getChecksum (genoFile gd)
-    snpChkSum <- Just <$> getChecksum (snpFile gd)
-    indChkSum <- Just <$> getChecksum (indFile gd)
+        d = posPacBaseDir pac
+    genoChkSum <- Just <$> getChecksum (d </> genoFile gd)
+    snpChkSum <- Just <$> getChecksum (d </> snpFile gd)
+    indChkSum <- Just <$> getChecksum (d </> indFile gd)
     return $ pac {
         posPacBibFileChkSum = bibChkSum,
         posPacJannoFileChkSum = jannoChkSum,
@@ -339,3 +342,9 @@ updateChecksumsInPackage pac = do
             indFileChkSum = indChkSum
         }
     } 
+
+writePoseidonPackage :: PoseidonPackage -> IO ()
+writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod bibF bibFC geno janno jannoC) = do
+    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod bibF bibFC geno janno jannoC
+        outF = baseDir </> "POSEIDON.yml"
+    encodeFilePretty outF yamlPac

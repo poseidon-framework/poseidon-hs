@@ -1,6 +1,6 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
-import           Poseidon.Package          (readAllPoseidonPackages,
+import           Poseidon.Package          (readPoseidonPackageCollection,
                                             PoseidonPackage(..),
                                             getIndividuals)
 
