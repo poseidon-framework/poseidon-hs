@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (loadBibTeXFile, bibToSimpleMaybeList, writeBibTeXFile) where
+module Poseidon.BibFile (loadBibTeXFile, bibToSimpleMaybeList, writeBibTeXFile, BibTeX(..)) where
 
 import           Poseidon.Utils          (PoseidonException(..))
 
@@ -15,6 +15,8 @@ import           Text.CSL                (procOpts, processBibliography,
 import           Text.CSL.Exception      (CiteprocException)
 import           Text.CSL.Input.Bibtex   (readBibtex)
 import           Text.CSL.Reference      (Reference (..))
+
+type BibTeX = [Reference]
 
 bibToSimpleMaybeList :: [Either PoseidonException [Reference]] -> [Maybe [Reference]]
 bibToSimpleMaybeList = map rightToMaybe

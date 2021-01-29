@@ -4,7 +4,8 @@ module Poseidon.CLI.Update (
 
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
-                                             updateChecksumsInPackage, writePoseidonPackage)
+                                             --updateChecksumsInPackage, 
+                                             writePoseidonPackage)
 
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -16,6 +17,6 @@ runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs) = do
     allPackages <- readPoseidonPackageCollection False baseDirs
     putStrLn "Updating checksums in the packages"
-    updatedPackages <- mapM updateChecksumsInPackage allPackages
-    putStrLn "Writing modified POSEIDON.yml files"
-    mapM_ writePoseidonPackage updatedPackages
+    -- updatedPackages <- mapM updateChecksumsInPackage allPackages
+    -- putStrLn "Writing modified POSEIDON.yml files"
+    -- mapM_ writePoseidonPackage updatedPackages

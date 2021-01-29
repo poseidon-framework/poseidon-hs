@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Poseidon.Janno (
+    Janno (..),
     PoseidonSample(..),
     Sex (..),
     Latitude (..),
@@ -24,7 +25,7 @@ import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Applicative        (empty)
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (when)
+import           Control.Monad              (when, unless)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Char                  (ord)
@@ -197,6 +198,8 @@ instance Csv.FromField Percent where
 instance Csv.ToField Percent where
     toField (Percent x) = Csv.toField x
 
+type Janno = [PoseidonSample]
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -300,19 +303,16 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-loadJannoFile :: FilePath -> IO [Either PoseidonException PoseidonSample]
+loadJannoFile :: FilePath -> IO [PoseidonSample]
 loadJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
     let jannoFileUpdated = replaceNA jannoFile
     let jannoFileRows = Bch.lines jannoFileUpdated
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
-    jannoRepresentation <- mapM (try . loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
-    case checkJannoConsistency jannoRepresentation of
-        Left err -> do
-            throwIO $ PoseidonJannoConsistencyException jannoPath err
-        Right x -> do
-            return x
+    jannoRepresentation <- mapM (loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
+    checkJannoConsistency jannoPath jannoRepresentation
+    return jannoRepresentation
 
 -- | A function to load one row of a janno file
 loadJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO PoseidonSample
@@ -321,11 +321,8 @@ loadJannoFileRow jannoPath row = do
         Left _ -> do
            throwIO $ PoseidonJannoRowException jannoPath (fst row) "Type error (e.g. Text in a numeric field)"
         Right (poseidonSamples :: V.Vector PoseidonSample) -> do
-            case checkJannoRowConsistency $ V.head poseidonSamples of
-                Left err -> do
-                    throwIO $ PoseidonJannoRowException jannoPath (fst row) err
-                Right x -> do
-                    return x
+            checkJannoRowConsistency jannoPath (fst row) $ V.head poseidonSamples
+            return $ V.head poseidonSamples
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
@@ -399,29 +396,22 @@ createMinimalSample (EigenstratIndEntry id sex pop) =
 
 -- Janno consistency checks
 
-checkJannoConsistency :: [Either PoseidonException PoseidonSample] -> Either String [Either PoseidonException PoseidonSample]
-checkJannoConsistency x
-    | not $ checkIndividualUnique x =
-        Left "The Individual_IDs are not unique"
-    | otherwise =
-        Right x
+checkJannoConsistency :: FilePath -> [PoseidonSample] -> IO ()
+checkJannoConsistency jannoPath x = do
+    unless (checkIndividualUnique x) $ do
+        throwIO $ PoseidonJannoConsistencyException jannoPath "The Individual_IDs are not unique"
 
-checkIndividualUnique :: [Either PoseidonException PoseidonSample] -> Bool
-checkIndividualUnique x = length (rights x) == length (nub $ map posSamIndividualID $ rights x)
+checkIndividualUnique :: [PoseidonSample] -> Bool
+checkIndividualUnique x = length x == length (nub $ map posSamIndividualID x)
 
-checkJannoRowConsistency :: PoseidonSample -> Either String PoseidonSample
-checkJannoRowConsistency x
-    | not $ checkMandatoryStringNotEmpty x =
-        Left $ "The mandatory columns "
-        ++ "Individual_ID and Group_Name "
-        ++ "contain empty values"
-    | not $ checkC14ColsConsistent x =
-        Left $ "The columns "
-        ++ "Date_C14_Labnr, Date_C14_Uncal_BP, "
-        ++ "Date_C14_Uncal_BP_Err and Date_Type "
-        ++ "are not consistent"
-    | otherwise =
-        Right x
+checkJannoRowConsistency :: FilePath -> Int -> PoseidonSample -> IO ()
+checkJannoRowConsistency jannoPath row x = do
+    unless (checkMandatoryStringNotEmpty x) $ do
+        throwIO $ PoseidonJannoRowException 
+            jannoPath row "The mandatory columns Individual_ID and Group_Name contain empty values"
+    unless (checkC14ColsConsistent x) $ do
+        throwIO $ PoseidonJannoRowException 
+            jannoPath row "The columns Date_C14_Labnr, Date_C14_Uncal_BP, Date_C14_Uncal_BP_Err and Date_Type are not consistent"
 
 checkMandatoryStringNotEmpty :: PoseidonSample -> Bool
 checkMandatoryStringNotEmpty x =
