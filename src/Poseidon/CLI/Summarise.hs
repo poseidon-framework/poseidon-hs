@@ -23,7 +23,7 @@ data SummariseOptions = SummariseOptions
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection False baseDirs
-    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
+    putStrLn "test"
     -- JANNO
     
     -- TODO Janno file loading needs updating. What happens if janno-files are missing?

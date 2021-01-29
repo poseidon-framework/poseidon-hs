@@ -219,7 +219,6 @@ runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     -- load packages --
     allPackages <- readPoseidonPackageCollection False baseDirs
-    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     statSpecsFromFile <- case maybeStatSpecsFile of
         Nothing -> return []
         Just f -> readStatSpecsFromFile f

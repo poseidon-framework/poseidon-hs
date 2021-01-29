@@ -53,7 +53,6 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     let entities = entitiesDirect ++ entitiesFromFile
     -- load packages --
     allPackages <- readPoseidonPackageCollection False baseDirs
-    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages
     unless (null nonExistentEntities) $

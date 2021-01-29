@@ -245,15 +245,17 @@ readPoseidonPackageCollection :: Bool -- ^ whether to ignore missing genotype fi
 readPoseidonPackageCollection ignoreGenotypeFilesMissing dirs = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     eitherPackages <- mapM tryDecodePoseidonPackage posFiles
-    
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
         hPutStrLn stderr "Some packages were skipped due to issues:"
         forM_ (lefts eitherPackages) $ \e -> hPutStrLn stderr (renderPoseidonException e)
-    
     let loadedPackages = rights eitherPackages
     -- duplication check. This will throw if packages come with same versions and titles (see filterDuplicates)
-    filterDuplicatePackages loadedPackages
+    finalPackageList <- filterDuplicatePackages loadedPackages
+    -- report number of valid packages
+    hPutStrLn stderr $ (show . length $ finalPackageList) ++ " Poseidon packages loaded"
+    -- return package list
+    return finalPackageList
   where
     tryDecodePoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage = try . (readPoseidonPackage ignoreGenotypeFilesMissing)

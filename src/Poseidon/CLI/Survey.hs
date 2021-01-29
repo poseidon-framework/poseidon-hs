@@ -28,7 +28,6 @@ data SurveyOptions = SurveyOptions
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection False baseDirs
-    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- collect information
     let packageNames = map posPacTitle allPackages
     -- geno
