@@ -2,20 +2,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Package (
-    PoseidonPackageMeta (..),
     PoseidonPackage(..),
     ContributorSpec(..),
     PoseidonException(..),
-    decodePoseidonYml,
     filterDuplicatePackages,
-    readAllPoseidonPackages,
-    readAllPoseidonPackagesMeta,
-    maybeLoadJannoFiles,
-    maybeLoadBibTeXFiles,
+    readPoseidonPackageCollection,
+    poseidonJannoFile,
+    poseidonBibFile,
     getJointGenotypeData,
     getIndividuals,
     newPackageTemplate,
-    updateChecksumsInPackageMeta
+    updateChecksumsInPackage
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
@@ -26,7 +23,7 @@ import           Poseidon.Utils             (PoseidonException (..), renderPosei
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
 import           Control.Exception          (throwIO, try)
 import           Control.Monad.Catch        (MonadThrow, throwM)
-import           Control.Monad              (when, filterM, forM_)
+import           Control.Monad              (when, filterM, forM_, forM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
@@ -188,10 +185,10 @@ instance ToJSON ContributorSpec where
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
-readPoseidonPackage :: FilePath -- ^ the file path to the yaml file
-                    -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
+readPoseidonPackage :: Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
+                    -> FilePath -- ^ the file path to the yaml file
                     -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage yamlPath ignoreGenotypeFilesMissing = do
+readPoseidonPackage ignoreGenotypeFilesMissing yamlPath = do
     let baseDir = takeDirectory yamlPath
     bs <- B.readFile yamlPath
     (PoseidonYamlStruct ver tit des con pacVer mod bibF bibFC geno janno jannoC) <- case decodeEither' bs of
@@ -240,23 +237,24 @@ getChecksum f = do
 -- | a utility function to load all poseidon packages found recursively in multiple base directories. 
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
-readPoseidonPackageCollection :: [FilePath] -- ^ A list of base directories where to search in
+readPoseidonPackageCollection :: Bool -- ^ whether to ignore missing genotype files
+                              -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection dirs = do
+readPoseidonPackageCollection ignoreGenotypeFilesMissing dirs = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     eitherPackages <- mapM tryDecodePoseidonPackage posFiles
     
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
-        hPutStrLn stderr $ "Some packages were skipped due to issues:"
-        forM_ (lefts eitherPackages) renderPoseidonException
-    loadedPackages <- rights eitherPackages
-
+        hPutStrLn stderr "Some packages were skipped due to issues:"
+        forM_ (lefts eitherPackages) $ \e -> hPutStrLn stderr (renderPoseidonException e)
+    
+    let loadedPackages = rights eitherPackages
     -- duplication check. This will throw if packages come with same versions and titles (see filterDuplicates)
     filterDuplicatePackages loadedPackages
   where
     tryDecodePoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage = try . readPoseidonPackage
+    tryDecodePoseidonPackage = try . (readPoseidonPackage ignoreGenotypeFilesMissing)
 
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do
@@ -273,7 +271,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
     titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
-    checkDuplicatePackages :: [PoseidonPackage] -> m PoseidonPackage
+    checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m PoseidonPackage
     checkDuplicatePackages [pac] = return pac
     checkDuplicatePackages pacs =
         let maybeVersions = map posPacPackageVersion pacs
@@ -296,8 +294,8 @@ getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData showAllWarnings pacs = forM pacs $ (\pac ->
-    loadJointGenotypeData (posPacBaseDir pac) showAllWarnings (posPacGenotypeData pac))
+getJointGenotypeData showAllWarnings pacs =
+    loadJointGenotypeData showAllWarnings [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
 
 -- | A function to create a dummy POSEIDON.yml file
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into 
@@ -323,16 +321,16 @@ newPackageTemplate baseDir n (GenotypeDataSpec format geno _ snp _ ind _) janno 
 updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
 updateChecksumsInPackage pac = do
     jannoChkSum <- case posPacJannoFile pac of
-        Nothing -> Nothing
-        Just fn -> getChecksum fn
+        Nothing -> return Nothing
+        Just fn -> Just <$> getChecksum fn
     bibChkSum <- case posPacBibFile pac of
-        Nothing -> Nothing
-        Just fn -> getChecksum fn
+        Nothing -> return Nothing
+        Just fn -> Just <$> getChecksum fn
     let gd = posPacGenotypeData pac
-    genoChkSum <- getChecksum (genoFile gd)
-    snpChkSum <- getChecksum (snpFile gd)
-    indChkSum <- getChecksum (indFile gd)
-    return PoseidonPackage {
+    genoChkSum <- Just <$> getChecksum (genoFile gd)
+    snpChkSum <- Just <$> getChecksum (snpFile gd)
+    indChkSum <- Just <$> getChecksum (indFile gd)
+    return $ pac {
         posPacBibFileChkSum = bibChkSum,
         posPacJannoFileChkSum = jannoChkSum,
         posPacGenotypeData = gd {

@@ -3,9 +3,7 @@
 module Poseidon.CLI.Validate where
 
 import           Poseidon.Package   (getIndividuals,
-                                     readAllPoseidonPackages,
-                                     maybeLoadJannoFiles, 
-                                     maybeLoadBibTeXFiles)
+                                     readPoseidonPackageCollection)
 import           Poseidon.Utils     (PoseidonException(..),
                                     renderPoseidonException)
 import           Poseidon.Janno     (PoseidonSample(..))
@@ -35,7 +33,7 @@ runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs) = do
     -- POSEIDON.yml
     putStrLn $ u "POSEIDON.yml file consistency:"
-    allPackages <- readAllPoseidonPackages baseDirs
+    allPackages <- readPoseidonPackageCollection baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " valid POSEIDON.yml files found"
     -- Genotype file consistency (without loading them completely!)
     putStrLn $ u "Genotype data consistency:"

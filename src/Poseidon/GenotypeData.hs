@@ -125,12 +125,11 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _) =
 
 -- | A function to read genotype data jointly from multiple packages
 loadJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
-                     -> FilePath -- ^ The base path to the files
-                     -> [GenotypeDataSpec] -- ^ A list of genotype specifications
+                     -> [(FilePath, GenotypeDataSpec)]-- ^ A list of tuples of base directories and genotype data
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-loadJointGenotypeData showAllWarnings baseDir gds = do
-    genotypeTuples <- mapM (loadGenotypeData baseDir) gds
+loadJointGenotypeData showAllWarnings gdTuples = do
+    genotypeTuples <- sequence [loadGenotypeData baseDir gd | (baseDir, gd) <- gdTuples]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
