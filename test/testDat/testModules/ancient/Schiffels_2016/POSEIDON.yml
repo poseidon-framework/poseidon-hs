@@ -6,16 +6,16 @@ contributor:
     email: schiffels@institute.org
 packageVersion: 1.0.0
 lastModified: 2020-02-28
-bibFile: sources.bib
 genotypeData:
   format: EIGENSTRAT
   genoFile: geno.txt
+  genoFileChkSum: 95b093eefacc1d6499afcfe89b15d56c
   snpFile: snp.txt
+  snpFileChkSum: 6771d7c873219039ba3d5bdd96031ce3
   indFile: ind.txt
+  indFileChkSum: f77dc756666dbfef3bb35191ae15a167
 jannoFile: Schiffels_2016.janno
-checksums:
-  genoFileCheck: 95b093eefacc1d6499afcfe89b15d56c
-  snpFileCheck: 6771d7c873219039ba3d5bdd96031ce3
-  indFileCheck: f77dc756666dbfef3bb35191ae15a167
-  jannoFileCheck: 555d7733135ebcabd032d581381c5d6f
-  bibFileCheck: 70cd3d5801cee8a93fc2eb40a99c63fa
+jannoFileChkSum: 555d7733135ebcabd032d581381c5d6f
+bibFile: sources.bib
+bibFileChkSum: 70cd3d5801cee8a93fc2eb40a99c63fa
+

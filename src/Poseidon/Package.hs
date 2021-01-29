@@ -108,19 +108,18 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "email",
         "packageVersion",
         "lastModified",
-        "bibFile",
-        "bibFileChkSum",
         "genotypeData",
         "format",
         "genoFile",
+        "genoFileChkSum",
         "snpFile",
+        "snpFileChkSum",
         "indFile",
+        "indFileChkSum",
         "jannoFile",
         "jannoFileChkSum",
-        "checksums",
-        "genoFileChkSum",
-        "snpFileChkSum",
-        "indFileChkSum"
+        "bibFile",
+        "bibFileChkSum"
         ]
 
 
