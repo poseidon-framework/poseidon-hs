@@ -8,7 +8,7 @@ import           Control.Monad.Catch        (throwM, MonadThrow)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
-                                             withText, (.:), (.=))
+                                             withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
 import           Data.List                  (nub, sort)
 import qualified Data.Text                  as T
@@ -49,11 +49,11 @@ instance FromJSON GenotypeDataSpec where
     parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
         <$> v .: "format"
         <*> v .: "genoFile"
-        <*> v .: "genoFileChkSum"
+        <*> v .:? "genoFileChkSum"
         <*> v .: "snpFile"
-        <*> v .: "snpFileChkSum"
+        <*> v .:? "snpFileChkSum"
         <*> v .: "indFile"
-        <*> v .: "indFileChkSum"
+        <*> v .:? "indFileChkSum"
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
