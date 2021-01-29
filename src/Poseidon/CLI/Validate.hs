@@ -36,7 +36,7 @@ runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs) = do
     -- POSEIDON.yml
     putStrLn $ u "POSEIDON.yml file consistency:"
-    allPackages <- readPoseidonPackageCollection baseDirs
+    allPackages <- readPoseidonPackageCollection False baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " valid POSEIDON.yml files found"
     -- Genotype file consistency (without loading them completely!)
     putStrLn $ u "Genotype data consistency:"

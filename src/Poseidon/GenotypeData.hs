@@ -105,12 +105,13 @@ compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
 
 -- | A function to return a list of all individuals in the genotype files of a package.
-loadIndividuals :: GenotypeDataSpec -- ^ the Genotype spec
+loadIndividuals :: FilePath -- ^ the base directory
+               -> GenotypeDataSpec -- ^ the Genotype spec
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals gd =
+loadIndividuals d gd =
     case format gd of
-        GenotypeFormatEigenstrat -> readEigenstratInd (indFile gd)
-        GenotypeFormatPlink      -> readFamFile (indFile gd)
+        GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
+        GenotypeFormatPlink      -> readFamFile (d </> indFile gd)
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: (MonadSafe m) =>

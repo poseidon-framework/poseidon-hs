@@ -26,7 +26,7 @@ data ListEntity = ListPackages -- ^ list packages
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput) = do
-    allPackages <- readAllPoseidonPackages baseDirs
+    allPackages <- readPoseidonPackageCollection False baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do

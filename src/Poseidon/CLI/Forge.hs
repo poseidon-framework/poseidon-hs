@@ -14,7 +14,7 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              getIndividuals,
                                              getJointGenotypeData,
                                              readPoseidonPackageCollection,
-                                             newPackageTemplate)
+                                             newPackageTemplate, getChecksum, writePoseidonPackage)
 import           Poseidon.Utils             (PoseidonException(..))
 
 import           Control.Monad              (when, forM, unless)
@@ -52,7 +52,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
         Just f -> readEntitiesFromFile f
     let entities = entitiesDirect ++ entitiesFromFile
     -- load packages --
-    allPackages <- readAllPoseidonPackages baseDirs
+    allPackages <- readPoseidonPackageCollection False baseDirs
     hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages
@@ -64,51 +64,58 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     putStrLn $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     -- collect data --
     -- janno
-    jannoFiles <- maybeLoadJannoFiles relevantPackages
-    let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
-    let anyJannoIssues = not $ all isJust jannoMaybeList
-    let goodJannoRows = catMaybes jannoMaybeList
-    let namesOfRelevantPackages = map posPacTitle relevantPackages
-    let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages goodJannoRows
-    -- bib
-    bibFiles <- maybeLoadBibTeXFiles relevantPackages
-    let bibMaybeList = bibToSimpleMaybeList bibFiles
-    let anyBibIssues = not $ all isJust bibMaybeList
-    let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
-    let relevantBibEntries = filterBibEntries relevantJannoRows goodBibEntries
+    
+    -- TODO: Fix Janno- and Bib-file processing... unclear what happens if they are missing,
+    -- which wouldn't be against the rules...
+    
+    -- jannoFiles <- sequence [(try . loadJannoFile) fn | Just fn <- map poseidonJannoFile relevantPackages]
+    -- let anyJannoIssues = not . null . lefts $ jannoFiles
+    -- let goodJannoRows = catMaybes jannoMaybeList
+    -- let namesOfRelevantPackages = map posPacTitle relevantPackages
+    -- let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages goodJannoRows
+    -- -- bib
+    -- bibFiles <- maybeLoadBibTeXFiles relevantPackages
+    -- let bibMaybeList = bibToSimpleMaybeList bibFiles
+    -- let anyBibIssues = not $ all isJust bibMaybeList
+    -- let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
+    -- let relevantBibEntries = filterBibEntries relevantJannoRows goodBibEntries
     -- genotype data
     indices <- extractEntityIndices entities relevantPackages
     -- print read issue warning
-    when (anyJannoIssues || anyBibIssues) $
-        putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+    -- when (anyJannoIssues || anyBibIssues) $
+    --     putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
     -- create new package --
     putStrLn $ "Creating new package directory: " ++ outPath
     createDirectory outPath
     let outInd = outName <.> "eigenstrat.ind"
         outSnp = outName <.> "eigenstrat.snp"
         outGeno = outName <.> "eigenstrat.geno"
-        genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat outGeno outSnp outInd
+    genoChkSum <- getChecksum outGeno
+    snpChkSum <- getChecksum outSnp
+    indChkSum <- getChecksum outInd
+    let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat
+            outGeno (Just genoChkSum) outSnp (Just snpChkSum) outInd (Just indChkSum)
         outJanno = outName <.> "janno"
         outBib = outName <.> "bib"
     -- POSEIDON.yml
     putStrLn "Compiling POSEIDON.yml"
-    pac <- newPackageTemplate outName genotypeData outJanno outBib
-    encodeFilePretty (outPath </> "POSEIDON.yml") pac
+    pac <- newPackageTemplate outPath outName genotypeData outJanno outBib
+    writePoseidonPackage pac
     -- janno
     putStrLn "Compiling .janno file"
-    writeJannoFile (outPath </> outJanno) relevantJannoRows
+    -- writeJannoFile (outPath </> outJanno) relevantJannoRows
     -- bib
     putStrLn "Compiling .bib file"
-    writeBibTeXFile (outPath </> outBib) relevantBibEntries
+    -- writeBibTeXFile (outPath </> outBib) relevantBibEntries
     -- genotype data
     putStrLn "Compiling genotype data"
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
-        let jannoIndIds = map posSamIndividualID relevantJannoRows
-        when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
-            throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
+        -- let jannoIndIds = map posSamIndividualID relevantJannoRows
+        -- when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
+        --     throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> 
             printProgress >->

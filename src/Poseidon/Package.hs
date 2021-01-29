@@ -13,7 +13,8 @@ module Poseidon.Package (
     getIndividuals,
     newPackageTemplate,
     updateChecksumsInPackage,
-    writePoseidonPackage
+    writePoseidonPackage,
+    getChecksum
 ) where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
