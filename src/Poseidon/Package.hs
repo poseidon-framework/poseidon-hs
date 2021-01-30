@@ -15,7 +15,7 @@ module Poseidon.Package (
     getChecksum
 ) where
 
-import           Poseidon.BibFile           (loadBibTeXFile, BibTeX (..))
+import           Poseidon.BibFile           (readBibTeXFile, BibTeX (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
 import           Poseidon.Janno             (Janno (..), PoseidonSample (..), readJannoFile, createMinimalJanno)
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
@@ -201,7 +201,7 @@ readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
         Just p -> readJannoFile p
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
-        Just p -> loadBibTeXFile p
+        Just p -> readBibTeXFile p
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno janno jannoC bib bibFC
     return pac
 

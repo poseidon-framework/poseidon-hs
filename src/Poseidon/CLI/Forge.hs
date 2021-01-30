@@ -1,7 +1,6 @@
 module Poseidon.CLI.Forge where
 
-import           Poseidon.BibFile           (bibToSimpleMaybeList,
-                                             writeBibTeXFile)
+import           Poseidon.BibFile           (writeBibTeXFile)
 import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..), 
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
@@ -72,7 +71,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- let namesOfRelevantPackages = map posPacTitle relevantPackages
     -- let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages goodJannoRows
     -- -- bib
-    -- bibFiles <- maybeLoadBibTeXFiles relevantPackages
+    -- bibFiles <- maybereadBibTeXFiles relevantPackages
     -- let bibMaybeList = bibToSimpleMaybeList bibFiles
     -- let anyBibIssues = not $ all isJust bibMaybeList
     -- let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList

@@ -2,7 +2,6 @@
 
 module Poseidon.CLI.Survey where
 
-import           Poseidon.BibFile      (bibToSimpleMaybeList)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Janno        (PoseidonSample (..))
 import           Poseidon.Package      (PoseidonPackage (..),
@@ -43,7 +42,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     -- let anyJannoIssues = not $ all isJust jannoMaybeList
     -- -- bib
-    -- bibFiles <- maybeLoadBibTeXFiles allPackages
+    -- bibFiles <- maybereadBibTeXFiles allPackages
     -- let bibMaybeList = bibToSimpleMaybeList bibFiles
     -- let bibAreAlright = map isJust bibMaybeList
     -- let anyBibIssues = not $ all isJust bibMaybeList

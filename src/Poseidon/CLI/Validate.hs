@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Validate where
 
-import           Poseidon.BibFile           (loadBibTeXFile)
+import           Poseidon.BibFile           (readBibTeXFile)
 import           Poseidon.Janno             (PoseidonSample (..), readJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
@@ -57,7 +57,7 @@ runValidate (ValidateOptions baseDirs) = do
     --     ++ " valid context data entries found"
     -- -- bib
     -- putStrLn $ u ".bib file consistency:"
-    -- eitherBibFiles <- sequence [(try . loadBibTeXFile) fn | Just fn <- map posPacBibFile allPackages]
+    -- eitherBibFiles <- sequence [(try . readBibTeXFile) fn | Just fn <- map posPacBibFile allPackages]
     -- let bibFileExceptions = E.lefts eitherBibFiles
     --     bibReferences = E.rights eitherBibFiles
     --     allbibReferences = concat bibReferences
