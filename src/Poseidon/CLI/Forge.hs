@@ -6,8 +6,7 @@ import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..),
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
                                              GenotypeFormatSpec (..))
-import           Poseidon.Janno             (jannoToSimpleMaybeList,
-                                             PoseidonSample (..),
+import           Poseidon.Janno             (PoseidonSample (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
                                              PoseidonPackage (..),
@@ -67,7 +66,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- TODO: Fix Janno- and Bib-file processing... unclear what happens if they are missing,
     -- which wouldn't be against the rules...
     
-    -- jannoFiles <- sequence [(try . loadJannoFile) fn | Just fn <- map poseidonJannoFile relevantPackages]
+    -- jannoFiles <- sequence [(try . readJannoFile) fn | Just fn <- map poseidonJannoFile relevantPackages]
     -- let anyJannoIssues = not . null . lefts $ jannoFiles
     -- let goodJannoRows = catMaybes jannoMaybeList
     -- let namesOfRelevantPackages = map posPacTitle relevantPackages

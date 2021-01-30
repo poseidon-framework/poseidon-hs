@@ -17,7 +17,7 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (loadBibTeXFile, BibTeX (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
-import           Poseidon.Janno             (Janno (..), PoseidonSample (..), loadJannoFile, createMinimalSamplesList)
+import           Poseidon.Janno             (Janno (..), PoseidonSample (..), readJannoFile, createMinimalJanno)
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
 
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
@@ -197,8 +197,8 @@ readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             indEntries <- loadIndividuals baseDir geno
-            return $ createMinimalSamplesList indEntries
-        Just p -> loadJannoFile p
+            return $ createMinimalJanno indEntries
+        Just p -> readJannoFile p
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
         Just p -> loadBibTeXFile p

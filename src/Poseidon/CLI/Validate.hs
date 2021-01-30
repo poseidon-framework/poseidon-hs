@@ -3,7 +3,7 @@
 module Poseidon.CLI.Validate where
 
 import           Poseidon.BibFile           (loadBibTeXFile)
-import           Poseidon.Janno             (PoseidonSample (..), loadJannoFile)
+import           Poseidon.Janno             (PoseidonSample (..), readJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
                                              readPoseidonPackageCollection)
@@ -45,7 +45,7 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " (superficially) valid genotype data entries found"
     -- -- janno
     -- putStrLn $ u ".janno file consistency:"
-    -- eitherJannoFiles <- sequence [(try . loadJannoFile) fn | Just fn <- map posPacJannoFile allPackages]
+    -- eitherJannoFiles <- sequence [(try . readJannoFile) fn | Just fn <- map posPacJannoFile allPackages]
     -- let jannoExceptions = E.lefts eitherJannoFiles
     --     jannoSamplesRaw = E.rights eitherJannoFiles
     --     jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw

@@ -21,13 +21,13 @@ testRenderJannoCompleteness :: Spec
 testRenderJannoCompleteness = 
     describe "Poseidon.CLI.Survey.renderJannoCompleteness" $ do
     it "should work for a full janno file" $ do
-        eJRs <- loadJannoFile testJannoNormal
+        eJRs <- readJannoFile testJannoNormal
         let jRs = rights eJRs
         renderJannoCompleteness jRs 
             `shouldBe` 
             "MXXXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXX"
     it "should work for a minimum janno file" $ do
-        eJRs <- loadJannoFile testJannoMinimal
+        eJRs <- readJannoFile testJannoMinimal
         let jRs = rights eJRs
         renderJannoCompleteness jRs 
             `shouldBe`

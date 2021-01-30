@@ -15,10 +15,9 @@ module Poseidon.Janno (
     Percent (..),
     JannoUDG (..),
     JannoLibraryBuilt (..),
-    jannoToSimpleMaybeList,
     writeJannoFile,
-    loadJannoFile,
-    createMinimalSamplesList
+    readJannoFile,
+    createMinimalJanno
 ) where
 
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
@@ -304,15 +303,15 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-loadJannoFile :: FilePath -> IO [PoseidonSample]
-loadJannoFile jannoPath = do
+readJannoFile :: FilePath -> IO [PoseidonSample]
+readJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
     let jannoFileUpdated = replaceNA jannoFile
     let jannoFileRows = Bch.lines jannoFileUpdated
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     -- load janno by rows
-    jannoRepresentation <- mapM (loadJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
+    jannoRepresentation <- mapM (readJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
@@ -325,8 +324,8 @@ loadJannoFile jannoPath = do
             Right x -> return x
 
 -- | A function to load one row of a janno file
-loadJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException PoseidonSample)
-loadJannoFileRow jannoPath row = do
+readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException PoseidonSample)
+readJannoFileRow jannoPath row = do
     case Csv.decodeWith decodingOptions Csv.NoHeader (snd row) of
         Left _ -> do 
             return $ Left $ PoseidonJannoRowException jannoPath (fst row) "Type error"
@@ -358,12 +357,9 @@ replaceInJannoBytestring from to tsv =
         tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
-jannoToSimpleMaybeList :: [Either PoseidonException [Either PoseidonException PoseidonSample]] -> [Maybe [PoseidonSample]]
-jannoToSimpleMaybeList = map (maybe Nothing (\x -> if all isRight x then Just (rights x) else Nothing) . rightToMaybe)
-
 -- | A function to create empty janno rows for a set of individuals
-createMinimalSamplesList :: [EigenstratIndEntry] -> [PoseidonSample]
-createMinimalSamplesList = map createMinimalSample 
+createMinimalJanno :: [EigenstratIndEntry] -> [PoseidonSample]
+createMinimalJanno = map createMinimalSample 
 
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> PoseidonSample

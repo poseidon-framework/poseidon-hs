@@ -4,8 +4,7 @@ module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile      (bibToSimpleMaybeList)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Janno        (PoseidonSample (..),
-                                        jannoToSimpleMaybeList)
+import           Poseidon.Janno        (PoseidonSample (..))
 import           Poseidon.Package      (PoseidonPackage (..),
                                         readPoseidonPackageCollection)
 
@@ -40,7 +39,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- JANNO
     -- TODO Fix Janno and bib file loading: What happens if they are missing? So far we had exceptions for that, but
     -- I changed that behaviour... sorry
-    -- jannoFiles <- maybeLoadJannoFiles allPackages
+    -- jannoFiles <- maybereadJannoFiles allPackages
     -- let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     -- let anyJannoIssues = not $ all isJust jannoMaybeList
     -- -- bib

@@ -3,7 +3,7 @@ module Poseidon.CLI.Init where
 import           Poseidon.BibFile           (writeBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
                                              GenotypeFormatSpec (..))
-import           Poseidon.Janno             (createMinimalSamplesList, 
+import           Poseidon.Janno             (createMinimalJanno, 
                                              writeJannoFile)
 import           Poseidon.Package           (newPackageTemplate,
                                              getIndividuals, writePoseidonPackage)
@@ -45,7 +45,7 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     -- janno (needs the genotype files!)
     putStrLn "Creating empty .janno file"
     indEntries <- getIndividuals pac
-    let jannoRows = createMinimalSamplesList indEntries
+    let jannoRows = createMinimalJanno indEntries
     writeJannoFile (outPath </> outJanno) jannoRows
     -- bib
     putStrLn "Creating empty .bib file"

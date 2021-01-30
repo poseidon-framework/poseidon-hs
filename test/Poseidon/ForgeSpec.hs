@@ -5,10 +5,10 @@ import           Poseidon.ForgeRecipe       (ForgeEntity (..),
                                              ForgeRecipe (..))
 import           Poseidon.Janno             (jannoToSimpleMaybeList,
                                              PoseidonSample (..),
-                                             createMinimalSamplesList)
+                                             createMinimalJanno)
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readAllPoseidonPackages,
-                                             maybeLoadJannoFiles)
+                                             maybereadJannoFiles)
 
 import           Data.Maybe                 (catMaybes)
 import           Text.CSL                   (Reference (..) )
@@ -69,7 +69,7 @@ testFilterJannoFiles =
         ps <- readAllPoseidonPackages testBaseDir
         rps <- filterPackages goodEntities ps
         let namesPs = map posPacTitle rps
-        jFs <- maybeLoadJannoFiles rps
+        jFs <- maybereadJannoFiles rps
         let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
         let jRs = filterJannoFiles goodEntities $ zip namesPs gJrs
         map posSamIndividualID jRs `shouldMatchList` [
@@ -85,7 +85,7 @@ testFilterJannoFiles =
         ps <- readAllPoseidonPackages testBaseDir
         rps <- filterPackages badEntities ps
         let namesPs = map posPacTitle rps
-        jFs <- maybeLoadJannoFiles rps
+        jFs <- maybereadJannoFiles rps
         let gJrs = catMaybes $ jannoToSimpleMaybeList jFs
         let jRs = filterJannoFiles badEntities $ zip namesPs gJrs
         jRs `shouldBe` []

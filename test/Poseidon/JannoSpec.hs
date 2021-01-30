@@ -10,7 +10,7 @@ import           Poseidon.Janno            (PoseidonSample (..),
                                             Percent (..),
                                             JannoUDG (..),
                                             JannoLibraryBuilt (..),
-                                            loadJannoFile)
+                                            readJannoFile)
 
 import qualified Data.ByteString.Char8     as B
 import           Data.Either               (isRight, rights, isLeft, lefts)
@@ -21,12 +21,12 @@ spec = do
     testPoseidonSampleFromJannoFile
 
 testPoseidonSampleFromJannoFile :: Spec
-testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.loadJannoFile" $ do
+testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let minimalJannoPath = "test/testDat/testJannoFiles/minimal.janno"
     let normalJannoPath  = "test/testDat/testJannoFiles/normal.janno"
     let borkedJannoPath  = "test/testDat/testJannoFiles/borked.janno"
     it "should read a minimal janno file correctly" $ do
-        janno <- loadJannoFile minimalJannoPath
+        janno <- readJannoFile minimalJannoPath
         length janno `shouldBe` 3
         all isRight janno `shouldBe` True
         map posSamIndividualID (rights janno)   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -46,7 +46,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.loadJannoFile" $ do
         map posSamLibraryBuilt (rights janno)   `shouldBe` [Nothing, Nothing, Nothing]
         map posSamDamage (rights janno)         `shouldBe` [Nothing, Nothing, Nothing]
     it "should read a normal janno file correctly" $ do
-        janno <- loadJannoFile normalJannoPath
+        janno <- readJannoFile normalJannoPath
         length janno `shouldBe` 3
         all isRight janno `shouldBe` True
         map posSamIndividualID (rights janno)   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -66,7 +66,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.loadJannoFile" $ do
         map posSamLibraryBuilt (rights janno)   `shouldBe` [Just DS, Just SS, Just Other]
         map posSamDamage (rights janno)         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
     it "should gracefully fail to read borked janno file rows" $ do
-        janno <- loadJannoFile borkedJannoPath
+        janno <- readJannoFile borkedJannoPath
         length janno `shouldBe` 23
         map isRight janno `shouldBe` replicate 23 False
 

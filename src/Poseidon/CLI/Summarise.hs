@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (Percent (..), PoseidonSample (..), jannoToSimpleMaybeList)
+import           Poseidon.Janno         (Percent (..), PoseidonSample (..))
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
 import           Poseidon.Package       (readPoseidonPackageCollection)
 
@@ -27,7 +27,7 @@ runSummarise (SummariseOptions baseDirs rawOutput) = do
     -- JANNO
     
     -- TODO Janno file loading needs updating. What happens if janno-files are missing?
-    -- jannoFiles <- maybeLoadJannoFiles allPackages
+    -- jannoFiles <- maybereadJannoFiles allPackages
     -- let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
     -- let jannoSamples = concat $ catMaybes jannoMaybeList
     -- let anyJannoIssues = not $ all isJust jannoMaybeList
