@@ -3,10 +3,10 @@
 module Poseidon.CLI.Survey where
 
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Janno        (PoseidonSample (..))
+import           Poseidon.Janno        (Janno (..), PoseidonSample (..))
 import           Poseidon.Package      (PoseidonPackage (..),
                                         readPoseidonPackageCollection)
-
+import           Poseidon.BibFile      (BibTeX (..))
 
 import           Control.Monad         (forM, when)
 import           Data.List             (zip4, intercalate)
@@ -34,44 +34,33 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     snpFilesExist <- sequence [doesFileExist (d </> snpFile gd) | (d, gd) <- genotypeDataTuples]
     indFilesExist <- sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
-    return ()
-    -- JANNO
-    -- TODO Fix Janno and bib file loading: What happens if they are missing? So far we had exceptions for that, but
-    -- I changed that behaviour... sorry
-    -- jannoFiles <- maybereadJannoFiles allPackages
-    -- let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
-    -- let anyJannoIssues = not $ all isJust jannoMaybeList
+    -- janno
+    let jannos = map posPacJannoFile allPackages
     -- -- bib
-    -- bibFiles <- maybereadBibTeXFiles allPackages
-    -- let bibMaybeList = bibToSimpleMaybeList bibFiles
-    -- let bibAreAlright = map isJust bibMaybeList
-    -- let anyBibIssues = not $ all isJust bibMaybeList
+    let bibs = map posPacBibFile allPackages
     -- print information
-    -- (tableH, tableB) <- do
-    --     let tableH = ["Package", "Survey"]
-    --     tableB <- forM (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright) $ \pac -> do
-    --         return [extractFirst pac, renderPackageWithCompleteness pac]
-    --     return (tableH, tableB)
-    -- let colSpecs = replicate 2 (column (expandUntil 60) def def def)
-    -- if rawOutput
-    -- then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    -- else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-    -- -- print read issue warning
-    -- when (anyJannoIssues || anyBibIssues) $
-    --     hPutStrLn stderr "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
+    (tableH, tableB) <- do
+        let tableH = ["Package", "Survey"]
+        tableB <- forM (zip4 packageNames genoTypeDataExists jannos bibs) $ \pac -> do
+            return [extractFirst pac, renderPackageWithCompleteness pac]
+        return (tableH, tableB)
+    let colSpecs = replicate 2 (column (expandUntil 60) def def def)
+    if rawOutput
+    then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
 
-renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
-renderPackageWithCompleteness (_,genoTypeDataExists,jannoSamples,bibIsAlright) =
+renderPackageWithCompleteness :: (String,Bool,Janno,BibTeX) -> String
+renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
        (if genoTypeDataExists then "G" else ".")
     ++ "-"
-    ++ maybe (replicate 35 '.') renderJannoCompleteness jannoSamples
+    ++ renderJannoCompleteness janno
     ++ "-"
-    ++ (if bibIsAlright then "B" else ".")
+    ++ (if not (null bib) then "B" else ".")
 
-renderJannoCompleteness :: [PoseidonSample] -> String
+renderJannoCompleteness :: Janno -> String
 renderJannoCompleteness jS =
     "M"
     ++ allNothing posSamCollectionID jS
