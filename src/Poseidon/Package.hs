@@ -7,6 +7,7 @@ module Poseidon.Package (
     ContributorSpec(..),
     PoseidonException(..),
     filterDuplicatePackages,
+    findAllPoseidonYmlFiles,
     readPoseidonPackageCollection,
     getJointGenotypeData,
     getIndividuals,
