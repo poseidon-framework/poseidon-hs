@@ -9,8 +9,9 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             PoseidonPackage (..),
                                             filterDuplicatePackages,
                                             readPoseidonPackageCollection,
+                                            renderMismatch,
+                                            zipWithPadding,
                                             getChecksum)
-
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.Trans.Class (lift)
@@ -30,6 +31,8 @@ spec = do
     testPoseidonFromYAML
     testReadPoseidonPackageCollection
     testGetChecksum
+    testRenderMismatch
+    testZipWithPadding
 
 yamlTestPath :: FilePath
 yamlTestPath = "/tmp/poseidon_test.yml"
@@ -167,3 +170,39 @@ testGetChecksum = describe "Poseidon.Package.getChecksum" $ do
             c_real <- getChecksum f 
             c_real `shouldBe` c)
             (zip files checksums)
+
+testRenderMismatch :: Spec
+testRenderMismatch = 
+    describe "Poseidon.CLI.Validate.renderMismatch" $ do
+    it "should not find mismatch for equal one-element lists" $ do
+        renderMismatch ["a"] ["a"] `shouldBe` ""
+    it "should find mismatch for non-equal one-element lists" $ do
+        renderMismatch ["a"] ["b"] `shouldBe` "(a = b)"
+    it "should not find mismatch for equal two-element lists" $ do
+        renderMismatch ["a", "b"] ["a", "b"] `shouldBe` ""
+    it "should find mismatch for non-equal two-element lists" $ do
+        renderMismatch ["a", "b"] ["a", "c"] `shouldBe` "(b = c)"
+    it "should stop printing at ten mismatches" $ do
+        renderMismatch 
+            ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"] 
+            ["b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"] 
+            `shouldBe` 
+            "(a = b), (b = c), (c = d), (d = e), (e = f), ..."
+    it "should fill missing values with ?" $ do
+        renderMismatch 
+            ["a", "b", "c"] 
+            ["d"] 
+            `shouldBe`
+            "(a = d), (b = ?), (c = ?)"
+
+testZipWithPadding :: Spec
+testZipWithPadding = 
+    describe "Poseidon.CLI.Validate.zipWithPadding" $ do
+    it "should zip normally for lists of equal length" $ do
+        zipWithPadding "?" "!" ["a", "b"] ["c", "d"] `shouldBe` [("a", "c"), ("b", "d")]
+    it "should fill for empty lists" $ do
+        zipWithPadding "?" "!" ["a"] [] `shouldBe` [("a", "!")]
+    it "should fill empty elements right" $ do
+        zipWithPadding "?" "!" ["a", "b"] ["c"] `shouldBe` [("a", "c"), ("b", "!")]
+    it "should fill empty elements left" $ do
+        zipWithPadding "?" "!" ["a"] ["b", "c"] `shouldBe` [("a", "b"), ("?", "c")]

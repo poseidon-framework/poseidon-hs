@@ -9,12 +9,14 @@ module Poseidon.Package (
     filterDuplicatePackages,
     findAllPoseidonYmlFiles,
     readPoseidonPackageCollection,
+    getChecksum,
     getJointGenotypeData,
     getIndividuals,
     newPackageTemplate,
+    renderMismatch,
+    zipWithPadding,
     updateChecksumsInPackage,
-    writePoseidonPackage,
-    getChecksum
+    writePoseidonPackage
 ) where
 
 import           Poseidon.BibFile           (readBibTeXFile, BibTeX (..))
