@@ -96,7 +96,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
         outBib = outName <.> "bib"
     -- POSEIDON.yml
     putStrLn "Compiling POSEIDON.yml"
-    pac <- newPackageTemplate outPath outName genotypeData outJanno outBib
+    pac <- newPackageTemplate outPath outName genotypeData
     writePoseidonPackage pac
     -- janno
     putStrLn "Compiling .janno file"

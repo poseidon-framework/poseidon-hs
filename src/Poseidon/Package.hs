@@ -310,19 +310,20 @@ getJointGenotypeData showAllWarnings pacs =
 -- | A function to create a dummy POSEIDON.yml file
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into 
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> FilePath -> FilePath -> IO PoseidonPackage
-newPackageTemplate baseDir n (GenotypeDataSpec format geno _ snp _ ind _) janno bib = do
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> IO PoseidonPackage
+newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) = do
+    indEntries <- loadIndividuals baseDir (GenotypeDataSpec format geno Nothing snp Nothing ind Nothing)
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
         posPacBaseDir = baseDir,
         posPacPoseidonVersion = makeVersion [2, 0, 1],
-        posPacTitle = n,
+        posPacTitle = name,
         posPacDescription = Just "Empty package template. Please add a description",
         posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
         posPacPackageVersion = Just $ makeVersion [0, 1, 0],
         posPacLastModified = Just today,
         posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing,
-        posPacJannoFile = [] :: Janno,
+        posPacJannoFile = createMinimalJanno indEntries,
         posPacJannoFileChkSum = Nothing,
         posPacBibFile = [] :: BibTeX,
         posPacBibFileChkSum = Nothing
@@ -353,6 +354,8 @@ newPackageTemplate baseDir n (GenotypeDataSpec format geno _ snp _ ind _) janno 
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno _ jannoC _ bibFC) = do
-    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod geno (Just $ tit ++ ".janno") jannoC (Just $ tit ++ ".bib") bibFC
+    let yamlPac = PoseidonYamlStruct 
+                    ver tit des con pacVer mod geno 
+                    (Just $ tit ++ ".janno") jannoC (Just $ tit ++ ".bib") bibFC
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac
