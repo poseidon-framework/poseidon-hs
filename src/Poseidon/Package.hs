@@ -21,7 +21,7 @@ import           Poseidon.Janno             (Janno (..), PoseidonSample (..), re
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
 
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
-import           Control.Exception          (throwIO, try)
+import           Control.Exception          (throwIO, try, throw)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad              (when, filterM, forM_, forM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -310,23 +310,30 @@ getJointGenotypeData showAllWarnings pacs =
 -- | A function to create a dummy POSEIDON.yml file
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into 
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> IO PoseidonPackage
-newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) = do
-    indEntries <- loadIndividuals baseDir (GenotypeDataSpec format geno Nothing snp Nothing ind Nothing)
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe Janno -> Maybe BibTeX -> IO PoseidonPackage
+newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) inds janno bib = do
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
-        posPacBaseDir = baseDir,
-        posPacPoseidonVersion = makeVersion [2, 0, 1],
-        posPacTitle = name,
-        posPacDescription = Just "Empty package template. Please add a description",
-        posPacContributor = [ContributorSpec "John Doe" "john@doe.net"],
-        posPacPackageVersion = Just $ makeVersion [0, 1, 0],
-        posPacLastModified = Just today,
-        posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing,
-        posPacJannoFile = createMinimalJanno indEntries,
-        posPacJannoFileChkSum = Nothing,
-        posPacBibFile = [] :: BibTeX,
-        posPacBibFileChkSum = Nothing
+        posPacBaseDir = baseDir
+    ,   posPacPoseidonVersion = makeVersion [2, 0, 1]
+    ,   posPacTitle = name
+    ,   posPacDescription = Just "Empty package template. Please add a description"
+    ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
+    ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
+    ,   posPacLastModified = Just today
+    ,   posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing
+    ,   posPacJannoFile = 
+            case janno of 
+                Nothing -> case inds of 
+                    Nothing -> throw $ PoseidonNewPackageConstructionException "Missing Individual- and Group IDs. This should never happen"
+                    Just a -> createMinimalJanno a
+                Just a -> a
+    ,   posPacJannoFileChkSum = Nothing
+    ,   posPacBibFile =
+            case bib of 
+                Nothing -> [] :: BibTeX
+                Just a -> a
+    ,   posPacBibFileChkSum = Nothing
     }
 
 -- updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage

@@ -20,7 +20,8 @@ data PoseidonException =
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
     | PoseidonValidationException String -- ^ An exception to indicate failed package validation
     | PoseidonForgeEntityParsingException String -- ^ An exception to indicate failed entity parsing
-    | POseidonGenotypeFormatParsingException String -- ^ An exception to indicate wrong user input in the Genotype format option
+    | PoseidonGenotypeFormatParsingException String -- ^ An exception to indicate wrong user input in the Genotype format option
+    | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
     deriving (Show)
 
 instance Exception PoseidonException

@@ -54,65 +54,52 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages
     unless (null nonExistentEntities) $
-        putStrLn $ "The following entities do not exist in this dataset and will be ignored: " ++
-        intercalate ", " (map show nonExistentEntities)
+        hPutStrLn stderr $ "The following entities do not exist in this dataset and will be ignored: " ++
+            intercalate ", " (map show nonExistentEntities)
     -- determine relevant packages
     relevantPackages <- filterPackages entities allPackages
-    putStrLn $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
+    hPutStrLn stderr $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     -- collect data --
     -- janno
-    
-    -- TODO: Fix Janno- and Bib-file processing... unclear what happens if they are missing,
-    -- which wouldn't be against the rules...
-    
-    -- jannoFiles <- sequence [(try . readJannoFile) fn | Just fn <- map poseidonJannoFile relevantPackages]
-    -- let anyJannoIssues = not . null . lefts $ jannoFiles
-    -- let goodJannoRows = catMaybes jannoMaybeList
-    -- let namesOfRelevantPackages = map posPacTitle relevantPackages
-    -- let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages goodJannoRows
+    let namesOfRelevantPackages = map posPacTitle relevantPackages
+    let jannos = map posPacJannoFile relevantPackages
+    let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages jannos
     -- -- bib
-    -- bibFiles <- maybereadBibTeXFiles relevantPackages
-    -- let bibMaybeList = bibToSimpleMaybeList bibFiles
-    -- let anyBibIssues = not $ all isJust bibMaybeList
-    -- let goodBibEntries = nub $ sortOn (show . refId) $ concat $ catMaybes bibMaybeList
-    -- let relevantBibEntries = filterBibEntries relevantJannoRows goodBibEntries
+    let bibEntries = concatMap posPacBibFile relevantPackages
+    let relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
     -- genotype data
     indices <- extractEntityIndices entities relevantPackages
-    -- print read issue warning
-    -- when (anyJannoIssues || anyBibIssues) $
-    --     putStrLn "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
     -- create new package --
-    putStrLn $ "Creating new package directory: " ++ outPath
+    -- create new directory
+    hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
-    let outInd = outName <.> "eigenstrat.ind"
-        outSnp = outName <.> "eigenstrat.snp"
-        outGeno = outName <.> "eigenstrat.geno"
-    genoChkSum <- getChecksum outGeno
-    snpChkSum <- getChecksum outSnp
-    indChkSum <- getChecksum outInd
+    -- compile genotype data structure
+    let outInd = outName <.> ".ind"
+        outSnp = outName <.> ".snp"
+        outGeno = outName <.> ".geno"
     let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat
-            outGeno (Just genoChkSum) outSnp (Just snpChkSum) outInd (Just indChkSum)
-        outJanno = outName <.> "janno"
-        outBib = outName <.> "bib"
+            outGeno Nothing outSnp Nothing outInd Nothing
+    -- create new package
+    hPutStrLn stderr "Creating new package entity"
+    pac <- newPackageTemplate outPath outName genotypeData Nothing (Just relevantJannoRows) (Just relevantBibEntries)
     -- POSEIDON.yml
-    putStrLn "Compiling POSEIDON.yml"
-    pac <- newPackageTemplate outPath outName genotypeData
+    hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
     -- janno
-    putStrLn "Compiling .janno file"
-    -- writeJannoFile (outPath </> outJanno) relevantJannoRows
+    hPutStrLn stderr "Creating .janno file"
+    writeJannoFile (outPath </> outName <.> "janno") relevantJannoRows
     -- bib
-    putStrLn "Compiling .bib file"
-    -- writeBibTeXFile (outPath </> outBib) relevantBibEntries
+    hPutStrLn stderr "Creating .bib file"
+    writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
-    putStrLn "Compiling genotype data"
+    hPutStrLn stderr "Compiling genotype data"
     runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
-        -- let jannoIndIds = map posSamIndividualID relevantJannoRows
-        -- when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
-        --     throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
+        let jannoIndIds = map posSamIndividualID relevantJannoRows
+        when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
+            throwM (PoseidonValidationException "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
         runEffect $ eigenstratProd >-> 
             printProgress >->

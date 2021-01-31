@@ -1,8 +1,8 @@
 module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
-                                             GenotypeFormatSpec (..))
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..), loadIndividuals)
 import           Poseidon.Janno             (createMinimalJanno, 
                                              writeJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -12,6 +12,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
 import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           System.Directory           (createDirectory, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName)
+import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
     { _inGenoFormat :: GenotypeFormatSpec
@@ -25,28 +26,29 @@ data InitOptions = InitOptions
 runInit :: InitOptions -> IO ()
 runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     -- create new directory
-    putStrLn $ "Creating new package directory: " ++ outPath
+    hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
-    -- compile file names
+    -- compile genotype data structure
     let outInd = takeFileName indFile
         outSnp = takeFileName snpFile
         outGeno = takeFileName genoFile
         genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing
     -- genotype data
-    putStrLn "Copying genotype data"
+    hPutStrLn stderr "Copying genotype data"
     copyFile indFile $ outPath </> outInd
     copyFile snpFile $ outPath </> outSnp
     copyFile genoFile $ outPath </> outGeno
     -- create new package
-    putStrLn "Creating new package entity"
-    pac <- newPackageTemplate outPath outName genotypeData
+    hPutStrLn stderr "Creating new package entity"
+    inds <- loadIndividuals outPath genotypeData
+    pac <- newPackageTemplate outPath outName genotypeData (Just inds) Nothing Nothing
     -- POSEIDON.yml
-    putStrLn "Creating POSEIDON.yml"
+    hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
     -- janno
-    putStrLn "Creating empty .janno file"
+    hPutStrLn stderr "Creating empty .janno file"
     writeJannoFile (outPath </> outName <.> "janno") $ posPacJannoFile pac
     -- bib
-    putStrLn "Creating empty .bib file"
+    hPutStrLn stderr "Creating empty .bib file"
     writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBibFile pac
 
