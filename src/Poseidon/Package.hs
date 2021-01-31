@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Package (
+    PoseidonYamlStruct (..),
     PoseidonPackage(..),
     ContributorSpec(..),
     PoseidonException(..),
@@ -65,7 +66,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlJannoFileChkSum :: Maybe String
     , _posYamlBibFile         :: Maybe FilePath
     , _posYamlBibFileChkSum   :: Maybe String
-}
+} deriving (Show, Eq, Generic)
 
 poseidonJannoFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
 poseidonJannoFilePath baseDir yml = (baseDir </>) <$> _posYamlJannoFile yml

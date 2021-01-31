@@ -2,14 +2,13 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.PackageSpec (spec) where
 
-import           Poseidon.Checksums        (ChecksumListSpec (..), makeChecksumList)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFormatSpec (..))
 import           Poseidon.Package          (ContributorSpec (..),
+                                            PoseidonYamlStruct (..),
                                             PoseidonPackage (..),
                                             filterDuplicatePackages,
-                                            readAllPoseidonPackages,
-                                            decodePoseidonYml,
+                                            readPoseidonPackageCollection,
                                             getChecksum)
 
 
@@ -29,9 +28,7 @@ import           Text.RawString.QQ
 
 spec = do
     testPoseidonFromYAML
-    testDecodePoseidonYml
-    testReadWritePoseidonPackageRoundtrip
-    testReadAllPoseidonPackages
+    testReadPoseidonPackageCollection
     testGetChecksum
 
 yamlTestPath :: FilePath
@@ -61,97 +58,91 @@ replace from to s =
     let (h, t) = B.breakSubstring from s
     in  B.concat [h, to, B.drop (B.length from) t]
 
-truePackageRelPaths :: PoseidonPackage
-truePackageRelPaths = PoseidonPackage {
-    posPacPoseidonVersion = makeVersion [2, 0, 1],
-    posPacTitle           = "Schiffels_2016",
-    posPacDescription     = Just "Genetic data published in Schiffels et al. 2016",
-    posPacContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
-    posPacPackageVersion  = Just $ makeVersion [1, 0, 0],
-    posPacLastModified    = Just $ fromGregorian 2020 2 28,
-    posPacBibFile         = Just "sources.bib",
-    posPacGenotypeData    = GenotypeDataSpec {
+truePackageRelPaths :: PoseidonYamlStruct
+truePackageRelPaths = PoseidonYamlStruct {
+    _posYamlPoseidonVersion = makeVersion [2, 0, 1],
+    _posYamlTitle           = "Schiffels_2016",
+    _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
+    _posYamlContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
+    _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
+    _posYamlGenotypeData    = GenotypeDataSpec {
         format   = GenotypeFormatPlink,
         genoFile = "Schiffels_2016.bed",
+        genoFileChkSum = Nothing,
         snpFile  = "Schiffels_2016.bim",
-        indFile  = "Schiffels_2016.fam"
+        snpFileChkSum = Nothing,
+        indFile  = "Schiffels_2016.fam",
+        indFileChkSum = Nothing
     },
-    posPacJannoFile       = Just "Schiffels_2016.janno",
-    posPacChecksumList    = Nothing
+    _posYamlJannoFile       = Just "Schiffels_2016.janno",
+    _posYamlJannoFileChkSum = Nothing,
+    _posYamlBibFile         = Just "sources.bib",
+    _posYamlBibFileChkSum   = Nothing
 }
 
-truePackageAbsPaths :: PoseidonPackage
-truePackageAbsPaths = PoseidonPackage {
-    posPacPoseidonVersion = makeVersion [2, 0, 1],
-    posPacTitle           = "Schiffels_2016",
-    posPacDescription     = Just "Genetic data published in Schiffels et al. 2016",
-    posPacContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
-    posPacPackageVersion  = Just $ makeVersion [1, 0, 0],
-    posPacLastModified    = Just $ fromGregorian 2020 2 28,
-    posPacBibFile         = Just "/tmp/sources.bib",
-    posPacGenotypeData    = GenotypeDataSpec {
+truePackageAbsPaths :: PoseidonYamlStruct
+truePackageAbsPaths = PoseidonYamlStruct {
+    _posYamlPoseidonVersion = makeVersion [2, 0, 1],
+    _posYamlTitle           = "Schiffels_2016",
+    _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
+    _posYamlContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
+    _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
+    _posYamlGenotypeData    = GenotypeDataSpec {
         format   = GenotypeFormatPlink,
         genoFile = "/tmp/Schiffels_2016.bed",
+        genoFileChkSum = Nothing,
         snpFile  = "/tmp/Schiffels_2016.bim",
-        indFile  = "/tmp/Schiffels_2016.fam"
+        snpFileChkSum = Nothing,
+        indFile  = "/tmp/Schiffels_2016.fam",
+        indFileChkSum = Nothing
     },
-    posPacJannoFile       = Just "/tmp/Schiffels_2016.janno",
-    posPacChecksumList    = Nothing
+    _posYamlJannoFile       = Just "/tmp/Schiffels_2016.janno",
+    _posYamlJannoFileChkSum = Nothing,
+    _posYamlBibFile         = Just "/tmp/sources.bib",
+    _posYamlBibFileChkSum   = Nothing
 }
 
 testPoseidonFromYAML :: Spec
 testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
-    let (Right p) = decodeEither' yamlPackage :: Either ParseException PoseidonPackage
+    let (Right p) = decodeEither' yamlPackage :: Either ParseException PoseidonYamlStruct
     it "should parse correct YAML data" $
         p `shouldBe` truePackageRelPaths
     let yamlPackage2 = replace "2020-02-28" "2019-07-10sss" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give error with incorrect date string" $ do
         show err `shouldBe` "AesonException \"Error in $.lastModified: could not parse date: endOfInput\""
     let yamlPackage2 = replace "2.0.1" "1.0.0sss" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give error with incorrect poseidonVersion string" $ do
         show err `shouldBe` "AesonException \"Error in $.poseidonVersion: parsing Version failed\""
     let yamlPackage2 = replace "1.0.0" "a.b.c" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give error with incorrect packageVersion string" $ do
         show err `shouldBe` "AesonException \"Error in $.packageVersion: parsing Version failed\""
     let yamlPackage2 = replace "bibFile: sources.bib\n" "" yamlPackage
-        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give Nothing for missing bibFile" $ do
-        p `shouldBe` truePackageRelPaths {posPacBibFile = Nothing}
+        p `shouldBe` truePackageRelPaths {_posYamlBibFile = Nothing}
     let yamlPackage2 = replace "title: Schiffels_2016\n" "" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should fail with title missing" $ do
         show err `shouldBe` "AesonException \"Error in $: key \\\"title\\\" not found\""
     let yamlPackage2 = replace "poseidonVersion: 2.0.1\n" "" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should fail with poseidonVersion missing" $ do
         show err `shouldBe` "AesonException \"Error in $: key \\\"poseidonVersion\\\" not found\""
     let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
-        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonPackage
+        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should fail with lastModified missing" $ do
-        p `shouldBe` truePackageRelPaths {posPacLastModified = Nothing}
+        p `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
 
-testDecodePoseidonYml :: Spec
-testDecodePoseidonYml = describe "PoseidonPackage.decodePoseidonYml" $ do
-    it "should return correct package from file read" $ do
-        B.writeFile yamlTestPath yamlPackage
-        pac <- decodePoseidonYml yamlTestPath
-        pac `shouldBe` truePackageAbsPaths
-
-testReadWritePoseidonPackageRoundtrip :: Spec
-testReadWritePoseidonPackageRoundtrip = describe "PoseidonPackage.readWritePoseidonPackageRoundtrip" $ do
-    it "writing and reading should make no difference" $ do
-        encodeFile yamlTestPath truePackageRelPaths
-        pac <- decodePoseidonYml yamlTestPath
-        pac `shouldBe` truePackageAbsPaths
-
-testReadAllPoseidonPackages :: Spec
-testReadAllPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ do
+testReadPoseidonPackageCollection :: Spec
+testReadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
     it "should discover packages correctly" $ do
-        pac <- readAllPoseidonPackages [dir]
+        pac <- readPoseidonPackageCollection False [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),
@@ -171,7 +162,8 @@ checksums = ["95b093eefacc1d6499afcfe89b15d56c",
 
 testGetChecksum :: Spec
 testGetChecksum = describe "Poseidon.Package.getChecksum" $ do
-    it "should determine checksums correctly" $
-        forM_ (zip files checksums) $ \(f, c) -> do
-            chkSum <- getChecksum f
-            chkSum `shouldBe` c
+    it "should determine checksums correctly" $ do
+        mapM_ (\(f, c) -> do 
+            c_real <- getChecksum f 
+            c_real `shouldBe` c)
+            (zip files checksums)
