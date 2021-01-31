@@ -9,7 +9,8 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             PoseidonPackage (..),
                                             filterDuplicatePackages,
                                             readAllPoseidonPackages,
-                                            decodePoseidonYml)
+                                            decodePoseidonYml,
+                                            getChecksum)
 
 
 import           Control.Monad.IO.Class    (liftIO)
@@ -31,6 +32,7 @@ spec = do
     testDecodePoseidonYml
     testReadWritePoseidonPackageRoundtrip
     testReadAllPoseidonPackages
+    testGetChecksum
 
 yamlTestPath :: FilePath
 yamlTestPath = "/tmp/poseidon_test.yml"
@@ -155,3 +157,21 @@ testReadAllPoseidonPackages = describe "PoseidonPackage.findPoseidonPackages" $ 
                                                       Just (fromGregorian 2020 2 28),
                                                       Just (fromGregorian 2020 05 20)]
 
+files  = ["test/testDat/testModules/ancient/Schiffels_2016/geno.txt",
+          "test/testDat/testModules/ancient/Schiffels_2016/snp.txt",
+          "test/testDat/testModules/ancient/Schiffels_2016/ind.txt",
+          "test/testDat/testModules/ancient/Schiffels_2016/Schiffels_2016.janno",
+          "test/testDat/testModules/ancient/Schiffels_2016/sources.bib"]
+
+checksums = ["95b093eefacc1d6499afcfe89b15d56c",
+             "6771d7c873219039ba3d5bdd96031ce3",
+             "f77dc756666dbfef3bb35191ae15a167",
+             "555d7733135ebcabd032d581381c5d6f",
+             "70cd3d5801cee8a93fc2eb40a99c63fa"]
+
+testGetChecksum :: Spec
+testGetChecksum = describe "Poseidon.Package.getChecksum" $ do
+    it "should determine checksums correctly" $
+        forM_ (zip files checksums) $ \(f, c) -> do
+            chkSum <- getChecksum f
+            chkSum `shouldBe` c
