@@ -357,9 +357,18 @@ updateChecksumsInPackage pac = do
         Nothing -> return Nothing
         Just fn -> Just <$> getChecksum (d </> fn)
     let gd = posPacGenotypeData pac
-    genoChkSum <- Just <$> getChecksum (d </> genoFile gd)
-    snpChkSum <- Just <$> getChecksum (d </> snpFile gd)
-    indChkSum <- Just <$> getChecksum (d </> indFile gd)
+    genoExists <- doesFileExist (d </> genoFile gd)
+    genoChkSum <- if genoExists
+                  then Just <$> getChecksum (d </> genoFile gd)
+                  else return Nothing
+    snpExists <-  doesFileExist (d </> snpFile gd)
+    snpChkSum <-  if snpExists
+                  then Just <$> getChecksum (d </> snpFile gd)
+                  else return Nothing
+    indExists <-  doesFileExist (d </> indFile gd)
+    indChkSum <-  if indExists
+                  then Just <$> getChecksum (d </> indFile gd)
+                  else return Nothing
     return $ pac {
         posPacBibFileChkSum = bibChkSum,
         posPacJannoFileChkSum = jannoChkSum,
