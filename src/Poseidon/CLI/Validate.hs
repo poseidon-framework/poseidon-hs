@@ -45,7 +45,7 @@ runValidate (ValidateOptions baseDirs) = do
         ++ " (superficially) valid genotype data entries found"
     -- -- janno
     -- putStrLn $ u ".janno file consistency:"
-    -- eitherJannoFiles <- sequence [(try . readJannoFile) fn | Just fn <- map posPacJannoFile allPackages]
+    -- eitherJannoFiles <- sequence [(try . readJannoFile) fn | Just fn <- map posPacJanno allPackages]
     -- let jannoExceptions = E.lefts eitherJannoFiles
     --     jannoSamplesRaw = E.rights eitherJannoFiles
     --     jannoFileReadingExceptions = E.lefts $ concat jannoSamplesRaw
@@ -57,7 +57,7 @@ runValidate (ValidateOptions baseDirs) = do
     --     ++ " valid context data entries found"
     -- -- bib
     -- putStrLn $ u ".bib file consistency:"
-    -- eitherBibFiles <- sequence [(try . readBibTeXFile) fn | Just fn <- map posPacBibFile allPackages]
+    -- eitherBibFiles <- sequence [(try . readBibTeXFile) fn | Just fn <- map posPacBib allPackages]
     -- let bibFileExceptions = E.lefts eitherBibFiles
     --     bibReferences = E.rights eitherBibFiles
     --     allbibReferences = concat bibReferences

@@ -10,7 +10,7 @@ module Poseidon.Package (
     getJointGenotypeData,
     getIndividuals,
     newPackageTemplate,
-    --updateChecksumsInPackage,
+    updateChecksumsInPackage,
     writePoseidonPackage,
     getChecksum
 ) where
@@ -148,11 +148,15 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the optional date of last update
     , posPacGenotypeData    :: GenotypeDataSpec
     -- ^ the paths to the genotype files
-    , posPacJannoFile       :: Janno
+    , posPacJannoFile       :: Maybe FilePath
+    -- ^ the path to the janno file
+    , posPacJanno           :: Janno
     -- ^ the loaded janno file
     , posPacJannoFileChkSum :: Maybe String
     -- ^ the optional jannofile checksum
-    , posPacBibFile         :: BibTeX
+    , posPacBibFile         :: Maybe FilePath
+    -- ^ the path to the BibTeX file
+    , posPacBib             :: BibTeX
     -- ^ the loaded bibliography file
     , posPacBibFileChkSum   :: Maybe String
     -- ^ the optional bibfile chksum
@@ -189,20 +193,25 @@ readPoseidonPackage :: Bool -- ^ whether to ignore missing genotype files, usefu
 readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
-    (PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC) <- case decodeEither' bs of
+    -- read yml files
+    (PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC) <- case decodeEither' bs of
         Left err  -> throwIO $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
-    let yml = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC
+    let yml = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC
+    -- file existence and checksum test
     checkFiles baseDir ignoreGenotypeFilesMissing yml
+    -- read janno (or fill with empty dummy object)
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             indEntries <- loadIndividuals baseDir geno
             return $ createMinimalJanno indEntries
         Just p -> readJannoFile p
+    -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
         Just p -> readBibTeXFile p
-    let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno janno jannoC bib bibFC
+    -- create PoseidonPackage
+    let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC
     return pac
 
 -- throws exception if any checksum isn't correct
@@ -322,47 +331,47 @@ newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) ind
     ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
     ,   posPacLastModified = Just today
     ,   posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing
-    ,   posPacJannoFile = 
+    ,   posPacJannoFile = Just $ name ++ ".janno"
+    ,   posPacJanno = 
             case janno of 
                 Nothing -> case inds of 
                     Nothing -> throw $ PoseidonNewPackageConstructionException "Missing Individual- and Group IDs. This should never happen"
                     Just a -> createMinimalJanno a
                 Just a -> a
     ,   posPacJannoFileChkSum = Nothing
-    ,   posPacBibFile =
+    ,   posPacBibFile = Just $ name ++ ".bib"
+    ,   posPacBib =
             case bib of 
                 Nothing -> [] :: BibTeX
                 Just a -> a
     ,   posPacBibFileChkSum = Nothing
     }
 
--- updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
--- updateChecksumsInPackage pac = do
---     jannoChkSum <- case poseidonJannoFile pac of
---         Nothing -> return Nothing
---         Just fn -> Just <$> getChecksum fn
---     bibChkSum <- case poseidonBibFile pac of
---         Nothing -> return Nothing
---         Just fn -> Just <$> getChecksum fn
---     let gd = posPacGenotypeData pac
---         d = posPacBaseDir pac
---     genoChkSum <- Just <$> getChecksum (d </> genoFile gd)
---     snpChkSum <- Just <$> getChecksum (d </> snpFile gd)
---     indChkSum <- Just <$> getChecksum (d </> indFile gd)
---     return $ pac {
---         posPacBibFileChkSum = bibChkSum,
---         posPacJannoFileChkSum = jannoChkSum,
---         posPacGenotypeData = gd {
---             genoFileChkSum = genoChkSum,
---             snpFileChkSum = snpChkSum,
---             indFileChkSum = indChkSum
---         }
---     } 
+updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
+updateChecksumsInPackage pac = do
+    let d = posPacBaseDir pac
+    jannoChkSum <- case posPacJannoFile pac of
+        Nothing -> return Nothing
+        Just fn -> Just <$> getChecksum (d </> fn)
+    bibChkSum <- case posPacBibFile pac of
+        Nothing -> return Nothing
+        Just fn -> Just <$> getChecksum (d </> fn)
+    let gd = posPacGenotypeData pac
+    genoChkSum <- Just <$> getChecksum (d </> genoFile gd)
+    snpChkSum <- Just <$> getChecksum (d </> snpFile gd)
+    indChkSum <- Just <$> getChecksum (d </> indFile gd)
+    return $ pac {
+        posPacBibFileChkSum = bibChkSum,
+        posPacJannoFileChkSum = jannoChkSum,
+        posPacGenotypeData = gd {
+            genoFileChkSum = genoChkSum,
+            snpFileChkSum = snpChkSum,
+            indFileChkSum = indChkSum
+        }
+    } 
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno _ jannoC _ bibFC) = do
-    let yamlPac = PoseidonYamlStruct 
-                    ver tit des con pacVer mod geno 
-                    (Just $ tit ++ ".janno") jannoC (Just $ tit ++ ".bib") bibFC
+writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC) = do
+    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac

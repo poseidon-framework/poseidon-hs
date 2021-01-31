@@ -23,7 +23,7 @@ data SummariseOptions = SummariseOptions
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection True baseDirs
-    let jannos = map posPacJannoFile allPackages
+    let jannos = map posPacJanno allPackages
     summarisePoseidonSamples (concat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples

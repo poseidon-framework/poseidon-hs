@@ -62,10 +62,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- collect data --
     -- janno
     let namesOfRelevantPackages = map posPacTitle relevantPackages
-    let jannos = map posPacJannoFile relevantPackages
+    let jannos = map posPacJanno relevantPackages
     let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages jannos
     -- -- bib
-    let bibEntries = concatMap posPacBibFile relevantPackages
+    let bibEntries = concatMap posPacBib relevantPackages
     let relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
     -- genotype data
     indices <- extractEntityIndices entities relevantPackages

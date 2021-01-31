@@ -47,8 +47,8 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     writePoseidonPackage pac
     -- janno
     hPutStrLn stderr "Creating empty .janno file"
-    writeJannoFile (outPath </> outName <.> "janno") $ posPacJannoFile pac
+    writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
     -- bib
     hPutStrLn stderr "Creating empty .bib file"
-    writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBibFile pac
+    writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac
 

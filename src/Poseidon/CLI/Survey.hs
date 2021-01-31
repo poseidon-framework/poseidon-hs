@@ -35,9 +35,9 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     indFilesExist <- sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
-    let jannos = map posPacJannoFile allPackages
+    let jannos = map posPacJanno allPackages
     -- -- bib
-    let bibs = map posPacBibFile allPackages
+    let bibs = map posPacBib allPackages
     -- print information
     (tableH, tableB) <- do
         let tableH = ["Package", "Survey"]
