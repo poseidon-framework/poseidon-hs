@@ -24,7 +24,7 @@ import           Poseidon.Utils             (PoseidonException (..), renderPosei
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
 import           Control.Exception          (throwIO, try, throw)
 import           Control.Monad.Catch        (MonadThrow, throwM)
-import           Control.Monad              (when, filterM, forM_, forM)
+import           Control.Monad              (when, filterM, forM_, forM, unless)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
@@ -33,8 +33,9 @@ import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
 import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights, isRight, Either(..))
-import           Data.List                  (intercalate, groupBy, nub, sortOn)
-import           Data.Maybe                 (isNothing, catMaybes, isJust, fromJust)
+import           Data.List                  (intercalate, groupBy, nub, sortOn, (\\))
+import           Data.Maybe                 (mapMaybe, fromMaybe, isNothing, catMaybes, isJust, fromJust)
+import           Data.Text                  (unpack)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
@@ -51,7 +52,7 @@ import           System.Directory           (doesDirectoryExist,
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
                                              splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.CSL.Reference         (Reference (..))
+import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 {-   ######################### POSEIDONYAMLSTRUCT: Internal structure for YAML loading only ######################### -}
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -202,15 +203,21 @@ readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
     -- file existence and checksum test
     checkFiles baseDir ignoreGenotypeFilesMissing yml
     -- read janno (or fill with empty dummy object)
+    indEntries <- loadIndividuals baseDir geno
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
-            indEntries <- loadIndividuals baseDir geno
             return $ createMinimalJanno indEntries
-        Just p -> readJannoFile p
+        Just p -> do
+            loadedJanno <- readJannoFile p
+            checkJannoIndConsistency tit loadedJanno indEntries
+            return loadedJanno
     -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
-        Just p -> readBibTeXFile p
+        Just p -> do 
+            loadedBib <- readBibTeXFile p
+            checkJannoBibConsistency tit janno loadedBib
+            return loadedBib
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC
     return pac
@@ -251,6 +258,51 @@ getChecksum f = do
     fileContent <- LB.readFile f
     let md5Digest = md5 fileContent
     return $ show md5Digest
+
+checkJannoIndConsistency :: String -> Janno -> [EigenstratIndEntry] -> IO ()
+checkJannoIndConsistency pacName janno indEntries = do
+    let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
+        genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
+        genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
+    let jannoIDs        = map posSamIndividualID janno
+        jannoSexs       = map posSamGeneticSex janno
+        jannoGroups     = map (head . posSamGroupName) janno
+    let idMis           = genoIDs /= jannoIDs
+        sexMis          = genoSexs /= jannoSexs
+        groupMis        = genoGroups /= jannoGroups
+        anyJannoGenoMis = idMis || sexMis || groupMis
+    when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+        "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
+        renderMismatch genoIDs jannoIDs
+    when sexMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+        "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
+        renderMismatch (map show genoSexs) (map show jannoSexs)
+    when groupMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+        "Individual GroupID mismatch between genotype data (left) and .janno files (right): " ++
+        renderMismatch genoGroups jannoGroups
+
+renderMismatch :: [String] -> [String] -> String
+renderMismatch a b =
+    let misMatchList = map (\ (x, y) -> "(" ++ x ++ " = " ++ y ++ ")")
+                       (filter (\ (x, y) -> x /= y) $ zipWithPadding "?" "?" a b)
+    in if length misMatchList > 5
+       then intercalate ", " (take 5 misMatchList) ++ ", ..."
+       else intercalate ", " misMatchList
+
+zipWithPadding :: a -> b -> [a] -> [b] -> [(a,b)]
+zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
+zipWithPadding a _ []     ys     = zip (repeat a) ys
+zipWithPadding _ b xs     []     = zip xs (repeat b)
+
+checkJannoBibConsistency :: String -> Janno -> BibTeX -> IO ()
+checkJannoBibConsistency pacName janno bibtex = do
+    -- Cross-file consistency
+    let literatureInJanno = nub $ mapMaybe posSamPublication janno
+        literatureInBib = nub $ map (unpack . unLiteral . refId) bibtex
+        literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
+    unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $ 
+        "The following papers lack BibTeX entries: " ++
+        intercalate ", " literatureNotInBibButInJanno
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories. 
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting

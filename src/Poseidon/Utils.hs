@@ -14,6 +14,7 @@ data PoseidonException =
     | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
     | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
     | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
+    | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
     | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
     | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
