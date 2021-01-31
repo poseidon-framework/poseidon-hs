@@ -4,7 +4,7 @@ module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (Percent (..), PoseidonSample (..))
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
-import           Poseidon.Package       (readPoseidonPackageCollection)
+import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection)
 
 import           Control.Monad          (when)
 import           Data.List              (sortBy, nub, group, sort, intercalate)
@@ -22,20 +22,9 @@ data SummariseOptions = SummariseOptions
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
-    allPackages <- readPoseidonPackageCollection False baseDirs
-    putStrLn "test"
-    -- JANNO
-    
-    -- TODO Janno file loading needs updating. What happens if janno-files are missing?
-    -- jannoFiles <- maybereadJannoFiles allPackages
-    -- let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
-    -- let jannoSamples = concat $ catMaybes jannoMaybeList
-    -- let anyJannoIssues = not $ all isJust jannoMaybeList
-    -- print information
-    -- summarisePoseidonSamples jannoSamples rawOutput
-    -- print read issue warning
-    -- when anyJannoIssues $
-    --     hPutStrLn stderr "\nThere were issues with missing, incomplete or invalid data. Run trident validate to learn more."
+    allPackages <- readPoseidonPackageCollection True baseDirs
+    let jannos = map posPacJannoFile allPackages
+    summarisePoseidonSamples (concat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summarisePoseidonSamples :: [PoseidonSample] -> Bool -> IO ()
