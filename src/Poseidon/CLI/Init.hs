@@ -1,17 +1,18 @@
 module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
-                                             GenotypeFormatSpec (..))
-import           Poseidon.Janno             (createMinimalSamplesList, 
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..), loadIndividuals)
+import           Poseidon.Janno             (createMinimalJanno, 
                                              writeJannoFile)
-import           Poseidon.Package           (newPackageTemplate,
-                                             getIndividuals,
-                                             decodePoseidonYml)
+import           Poseidon.Package           (PoseidonPackage (..),
+                                             newPackageTemplate,
+                                             getIndividuals, writePoseidonPackage)
 
 import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           System.Directory           (createDirectory, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName)
+import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
     { _inGenoFormat :: GenotypeFormatSpec
@@ -25,30 +26,29 @@ data InitOptions = InitOptions
 runInit :: InitOptions -> IO ()
 runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     -- create new directory
-    putStrLn $ "Creating new package directory: " ++ outPath
+    hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
-    -- compile file names
+    -- compile genotype data structure
     let outInd = takeFileName indFile
         outSnp = takeFileName snpFile
         outGeno = takeFileName genoFile
-        genotypeData = GenotypeDataSpec format outGeno outSnp outInd
-        outJanno = outName <.> "janno"
-        outBib = outName <.> "bib"
-    -- POSEIDON.yml
-    putStrLn "Compiling POSEIDON.yml"
-    pac <- newPackageTemplate outName genotypeData outJanno outBib
-    encodeFilePretty (outPath </> "POSEIDON.yml") pac
+        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing
     -- genotype data
-    putStrLn "Copying genotype data"
+    hPutStrLn stderr "Copying genotype data"
     copyFile indFile $ outPath </> outInd
     copyFile snpFile $ outPath </> outSnp
     copyFile genoFile $ outPath </> outGeno
-    -- janno (needs the genotype files!)
-    putStrLn "Creating empty .janno file"
-    new_package <- decodePoseidonYml $ outPath </> "POSEIDON.yml"
-    indEntries <- getIndividuals new_package
-    let jannoRows = createMinimalSamplesList indEntries
-    writeJannoFile (outPath </> outJanno) jannoRows
+    -- create new package
+    hPutStrLn stderr "Creating new package entity"
+    inds <- loadIndividuals outPath genotypeData
+    pac <- newPackageTemplate outPath outName genotypeData (Just inds) Nothing Nothing
+    -- POSEIDON.yml
+    hPutStrLn stderr "Creating POSEIDON.yml"
+    writePoseidonPackage pac
+    -- janno
+    hPutStrLn stderr "Creating empty .janno file"
+    writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
     -- bib
-    putStrLn "Creating empty .bib file"
-    writeBibTeXFile (outPath </> outBib) []
+    hPutStrLn stderr "Creating empty .bib file"
+    writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac
+

@@ -11,7 +11,7 @@ module Poseidon.CLI.FStats (
 ) where
 
 import           Poseidon.Package           (PoseidonPackage (..),
-                                             readAllPoseidonPackages,
+                                             readPoseidonPackageCollection,
                                              getIndividuals,
                                              getJointGenotypeData)
 import           Poseidon.Utils             (PoseidonException (..))
@@ -218,8 +218,7 @@ getPopIndices indEntries popSpec =
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     -- load packages --
-    allPackages <- readAllPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ allPackages) ++ " Poseidon packages found"
+    allPackages <- readPoseidonPackageCollection False baseDirs
     statSpecsFromFile <- case maybeStatSpecsFile of
         Nothing -> return []
         Just f -> readStatSpecsFromFile f

@@ -8,7 +8,7 @@ import           Control.Monad.Catch        (throwM, MonadThrow)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
-                                             withText, (.:), (.=))
+                                             withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
 import           Data.List                  (nub, sort)
 import qualified Data.Text                  as T
@@ -23,18 +23,24 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Directory           (doesFileExist)
+import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr)
-
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
     { format   :: GenotypeFormatSpec
     -- ^ the genotype format
     , genoFile :: FilePath
     -- ^ path to the geno file
+    , genoFileChkSum :: Maybe String
+    -- ^ the optional checksum for the geno file
     , snpFile  :: FilePath
     -- ^ path to the snp file
+    , snpFileChkSum :: Maybe String
+    -- ^ the optional checksum for the Snp file
     , indFile  :: FilePath
     -- ^ path to the ind file
+    , indFileChkSum :: Maybe String
+    -- ^ the optional checksum for the indfile
     }
     deriving (Show, Eq)
 
@@ -43,16 +49,22 @@ instance FromJSON GenotypeDataSpec where
     parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
         <$> v .: "format"
         <*> v .: "genoFile"
+        <*> v .:? "genoFileChkSum"
         <*> v .: "snpFile"
+        <*> v .:? "snpFileChkSum"
         <*> v .: "indFile"
+        <*> v .:? "indFileChkSum"
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
     toJSON x = object [
         "format" .= format x,
         "genoFile" .= genoFile x,
+        "genoFileChkSum" .= genoFileChkSum x,
         "snpFile" .= snpFile x,
-        "indFile" .= indFile x
+        "snpFileChkSum" .= snpFileChkSum x,
+        "indFile" .= indFile x,
+        "indFileChkSum" .= indFileChkSum x
         ]
 
 -- | A data type representing the options fo the genotype format
@@ -93,32 +105,32 @@ compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _
 compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
 
 -- | A function to return a list of all individuals in the genotype files of a package.
-loadIndividuals :: GenotypeDataSpec -- ^ the Genotype spec
+loadIndividuals :: FilePath -- ^ the base directory
+               -> GenotypeDataSpec -- ^ the Genotype spec
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals (GenotypeDataSpec format_ _ _ indF) =
-    case format_ of
-        GenotypeFormatEigenstrat -> readEigenstratInd indF
-        GenotypeFormatPlink      -> readFamFile indF
+loadIndividuals d gd =
+    case format gd of
+        GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
+        GenotypeFormatPlink      -> readFamFile (d </> indFile gd)
 
 -- | A function to read the genotype data of a package
-loadGenotypeData :: (MonadSafe m) => GenotypeDataSpec -- ^ the genotype spec
+loadGenotypeData :: (MonadSafe m) =>
+                   FilePath -- ^ the base path
+                -> GenotypeDataSpec -- ^ the genotype spec
                 -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-loadGenotypeData (GenotypeDataSpec format_ genoF snpF indF) = do
-    forM_ [genoF, snpF, indF] $ (\f -> do
-        fileE <- liftIO (doesFileExist f)
-        when (not fileE) $ throwM (PoseidonFileExistenceException ("File " ++ f ++ " does not exist")))
+loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _) =
     case format_ of
-        GenotypeFormatEigenstrat -> readEigenstrat genoF snpF indF
-        GenotypeFormatPlink      -> readPlink genoF snpF indF
+        GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
+        GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
 
 -- | A function to read genotype data jointly from multiple packages
 loadJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
-                     -> [GenotypeDataSpec] -- ^ A list of genotype specifications
+                     -> [(FilePath, GenotypeDataSpec)]-- ^ A list of tuples of base directories and genotype data
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-loadJointGenotypeData showAllWarnings gds = do
-    genotypeTuples <- mapM loadGenotypeData gds
+loadJointGenotypeData showAllWarnings gdTuples = do
+    genotypeTuples <- sequence [loadGenotypeData baseDir gd | (baseDir, gd) <- gdTuples]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries

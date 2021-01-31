@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (loadBibTeXFile, bibToSimpleMaybeList, writeBibTeXFile) where
+module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX(..)) where
 
 import           Poseidon.Utils          (PoseidonException(..))
 
@@ -16,10 +16,17 @@ import           Text.CSL.Exception      (CiteprocException)
 import           Text.CSL.Input.Bibtex   (readBibtex)
 import           Text.CSL.Reference      (Reference (..))
 
-bibToSimpleMaybeList :: [Either PoseidonException [Reference]] -> [Maybe [Reference]]
-bibToSimpleMaybeList = map rightToMaybe
+type BibTeX = [Reference]
 
--- BibTeX file parsing
+readBibTeXFile :: FilePath -> IO [Reference]
+readBibTeXFile bibPath = do
+    fileE <- doesFileExist bibPath
+    when (not fileE) . throwIO $ PoseidonFileExistenceException ("Could not find bib file " ++ bibPath)
+    catch (readBibtex (const True) True False bibPath) handler
+  where
+    handler :: CiteprocException -> IO [Reference]
+    handler e = throwIO $ PoseidonBibTeXException bibPath (show e)
+
 writeBibTeXFile ::  FilePath -> [Reference] -> IO()
 writeBibTeXFile path references_ = do
     bibTeXCSLPath <- getDataFileName "bibtex.csl"
@@ -37,12 +44,3 @@ cleanBibTeXString =
     . T.replace "   " "  "
     . T.replace "}," "},\n  "
     . T.replace "\n" " "
-
-loadBibTeXFile :: FilePath -> IO [Reference]
-loadBibTeXFile bibPath = do
-    fileE <- doesFileExist bibPath
-    when (not fileE) . throwIO $ PoseidonFileExistenceException ("Could not find bib file " ++ bibPath)
-    catch (readBibtex (const True) True False bibPath) handler
-  where
-    handler :: CiteprocException -> IO [Reference]
-    handler e = throwIO $ PoseidonBibTeXException bibPath (show e)

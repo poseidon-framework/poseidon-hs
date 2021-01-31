@@ -138,10 +138,8 @@ updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
-validateOptParser = ValidateOptions <$> parseBasePaths -- <*> parseIgnoreGeno
-
--- parseIgnoreGeno :: OP.Parser Bool
--- parseIgnoreGeno = OP.switch (OP.long "ignoreGeno" <> OP.help "...")
+validateOptParser = ValidateOptions <$> parseBasePaths 
+                                    <*> parseIgnoreSNPandGenoFile
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
@@ -257,8 +255,8 @@ parseRawOutput = OP.switch (
     OP.help "output table as tsv without header. Useful for piping into grep or awk."
     )
 
--- parseIgnoreChecksums :: OP.Parser Bool
--- parseIgnoreChecksums = OP.switch (
---     OP.long "ignoreChecksums" <> 
---     OP.help "ignore the checksums in the POSEIDON.yml file when loading the packages"
---     )
+parseIgnoreSNPandGenoFile :: OP.Parser Bool
+parseIgnoreSNPandGenoFile = OP.switch (
+    OP.long "ignoreSNPandGenoFile" <> 
+    OP.help "ignore SNP and GenoFile for the validation"
+    )
