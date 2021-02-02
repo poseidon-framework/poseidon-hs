@@ -18,7 +18,7 @@ data ValidateOptions = ValidateOptions
 runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection ignoreGeno baseDirs
+    allPackages <- readPoseidonPackageCollection False ignoreGeno baseDirs
     -- TODO: This check as implemented does not consider packages that might 
     -- have been removed as duplicates. A more clever solution would be very
     -- welcome

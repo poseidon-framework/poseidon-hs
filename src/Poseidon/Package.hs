@@ -192,10 +192,11 @@ instance ToJSON ContributorSpec where
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
-readPoseidonPackage :: Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
+readPoseidonPackage :: Bool -- ^ whether to ignore all checksums
+                    -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
                     -> FilePath -- ^ the file path to the yaml file
                     -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
+readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
     -- read yml files
@@ -204,7 +205,7 @@ readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
         Right pac -> return pac
     let yml = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC
     -- file existence and checksum test
-    checkFiles baseDir ignoreGenotypeFilesMissing yml
+    checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
     janno <- case poseidonJannoFilePath baseDir yml of
@@ -226,23 +227,33 @@ readPoseidonPackage ignoreGenotypeFilesMissing ymlPath = do
     return pac
 
 -- throws exception if any checksum isn't correct
-checkFiles :: FilePath -> Bool -> PoseidonYamlStruct -> IO ()
-checkFiles baseDir ignoreGenotypeFilesMissing yml = do
+checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
+checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
     -- Check Bib File
     case poseidonJannoFilePath baseDir yml of
         Nothing -> return ()
-        Just fn -> checkFile fn $ _posYamlJannoFileChkSum yml
+        Just fn -> if ignoreChecksums
+                   then checkFile fn Nothing
+                   else checkFile fn $ _posYamlJannoFileChkSum yml
     -- Check Janno File
     case poseidonBibFilePath baseDir yml of
         Nothing -> return ()
-        Just fn -> checkFile fn $ _posYamlBibFileChkSum yml
+        Just fn -> if ignoreChecksums
+                   then checkFile fn Nothing
+                   else checkFile fn $ _posYamlBibFileChkSum yml
     -- Check Genotype files
-    when (not ignoreGenotypeFilesMissing) $ do
+    unless ignoreGenotypeFilesMissing $ do
         let gd = _posYamlGenotypeData yml
             d = baseDir
-        checkFile (d </> genoFile gd) (genoFileChkSum gd)
-        checkFile (d </> snpFile gd) (snpFileChkSum gd)
-        checkFile (d </> indFile gd) (indFileChkSum gd)
+        if ignoreChecksums
+        then do
+            checkFile (d </> genoFile gd) Nothing
+            checkFile (d </> snpFile gd) Nothing
+            checkFile (d </> indFile gd) Nothing
+        else do
+            checkFile (d </> genoFile gd) $ genoFileChkSum gd
+            checkFile (d </> snpFile gd) $ snpFileChkSum gd
+            checkFile (d </> indFile gd) $ indFileChkSum gd
 
 checkFile :: FilePath -> Maybe String -> IO ()
 checkFile fn maybeChkSum = do
@@ -310,10 +321,11 @@ checkJannoBibConsistency pacName janno bibtex = do
 -- | a utility function to load all poseidon packages found recursively in multiple base directories. 
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
-readPoseidonPackageCollection :: Bool -- ^ whether to ignore missing genotype files
+readPoseidonPackageCollection :: Bool -- ^ whether to ignore all checksums
+                              -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection ignoreGenotypeFilesMissing dirs = do
+readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     eitherPackages <- mapM tryDecodePoseidonPackage posFiles
     -- notifying the users of package problems
@@ -329,7 +341,7 @@ readPoseidonPackageCollection ignoreGenotypeFilesMissing dirs = do
     return finalPackageList
   where
     tryDecodePoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage = try . (readPoseidonPackage ignoreGenotypeFilesMissing)
+    tryDecodePoseidonPackage = try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing
 
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do
@@ -388,7 +400,10 @@ newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) ind
     ,   posPacLastModified = Just today
     ,   posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing
     ,   posPacJannoFile = Just $ name ++ ".janno"
-    ,   posPacJanno = 
+    -- TODO: This is not a good solution. Maybe we need pattern matching with 
+    -- two different implementations of newPackageTemplate depending on whether
+    -- the input janno object is Nothing or not
+    ,   posPacJanno =
             case janno of 
                 Nothing -> case inds of 
                     Nothing -> throw $ PoseidonNewPackageConstructionException "Missing Individual- and Group IDs. This should never happen"

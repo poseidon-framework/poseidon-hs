@@ -145,7 +145,7 @@ testReadPoseidonPackageCollection :: Spec
 testReadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
     it "should discover packages correctly" $ do
-        pac <- readPoseidonPackageCollection False [dir]
+        pac <- readPoseidonPackageCollection False False [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),
