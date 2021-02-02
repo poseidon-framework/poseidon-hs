@@ -128,6 +128,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePaths 
                             <*> parseListEntity 
                             <*> parseRawOutput
+                            <*> parseIgnoreGeno
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths

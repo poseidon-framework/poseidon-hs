@@ -16,6 +16,7 @@ data ListOptions = ListOptions
     { _loBaseDirs   :: [FilePath] -- ^ the list of base directories to search for packages
     , _loListEntity :: ListEntity -- ^ what to list 
     , _loRawOutput  :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _optIgnoreGeno :: Bool
     }
 
 -- | A datatype to represent the options what to list
@@ -25,8 +26,8 @@ data ListEntity = ListPackages -- ^ list packages
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
-runList (ListOptions baseDirs listEntity rawOutput) = do
-    allPackages <- readPoseidonPackageCollection False baseDirs
+runList (ListOptions baseDirs listEntity rawOutput ignoreGeno) = do
+    allPackages <- readPoseidonPackageCollection ignoreGeno baseDirs
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]
