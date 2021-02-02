@@ -15,14 +15,18 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.Utils         (PoseidonException (..), 
+                                        renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
+import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
 import           Data.Version           (showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
+import           System.Exit            (exitFailure)
+import           System.IO              (hPutStrLn, stderr)
 import           Text.Read              (readEither)
-
 
 data Options = CmdFstats FstatsOptions
     | CmdInit InitOptions
@@ -36,17 +40,24 @@ data Options = CmdFstats FstatsOptions
 main :: IO ()
 main = do
     cmdOpts <- OP.customExecParser p optParserInfo
-    case cmdOpts of
-        CmdFstats opts    -> runFstats opts
-        CmdInit opts      -> runInit opts
-        CmdList opts      -> runList opts
-        CmdForge opts     -> runForge opts
-        CmdSummarise opts -> runSummarise opts
-        CmdSurvey opts    -> runSurvey opts
-        CmdUpdate opts    -> runUpdate opts
-        CmdValidate opts  -> runValidate opts
+    catch (runCmd cmdOpts) handler
     where
         p = OP.prefs OP.showHelpOnEmpty
+        handler :: PoseidonException -> IO ()
+        handler e = do
+            hPutStrLn stderr $ renderPoseidonException e
+            exitFailure
+
+runCmd :: Options -> IO ()
+runCmd o = case o of
+    CmdFstats opts    -> runFstats opts
+    CmdInit opts      -> runInit opts
+    CmdList opts      -> runList opts
+    CmdForge opts     -> runForge opts
+    CmdSummarise opts -> runSummarise opts
+    CmdSurvey opts    -> runSurvey opts
+    CmdUpdate opts    -> runUpdate opts
+    CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (

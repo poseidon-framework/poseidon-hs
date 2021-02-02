@@ -59,6 +59,8 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- determine relevant packages
     relevantPackages <- filterPackages entities allPackages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
+    when (null relevantPackages) $ 
+        throwM PoseidonEmptyForgeException
     -- collect data --
     -- janno
     let namesOfRelevantPackages = map posPacTitle relevantPackages

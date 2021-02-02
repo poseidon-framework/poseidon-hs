@@ -20,35 +20,38 @@ data PoseidonException =
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
     | PoseidonForgeEntityParsingException String -- ^ An exception to indicate failed entity parsing
+    | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
     deriving (Show)
 
 instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
-renderPoseidonException (PoseidonYamlParseException fn e) = 
+renderPoseidonException (PoseidonYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ": " ++ show e
-renderPoseidonException (PoseidonPackageException s) = 
+renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
-renderPoseidonException (PoseidonIndSearchException s) = 
+renderPoseidonException (PoseidonIndSearchException s) =
     show s
-renderPoseidonException (PoseidonGenotypeException s) = 
+renderPoseidonException (PoseidonGenotypeException s) =
     "Error in the genotype data: " ++ show s
-renderPoseidonException (PoseidonJannoRowException f i s) = 
+renderPoseidonException (PoseidonJannoRowException f i s) =
     "Can't read sample in " ++ f ++ " in line " ++ show i ++ ": " ++ s
-renderPoseidonException (PoseidonJannoConsistencyException f s) = 
+renderPoseidonException (PoseidonJannoConsistencyException f s) =
     "Consistency issues in .janno file " ++ f ++ ": " ++ s
-renderPoseidonException (PoseidonCrossFileConsistencyException p s) = 
+renderPoseidonException (PoseidonCrossFileConsistencyException p s) =
     "Cross-file consistency issue in package " ++ p ++ ": " ++ s
-renderPoseidonException (PoseidonFileExistenceException f) = 
+renderPoseidonException (PoseidonFileExistenceException f) =
     "File " ++ f ++ " does not exist"
-renderPoseidonException (PoseidonFileChecksumException f) = 
+renderPoseidonException (PoseidonFileChecksumException f) =
     "File checksum test failed: " ++ f
 renderPoseidonException (PoseidonFStatsFormatException s) =
     "Fstat specification error: " ++ s
-renderPoseidonException (PoseidonBibTeXException f s) = 
+renderPoseidonException (PoseidonBibTeXException f s) =
     "BibTex problem in file " ++ f ++ ": " ++ s
 renderPoseidonException (PoseidonForgeEntityParsingException s) =
     "Error when parsing the forge selection: " ++ s
+renderPoseidonException PoseidonEmptyForgeException =
+    "Nothing to be forged"
 renderPoseidonException (PoseidonNewPackageConstructionException s) =
     show s
