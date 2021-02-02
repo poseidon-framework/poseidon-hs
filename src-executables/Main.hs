@@ -150,7 +150,7 @@ updateOptParser = UpdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths 
-                                    <*> parseIgnoreSNPandGenoFile
+                                    <*> parseIgnoreGeno
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
@@ -266,8 +266,9 @@ parseRawOutput = OP.switch (
     OP.help "output table as tsv without header. Useful for piping into grep or awk."
     )
 
-parseIgnoreSNPandGenoFile :: OP.Parser Bool
-parseIgnoreSNPandGenoFile = OP.switch (
-    OP.long "ignoreSNPandGenoFile" <> 
-    OP.help "ignore SNP and GenoFile for the validation"
+parseIgnoreGeno :: OP.Parser Bool
+parseIgnoreGeno = OP.switch (
+    OP.long "ignoreGeno" <> 
+    OP.help "ignore SNP and GenoFile for the validation" <>
+    OP.hidden
     )

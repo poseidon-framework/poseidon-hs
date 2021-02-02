@@ -12,13 +12,13 @@ import           System.IO                  (hPutStrLn, stderr)
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
     { _jaBaseDirs :: [FilePath]
-    , _optIgnoreSNPandGenoFile :: Bool
+    , _optIgnoreGeno :: Bool
     }
 
 runValidate :: ValidateOptions -> IO ()
-runValidate (ValidateOptions baseDirs ignoreSNPandGenoFile) = do
+runValidate (ValidateOptions baseDirs ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection ignoreSNPandGenoFile baseDirs
+    allPackages <- readPoseidonPackageCollection ignoreGeno baseDirs
     -- TODO: This check as implemented does not consider packages that might 
     -- have been removed as duplicates. A more clever solution would be very
     -- welcome
