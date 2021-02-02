@@ -64,7 +64,7 @@ optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \More information: \
-                \https://github.com/poseidon-framework/poseidon-hs. \
+                \https://poseidon-framework.github.io. \
                 \Report issues: \
                 \https://github.com/poseidon-framework/poseidon-hs/issues"
     )
