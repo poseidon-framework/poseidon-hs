@@ -92,14 +92,14 @@ jobs:
           file: ./dist/trident #${{ env.BINARY_PATH }}
 
       - name: Load Release URL File from release job
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v1
         with:
           name: release_url
 
       - name: Get Release File Name & Upload URL
         id: get_release_info
         run: |
-          echo "::set-output name=upload_url::$(cat release_url)"
+          echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
 
       - name: Upload Release Asset
         id: upload-release-asset
