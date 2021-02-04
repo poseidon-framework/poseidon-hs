@@ -1,6 +1,6 @@
 module Poseidon.BibFileSpec (spec) where
 
-import           Poseidon.BibFile        (loadBibTeXFile, writeBibTeXFile)
+import           Poseidon.BibFile        (readBibTeXFile, writeBibTeXFile)
 
 import           Data.Text               (unpack)
 import           Text.CSL.Reference      (unLiteral, Reference (..))
@@ -12,14 +12,14 @@ spec = do
 
 testBibReadWriteReadCycle :: Spec
 testBibReadWriteReadCycle = describe 
-    "Poseidon.BibFile.loadBibTeXFile and Poseidon.BibFile.writeBibTeXFile" $ do
+    "Poseidon.BibFile.readBibTeXFile and Poseidon.BibFile.writeBibTeXFile" $ do
         let testBibFileIn = "test/testDat/testBibFiles/test.bib"
         let testBibFileOut = "/tmp/poseidonBibFileTest.bib"
         it "reading, writing and reading again should maintain (general) consistcency" $ do
             -- perform actions
-            testReferences1 <- loadBibTeXFile testBibFileIn
+            testReferences1 <- readBibTeXFile testBibFileIn
             writeBibTeXFile testBibFileOut testReferences1
-            testReferences2 <- loadBibTeXFile testBibFileOut
+            testReferences2 <- readBibTeXFile testBibFileOut
             -- test outcome
             map (unpack . unLiteral . refId) testReferences1 `shouldMatchList` ["A1971", "B2014", "P2020"]
             map (unpack . unLiteral . refId) testReferences1 `shouldMatchList` map (unpack . unLiteral . refId) testReferences2

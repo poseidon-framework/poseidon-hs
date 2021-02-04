@@ -2,24 +2,20 @@
 
 module Poseidon.CLI.Survey where
 
-import           Poseidon.BibFile      (bibToSimpleMaybeList)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Janno        (PoseidonSample (..),
-                                        jannoToSimpleMaybeList)
+import           Poseidon.Janno        (Janno (..), PoseidonSample (..))
 import           Poseidon.Package      (PoseidonPackage (..),
-                                        loadPoseidonPackages,
-                                        maybeLoadBibTeXFiles,
-                                        maybeLoadJannoFiles)
-
+                                        readPoseidonPackageCollection)
+import           Poseidon.BibFile      (BibTeX (..))
 
 import           Control.Monad         (forM, when)
 import           Data.List             (zip4, intercalate)
 import           Data.Maybe            (isJust, isNothing)
 import           System.Directory      (doesFileExist)
+import           System.FilePath.Posix ((</>))
 import           System.IO             (hPutStrLn, stderr)
 import           Text.Layout.Table     (asciiRoundS, column, def, expand,
                                         rowsG, tableString, titlesH, expandUntil)
-
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
     { _jaBaseDirs :: [FilePath]
@@ -29,51 +25,42 @@ data SurveyOptions = SurveyOptions
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
-    packages <- loadPoseidonPackages baseDirs
-    hPutStrLn stderr $ (show . length $ packages) ++ " Poseidon packages found"
+    allPackages <- readPoseidonPackageCollection False True baseDirs
     -- collect information
-    let packageNames = map posPacTitle packages
+    let packageNames = map posPacTitle allPackages
     -- geno
-    let genotypeData = map posPacGenotypeData packages
-    genoFilesExist <- mapM (doesFileExist . genoFile) genotypeData
-    snpFilesExist <- mapM (doesFileExist . snpFile) genotypeData
-    indFilesExist <- mapM (doesFileExist . indFile) genotypeData
+    let genotypeDataTuples = [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- allPackages]
+    genoFilesExist <- sequence [doesFileExist (d </> genoFile gd) | (d, gd) <- genotypeDataTuples]
+    snpFilesExist <- sequence [doesFileExist (d </> snpFile gd) | (d, gd) <- genotypeDataTuples]
+    indFilesExist <- sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
-    -- JANNO
-    jannoFiles <- maybeLoadJannoFiles packages
-    let jannoMaybeList = jannoToSimpleMaybeList jannoFiles
-    let anyJannoIssues = not $ all isJust jannoMaybeList
-    -- bib
-    bibFiles <- maybeLoadBibTeXFiles packages
-    let bibMaybeList = bibToSimpleMaybeList bibFiles
-    let bibAreAlright = map isJust bibMaybeList
-    let anyBibIssues = not $ all isJust bibMaybeList
+    -- janno
+    let jannos = map posPacJanno allPackages
+    -- -- bib
+    let bibs = map posPacBib allPackages
     -- print information
     (tableH, tableB) <- do
         let tableH = ["Package", "Survey"]
-        tableB <- forM (zip4 packageNames genoTypeDataExists jannoMaybeList bibAreAlright) $ \pac -> do
+        tableB <- forM (zip4 packageNames genoTypeDataExists jannos bibs) $ \pac -> do
             return [extractFirst pac, renderPackageWithCompleteness pac]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-    -- print read issue warning
-    when (anyJannoIssues || anyBibIssues) $
-        hPutStrLn stderr "\nThere were issues with incomplete, missing or invalid data. Run trident validate to learn more."
 
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
 
-renderPackageWithCompleteness :: (String,Bool,Maybe [PoseidonSample],Bool) -> String
-renderPackageWithCompleteness (_,genoTypeDataExists,jannoSamples,bibIsAlright) =
+renderPackageWithCompleteness :: (String,Bool,Janno,BibTeX) -> String
+renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
        (if genoTypeDataExists then "G" else ".")
     ++ "-"
-    ++ maybe (replicate 35 '.') renderJannoCompleteness jannoSamples
+    ++ renderJannoCompleteness janno
     ++ "-"
-    ++ (if bibIsAlright then "B" else ".")
+    ++ (if not (null bib) then "B" else ".")
 
-renderJannoCompleteness :: [PoseidonSample] -> String
+renderJannoCompleteness :: Janno -> String
 renderJannoCompleteness jS =
     "M"
     ++ allNothing posSamCollectionID jS

@@ -13,15 +13,20 @@ import           Poseidon.ForgeRecipe   (ForgeEntity (..),
                                         forgeEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
+import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.Utils         (PoseidonException (..), 
+                                        renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
+import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
 import           Data.Version           (showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
+import           System.Exit            (exitFailure)
+import           System.IO              (hPutStrLn, stderr)
 import           Text.Read              (readEither)
-
 
 data Options = CmdFstats FstatsOptions
     | CmdInit InitOptions
@@ -29,28 +34,37 @@ data Options = CmdFstats FstatsOptions
     | CmdForge ForgeOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
+    | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
 
 main :: IO ()
 main = do
     cmdOpts <- OP.customExecParser p optParserInfo
-    case cmdOpts of
-        CmdFstats opts    -> runFstats opts
-        CmdInit opts      -> runInit opts
-        CmdList opts      -> runList opts
-        CmdForge opts     -> runForge opts
-        CmdSummarise opts -> runSummarise opts
-        CmdSurvey opts    -> runSurvey opts
-        CmdValidate opts  -> runValidate opts
+    catch (runCmd cmdOpts) handler
     where
         p = OP.prefs OP.showHelpOnEmpty
+        handler :: PoseidonException -> IO ()
+        handler e = do
+            hPutStrLn stderr $ renderPoseidonException e
+            exitFailure
+
+runCmd :: Options -> IO ()
+runCmd o = case o of
+    CmdFstats opts    -> runFstats opts
+    CmdInit opts      -> runInit opts
+    CmdList opts      -> runList opts
+    CmdForge opts     -> runForge opts
+    CmdSummarise opts -> runSummarise opts
+    CmdSurvey opts    -> runSurvey opts
+    CmdUpdate opts    -> runUpdate opts
+    CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \More information: \
-                \https://github.com/poseidon-framework/poseidon-hs. \
+                \https://poseidon-framework.github.io. \
                 \Report issues: \
                 \https://github.com/poseidon-framework/poseidon-hs/issues"
     )
@@ -69,17 +83,13 @@ optParser = OP.subparser (
     OP.subparser (
         OP.command "init" initOptInfo <>
         OP.command "forge" forgeOptInfo <>
+        OP.command "update" updateOptInfo <>
         OP.commandGroup "Package manipulation commands:"
     ) <|>
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
         OP.commandGroup "Analysis commands:"
     )
-
-
-    
-    
-
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
         (OP.progDesc "Run fstats on groups and invidiuals within and across Poseidon packages")
@@ -93,6 +103,8 @@ optParser = OP.subparser (
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
+    updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
+        (OP.progDesc "Update checksums in POSEIDON.yml files")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
@@ -113,7 +125,10 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseOutPackageName
 
 listOptParser :: OP.Parser ListOptions
-listOptParser = ListOptions <$> parseBasePaths <*> parseListEntity <*> parseRawOutput
+listOptParser = ListOptions <$> parseBasePaths 
+                            <*> parseListEntity 
+                            <*> parseRawOutput
+                            <*> parseIgnoreGeno
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
@@ -131,11 +146,12 @@ surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
 
-validateOptParser :: OP.Parser ValidateOptions
-validateOptParser = ValidateOptions <$> parseBasePaths -- <*> parseIgnoreGeno
+updateOptParser :: OP.Parser UpdateOptions
+updateOptParser = UpdateOptions <$> parseBasePaths
 
--- parseIgnoreGeno :: OP.Parser Bool
--- parseIgnoreGeno = OP.switch (OP.long "ignoreGeno" <> OP.help "...")
+validateOptParser :: OP.Parser ValidateOptions
+validateOptParser = ValidateOptions <$> parseBasePaths 
+                                    <*> parseIgnoreGeno
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
@@ -246,6 +262,14 @@ parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
     parseListIndividuals = OP.flag' ListIndividuals (OP.long "individuals" <> OP.help "list individuals")
 
 parseRawOutput :: OP.Parser Bool
-parseRawOutput = OP.switch (OP.long "raw" <> OP.short 'r' <> OP.help "output table as tsv without header. Useful for piping into grep or awk.")
+parseRawOutput = OP.switch (
+    OP.long "raw" <> OP.short 'r' <> 
+    OP.help "output table as tsv without header. Useful for piping into grep or awk."
+    )
 
-
+parseIgnoreGeno :: OP.Parser Bool
+parseIgnoreGeno = OP.switch (
+    OP.long "ignoreGeno" <> 
+    OP.help "ignore SNP and GenoFile for the validation" <>
+    OP.hidden
+    )
