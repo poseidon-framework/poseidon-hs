@@ -79,17 +79,17 @@ jobs:
           mkdir dist
           cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist
 
-      - if: matrix.os == 'windows-latest'
-        name: Set extension to .exe on Windows
-        run: echo "::set-env name=EXT::.exe"
+      # - if: matrix.os == 'windows-latest'
+      #   name: Set extension to .exe on Windows
+      #   run: echo "::set-env name=EXT::.exe"
 
-      - name: Set binary path name
-        run: echo "::set-env name=BINARY_PATH::./dist/trident${{ env.EXT }}"
+      # - name: Set binary path name
+      #   run: echo "::set-env name=BINARY_PATH::./dist/trident${{ env.EXT }}"
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
         with:
-          file: ${{ env.BINARY_PATH }}
+          file: ./dist/trident #${{ env.BINARY_PATH }}
 
       - name: Load Release URL File from release job
         uses: actions/download-artifact@v2
@@ -108,6 +108,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ env.BINARY_PATH }}
-          asset_name: trident-${{ steps.tag.outputs.tag }}-${{ runner.os }}-ghc-${{ matrix.ghc }}${{ env.EXT }}
+          asset_path: ./dist/trident #${{ env.BINARY_PATH }}
+          asset_name: trident-${{ steps.tag.outputs.tag }}-${{ runner.os }}-ghc-${{ matrix.ghc }} #${{ env.EXT }}
           asset_content_type: application/octet-stream
