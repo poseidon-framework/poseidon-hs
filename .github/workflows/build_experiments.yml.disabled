@@ -1,4 +1,4 @@
-name: windows_build_experiment
+name: build_experiments
 
 on:
   pull_request:
