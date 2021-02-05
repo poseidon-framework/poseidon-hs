@@ -12,9 +12,15 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
   + [Inspection commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
   + [Analysis commands](#analysis-commands): [`fstats`](#fstats-command)
   + [Getting help](#getting-help)
-* [Development Quickstart](#development-quickstart)
+- [Developers Guide](#developers-guide)
+  * [Development Quickstart](#development-quickstart)
+  * [Preparing a new stable release](#preparing-a-new-stable-release)
 
 ## Installation Quickstart
+
+Binaries for stable release versions can be downloaded [here](https://github.com/poseidon-framework/poseidon-hs/releases).
+
+To install the latest development version you can follow these steps:
 
 1. Install the Haskell build tool [Stack](https://docs.haskellstack.org/en/stable/README/)
 2. Clone the repository
@@ -361,13 +367,35 @@ which lists each statistic, the genome-wide estimate, its standard error and its
 
 You can use `trident --help`, `trident list --help` and `trident fstats --help` to get information about each parameter, including some that I haven't covered in this guide.
 
-## Development Quickstart
+## Developers Guide
+
+### Development Quickstart
 
 You can install the internal documentation using `stack haddock` and open it subsequently using `stack haddock --open`. This will then open a HTML page with all dependency packages and the `poseidon-hs` library itself. The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
 
 Important packages to look into to understand the architecture of this tool:
+
 * Start with `Poseidon.Package`: It defines the main package format and provides some functions how to access the data inside packages.
 * The `Poseidon.Utils` module only provides the definition of an Exception type.
-* The two modules `Poseidon.CmdFStats` and `Poseidon.CmdList` define the functionality provided in the two command line functions `list` and `fstats`.
-* The `list` command might be a good place to start and understanding what's going on and how to use the `Poseidon.Package` interface.
+* The modules in `CLI/` define the functionality provided in the command line functions for `trident`.
+* The `list` command might be a good place to start understanding what's going on and how to use the `Poseidon.Package` interface.
 * The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
+
+### Preparing a new stable release
+
+The Github Actions script in `.github/workflows/release.yml` registeres a new draft release and automatically builds and uploads trident binaries when a new Git tag with the prefix `v*` is pushed. 
+
+```bash
+# locally register a new tag (e.g. 0.3.1)
+git tag -a v0.3.1 -m "short description text for this release"
+# push tag
+git push origin v0.3.1
+```
+
+In case of a failing build delete the tag and the release draft on Github and then delete the tag locally with
+
+```bash
+git tag -d v0.3.1
+```
+
+before rerunning the procedure above.
