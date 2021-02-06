@@ -15,11 +15,8 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
   + [Getting help](#getting-help)
 - [Developers Guide](#developers-guide)
   * [Development Quickstart](#development-quickstart)
-  * [Preparing a new stable release](#preparing-a-new-stable-release)
 
 ## Installation Quickstart
-
-Binaries for stable release versions can be downloaded [here](https://github.com/poseidon-framework/poseidon-hs/releases).
 
 To install the latest development version you can follow these steps:
 
@@ -381,22 +378,3 @@ Important packages to look into to understand the architecture of this tool:
 * The modules in `CLI/` define the functionality provided in the command line functions for `trident`.
 * The `list` command might be a good place to start understanding what's going on and how to use the `Poseidon.Package` interface.
 * The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
-
-### Preparing a new stable release
-
-The Github Actions script in `.github/workflows/release.yml` registeres a new draft release and automatically builds and uploads trident binaries when a new Git tag with the prefix `v*` is pushed. 
-
-```bash
-# locally register a new tag (e.g. 0.3.1)
-git tag -a v0.3.1 -m "short description text for this release"
-# push tag
-git push origin v0.3.1
-```
-
-In case of a failing build delete the tag and the release draft on Github and then delete the tag locally with
-
-```bash
-git tag -d v0.3.1
-```
-
-before rerunning the procedure above.
