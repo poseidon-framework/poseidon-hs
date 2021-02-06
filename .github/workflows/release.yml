@@ -70,12 +70,7 @@ jobs:
 
       - name: Build
         run: |
-          stack install \
-          --local-bin-path=dist \
-          --flag pandoc:embed_data_files \
-          --system-ghc \
-          --no-run-tests \
-          --no-run-benchmarks
+          stack install --local-bin-path=dist --flag pandoc:embed_data_files --system-ghc --no-run-tests --no-run-benchmarks
 
       - name: Set extension to .exe on Windows
         if: matrix.os == 'windows-latest'
