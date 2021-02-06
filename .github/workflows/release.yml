@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        stack: ["2.5"]
+        cabal: ["3.2"]
         ghc: ["8.10.3"]
 
     steps:
@@ -58,19 +58,25 @@ jobs:
 
       - name: Setup Haskell
         uses: haskell/actions/setup@v1
+        id: setup-haskell-cabal
         with:
           ghc-version: ${{ matrix.ghc }}
-          stack-version: ${{ matrix.stack }}
+          cabal-version: ${{ matrix.cabal }}
 
-      - name: Cache ~/.stack
+      - name: Freeze
+        run: |
+          cabal freeze
+
+      - name: Cache ~/.cabal/store
         uses: actions/cache@v2
         with:
-          path: ~/.stack
-          key: ${{ runner.os }}-${{ matrix.ghc }}
+          path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build
         run: |
-          stack install --local-bin-path=dist --flag pandoc:embed_data_files --system-ghc --no-run-tests --no-run-benchmarks
+          mkdir dist
+          cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist
 
       - name: Set extension to .exe on Windows
         if: matrix.os == 'windows-latest'
