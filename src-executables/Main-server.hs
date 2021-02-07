@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Data.Aeson          (ToJSON, object, toJSON, (.=))
-import           Data.Aeson.Text     (encodeToLazyText)
 import           Data.Text.Lazy      (pack)
 import           Data.Time           (Day)
 import           Data.Version        (Version, showVersion)
@@ -9,7 +8,7 @@ import qualified Options.Applicative as OP
 import           Paths_poseidon_hs   (version)
 import           Poseidon.Package    (PoseidonPackage (..),
                                       readPoseidonPackageCollection)
-import           Web.Scotty          (get, param, scotty, text)
+import           Web.Scotty          (get, param, scotty, text, json)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs :: [FilePath]
@@ -46,7 +45,7 @@ main = do
     allPackages <- readPoseidonPackageCollection False True baseDirs
     scotty port $ do
         get "/packages" $
-            (text . encodeToLazyText . map packageToPackageInfo) allPackages
+            (json . map packageToPackageInfo) allPackages
         get "/:package_name/zip_file" $ do
             p <- param "package_name"
             text ("You requested the zip_file for package " <> p)
