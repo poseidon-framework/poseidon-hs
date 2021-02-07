@@ -1,8 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Data.Version        (showVersion)
+import           Data.Aeson          (ToJSON, object, toJSON, (.=))
+import           Data.Aeson.Text     (encodeToLazyText)
+import           Data.Text.Lazy      (pack)
+import           Data.Time           (Day)
+import           Data.Version        (Version, showVersion)
 import qualified Options.Applicative as OP
 import           Paths_poseidon_hs   (version)
+import           Poseidon.Package    (PoseidonPackage (..),
+                                      readPoseidonPackageCollection)
 import           Web.Scotty          (get, param, scotty, text)
 
 data CommandLineOptions = CommandLineOptions
@@ -11,15 +17,36 @@ data CommandLineOptions = CommandLineOptions
     }
     deriving (Show)
 
+data PackageInfo = PackageInfo
+    { pTitle        :: String
+    , pVersion      :: Maybe Version
+    , pDescription  :: Maybe String
+    , pLastModified :: Maybe Day
+    }
+
+instance ToJSON PackageInfo where
+    toJSON x = object [
+        "title"        .= pTitle x,
+        "version"      .= pVersion x,
+        "description"  .= pDescription x,
+        "lastModified" .= pLastModified x
+        ]
+
+packageToPackageInfo :: PoseidonPackage -> PackageInfo
+packageToPackageInfo pac = PackageInfo {
+    pTitle = posPacTitle pac,
+    pVersion = posPacPackageVersion pac,
+    pDescription = posPacDescription pac,
+    pLastModified = posPacLastModified pac
+}
+
 main :: IO ()
 main = do
     opts@(CommandLineOptions baseDirs port) <- OP.customExecParser p optParserInfo
+    allPackages <- readPoseidonPackageCollection False True baseDirs
     scotty port $ do
-        get "/packages" $ do
-            text "You requested packages"
-        get "/:package_name/info" $ do
-            p <- param "package_name"
-            text ("You requested info for package " <> p)
+        get "/packages" $
+            (text . encodeToLazyText . map packageToPackageInfo) allPackages
         get "/:package_name/zip_file" $ do
             p <- param "package_name"
             text ("You requested the zip_file for package " <> p)
