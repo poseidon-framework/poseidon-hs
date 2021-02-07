@@ -1,0 +1,2 @@
+package pandoc-citeproc
+    flags: +fembed_data_files
