@@ -310,8 +310,10 @@ readJannoFile jannoPath = do
     let jannoFileRows = Bch.lines jannoFileUpdated
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
+    -- filter out empty lines
+    let jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- load janno by rows
-    jannoRepresentation <- mapM (readJannoFileRow jannoPath) (tail jannoFileRowsWithNumber)
+    jannoRepresentation <- mapM (readJannoFileRow jannoPath) (tail jannoFileRowsWithNumberFiltered)
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
