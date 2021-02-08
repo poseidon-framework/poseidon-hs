@@ -8,7 +8,7 @@ import           Codec.Archive.Zip     (Archive, emptyArchive, fromArchive, toEn
 import           Control.Monad         (forM)
 import           Data.Aeson            (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy  as B
-import           Data.Text.Lazy        (pack, unpack)
+import           Data.Text.Lazy        (pack, unpack, Text, intercalate)
 import           Data.Time             (Day)
 import           Data.Version          (Version, showVersion)
 import qualified Options.Applicative   as OP
@@ -63,6 +63,8 @@ main = do
     scotty port $ do
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
+        get "/package_table" $
+            text . makeMarkdownTable $ allPackages
         get "/zip_file/:package_name" $ do
             p <- param "package_name"
             let zipFN = lookup (unpack p) zipDict
@@ -72,6 +74,24 @@ main = do
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
+
+makeMarkdownTable :: [PoseidonPackage] -> Text
+makeMarkdownTable packages = intercalate "\n" $ (header : body)
+  where
+    header :: Text
+    header = "Package Name | Description | Version | last update | Download\n---|---|---|---|---"
+    body :: [Text]
+    body = do
+        pac <- packages
+        let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
+        let link = "[" <> pack title <> ".zip](http://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> ")"
+        return $ pack title <> " | " <>
+            maybe "n/a" pack desc <> " | " <>
+            maybe "n/a" (pack . showVersion) version <> " | " <>
+            maybe "n/a" (pack . show) lastMod <> " | " <>
+            link
+
+
 
 makeZipArchive :: PoseidonPackage -> Bool -> IO Archive
 makeZipArchive pac ignoreGenoFiles =
