@@ -25,10 +25,10 @@ import           Pipes                      (MonadIO(liftIO), runEffect, (>->), 
 import qualified Pipes.Prelude as P
 import           Pipes.Safe                 (runSafeT, throwM, SafeT (..))
 import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
-import           System.Console.ANSI        (clearLine, setCursorColumn)
+import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr, hFlush, stdout)
+import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
 
 -- | A datatype representing command line options for the survey command
@@ -109,9 +109,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
             printProgress >->
             P.map (selectIndices indices) >->
             writeEigenstrat outG outS outI newEigenstratIndEntries
-        liftIO clearLine
-        liftIO $ setCursorColumn 0
-        liftIO $ putStrLn "SNPs processed: All done"
+        liftIO $ hClearLine stderr
+        liftIO $ hSetCursorColumn stderr 0
+        liftIO $ hPutStrLn stderr "SNPs processed: All done"
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
@@ -121,10 +121,10 @@ printProgress = loop 0
   where
     loop n = do
         when (n `rem` 1000 == 0) $ do
-            liftIO clearLine
-            liftIO $ setCursorColumn 0
-            liftIO $ putStr ("SNPs processed: " ++ show n)
-            liftIO $ hFlush stdout
+            liftIO $ hClearLine stderr
+            liftIO $ hSetCursorColumn stderr 0
+            liftIO $ hPutStr stderr ("SNPs processed: " ++ show n)
+            liftIO $ hFlush stderr
         x <- await
         yield x
         loop (n+1)
