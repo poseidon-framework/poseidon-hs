@@ -17,7 +17,7 @@ import           System.FilePath.Posix ((<.>), (</>))
 import           System.IO             (hPutStrLn, stderr)
 import           System.Posix.Files    (getFileStatus, modificationTime)
 import           Web.Scotty            (file, get, json, notFound, param, raise,
-                                        scotty, text)
+                                        scotty, html)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -64,7 +64,7 @@ main = do
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
         get "/package_table" $
-            text . makeMarkdownTable $ allPackages
+            html . makeHTMLtable $ allPackages
         get "/zip_file/:package_name" $ do
             p <- param "package_name"
             let zipFN = lookup (unpack p) zipDict
@@ -75,23 +75,21 @@ main = do
   where
     p = OP.prefs OP.showHelpOnEmpty
 
-makeMarkdownTable :: [PoseidonPackage] -> Text
-makeMarkdownTable packages = intercalate "\n" $ (header : body)
+makeHTMLtable :: [PoseidonPackage] -> Text
+makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
   where
     header :: Text
-    header = "Package Name | Description | Version | last update | Download\n---|---|---|---|---"
-    body :: [Text]
-    body = do
+    header = "<tr><th>Package Name</th><th>Description</th><th>Version</th><th>Last updated</th><th>Download</th></tr>"
+    body :: Text
+    body = intercalate "\n" $ do
         pac <- packages
         let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
-        let link = "[" <> pack title <> ".zip](http://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> ")"
-        return $ pack title <> " | " <>
-            maybe "n/a" pack desc <> " | " <>
-            maybe "n/a" (pack . showVersion) version <> " | " <>
-            maybe "n/a" (pack . show) lastMod <> " | " <>
-            link
-
-
+        let link = "<a href=\"http://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> "\">" <> pack title <> "</a>"
+        return $ "<tr><td>" <> pack title <> "</td><td>" <>
+            maybe "n/a" pack desc <> "</td><td>" <>
+            maybe "n/a" (pack . showVersion) version <> "</td><td>" <>
+            maybe "n/a" (pack . show) lastMod <> "</td><td>" <>
+            link <> "</td></tr>"
 
 makeZipArchive :: PoseidonPackage -> Bool -> IO Archive
 makeZipArchive pac ignoreGenoFiles =
