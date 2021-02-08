@@ -63,7 +63,7 @@ main = do
     scotty port $ do
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
-        get "/:package_name/zip_file" $ do
+        get "/zip_file/:package_name" $ do
             p <- param "package_name"
             let zipFN = lookup (unpack p) zipDict
             case zipFN of
