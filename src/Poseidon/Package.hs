@@ -49,12 +49,13 @@ import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoLine)
+import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist,
                                              listDirectory,
                                              doesFileExist)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
                                              splitDirectories, dropDrive, makeRelative)
-import           System.IO                  (hPutStrLn, stderr)
+import           System.IO                  (hPutStr, hPutStrLn, stderr, hFlush)
 import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 {-   ######################### POSEIDONYAMLSTRUCT: Internal structure for YAML loading only ######################### -}
@@ -327,7 +328,9 @@ readPoseidonPackageCollection :: Bool -- ^ whether to ignore all checksums
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    eitherPackages <- mapM tryDecodePoseidonPackage posFiles
+    hPutStr stderr "Packages found: 0"
+    eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
+    hPutStrLn stderr ""
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
         hPutStrLn stderr "Some packages were skipped due to issues:"
@@ -336,12 +339,17 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
     -- duplication check. This will throw if packages come with same versions and titles (see filterDuplicates)
     finalPackageList <- filterDuplicatePackages loadedPackages
     -- report number of valid packages
-    hPutStrLn stderr $ (show . length $ finalPackageList) ++ " Poseidon packages loaded"
+    hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
     return finalPackageList
   where
-    tryDecodePoseidonPackage :: FilePath -> IO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage = try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing
+    tryDecodePoseidonPackage :: (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage (numberPackage, path) = do
+        hClearLine stderr
+        hSetCursorColumn stderr 0
+        hPutStr stderr ("Packages found: " ++ show numberPackage)
+        hFlush stderr
+        try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing $ path
 
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do
