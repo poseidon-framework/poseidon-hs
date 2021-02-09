@@ -55,7 +55,7 @@ import           System.Directory           (doesDirectoryExist,
                                              doesFileExist)
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
                                              splitDirectories, dropDrive, makeRelative)
-import           System.IO                  (hPutStr, hPutStrLn, stderr, hFlush)
+import           System.IO                  (hPrint, hPutStr, hPutStrLn, stderr, hFlush)
 import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 {-   ######################### POSEIDONYAMLSTRUCT: Internal structure for YAML loading only ######################### -}
@@ -327,8 +327,10 @@ readPoseidonPackageCollection :: Bool -- ^ whether to ignore all checksums
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = do
+    hPutStr stderr $ "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    hPutStr stderr "Packages found: 0"
+    hPutStrLn stderr $ show (length posFiles) ++ " found"
+    hPutStr stderr "Initializing packages... "
     eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
     hPutStrLn stderr ""
     -- notifying the users of package problems
@@ -338,6 +340,10 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
     let loadedPackages = rights eitherPackages
     -- duplication check. This will throw if packages come with same versions and titles (see filterDuplicates)
     finalPackageList <- filterDuplicatePackages loadedPackages
+    when (length loadedPackages > length finalPackageList) $ do
+        hPutStrLn stderr "Some packages were skipped as duplicates:"
+        forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
+            \x -> hPrint stderr x
     -- report number of valid packages
     hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
@@ -347,7 +353,7 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
     tryDecodePoseidonPackage (numberPackage, path) = do
         hClearLine stderr
         hSetCursorColumn stderr 0
-        hPutStr stderr ("Packages found: " ++ show numberPackage)
+        hPutStr stderr $ "Initializing packages... " ++ show numberPackage ++ " initialized"
         hFlush stderr
         try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing $ path
 
