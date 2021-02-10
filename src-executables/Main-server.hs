@@ -4,20 +4,22 @@ import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Package      (PoseidonPackage (..),
                                         readPoseidonPackageCollection)
 
-import           Codec.Archive.Zip     (Archive, emptyArchive, fromArchive, toEntry, addEntryToArchive)
+import           Codec.Archive.Zip     (Archive, addEntryToArchive,
+                                        emptyArchive, fromArchive, toEntry)
 import           Control.Monad         (forM)
 import           Data.Aeson            (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy  as B
-import           Data.Text.Lazy        (pack, unpack, Text, intercalate)
+import           Data.Text.Lazy        (Text, intercalate, pack, unpack)
 import           Data.Time             (Day)
 import           Data.Version          (Version, showVersion)
+import           Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Options.Applicative   as OP
 import           Paths_poseidon_hs     (version)
+import           System.Directory      (getModificationTime)
 import           System.FilePath.Posix ((<.>), (</>))
 import           System.IO             (hPutStrLn, stderr)
-import           System.Posix.Files    (getFileStatus, modificationTime)
-import           Web.Scotty            (file, get, json, notFound, param, raise,
-                                        scotty, html)
+import           Web.Scotty            (file, get, html, json, notFound, param,
+                                        raise, scotty)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -54,11 +56,16 @@ main = do
     opts@(CommandLineOptions baseDirs port ignoreGenoFiles) <- OP.customExecParser p optParserInfo
     allPackages <- readPoseidonPackageCollection False ignoreGenoFiles baseDirs
     zipDict <- forM allPackages (\pac -> do
-        hPutStrLn stderr ("Preparing Zip Archive for package " ++ posPacTitle pac)
-        zip <- makeZipArchive pac ignoreGenoFiles
-        let zip_raw = fromArchive zip
         let fn = posPacBaseDir pac <.> "zip"
-        B.writeFile fn zip_raw
+        zipFileOutdated <- checkZipFileOutdated pac fn ignoreGenoFiles
+        if zipFileOutdated
+        then do
+            hPutStrLn stderr ("Preparing Zip Archive for package " ++ posPacTitle pac)
+            zip <- makeZipArchive pac ignoreGenoFiles
+            let zip_raw = fromArchive zip
+            B.writeFile fn zip_raw
+        else
+            hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
     scotty port $ do
         get "/packages" $
@@ -74,6 +81,24 @@ main = do
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
+
+checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
+checkZipFileOutdated pac fn ignoreGenoFiles = do
+    zipModTime <- getModificationTime fn
+    yamlOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> "POSEIDON.yml")
+    bibOutdated <- case posPacBibFile pac of
+        Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+        Nothing  -> return False
+    jannoOutdated <- case posPacJannoFile pac of
+        Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+        Nothing  -> return False
+    let gd = posPacGenotypeData pac
+    genoOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
+    snpOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
+    indOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
+    return $ or [yamlOutdated, bibOutdated, jannoOutdated, genoOutdated, snpOutdated, indOutdated]
+  where
+    checkOutdated zipModTime fn = (> zipModTime) <$> getModificationTime fn
 
 makeHTMLtable :: [PoseidonPackage] -> Text
 makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
@@ -113,8 +138,7 @@ makeZipArchive pac ignoreGenoFiles =
     addFN fn baseDir a = do
         let fullFN = baseDir </> fn
         raw <- B.readFile fullFN
-        fstatus <- getFileStatus fullFN
-        let modTime = (toInteger . fromEnum . modificationTime) fstatus
+        modTime <- (round . utcTimeToPOSIXSeconds) <$> getModificationTime fullFN
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
