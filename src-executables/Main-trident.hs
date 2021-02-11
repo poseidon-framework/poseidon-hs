@@ -8,6 +8,7 @@ import           Poseidon.GenotypeData  (GenotypeFormatSpec (..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
+import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.ForgeRecipe   (ForgeEntity (..),
                                         forgeEntitiesParser)
@@ -31,6 +32,7 @@ import           Text.Read              (readEither)
 data Options = CmdFstats FstatsOptions
     | CmdInit InitOptions
     | CmdList ListOptions
+    | CmdFetch FetchOptions
     | CmdForge ForgeOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
@@ -53,6 +55,7 @@ runCmd o = case o of
     CmdFstats opts    -> runFstats opts
     CmdInit opts      -> runInit opts
     CmdList opts      -> runList opts
+    CmdFetch opts     -> runFetch opts
     CmdForge opts     -> runForge opts
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
@@ -89,6 +92,10 @@ optParser = OP.subparser (
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
         OP.commandGroup "Analysis commands:"
+    ) <|>
+    OP.subparser (
+        OP.command "fetch" fetchOptInfo <>
+        OP.commandGroup "Remote interaction commands:"
     )
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
@@ -97,6 +104,8 @@ optParser = OP.subparser (
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "List packages, groups or individuals")
+    fetchOptInfo = OP.info (OP.helper <*> (CmdFetch <$> fetchOptParser))
+        (OP.progDesc "Download data from a Poseidon server")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
         (OP.progDesc "Select packages, groups or individuals and create a new Poseidon package from them")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
@@ -129,6 +138,11 @@ listOptParser = ListOptions <$> parseBasePaths
                             <*> parseListEntity 
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
+
+fetchOptParser :: OP.Parser FetchOptions
+fetchOptParser = FetchOptions <$> parseBasePaths
+                              <*> parseForgeEntitiesDirect
+                              <*> parseForgeEntitiesFromFile
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
