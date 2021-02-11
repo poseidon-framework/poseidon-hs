@@ -22,6 +22,7 @@ data PoseidonException =
     | PoseidonForgeEntityParsingException String -- ^ An exception to indicate failed entity parsing
     | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
+    | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
     deriving (Show)
 
 instance Exception PoseidonException
