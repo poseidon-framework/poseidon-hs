@@ -19,7 +19,7 @@ import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
 import           Data.ByteString.Char8      as B8 (unpack)
 import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
-import           Data.List                  ((\\), nub, intercalate)
+import           Data.List                  ((\\), nub, intercalate, intersect)
 import           Network.HTTP.Conduit       (simpleHttp,
                                              newManager,
                                              tlsManagerSettings,
@@ -60,12 +60,17 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     -- check which packages need updating
     let localPacSimple = map (\x -> (posPacTitle x, posPacPackageVersion x)) allLocalPackages
     let desiredRemotePacSimple = map (\x -> (pTitle x, pVersion x)) desiredRemotePackages
+    let pacsNotToDownload = map fst $ intersect desiredRemotePacSimple localPacSimple
     let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
-    hPutStrLn stderr $ "Packages that will be downloaded: " ++ intercalate ", " pacsToDownload
+    -- report which pacs will not be downloaded
+    mapM_ printAvailablePackage pacsNotToDownload
     -- download
     mapM_ (downloadPackage (head baseDirs) remote) pacsToDownload
-    -- 
-    hPutStrLn stderr "Done"
+
+printAvailablePackage :: String -> IO ()
+printAvailablePackage pacName = do
+    let pacNameNormsize = padString 40 pacName
+    hPutStrLn stderr $ pacNameNormsize ++ "already available"
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
@@ -99,7 +104,7 @@ printDownloadProgress pacName fileSizeMB = loop 0 0
                 showDownloaded fileSizeMB loadedKB x = do
                     let newLoadedKB = loadedKB + B.length x
                     let curLoadedMB = roundTo 1 (fromIntegral newLoadedKB / 1000 / 1000)
-                    -- update progress counter every 1%
+                                          -- update progress counter every 1%
                     let newLoadedMB = if (curLoadedMB/fileSizeMB - loadedMB/fileSizeMB >= 0.01 &&
                                           -- but only at at least 200KB 
                                           curLoadedMB - loadedMB > 0.2) || 
