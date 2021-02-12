@@ -99,10 +99,15 @@ printDownloadProgress pacName fileSizeMB = loop 0 0
                 showDownloaded fileSizeMB loadedKB x = do
                     let newLoadedKB = loadedKB + B.length x
                     let curLoadedMB = roundTo 1 (fromIntegral newLoadedKB / 1000 / 1000)
-                    let newLoadedMB = if   loadedMB /= curLoadedMB
+                    -- update progress counter every 1%
+                    let newLoadedMB = if (curLoadedMB/fileSizeMB - loadedMB/fileSizeMB >= 0.01 &&
+                                          -- but only at at least 200KB 
+                                          curLoadedMB - loadedMB > 0.2) || 
+                                          -- and of course at the end of the sequence
+                                          curLoadedMB == fileSizeMB
                                       then curLoadedMB
                                       else loadedMB
-                    when (loadedMB /= curLoadedMB) $ do
+                    when (loadedMB /= newLoadedMB) $ do
                         liftIO $ hClearLine stderr
                         liftIO $ hSetCursorColumn stderr 0
                         liftIO $ hPutStr stderr (pacName ++ show newLoadedMB ++ "/" ++ show fileSizeMB ++ "MB")
