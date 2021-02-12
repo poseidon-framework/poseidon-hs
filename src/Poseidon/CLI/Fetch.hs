@@ -9,11 +9,16 @@ import           Poseidon.Package           (PackageInfo (..),
                                              readPoseidonPackageCollection)
 import           Poseidon.Utils             (PoseidonException (..))
 
+import           Conduit
 import           Control.Exception          (throwIO)
+import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (Value, eitherDecode')
 import qualified Data.ByteString.Lazy       as LB
 import           Data.List                  ((\\), nub)
-import           Network.HTTP.Conduit        (simpleHttp, 
+import           Network.HTTP.Simple        (httpLBS,
+                                             httpSink,
+                                             parseRequest,
+                                             getResponseBody,
                                              Response (..))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
@@ -28,6 +33,7 @@ data FetchOptions = FetchOptions
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview remoteURL) = do
+    let remote = "http://c107-224.cloud.gwdg.de:3000"
     -- compile entities
     entitiesFromFile <- case entitiesFile of
         Nothing -> return []
@@ -37,8 +43,10 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     print desiredPacsTitles
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False False baseDirs
-    -- load remote packages
-    remoteOverviewJSONByteString <- simpleHttp "http://c107-224.cloud.gwdg.de:3000/packages"
+    -- load remote package list
+    overviewRequest <- parseRequest (remote ++ "/packages")
+    overviewResponse <- httpLBS overviewRequest
+    let remoteOverviewJSONByteString = getResponseBody overviewResponse
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have 
     let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
@@ -47,6 +55,17 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     let desiredRemotePacSimple = map (\x -> (pTitle x, pVersion x)) desiredRemotePackages
     let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
     print pacsToDownload
+    -- download
+    mapM_ (downloadPackage remote) pacsToDownload
+    -- 
+    putStrLn "Ende"
+
+downloadPackage :: String -> String -> IO ()
+downloadPackage remote pacName = do
+    packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
+    runResourceT $ httpSink packageRequest
+        (\_res -> getZipSink (ZipSink (sinkFile "/home/clemens/test/fetchtest/huhu")))
+    return ()
 
 entities2PacTitles :: [ForgeEntity] ->  [String]
 entities2PacTitles xs = do
