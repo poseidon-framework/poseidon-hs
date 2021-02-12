@@ -4,6 +4,7 @@ module Poseidon.CLI.Fetch where
 
 import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..), 
                                              readEntitiesFromFile)
+import           Poseidon.MathHelpers       (roundTo)
 import           Poseidon.Package           (PackageInfo (..),
                                              PoseidonPackage (..),
                                              readPoseidonPackageCollection)
@@ -75,27 +76,32 @@ downloadPackage pathToRepo remote pacName = do
     runResourceT $ do 
         response <- http packageRequest downloadManager
         let Just fileSize = lookup hContentLength (responseHeaders response)
-        let fileSizeInt = read $ B8.unpack fileSize
-        sealConduitT (responseBody response) $$+- printProgress fileSizeInt .| sinkFile (pathToRepo </> pacName)
+        let fileSizeKB = read $ B8.unpack fileSize
+        let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000 / 1000)
+        sealConduitT (responseBody response) $$+- printProgress fileSizeMB .| sinkFile (pathToRepo </> pacName)
     putStrLn ""
     return ()
 
-printProgress :: Int -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printProgress totalSize = loop 0
+printProgress :: Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printProgress fileSizeMB = loop 0 0
     where
-        loop len = do
+        loop loadedKB loadedMB = do
             x <- await
-            maybe (return ()) (showDownloaded totalSize len) x
+            maybe (return ()) (showDownloaded fileSizeMB loadedKB) x
             where
-                showDownloaded totalSize len x = do
-                    let len' = len + B.length x
-                    --when (round ((fromIntegral len) / (fromIntegral totalSize) * 100) `rem` == 0) $ do
-                    liftIO $ hClearLine stderr
-                    liftIO $ hSetCursorColumn stderr 0
-                    liftIO $ hPutStr stderr (show len' ++ "/" ++ show totalSize)
-                    liftIO $ hFlush stderr
+                showDownloaded fileSizeMB loadedKB x = do
+                    let newLoadedKB = loadedKB + B.length x
+                    let curLoadedMB = roundTo 1 (fromIntegral newLoadedKB / 1000 / 1000)
+                    let newLoadedMB = if   loadedMB /= curLoadedMB
+                                      then curLoadedMB
+                                      else loadedMB
+                    when (loadedMB /= curLoadedMB) $ do
+                        liftIO $ hClearLine stderr
+                        liftIO $ hSetCursorColumn stderr 0
+                        liftIO $ hPutStr stderr (show newLoadedMB ++ "/" ++ show fileSizeMB)
+                        liftIO $ hFlush stderr
                     yield x
-                    loop len'
+                    loop newLoadedKB newLoadedMB
 
 entities2PacTitles :: [ForgeEntity] ->  [String]
 entities2PacTitles xs = do
