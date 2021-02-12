@@ -15,6 +15,7 @@ import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (Value, eitherDecode')
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
+import           Data.ByteString.Char8      as B8 (unpack)
 import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
 import           Data.List                  ((\\), nub)
 import           Network.HTTP.Conduit       (simpleHttp,
@@ -22,9 +23,14 @@ import           Network.HTTP.Conduit       (simpleHttp,
                                              tlsManagerSettings,
                                              parseRequest, 
                                              http, 
-                                             responseBody)
+                                             responseBody,
+                                             responseHeaders)
+import           Network.HTTP.Types         (hContentLength)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
+
+import           Control.Monad              (when)
+import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs :: [FilePath]
@@ -68,18 +74,28 @@ downloadPackage pathToRepo remote pacName = do
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     runResourceT $ do 
         response <- http packageRequest downloadManager
-        sealConduitT (responseBody response) $$+- printProgress .| sinkFile (pathToRepo </> pacName)
+        let Just fileSize = lookup hContentLength (responseHeaders response)
+        let fileSizeInt = read $ B8.unpack fileSize
+        sealConduitT (responseBody response) $$+- printProgress fileSizeInt .| sinkFile (pathToRepo </> pacName)
+    putStrLn ""
     return ()
 
-printProgress :: ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printProgress = loop 0
-  where
-    loop len = await >>= maybe (return ()) (showConsumed len)
-    showConsumed len bs = do
-      let len' = len + B.length bs
-      liftIO $ putStrLn $ "bytes consumed " ++ show len'
-      yield bs
-      loop len'
+printProgress :: Int -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printProgress totalSize = loop 0
+    where
+        loop len = do
+            x <- await
+            maybe (return ()) (showDownloaded totalSize len) x
+            where
+                showDownloaded totalSize len x = do
+                    let len' = len + B.length x
+                    --when (round ((fromIntegral len) / (fromIntegral totalSize) * 100) `rem` == 0) $ do
+                    liftIO $ hClearLine stderr
+                    liftIO $ hSetCursorColumn stderr 0
+                    liftIO $ hPutStr stderr (show len' ++ "/" ++ show totalSize)
+                    liftIO $ hFlush stderr
+                    yield x
+                    loop len'
 
 entities2PacTitles :: [ForgeEntity] ->  [String]
 entities2PacTitles xs = do
