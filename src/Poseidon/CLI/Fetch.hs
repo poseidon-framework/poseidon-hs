@@ -10,8 +10,9 @@ import           Poseidon.Package           (PackageInfo (..),
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO)
-import qualified Data.ByteString.Lazy       as LB
 import           Data.Aeson                 (Value, eitherDecode')
+import qualified Data.ByteString.Lazy       as LB
+import           Data.List                  ((\\), nub)
 import           Network.HTTP.Conduit        (simpleHttp, 
                                              Response (..))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
@@ -27,9 +28,35 @@ data FetchOptions = FetchOptions
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview remoteURL) = do
-    responseBS <- simpleHttp "http://c107-224.cloud.gwdg.de:3000/packages"
-    hu <- readPackageInfo responseBS
-    print hu
+    -- compile entities
+    entitiesFromFile <- case entitiesFile of
+        Nothing -> return []
+        Just f -> readEntitiesFromFile f
+    let entities = nub $ entitiesDirect ++ entitiesFromFile --this nub could also be relevant for forge
+    let desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
+    print desiredPacsTitles
+    -- load local packages
+    allLocalPackages <- readPoseidonPackageCollection False False baseDirs
+    -- load remote packages
+    remoteOverviewJSONByteString <- simpleHttp "http://c107-224.cloud.gwdg.de:3000/packages"
+    allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
+    -- check which remote packages the User wants to have 
+    let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
+    -- check which packages need updating
+    let localPacSimple = map (\x -> (posPacTitle x, posPacPackageVersion x)) allLocalPackages
+    let desiredRemotePacSimple = map (\x -> (pTitle x, pVersion x)) desiredRemotePackages
+    let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
+    print pacsToDownload
+
+entities2PacTitles :: [ForgeEntity] ->  [String]
+entities2PacTitles xs = do
+    let pacEntities = [ x | x@ForgePac {} <- xs]
+    map getEntityStrings pacEntities
+    where
+        getEntityStrings :: ForgeEntity -> String
+        getEntityStrings (ForgePac x) = x
+        getEntityStrings (ForgeGroup x) = x
+        getEntityStrings (ForgeInd x) = x
 
 readPackageInfo :: LB.ByteString -> IO [PackageInfo]
 readPackageInfo bs = do
