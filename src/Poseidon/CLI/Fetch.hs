@@ -12,13 +12,14 @@ import           Poseidon.Utils             (PoseidonException (..))
 
 import           Conduit                    (runResourceT, sinkFile, ResourceT, await, yield)
 import           Control.Exception          (throwIO)
+import           Control.Monad              (when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (Value, eitherDecode')
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
 import           Data.ByteString.Char8      as B8 (unpack)
 import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
-import           Data.List                  ((\\), nub)
+import           Data.List                  ((\\), nub, intercalate)
 import           Network.HTTP.Conduit       (simpleHttp,
                                              newManager,
                                              tlsManagerSettings,
@@ -27,11 +28,9 @@ import           Network.HTTP.Conduit       (simpleHttp,
                                              responseBody,
                                              responseHeaders)
 import           Network.HTTP.Types         (hContentLength)
+import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
-
-import           Control.Monad              (when)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs :: [FilePath]
@@ -51,7 +50,6 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
         Just f -> readEntitiesFromFile f
     let entities = nub $ entitiesDirect ++ entitiesFromFile --this nub could also be relevant for forge
     let desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
-    print desiredPacsTitles
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False False baseDirs
     -- load remote package list
@@ -63,14 +61,15 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     let localPacSimple = map (\x -> (posPacTitle x, posPacPackageVersion x)) allLocalPackages
     let desiredRemotePacSimple = map (\x -> (pTitle x, pVersion x)) desiredRemotePackages
     let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
-    print pacsToDownload
+    hPutStrLn stderr $ "Packages that will be downloaded: " ++ intercalate ", " pacsToDownload
     -- download
     mapM_ (downloadPackage (head baseDirs) remote) pacsToDownload
     -- 
-    putStrLn "Ende"
+    hPutStrLn stderr "Done"
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
+    let pacNameNormsize = padString 40 pacName
     downloadManager <- newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     runResourceT $ do 
@@ -78,12 +77,20 @@ downloadPackage pathToRepo remote pacName = do
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = read $ B8.unpack fileSize
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000 / 1000)
-        sealConduitT (responseBody response) $$+- printProgress fileSizeMB .| sinkFile (pathToRepo </> pacName)
+        sealConduitT (responseBody response) $$+- 
+            printDownloadProgress pacNameNormsize fileSizeMB .| 
+            sinkFile (pathToRepo </> pacName)
     putStrLn ""
     return ()
 
-printProgress :: Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printProgress fileSizeMB = loop 0 0
+padString :: Int -> String -> String
+padString n s
+    | length s > n  = take (n-1) s ++ " "
+    | length s < n  = s ++ replicate (n - length s) ' '
+    | otherwise     = s
+
+printDownloadProgress :: String -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printDownloadProgress pacName fileSizeMB = loop 0 0
     where
         loop loadedKB loadedMB = do
             x <- await
@@ -98,7 +105,7 @@ printProgress fileSizeMB = loop 0 0
                     when (loadedMB /= curLoadedMB) $ do
                         liftIO $ hClearLine stderr
                         liftIO $ hSetCursorColumn stderr 0
-                        liftIO $ hPutStr stderr (show newLoadedMB ++ "/" ++ show fileSizeMB)
+                        liftIO $ hPutStr stderr (pacName ++ show newLoadedMB ++ "/" ++ show fileSizeMB ++ "MB")
                         liftIO $ hFlush stderr
                     yield x
                     loop newLoadedKB newLoadedMB
