@@ -9,17 +9,20 @@ import           Poseidon.Package           (PackageInfo (..),
                                              readPoseidonPackageCollection)
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Conduit                    (runResourceT, sinkFile)
+import           Conduit                    (runResourceT, sinkFile, ResourceT, await, yield)
 import           Control.Exception          (throwIO)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (Value, eitherDecode')
+import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
+import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
 import           Data.List                  ((\\), nub)
-import           Network.HTTP.Simple        (httpLBS,
-                                             httpSink,
-                                             parseRequest,
-                                             getResponseBody,
-                                             Response (..))
+import           Network.HTTP.Conduit       (simpleHttp,
+                                             newManager,
+                                             tlsManagerSettings,
+                                             parseRequest, 
+                                             http, 
+                                             responseBody)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
@@ -45,9 +48,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False False baseDirs
     -- load remote package list
-    overviewRequest <- parseRequest (remote ++ "/packages")
-    overviewResponse <- httpLBS overviewRequest
-    let remoteOverviewJSONByteString = getResponseBody overviewResponse
+    remoteOverviewJSONByteString <- simpleHttp (remote ++ "/packages")
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have 
     let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
@@ -63,10 +64,22 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
+    downloadManager <- newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
-    runResourceT $ httpSink packageRequest
-        (\_res -> sinkFile $ pathToRepo </> pacName)
+    runResourceT $ do 
+        response <- http packageRequest downloadManager
+        sealConduitT (responseBody response) $$+- printProgress .| sinkFile (pathToRepo </> pacName)
     return ()
+
+printProgress :: ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printProgress = loop 0
+  where
+    loop len = await >>= maybe (return ()) (showConsumed len)
+    showConsumed len bs = do
+      let len' = len + B.length bs
+      liftIO $ putStrLn $ "bytes consumed " ++ show len'
+      yield bs
+      loop len'
 
 entities2PacTitles :: [ForgeEntity] ->  [String]
 entities2PacTitles xs = do
