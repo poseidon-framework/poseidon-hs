@@ -9,7 +9,7 @@ import           Poseidon.Package           (PackageInfo (..),
                                              readPoseidonPackageCollection)
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Conduit
+import           Conduit                    (runResourceT, sinkFile)
 import           Control.Exception          (throwIO)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (Value, eitherDecode')
@@ -20,6 +20,7 @@ import           Network.HTTP.Simple        (httpLBS,
                                              parseRequest,
                                              getResponseBody,
                                              Response (..))
+import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
 data FetchOptions = FetchOptions
@@ -56,15 +57,15 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
     print pacsToDownload
     -- download
-    mapM_ (downloadPackage remote) pacsToDownload
+    mapM_ (downloadPackage (head baseDirs) remote) pacsToDownload
     -- 
     putStrLn "Ende"
 
-downloadPackage :: String -> String -> IO ()
-downloadPackage remote pacName = do
+downloadPackage :: FilePath -> String -> String -> IO ()
+downloadPackage pathToRepo remote pacName = do
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     runResourceT $ httpSink packageRequest
-        (\_res -> getZipSink (ZipSink (sinkFile "/home/clemens/test/fetchtest/huhu")))
+        (\_res -> sinkFile $ pathToRepo </> pacName)
     return ()
 
 entities2PacTitles :: [ForgeEntity] ->  [String]
