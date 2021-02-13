@@ -1,26 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Package      (PoseidonPackage (..),
-                                        readPoseidonPackageCollection)
+import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
+import           Poseidon.Package            (PoseidonPackage (..),
+                                              readPoseidonPackageCollection)
 
-import           Codec.Archive.Zip     (Archive, addEntryToArchive,
-                                        emptyArchive, fromArchive, toEntry)
-import           Control.Monad         (forM)
-import           Data.Aeson            (ToJSON, object, toJSON, (.=))
-import qualified Data.ByteString.Lazy  as B
-import           Data.Text.Lazy        (Text, intercalate, pack, unpack)
-import           Data.Time             (Day)
-import           Data.Version          (Version, showVersion)
-import           Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-import Network.Wai.Middleware.Cors (simpleCors)
-import qualified Options.Applicative   as OP
-import           Paths_poseidon_hs     (version)
-import           System.Directory      (getModificationTime, doesFileExist)
-import           System.FilePath.Posix ((<.>), (</>))
-import           System.IO             (hPutStrLn, stderr)
-import           Web.Scotty            (file, middleware, get, html, json, notFound, param,
-                                        raise, scotty, text)
+import           Codec.Archive.Zip           (Archive, addEntryToArchive,
+                                              emptyArchive, fromArchive,
+                                              toEntry)
+import           Control.Monad               (forM)
+import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
+import qualified Data.ByteString.Lazy        as B
+import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
+import           Data.Time                   (Day)
+import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
+import           Data.Version                (Version, showVersion)
+import           Network.Wai.Middleware.Cors (simpleCors)
+import qualified Options.Applicative         as OP
+import           Paths_poseidon_hs           (version)
+import           System.Directory            (doesFileExist,
+                                              getModificationTime)
+import           System.FilePath.Posix       ((<.>), (</>))
+import           System.IO                   (hPutStrLn, stderr)
+import           Web.Scotty                  (file, get, html, json, middleware,
+                                              notFound, param, raise, scotty,
+                                              text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -69,7 +72,7 @@ main = do
             hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
     scotty port $ do
-	middleware simpleCors
+        middleware simpleCors
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
         get "/package_table" $
