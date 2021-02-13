@@ -10,6 +10,7 @@ import           Poseidon.Package           (PackageInfo (..),
                                              readPoseidonPackageCollection)
 import           Poseidon.Utils             (PoseidonException (..))
 
+import           Codec.Archive.Zip          (ZipOption (..), extractFilesFromArchive, toArchive)
 import           Conduit                    (runResourceT, sinkFile, ResourceT, await, yield)
 import           Control.Exception          (throwIO)
 import           Control.Monad              (when)
@@ -29,6 +30,7 @@ import           Network.HTTP.Conduit       (simpleHttp,
                                              responseHeaders)
 import           Network.HTTP.Types         (hContentLength)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
+import           System.Directory           (createDirectory, removeFile, removeDirectory)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
@@ -44,6 +46,8 @@ data FetchOptions = FetchOptions
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview remoteURL) = do
     let remote = "http://c107-224.cloud.gwdg.de:3000"
+    let downloadDir = head baseDirs
+    let tempDir = downloadDir </> ".trident_download_folder"
     -- compile entities
     entitiesFromFile <- case entitiesFile of
         Nothing -> return []
@@ -64,8 +68,22 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
     -- report which pacs will not be downloaded
     mapM_ printAvailablePackage pacsNotToDownload
-    -- download
-    mapM_ (downloadPackage (head baseDirs) remote) pacsToDownload
+    -- download & unzip
+    createDirectory tempDir
+    mapM_ (downloadAndUnzipPackage downloadDir tempDir remote) pacsToDownload
+    removeDirectory tempDir
+ 
+downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
+downloadAndUnzipPackage baseDir tempDir remote pacName = do
+    downloadPackage tempDir remote pacName
+    unzipPackage (tempDir </> pacName) (baseDir </> pacName)
+    removeFile (tempDir </> pacName)
+
+unzipPackage :: FilePath -> FilePath -> IO ()
+unzipPackage zip outDir = do
+    archiveBS <- LB.readFile zip
+    let archive = toArchive archiveBS
+    extractFilesFromArchive [OptRecursive, OptVerbose, OptDestination outDir] archive
 
 printAvailablePackage :: String -> IO ()
 printAvailablePackage pacName = do
