@@ -16,7 +16,7 @@ import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
 import           Network.Wai.Handler.Warp    (defaultSettings, setPort)
-import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings)
+import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettingsChain)
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
@@ -32,7 +32,7 @@ data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
     , cliPort            :: Int
     , cliIgnoreGenoFiles :: Bool
-    , cliCertFiles       :: Maybe (FilePath, FilePath)
+    , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
     }
     deriving (Show)
 
@@ -77,7 +77,7 @@ main = do
         return (posPacTitle pac, fn))
     let scottyApp = case certFiles of
             Nothing                  -> scotty port
-            Just (keyFile, certFile) -> scottyTLS port keyFile certFile
+            Just (certFile, chainFiles, keyFile) -> scottyTLS port certFile chainFiles keyFile
     scottyApp $ do
         middleware simpleCors
         get "/packages" $
@@ -96,8 +96,8 @@ main = do
   where
     p = OP.prefs OP.showHelpOnEmpty
 
-scottyTLS :: Int -> FilePath -> FilePath -> ScottyM () -> IO ()
-scottyTLS port key cert = runTLS (tlsSettings cert key) (setPort port defaultSettings) <=< scottyApp
+scottyTLS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
+scottyTLS port cert chains key = runTLS (tlsSettingsChain cert chains key) (setPort port defaultSettings) <=< scottyApp
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
@@ -213,14 +213,18 @@ parseIgnoreGenoFiles :: OP.Parser Bool
 parseIgnoreGenoFiles = OP.switch (OP.long "ignoreGenoFiles" <> OP.short 'i' <>
     OP.help "whether to ignore the bed and SNP files. Useful for debugging")
 
-parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, FilePath))
+parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, [FilePath], FilePath))
 parseMaybeCertFiles = (Just <$> parseFiles) <|> pure Nothing
   where
-    parseFiles = (,) <$> parseKeyFile <*> parseCertFile
+    parseFiles = (,,) <$> parseCertFile <*> OP.some parseChainFile <*> parseKeyFile
 
 parseKeyFile :: OP.Parser FilePath
 parseKeyFile = OP.strOption (OP.long "keyFile" <> OP.metavar "KEYFILE" <>
                              OP.help "The key file of the TLS Certificate used for HTTPS")
+
+parseChainFile :: OP.Parser FilePath
+parseChainFile = OP.strOption (OP.long "chainFile" <> OP.metavar "CHAINFILE" <>
+                               OP.help "The chain file of the TLS Certificate used for HTTPS. Can be given multiple times")
 
 parseCertFile :: OP.Parser FilePath
 parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
