@@ -13,12 +13,13 @@ import           Data.Text.Lazy        (Text, intercalate, pack, unpack)
 import           Data.Time             (Day)
 import           Data.Version          (Version, showVersion)
 import           Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative   as OP
 import           Paths_poseidon_hs     (version)
 import           System.Directory      (getModificationTime, doesFileExist)
 import           System.FilePath.Posix ((<.>), (</>))
 import           System.IO             (hPutStrLn, stderr)
-import           Web.Scotty            (file, get, html, json, notFound, param,
+import           Web.Scotty            (file, middleware, get, html, json, notFound, param,
                                         raise, scotty, text)
 
 data CommandLineOptions = CommandLineOptions
@@ -68,11 +69,12 @@ main = do
             hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
     scotty port $ do
+	middleware simpleCors
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
         get "/package_table" $
             html . makeHTMLtable $ allPackages
-        get "/package_table_md" $
+        get "/package_table_md.md" $
             text . makeMDtable $ allPackages
         get "/zip_file/:package_name" $ do
             p <- param "package_name"
