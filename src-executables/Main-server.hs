@@ -132,7 +132,7 @@ makeMDtable :: [PoseidonPackage] -> Text
 makeMDtable packages = header <> "\n" <> body <> "\n"
   where
     header :: Text
-    header = "| Package Name | Description | Version | Last updated | Download |"
+    header = "| Package Name | Description | Version | Last updated | Download |\n| --- | --- | --- | --- | --- |"
     body :: Text
     body = intercalate "\n" $ do
         pac <- packages
