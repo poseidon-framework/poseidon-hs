@@ -7,13 +7,16 @@ import           Poseidon.Package            (PoseidonPackage (..),
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
                                               toEntry)
-import           Control.Monad               (forM)
+import           Control.Applicative         ((<|>))
+import           Control.Monad               (forM, (<=<))
 import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy        as B
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
+import           Network.Wai.Handler.Warp    (defaultSettings, setPort)
+import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings)
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
@@ -21,14 +24,15 @@ import           System.Directory            (doesFileExist,
                                               getModificationTime)
 import           System.FilePath.Posix       ((<.>), (</>))
 import           System.IO                   (hPutStrLn, stderr)
-import           Web.Scotty                  (file, get, html, json, middleware,
-                                              notFound, param, raise, scotty,
-                                              text)
+import           Web.Scotty                  (ScottyM, file, get, html, json,
+                                              middleware, notFound, param,
+                                              raise, scotty, scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
     , cliPort            :: Int
     , cliIgnoreGenoFiles :: Bool
+    , cliCertFiles       :: Maybe (FilePath, FilePath)
     }
     deriving (Show)
 
@@ -57,7 +61,7 @@ packageToPackageInfo pac = PackageInfo {
 
 main :: IO ()
 main = do
-    opts@(CommandLineOptions baseDirs port ignoreGenoFiles) <- OP.customExecParser p optParserInfo
+    opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
     allPackages <- readPoseidonPackageCollection False ignoreGenoFiles baseDirs
     zipDict <- forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"
@@ -71,7 +75,10 @@ main = do
         else
             hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
-    scotty port $ do
+    let scottyApp = case certFiles of
+            Nothing                  -> scotty port
+            Just (keyFile, certFile) -> scottyTLS port keyFile certFile
+    scottyApp $ do
         middleware simpleCors
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
@@ -88,6 +95,9 @@ main = do
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
+
+scottyTLS :: Int -> FilePath -> FilePath -> ScottyM () -> IO ()
+scottyTLS port key cert = runTLS (tlsSettings cert key) (setPort port defaultSettings) <=< scottyApp
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
@@ -186,7 +196,7 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles
+optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles <*> parseMaybeCertFiles
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -202,3 +212,16 @@ parsePort = OP.option OP.auto (OP.long "port" <> OP.short 'p' <> OP.metavar "POR
 parseIgnoreGenoFiles :: OP.Parser Bool
 parseIgnoreGenoFiles = OP.switch (OP.long "ignoreGenoFiles" <> OP.short 'i' <>
     OP.help "whether to ignore the bed and SNP files. Useful for debugging")
+
+parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, FilePath))
+parseMaybeCertFiles = (Just <$> parseFiles) <|> pure Nothing
+  where
+    parseFiles = (,) <$> parseKeyFile <*> parseCertFile
+
+parseKeyFile :: OP.Parser FilePath
+parseKeyFile = OP.strOption (OP.long "keyFile" <> OP.metavar "KEYFILE" <>
+                             OP.help "The key file of the TLS Certificate used for HTTPS")
+
+parseCertFile :: OP.Parser FilePath
+parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
+                              OP.help "The cert file of the TLS Certificate used for HTTPS")
