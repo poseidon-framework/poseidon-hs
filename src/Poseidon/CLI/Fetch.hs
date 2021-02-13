@@ -40,20 +40,23 @@ data FetchOptions = FetchOptions
     , _entityFile :: Maybe FilePath
     --, _onlyPreview :: Bool
     --, _remoteURL :: String
+    --, upgrade :: Bool
     }
+
+data PackageState = NotLocal | EqualLocalRemote | LaterRemote | LaterLocal
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview remoteURL) = do
     let remote = "http://c107-224.cloud.gwdg.de:3000"
-    let downloadDir = head baseDirs
-    let tempDir = downloadDir </> ".trident_download_folder"
+        downloadDir = head baseDirs
+        tempDir = downloadDir </> ".trident_download_folder"
     -- compile entities
     entitiesFromFile <- case entitiesFile of
         Nothing -> return []
         Just f -> readEntitiesFromFile f
     let entities = nub $ entitiesDirect ++ entitiesFromFile --this nub could also be relevant for forge
-    let desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
+        desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False False baseDirs
     -- load remote package list
@@ -61,18 +64,52 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have 
     let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
-    -- check which packages need updating
-    let localPacSimple = map (\x -> (posPacTitle x, posPacPackageVersion x)) allLocalPackages
-    let desiredRemotePacSimple = map (\x -> (pTitle x, pVersion x)) desiredRemotePackages
-    let pacsNotToDownload = map fst $ intersect desiredRemotePacSimple localPacSimple
-    let pacsToDownload = map fst $ desiredRemotePacSimple \\ localPacSimple
-    -- report which pacs will not be downloaded
-    mapM_ printAvailablePackage pacsNotToDownload
-    -- download & unzip
+    -- perform package download depending on local-remote state
+    let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
     createDirectory tempDir
-    mapM_ (downloadAndUnzipPackage downloadDir tempDir remote) pacsToDownload
+    mapM_ (handlePackageByState downloadDir tempDir remote) packagesWithState
     removeDirectory tempDir
- 
+
+entities2PacTitles :: [ForgeEntity] ->  [String]
+entities2PacTitles xs = do
+    let pacEntities = [ x | x@ForgePac {} <- xs]
+    map getEntityStrings pacEntities
+    where
+        getEntityStrings :: ForgeEntity -> String
+        getEntityStrings (ForgePac x) = x
+        getEntityStrings (ForgeGroup x) = x
+        getEntityStrings (ForgeInd x) = x
+
+readPackageInfo :: LB.ByteString -> IO [PackageInfo]
+readPackageInfo bs = do
+    case eitherDecode' bs of
+        Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
+        Right pac -> return pac
+
+determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String)
+determinePackageState localPacs desiredRemotePac
+    | desiredRemotePacTitle `notElem` localPacsTitles = (NotLocal, desiredRemotePacTitle)
+    | desiredRemotePacSimple `elem` localPacsSimple = (EqualLocalRemote, desiredRemotePacTitle)
+    | localVersionOfDesired desiredRemotePacTitle localPacsSimple < desiredRemotePacVersion = (LaterRemote, desiredRemotePacTitle)
+    | localVersionOfDesired desiredRemotePacTitle localPacsSimple > desiredRemotePacVersion = (LaterLocal, desiredRemotePacTitle)
+    where 
+        desiredRemotePacTitle = pTitle desiredRemotePac
+        desiredRemotePacVersion = pVersion desiredRemotePac
+        desiredRemotePacSimple = (desiredRemotePacTitle, desiredRemotePacVersion)
+        localPacsTitles = map posPacTitle localPacs
+        localPacsSimple = map (\x -> (posPacTitle x, posPacPackageVersion x)) localPacs
+        localVersionOfDesired desiredTitle simpleLocal = snd $ head $ filter (\x -> fst x == desiredTitle) simpleLocal
+
+handlePackageByState :: FilePath -> FilePath -> String -> (PackageState, String) -> IO ()
+handlePackageByState downloadDir tempDir remote (NotLocal, pac) = do 
+    downloadAndUnzipPackage downloadDir tempDir remote pac
+handlePackageByState _ _ _ (EqualLocalRemote, pac) = do
+    hPutStrLn stderr $ padString 40 pac ++ "latest package version already available"
+handlePackageByState downloadDir tempDir remote (LaterRemote, pac) = do
+    downloadAndUnzipPackage downloadDir tempDir remote pac
+handlePackageByState _ _ _ (LaterLocal, pac) = do
+    hPutStrLn stderr $ padString 40 pac ++ "local package version is higher then the remote one"
+
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
     downloadPackage tempDir remote pacName
@@ -84,11 +121,6 @@ unzipPackage zip outDir = do
     archiveBS <- LB.readFile zip
     let archive = toArchive archiveBS
     extractFilesFromArchive [OptRecursive, OptVerbose, OptDestination outDir] archive
-
-printAvailablePackage :: String -> IO ()
-printAvailablePackage pacName = do
-    let pacNameNormsize = padString 40 pacName
-    hPutStrLn stderr $ pacNameNormsize ++ "already available"
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
@@ -137,19 +169,3 @@ printDownloadProgress pacName fileSizeMB = loop 0 0
                         liftIO $ hFlush stderr
                     yield x
                     loop newLoadedKB newLoadedMB
-
-entities2PacTitles :: [ForgeEntity] ->  [String]
-entities2PacTitles xs = do
-    let pacEntities = [ x | x@ForgePac {} <- xs]
-    map getEntityStrings pacEntities
-    where
-        getEntityStrings :: ForgeEntity -> String
-        getEntityStrings (ForgePac x) = x
-        getEntityStrings (ForgeGroup x) = x
-        getEntityStrings (ForgeInd x) = x
-
-readPackageInfo :: LB.ByteString -> IO [PackageInfo]
-readPackageInfo bs = do
-    case eitherDecode' bs of
-        Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
-        Right pac -> return pac
