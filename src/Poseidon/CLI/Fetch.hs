@@ -43,11 +43,14 @@ data FetchOptions = FetchOptions
     , _upgrade :: Bool
     }
 
-data PackageState = NotLocal | EqualLocalRemote | LaterRemote | LaterLocal
+data PackageState = NotLocal -- ^ Package exists only on remote and can be downloaded directly
+                  | EqualLocalRemote -- ^ Local and remote package version are equal. Nothing should be done
+                  | LaterRemote -- ^ The remote version is later. An upgrade should be optional
+                  | LaterLocal -- ^ The local version is later. Nothing should be done
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
-runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) = do --onlyPreview remoteURL) = do
+runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) = do
     let remote = remoteURL --"http://c107-224.cloud.gwdg.de:3000"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
@@ -62,7 +65,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     -- load remote package list
     remoteOverviewJSONByteString <- simpleHttp (remote ++ "/packages")
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
-    -- check which remote packages the User wants to have 
+    -- check which remote packages the User wants to have
     let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
     -- perform package download depending on local-remote state
     let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
