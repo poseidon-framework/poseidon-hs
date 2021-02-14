@@ -9,6 +9,7 @@ import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               toEntry)
 import           Control.Applicative         ((<|>))
 import           Control.Monad               (forM, (<=<))
+import           Control.Monad.IO.Class      (liftIO)
 import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy        as B
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
@@ -16,7 +17,8 @@ import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
 import           Network.Wai.Handler.Warp    (defaultSettings, setPort)
-import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettingsChain, tlsSettings)
+import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
+                                              tlsSettingsChain)
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
@@ -97,12 +99,14 @@ main = do
     p = OP.prefs OP.showHelpOnEmpty
 
 scottyTLS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
-scottyTLS port cert chains key = do
-    liftIO $ putStrLn $ "Setting phasers to stun... (port " ++ show port ++ ") (ctrl-c to quit)"
+scottyTLS port cert chains key s = do
+    -- this is just the same output as with scotty, to make it consistent whether or not using https
+    putStrLn $ "Setting phasers to stun... (port " ++ show port ++ ") (ctrl-c to quit)"
     let tsls = case chains of
             [] -> tlsSettings cert key
-            c -> tlsSettingsChain cert c key
-    runTLS tsls (setPort port defaultSettings) <=< scottyApp
+            c  -> tlsSettingsChain cert c key
+    app <- scottyApp s
+    runTLS tsls (setPort port defaultSettings) app
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
