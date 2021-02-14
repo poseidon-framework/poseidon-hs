@@ -123,7 +123,7 @@ handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
         "local " ++ printV localV ++ " > remote " ++ printV remoteV
 
 printV :: Maybe Version -> String 
-printV Nothing = "unknown"
+printV Nothing = "?.?.?"
 printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
