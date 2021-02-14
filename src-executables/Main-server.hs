@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Package            (PoseidonPackage (..),
+import           Poseidon.Package            (PackageInfo (..),
+                                              PoseidonPackage (..),
                                               readPoseidonPackageCollection)
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
