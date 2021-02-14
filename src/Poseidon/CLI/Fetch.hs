@@ -39,17 +39,16 @@ data FetchOptions = FetchOptions
     { _jaBaseDirs :: [FilePath]
     , _entityList :: ForgeRecipe
     , _entityFile :: Maybe FilePath
-    --, _onlyPreview :: Bool
-    --, _remoteURL :: String
-    , upgrade :: Bool
+    , _remoteURL :: String
+    , _upgrade :: Bool
     }
 
 data PackageState = NotLocal | EqualLocalRemote | LaterRemote | LaterLocal
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
-runFetch (FetchOptions baseDirs entitiesDirect entitiesFile upgrade) = do --onlyPreview remoteURL) = do
-    let remote = "http://c107-224.cloud.gwdg.de:3000"
+runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) = do --onlyPreview remoteURL) = do
+    let remote = remoteURL --"http://c107-224.cloud.gwdg.de:3000"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     -- compile entities
