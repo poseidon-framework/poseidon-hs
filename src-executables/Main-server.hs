@@ -16,7 +16,7 @@ import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
 import           Network.Wai.Handler.Warp    (defaultSettings, setPort)
-import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettingsChain)
+import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettingsChain, tlsSettings)
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
@@ -75,10 +75,10 @@ main = do
         else
             hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
-    let scottyApp = case certFiles of
+    let runScotty = case certFiles of
             Nothing                  -> scotty port
             Just (certFile, chainFiles, keyFile) -> scottyTLS port certFile chainFiles keyFile
-    scottyApp $ do
+    runScotty $ do
         middleware simpleCors
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
@@ -97,7 +97,11 @@ main = do
     p = OP.prefs OP.showHelpOnEmpty
 
 scottyTLS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
-scottyTLS port cert chains key = runTLS (tlsSettingsChain cert chains key) (setPort port defaultSettings) <=< scottyApp
+scottyTLS port cert chains key =
+    let tsls = case chains of
+            [] -> tlsSettings cert key
+            c -> tlsSettingsChain cert c key
+    in  runTLS tsls (setPort port defaultSettings) <=< scottyApp
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
