@@ -51,7 +51,7 @@ data PackageState = NotLocal -- ^ Package exists only on remote and can be downl
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) = do
-    let remote = remoteURL --"http://c107-224.cloud.gwdg.de:3000"
+    let remote = remoteURL --"https://c107-224.cloud.gwdg.de:3000"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     -- compile entities

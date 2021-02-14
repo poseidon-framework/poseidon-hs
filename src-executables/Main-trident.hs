@@ -294,7 +294,7 @@ parseRemoteURL :: OP.Parser String
 parseRemoteURL = OP.strOption (
     OP.long "remote" <> 
     OP.help "URL of the remote server" <>
-    OP.value "http://c107-224.cloud.gwdg.de:3000" <>
+    OP.value "https://c107-224.cloud.gwdg.de:3000" <>
     OP.showDefault
     )
 
