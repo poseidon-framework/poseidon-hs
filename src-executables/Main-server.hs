@@ -221,7 +221,7 @@ parseIgnoreGenoFiles = OP.switch (OP.long "ignoreGenoFiles" <> OP.short 'i' <>
 parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, [FilePath], FilePath))
 parseMaybeCertFiles = (Just <$> parseFiles) <|> pure Nothing
   where
-    parseFiles = (,,) <$> parseCertFile <*> OP.some parseChainFile <*> parseKeyFile
+    parseFiles = (,,) <$> parseCertFile <*> OP.many parseChainFile <*> parseKeyFile
 
 parseKeyFile :: OP.Parser FilePath
 parseKeyFile = OP.strOption (OP.long "keyFile" <> OP.metavar "KEYFILE" <>
