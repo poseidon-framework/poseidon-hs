@@ -21,6 +21,7 @@ import qualified Data.ByteString.Lazy       as LB
 import           Data.ByteString.Char8      as B8 (unpack)
 import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
 import           Data.List                  ((\\), nub, intercalate, intersect)
+import           Data.Version               (Version, showVersion)
 import           Network.HTTP.Conduit       (simpleHttp,
                                              newManager,
                                              tlsManagerSettings,
@@ -40,14 +41,14 @@ data FetchOptions = FetchOptions
     , _entityFile :: Maybe FilePath
     --, _onlyPreview :: Bool
     --, _remoteURL :: String
-    --, upgrade :: Bool
+    , upgrade :: Bool
     }
 
 data PackageState = NotLocal | EqualLocalRemote | LaterRemote | LaterLocal
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
-runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview remoteURL) = do
+runFetch (FetchOptions baseDirs entitiesDirect entitiesFile upgrade) = do --onlyPreview remoteURL) = do
     let remote = "http://c107-224.cloud.gwdg.de:3000"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
@@ -67,7 +68,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile) = do --onlyPreview 
     -- perform package download depending on local-remote state
     let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
     createDirectory tempDir
-    mapM_ (handlePackageByState downloadDir tempDir remote) packagesWithState
+    mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
     removeDirectory tempDir
 
 entities2PacTitles :: [ForgeEntity] ->  [String]
@@ -86,29 +87,44 @@ readPackageInfo bs = do
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
         Right pac -> return pac
 
-determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String)
+determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
 determinePackageState localPacs desiredRemotePac
-    | desiredRemotePacTitle `notElem` localPacsTitles = (NotLocal, desiredRemotePacTitle)
-    | desiredRemotePacSimple `elem` localPacsSimple = (EqualLocalRemote, desiredRemotePacTitle)
-    | localVersionOfDesired desiredRemotePacTitle localPacsSimple < desiredRemotePacVersion = (LaterRemote, desiredRemotePacTitle)
-    | localVersionOfDesired desiredRemotePacTitle localPacsSimple > desiredRemotePacVersion = (LaterLocal, desiredRemotePacTitle)
+    | desiredRemotePacTitle `notElem` localPacsTitles = 
+        (NotLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
+    | desiredRemotePacSimple `elem` localPacsSimple = 
+        (EqualLocalRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
+    | localVersionOfDesired < desiredRemotePacVersion = 
+        (LaterRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
+    | localVersionOfDesired > desiredRemotePacVersion = 
+        (LaterLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
     where 
         desiredRemotePacTitle = pTitle desiredRemotePac
         desiredRemotePacVersion = pVersion desiredRemotePac
         desiredRemotePacSimple = (desiredRemotePacTitle, desiredRemotePacVersion)
         localPacsTitles = map posPacTitle localPacs
-        localPacsSimple = map (\x -> (posPacTitle x, posPacPackageVersion x)) localPacs
-        localVersionOfDesired desiredTitle simpleLocal = snd $ head $ filter (\x -> fst x == desiredTitle) simpleLocal
+        localPacsVersion = map posPacPackageVersion localPacs
+        localPacsSimple = zip localPacsTitles localPacsVersion
+        localVersionOfDesired = snd $ head $ filter (\x -> fst x == desiredRemotePacTitle) localPacsSimple
 
-handlePackageByState :: FilePath -> FilePath -> String -> (PackageState, String) -> IO ()
-handlePackageByState downloadDir tempDir remote (NotLocal, pac) = do 
+handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> IO ()
+handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do 
     downloadAndUnzipPackage downloadDir tempDir remote pac
-handlePackageByState _ _ _ (EqualLocalRemote, pac) = do
-    hPutStrLn stderr $ padString 40 pac ++ "latest package version already available"
-handlePackageByState downloadDir tempDir remote (LaterRemote, pac) = do
-    downloadAndUnzipPackage downloadDir tempDir remote pac
-handlePackageByState _ _ _ (LaterLocal, pac) = do
-    hPutStrLn stderr $ padString 40 pac ++ "local package version is higher then the remote one"
+handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
+    hPutStrLn stderr $ padString 40 pac ++ 
+        "local " ++ printV localV ++ " = remote " ++ printV remoteV
+handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
+    if upgrade
+    then downloadAndUnzipPackage downloadDir tempDir remote pac
+    else hPutStrLn stderr $ padString 40 pac ++ 
+        "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
+        " (overwrite with --upgrade)"
+handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
+    hPutStrLn stderr $ padString 40 pac ++ 
+        "local " ++ printV localV ++ " > remote " ++ printV remoteV
+
+printV :: Maybe Version -> String 
+printV Nothing = "unknown"
+printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do

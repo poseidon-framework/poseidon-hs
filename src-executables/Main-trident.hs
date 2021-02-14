@@ -143,6 +143,7 @@ fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseForgeEntitiesDirect
                               <*> parseForgeEntitiesFromFile
+                              <*> parseUpgrade
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
@@ -286,4 +287,10 @@ parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <> 
     OP.help "ignore SNP and GenoFile for the validation" <>
     OP.hidden
+    )
+
+parseUpgrade :: OP.Parser Bool
+parseUpgrade = OP.switch (
+    OP.long "upgrade" <>  OP.short 'u' <> 
+    OP.help "overwrite outdated, local package versions"
     )
