@@ -2,7 +2,7 @@
 [![Coverage Status](https://img.shields.io/codecov/c/github/poseidon-framework/poseidon-hs/master.svg)](https://codecov.io/github/poseidon-framework/poseidon-hs?branch=master)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/poseidon-framework/poseidon-hs?include_prereleases) ![GitHub all releases](https://img.shields.io/github/downloads/poseidon-framework/poseidon-hs/total)](https://github.com/poseidon-framework/poseidon-hs/releases)
 
-# poseidon-tools
+# poseidon-hs
 A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
 
 * [Installation Quickstart](#installation-quickstart)
@@ -28,7 +28,7 @@ To install the latest development version you can follow these steps:
 3. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path). This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
 4. If you're a developer and would like to run the tests, execute `stack test` inside the repository to build and run tests.
 
-## Guide for the command line utility
+## Guide for trident
 
 ### Poseidon package repositories
 Trident generally requires Poseidon datasets to work with. Most trident subcommands therefore have a central parameter, called `--baseDir` or simply `-d` to specify a base directory with Poseidon packages. For example, if all Poseidon packages live inside a repository at `/path/to/poseidon/packages` you would simply say `trident <subcommand> -d /path/to/poseidon/dirs/` and `trident` would automatically search all subdirectories inside of the repository for valid poseidon packages.
@@ -400,3 +400,33 @@ git tag -d v0.3.1
 ```
 
 before rerunning the procedure above.
+
+## Poseidon HTTP Server
+
+the second executable in this package is `poseidon-http-server`, a program that serves poseidon packages via HTTP or HTTPS. 
+
+Basic usage is:
+
+```
+poseidon-http-server [--version] (-d|--baseDir DIR) [-p|--port PORT] 
+                            [-i|--ignoreGenoFiles] 
+                            [--certFile CERTFILE [--chainFile CHAINFILE]
+                              --keyFile KEYFILE]
+```
+Available options:
+```
+  -h,--help                Show this help text
+  --version                Show version
+  -d,--baseDir DIR         a base directory to search for Poseidon Packages
+                           (could be a Poseidon repository)
+  -p,--port PORT           the port on which the server listens (default: 3000)
+  -i,--ignoreGenoFiles     whether to ignore the bed and SNP files. Useful for
+                           debugging
+  --certFile CERTFILE      The cert file of the TLS Certificate used for HTTPS
+  --chainFile CHAINFILE    The chain file of the TLS Certificate used for HTTPS.
+                           Can be given multiple times
+  --keyFile KEYFILE        The key file of the TLS Certificate used for HTTPS
+```
+
+Note that if none of `certFile`, `chainFile` and `keyFile` are given, the server listens to HTTP (unsecure) traffic. If at least a `certFile` and a `keyFile` are given, it listens via HTTPS traffic. 
+
