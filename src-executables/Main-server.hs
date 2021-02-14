@@ -97,11 +97,12 @@ main = do
     p = OP.prefs OP.showHelpOnEmpty
 
 scottyTLS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
-scottyTLS port cert chains key =
+scottyTLS port cert chains key = do
+    liftIO $ putStrLn $ "Setting phasers to stun... (port " ++ show port ++ ") (ctrl-c to quit)"
     let tsls = case chains of
             [] -> tlsSettings cert key
             c -> tlsSettingsChain cert c key
-    in  runTLS tsls (setPort port defaultSettings) <=< scottyApp
+    runTLS tsls (setPort port defaultSettings) <=< scottyApp
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
