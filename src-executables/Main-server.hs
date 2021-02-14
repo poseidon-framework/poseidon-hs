@@ -1,26 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Package      (PackageInfo (..),
-                                        PoseidonPackage (..),
-                                        readPoseidonPackageCollection)
+import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
+import           Poseidon.Package            (PoseidonPackage (..),
+                                              readPoseidonPackageCollection)
 
-import           Codec.Archive.Zip     (Archive, addEntryToArchive,
-                                        emptyArchive, fromArchive, toEntry)
-import           Control.Monad         (forM)
-import           Data.Aeson            (ToJSON, object, toJSON, (.=))
-import qualified Data.ByteString.Lazy  as B
-import           Data.Text.Lazy        (Text, intercalate, pack, unpack)
-import           Data.Time             (Day)
-import           Data.Version          (Version, showVersion)
-import           Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-import qualified Options.Applicative   as OP
-import           Paths_poseidon_hs     (version)
-import           System.Directory      (getModificationTime)
-import           System.FilePath.Posix ((<.>), (</>))
-import           System.IO             (hPutStrLn, stderr)
-import           Web.Scotty            (file, get, html, json, notFound, param,
-                                        raise, scotty)
+import           Codec.Archive.Zip           (Archive, addEntryToArchive,
+                                              emptyArchive, fromArchive,
+                                              toEntry)
+import           Control.Monad               (forM)
+import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
+import qualified Data.ByteString.Lazy        as B
+import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
+import           Data.Time                   (Day)
+import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
+import           Data.Version                (Version, showVersion)
+import           Network.Wai.Middleware.Cors (simpleCors)
+import qualified Options.Applicative         as OP
+import           Paths_poseidon_hs           (version)
+import           System.Directory            (doesFileExist,
+                                              getModificationTime)
+import           System.FilePath.Posix       ((<.>), (</>))
+import           System.IO                   (hPutStrLn, stderr)
+import           Web.Scotty                  (file, get, html, json, middleware,
+                                              notFound, param, raise, scotty,
+                                              text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -54,10 +57,13 @@ main = do
             hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
     scotty port $ do
+        middleware simpleCors
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
         get "/package_table" $
             html . makeHTMLtable $ allPackages
+        get "/package_table_md.md" $
+            text . makeMDtable $ allPackages
         get "/zip_file/:package_name" $ do
             p <- param "package_name"
             let zipFN = lookup (unpack p) zipDict
@@ -70,19 +76,24 @@ main = do
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
-    zipModTime <- getModificationTime fn
-    yamlOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> "POSEIDON.yml")
-    bibOutdated <- case posPacBibFile pac of
-        Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-        Nothing  -> return False
-    jannoOutdated <- case posPacJannoFile pac of
-        Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-        Nothing  -> return False
-    let gd = posPacGenotypeData pac
-    genoOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
-    snpOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
-    indOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
-    return $ or [yamlOutdated, bibOutdated, jannoOutdated, genoOutdated, snpOutdated, indOutdated]
+    zipFileExists <- doesFileExist fn
+    if zipFileExists
+    then do
+        zipModTime <- getModificationTime fn
+        yamlOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> "POSEIDON.yml")
+        bibOutdated <- case posPacBibFile pac of
+            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+            Nothing  -> return False
+        jannoOutdated <- case posPacJannoFile pac of
+            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+            Nothing  -> return False
+        let gd = posPacGenotypeData pac
+        genoOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
+        snpOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
+        indOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
+        return $ or [yamlOutdated, bibOutdated, jannoOutdated, genoOutdated, snpOutdated, indOutdated]
+    else
+        return True
   where
     checkOutdated zipModTime fn = (> zipModTime) <$> getModificationTime fn
 
@@ -101,6 +112,23 @@ makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
             maybe "n/a" (pack . showVersion) version <> "</td><td>" <>
             maybe "n/a" (pack . show) lastMod <> "</td><td>" <>
             link <> "</td></tr>"
+
+makeMDtable :: [PoseidonPackage] -> Text
+makeMDtable packages = header <> "\n" <> body <> "\n"
+  where
+    header :: Text
+    header = "| Package Name | Description | Version | Last updated | Download |\n| --- | --- | --- | --- | --- |"
+    body :: Text
+    body = intercalate "\n" $ do
+        pac <- packages
+        let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
+        let link = "[" <> pack title <> "](http://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> ")"
+        return $ "| " <> pack title <> " | " <>
+            maybe "n/a" pack desc <> " | " <>
+            maybe "n/a" (pack . showVersion) version <> " | " <>
+            maybe "n/a" (pack . show) lastMod <> " | " <>
+            link <> " | "
+
 
 makeZipArchive :: PoseidonPackage -> Bool -> IO Archive
 makeZipArchive pac ignoreGenoFiles =
