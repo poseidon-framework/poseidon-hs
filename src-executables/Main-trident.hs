@@ -11,7 +11,7 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.EntitiesList  (PoseidonEntity (..),
-                                        forgeEntitiesParser)
+                                        poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
@@ -141,8 +141,8 @@ listOptParser = ListOptions <$> parseBasePaths
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
-                              <*> parseForgeEntitiesDirect
-                              <*> parseForgeEntitiesFromFile
+                              <*> parseFetchEntitiesDirect
+                              <*> parseFetchEntitiesFromFile
                               <*> parseRemoteURL
                               <*> parseUpgrade
 
@@ -209,23 +209,38 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Right x -> Right x
 
 parseForgeEntitiesDirect :: OP.Parser [PoseidonEntity]
-parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forgeString" <>
+parseForgeEntitiesDirect = OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.value [] <>
-    OP.help "List of packages, groups or individual samples. \
+    OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
         \<individual_id>. You can combine multiple values with comma, so for example: \
         \\"*package_1*, <individual_1>, <individual_2>, group_1\"")
 
+parseFetchEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseFetchEntitiesDirect = OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
+    OP.short 'f' <>
+    OP.value [] <>
+    OP.help "List of packages to be downloaded from the remote server. \
+        \Package names should be wrapped in asterisks: *package_title*. You can combine multiple values with comma, so for example: \
+        \\"*package_1*, *package_2*, *package_3*\"")
+
 parseForgeEntitiesFromFile :: OP.Parser (Maybe FilePath)
 parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <>
     OP.value Nothing <>
-    OP.help "A file with packages, groups or individual samples. \
+    OP.help "A file with a list of packages, groups or individual samples. \
     \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
     \-f and --forgeFile can be combined.")
 
-readForgeEntitiesString :: String -> Either String [PoseidonEntity]
-readForgeEntitiesString s = case runParser forgeEntitiesParser () "" s of
+parseFetchEntitiesFromFile :: OP.Parser (Maybe FilePath)
+parseFetchEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "fetchFile" <>
+    OP.value Nothing <>
+    OP.help "A file with a list of packages. \
+    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
+    \-f and --fetchFile can be combined.")
+
+readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
+readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
