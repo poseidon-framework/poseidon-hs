@@ -13,7 +13,7 @@ import           Poseidon.Utils             (PoseidonException (..))
 import           Codec.Archive.Zip          (ZipOption (..), extractFilesFromArchive, toArchive)
 import           Conduit                    (runResourceT, sinkFile, ResourceT, await, yield)
 import           Control.Exception          (throwIO)
-import           Control.Monad              (when)
+import           Control.Monad              (when, unless)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (Value, eitherDecode')
 import qualified Data.ByteString            as B
@@ -63,15 +63,21 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False False baseDirs
     -- load remote package list
+    hPutStrLn stderr "Downloading package list from remote..."
     remoteOverviewJSONByteString <- simpleHttp (remote ++ "/packages")
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have
+    hPutStr stderr "Determine requested packages... "
     let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
-    -- perform package download depending on local-remote state
-    let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
-    createDirectory tempDir
-    mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
-    removeDirectory tempDir
+    hPutStrLn stderr $ show (length desiredRemotePackages) ++ " requested and available"
+    unless (null desiredRemotePackages) $ do
+        -- perform package download depending on local-remote state
+        hPutStrLn stderr "Comparing local and remote package state... "
+        let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
+        hPutStrLn stderr "Handling packages... "
+        createDirectory tempDir
+        mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
+        removeDirectory tempDir
 
 entities2PacTitles :: [PoseidonEntity] ->  [String]
 entities2PacTitles xs = do
