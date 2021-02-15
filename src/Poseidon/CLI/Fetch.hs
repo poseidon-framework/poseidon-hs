@@ -75,13 +75,13 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
 
 entities2PacTitles :: [PoseidonEntity] ->  [String]
 entities2PacTitles xs = do
-    let pacEntities = [ x | x@ForgePac {} <- xs]
+    let pacEntities = [ x | x@Pac {} <- xs]
     map getEntityStrings pacEntities
     where
         getEntityStrings :: PoseidonEntity -> String
-        getEntityStrings (ForgePac x) = x
-        getEntityStrings (ForgeGroup x) = x
-        getEntityStrings (ForgeInd x) = x
+        getEntityStrings (Pac x) = x
+        getEntityStrings (Group x) = x
+        getEntityStrings (Ind x) = x
 
 readPackageInfo :: LB.ByteString -> IO [PackageInfo]
 readPackageInfo bs = do

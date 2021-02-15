@@ -12,28 +12,28 @@ import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
 
 -- | A datatype to represent a package, a group or an individual
-data PoseidonEntity = ForgePac String
-    | ForgeGroup String
-    | ForgeInd String
+data PoseidonEntity = Pac String
+    | Group String
+    | Ind String
     deriving (Eq)
 
 instance Show PoseidonEntity where
-    show (ForgePac   n) = "*" ++ n ++ "*"
-    show (ForgeGroup n) = n
-    show (ForgeInd   n) = "<" ++ n ++ ">"
+    show (Pac   n) = "*" ++ n ++ "*"
+    show (Group n) = n
+    show (Ind   n) = "<" ++ n ++ ">"
 
 type EntitiesList = [PoseidonEntity]
 
--- | A parser to parse forge entities
+-- | A parser to parse entities
 poseidonEntitiesParser :: P.Parser EntitiesList
 poseidonEntitiesParser = P.try (P.sepBy parsePoseidonEntity (P.char ',' <* P.spaces))
 
 parsePoseidonEntity :: P.Parser PoseidonEntity
 parsePoseidonEntity = parsePac <|> parseGroup <|> parseInd
   where
-    parsePac   = ForgePac   <$> P.between (P.char '*') (P.char '*') parseName
-    parseGroup = ForgeGroup <$> parseName
-    parseInd   = ForgeInd   <$> P.between (P.char '<') (P.char '>') parseName
+    parsePac   = Pac   <$> P.between (P.char '*') (P.char '*') parseName
+    parseGroup = Group <$> parseName
+    parseInd   = Ind   <$> P.between (P.char '<') (P.char '>') parseName
     parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
 readEntitiesFromFile :: FilePath -> IO EntitiesList
