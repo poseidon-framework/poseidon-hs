@@ -25,16 +25,16 @@ testBaseDir = ["test/testDat/testModules/ancient"]
 
 goodEntities :: EntitiesList
 goodEntities = [
-        ForgePac "Schiffels_2016",
-        ForgeGroup "POP1",
-        ForgeInd "SAMPLE3"
+        Pac "Schiffels_2016",
+        Group "POP1",
+        Ind "SAMPLE3"
     ]
 
 badEntities :: EntitiesList
 badEntities = [
-        ForgePac "Schiffels_2015",
-        ForgeGroup "foo",
-        ForgeInd "bar"
+        Pac "Schiffels_2015",
+        Group "foo",
+        Ind "bar"
     ]
 
 testFindNonExistentEntities :: Spec
