@@ -16,6 +16,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 - [Developers Guide](#developers-guide)
   * [Development Quickstart](#development-quickstart)
   * [Preparing a new stable release](#preparing-a-new-stable-release)
+  * [The Poseidon HTTP Server](#the-poseidon-http-server)
 
 ## Installation Quickstart
 
@@ -418,9 +419,9 @@ git tag -d v0.3.1
 
 before rerunning the procedure above.
 
-## Poseidon HTTP Server
+### The Poseidon HTTP Server
 
-the second executable in this package is `poseidon-http-server`, a program that serves poseidon packages via HTTP or HTTPS. 
+The second executable in this package is `poseidon-http-server`, a program that serves poseidon packages via HTTP or HTTPS. 
 
 Basic usage is:
 
