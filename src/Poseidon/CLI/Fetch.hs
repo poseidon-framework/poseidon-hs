@@ -144,7 +144,7 @@ unzipPackage :: FilePath -> FilePath -> IO ()
 unzipPackage zip outDir = do
     archiveBS <- LB.readFile zip
     let archive = toArchive archiveBS
-    extractFilesFromArchive [OptRecursive, OptVerbose, OptDestination outDir] archive
+    extractFilesFromArchive [OptRecursive, OptDestination outDir] archive
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
