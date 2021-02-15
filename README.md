@@ -9,7 +9,7 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 * [Guide for the command line utility](#guide-for-the-command-line-utility)
   + [Poseidon package repositories](#poseidon-package-repositories)
   + [Analysing your own dataset outside of the main repository](#analysing-your-own-dataset-outside-of-the-main-repository)
-  + [Package creation and manipulation commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`forge`](#forge-command), [`update`](#update-command)
+  + [Package creation and manipulation commands](#package-creation-and-manipulation-commands): [`init`](#init-command), [`fetch`](#fetch-command), [`forge`](#forge-command), [`update`](#update-command)
   + [Inspection commands](#inspection-commands): [`list`](#list-command), [`summarise`](#summarise-command), [`survey`](#survey-command), [`validate`](#validate-command)
   + [Analysis commands](#analysis-commands): [`fstats`](#fstats-command)
   + [Getting help](#getting-help)
@@ -127,6 +127,23 @@ requires the format (`--inFormat`) of your input data (either `EIGENSTRAT` or `P
 | indFile  | .ind       | .fam  |
 
 The output package of `init` is created as a new directory `-o`, which should not already exist, and gets the name defined in `-n`.
+
+#### Fetch command
+`fetch` allows to download poseidon packages from a remote poseidon server.
+
+It works with 
+
+```
+trident fetch -d ... -d ... \
+  -f "*package_title_1*, *package_title_2*, *package_title_3*" \
+  --fetchFile path/to/forgeFile
+```
+
+and the packages you want to download must be listed either in a simple string with comma-separated values (`-f`/`--fetchString`) or in a text file (`--fetchFile`). More about that in the documentation of `forge` below. Each package title has to be wrapped in asterisks: *package_title*. The downloaded packages are added in the first (!) `-d` directory, but downloads are only performed if the respective packages are not already present in an up-to-date version in any of the `-d` dirs.
+
+`fetch` also has the optional arguments `--remote https:://..."` do name an alternative poseidon server. The default points to the [DAG server](https://poseidon-framework.github.io/#/repos). 
+
+To overwrite outdated package versions with `fetch`, the `-u`/`--upgrade` flag has to be set. Note that many file systems do not offer a way to recover overwritten files. So be careful with this switch.
 
 #### Forge command
 `forge` creates new poseidon packages by extracting and merging packages, populations and individuals from your poseidon repositories.

@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Package            (PoseidonPackage (..),
+import           Poseidon.Package            (PackageInfo (..),
+                                              PoseidonPackage (..),
                                               readPoseidonPackageCollection)
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
@@ -31,21 +32,6 @@ data CommandLineOptions = CommandLineOptions
     , cliIgnoreGenoFiles :: Bool
     }
     deriving (Show)
-
-data PackageInfo = PackageInfo
-    { pTitle        :: String
-    , pVersion      :: Maybe Version
-    , pDescription  :: Maybe String
-    , pLastModified :: Maybe Day
-    }
-
-instance ToJSON PackageInfo where
-    toJSON x = object [
-        "title"        .= pTitle x,
-        "version"      .= pVersion x,
-        "description"  .= pDescription x,
-        "lastModified" .= pLastModified x
-        ]
 
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 packageToPackageInfo pac = PackageInfo {

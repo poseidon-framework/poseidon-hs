@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Package (
+    PackageInfo (..),
     PoseidonYamlStruct (..),
     PoseidonPackage(..),
     ContributorSpec(..),
@@ -57,6 +58,29 @@ import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>),
                                              splitDirectories, dropDrive, makeRelative)
 import           System.IO                  (hPrint, hPutStr, hPutStrLn, stderr, hFlush)
 import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
+
+{-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
+data PackageInfo = PackageInfo
+    { pTitle        :: String
+    , pVersion      :: Maybe Version
+    , pDescription  :: Maybe String
+    , pLastModified :: Maybe Day
+    } deriving (Show)
+
+instance ToJSON PackageInfo where
+    toJSON x = object [
+        "title"        .= pTitle x,
+        "version"      .= pVersion x,
+        "description"  .= pDescription x,
+        "lastModified" .= pLastModified x
+        ]
+
+instance FromJSON PackageInfo where
+    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
+        <$> v .:   "title"
+        <*> v .:   "version"
+        <*> v .:?  "description"
+        <*> v .:   "lastModified"
 
 {-   ######################### POSEIDONYAMLSTRUCT: Internal structure for YAML loading only ######################### -}
 data PoseidonYamlStruct = PoseidonYamlStruct

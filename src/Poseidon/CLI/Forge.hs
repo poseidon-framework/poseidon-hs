@@ -1,7 +1,7 @@
 module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
-import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..), 
+import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList (..), 
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
                                              GenotypeFormatSpec (..))
@@ -34,7 +34,7 @@ import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _jaBaseDirs :: [FilePath]
-    , _entityList :: ForgeRecipe
+    , _entityList :: EntitiesList
     , _entityFile :: Maybe FilePath
     , _outPacPath :: FilePath
     , _outPacName :: String
@@ -129,25 +129,25 @@ printProgress = loop 0
         yield x
         loop (n+1)
 
-findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
+findNonExistentEntities :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonEntity]
 findNonExistentEntities entities packages = do
     inds <- concat <$> mapM getIndividuals packages
     let titlesPac     = map posPacTitle packages
         indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
         groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
-    let titlesRequestedPacs = [ pac   | ForgePac   pac   <- entities]
-        groupNamesStats     = [ group | ForgeGroup group <- entities]
-        indNamesStats       = [ ind   | ForgeInd   ind   <- entities]
-    let missingPacs   = map ForgePac $ titlesRequestedPacs \\ titlesPac
-        missingInds   = map ForgeInd $ indNamesStats \\ indNamesPac
-        missingGroups = map ForgeGroup $ groupNamesStats \\ groupNamesPac
+    let titlesRequestedPacs = [ pac   | Pac   pac   <- entities]
+        groupNamesStats     = [ group | Group group <- entities]
+        indNamesStats       = [ ind   | Ind   ind   <- entities]
+    let missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
+        missingInds   = map Ind   $ indNamesStats       \\ indNamesPac
+        missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
     return $ missingPacs ++ missingInds ++ missingGroups
 
-filterPackages :: ForgeRecipe -> [PoseidonPackage] -> IO [PoseidonPackage]
+filterPackages :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonPackage]
 filterPackages entities packages = do
-    let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
-        groupNamesStats = [ group | ForgeGroup group <- entities]
-        indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
+    let requestedPacs   = [ pac   | Pac   pac   <- entities]
+        groupNamesStats = [ group | Group group <- entities]
+        indNamesStats   = [ ind   | Ind   ind   <- entities]
     fmap catMaybes . forM packages $ \pac -> do
         inds <- getIndividuals pac
         let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
@@ -158,17 +158,17 @@ filterPackages entities packages = do
         then return (Just pac)
         else return Nothing
 
-filterJannoRows :: ForgeRecipe -> [PoseidonSample] -> [PoseidonSample]
+filterJannoRows :: EntitiesList -> [PoseidonSample] -> [PoseidonSample]
 filterJannoRows entities samples =
-    let groupNamesStats = [ group | ForgeGroup group <- entities]
-        indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
+    let groupNamesStats = [ group | Group group <- entities]
+        indNamesStats   = [ ind   | Ind   ind   <- entities]
         comparison x    =  posSamIndividualID x `elem` indNamesStats
                            || head (posSamGroupName x) `elem` groupNamesStats
     in filter comparison samples
 
-filterJannoFiles :: ForgeRecipe -> [(String, [PoseidonSample])] -> [PoseidonSample]
+filterJannoFiles :: EntitiesList -> [(String, [PoseidonSample])] -> [PoseidonSample]
 filterJannoFiles entities packages =
-    let requestedPacs           = [ pac | ForgePac pac <- entities]
+    let requestedPacs           = [ pac | Pac pac <- entities]
         filterJannoOrNot (a, b) = if a `elem` requestedPacs 
                                   then b
                                   else filterJannoRows entities b
@@ -179,11 +179,11 @@ filterBibEntries samples references =
     let relevantPublications = nub $ mapMaybe posSamPublication samples
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
-extractEntityIndices :: ForgeRecipe -> [PoseidonPackage] -> IO [Int]
+extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities relevantPackages = do
-    let pacNames   = [ pac | ForgePac pac <- entities]
-        groupNames = [ group | ForgeGroup group <- entities]
-        indNames   = [ ind   | ForgeInd   ind   <- entities]
+    let pacNames   = [ pac   | Pac   pac   <- entities]
+        groupNames = [ group | Group group <- entities]
+        indNames   = [ ind   | Ind   ind   <- entities]
     let allPackageNames = map posPacTitle relevantPackages
     allIndEntries <- mapM getIndividuals relevantPackages
     let filterFunc (_ , pacName, EigenstratIndEntry ind _ group) = 

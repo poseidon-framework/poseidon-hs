@@ -19,9 +19,10 @@ data PoseidonException =
     | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
-    | PoseidonForgeEntityParsingException String -- ^ An exception to indicate failed entity parsing
+    | PoseidonPoseidonEntityParsingException String -- ^ An exception to indicate failed entity parsing
     | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
+    | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
     deriving (Show)
 
 instance Exception PoseidonException
@@ -49,7 +50,7 @@ renderPoseidonException (PoseidonFStatsFormatException s) =
     "Fstat specification error: " ++ s
 renderPoseidonException (PoseidonBibTeXException f s) =
     "BibTex problem in file " ++ f ++ ": " ++ s
-renderPoseidonException (PoseidonForgeEntityParsingException s) =
+renderPoseidonException (PoseidonPoseidonEntityParsingException s) =
     "Error when parsing the forge selection: " ++ s
 renderPoseidonException PoseidonEmptyForgeException =
     "Nothing to be forged"

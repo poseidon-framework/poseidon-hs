@@ -8,9 +8,10 @@ import           Poseidon.GenotypeData  (GenotypeFormatSpec (..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
+import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
-import           Poseidon.ForgeRecipe   (ForgeEntity (..),
-                                        forgeEntitiesParser)
+import           Poseidon.EntitiesList  (PoseidonEntity (..),
+                                        poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
@@ -31,6 +32,7 @@ import           Text.Read              (readEither)
 data Options = CmdFstats FstatsOptions
     | CmdInit InitOptions
     | CmdList ListOptions
+    | CmdFetch FetchOptions
     | CmdForge ForgeOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
@@ -53,6 +55,7 @@ runCmd o = case o of
     CmdFstats opts    -> runFstats opts
     CmdInit opts      -> runInit opts
     CmdList opts      -> runList opts
+    CmdFetch opts     -> runFetch opts
     CmdForge opts     -> runForge opts
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
@@ -74,17 +77,18 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
+        OP.command "init" initOptInfo <>
+        OP.command "fetch" fetchOptInfo <>
+        OP.command "forge" forgeOptInfo <>
+        OP.command "update" updateOptInfo <>
+        OP.commandGroup "Package creation and manipulation commands:"
+    ) <|>
+    OP.subparser (
         OP.command "list" listOptInfo <>
         OP.command "summarise" summariseOptInfo <>
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
-        OP.commandGroup "Package inspection commands:"
-    ) <|>
-    OP.subparser (
-        OP.command "init" initOptInfo <>
-        OP.command "forge" forgeOptInfo <>
-        OP.command "update" updateOptInfo <>
-        OP.commandGroup "Package manipulation commands:"
+        OP.commandGroup "Inspection commands:"
     ) <|>
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
@@ -97,6 +101,8 @@ optParser = OP.subparser (
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "List packages, groups or individuals")
+    fetchOptInfo = OP.info (OP.helper <*> (CmdFetch <$> fetchOptParser))
+        (OP.progDesc "Download data from a Poseidon server")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
         (OP.progDesc "Select packages, groups or individuals and create a new Poseidon package from them")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
@@ -129,6 +135,13 @@ listOptParser = ListOptions <$> parseBasePaths
                             <*> parseListEntity 
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
+
+fetchOptParser :: OP.Parser FetchOptions
+fetchOptParser = FetchOptions <$> parseBasePaths
+                              <*> parseFetchEntitiesDirect
+                              <*> parseFetchEntitiesFromFile
+                              <*> parseRemoteURL
+                              <*> parseUpgrade
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
@@ -192,24 +205,39 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
-parseForgeEntitiesDirect :: OP.Parser [ForgeEntity]
-parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forgeString" <>
+parseForgeEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseForgeEntitiesDirect = OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.value [] <>
-    OP.help "List of packages, groups or individual samples that should be in the newly forged package. \
+    OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
         \<individual_id>. You can combine multiple values with comma, so for example: \
         \\"*package_1*, <individual_1>, <individual_2>, group_1\"")
 
+parseFetchEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseFetchEntitiesDirect = OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
+    OP.short 'f' <>
+    OP.value [] <>
+    OP.help "List of packages to be downloaded from the remote server. \
+        \Package names should be wrapped in asterisks: *package_title*. You can combine multiple values with comma, so for example: \
+        \\"*package_1*, *package_2*, *package_3*\"")
+
 parseForgeEntitiesFromFile :: OP.Parser (Maybe FilePath)
 parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <>
     OP.value Nothing <>
-    OP.help "A file with packages, groups or individual samples that should be in the newly forged package. \
+    OP.help "A file with a list of packages, groups or individual samples. \
     \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
     \-f and --forgeFile can be combined.")
 
-readForgeEntitiesString :: String -> Either String [ForgeEntity]
-readForgeEntitiesString s = case runParser forgeEntitiesParser () "" s of
+parseFetchEntitiesFromFile :: OP.Parser (Maybe FilePath)
+parseFetchEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "fetchFile" <>
+    OP.value Nothing <>
+    OP.help "A file with a list of packages. \
+    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
+    \-f and --fetchFile can be combined.")
+
+readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
+readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
@@ -272,4 +300,18 @@ parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <> 
     OP.help "ignore SNP and GenoFile for the validation" <>
     OP.hidden
+    )
+
+parseRemoteURL :: OP.Parser String 
+parseRemoteURL = OP.strOption (
+    OP.long "remote" <> 
+    OP.help "URL of the remote server" <>
+    OP.value "https://c107-224.cloud.gwdg.de" <>
+    OP.showDefault
+    )
+
+parseUpgrade :: OP.Parser Bool
+parseUpgrade = OP.switch (
+    OP.long "upgrade" <>  OP.short 'u' <> 
+    OP.help "overwrite outdated local package versions"
     )
