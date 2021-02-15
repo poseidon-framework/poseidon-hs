@@ -77,18 +77,18 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
+        OP.command "init" initOptInfo <>
+        OP.command "fetch" fetchOptInfo <>
+        OP.command "forge" forgeOptInfo <>
+        OP.command "update" updateOptInfo <>
+        OP.commandGroup "Package creation and manipulation commands:"
+    ) <|>
+    OP.subparser (
         OP.command "list" listOptInfo <>
         OP.command "summarise" summariseOptInfo <>
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
-    ) <|>
-    OP.subparser (
-        OP.command "init" initOptInfo <>
-        OP.command "fetch" fetchOptInfo <>
-        OP.command "forge" forgeOptInfo <>
-        OP.command "update" updateOptInfo <>
-        OP.commandGroup "Preparation and manipulation commands:"
     ) <|>
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
