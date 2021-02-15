@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..), 
+import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList (..), 
                                              readEntitiesFromFile)
 import           Poseidon.MathHelpers       (roundTo)
 import           Poseidon.Package           (PackageInfo (..),
@@ -37,7 +37,7 @@ import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs :: [FilePath]
-    , _entityList :: ForgeRecipe
+    , _entityList :: EntitiesList
     , _entityFile :: Maybe FilePath
     , _remoteURL :: String
     , _upgrade :: Bool
@@ -73,12 +73,12 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
     removeDirectory tempDir
 
-entities2PacTitles :: [ForgeEntity] ->  [String]
+entities2PacTitles :: [PoseidonEntity] ->  [String]
 entities2PacTitles xs = do
     let pacEntities = [ x | x@ForgePac {} <- xs]
     map getEntityStrings pacEntities
     where
-        getEntityStrings :: ForgeEntity -> String
+        getEntityStrings :: PoseidonEntity -> String
         getEntityStrings (ForgePac x) = x
         getEntityStrings (ForgeGroup x) = x
         getEntityStrings (ForgeInd x) = x

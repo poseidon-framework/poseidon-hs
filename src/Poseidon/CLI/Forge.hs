@@ -1,7 +1,7 @@
 module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
-import           Poseidon.ForgeRecipe       (ForgeEntity (..), ForgeRecipe (..), 
+import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList (..), 
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
                                              GenotypeFormatSpec (..))
@@ -34,7 +34,7 @@ import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _jaBaseDirs :: [FilePath]
-    , _entityList :: ForgeRecipe
+    , _entityList :: EntitiesList
     , _entityFile :: Maybe FilePath
     , _outPacPath :: FilePath
     , _outPacName :: String
@@ -129,7 +129,7 @@ printProgress = loop 0
         yield x
         loop (n+1)
 
-findNonExistentEntities :: ForgeRecipe -> [PoseidonPackage] -> IO [ForgeEntity]
+findNonExistentEntities :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonEntity]
 findNonExistentEntities entities packages = do
     inds <- concat <$> mapM getIndividuals packages
     let titlesPac     = map posPacTitle packages
@@ -143,7 +143,7 @@ findNonExistentEntities entities packages = do
         missingGroups = map ForgeGroup $ groupNamesStats \\ groupNamesPac
     return $ missingPacs ++ missingInds ++ missingGroups
 
-filterPackages :: ForgeRecipe -> [PoseidonPackage] -> IO [PoseidonPackage]
+filterPackages :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonPackage]
 filterPackages entities packages = do
     let requestedPacs   = [ pac   | ForgePac   pac   <- entities]
         groupNamesStats = [ group | ForgeGroup group <- entities]
@@ -158,7 +158,7 @@ filterPackages entities packages = do
         then return (Just pac)
         else return Nothing
 
-filterJannoRows :: ForgeRecipe -> [PoseidonSample] -> [PoseidonSample]
+filterJannoRows :: EntitiesList -> [PoseidonSample] -> [PoseidonSample]
 filterJannoRows entities samples =
     let groupNamesStats = [ group | ForgeGroup group <- entities]
         indNamesStats   = [ ind   | ForgeInd   ind   <- entities]
@@ -166,7 +166,7 @@ filterJannoRows entities samples =
                            || head (posSamGroupName x) `elem` groupNamesStats
     in filter comparison samples
 
-filterJannoFiles :: ForgeRecipe -> [(String, [PoseidonSample])] -> [PoseidonSample]
+filterJannoFiles :: EntitiesList -> [(String, [PoseidonSample])] -> [PoseidonSample]
 filterJannoFiles entities packages =
     let requestedPacs           = [ pac | ForgePac pac <- entities]
         filterJannoOrNot (a, b) = if a `elem` requestedPacs 
@@ -179,7 +179,7 @@ filterBibEntries samples references =
     let relevantPublications = nub $ mapMaybe posSamPublication samples
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
-extractEntityIndices :: ForgeRecipe -> [PoseidonPackage] -> IO [Int]
+extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities relevantPackages = do
     let pacNames   = [ pac | ForgePac pac <- entities]
         groupNames = [ group | ForgeGroup group <- entities]

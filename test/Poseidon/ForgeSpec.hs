@@ -1,8 +1,8 @@
 module Poseidon.ForgeSpec (spec) where
 
 import           Poseidon.CLI.Forge
-import           Poseidon.ForgeRecipe       (ForgeEntity (..), 
-                                             ForgeRecipe (..))
+import           Poseidon.EntitiesList       (PoseidonEntity (..), 
+                                             EntitiesList (..))
 import           Poseidon.Janno             (PoseidonSample (..),
                                              readJannoFile,
                                              createMinimalJanno)
@@ -23,14 +23,14 @@ spec = do
 testBaseDir :: [FilePath]
 testBaseDir = ["test/testDat/testModules/ancient"]
 
-goodEntities :: ForgeRecipe
+goodEntities :: EntitiesList
 goodEntities = [
         ForgePac "Schiffels_2016",
         ForgeGroup "POP1",
         ForgeInd "SAMPLE3"
     ]
 
-badEntities :: ForgeRecipe
+badEntities :: EntitiesList
 badEntities = [
         ForgePac "Schiffels_2015",
         ForgeGroup "foo",

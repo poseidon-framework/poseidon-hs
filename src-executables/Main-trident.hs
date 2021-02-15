@@ -10,7 +10,7 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList)
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
-import           Poseidon.ForgeRecipe   (ForgeEntity (..),
+import           Poseidon.EntitiesList  (PoseidonEntity (..),
                                         forgeEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
@@ -208,7 +208,7 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
-parseForgeEntitiesDirect :: OP.Parser [ForgeEntity]
+parseForgeEntitiesDirect :: OP.Parser [PoseidonEntity]
 parseForgeEntitiesDirect = OP.option (OP.eitherReader readForgeEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.value [] <>
@@ -224,7 +224,7 @@ parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <>
     \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
     \-f and --forgeFile can be combined.")
 
-readForgeEntitiesString :: String -> Either String [ForgeEntity]
+readForgeEntitiesString :: String -> Either String [PoseidonEntity]
 readForgeEntitiesString s = case runParser forgeEntitiesParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
