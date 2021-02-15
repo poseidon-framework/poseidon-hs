@@ -8,13 +8,18 @@ import           Poseidon.Package            (PackageInfo (..),
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
                                               toEntry)
-import           Control.Monad               (forM)
+import           Control.Applicative         ((<|>))
+import           Control.Monad               (forM, (<=<))
+import           Control.Monad.IO.Class      (liftIO)
 import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy        as B
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
+import           Network.Wai.Handler.Warp    (defaultSettings, setPort)
+import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
+                                              tlsSettingsChain)
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
@@ -22,14 +27,15 @@ import           System.Directory            (doesFileExist,
                                               getModificationTime)
 import           System.FilePath.Posix       ((<.>), (</>))
 import           System.IO                   (hPutStrLn, stderr)
-import           Web.Scotty                  (file, get, html, json, middleware,
-                                              notFound, param, raise, scotty,
-                                              text)
+import           Web.Scotty                  (ScottyM, file, get, html, json,
+                                              middleware, notFound, param,
+                                              raise, scotty, scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
     , cliPort            :: Int
     , cliIgnoreGenoFiles :: Bool
+    , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
     }
     deriving (Show)
 
@@ -43,7 +49,7 @@ packageToPackageInfo pac = PackageInfo {
 
 main :: IO ()
 main = do
-    opts@(CommandLineOptions baseDirs port ignoreGenoFiles) <- OP.customExecParser p optParserInfo
+    opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
     allPackages <- readPoseidonPackageCollection False ignoreGenoFiles baseDirs
     zipDict <- forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"
@@ -57,7 +63,10 @@ main = do
         else
             hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
-    scotty port $ do
+    let runScotty = case certFiles of
+            Nothing                  -> scotty port
+            Just (certFile, chainFiles, keyFile) -> scottyTLS port certFile chainFiles keyFile
+    runScotty $ do
         middleware simpleCors
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
@@ -74,6 +83,16 @@ main = do
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
+
+scottyTLS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
+scottyTLS port cert chains key s = do
+    -- this is just the same output as with scotty, to make it consistent whether or not using https
+    putStrLn $ "Setting phasers to stun... (port " ++ show port ++ ") (ctrl-c to quit)"
+    let tsls = case chains of
+            [] -> tlsSettings cert key
+            c  -> tlsSettingsChain cert c key
+    app <- scottyApp s
+    runTLS tsls (setPort port defaultSettings) app
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
@@ -123,7 +142,7 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
     body = intercalate "\n" $ do
         pac <- packages
         let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
-        let link = "[" <> pack title <> "](http://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> ")"
+        let link = "[" <> pack title <> "](https://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> ")"
         return $ "| " <> pack title <> " | " <>
             maybe "n/a" pack desc <> " | " <>
             maybe "n/a" (pack . showVersion) version <> " | " <>
@@ -172,7 +191,7 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles
+optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles <*> parseMaybeCertFiles
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -188,3 +207,20 @@ parsePort = OP.option OP.auto (OP.long "port" <> OP.short 'p' <> OP.metavar "POR
 parseIgnoreGenoFiles :: OP.Parser Bool
 parseIgnoreGenoFiles = OP.switch (OP.long "ignoreGenoFiles" <> OP.short 'i' <>
     OP.help "whether to ignore the bed and SNP files. Useful for debugging")
+
+parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, [FilePath], FilePath))
+parseMaybeCertFiles = (Just <$> parseFiles) <|> pure Nothing
+  where
+    parseFiles = (,,) <$> parseCertFile <*> OP.many parseChainFile <*> parseKeyFile
+
+parseKeyFile :: OP.Parser FilePath
+parseKeyFile = OP.strOption (OP.long "keyFile" <> OP.metavar "KEYFILE" <>
+                             OP.help "The key file of the TLS Certificate used for HTTPS")
+
+parseChainFile :: OP.Parser FilePath
+parseChainFile = OP.strOption (OP.long "chainFile" <> OP.metavar "CHAINFILE" <>
+                               OP.help "The chain file of the TLS Certificate used for HTTPS. Can be given multiple times")
+
+parseCertFile :: OP.Parser FilePath
+parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
+                              OP.help "The cert file of the TLS Certificate used for HTTPS")
