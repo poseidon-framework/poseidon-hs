@@ -63,7 +63,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False False baseDirs
     -- load remote package list
-    hPutStrLn stderr "Downloading package list from remote..."
+    hPutStrLn stderr "Downloading package list from remote"
     remoteOverviewJSONByteString <- simpleHttp (remote ++ "/packages")
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have
@@ -72,9 +72,9 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     hPutStrLn stderr $ show (length desiredRemotePackages) ++ " requested and available"
     unless (null desiredRemotePackages) $ do
         -- perform package download depending on local-remote state
-        hPutStrLn stderr "Comparing local and remote package state... "
+        hPutStrLn stderr "Comparing local and remote package state"
         let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
-        hPutStrLn stderr "Handling packages... "
+        hPutStrLn stderr "Handling packages"
         createDirectory tempDir
         mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
         removeDirectory tempDir
