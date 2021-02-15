@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: ["2.5"]
+        stack: ["latest"]
         ghc: ["8.10.3"]
 
     steps:
@@ -25,6 +25,7 @@ jobs:
       uses: haskell/actions/setup@v1
       with:
         ghc-version: ${{ matrix.ghc }}
+        enable-stack: true
         stack-version: ${{ matrix.stack }}
 
     - name: Cache ~/.stack
