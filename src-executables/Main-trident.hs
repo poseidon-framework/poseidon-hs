@@ -81,21 +81,18 @@ optParser = OP.subparser (
         OP.command "summarise" summariseOptInfo <>
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
-        OP.commandGroup "Package inspection commands:"
+        OP.commandGroup "Inspection commands:"
     ) <|>
     OP.subparser (
         OP.command "init" initOptInfo <>
+        OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
         OP.command "update" updateOptInfo <>
-        OP.commandGroup "Package manipulation commands:"
+        OP.commandGroup "Preparation and manipulation commands:"
     ) <|>
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
         OP.commandGroup "Analysis commands:"
-    ) <|>
-    OP.subparser (
-        OP.command "fetch" fetchOptInfo <>
-        OP.commandGroup "Remote interaction commands:"
     )
   where
     fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
