@@ -41,6 +41,7 @@ data FetchOptions = FetchOptions
     , _entityFile :: Maybe FilePath
     , _remoteURL :: String
     , _upgrade :: Bool
+    , _downloadAllPacs :: Bool
     }
 
 data PackageState = NotLocal -- ^ Package exists only on remote and can be downloaded directly
@@ -50,7 +51,7 @@ data PackageState = NotLocal -- ^ Package exists only on remote and can be downl
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
-runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) = do
+runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
@@ -68,7 +69,9 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have
     hPutStr stderr "Determine requested packages... "
-    let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
+    let desiredRemotePackages = if downloadAllPacs 
+                                then allRemotePackages
+                                else filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
     hPutStrLn stderr $ show (length desiredRemotePackages) ++ " requested and available"
     unless (null desiredRemotePackages) $ do
         -- perform package download depending on local-remote state
