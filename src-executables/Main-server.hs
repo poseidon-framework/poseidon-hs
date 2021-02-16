@@ -9,7 +9,7 @@ import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
                                               toEntry)
 import           Control.Applicative         ((<|>))
-import           Control.Monad               (forM, (<=<))
+import           Control.Monad               (forM, when, (<=<))
 import           Control.Monad.IO.Class      (liftIO)
 import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy        as B
@@ -17,7 +17,7 @@ import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
-import           Network.Wai.Handler.Warp    (defaultSettings, setPort)
+import           Network.Wai.Handler.Warp    (defaultSettings, setPort, run)
 import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
                                               tlsSettingsChain)
 import           Network.Wai.Middleware.Cors (simpleCors)
@@ -27,9 +27,14 @@ import           System.Directory            (doesFileExist,
                                               getModificationTime)
 import           System.FilePath.Posix       ((<.>), (</>))
 import           System.IO                   (hPutStrLn, stderr)
+import           System.Log.Formatter        (simpleLogFormatter)
+import           System.Log.Handler          (setFormatter)
+import           System.Log.Handler.Simple   (streamHandler)
+import           System.Log.Logger           (Priority (..), setHandlers, infoM,
+                                              setLevel, updateGlobalLogger, addHandler, rootLoggerName)
 import           Web.Scotty                  (ScottyM, file, get, html, json,
                                               middleware, notFound, param,
-                                              raise, scotty, scottyApp, text)
+                                              raise, scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -47,25 +52,30 @@ packageToPackageInfo pac = PackageInfo {
     pLastModified = posPacLastModified pac
 }
 
+logger :: String
+logger = rootLoggerName
+
 main :: IO ()
 main = do
+    h <- streamHandler stderr INFO
+    let fh = setFormatter h (simpleLogFormatter "[$time] $msg")
+    updateGlobalLogger logger (setHandlers [fh] . setLevel INFO)
+    infoM logger "Server starting up. Loading packages..."
     opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
     allPackages <- readPoseidonPackageCollection False ignoreGenoFiles baseDirs
+    infoM logger "Checking whether zip files are missing or outdated"
     zipDict <- forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"
         zipFileOutdated <- checkZipFileOutdated pac fn ignoreGenoFiles
-        if zipFileOutdated
-        then do
-            hPutStrLn stderr ("Preparing Zip Archive for package " ++ posPacTitle pac)
+        when zipFileOutdated $ do
+            infoM logger ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
             zip <- makeZipArchive pac ignoreGenoFiles
             let zip_raw = fromArchive zip
             B.writeFile fn zip_raw
-        else
-            hPutStrLn stderr ("Zip Archive still up to date for package " ++ posPacTitle pac)
         return (posPacTitle pac, fn))
     let runScotty = case certFiles of
-            Nothing                  -> scotty port
-            Just (certFile, chainFiles, keyFile) -> scottyTLS port certFile chainFiles keyFile
+            Nothing                  -> scottyHTTP port
+            Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
     runScotty $ do
         middleware simpleCors
         get "/packages" $
@@ -84,15 +94,22 @@ main = do
   where
     p = OP.prefs OP.showHelpOnEmpty
 
-scottyTLS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
-scottyTLS port cert chains key s = do
+scottyHTTPS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> IO ()
+scottyHTTPS port cert chains key s = do
     -- this is just the same output as with scotty, to make it consistent whether or not using https
-    putStrLn $ "Setting phasers to stun... (port " ++ show port ++ ") (ctrl-c to quit)"
+    infoM logger $ "Server now listening via HTTPS on " ++ show port
     let tsls = case chains of
             [] -> tlsSettings cert key
             c  -> tlsSettingsChain cert c key
     app <- scottyApp s
     runTLS tsls (setPort port defaultSettings) app
+
+scottyHTTP :: Int -> ScottyM () -> IO ()
+scottyHTTP port s = do
+    infoM logger $ "Server now listening via HTTP on " ++ show port
+    app <- scottyApp s
+    run port app
+
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
