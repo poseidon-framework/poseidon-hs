@@ -143,7 +143,7 @@ makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
     body = intercalate "\n" $ do
         pac <- packages
         let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
-        let link = "<a href=\"http://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> "\">" <> pack title <> "</a>"
+        let link = "<a href=\"https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> "\">" <> pack title <> "</a>"
         return $ "<tr><td>" <> pack title <> "</td><td>" <>
             maybe "n/a" pack desc <> "</td><td>" <>
             maybe "n/a" (pack . showVersion) version <> "</td><td>" <>
@@ -159,7 +159,7 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
     body = intercalate "\n" $ do
         pac <- packages
         let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
-        let link = "[" <> pack title <> "](https://c107-224.cloud.gwdg.de:3000/zip_file/" <> pack title <> ")"
+        let link = "[" <> pack title <> "](https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> ")"
         return $ "| " <> pack title <> " | " <>
             maybe "n/a" pack desc <> " | " <>
             maybe "n/a" (pack . showVersion) version <> " | " <>
