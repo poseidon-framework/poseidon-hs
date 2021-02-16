@@ -31,7 +31,7 @@ import           Network.HTTP.Conduit       (simpleHttp,
                                              responseHeaders)
 import           Network.HTTP.Types         (hContentLength)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (createDirectory, removeFile, removeDirectory)
+import           System.Directory           (createDirectoryIfMissing, removeFile, removeDirectory)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
@@ -78,7 +78,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         hPutStrLn stderr "Comparing local and remote package state"
         let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
         hPutStrLn stderr "Handling packages"
-        createDirectory tempDir
+        createDirectoryIfMissing False tempDir
         mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
         removeDirectory tempDir
 
