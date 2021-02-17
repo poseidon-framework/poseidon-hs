@@ -11,8 +11,6 @@ build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.md,
                      CHANGELOG.md
-data-files:          bibtex.csl
-data-dir:            data
 
 library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,

@@ -8,10 +8,9 @@ import           Control.Monad           (when)
 import           Data.Either.Combinators (rightToMaybe)
 import qualified Data.Text               as T
 import qualified Data.Text.IO            as Tio
-import           Paths_poseidon_hs       (getDataFileName)
 import           System.Directory        (doesFileExist)
 import           Text.CSL                (procOpts, processBibliography,
-                                          readCSLFile, renderPlain, parseCSL)
+                                          renderPlain, parseCSL)
 import           Text.CSL.Style          (Style (..))
 import           Text.CSL.Exception      (CiteprocException)
 import           Text.CSL.Input.Bibtex   (readBibtex)
@@ -30,8 +29,6 @@ readBibTeXFile bibPath = do
 
 writeBibTeXFile ::  FilePath -> [Reference] -> IO()
 writeBibTeXFile path references_ = do
-    --bibTeXCSLPath <- getDataFileName "bibtex.csl"
-    --bibTeXCSLStyle <- readCSLFile Nothing bibTeXCSLPath
     let renderedReferences = processBibliography procOpts bibTeXCSLStyle references_
     let referencesTexts = map renderPlain renderedReferences
     let referencesTextsFixed = map cleanBibTeXString referencesTexts
