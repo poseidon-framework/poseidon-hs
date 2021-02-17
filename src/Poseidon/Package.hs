@@ -430,7 +430,7 @@ newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) ind
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = makeVersion [2, 0, 1]
+    ,   posPacPoseidonVersion = makeVersion [2, 1, 0]
     ,   posPacTitle = name
     ,   posPacDescription = Just "Empty package template. Please add a description"
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
