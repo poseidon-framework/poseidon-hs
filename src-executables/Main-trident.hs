@@ -142,6 +142,7 @@ fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntitiesFromFile
                               <*> parseRemoteURL
                               <*> parseUpgrade
+                              <*> parseDownloadAll
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
@@ -314,4 +315,10 @@ parseUpgrade :: OP.Parser Bool
 parseUpgrade = OP.switch (
     OP.long "upgrade" <>  OP.short 'u' <> 
     OP.help "overwrite outdated local package versions"
+    )
+
+parseDownloadAll :: OP.Parser Bool
+parseDownloadAll = OP.switch (
+    OP.long "downloadAll" <>
+    OP.help "download all packages the server is offering"
     )

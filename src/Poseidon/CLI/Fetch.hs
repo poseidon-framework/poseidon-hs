@@ -31,7 +31,7 @@ import           Network.HTTP.Conduit       (simpleHttp,
                                              responseHeaders)
 import           Network.HTTP.Types         (hContentLength)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (createDirectory, removeFile, removeDirectory)
+import           System.Directory           (createDirectoryIfMissing, removeFile, removeDirectory)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 
@@ -41,6 +41,7 @@ data FetchOptions = FetchOptions
     , _entityFile :: Maybe FilePath
     , _remoteURL :: String
     , _upgrade :: Bool
+    , _downloadAllPacs :: Bool
     }
 
 data PackageState = NotLocal -- ^ Package exists only on remote and can be downloaded directly
@@ -50,7 +51,7 @@ data PackageState = NotLocal -- ^ Package exists only on remote and can be downl
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
-runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) = do
+runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
@@ -68,14 +69,16 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade) =
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have
     hPutStr stderr "Determine requested packages... "
-    let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
+    let desiredRemotePackages = if downloadAllPacs 
+                                then allRemotePackages
+                                else filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
     hPutStrLn stderr $ show (length desiredRemotePackages) ++ " requested and available"
     unless (null desiredRemotePackages) $ do
         -- perform package download depending on local-remote state
         hPutStrLn stderr "Comparing local and remote package state"
         let packagesWithState = map (determinePackageState allLocalPackages) desiredRemotePackages
         hPutStrLn stderr "Handling packages"
-        createDirectory tempDir
+        createDirectoryIfMissing False tempDir
         mapM_ (handlePackageByState downloadDir tempDir remote upgrade) packagesWithState
         removeDirectory tempDir
 
