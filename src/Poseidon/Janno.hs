@@ -329,9 +329,19 @@ instance Csv.ToNamedRecord PoseidonSample where
         , "Keywords"                Csv..= posSamKeywords
         ]
 
-instance Csv.DefaultOrdered PoseidonSample
---instance Csv.DefaultOrdered PoseidonSample where
---    headerOrder _ = header ["name", "salary"]
+--instance Csv.DefaultOrdered PoseidonSample
+instance Csv.DefaultOrdered PoseidonSample where
+    headerOrder _ = Csv.header jannoHeader
+
+jannoHeader :: [Bchs.ByteString]
+jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
+    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
+    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
+    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
+    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
+    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
+    "mtContam_stderr","Primary_Contact","Publication_Status","Note","Keywords"
+    ]
 
 -- | A helper function to create semi-colon separated field values from lists
 deparseFieldList :: (Csv.ToField a) => [a] -> Csv.Field
@@ -367,20 +377,9 @@ instance Csv.FromField [JannoDataType] where
 
 writeJannoFile :: FilePath -> [PoseidonSample] -> IO ()
 writeJannoFile path samples = do
-    let jannoHeaderLine = jannoHeader `Bch.append` "\n"
-    let jannoAsBytestring = jannoHeaderLine `Bch.append` Csv.encodeDefaultOrderedByNameWith encodingOptions samples
+    let jannoAsBytestring = Csv.encodeDefaultOrderedByNameWith encodingOptions samples
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
-
-jannoHeader :: Bch.ByteString
-jannoHeader = Bch.intercalate "\t" ["Individual_ID","Collection_ID","Source_Tissue","Country",
-    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
-    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
-    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
-    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
-    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
-    "mtContam_stderr","Primary_Contact","Publication_Status","Note","Keywords"
-    ]
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
