@@ -362,12 +362,16 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
         hPutStrLn stderr "Some packages were skipped due to issues:"
         forM_ (lefts eitherPackages) $ \e -> hPutStrLn stderr (renderPoseidonException e)
     let loadedPackages = rights eitherPackages
-    -- duplication check. This will throw if packages come with same versions and titles (see filterDuplicates)
+    -- package duplication check 
+    -- This will throw if packages come with same versions and titles (see filterDuplicates)
     finalPackageList <- filterDuplicatePackages loadedPackages
     when (length loadedPackages > length finalPackageList) $ do
         hPutStrLn stderr "Some packages were skipped as duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
             \x -> hPrint stderr x
+    -- individual duplication check
+    individuals <- mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
+    checkIndividualsUnique $ concat individuals
     -- report number of valid packages
     hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
@@ -380,6 +384,15 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
         hPutStr stderr $ "Initializing packages... " ++ show numberPackage ++ " initialized"
         hFlush stderr
         try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing $ path
+
+checkIndividualsUnique :: [EigenstratIndEntry] -> IO ()
+checkIndividualsUnique indEntries = do
+    let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
+    when (length genoIDs /= length (nub genoIDs)) $
+        throwM $ PoseidonCollectionException $
+            "Duplicate individuals (" ++
+            intercalate ", " (genoIDs \\ nub genoIDs) ++
+            ")"
 
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do

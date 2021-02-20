@@ -15,6 +15,7 @@ data PoseidonException =
     | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
     | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
     | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
+    | PoseidonCollectionException String -- ^ An exception to represent logical issues in a poseidon package Collection
     | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
     | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
@@ -42,6 +43,8 @@ renderPoseidonException (PoseidonJannoConsistencyException f s) =
     "Consistency issues in .janno file " ++ f ++ ": " ++ s
 renderPoseidonException (PoseidonCrossFileConsistencyException p s) =
     "Cross-file consistency issue in package " ++ p ++ ": " ++ s
+renderPoseidonException (PoseidonCollectionException s) =
+    "The package collection is broken: " ++ s
 renderPoseidonException (PoseidonFileExistenceException f) =
     "File " ++ f ++ " does not exist"
 renderPoseidonException (PoseidonFileChecksumException f) =
