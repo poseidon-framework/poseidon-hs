@@ -22,7 +22,7 @@ module Poseidon.Janno (
 
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
 
-import           Control.Applicative        (empty)
+import           Control.Applicative        (empty, optional)
 import           Data.Bifunctor             (second)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (when, unless)
@@ -245,43 +245,43 @@ data PoseidonSample = PoseidonSample
     deriving (Show, Eq, Generic)
 
 instance Csv.FromNamedRecord PoseidonSample where
-    parseNamedRecord m = PoseidonSample
-        <$> m Csv..: "Individual_ID" 
-        <*> m Csv..: "Collection_ID"
-        <*> m Csv..: "Source_Tissue"
-        <*> m Csv..: "Country"
-        <*> m Csv..: "Location"
-        <*> m Csv..: "Site"
-        <*> m Csv..: "Latitude"
-        <*> m Csv..: "Longitude"
-        <*> m Csv..: "Date_C14_Labnr"
-        <*> m Csv..: "Date_C14_Uncal_BP"
-        <*> m Csv..: "Date_C14_Uncal_BP_Err"
-        <*> m Csv..: "Date_BC_AD_Median"
-        <*> m Csv..: "Date_BC_AD_Start"
-        <*> m Csv..: "Date_BC_AD_Stop"
-        <*> m Csv..: "Date_Type"
-        <*> m Csv..: "No_of_Libraries"
-        <*> m Csv..: "Data_Type"
-        <*> m Csv..: "Genotype_Ploidy"
-        <*> m Csv..: "Group_Name"
-        <*> m Csv..: "Genetic_Sex"
-        <*> m Csv..: "Nr_autosomal_SNPs"
-        <*> m Csv..: "Coverage_1240K"
-        <*> m Csv..: "MT_Haplogroup"
-        <*> m Csv..: "Y_Haplogroup"
-        <*> m Csv..: "Endogenous"
-        <*> m Csv..: "UDG"
-        <*> m Csv..: "Library_Built"
-        <*> m Csv..: "Damage"
-        <*> m Csv..: "Xcontam"
-        <*> m Csv..: "Xcontam_stderr"
-        <*> m Csv..: "mtContam"
-        <*> m Csv..: "mtContam_stderr"
-        <*> m Csv..: "Primary_Contact"
-        <*> m Csv..: "Publication_Status"
-        <*> m Csv..: "Note"
-        <*> m Csv..: "Keywords"
+    parseNamedRecord m = pure PoseidonSample
+        <*> Csv.lookup m "Individual_ID" 
+        <*> optional (Csv.lookup m "Collection_ID")
+        <*> optional (Csv.lookup m "Source_Tissue")
+        <*> optional (Csv.lookup m "Country")
+        <*> optional (Csv.lookup m "Location")
+        <*> optional (Csv.lookup m "Site")
+        <*> optional (Csv.lookup m "Latitude")
+        <*> optional (Csv.lookup m "Longitude")
+        <*> optional (Csv.lookup m "Date_C14_Labnr")
+        <*> optional (Csv.lookup m "Date_C14_Uncal_BP")
+        <*> optional (Csv.lookup m "Date_C14_Uncal_BP_Err")
+        <*> optional (Csv.lookup m "Date_BC_AD_Median")
+        <*> optional (Csv.lookup m "Date_BC_AD_Start")
+        <*> optional (Csv.lookup m "Date_BC_AD_Stop")
+        <*> optional (Csv.lookup m "Date_Type")
+        <*> optional (Csv.lookup m "No_of_Libraries")
+        <*> optional (Csv.lookup m "Data_Type")
+        <*> optional (Csv.lookup m "Genotype_Ploidy")
+        <*> Csv.lookup m "Group_Name"
+        <*> Csv.lookup m "Genetic_Sex"
+        <*> optional (Csv.lookup m "Nr_autosomal_SNPs" )
+        <*> optional (Csv.lookup m "Coverage_1240K")
+        <*> optional (Csv.lookup m "MT_Haplogroup")
+        <*> optional (Csv.lookup m "Y_Haplogroup")
+        <*> optional (Csv.lookup m "Endogenous")
+        <*> optional (Csv.lookup m "UDG")
+        <*> optional (Csv.lookup m "Library_Built")
+        <*> optional (Csv.lookup m "Damage")
+        <*> optional (Csv.lookup m "Xcontam")
+        <*> optional (Csv.lookup m "Xcontam_stderr")
+        <*> optional (Csv.lookup m "mtContam")
+        <*> optional (Csv.lookup m "mtContam_stderr")
+        <*> optional (Csv.lookup m "Primary_Contact")
+        <*> optional (Csv.lookup m "Publication_Status")
+        <*> optional (Csv.lookup m "Note")
+        <*> optional (Csv.lookup m "Keywords")
 
 instance Csv.ToNamedRecord PoseidonSample where
     toNamedRecord (PoseidonSample posSamIndividualID posSamCollectionID posSamSourceTissue posSamCountry 
