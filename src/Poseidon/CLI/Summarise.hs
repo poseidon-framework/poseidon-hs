@@ -104,5 +104,6 @@ printFrequencyMaybeString sep (x:xs) = maybeShowString (fst x) ++ ": " ++ show (
 
 -- | As maybeShow, but without additional quoting of strings
 maybeShowString :: Maybe String -> String
+maybeShowString (Just "") = "n/a"
 maybeShowString (Just x) = x
 maybeShowString Nothing  = "n/a"
