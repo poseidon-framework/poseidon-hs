@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
+import           Poseidon.Janno              (PoseidonSample (..))
 import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
                                               readPoseidonPackageCollection)
+import           Poseidon.Utils              (IndividualInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -17,7 +19,7 @@ import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (Version, showVersion)
-import           Network.Wai.Handler.Warp    (defaultSettings, setPort, run)
+import           Network.Wai.Handler.Warp    (defaultSettings, run, setPort)
 import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
                                               tlsSettingsChain)
 import           Network.Wai.Middleware.Cors (simpleCors)
@@ -30,8 +32,9 @@ import           System.IO                   (hPutStrLn, stderr)
 import           System.Log.Formatter        (simpleLogFormatter)
 import           System.Log.Handler          (setFormatter)
 import           System.Log.Handler.Simple   (streamHandler)
-import           System.Log.Logger           (Priority (..), setHandlers, infoM,
-                                              setLevel, updateGlobalLogger, addHandler, rootLoggerName)
+import           System.Log.Logger           (Priority (..), addHandler, infoM,
+                                              rootLoggerName, setHandlers,
+                                              setLevel, updateGlobalLogger)
 import           Web.Scotty                  (ScottyM, file, get, html, json,
                                               middleware, notFound, param,
                                               raise, scottyApp, text)
@@ -90,6 +93,8 @@ main = do
             case zipFN of
                 Just fn -> file fn
                 Nothing -> raise ("unknown package " <> p)
+        get "/individuals_all" $
+            json (getAllIndividualInfo allPackages)
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
@@ -193,6 +198,14 @@ makeZipArchive pac ignoreGenoFiles =
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
+getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getAllIndividualInfo packages = do
+    pac <- packages
+    jannoRow <- posPacJanno pac
+    let name = posSamIndividualID jannoRow
+        group = head . posSamGroupName $ jannoRow
+        pacName = posPacTitle pac
+    return $ IndividualInfo name group pacName
 
 optParserInfo :: OP.ParserInfo CommandLineOptions
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
