@@ -249,44 +249,51 @@ data PoseidonSample = PoseidonSample
 instance Csv.FromNamedRecord PoseidonSample where
     parseNamedRecord m = pure PoseidonSample
         <*> filterLookup m "Individual_ID" 
-        <*> optional (filterLookup m "Collection_ID")
-        <*> optional (filterLookup m "Source_Tissue")
-        <*> optional (filterLookup m "Country")
-        <*> optional (filterLookup m "Location")
-        <*> optional (filterLookup m "Site")
-        <*> optional (filterLookup m "Latitude")
-        <*> optional (filterLookup m "Longitude")
-        <*> optional (filterLookup m "Date_C14_Labnr")
-        <*> optional (filterLookup m "Date_C14_Uncal_BP")
-        <*> optional (filterLookup m "Date_C14_Uncal_BP_Err")
-        <*> optional (filterLookup m "Date_BC_AD_Median")
-        <*> optional (filterLookup m "Date_BC_AD_Start")
-        <*> optional (filterLookup m "Date_BC_AD_Stop")
-        <*> optional (filterLookup m "Date_Type")
-        <*> optional (filterLookup m "No_of_Libraries")
-        <*> optional (filterLookup m "Data_Type")
-        <*> optional (filterLookup m "Genotype_Ploidy")
+        <*> filterLookupOptional m "Collection_ID"
+        <*> filterLookupOptional m "Source_Tissue"
+        <*> filterLookupOptional m "Country"
+        <*> filterLookupOptional m "Location"
+        <*> filterLookupOptional m "Site"
+        <*> filterLookupOptional m "Latitude"
+        <*> filterLookupOptional m "Longitude"
+        <*> filterLookupOptional m "Date_C14_Labnr"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
+        <*> filterLookupOptional m "Date_BC_AD_Median"
+        <*> filterLookupOptional m "Date_BC_AD_Start"
+        <*> filterLookupOptional m "Date_BC_AD_Stop"
+        <*> filterLookupOptional m "Date_Type"
+        <*> filterLookupOptional m "No_of_Libraries"
+        <*> filterLookupOptional m "Data_Type"
+        <*> filterLookupOptional m "Genotype_Ploidy"
         <*> filterLookup m "Group_Name"
         <*> filterLookup m "Genetic_Sex"
-        <*> optional (filterLookup m "Nr_autosomal_SNPs" )
-        <*> optional (filterLookup m "Coverage_1240K")
-        <*> optional (filterLookup m "MT_Haplogroup")
-        <*> optional (filterLookup m "Y_Haplogroup")
-        <*> optional (filterLookup m "Endogenous")
-        <*> optional (filterLookup m "UDG")
-        <*> optional (filterLookup m "Library_Built")
-        <*> optional (filterLookup m "Damage")
-        <*> optional (filterLookup m "Xcontam")
-        <*> optional (filterLookup m "Xcontam_stderr")
-        <*> optional (filterLookup m "mtContam")
-        <*> optional (filterLookup m "mtContam_stderr")
-        <*> optional (filterLookup m "Primary_Contact")
-        <*> optional (filterLookup m "Publication_Status")
-        <*> optional (filterLookup m "Note")
-        <*> optional (filterLookup m "Keywords")
+        <*> filterLookupOptional m "Nr_autosomal_SNPs" 
+        <*> filterLookupOptional m "Coverage_1240K"
+        <*> filterLookupOptional m "MT_Haplogroup"
+        <*> filterLookupOptional m "Y_Haplogroup"
+        <*> filterLookupOptional m "Endogenous"
+        <*> filterLookupOptional m "UDG"
+        <*> filterLookupOptional m "Library_Built"
+        <*> filterLookupOptional m "Damage"
+        <*> filterLookupOptional m "Xcontam"
+        <*> filterLookupOptional m "Xcontam_stderr"
+        <*> filterLookupOptional m "mtContam"
+        <*> filterLookupOptional m "mtContam_stderr"
+        <*> filterLookupOptional m "Primary_Contact"
+        <*> filterLookupOptional m "Publication_Status"
+        <*> filterLookupOptional m "Note"
+        <*> filterLookupOptional m "Keywords"
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField $ ignoreNA $ HM.lookup name m
+filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
+
+filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
+filterLookupOptional m name = case HM.lookup name m of
+    Nothing -> pure Nothing
+    justField -> case ignoreNA justField of
+        Nothing -> pure Nothing
+        Just x -> Csv.parseField x
 
 ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 ignoreNA (Just "") = Nothing
