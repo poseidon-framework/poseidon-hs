@@ -1,28 +1,32 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
-import           Poseidon.Package          (readPoseidonPackageCollection,
-                                            PoseidonPackage(..),
-                                            getIndividuals)
+import           Poseidon.Janno             (PoseidonSample (..))
+import           Poseidon.Package           (PoseidonPackage (..),
+                                             getIndividuals,
+                                             readPoseidonPackageCollection)
 
-import           Control.Monad             (forM)
-import           Data.List                 (groupBy, intercalate, nub, sortOn)
+import           Control.Monad              (forM)
+import           Data.List                  (groupBy, intercalate, nub, sortOn)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
-import           System.IO                 (hPutStrLn, stderr)
-import           Text.Layout.Table         (asciiRoundS, column, def, expand,
-                                            rowsG, tableString, titlesH, expandUntil)
+import           System.IO                  (hPutStrLn, stderr)
+import           Text.Layout.Table          (asciiRoundS, column, def, expand,
+                                             expandUntil, rowsG, tableString,
+                                             titlesH)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _loBaseDirs   :: [FilePath] -- ^ the list of base directories to search for packages
-    , _loListEntity :: ListEntity -- ^ what to list 
-    , _loRawOutput  :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    { _loBaseDirs    :: [FilePath] -- ^ the list of base directories to search for packages
+    -- ^ what to list
+    , _loListEntity  :: ListEntity -- ^ what to list
+    -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _loRawOutput   :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     , _optIgnoreGeno :: Bool
     }
 
 -- | A datatype to represent the options what to list
-data ListEntity = ListPackages -- ^ list packages
-    | ListGroups -- ^ list groups across all found packages, as defined in the Genotype Individual file
-    | ListIndividuals -- ^ list individuals across all found packages
+data ListEntity = ListPackages
+    | ListGroups
+    | ListIndividuals
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
@@ -31,14 +35,16 @@ runList (ListOptions baseDirs listEntity rawOutput ignoreGeno) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]
-            tableB <- forM allPackages $ \pac -> do
-                inds <- getIndividuals pac
-                return [posPacTitle pac, showMaybeDate (posPacLastModified pac), show (length inds)]
+                tableB = do
+                    pac <- allPackages
+                    let jannoRows = posPacJanno pac
+                    return [posPacTitle pac, showMaybeDate (posPacLastModified pac), show (length jannoRows)]
             return (tableH, tableB)
         ListGroups -> do
-            allInds <- fmap concat . forM allPackages $ \pac -> do
-                inds <- getIndividuals pac
-                return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
+            let allInds = do
+                    pac <- allPackages
+                    jannoRow <- posPacJanno pac
+                    return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
             let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
                 tableB = do
                     indGroup <- allIndsSortedByGroup
@@ -48,9 +54,10 @@ runList (ListOptions baseDirs listEntity rawOutput ignoreGeno) = do
             let tableH = ["Group", "Packages", "Nr Individuals"]
             return (tableH, tableB)
         ListIndividuals -> do
-            tableB <- fmap concat . forM allPackages $ \pac -> do
-                inds <- getIndividuals pac
-                return [[posPacTitle pac, name, pop] | (EigenstratIndEntry name _ pop) <- inds]
+            let tableB = do
+                    pac <- allPackages
+                    jannoRow <- posPacJanno pac
+                    return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
             let tableH = ["Package", "Individual", "Population"]
             return (tableH, tableB)
