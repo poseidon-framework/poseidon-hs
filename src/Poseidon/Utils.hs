@@ -12,21 +12,23 @@ import           Data.Aeson        (FromJSON, ToJSON, object, parseJSON, toJSON,
 import           Data.Yaml         (ParseException)
 
 -- | A Poseidon Exception data type with several concrete constructors
-data PoseidonException = PoseidonYamlParseException FilePath ParseException
-    | PoseidonPackageException String
-    | PoseidonIndSearchException String
-    | PoseidonGenotypeException String
-    | PoseidonJannoRowException FilePath Int String
-    | PoseidonJannoConsistencyException FilePath String
-    | PoseidonCrossFileConsistencyException String String
-    | PoseidonFileExistenceException FilePath
-    | PoseidonFileChecksumException FilePath
-    | PoseidonFStatsFormatException String
-    | PoseidonBibTeXException FilePath String
-    | PoseidonPoseidonEntityParsingException String
-    | PoseidonEmptyForgeException
-    | PoseidonNewPackageConstructionException String
-    | PoseidonRemoteJSONParsingException String
+data PoseidonException = 
+    PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
+    | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
+    | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
+    | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
+    | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
+    | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
+    | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
+    | PoseidonCollectionException String -- ^ An exception to represent logical issues in a poseidon package Collection
+    | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
+    | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
+    | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
+    | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
+    | PoseidonPoseidonEntityParsingException String -- ^ An exception to indicate failed entity parsing
+    | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
+    | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
+    | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
     deriving (Show)
 
 instance Exception PoseidonException
@@ -46,6 +48,8 @@ renderPoseidonException (PoseidonJannoConsistencyException f s) =
     "Consistency issues in .janno file " ++ f ++ ": " ++ s
 renderPoseidonException (PoseidonCrossFileConsistencyException p s) =
     "Cross-file consistency issue in package " ++ p ++ ": " ++ s
+renderPoseidonException (PoseidonCollectionException s) =
+    "The package collection is broken: " ++ s
 renderPoseidonException (PoseidonFileExistenceException f) =
     "File " ++ f ++ " does not exist"
 renderPoseidonException (PoseidonFileChecksumException f) =
