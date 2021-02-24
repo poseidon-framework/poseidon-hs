@@ -163,11 +163,11 @@ instance ToPrettyYaml PoseidonYamlStruct where
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
     { posPacBaseDir         :: FilePath
-    -- ^ The base directory of the YAML file. 
+    -- ^ the base directory of the YAML file
     , posPacPoseidonVersion :: Version
-    -- ^ The version of the package
+    -- ^ the version of the package
     , posPacTitle           :: String
-    -- ^ The title of the package
+    -- ^ the title of the package
     , posPacDescription     :: Maybe String
     -- ^ the optional description string of the package
     , posPacContributor     :: [ContributorSpec]
@@ -190,6 +190,8 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the loaded bibliography file
     , posPacBibFileChkSum   :: Maybe String
     -- ^ the optional bibfile chksum
+    , posPacDuplicate       :: Int
+    -- ^ how many packages of this name exist in the current collection
     }
     deriving (Show, Eq, Generic)
 
@@ -248,7 +250,7 @@ readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing ymlPath = do
             checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC
+    let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC 1
     return pac
 
 -- throws exception if any checksum isn't correct
@@ -411,16 +413,16 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
     titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
     checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m PoseidonPackage
     checkDuplicatePackages [pac] = return pac
-    checkDuplicatePackages pacs =
-        let maybeVersions = map posPacPackageVersion pacs
+    checkDuplicatePackages dupliPacs =
+        let pacs = map (\x -> x { posPacDuplicate = length dupliPacs }) dupliPacs
+            maybeVersions = map posPacPackageVersion pacs
         in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all versions need to be given and be unique
             then
                 return . last . sortOn posPacPackageVersion $ pacs
             else
                 let t   = posPacTitle $ head pacs
-                    msg = "duplicate package with missing packageVersion field: " ++ t
+                    msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
-
  
 -- | A function to return a list of all individuals in the genotype files of a package.
 getIndividuals :: PoseidonPackage -- ^ the Poseidon package
@@ -467,6 +469,7 @@ newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) ind
                 Nothing -> [] :: BibTeX
                 Just a -> a
     ,   posPacBibFileChkSum = Nothing
+    ,   posPacDuplicate = 1
     }
 
 updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
@@ -502,7 +505,7 @@ updateChecksumsInPackage pac = do
     } 
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC) = do
+writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC 1) = do
     let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac

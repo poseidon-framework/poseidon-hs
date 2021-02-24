@@ -12,3 +12,4 @@ V 0.6.0: Added the /individuals_all API to the webserver
 V 0.7.0: Made janno reading a lot more flexible
 V 0.7.1: Added a check for ID duplicates when reading package collections
 V 0.7.2: Turned off checksum validation for every module but validate
+V 0.7.3: Enabled the validate module to handle duplicated packages

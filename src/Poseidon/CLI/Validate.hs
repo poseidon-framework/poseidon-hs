@@ -3,9 +3,11 @@
 module Poseidon.CLI.Validate where
 
 import           Poseidon.Package           (findAllPoseidonYmlFiles,
-                                             readPoseidonPackageCollection)
+                                             readPoseidonPackageCollection,
+                                             PoseidonPackage (..))
 
 import           Control.Monad              (unless)
+import           Data.List                  (foldl')
 import           System.Exit                (exitFailure, exitSuccess)
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -19,10 +21,9 @@ runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
     allPackages <- readPoseidonPackageCollection False ignoreGeno baseDirs
-    -- TODO: This check as implemented does not consider packages that might 
-    -- have been removed as duplicates. A more clever solution would be very
-    -- welcome
-    if length posFiles == length allPackages
+    let numberOfPOSEIDONymlFiles = length posFiles
+        numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
+    if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
     then do
         hPutStrLn stderr "Validation passed ✓"
         exitSuccess 
