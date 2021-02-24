@@ -22,13 +22,16 @@ module Poseidon.Janno (
 
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
 
-import           Control.Applicative        (empty)
+
+import           Control.Applicative        (empty, optional)
+import           Data.Bifunctor             (second)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (when, unless)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Char                  (ord)
 import qualified Data.Csv                   as Csv
+import qualified Data.HashMap.Lazy          as HM
 import           Data.Either                (isRight, isLeft, rights, lefts)
 import           Data.Either.Combinators    (rightToMaybe)
 import           Data.List                  (intercalate, nub)
@@ -243,8 +246,120 @@ data PoseidonSample = PoseidonSample
     }
     deriving (Show, Eq, Generic)
 
-instance Csv.FromRecord PoseidonSample
-instance Csv.ToRecord PoseidonSample
+instance Csv.FromNamedRecord PoseidonSample where
+    parseNamedRecord m = pure PoseidonSample
+        <*> filterLookup m "Individual_ID" 
+        <*> filterLookupOptional m "Collection_ID"
+        <*> filterLookupOptional m "Source_Tissue"
+        <*> filterLookupOptional m "Country"
+        <*> filterLookupOptional m "Location"
+        <*> filterLookupOptional m "Site"
+        <*> filterLookupOptional m "Latitude"
+        <*> filterLookupOptional m "Longitude"
+        <*> filterLookupOptional m "Date_C14_Labnr"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
+        <*> filterLookupOptional m "Date_BC_AD_Median"
+        <*> filterLookupOptional m "Date_BC_AD_Start"
+        <*> filterLookupOptional m "Date_BC_AD_Stop"
+        <*> filterLookupOptional m "Date_Type"
+        <*> filterLookupOptional m "No_of_Libraries"
+        <*> filterLookupOptional m "Data_Type"
+        <*> filterLookupOptional m "Genotype_Ploidy"
+        <*> filterLookup m "Group_Name"
+        <*> filterLookup m "Genetic_Sex"
+        <*> filterLookupOptional m "Nr_autosomal_SNPs" 
+        <*> filterLookupOptional m "Coverage_1240K"
+        <*> filterLookupOptional m "MT_Haplogroup"
+        <*> filterLookupOptional m "Y_Haplogroup"
+        <*> filterLookupOptional m "Endogenous"
+        <*> filterLookupOptional m "UDG"
+        <*> filterLookupOptional m "Library_Built"
+        <*> filterLookupOptional m "Damage"
+        <*> filterLookupOptional m "Xcontam"
+        <*> filterLookupOptional m "Xcontam_stderr"
+        <*> filterLookupOptional m "mtContam"
+        <*> filterLookupOptional m "mtContam_stderr"
+        <*> filterLookupOptional m "Primary_Contact"
+        <*> filterLookupOptional m "Publication_Status"
+        <*> filterLookupOptional m "Note"
+        <*> filterLookupOptional m "Keywords"
+
+filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
+filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
+
+filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
+filterLookupOptional m name = case HM.lookup name m of
+    Nothing -> pure Nothing
+    justField -> case ignoreNA justField of
+        Nothing -> pure Nothing
+        Just x -> Csv.parseField x
+
+ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
+ignoreNA (Just "") = Nothing
+ignoreNA (Just "n/a") = Nothing
+ignoreNA (Just x) = Just x
+ignoreNA Nothing = Nothing 
+
+instance Csv.ToNamedRecord PoseidonSample where
+    toNamedRecord (PoseidonSample posSamIndividualID posSamCollectionID posSamSourceTissue posSamCountry 
+        posSamLocation posSamSite posSamLatitude posSamLongitude posSamDateC14Labnr posSamDateC14UncalBP 
+        posSamDateC14UncalBPErr posSamDateBCADMedian posSamDateBCADStart posSamDateBCADStop posSamDateType 
+        posSamNrLibraries posSamDataType posSamGenotypePloidy posSamGroupName posSamGeneticSex 
+        posSamNrAutosomalSNPs posSamCoverage1240K posSamMTHaplogroup posSamYHaplogroup posSamEndogenous 
+        posSamUDG posSamLibraryBuilt posSamDamage posSamNuclearContam posSamNuclearContamErr posSamMTContam 
+        posSamMTContamErr posSamPrimaryContact posSamPublication posSamComments posSamKeywords) = Csv.namedRecord [
+          "Individual_ID"           Csv..= posSamIndividualID
+        , "Collection_ID"           Csv..= posSamCollectionID
+        , "Source_Tissue"           Csv..= posSamSourceTissue
+        , "Country"                 Csv..= posSamCountry
+        , "Location"                Csv..= posSamLocation
+        , "Site"                    Csv..= posSamSite
+        , "Latitude"                Csv..= posSamLatitude
+        , "Longitude"               Csv..= posSamLongitude
+        , "Date_C14_Labnr"          Csv..= posSamDateC14UncalBP
+        , "Date_C14_Uncal_BP"       Csv..= posSamDateC14UncalBP
+        , "Date_C14_Uncal_BP_Err"   Csv..= posSamDateC14UncalBPErr
+        , "Date_BC_AD_Median"       Csv..= posSamDateBCADMedian
+        , "Date_BC_AD_Start"        Csv..= posSamDateBCADStart
+        , "Date_BC_AD_Stop"         Csv..= posSamDateBCADStop
+        , "Date_Type"               Csv..= posSamDateType
+        , "No_of_Libraries"         Csv..= posSamNrLibraries
+        , "Data_Type"               Csv..= posSamDataType
+        , "Genotype_Ploidy"         Csv..= posSamGenotypePloidy
+        , "Group_Name"              Csv..= posSamGroupName
+        , "Genetic_Sex"             Csv..= posSamGeneticSex
+        , "Nr_autosomal_SNPs"       Csv..= posSamNrAutosomalSNPs
+        , "Coverage_1240K"          Csv..= posSamCoverage1240K
+        , "MT_Haplogroup"           Csv..= posSamMTHaplogroup
+        , "Y_Haplogroup"            Csv..= posSamYHaplogroup
+        , "Endogenous"              Csv..= posSamEndogenous
+        , "UDG"                     Csv..= posSamUDG
+        , "Library_Built"           Csv..= posSamLibraryBuilt
+        , "Damage"                  Csv..= posSamDamage
+        , "Xcontam"                 Csv..= posSamNuclearContam
+        , "Xcontam_stderr"          Csv..= posSamNuclearContamErr
+        , "mtContam"                Csv..= posSamMTContam
+        , "mtContam_stderr"         Csv..= posSamMTContamErr
+        , "Primary_Contact"         Csv..= posSamPrimaryContact
+        , "Publication_Status"      Csv..= posSamPublication
+        , "Note"                    Csv..= posSamComments
+        , "Keywords"                Csv..= posSamKeywords
+        ]
+
+--instance Csv.DefaultOrdered PoseidonSample
+instance Csv.DefaultOrdered PoseidonSample where
+    headerOrder _ = Csv.header jannoHeader
+
+jannoHeader :: [Bchs.ByteString]
+jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
+    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
+    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
+    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
+    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
+    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
+    "mtContam_stderr","Primary_Contact","Publication_Status","Note","Keywords"
+    ]
 
 -- | A helper function to create semi-colon separated field values from lists
 deparseFieldList :: (Csv.ToField a) => [a] -> Csv.Field
@@ -280,20 +395,9 @@ instance Csv.FromField [JannoDataType] where
 
 writeJannoFile :: FilePath -> [PoseidonSample] -> IO ()
 writeJannoFile path samples = do
-    let jannoHeaderLine = jannoHeader `Bch.append` "\n"
-    let jannoAsBytestring = jannoHeaderLine `Bch.append` Csv.encodeWith encodingOptions samples
+    let jannoAsBytestring = Csv.encodeDefaultOrderedByNameWith encodingOptions samples
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
-
-jannoHeader :: Bch.ByteString
-jannoHeader = Bch.intercalate "\t" ["Individual_ID","Collection_ID","Source_Tissue","Country",
-    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
-    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
-    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
-    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
-    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
-    "mtContam_stderr","Primary_Contact","Publication_Status","Note","Keywords"
-    ]
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
@@ -306,14 +410,17 @@ encodingOptions = Csv.defaultEncodeOptions {
 readJannoFile :: FilePath -> IO [PoseidonSample]
 readJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
-    let jannoFileUpdated = replaceNA jannoFile
-    let jannoFileRows = Bch.lines jannoFileUpdated
+    let jannoFileRows = Bch.lines jannoFile
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     -- filter out empty lines
     let jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
+    -- create header + individual line combination
+    let headerOnly = snd $ head jannoFileRowsWithNumberFiltered
+    let rowsOnly = tail jannoFileRowsWithNumberFiltered
+    let jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
     -- load janno by rows
-    jannoRepresentation <- mapM (readJannoFileRow jannoPath) (tail jannoFileRowsWithNumberFiltered)
+    jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
@@ -323,16 +430,21 @@ readJannoFile jannoPath = do
         let consistentJanno = checkJannoConsistency jannoPath $ rights jannoRepresentation
         case consistentJanno of
             Left e -> do throwIO e
-            Right x -> return x
+            Right x -> do
+                -- putStrLn ""
+                -- putStrLn $ show $ map posSamSourceTissue x
+                -- putStrLn $ show $ map posSamLongitude x
+                -- putStrLn $ show $ map posSamUDG x
+                return x
 
 -- | A function to load one row of a janno file
 readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException PoseidonSample)
-readJannoFileRow jannoPath row = do
-    case Csv.decodeWith decodingOptions Csv.NoHeader (snd row) of
-        Left _ -> do 
-            return $ Left $ PoseidonJannoRowException jannoPath (fst row) "Type error"
-        Right (poseidonSample :: V.Vector PoseidonSample) -> do
-            case checkJannoRowConsistency jannoPath (fst row) $ V.head poseidonSample of
+readJannoFileRow jannoPath (lineNumber, row) = do
+    case Csv.decodeByNameWith decodingOptions row of
+        Left e -> do 
+            return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ e
+        Right (_, poseidonSample :: V.Vector PoseidonSample) -> do
+            case checkJannoRowConsistency jannoPath lineNumber $ V.head poseidonSample of
                 Left e -> do
                     return $ Left e
                 Right (pS :: PoseidonSample) -> do
@@ -342,10 +454,6 @@ decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
     Csv.decDelimiter = fromIntegral (ord '\t')
 }
-
--- | A helper functions to replace n/a values in janno files with
-replaceNA :: Bch.ByteString -> Bch.ByteString
-replaceNA = replaceInJannoBytestring "n/a" Bch.empty
 
 -- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
 explicitNA :: Bch.ByteString -> Bch.ByteString
