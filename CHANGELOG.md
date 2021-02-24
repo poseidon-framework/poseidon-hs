@@ -10,3 +10,4 @@ V 0.5.2: Fixed a bug that prevented fetch from running after an interrupted run
 V 0.5.3: Replaced the .csl data-file setup for bibtex parsing with an in-code solution to solve a related issue with the binary executables
 V 0.6.0: Added the /individuals_all API to the webserver
 V 0.7.0: Made janno reading a lot more flexible
+V 0.7.1: Added a check for ID duplicates when reading package collections
