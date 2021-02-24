@@ -22,13 +22,14 @@ spec = do
 
 testPoseidonSampleFromJannoFile :: Spec
 testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
-    let minimalFullJannoPath    = "test/testDat/testJannoFiles/minimal_full.janno"
-    let minimalPartialJannoPath = "test/testDat/testJannoFiles/minimal_partial.janno"
-    let normalFullJannoPath     = "test/testDat/testJannoFiles/normal_full.janno"
-    let normalPartialJannoPath  = "test/testDat/testJannoFiles/normal_partial.janno"
-    let borkedFullJannoPath     = "test/testDat/testJannoFiles/borked_full.janno"
-    let borkedPartialJannoPath  = "test/testDat/testJannoFiles/borked_partial.janno"
-    it "should read a minimal janno file correctly" $ do
+    let minimalFullJannoPath      = "test/testDat/testJannoFiles/minimal_full.janno"
+    let minimalPartialJannoPath   = "test/testDat/testJannoFiles/minimal_partial.janno"
+    let normalFullJannoPath       = "test/testDat/testJannoFiles/normal_full.janno"
+    let normalPartialJannoPath    = "test/testDat/testJannoFiles/normal_partial.janno"
+    let borkedFullJannoPath       = "test/testDat/testJannoFiles/borked_full.janno"
+    let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
+    let borkedWrongNameJannoPath  = "test/testDat/testJannoFiles/borked_wrong_name.janno"
+    it "should read minimal janno files correctly" $ do
         janno <- readJannoFile minimalFullJannoPath
         janno_partial <- readJannoFile minimalPartialJannoPath
         janno `shouldBe` janno_partial
@@ -49,7 +50,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map posSamUDG janno            `shouldBe` [Nothing, Nothing, Nothing]
         map posSamLibraryBuilt janno   `shouldBe` [Nothing, Nothing, Nothing]
         map posSamDamage janno         `shouldBe` [Nothing, Nothing, Nothing]
-    it "should read a normal janno file correctly" $ do
+    it "should read normal janno files correctly" $ do
         janno <- readJannoFile normalFullJannoPath
         janno_partial <- readJannoFile normalPartialJannoPath
         janno `shouldBe` janno_partial
@@ -71,7 +72,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map posSamUDG janno            `shouldBe` [Just Minus, Just Half, Just Plus]
         map posSamLibraryBuilt janno   `shouldBe` [Just DS, Just SS, Just Other]
         map posSamDamage janno         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
-    it "should gracefully fail to read a borked janno file" $ do
+    it "should fail to read borked janno files" $ do
         readJannoFile borkedFullJannoPath `shouldThrow` anyException
         readJannoFile borkedPartialJannoPath `shouldThrow` anyException
-
+        readJannoFile borkedWrongNameJannoPath `shouldThrow` anyException
