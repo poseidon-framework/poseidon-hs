@@ -12,10 +12,10 @@ spec = do
     testRenderJannoCompleteness
 
 testJannoNormal :: FilePath
-testJannoNormal = "test/testDat/testJannoFiles/normal.janno"
+testJannoNormal = "test/testDat/testJannoFiles/normal_full.janno"
 
 testJannoMinimal :: FilePath
-testJannoMinimal = "test/testDat/testJannoFiles/minimal.janno"
+testJannoMinimal = "test/testDat/testJannoFiles/minimal_full.janno"
 
 testRenderJannoCompleteness :: Spec
 testRenderJannoCompleteness = 
@@ -24,7 +24,7 @@ testRenderJannoCompleteness =
         janno <- readJannoFile testJannoNormal
         renderJannoCompleteness janno 
             `shouldBe` 
-            "MXXXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXX"
+            "M.XXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXX"
     it "should work for a minimum janno file" $ do
         janno <- readJannoFile testJannoMinimal
         renderJannoCompleteness janno

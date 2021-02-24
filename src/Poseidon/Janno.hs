@@ -442,7 +442,7 @@ readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonExce
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do 
-            return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ "Type issue - " ++ e
+            return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ e
         Right (_, poseidonSample :: V.Vector PoseidonSample) -> do
             case checkJannoRowConsistency jannoPath lineNumber $ V.head poseidonSample of
                 Left e -> do
