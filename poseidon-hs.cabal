@@ -25,7 +25,8 @@ library
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, foldl, pipes-ordered-zip, pipes-group, table-layout, lens-family,
                         cassava, pandoc-citeproc, errors, either, ansi-terminal, pureMD5,
-                        yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive
+                        yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
+                        unordered-containers
     default-language:   Haskell2010
 
 executable trident

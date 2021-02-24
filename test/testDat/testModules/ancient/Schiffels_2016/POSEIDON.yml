@@ -15,6 +15,5 @@ genotypeData:
   indFile: ind.txt
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
 jannoFile: Schiffels_2016.janno
-jannoFileChkSum: 555d7733135ebcabd032d581381c5d6f
 bibFile: sources.bib
 bibFileChkSum: 70cd3d5801cee8a93fc2eb40a99c63fa
