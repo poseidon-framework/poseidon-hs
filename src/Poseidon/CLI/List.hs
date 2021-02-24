@@ -31,7 +31,7 @@ data ListEntity = ListPackages
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDirs listEntity rawOutput ignoreGeno) = do
-    allPackages <- readPoseidonPackageCollection False ignoreGeno baseDirs
+    allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]

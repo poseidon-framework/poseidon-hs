@@ -218,7 +218,7 @@ getPopIndices indEntries popSpec =
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     -- load packages --
-    allPackages <- readPoseidonPackageCollection False False baseDirs
+    allPackages <- readPoseidonPackageCollection True False baseDirs
     statSpecsFromFile <- case maybeStatSpecsFile of
         Nothing -> return []
         Just f -> readStatSpecsFromFile f
