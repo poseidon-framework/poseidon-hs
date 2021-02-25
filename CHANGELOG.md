@@ -13,3 +13,4 @@
 - V 0.7.1: Added a check for ID duplicates when reading package collections
 - V 0.7.2: Turned off checksum validation for every module but validate
 - V 0.7.3: Enabled the validate module to handle duplicated packages
+- V 0.8.0: Forge now has new option `--intersect` to control merging behaviour.
