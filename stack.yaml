@@ -18,3 +18,4 @@ extra-deps:
 - hslua-module-text-0.2.1
 - skylighting-0.8.5
 - skylighting-core-0.8.5
+- pipes-ordered-zip-1.2.1

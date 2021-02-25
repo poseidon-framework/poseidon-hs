@@ -109,6 +109,13 @@ packages:
       sha256: 0bae843648475c76fc412153a40b62be0072a6251b6486d2108c2234ddc56f60
   original:
     hackage: skylighting-core-0.8.5
+- completed:
+    hackage: pipes-ordered-zip-1.2.1@sha256:1bece0cde4315987da28b6a588dd3345dda8f61bb6894e4e4c9c3cd3a4646746,1453
+    pantry-tree:
+      size: 446
+      sha256: 099f71b0cecdaee9feae0bbf165491c57082ee259f7b5a593f96cfbccd36ba49
+  original:
+    hackage: pipes-ordered-zip-1.2.1
 snapshots:
 - completed:
     size: 563098

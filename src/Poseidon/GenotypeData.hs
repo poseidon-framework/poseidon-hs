@@ -1,20 +1,22 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM, forM_, when, void)
-import           Control.Monad.Catch        (throwM, MonadThrow)
+import           Control.Monad              (forM, forM_, void, when)
+import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
 import           Data.List                  (nub, sort)
+import           Data.Maybe                 (catMaybes, isNothing)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
 import           Pipes                      (Producer, (>->))
-import           Pipes.OrderedZip           (orderCheckPipe, orderedZip)
+import           Pipes.OrderedZip           (orderCheckPipe, orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -27,19 +29,19 @@ import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hPutStrLn, stderr)
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
-    { format   :: GenotypeFormatSpec
+    { format         :: GenotypeFormatSpec
     -- ^ the genotype format
-    , genoFile :: FilePath
+    , genoFile       :: FilePath
     -- ^ path to the geno file
     , genoFileChkSum :: Maybe String
     -- ^ the optional checksum for the geno file
-    , snpFile  :: FilePath
+    , snpFile        :: FilePath
     -- ^ path to the snp file
-    , snpFileChkSum :: Maybe String
+    , snpFileChkSum  :: Maybe String
     -- ^ the optional checksum for the Snp file
-    , indFile  :: FilePath
+    , indFile        :: FilePath
     -- ^ path to the ind file
-    , indFileChkSum :: Maybe String
+    , indFileChkSum  :: Maybe String
     -- ^ the optional checksum for the indfile
     }
     deriving (Show, Eq)
@@ -84,26 +86,6 @@ instance ToJSON GenotypeFormatSpec where
         GenotypeFormatPlink      -> "PLINK"
         GenotypeFormatEigenstrat -> "EIGENSTRAT"
 
-zipAll :: MonadSafe m => [Int] -> [Producer (EigenstratSnpEntry, GenoLine) m r] -> Producer [(EigenstratSnpEntry, GenoLine)] m [r]
-zipAll _                   []            = error "zipAll - should never happen (1)"
-zipAll []                  _             = error "zipAll - should never happen (2)"
-zipAll _                   [prod]        = fmap (\x -> [x]) (prod >-> orderCheckPipe compFunc1) >-> P.map (\x ->[x])
-zipAll (nrHaps:restNrHaps) (prod1:prods) =
-    fmap (\(r, rs) -> (r:rs)) (orderedZip compFunc2 (prod1 >-> orderCheckPipe compFunc1) (zipAll restNrHaps prods)) >-> P.map processMaybeTuples
-  where
-    processMaybeTuples :: (Maybe (EigenstratSnpEntry, GenoLine), Maybe [(EigenstratSnpEntry, GenoLine)]) -> [(EigenstratSnpEntry, GenoLine)]
-    processMaybeTuples (Nothing,        Nothing)          = error "processMaybeTuples: should never happen"
-    processMaybeTuples (Just (es, gl),  Nothing)          = (es, gl) : [(es, V.replicate l Missing) | l <- restNrHaps]
-    processMaybeTuples (Nothing,        Just restEntries) = (fst (head restEntries), V.replicate nrHaps Missing) : restEntries
-    processMaybeTuples (Just (es, gl1), Just restEntries) = (es, gl1) : restEntries
-
-compFunc1 :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
-compFunc1 (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
-
-compFunc2 :: (EigenstratSnpEntry, GenoLine) -> [(EigenstratSnpEntry, GenoLine)] -> Ordering
-compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _, _) ((EigenstratSnpEntry c2 p2 _ _ _ _, _):_) = compare (c1, p1) (c2, p2)
-compFunc2 _                                     []                                        = error "compFunc2 - should never happen"
-
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
@@ -126,27 +108,36 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _) =
 
 -- | A function to read genotype data jointly from multiple packages
 loadJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+                     -> Bool -- ^ whether to generate an intersection instead of a union of all input files
                      -> [(FilePath, GenotypeDataSpec)]-- ^ A list of tuples of base directories and genotype data
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-loadJointGenotypeData showAllWarnings gdTuples = do
+loadJointGenotypeData showAllWarnings intersect gdTuples = do
     genotypeTuples <- sequence [loadGenotypeData baseDir gd | (baseDir, gd) <- gdTuples]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
-        jointProducer   = (zipAll nrInds . map snd) genotypeTuples >-> P.mapM (joinEntries showAllWarnings)
+        jointProducer   = (orderedZipAll compFunc . map snd) genotypeTuples >->
+            P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds)
     return (jointIndEntries, void jointProducer)
+  where
+    compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
+    compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
+    filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
+    filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
 
-joinEntries :: (MonadSafe m) => Bool -> [(EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-joinEntries showAllWarnings tupleList = do
-    let allSnpEntries    = map fst tupleList
-        allGenoEntries   = map snd tupleList
+joinEntries :: (MonadSafe m) => Bool -> [Int] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries showAllWarnings nrInds maybeTupleList = do
+    let allSnpEntries    = map fst . catMaybes $ maybeTupleList
     snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry showAllWarnings allSnpEntries
-    recodedGenotypes <- forM (zip allSnpEntries allGenoEntries) $ \((EigenstratSnpEntry _ _ _ _ refA1 altA1), genoLine) ->
-        genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
+    recodedGenotypes <- forM (zip nrInds maybeTupleList) $ \(n, maybeTuple) ->
+        case maybeTuple of
+            Nothing -> return (V.replicate n Missing)
+            Just (EigenstratSnpEntry _ _ _ _ refA1 altA1, genoLine) ->
+                genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
     return (snpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry 
+getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 getConsensusSnpEntry showAllWarnings snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
@@ -161,8 +152,8 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
             let rsIds = filter (isPrefixOf "rs") uniqueIds
                 selectedId = case rsIds of
                     (i:_) -> i
-                    _ -> head uniqueIds
-            when showAllWarnings $ 
+                    _     -> head uniqueIds
+            when showAllWarnings $
                 liftIO . hPutStrLn stderr $ "Warning: Found inconsistent SNP IDs: " ++ show uniqueIds ++
                     ". Choosing " ++ show selectedId
             return selectedId
@@ -172,19 +163,19 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         _ -> do
             -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
-            when showAllWarnings $ 
+            when showAllWarnings $
                 liftIO . hPutStrLn stderr $ "Warning: Found inconsistent genetic positions in SNP " ++ show id_ ++
                     ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
     case uniqueAlleles of
         [] -> do
             -- no non-missing alleles found
-            when showAllWarnings $ 
+            when showAllWarnings $
                 liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> do
             -- only one non-missing allele found
-            when showAllWarnings $ 
+            when showAllWarnings $
                 liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
@@ -198,7 +189,7 @@ genotypes2alleles ref alt = V.mapM g2a
         if ref `notElem` na
         then return (ref, ref)
         else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Ref with Ref-Allele missing")
-    g2a Het = 
+    g2a Het =
         if ref `notElem` na && alt `notElem` na
         then return (ref, alt)
         else throwM (PoseidonGenotypeException "encountered illegal genotype Het with Ref-Allele or Alt-Allele missing")
@@ -208,13 +199,13 @@ genotypes2alleles ref alt = V.mapM g2a
         else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Alt with Alt-Allele missing")
     g2a Missing = return ('N', 'N')
     na = ['0', 'N', 'X']
-    
+
 recodeAlleles :: (MonadThrow m) => Char -> Char -> V.Vector (Char, Char) -> m GenoLine
 recodeAlleles ref alt = V.mapM a2g
   where
     a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
     a2g (a1, a2)
-        | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef 
+        | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef
         | (a1, a2)  == (alt, alt)                            && alt `notElem` na                       = return HomAlt
         | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
         | a1 `elem` na && a2 `elem` na                                                                 = return Missing

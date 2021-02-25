@@ -36,6 +36,7 @@ data ForgeOptions = ForgeOptions
     { _jaBaseDirs :: [FilePath]
     , _entityList :: EntitiesList
     , _entityFile :: Maybe FilePath
+    , _intersect :: Bool
     , _outPacPath :: FilePath
     , _outPacName :: String
     , _showWarnings :: Bool
@@ -43,7 +44,7 @@ data ForgeOptions = ForgeOptions
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName showWarnings) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName showWarnings) = do
     -- compile entities
     entitiesFromFile <- case entitiesFile of
         Nothing -> return []
@@ -96,7 +97,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile outPath outName show
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
     runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings relevantPackages
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
         let jannoIndIds = map posSamIndividualID relevantJannoRows
