@@ -431,11 +431,12 @@ getIndividuals pac = loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+                     -> Bool -- ^ whether to generate an intersection instead of union of input sites
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData showAllWarnings pacs =
-    loadJointGenotypeData showAllWarnings [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
+getJointGenotypeData showAllWarnings intersect pacs =
+    loadJointGenotypeData showAllWarnings intersect [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
 
 -- | A function to create a dummy POSEIDON.yml file
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into 

@@ -148,6 +148,7 @@ forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesDirect
                               <*> parseForgeEntitiesFromFile
+                              <*> parseIntersect
                               <*> parseOutPackagePath
                               <*> parseOutPackageName
                               <*> parseShowWarnings
@@ -229,6 +230,13 @@ parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <>
     OP.help "A file with a list of packages, groups or individual samples. \
     \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
     \-f and --forgeFile can be combined.")
+
+parseIntersect :: OP.Parser (Bool)
+parseIntersect = OP.switch (OP.long "intersect" <>
+    OP.help "Whether to output the intersection of the genotype files to be forged. \
+        \The default (if this option is not set) is to output the union of all SNPs, with genotypes \
+        \defined as missing in those packages which do not have a SNP that is present in another package. \
+        \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
 
 parseFetchEntitiesFromFile :: OP.Parser (Maybe FilePath)
 parseFetchEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "fetchFile" <>
