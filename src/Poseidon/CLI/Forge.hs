@@ -1,54 +1,62 @@
 module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
-import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList (..), 
+import           Poseidon.EntitiesList      (EntitiesList (..),
+                                             PoseidonEntity (..),
                                              readEntitiesFromFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..), 
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..))
 import           Poseidon.Janno             (PoseidonSample (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
-                                             PoseidonPackage (..),
+                                             PoseidonPackage (..), getChecksum,
                                              getIndividuals,
                                              getJointGenotypeData,
+                                             newPackageTemplate,
                                              readPoseidonPackageCollection,
-                                             newPackageTemplate, getChecksum, writePoseidonPackage)
-import           Poseidon.Utils             (PoseidonException(..))
+                                             writePoseidonPackage)
+import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (when, forM, unless)
-import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
-import           Data.List                  ((\\), nub, sortOn, intersect, intercalate)
+import           Control.Monad              (forM, unless, when)
+import           Data.List                  (intercalate, intersect, nub,
+                                             sortOn, (\\))
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import           Data.Text                  (unpack)
-import qualified Data.Vector as V
-import           Pipes                      (MonadIO(liftIO), runEffect, (>->), await, yield, lift, Pipe (..))
-import qualified Pipes.Prelude as P
-import           Pipes.Safe                 (runSafeT, throwM, SafeT (..))
-import           SequenceFormats.Eigenstrat (writeEigenstrat, EigenstratIndEntry (..), EigenstratSnpEntry(..), GenoLine)
+import qualified Data.Vector                as V
+import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
+import           Pipes                      (MonadIO (liftIO), Pipe (..), await,
+                                             lift, runEffect, yield, (>->))
+import qualified Pipes.Prelude              as P
+import           Pipes.Safe                 (SafeT (..), runSafeT, throwM)
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
+                                             EigenstratSnpEntry (..), GenoLine,
+                                             writeEigenstrat)
+import           SequenceFormats.Plink      (writePlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
-import           Text.CSL.Reference         (refId, unLiteral, Reference (..))
+import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
+import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _jaBaseDirs :: [FilePath]
-    , _entityList :: EntitiesList
-    , _entityFile :: Maybe FilePath
-    , _intersect :: Bool
-    , _outPacPath :: FilePath
-    , _outPacName :: String
+    { _jaBaseDirs   :: [FilePath]
+    , _entityList   :: EntitiesList
+    , _entityFile   :: Maybe FilePath
+    , _intersect    :: Bool
+    , _outPacPath   :: FilePath
+    , _outPacName   :: String
+    , _outFormat    :: GenotypeFormatSpec
     , _showWarnings :: Bool
     }
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName showWarnings) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName outFormat showWarnings) = do
     -- compile entities
     entitiesFromFile <- case entitiesFile of
         Nothing -> return []
-        Just f -> readEntitiesFromFile f
+        Just f  -> readEntitiesFromFile f
     let entities = entitiesDirect ++ entitiesFromFile
     -- load packages --
     allPackages <- readPoseidonPackageCollection True False baseDirs
@@ -60,7 +68,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     -- determine relevant packages
     relevantPackages <- filterPackages entities allPackages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
-    when (null relevantPackages) $ 
+    when (null relevantPackages) $
         throwM PoseidonEmptyForgeException
     -- collect data --
     -- janno
@@ -77,11 +85,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
     -- compile genotype data structure
-    let outInd = outName <.> ".ind"
-        outSnp = outName <.> ".snp"
-        outGeno = outName <.> ".geno"
-    let genotypeData = GenotypeDataSpec GenotypeFormatEigenstrat
-            outGeno Nothing outSnp Nothing outInd Nothing
+    let [outInd, outSnp, outGeno] = case outFormat of 
+            GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
+            GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
+    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     pac <- newPackageTemplate outPath outName genotypeData Nothing (Just relevantJannoRows) (Just relevantBibEntries)
@@ -105,11 +112,11 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
         -- screened for cross-file order issues
         when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
             throwM (PoseidonCrossFileConsistencyException "new package" "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
-        let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]    
-        runEffect $ eigenstratProd >-> 
-            printProgress >->
-            P.map (selectIndices indices) >->
-            writeEigenstrat outG outS outI newEigenstratIndEntries
+        let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
+        let outConsumer = case outFormat of
+                GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
+                GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
+        runEffect $ eigenstratProd >-> printProgress >-> P.map (selectIndices indices) >-> outConsumer
         liftIO $ hClearLine stderr
         liftIO $ hSetCursorColumn stderr 0
         liftIO $ hPutStrLn stderr "SNPs processed: All done"
@@ -170,7 +177,7 @@ filterJannoRows entities samples =
 filterJannoFiles :: EntitiesList -> [(String, [PoseidonSample])] -> [PoseidonSample]
 filterJannoFiles entities packages =
     let requestedPacs           = [ pac | Pac pac <- entities]
-        filterJannoOrNot (a, b) = if a `elem` requestedPacs 
+        filterJannoOrNot (a, b) = if a `elem` requestedPacs
                                   then b
                                   else filterJannoRows entities b
     in concatMap filterJannoOrNot packages
@@ -187,7 +194,7 @@ extractEntityIndices entities relevantPackages = do
         indNames   = [ ind   | Ind   ind   <- entities]
     let allPackageNames = map posPacTitle relevantPackages
     allIndEntries <- mapM getIndividuals relevantPackages
-    let filterFunc (_ , pacName, EigenstratIndEntry ind _ group) = 
+    let filterFunc (_ , pacName, EigenstratIndEntry ind _ group) =
             pacName `elem` pacNames || ind `elem` indNames || group `elem` groupNames
     return $ map extractFirst $ filter filterFunc (zipGroup allPackageNames allIndEntries)
 

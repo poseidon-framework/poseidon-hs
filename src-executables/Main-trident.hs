@@ -151,6 +151,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseIntersect
                               <*> parseOutPackagePath
                               <*> parseOutPackageName
+                              <*> parseOutFormat
                               <*> parseShowWarnings
 
 summariseOptParser :: OP.Parser SummariseOptions
@@ -287,6 +288,12 @@ parseOutPackageName :: OP.Parser FilePath
 parseOutPackageName = OP.strOption (OP.long "outPackageName" <>
     OP.short 'n' <>
     OP.help "the output package name")
+
+parseOutFormat :: OP.Parser GenotypeFormatSpec
+parseOutFormat = parseEigenstratFormat <|> pure GenotypeFormatPlink
+  where
+    parseEigenstratFormat = OP.flag' GenotypeFormatEigenstrat (OP.long "eigenstrat" <>
+        OP.help "Choose Eigenstrat instead of PLINK (default) as output format.")
 
 parseShowWarnings :: OP.Parser Bool
 parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
