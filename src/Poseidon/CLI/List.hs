@@ -1,12 +1,19 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
 
 import           Poseidon.Janno             (PoseidonSample (..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
                                              readPoseidonPackageCollection)
+import           Poseidon.Utils             (PoseidonException (..))
 
+import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
+import           Data.Aeson                 (FromJSON, (.:), parseJSON, withObject, eitherDecode')
+import qualified Data.ByteString.Lazy       as LB
 import           Data.List                  (groupBy, intercalate, nub, sortOn)
+import           Network.HTTP.Conduit       (simpleHttp)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
 import           System.IO                  (hPutStrLn, stderr)
 import           Text.Layout.Table          (asciiRoundS, column, def, expand,
@@ -28,12 +35,33 @@ data ListEntity = ListPackages
     | ListGroups
     | ListIndividuals
 
+-- | A datatype to represent the content of the entries in /individuals_all
+data RemoteSample = RemoteSample 
+    { remSamIndividualID :: String
+    , remSamGroupNName   :: String
+    , remSamPacTitle     :: String
+    } 
+
+instance FromJSON RemoteSample where
+    parseJSON = withObject "RemoteSample" $ \v -> RemoteSample
+        <$> v .:   "name"
+        <*> v .:   "group"
+        <*> v .:   "pacName"
+
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
-    putStrLn "Stri"
+    let remote = remoteURL
+    -- load remote samples list
+    hPutStrLn stderr "Downloading sample list from remote"
+    remoteOverviewJSONByteString <- simpleHttp (remote ++ "/individuals_all")
+    allRemoteSamples <- readSampleInfo remoteOverviewJSONByteString
+    -- construct output
+    return ()
 runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
+    -- load local packages
     allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
+    -- construct output
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]
@@ -78,4 +106,8 @@ runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = 
     showMaybeDate (Just d) = show d
     showMaybeDate Nothing  = "n/a"
 
-
+readSampleInfo :: LB.ByteString -> IO [RemoteSample]
+readSampleInfo bs = do
+    case eitherDecode' bs of
+        Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
+        Right sam -> return sam
