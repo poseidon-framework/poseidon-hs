@@ -40,7 +40,7 @@ data RemoteSample = RemoteSample
     { remSamIndividualID :: String
     , remSamGroupNName   :: String
     , remSamPacTitle     :: String
-    } 
+    }
 
 instance FromJSON RemoteSample where
     parseJSON = withObject "RemoteSample" $ \v -> RemoteSample
@@ -57,11 +57,26 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
     remoteOverviewJSONByteString <- simpleHttp (remote ++ "/individuals_all")
     allRemoteSamples <- readSampleInfo remoteOverviewJSONByteString
     -- construct output
-    return ()
+    hPutStrLn stderr "Preparing output table"
+    (tableH, tableB) <- case listEntity of
+        ListPackages -> do
+            let tableH = ["Title", "Nr Individuals"]
+                tableB = do
+                    onePac <- groupBy (\x y -> remSamPacTitle x == remSamPacTitle y) $ sortOn remSamPacTitle allRemoteSamples
+                    return [remSamPacTitle $ head onePac, show (length onePac)]
+            return (tableH, tableB)
+
+    if rawOutput then
+        putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+    else do
+        let colSpecs = replicate 3 (column (expandUntil 50) def def def)
+        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+
 runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
     -- load local packages
     allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
     -- construct output
+    hPutStrLn stderr "Preparing output table"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Date", "Nr Individuals"]
