@@ -38,7 +38,7 @@ data ListEntity = ListPackages
 -- | A datatype to represent the content of the entries in /individuals_all
 data RemoteSample = RemoteSample 
     { remSamIndividualID :: String
-    , remSamGroupNName   :: String
+    , remSamGroupName   :: String
     , remSamPacTitle     :: String
     }
 
@@ -62,15 +62,33 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
                 tableB = do
-                    onePac <- groupBy (\x y -> remSamPacTitle x == remSamPacTitle y) $ sortOn remSamPacTitle allRemoteSamples
-                    return [remSamPacTitle $ head onePac, show (length onePac)]
+                    onePac <- groupBy (\x y -> remSamPacTitle x == remSamPacTitle y) $ 
+                        sortOn remSamPacTitle allRemoteSamples
+                    let pacTitle = remSamPacTitle $ head onePac
+                        pacNrInds = show (length onePac)
+                    return [pacTitle, pacNrInds]
+            return (tableH, tableB)
+        ListGroups -> do
+            let tableH = ["Group", "Packages", "Nr Individuals"]
+                tableB = do
+                    oneGroup <- groupBy (\x y -> remSamGroupName x == remSamGroupName y) $ 
+                        sortOn remSamGroupName allRemoteSamples
+                    let groupName = remSamGroupName $ head oneGroup
+                        groupPacs = intercalate "," $ nub $ map remSamPacTitle oneGroup
+                        groupNrInds = show (length oneGroup)
+                    return [groupName, groupPacs, groupNrInds]
             return (tableH, tableB)
 
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    else do
-        let colSpecs = replicate 3 (column (expandUntil 50) def def def)
-        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    else 
+        case listEntity of
+            ListGroups -> do
+                let colSpecs = replicate 3 (column (expandUntil 50) def def def)
+                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+            _ -> do
+                let colSpecs = replicate 3 (column expand def def def)
+                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
     -- load local packages
