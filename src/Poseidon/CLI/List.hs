@@ -38,7 +38,7 @@ data ListEntity = ListPackages
 -- | A datatype to represent the content of the entries in /individuals_all
 data RemoteSample = RemoteSample 
     { remSamIndividualID :: String
-    , remSamGroupName   :: String
+    , remSamGroupName    :: String
     , remSamPacTitle     :: String
     }
 
@@ -50,6 +50,7 @@ instance FromJSON RemoteSample where
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
+-- remote version
 runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
     let remote = remoteURL
     -- load remote samples list
@@ -67,6 +68,7 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
                     let pacTitle = remSamPacTitle $ head onePac
                         pacNrInds = show (length onePac)
                     return [pacTitle, pacNrInds]
+            hPutStrLn stderr ("found " ++ show (length tableB) ++ " packages")
             return (tableH, tableB)
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
@@ -77,21 +79,21 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
                         groupPacs = intercalate "," $ nub $ map remSamPacTitle oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
+            hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
             return (tableH, tableB)
         ListIndividuals -> do
             let tableH = ["Package", "Individual", "Group"]
             let tableB = do
                     oneSample <- allRemoteSamples
                     return [remSamPacTitle oneSample, remSamIndividualID oneSample, remSamGroupName oneSample]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
+            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
-
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
         let colSpecs = replicate 3 (column (expandUntil 60) def def def)
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-
+-- local version
 runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
     -- load local packages
     allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
@@ -117,6 +119,7 @@ runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = 
                     let packages_ = nub [i!!0 | i <- indGroup]
                     let nrInds = length indGroup
                     return [(indGroup!!0)!!2, intercalate "," packages_, show nrInds]
+            hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
             return (tableH, tableB)
         ListIndividuals -> do
             let tableH = ["Package", "Individual", "Group"]
@@ -124,9 +127,8 @@ runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = 
                     pac <- allPackages
                     jannoRow <- posPacJanno pac
                     return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
+            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
-
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
