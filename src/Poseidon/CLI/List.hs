@@ -78,17 +78,19 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
             return (tableH, tableB)
+        ListIndividuals -> do
+            let tableH = ["Package", "Individual", "Group"]
+            let tableB = do
+                    oneSample <- allRemoteSamples
+                    return [remSamPacTitle oneSample, remSamIndividualID oneSample, remSamGroupName oneSample]
+            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
+            return (tableH, tableB)
 
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    else 
-        case listEntity of
-            ListGroups -> do
-                let colSpecs = replicate 3 (column (expandUntil 50) def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-            _ -> do
-                let colSpecs = replicate 3 (column expand def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    else do
+        let colSpecs = replicate 3 (column (expandUntil 60) def def def)
+        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
     -- load local packages
@@ -109,32 +111,27 @@ runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = 
                     jannoRow <- posPacJanno pac
                     return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
             let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
+            let tableH = ["Group", "Packages", "Nr Individuals"]
                 tableB = do
                     indGroup <- allIndsSortedByGroup
                     let packages_ = nub [i!!0 | i <- indGroup]
                     let nrInds = length indGroup
                     return [(indGroup!!0)!!2, intercalate "," packages_, show nrInds]
-            let tableH = ["Group", "Packages", "Nr Individuals"]
             return (tableH, tableB)
         ListIndividuals -> do
+            let tableH = ["Package", "Individual", "Group"]
             let tableB = do
                     pac <- allPackages
                     jannoRow <- posPacJanno pac
                     return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals.")
-            let tableH = ["Package", "Individual", "Population"]
             return (tableH, tableB)
 
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    else
-        case listEntity of
-            ListGroups -> do
-                let colSpecs = replicate 3 (column (expandUntil 50) def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-            _ -> do
-                let colSpecs = replicate 3 (column expand def def def)
-                putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    else do
+        let colSpecs = replicate 3 (column (expandUntil 60) def def def)
+        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
     showMaybeDate (Just d) = show d
     showMaybeDate Nothing  = "n/a"
