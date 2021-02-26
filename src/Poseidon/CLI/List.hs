@@ -15,12 +15,12 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _loBaseDirs    :: [FilePath] -- ^ the list of base directories to search for packages
-    -- ^ what to list
-    , _loListEntity  :: ListEntity -- ^ what to list
-    -- ^ whether to output raw TSV instead of a nicely formatted table
-    , _loRawOutput   :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
-    , _optIgnoreGeno :: Bool
+    { _loBaseDirs     :: Maybe [FilePath] -- ^ the list of base directories to search for packages
+    , _loRemote       :: Bool -- ^ list data froma a remote server
+    , _loRemoteURL    :: String -- ^ remote server URL
+    , _loListEntity   :: ListEntity -- ^ what to list
+    , _loRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _optIgnoreGeno  :: Bool
     }
 
 -- | A datatype to represent the options what to list
@@ -30,7 +30,9 @@ data ListEntity = ListPackages
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
-runList (ListOptions baseDirs listEntity rawOutput ignoreGeno) = do
+runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
+    putStrLn "Stri"
+runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
     allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
     (tableH, tableB) <- case listEntity of
         ListPackages -> do

@@ -100,9 +100,9 @@ optParser = OP.subparser (
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
-        (OP.progDesc "List packages, groups or individuals")
+        (OP.progDesc "List packages, groups or individuals from local or remote Poseidon repositories")
     fetchOptInfo = OP.info (OP.helper <*> (CmdFetch <$> fetchOptParser))
-        (OP.progDesc "Download data from a Poseidon server")
+        (OP.progDesc "Download data from a remote Poseidon repository")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
         (OP.progDesc "Select packages, groups or individuals and create a new Poseidon package from them")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
@@ -131,8 +131,10 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseOutPackageName
 
 listOptParser :: OP.Parser ListOptions
-listOptParser = ListOptions <$> parseBasePaths 
-                            <*> parseListEntity 
+listOptParser = ListOptions <$> parseBasePathsMaybe
+                            <*> parseRemote 
+                            <*> parseRemoteURL
+                            <*> parseListEntity
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
 
@@ -166,7 +168,7 @@ updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
-validateOptParser = ValidateOptions <$> parseBasePaths 
+validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
 
 parseJackknife :: OP.Parser JackknifeMode
@@ -257,6 +259,12 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
 
+parseBasePathsMaybe :: OP.Parser (Maybe [FilePath])
+parseBasePathsMaybe = OP.optional $ OP.some (OP.strOption (OP.long "baseDir" <>
+    OP.short 'd' <>
+    OP.metavar "DIR" <>
+    OP.help "a local base directory to search for Poseidon Packages (could be a Poseidon repository)"))
+
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
     OP.help "the format of the input genotype data: EIGENSTRAT or PLINK") 
@@ -307,8 +315,8 @@ parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
-    OP.long "raw" <> OP.short 'r' <> 
-    OP.help "output table as tsv without header. Useful for piping into grep or awk."
+    OP.long "raw" <> 
+    OP.help "output table as tsv without header. Useful for piping into grep or awk"
     )
 
 parseIgnoreGeno :: OP.Parser Bool
@@ -318,10 +326,16 @@ parseIgnoreGeno = OP.switch (
     OP.hidden
     )
 
+parseRemote :: OP.Parser Bool
+parseRemote = OP.switch (
+    OP.long "remote" <> 
+    OP.help "Access data in a remote Poseidon server (instead of the local -d)"
+    )
+
 parseRemoteURL :: OP.Parser String 
 parseRemoteURL = OP.strOption (
-    OP.long "remote" <> 
-    OP.help "URL of the remote server" <>
+    OP.long "remoteURL" <> 
+    OP.help "URL of the remote Poseidon server" <>
     OP.value "https://c107-224.cloud.gwdg.de" <>
     OP.showDefault
     )
