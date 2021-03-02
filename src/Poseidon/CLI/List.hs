@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..)) where
+module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
 import           Poseidon.Janno             (PoseidonSample (..))
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -22,13 +22,13 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _loBaseDirs     :: Maybe [FilePath] -- ^ the list of base directories to search for packages
-    , _loRemote       :: Bool -- ^ list data froma a remote server
-    , _loRemoteURL    :: String -- ^ remote server URL
-    , _loListEntity   :: ListEntity -- ^ what to list
-    , _loRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
-    , _optIgnoreGeno  :: Bool
+    { _loRepoLocation  :: RepoLocationSpec -- ^ the list of base directories to search for packages
+    , _loListEntity    :: ListEntity -- ^ what to list
+    , _loRawOutput     :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _optIgnoreGeno   :: Bool
     }
+
+data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
 
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
@@ -38,7 +38,7 @@ data ListEntity = ListPackages
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 -- remote version
-runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
+runList (ListOptions (RepoRemote remoteURL) listEntity rawOutput _) = do
     let remote = remoteURL
     -- load remote samples list
     hPutStrLn stderr "Downloading sample list from remote"
@@ -81,7 +81,7 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
         let colSpecs = replicate 3 (column (expandUntil 60) def def def)
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 -- local version
-runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = do
+runList (ListOptions (RepoLocal baseDirs) listEntity rawOutput ignoreGeno) = do
     -- load local packages
     allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
     -- construct output

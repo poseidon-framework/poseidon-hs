@@ -7,7 +7,7 @@ import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
 import           Poseidon.GenotypeData  (GenotypeFormatSpec (..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
-                                        runList)
+                                        runList, RepoLocationSpec(..))
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.EntitiesList  (PoseidonEntity (..),
@@ -131,9 +131,7 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseOutPackageName
 
 listOptParser :: OP.Parser ListOptions
-listOptParser = ListOptions <$> parseBasePathsMaybe
-                            <*> parseRemote 
-                            <*> parseRemoteURL
+listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
@@ -253,17 +251,17 @@ readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
+parseRepoLocation :: OP.Parser RepoLocationSpec
+parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
+
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
 
-parseBasePathsMaybe :: OP.Parser (Maybe [FilePath])
-parseBasePathsMaybe = OP.optional $ OP.some (OP.strOption (OP.long "baseDir" <>
-    OP.short 'd' <>
-    OP.metavar "DIR" <>
-    OP.help "a local base directory to search for Poseidon Packages (could be a Poseidon repository)"))
+parseRemoteDummy :: OP.Parser ()
+parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from a remote server instead the local file system")
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
@@ -324,12 +322,6 @@ parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <> 
     OP.help "ignore SNP and GenoFile for the validation" <>
     OP.hidden
-    )
-
-parseRemote :: OP.Parser Bool
-parseRemote = OP.switch (
-    OP.long "remote" <> 
-    OP.help "Access data in a remote Poseidon server (instead of the local -d)"
     )
 
 parseRemoteURL :: OP.Parser String 
