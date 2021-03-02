@@ -7,7 +7,7 @@ import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
 import           Poseidon.GenotypeData  (GenotypeFormatSpec (..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
-                                        runList)
+                                        runList, RepoLocationSpec(..))
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.EntitiesList  (PoseidonEntity (..),
@@ -100,9 +100,9 @@ optParser = OP.subparser (
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
-        (OP.progDesc "List packages, groups or individuals")
+        (OP.progDesc "List packages, groups or individuals from local or remote Poseidon repositories")
     fetchOptInfo = OP.info (OP.helper <*> (CmdFetch <$> fetchOptParser))
-        (OP.progDesc "Download data from a Poseidon server")
+        (OP.progDesc "Download data from a remote Poseidon repository")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
         (OP.progDesc "Select packages, groups or individuals and create a new Poseidon package from them")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
@@ -131,8 +131,8 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseOutPackageName
 
 listOptParser :: OP.Parser ListOptions
-listOptParser = ListOptions <$> parseBasePaths 
-                            <*> parseListEntity 
+listOptParser = ListOptions <$> parseRepoLocation
+                            <*> parseListEntity
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
 
@@ -166,7 +166,7 @@ updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
-validateOptParser = ValidateOptions <$> parseBasePaths 
+validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
 
 parseJackknife :: OP.Parser JackknifeMode
@@ -251,11 +251,17 @@ readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
+parseRepoLocation :: OP.Parser RepoLocationSpec
+parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
+
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
+
+parseRemoteDummy :: OP.Parser ()
+parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from a remote server instead the local file system")
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
@@ -307,8 +313,8 @@ parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
-    OP.long "raw" <> OP.short 'r' <> 
-    OP.help "output table as tsv without header. Useful for piping into grep or awk."
+    OP.long "raw" <> 
+    OP.help "output table as tsv without header. Useful for piping into grep or awk"
     )
 
 parseIgnoreGeno :: OP.Parser Bool
@@ -320,8 +326,8 @@ parseIgnoreGeno = OP.switch (
 
 parseRemoteURL :: OP.Parser String 
 parseRemoteURL = OP.strOption (
-    OP.long "remote" <> 
-    OP.help "URL of the remote server" <>
+    OP.long "remoteURL" <> 
+    OP.help "URL of the remote Poseidon server" <>
     OP.value "https://c107-224.cloud.gwdg.de" <>
     OP.showDefault
     )
