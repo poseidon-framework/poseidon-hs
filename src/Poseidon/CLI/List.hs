@@ -37,13 +37,19 @@ data ListEntity = ListPackages
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
--- remote version
-runList (ListOptions (RepoRemote remoteURL) listEntity rawOutput _) = do
-    let remote = remoteURL
-    -- load remote samples list
-    hPutStrLn stderr "Downloading sample list from remote"
-    remoteOverviewJSONByteString <- simpleHttp (remote ++ "/individuals_all")
-    allRemoteSamples <- readSampleInfo remoteOverviewJSONByteString
+runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
+    allSampleInfo <- case repoLocation of
+        RepoRemote remoteURL -> do
+            -- load remote samples list
+            hPutStrLn stderr "Downloading sample list from remote"
+            remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/individuals_all")
+            readSampleInfo remoteOverviewJSONByteString
+        RepoLocal baseDirs -> do
+            allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
+            return $ do -- this do starts the List Monad interface. Not to be confused with IO.
+                pac <- allPackages
+                jannoRow <- posPacJanno pac
+                return $ IndividualInfo (posSamIndividualID jannoRow) (head (posSamGroupName jannoRow)) (posPacTitle pac)
     -- construct output
     hPutStrLn stderr "Preparing output table"
     (tableH, tableB) <- case listEntity of
@@ -51,7 +57,7 @@ runList (ListOptions (RepoRemote remoteURL) listEntity rawOutput _) = do
             let tableH = ["Title", "Nr Individuals"]
                 tableB = do
                     onePac <- groupBy (\x y -> indInfoPacName x == indInfoPacName y) $ 
-                        sortOn indInfoPacName allRemoteSamples
+                        sortOn indInfoPacName allSampleInfo
                     let pacTitle = indInfoPacName $ head onePac
                         pacNrInds = show (length onePac)
                     return [pacTitle, pacNrInds]
@@ -61,7 +67,7 @@ runList (ListOptions (RepoRemote remoteURL) listEntity rawOutput _) = do
             let tableH = ["Group", "Packages", "Nr Individuals"]
                 tableB = do
                     oneGroup <- groupBy (\x y -> indInfoGroup x == indInfoGroup y) $ 
-                        sortOn indInfoGroup allRemoteSamples
+                        sortOn indInfoGroup allSampleInfo
                     let groupName = indInfoGroup $ head oneGroup
                         groupPacs = intercalate "," $ nub $ map indInfoPacName oneGroup
                         groupNrInds = show (length oneGroup)
@@ -71,7 +77,7 @@ runList (ListOptions (RepoRemote remoteURL) listEntity rawOutput _) = do
         ListIndividuals -> do
             let tableH = ["Package", "Individual", "Group"]
             let tableB = do
-                    oneSample <- allRemoteSamples
+                    oneSample <- allSampleInfo
                     return [indInfoPacName oneSample, indInfoName oneSample, indInfoGroup oneSample]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
@@ -80,50 +86,6 @@ runList (ListOptions (RepoRemote remoteURL) listEntity rawOutput _) = do
     else do
         let colSpecs = replicate 3 (column (expandUntil 60) def def def)
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
--- local version
-runList (ListOptions (RepoLocal baseDirs) listEntity rawOutput ignoreGeno) = do
-    -- load local packages
-    allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
-    -- construct output
-    hPutStrLn stderr "Preparing output table"
-    (tableH, tableB) <- case listEntity of
-        ListPackages -> do
-            let tableH = ["Title", "Date", "Nr Individuals"]
-                tableB = do
-                    pac <- allPackages
-                    let jannoRows = posPacJanno pac
-                    return [posPacTitle pac, showMaybeDate (posPacLastModified pac), show (length jannoRows)]
-            return (tableH, tableB)
-        ListGroups -> do
-            let allInds = do
-                    pac <- allPackages
-                    jannoRow <- posPacJanno pac
-                    return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
-            let allIndsSortedByGroup = groupBy (\a b -> a!!2 == b!!2) . sortOn (!!2) $ allInds
-            let tableH = ["Group", "Packages", "Nr Individuals"]
-                tableB = do
-                    indGroup <- allIndsSortedByGroup
-                    let packages_ = nub [i!!0 | i <- indGroup]
-                    let nrInds = length indGroup
-                    return [(indGroup!!0)!!2, intercalate "," packages_, show nrInds]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
-            return (tableH, tableB)
-        ListIndividuals -> do
-            let tableH = ["Package", "Individual", "Group"]
-            let tableB = do
-                    pac <- allPackages
-                    jannoRow <- posPacJanno pac
-                    return [posPacTitle pac, posSamIndividualID jannoRow, head (posSamGroupName jannoRow)]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
-            return (tableH, tableB)
-    if rawOutput then
-        putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    else do
-        let colSpecs = replicate 3 (column (expandUntil 60) def def def)
-        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-  where
-    showMaybeDate (Just d) = show d
-    showMaybeDate Nothing  = "n/a"
 
 readSampleInfo :: LB.ByteString -> IO [IndividualInfo]
 readSampleInfo bs = do
