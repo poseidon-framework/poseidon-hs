@@ -6,7 +6,7 @@ import           Poseidon.Janno             (PoseidonSample (..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
                                              readPoseidonPackageCollection)
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (PoseidonException (..), IndividualInfo(..))
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
@@ -35,19 +35,6 @@ data ListEntity = ListPackages
     | ListGroups
     | ListIndividuals
 
--- | A datatype to represent the content of the entries in /individuals_all
-data RemoteSample = RemoteSample 
-    { remSamIndividualID :: String
-    , remSamGroupName    :: String
-    , remSamPacTitle     :: String
-    }
-
-instance FromJSON RemoteSample where
-    parseJSON = withObject "RemoteSample" $ \v -> RemoteSample
-        <$> v .:   "name"
-        <*> v .:   "group"
-        <*> v .:   "pacName"
-
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 -- remote version
@@ -63,9 +50,9 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
                 tableB = do
-                    onePac <- groupBy (\x y -> remSamPacTitle x == remSamPacTitle y) $ 
-                        sortOn remSamPacTitle allRemoteSamples
-                    let pacTitle = remSamPacTitle $ head onePac
+                    onePac <- groupBy (\x y -> indInfoPacName x == indInfoPacName y) $ 
+                        sortOn indInfoPacName allRemoteSamples
+                    let pacTitle = indInfoPacName $ head onePac
                         pacNrInds = show (length onePac)
                     return [pacTitle, pacNrInds]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " packages")
@@ -73,10 +60,10 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
                 tableB = do
-                    oneGroup <- groupBy (\x y -> remSamGroupName x == remSamGroupName y) $ 
-                        sortOn remSamGroupName allRemoteSamples
-                    let groupName = remSamGroupName $ head oneGroup
-                        groupPacs = intercalate "," $ nub $ map remSamPacTitle oneGroup
+                    oneGroup <- groupBy (\x y -> indInfoGroup x == indInfoGroup y) $ 
+                        sortOn indInfoGroup allRemoteSamples
+                    let groupName = indInfoGroup $ head oneGroup
+                        groupPacs = intercalate "," $ nub $ map indInfoPacName oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
@@ -85,7 +72,7 @@ runList (ListOptions _ True remoteURL listEntity rawOutput _) = do
             let tableH = ["Package", "Individual", "Group"]
             let tableB = do
                     oneSample <- allRemoteSamples
-                    return [remSamPacTitle oneSample, remSamIndividualID oneSample, remSamGroupName oneSample]
+                    return [indInfoPacName oneSample, indInfoName oneSample, indInfoGroup oneSample]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
     if rawOutput then
@@ -138,7 +125,7 @@ runList (ListOptions (Just baseDirs) False _ listEntity rawOutput ignoreGeno) = 
     showMaybeDate (Just d) = show d
     showMaybeDate Nothing  = "n/a"
 
-readSampleInfo :: LB.ByteString -> IO [RemoteSample]
+readSampleInfo :: LB.ByteString -> IO [IndividualInfo]
 readSampleInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
