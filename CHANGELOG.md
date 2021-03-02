@@ -15,3 +15,4 @@
 - V 0.7.3: Enabled the validate module to handle duplicated packages
 - V 0.8.0: Forge now has new option `--intersect` to control merging behaviour.
 - V 0.9.0: Plink output now supported in forge.
+- V 0.10.0: List now has `--remote` option to view packages, groups and individuals on a remote server
