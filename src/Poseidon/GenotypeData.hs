@@ -15,18 +15,20 @@ import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes, isNothing)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Producer, (>->))
+import           Pipes                      (Producer, (>->), Pipe (..),
+                                            await, yield)
 import           Pipes.OrderedZip           (orderCheckPipe, orderedZipAll)
 import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (MonadSafe)
+import           Pipes.Safe                 (MonadSafe, SafeT (..))
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
+import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesFileExist)
 import           System.FilePath.Posix      ((</>))
-import           System.IO                  (hPutStrLn, stderr)
+import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
     { format         :: GenotypeFormatSpec
@@ -212,3 +214,16 @@ recodeAlleles ref alt = V.mapM a2g
         | otherwise                                                                                    = throwM (err a1 a2)
     err a1 a2 = PoseidonGenotypeException ("cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
     na = ['0', 'N', 'X']
+
+printSNPCopyProgress :: Pipe a a (SafeT IO) ()
+printSNPCopyProgress = loop 0
+  where
+    loop n = do
+        when (n `rem` 1000 == 0) $ do
+            liftIO $ hClearLine stderr
+            liftIO $ hSetCursorColumn stderr 0
+            liftIO $ hPutStr stderr ("SNPs processed: " ++ show n)
+            liftIO $ hFlush stderr
+        x <- await
+        yield x
+        loop (n+1)

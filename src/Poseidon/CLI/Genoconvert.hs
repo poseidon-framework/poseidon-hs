@@ -2,15 +2,16 @@ module Poseidon.CLI.Genoconvert where
 
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
-                                             loadGenotypeData)
+                                             loadGenotypeData,
+                                             printSNPCopyProgress)
 import           Poseidon.Package           (findAllPoseidonYmlFiles,
                                              readPoseidonPackageCollection,
                                              PoseidonPackage (..),
                                              writePoseidonPackage)
 
 import           Control.Monad              (when)
-import           Pipes                      (MonadIO (liftIO), Pipe (..), await,
-                                             lift, runEffect, yield, (>->))
+import           Pipes                      (MonadIO (liftIO), 
+                                            lift, runEffect, (>->))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (SafeT (..), runSafeT, throwM)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -20,7 +21,7 @@ import           SequenceFormats.Plink      (writePlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (removeFile)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
+import           System.IO                  (hPutStr, hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
@@ -60,7 +61,7 @@ convertGenoTo outFormat pac = do
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                     GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-            runEffect $ eigenstratProd >-> printProgress >-> outConsumer
+            runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
             liftIO $ hClearLine stderr
             liftIO $ hSetCursorColumn stderr 0
             liftIO $ hPutStrLn stderr "SNPs processed: All done"
@@ -69,19 +70,8 @@ convertGenoTo outFormat pac = do
             newPac = pac { posPacGenotypeData = genotypeData }
         writePoseidonPackage newPac
         -- delete now replaced input genotype data
-        removeFile $ posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
-        removeFile $ posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
-        removeFile $ posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
-
-printProgress :: Pipe a a (SafeT IO) ()
-printProgress = loop 0
-  where
-    loop n = do
-        when (n `rem` 1000 == 0) $ do
-            liftIO $ hClearLine stderr
-            liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStr stderr ("SNPs processed: " ++ show n)
-            liftIO $ hFlush stderr
-        x <- await
-        yield x
-        loop (n+1)
+        mapM_ removeFile [
+              posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
+            , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
+            , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
+            ]
