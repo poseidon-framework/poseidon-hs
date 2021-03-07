@@ -74,7 +74,11 @@ instance ToJSON GenotypeDataSpec where
 -- | A data type representing the options fo the genotype format
 data GenotypeFormatSpec = GenotypeFormatEigenstrat
     | GenotypeFormatPlink
-    deriving (Show, Eq)
+    deriving (Eq)
+
+instance Show GenotypeFormatSpec where
+    show GenotypeFormatPlink      = "PLINK"
+    show GenotypeFormatEigenstrat = "EIGENSTRAT"
 
 -- | To facilitate automatic parsing of GenotypeFormatSpec from JSON files
 instance FromJSON GenotypeFormatSpec where
