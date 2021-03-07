@@ -5,7 +5,8 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadGenotypeData)
 import           Poseidon.Package           (findAllPoseidonYmlFiles,
                                              readPoseidonPackageCollection,
-                                             PoseidonPackage (..))
+                                             PoseidonPackage (..),
+                                             writePoseidonPackage)
 
 import           Control.Monad              (when)
 import           Pipes                      (MonadIO (liftIO), Pipe (..), await,
@@ -17,6 +18,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
+import           System.Directory           (removeFile)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
 
@@ -47,8 +49,11 @@ convertGenoTo outFormat pac = do
     let [outInd, outSnp, outGeno] = case outFormat of 
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
-    if format (posPacGenotypeData pac) /= outFormat
-    then do
+    -- check if genotype data needs conversion
+    if format (posPacGenotypeData pac) == outFormat
+    then hPutStrLn stderr "The genotype data is already in the requested format"
+    else do
+        -- create new genotype data files
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
             let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
@@ -59,9 +64,15 @@ convertGenoTo outFormat pac = do
             liftIO $ hClearLine stderr
             liftIO $ hSetCursorColumn stderr 0
             liftIO $ hPutStrLn stderr "SNPs processed: All done"
-    else hPutStrLn stderr 
-        "The genotype data is already in the requested format"
-        
+        -- overwrite genotype data field in POSEIDON.yml file
+        let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
+            newPac = pac { posPacGenotypeData = genotypeData }
+        writePoseidonPackage newPac
+        -- delete now replaced input genotype data
+        removeFile $ posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
+        removeFile $ posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
+        removeFile $ posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
+
 printProgress :: Pipe a a (SafeT IO) ()
 printProgress = loop 0
   where
