@@ -6,7 +6,7 @@ import           Poseidon.Package           (findAllPoseidonYmlFiles,
                                              readPoseidonPackageCollection,
                                              PoseidonPackage (..))
 
-import           System.IO                  (hPutStrLn, stderr)
+import           System.IO                  (hPutStr, hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
@@ -16,5 +16,16 @@ data GenoconvertOptions = GenoconvertOptions
 
 runGenoconvert :: GenoconvertOptions -> IO ()
 runGenoconvert (GenoconvertOptions baseDirs outFormat) = do
-    hPutStrLn stderr "test"
+    -- load packages
+    allPackages <- readPoseidonPackageCollection True False baseDirs
+    -- convert
+    mapM_ (convertGenoTo outFormat) allPackages
 
+convertGenoTo :: GenotypeFormatSpec -> PoseidonPackage -> IO ()
+convertGenoTo genoFormat pac = do
+    hPutStr stderr $
+        "Converting genotype data in package "
+        ++ posPacTitle pac
+        ++ " to format "
+        ++ show genoFormat
+        
