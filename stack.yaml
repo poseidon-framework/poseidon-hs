@@ -5,7 +5,7 @@ packages:
 extra-deps:
 - table-layout-0.9.1.0
 - data-default-instances-base-0.1.0.1
-- sequence-formats-1.6.0
+- sequence-formats-1.6.1
 - yaml-pretty-extras-0.0.2.2
 - pandoc-citeproc-0.17.0.2
 - pandoc-2.10.1
