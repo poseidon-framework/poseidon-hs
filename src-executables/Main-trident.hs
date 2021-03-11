@@ -166,7 +166,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
                                           <*> parseRemoveOld
 
 parseRemoveOld :: OP.Parser Bool
-parseRemoveOld = OP.switch (OP.long "remove-old" <> OP.help "Remove the old genotype files when creating the new ones")
+parseRemoveOld = OP.switch (OP.long "removeOld" <> OP.help "Remove the old genotype files when creating the new ones")
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths

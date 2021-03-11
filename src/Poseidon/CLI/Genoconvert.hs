@@ -19,7 +19,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (removeFile)
+import           System.Directory           (removeFile, doesFileExist)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStr, hPutStrLn, stderr)
 
@@ -56,23 +56,33 @@ convertGenoTo outFormat removeOld pac = do
     then hPutStrLn stderr "The genotype data is already in the requested format"
     else do
         -- create new genotype data files
-        runSafeT $ do
-            (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
-            let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
-            let outConsumer = case outFormat of
-                    GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                    GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-            runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
-            liftIO $ hClearLine stderr
-            liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStrLn stderr "SNPs processed: All done"
-        -- overwrite genotype data field in POSEIDON.yml file
-        let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
-            newPac = pac { posPacGenotypeData = genotypeData }
-        writePoseidonPackage newPac
-        -- delete now replaced input genotype data
-        when removeOld $ mapM_ removeFile [
-              posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
-            , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
-            , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
-            ]
+        let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
+        anyExists <- or <$> mapM checkFile [outG, outS, outI]
+        if anyExists
+        then hPutStrLn stderr ("skipping genotype convertion for package " ++ posPacTitle pac)
+        else do
+            runSafeT $ do            
+                (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
+                let outConsumer = case outFormat of
+                        GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
+                        GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
+                runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
+                liftIO $ hClearLine stderr
+                liftIO $ hSetCursorColumn stderr 0
+                liftIO $ hPutStrLn stderr "SNPs processed: All done"
+            -- overwrite genotype data field in POSEIDON.yml file
+            let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
+                newPac = pac { posPacGenotypeData = genotypeData }
+            writePoseidonPackage newPac
+            -- delete now replaced input genotype data
+            when removeOld $ mapM_ removeFile [
+                posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
+                , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
+                , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
+                ]
+  where
+    checkFile :: FilePath -> IO Bool
+    checkFile fn = do
+        fe <- doesFileExist fn
+        when fe $ hPutStrLn stderr ("File " ++ fn ++ " exists")
+        return fe
