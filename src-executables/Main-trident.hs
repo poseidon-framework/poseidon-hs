@@ -163,6 +163,10 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
                                           <*> parseOutGenotypeFormat
+                                          <*> parseRemoveOld
+
+parseRemoveOld :: OP.Parser Bool
+parseRemoveOld = OP.switch (OP.long "remove-old" <> OP.help "Remove the old genotype files when creating the new ones")
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths

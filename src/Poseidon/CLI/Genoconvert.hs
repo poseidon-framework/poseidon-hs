@@ -27,17 +27,18 @@ import           System.IO                  (hPutStr, hPutStrLn, stderr)
 data GenoconvertOptions = GenoconvertOptions
     { _baseDirs :: [FilePath]
     , _outFormat :: GenotypeFormatSpec
+    , _removeOld :: Bool
     }
 
 runGenoconvert :: GenoconvertOptions -> IO ()
-runGenoconvert (GenoconvertOptions baseDirs outFormat) = do
+runGenoconvert (GenoconvertOptions baseDirs outFormat removeOld) = do
     -- load packages
     allPackages <- readPoseidonPackageCollection True False baseDirs
     -- convert
-    mapM_ (convertGenoTo outFormat) allPackages
+    mapM_ (convertGenoTo outFormat removeOld) allPackages
 
-convertGenoTo :: GenotypeFormatSpec -> PoseidonPackage -> IO ()
-convertGenoTo outFormat pac = do
+convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
+convertGenoTo outFormat removeOld pac = do
     -- start message
     hPutStrLn stderr $
         "Converting genotype data in package "
@@ -70,7 +71,7 @@ convertGenoTo outFormat pac = do
             newPac = pac { posPacGenotypeData = genotypeData }
         writePoseidonPackage newPac
         -- delete now replaced input genotype data
-        mapM_ removeFile [
+        when removeOld $ mapM_ removeFile [
               posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
             , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
             , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
