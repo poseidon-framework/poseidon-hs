@@ -16,3 +16,4 @@
 - V 0.8.0: Forge now has new option `--intersect` to control merging behaviour.
 - V 0.9.0: Plink output now supported in forge.
 - V 0.10.0: List now has `--remote` option to view packages, groups and individuals on a remote server
+- V 0.11.0: Added the module genoconvert to automatically switch the genotype data format in packages
