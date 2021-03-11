@@ -506,7 +506,7 @@ updateChecksumsInPackage pac = do
     } 
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC 1) = do
+writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC _) = do
     let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac

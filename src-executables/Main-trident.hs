@@ -10,6 +10,7 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList, RepoLocationSpec(..))
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
+import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.EntitiesList  (PoseidonEntity (..),
                                         poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
@@ -34,6 +35,7 @@ data Options = CmdFstats FstatsOptions
     | CmdList ListOptions
     | CmdFetch FetchOptions
     | CmdForge ForgeOptions
+    | CmdGenoconvert GenoconvertOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
     | CmdUpdate UpdateOptions
@@ -57,6 +59,7 @@ runCmd o = case o of
     CmdList opts      -> runList opts
     CmdFetch opts     -> runFetch opts
     CmdForge opts     -> runForge opts
+    CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
     CmdUpdate opts    -> runUpdate opts
@@ -80,6 +83,7 @@ optParser = OP.subparser (
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
+        OP.command "genoconvert" genoconvertOptInfo <>
         OP.command "update" updateOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
@@ -105,6 +109,8 @@ optParser = OP.subparser (
         (OP.progDesc "Download data from a remote Poseidon repository")
     forgeOptInfo = OP.info (OP.helper <*> (CmdForge <$> forgeOptParser))
         (OP.progDesc "Select packages, groups or individuals and create a new Poseidon package from them")
+    genoconvertOptInfo = OP.info (OP.helper <*> (CmdGenoconvert <$> genoconvertOptParser))
+        (OP.progDesc "Convert the genotype data in a Poseidon package to a different file format")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
@@ -153,6 +159,14 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseOutPackageName
                               <*> parseOutFormat
                               <*> parseShowWarnings
+
+genoconvertOptParser :: OP.Parser GenoconvertOptions
+genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
+                                          <*> parseOutGenotypeFormat
+                                          <*> parseRemoveOld
+
+parseRemoveOld :: OP.Parser Bool
+parseRemoveOld = OP.switch (OP.long "removeOld" <> OP.help "Remove the old genotype files when creating the new ones")
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -266,6 +280,16 @@ parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
     OP.help "the format of the input genotype data: EIGENSTRAT or PLINK") 
+    where
+    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
+    readGenotypeFormat s = case s of
+        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
+        "PLINK"      -> Right GenotypeFormatPlink
+        _            -> Left "must be EIGENSTRAT or PLINK"
+
+parseOutGenotypeFormat :: OP.Parser GenotypeFormatSpec
+parseOutGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "outFormat" <>
+    OP.help "the format of the output genotype data: EIGENSTRAT or PLINK") 
     where
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of

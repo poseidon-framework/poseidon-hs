@@ -5,7 +5,8 @@ import           Poseidon.EntitiesList      (EntitiesList (..),
                                              PoseidonEntity (..),
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..))
+                                             GenotypeFormatSpec (..),
+                                             printSNPCopyProgress)
 import           Poseidon.Janno             (PoseidonSample (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
@@ -116,26 +117,13 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
         let outConsumer = case outFormat of
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
-        runEffect $ eigenstratProd >-> printProgress >-> P.map (selectIndices indices) >-> outConsumer
+        runEffect $ eigenstratProd >-> printSNPCopyProgress >-> P.map (selectIndices indices) >-> outConsumer
         liftIO $ hClearLine stderr
         liftIO $ hSetCursorColumn stderr 0
         liftIO $ hPutStrLn stderr "SNPs processed: All done"
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
-
-printProgress :: Pipe a a (SafeT IO) ()
-printProgress = loop 0
-  where
-    loop n = do
-        when (n `rem` 1000 == 0) $ do
-            liftIO $ hClearLine stderr
-            liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStr stderr ("SNPs processed: " ++ show n)
-            liftIO $ hFlush stderr
-        x <- await
-        yield x
-        loop (n+1)
 
 findNonExistentEntities :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonEntity]
 findNonExistentEntities entities packages = do
