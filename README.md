@@ -25,7 +25,7 @@ The Github Actions script in `.github/workflows/release.yml` registeres a new dr
 
 ```bash
 # locally register a new tag (e.g. 0.3.1)
-git tag -a v0.3.1 -m "short description text for this release"
+git tag -a v0.3.1 -m "see CHANGELOG.md"
 # push tag
 git push origin v0.3.1
 ```
