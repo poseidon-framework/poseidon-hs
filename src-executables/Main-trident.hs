@@ -331,8 +331,8 @@ parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Sh
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
   where
-    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list packages")
-    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list groups")
+    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list all packages")
+    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list all groups, ignoring any group names after the first as specified in the Janno-file")
     parseListIndividuals = OP.flag' ListIndividuals (OP.long "individuals" <> OP.help "list individuals")
 
 parseRawOutput :: OP.Parser Bool
