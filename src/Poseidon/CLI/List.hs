@@ -44,7 +44,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
         RepoRemote remoteURL -> do
             -- load remote samples list
             hPutStrLn stderr "Downloading sample list from remote"
-            remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/individuals_all")
+            remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/janno_all")
             readSampleInfo remoteOverviewJSONByteString
         RepoLocal baseDirs -> do
             allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
