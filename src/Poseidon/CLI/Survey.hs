@@ -3,7 +3,7 @@
 module Poseidon.CLI.Survey where
 
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Janno        (Janno (..), PoseidonSample (..))
+import           Poseidon.Janno        (JannoRow (..))
 import           Poseidon.Package      (PoseidonPackage (..),
                                         readPoseidonPackageCollection)
 import           Poseidon.BibFile      (BibTeX (..))

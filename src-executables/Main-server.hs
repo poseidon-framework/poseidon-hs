@@ -198,14 +198,8 @@ makeZipArchive pac ignoreGenoFiles =
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
-getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
-getAllIndividualInfo packages = do
-    pac <- packages
-    jannoRow <- posPacJanno pac
-    let name = posSamIndividualID jannoRow
-        group = head . posSamGroupName $ jannoRow
-        pacName = posPacTitle pac
-    return $ IndividualInfo name group pacName
+getAllIndividualInfo :: [PoseidonPackage] -> [(String, Janno)]
+getAllIndividualInfo packages = [(posPacTitle pac, posPacJanno pac) |pac <- packages]
 
 optParserInfo :: OP.ParserInfo CommandLineOptions
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (

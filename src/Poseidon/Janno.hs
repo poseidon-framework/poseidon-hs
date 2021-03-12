@@ -4,8 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Poseidon.Janno (
-    Janno (..),
-    PoseidonSample(..),
+    JannoRow(..),
     Sex (..),
     Latitude (..),
     Longitude (..),
@@ -20,36 +19,39 @@ module Poseidon.Janno (
     createMinimalJanno
 ) where
 
-import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
+import           Poseidon.Utils             (PoseidonException (..),
+                                             renderPoseidonException)
 
 
 import           Control.Applicative        (empty, optional)
-import           Data.Bifunctor             (second)
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (when, unless)
+import           Control.Monad              (unless, when)
+import           Data.Aeson                 (FromJSON, Options (..), ToJSON, Value(..),
+                                             defaultOptions, genericToEncoding, toJSON, parseJSON,
+                                             toEncoding)
+import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Char                  (ord)
 import qualified Data.Csv                   as Csv
-import qualified Data.HashMap.Lazy          as HM
-import           Data.Either                (isRight, isLeft, rights, lefts)
+import           Data.Either                (isLeft, isRight, lefts, rights)
 import           Data.Either.Combinators    (rightToMaybe)
+import qualified Data.HashMap.Lazy          as HM
 import           Data.List                  (intercalate, nub)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
-import           SequenceFormats.Eigenstrat (Sex (..),
-                                             EigenstratIndEntry (..))
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.Directory           (doesFileExist)
 import           System.IO                  (hPutStrLn, stderr)
 
 instance Ord Sex where
-    compare Female Male = GT
-    compare Male Female = LT
-    compare Male Unknown = GT
-    compare Unknown Male = LT
+    compare Female Male    = GT
+    compare Male Female    = LT
+    compare Male Unknown   = GT
+    compare Unknown Male   = LT
     compare Female Unknown = GT
     compare Unknown Female = LT
-    compare _ _ = EQ
+    compare _ _            = EQ
 
 instance Csv.FromField Sex where
     parseField x
@@ -63,11 +65,28 @@ instance Csv.ToField Sex where
     toField Male    = "M"
     toField Unknown = "U"
 
+instance FromJSON Sex where
+    parseJSON (String "M") = pure Male
+    parseJSON (String "F") = pure Female
+    parseJSON (String "U") = pure Unknown
+    parseJSON v = fail ("could not parse " ++ show v ++ " as Sex")
+
+instance ToJSON Sex where
+    -- this encodes directly to a bytestring Builder
+    toJSON Male = String "M"
+    toJSON Female = String "F"
+    toJSON Unknown = String "U"
+
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
     | Contextual
     | Modern
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON JannoDateType where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON JannoDateType
 
 instance Csv.FromField JannoDateType where
     parseField x
@@ -86,7 +105,12 @@ data JannoDataType = Shotgun
     | A1240K
     | OtherCapture
     | ReferenceGenome
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON JannoDataType where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON JannoDataType
 
 instance Csv.FromField JannoDataType where
     parseField x
@@ -105,7 +129,12 @@ instance Csv.ToField JannoDataType where
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = Diploid
     | Haploid
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON JannoGenotypePloidy where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON JannoGenotypePloidy
 
 instance Csv.FromField JannoGenotypePloidy where
     parseField x
@@ -122,7 +151,12 @@ data JannoUDG = Minus
     | Half
     | Plus
     | Mixed
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON JannoUDG where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON JannoUDG
 
 instance Csv.FromField JannoUDG where
     parseField x
@@ -142,7 +176,7 @@ instance Csv.ToField JannoUDG where
 data JannoLibraryBuilt = DS
     | SS
     | Other
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
 
 instance Csv.FromField JannoLibraryBuilt where
     parseField x
@@ -156,10 +190,20 @@ instance Csv.ToField JannoLibraryBuilt where
     toField SS    = "ss"
     toField Other = "other"
 
+instance ToJSON JannoLibraryBuilt where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON JannoLibraryBuilt
+
 -- | A datatype for Latitudes
 newtype Latitude =
         Latitude Double
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON Latitude where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Latitude
 
 instance Csv.FromField Latitude where
     parseField x = do
@@ -174,7 +218,12 @@ instance Csv.ToField Latitude where
 -- | A datatype for Longitudes
 newtype Longitude =
         Longitude Double
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON Longitude where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Longitude
 
 instance Csv.FromField Longitude where
     parseField x = do
@@ -189,7 +238,13 @@ instance Csv.ToField Longitude where
 -- | A datatype for Percent values
 newtype Percent =
         Percent Double
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+instance ToJSON Percent where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Percent
+
 
 instance Csv.FromField Percent where
     parseField x = do
@@ -201,54 +256,57 @@ instance Csv.FromField Percent where
 instance Csv.ToField Percent where
     toField (Percent x) = Csv.toField x
 
-type Janno = [PoseidonSample]
-
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
-data PoseidonSample = PoseidonSample
-    { posSamIndividualID      :: String
-    , posSamCollectionID      :: Maybe String
-    , posSamSourceTissue      :: Maybe [String]
-    , posSamCountry           :: Maybe String
-    , posSamLocation          :: Maybe String
-    , posSamSite              :: Maybe String
-    , posSamLatitude          :: Maybe Latitude
-    , posSamLongitude         :: Maybe Longitude
-    , posSamDateC14Labnr      :: Maybe [String]
-    , posSamDateC14UncalBP    :: Maybe [Int]
-    , posSamDateC14UncalBPErr :: Maybe [Int]
-    , posSamDateBCADMedian    :: Maybe Int
-    , posSamDateBCADStart     :: Maybe Int
-    , posSamDateBCADStop      :: Maybe Int
-    , posSamDateType          :: Maybe JannoDateType
-    , posSamNrLibraries       :: Maybe Int
-    , posSamDataType          :: Maybe [JannoDataType]
-    , posSamGenotypePloidy    :: Maybe JannoGenotypePloidy
-    , posSamGroupName         :: [String]
-    , posSamGeneticSex        :: Sex
-    , posSamNrAutosomalSNPs   :: Maybe Int
-    , posSamCoverage1240K     :: Maybe Double
-    , posSamMTHaplogroup      :: Maybe String
-    , posSamYHaplogroup       :: Maybe String
-    , posSamEndogenous        :: Maybe Percent
-    , posSamUDG               :: Maybe JannoUDG
-    , posSamLibraryBuilt      :: Maybe JannoLibraryBuilt
-    , posSamDamage            :: Maybe Percent
-    , posSamNuclearContam     :: Maybe Double
-    , posSamNuclearContamErr  :: Maybe Double
-    , posSamMTContam          :: Maybe Double
-    , posSamMTContamErr       :: Maybe Double
-    , posSamPrimaryContact    :: Maybe String
-    , posSamPublication       :: Maybe String
-    , posSamComments          :: Maybe String
-    , posSamKeywords          :: Maybe [String]
+data JannoRow = JannoRow
+    { jIndividualID      :: String
+    , jCollectionID      :: Maybe String
+    , jSourceTissue      :: Maybe [String]
+    , jCountry           :: Maybe String
+    , jLocation          :: Maybe String
+    , jSite              :: Maybe String
+    , jLatitude          :: Maybe Latitude
+    , jLongitude         :: Maybe Longitude
+    , jDateC14Labnr      :: Maybe [String]
+    , jDateC14UncalBP    :: Maybe [Int]
+    , jDateC14UncalBPErr :: Maybe [Int]
+    , jDateBCADMedian    :: Maybe Int
+    , jDateBCADStart     :: Maybe Int
+    , jDateBCADStop      :: Maybe Int
+    , jDateType          :: Maybe JannoDateType
+    , jNrLibraries       :: Maybe Int
+    , jDataType          :: Maybe [JannoDataType]
+    , jGenotypePloidy    :: Maybe JannoGenotypePloidy
+    , jGroupName         :: [String]
+    , jGeneticSex        :: Sex
+    , jNrAutosomalSNPs   :: Maybe Int
+    , jCoverage1240K     :: Maybe Double
+    , jMTHaplogroup      :: Maybe String
+    , jYHaplogroup       :: Maybe String
+    , jEndogenous        :: Maybe Percent
+    , jUDG               :: Maybe JannoUDG
+    , jLibraryBuilt      :: Maybe JannoLibraryBuilt
+    , jDamage            :: Maybe Percent
+    , jNuclearContam     :: Maybe Double
+    , jNuclearContamErr  :: Maybe Double
+    , jMTContam          :: Maybe Double
+    , jMTContamErr       :: Maybe Double
+    , jPrimaryContact    :: Maybe String
+    , jPublication       :: Maybe String
+    , jComments          :: Maybe String
+    , jKeywords          :: Maybe [String]
     }
     deriving (Show, Eq, Generic)
 
-instance Csv.FromNamedRecord PoseidonSample where
-    parseNamedRecord m = pure PoseidonSample
-        <*> filterLookup m "Individual_ID" 
+instance ToJSON JannoRow where
+    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
+
+instance FromJSON JannoRow
+
+instance Csv.FromNamedRecord JannoRow where
+    parseNamedRecord m = pure JannoRow
+        <*> filterLookup m "Individual_ID"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -268,7 +326,7 @@ instance Csv.FromNamedRecord PoseidonSample where
         <*> filterLookupOptional m "Genotype_Ploidy"
         <*> filterLookup m "Group_Name"
         <*> filterLookup m "Genetic_Sex"
-        <*> filterLookupOptional m "Nr_autosomal_SNPs" 
+        <*> filterLookupOptional m "Nr_autosomal_SNPs"
         <*> filterLookupOptional m "Coverage_1240K"
         <*> filterLookupOptional m "MT_Haplogroup"
         <*> filterLookupOptional m "Y_Haplogroup"
@@ -293,62 +351,61 @@ filterLookupOptional m name = case HM.lookup name m of
     Nothing -> pure Nothing
     justField -> case ignoreNA justField of
         Nothing -> pure Nothing
-        Just x -> Csv.parseField x
+        Just x  -> Csv.parseField x
 
 ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-ignoreNA (Just "") = Nothing
+ignoreNA (Just "")    = Nothing
 ignoreNA (Just "n/a") = Nothing
-ignoreNA (Just x) = Just x
-ignoreNA Nothing = Nothing 
+ignoreNA (Just x)     = Just x
+ignoreNA Nothing      = Nothing
 
-instance Csv.ToNamedRecord PoseidonSample where
-    toNamedRecord (PoseidonSample posSamIndividualID posSamCollectionID posSamSourceTissue posSamCountry 
-        posSamLocation posSamSite posSamLatitude posSamLongitude posSamDateC14Labnr posSamDateC14UncalBP 
-        posSamDateC14UncalBPErr posSamDateBCADMedian posSamDateBCADStart posSamDateBCADStop posSamDateType 
-        posSamNrLibraries posSamDataType posSamGenotypePloidy posSamGroupName posSamGeneticSex 
-        posSamNrAutosomalSNPs posSamCoverage1240K posSamMTHaplogroup posSamYHaplogroup posSamEndogenous 
-        posSamUDG posSamLibraryBuilt posSamDamage posSamNuclearContam posSamNuclearContamErr posSamMTContam 
-        posSamMTContamErr posSamPrimaryContact posSamPublication posSamComments posSamKeywords) = Csv.namedRecord [
-          "Individual_ID"           Csv..= posSamIndividualID
-        , "Collection_ID"           Csv..= posSamCollectionID
-        , "Source_Tissue"           Csv..= posSamSourceTissue
-        , "Country"                 Csv..= posSamCountry
-        , "Location"                Csv..= posSamLocation
-        , "Site"                    Csv..= posSamSite
-        , "Latitude"                Csv..= posSamLatitude
-        , "Longitude"               Csv..= posSamLongitude
-        , "Date_C14_Labnr"          Csv..= posSamDateC14UncalBP
-        , "Date_C14_Uncal_BP"       Csv..= posSamDateC14UncalBP
-        , "Date_C14_Uncal_BP_Err"   Csv..= posSamDateC14UncalBPErr
-        , "Date_BC_AD_Median"       Csv..= posSamDateBCADMedian
-        , "Date_BC_AD_Start"        Csv..= posSamDateBCADStart
-        , "Date_BC_AD_Stop"         Csv..= posSamDateBCADStop
-        , "Date_Type"               Csv..= posSamDateType
-        , "No_of_Libraries"         Csv..= posSamNrLibraries
-        , "Data_Type"               Csv..= posSamDataType
-        , "Genotype_Ploidy"         Csv..= posSamGenotypePloidy
-        , "Group_Name"              Csv..= posSamGroupName
-        , "Genetic_Sex"             Csv..= posSamGeneticSex
-        , "Nr_autosomal_SNPs"       Csv..= posSamNrAutosomalSNPs
-        , "Coverage_1240K"          Csv..= posSamCoverage1240K
-        , "MT_Haplogroup"           Csv..= posSamMTHaplogroup
-        , "Y_Haplogroup"            Csv..= posSamYHaplogroup
-        , "Endogenous"              Csv..= posSamEndogenous
-        , "UDG"                     Csv..= posSamUDG
-        , "Library_Built"           Csv..= posSamLibraryBuilt
-        , "Damage"                  Csv..= posSamDamage
-        , "Xcontam"                 Csv..= posSamNuclearContam
-        , "Xcontam_stderr"          Csv..= posSamNuclearContamErr
-        , "mtContam"                Csv..= posSamMTContam
-        , "mtContam_stderr"         Csv..= posSamMTContamErr
-        , "Primary_Contact"         Csv..= posSamPrimaryContact
-        , "Publication_Status"      Csv..= posSamPublication
-        , "Note"                    Csv..= posSamComments
-        , "Keywords"                Csv..= posSamKeywords
+instance Csv.ToNamedRecord JannoRow where
+    toNamedRecord (JannoRow jIndividualID jCollectionID jSourceTissue jCountry
+        jLocation jSite jLatitude jLongitude jDateC14Labnr jDateC14UncalBP
+        jDateC14UncalBPErr jDateBCADMedian jDateBCADStart jDateBCADStop jDateType
+        jNrLibraries jDataType jGenotypePloidy jGroupName jGeneticSex
+        jNrAutosomalSNPs jCoverage1240K jMTHaplogroup jYHaplogroup jEndogenous
+        jUDG jLibraryBuilt jDamage jNuclearContam jNuclearContamErr jMTContam
+        jMTContamErr jPrimaryContact jPublication jComments jKeywords) = Csv.namedRecord [
+          "Individual_ID"           Csv..= jIndividualID
+        , "Collection_ID"           Csv..= jCollectionID
+        , "Source_Tissue"           Csv..= jSourceTissue
+        , "Country"                 Csv..= jCountry
+        , "Location"                Csv..= jLocation
+        , "Site"                    Csv..= jSite
+        , "Latitude"                Csv..= jLatitude
+        , "Longitude"               Csv..= jLongitude
+        , "Date_C14_Labnr"          Csv..= jDateC14UncalBP
+        , "Date_C14_Uncal_BP"       Csv..= jDateC14UncalBP
+        , "Date_C14_Uncal_BP_Err"   Csv..= jDateC14UncalBPErr
+        , "Date_BC_AD_Median"       Csv..= jDateBCADMedian
+        , "Date_BC_AD_Start"        Csv..= jDateBCADStart
+        , "Date_BC_AD_Stop"         Csv..= jDateBCADStop
+        , "Date_Type"               Csv..= jDateType
+        , "No_of_Libraries"         Csv..= jNrLibraries
+        , "Data_Type"               Csv..= jDataType
+        , "Genotype_Ploidy"         Csv..= jGenotypePloidy
+        , "Group_Name"              Csv..= jGroupName
+        , "Genetic_Sex"             Csv..= jGeneticSex
+        , "Nr_autosomal_SNPs"       Csv..= jNrAutosomalSNPs
+        , "Coverage_1240K"          Csv..= jCoverage1240K
+        , "MT_Haplogroup"           Csv..= jMTHaplogroup
+        , "Y_Haplogroup"            Csv..= jYHaplogroup
+        , "Endogenous"              Csv..= jEndogenous
+        , "UDG"                     Csv..= jUDG
+        , "Library_Built"           Csv..= jLibraryBuilt
+        , "Damage"                  Csv..= jDamage
+        , "Xcontam"                 Csv..= jNuclearContam
+        , "Xcontam_stderr"          Csv..= jNuclearContamErr
+        , "mtContam"                Csv..= jMTContam
+        , "mtContam_stderr"         Csv..= jMTContamErr
+        , "Primary_Contact"         Csv..= jPrimaryContact
+        , "Publication_Status"      Csv..= jPublication
+        , "Note"                    Csv..= jComments
+        , "Keywords"                Csv..= jKeywords
         ]
 
---instance Csv.DefaultOrdered PoseidonSample
-instance Csv.DefaultOrdered PoseidonSample where
+instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
 jannoHeader :: [Bchs.ByteString]
@@ -393,7 +450,7 @@ instance Csv.FromField [JannoDataType] where
 
 -- Janno file writing
 
-writeJannoFile :: FilePath -> [PoseidonSample] -> IO ()
+writeJannoFile :: FilePath -> [JannoRow] -> IO ()
 writeJannoFile path samples = do
     let jannoAsBytestring = Csv.encodeDefaultOrderedByNameWith encodingOptions samples
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
@@ -407,7 +464,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> IO [PoseidonSample]
+readJannoFile :: FilePath -> IO [JannoRow]
 readJannoFile jannoPath = do
     jannoFile <- Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
@@ -432,22 +489,22 @@ readJannoFile jannoPath = do
             Left e -> do throwIO e
             Right x -> do
                 -- putStrLn ""
-                -- putStrLn $ show $ map posSamSourceTissue x
-                -- putStrLn $ show $ map posSamLongitude x
-                -- putStrLn $ show $ map posSamUDG x
+                -- putStrLn $ show $ map jSourceTissue x
+                -- putStrLn $ show $ map jLongitude x
+                -- putStrLn $ show $ map jUDG x
                 return x
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException PoseidonSample)
+readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException JannoRow)
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
-        Left e -> do 
+        Left e -> do
             return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ e
-        Right (_, poseidonSample :: V.Vector PoseidonSample) -> do
-            case checkJannoRowConsistency jannoPath lineNumber $ V.head poseidonSample of
+        Right (_, jannoRow :: V.Vector JannoRow) -> do
+            case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
                 Left e -> do
                     return $ Left e
-                Right (pS :: PoseidonSample) -> do
+                Right (pS :: JannoRow) -> do
                     return $ Right pS
 
 decodingOptions :: Csv.DecodeOptions
@@ -468,63 +525,63 @@ replaceInJannoBytestring from to tsv =
    in Bch.unlines tsvRowsUpdated
 
 -- | A function to create empty janno rows for a set of individuals
-createMinimalJanno :: [EigenstratIndEntry] -> [PoseidonSample]
-createMinimalJanno = map createMinimalSample 
+createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
+createMinimalJanno = map createMinimalSample
 
 -- | A function to create an empty janno row for an individual
-createMinimalSample :: EigenstratIndEntry -> PoseidonSample
-createMinimalSample (EigenstratIndEntry id sex pop) = 
-    PoseidonSample
-        { posSamIndividualID      = id
-        , posSamCollectionID      = Nothing
-        , posSamSourceTissue      = Nothing
-        , posSamCountry           = Nothing
-        , posSamLocation          = Nothing
-        , posSamSite              = Nothing
-        , posSamLatitude          = Nothing
-        , posSamLongitude         = Nothing
-        , posSamDateC14Labnr      = Nothing
-        , posSamDateC14UncalBP    = Nothing
-        , posSamDateC14UncalBPErr = Nothing
-        , posSamDateBCADMedian    = Nothing
-        , posSamDateBCADStart     = Nothing
-        , posSamDateBCADStop      = Nothing
-        , posSamDateType          = Nothing
-        , posSamNrLibraries       = Nothing
-        , posSamDataType          = Nothing
-        , posSamGenotypePloidy    = Nothing
-        , posSamGroupName         = [pop]
-        , posSamGeneticSex        = sex
-        , posSamNrAutosomalSNPs   = Nothing
-        , posSamCoverage1240K     = Nothing
-        , posSamMTHaplogroup      = Nothing
-        , posSamYHaplogroup       = Nothing
-        , posSamEndogenous        = Nothing
-        , posSamUDG               = Nothing
-        , posSamLibraryBuilt      = Nothing
-        , posSamDamage            = Nothing
-        , posSamNuclearContam     = Nothing
-        , posSamNuclearContamErr  = Nothing
-        , posSamMTContam          = Nothing
-        , posSamMTContamErr       = Nothing
-        , posSamPrimaryContact    = Nothing
-        , posSamPublication       = Nothing
-        , posSamComments          = Nothing
-        , posSamKeywords          = Nothing
+createMinimalSample :: EigenstratIndEntry -> JannoRow
+createMinimalSample (EigenstratIndEntry id sex pop) =
+    JannoRow
+        { jIndividualID      = id
+        , jCollectionID      = Nothing
+        , jSourceTissue      = Nothing
+        , jCountry           = Nothing
+        , jLocation          = Nothing
+        , jSite              = Nothing
+        , jLatitude          = Nothing
+        , jLongitude         = Nothing
+        , jDateC14Labnr      = Nothing
+        , jDateC14UncalBP    = Nothing
+        , jDateC14UncalBPErr = Nothing
+        , jDateBCADMedian    = Nothing
+        , jDateBCADStart     = Nothing
+        , jDateBCADStop      = Nothing
+        , jDateType          = Nothing
+        , jNrLibraries       = Nothing
+        , jDataType          = Nothing
+        , jGenotypePloidy    = Nothing
+        , jGroupName         = [pop]
+        , jGeneticSex        = sex
+        , jNrAutosomalSNPs   = Nothing
+        , jCoverage1240K     = Nothing
+        , jMTHaplogroup      = Nothing
+        , jYHaplogroup       = Nothing
+        , jEndogenous        = Nothing
+        , jUDG               = Nothing
+        , jLibraryBuilt      = Nothing
+        , jDamage            = Nothing
+        , jNuclearContam     = Nothing
+        , jNuclearContamErr  = Nothing
+        , jMTContam          = Nothing
+        , jMTContamErr       = Nothing
+        , jPrimaryContact    = Nothing
+        , jPublication       = Nothing
+        , jComments          = Nothing
+        , jKeywords          = Nothing
     }
 
 -- Janno consistency checks
 
-checkJannoConsistency :: FilePath -> [PoseidonSample] -> Either PoseidonException [PoseidonSample]
+checkJannoConsistency :: FilePath -> [JannoRow] -> Either PoseidonException [JannoRow]
 checkJannoConsistency jannoPath xs
-    | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath 
+    | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath
         "The Individual_IDs are not unique"
     | otherwise = Right xs
 
-checkIndividualUnique :: [PoseidonSample] -> Bool
-checkIndividualUnique x = length x == length (nub $ map posSamIndividualID x)
+checkIndividualUnique :: [JannoRow] -> Bool
+checkIndividualUnique x = length x == length (nub $ map jIndividualID x)
 
-checkJannoRowConsistency :: FilePath -> Int -> PoseidonSample -> Either PoseidonException PoseidonSample
+checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
     | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonJannoRowException jannoPath row
           "The mandatory columns Individual_ID and Group_Name contain empty values"
@@ -532,19 +589,19 @@ checkJannoRowConsistency jannoPath row x
           "The columns Date_C14_Labnr, Date_C14_Uncal_BP, Date_C14_Uncal_BP_Err and Date_Type are not consistent"
     | otherwise = Right x
 
-checkMandatoryStringNotEmpty :: PoseidonSample -> Bool
+checkMandatoryStringNotEmpty :: JannoRow -> Bool
 checkMandatoryStringNotEmpty x =
-    not (null $ posSamIndividualID x)
-    && not (null (posSamGroupName x))
-    && not (null $ head $ posSamGroupName x)
+    not (null $ jIndividualID x)
+    && not (null (jGroupName x))
+    && not (null $ head $ jGroupName x)
 
-checkC14ColsConsistent :: PoseidonSample -> Bool
+checkC14ColsConsistent :: JannoRow -> Bool
 checkC14ColsConsistent x =
-    let lLabnr = maybe 0 length $ posSamDateC14Labnr x
-        lUncalBP = maybe 0 length $ posSamDateC14UncalBP x
-        lUncalBPErr = maybe 0 length $ posSamDateC14UncalBPErr x
+    let lLabnr = maybe 0 length $ jDateC14Labnr x
+        lUncalBP = maybe 0 length $ jDateC14UncalBP x
+        lUncalBPErr = maybe 0 length $ jDateC14UncalBPErr x
         shouldBeTypeC14 = lUncalBP > 0
-        isTypeC14 = posSamDateType x == Just C14
+        isTypeC14 = jDateType x == Just C14
     in
         (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
         && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)

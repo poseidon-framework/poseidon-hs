@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (Percent (..), PoseidonSample (..))
+import           Poseidon.Janno         (Percent (..), JannoRow (..))
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
 import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection)
 
@@ -24,32 +24,32 @@ runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection True True baseDirs
     let jannos = map posPacJanno allPackages
-    summarisePoseidonSamples (concat jannos) rawOutput
+    summariseJannoRows (concat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples
-summarisePoseidonSamples :: [PoseidonSample] -> Bool -> IO ()
-summarisePoseidonSamples xs rawOutput = do
+summariseJannoRows :: [JannoRow] -> Bool -> IO ()
+summariseJannoRows xs rawOutput = do
     (tableH, tableB) <- do
         let tableH = ["Summary", "Value"]
             tableB = [
                 ["Nr Individuals", show (length xs)],
-                ["Individuals", paste $ sort $ map posSamIndividualID xs],
-                ["Nr Groups", show $ length $ nub $ map posSamGroupName xs],
-                ["Groups", printFrequencyString ", " $ frequency $ map (head . posSamGroupName) xs],
-                ["Nr Publications", show $ length $ nub $ map posSamPublication xs],
-                ["Publications", printFrequencyMaybeString ", " $ frequency $ map posSamPublication xs],
-                ["Nr Countries", show $ length $ nub $ map posSamCountry xs],
-                ["Countries", printFrequencyMaybeString ", " $ frequency $ map posSamCountry xs],
-                ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamDateBCADMedian xs],
-                ["Dating type", printFrequencyMaybe ", " $ frequency $ map posSamDateType xs],
-                ["Sex distribution", printFrequency ", " $ frequency $ map posSamGeneticSex xs],
-                ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map posSamMTHaplogroup xs],
-                ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map posSamYHaplogroup xs],
-                ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe posSamEndogenous xs],
-                ["Nr of SNPs on 1240K", meanAndSdInteger $ map fromIntegral $ mapMaybe posSamNrAutosomalSNPs xs],
-                ["Coverage on 1240K", meanAndSdRoundTo 2 $ mapMaybe posSamCoverage1240K xs],
-                ["Library type", printFrequencyMaybe ", " $ frequency $ map posSamLibraryBuilt xs],
-                ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map posSamUDG xs]
+                ["Individuals", paste $ sort $ map jIndividualID xs],
+                ["Nr Groups", show $ length $ nub $ map jGroupName xs],
+                ["Groups", printFrequencyString ", " $ frequency $ map (head . jGroupName) xs],
+                ["Nr Publications", show $ length $ nub $ map jPublication xs],
+                ["Publications", printFrequencyMaybeString ", " $ frequency $ map jPublication xs],
+                ["Nr Countries", show $ length $ nub $ map jCountry xs],
+                ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
+                ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe jDateBCADMedian xs],
+                ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType xs],
+                ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex xs],
+                ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup xs],
+                ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map jYHaplogroup xs],
+                ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe jEndogenous xs],
+                ["Nr of SNPs on 1240K", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrAutosomalSNPs xs],
+                ["Coverage on 1240K", meanAndSdRoundTo 2 $ mapMaybe jCoverage1240K xs],
+                ["Library type", printFrequencyMaybe ", " $ frequency $ map jLibraryBuilt xs],
+                ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map jUDG xs]
                 ]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)

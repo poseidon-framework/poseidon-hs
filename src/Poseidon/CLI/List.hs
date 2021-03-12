@@ -2,11 +2,11 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno             (PoseidonSample (..))
+import           Poseidon.Janno             (JannoRow (..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
                                              readPoseidonPackageCollection)
-import           Poseidon.Utils             (PoseidonException (..), IndividualInfo(..))
+import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
@@ -30,10 +30,12 @@ data ListOptions = ListOptions
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
 
+type JannoColumn = String
+
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
     | ListGroups
-    | ListIndividuals
+    | ListIndividuals -- [JannoColumn]
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
@@ -46,21 +48,13 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             readSampleInfo remoteOverviewJSONByteString
         RepoLocal baseDirs -> do
             allPackages <- readPoseidonPackageCollection True ignoreGeno baseDirs
-            return $ do -- this do starts the List Monad interface. Not to be confused with IO.
-                pac <- allPackages
-                jannoRow <- posPacJanno pac
-                return $ IndividualInfo (posSamIndividualID jannoRow) (head (posSamGroupName jannoRow)) (posPacTitle pac)
+            return [(posPacTitle pac, posPacJanno pac) | pac <- allPackages]
     -- construct output
     hPutStrLn stderr "Preparing output table"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
-                tableB = do
-                    onePac <- groupBy (\x y -> indInfoPacName x == indInfoPacName y) $ 
-                        sortOn indInfoPacName allSampleInfo
-                    let pacTitle = indInfoPacName $ head onePac
-                        pacNrInds = show (length onePac)
-                    return [pacTitle, pacNrInds]
+                tableB = [(name, length rows) | (name, rows) <- sortOn fst allSampleInfo]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " packages")
             return (tableH, tableB)
         ListGroups -> do
@@ -87,7 +81,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
         let colSpecs = replicate 3 (column (expandUntil 60) def def def)
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
-readSampleInfo :: LB.ByteString -> IO [IndividualInfo]
+readSampleInfo :: LB.ByteString -> IO [(String, [JannoRow])]
 readSampleInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err

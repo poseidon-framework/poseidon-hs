@@ -7,7 +7,7 @@ import           Poseidon.EntitiesList      (EntitiesList (..),
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              printSNPCopyProgress)
-import           Poseidon.Janno             (PoseidonSample (..),
+import           Poseidon.Janno             (JannoRow (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
                                              PoseidonPackage (..), getChecksum,

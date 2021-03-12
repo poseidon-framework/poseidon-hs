@@ -22,7 +22,7 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (readBibTeXFile, BibTeX (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
-import           Poseidon.Janno             (Janno (..), PoseidonSample (..), readJannoFile, createMinimalJanno)
+import           Poseidon.Janno             (JannoRow(..), readJannoFile, createMinimalJanno)
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
 
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
@@ -180,7 +180,7 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the paths to the genotype files
     , posPacJannoFile       :: Maybe FilePath
     -- ^ the path to the janno file
-    , posPacJanno           :: Janno
+    , posPacJanno           :: [JannoRow]
     -- ^ the loaded janno file
     , posPacJannoFileChkSum :: Maybe String
     -- ^ the optional jannofile checksum
@@ -300,14 +300,14 @@ getChecksum f = do
     let md5Digest = md5 fileContent
     return $ show md5Digest
 
-checkJannoIndConsistency :: String -> Janno -> [EigenstratIndEntry] -> IO ()
+checkJannoIndConsistency :: String -> [JannoRow] -> [EigenstratIndEntry] -> IO ()
 checkJannoIndConsistency pacName janno indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map posSamIndividualID janno
-        jannoSexs       = map posSamGeneticSex janno
-        jannoGroups     = map (head . posSamGroupName) janno
+    let jannoIDs        = map jIndividualID janno
+        jannoSexs       = map jGeneticSex janno
+        jannoGroups     = map (head . jGroupName) janno
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -335,10 +335,10 @@ zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
 zipWithPadding a _ []     ys     = zip (repeat a) ys
 zipWithPadding _ b xs     []     = zip xs (repeat b)
 
-checkJannoBibConsistency :: String -> Janno -> BibTeX -> IO ()
+checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub $ mapMaybe posSamPublication janno
+    let literatureInJanno = nub $ mapMaybe jPublication janno
         literatureInBib = nub $ map (unpack . unLiteral . refId) bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $ 
@@ -441,7 +441,7 @@ getJointGenotypeData showAllWarnings intersect pacs =
 -- | A function to create a dummy POSEIDON.yml file
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into 
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe Janno -> Maybe BibTeX -> IO PoseidonPackage
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
 newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) inds janno bib = do
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
