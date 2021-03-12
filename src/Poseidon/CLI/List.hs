@@ -54,16 +54,20 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
-                tableB = [(name, length rows) | (name, rows) <- sortOn fst allSampleInfo]
+                tableB = [[name, show (length rows)] | (name, rows) <- sortOn fst allSampleInfo]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " packages")
             return (tableH, tableB)
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
+                pacJannoPairs = do
+                    (pacName, rows) <- allSampleInfo
+                    row <- rows
+                    return (pacName, row)
                 tableB = do
-                    oneGroup <- groupBy (\x y -> indInfoGroup x == indInfoGroup y) $ 
-                        sortOn indInfoGroup allSampleInfo
-                    let groupName = indInfoGroup $ head oneGroup
-                        groupPacs = intercalate "," $ nub $ map indInfoPacName oneGroup
+                    oneGroup <- groupBy (\x y -> (head . jGroupName . snd) x == (head . jGroupName . snd) y) $ 
+                        sortOn (head . jGroupName . snd) pacJannoPairs
+                    let groupName = head . jGroupName . snd . head $ oneGroup
+                        groupPacs = intercalate "," $ nub $ map fst oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
@@ -71,8 +75,9 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
         ListIndividuals -> do
             let tableH = ["Package", "Individual", "Group"]
             let tableB = do
-                    oneSample <- allSampleInfo
-                    return [indInfoPacName oneSample, indInfoName oneSample, indInfoGroup oneSample]
+                    (pacName, rows) <- allSampleInfo
+                    row <- rows
+                    return [pacName, jIndividualID row, head (jGroupName row)]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
     if rawOutput then

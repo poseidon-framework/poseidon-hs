@@ -52,7 +52,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
 
-renderPackageWithCompleteness :: (String,Bool,Janno,BibTeX) -> String
+renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
 renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
        (if genoTypeDataExists then "G" else ".")
     ++ "-"
@@ -60,46 +60,46 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
     ++ "-"
     ++ (if not (null bib) then "B" else ".")
 
-renderJannoCompleteness :: Janno -> String
+renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
     "M"
-    ++ allNothing posSamCollectionID jS
-    ++ allNothing posSamSourceTissue jS
-    ++ allNothing posSamCountry jS
-    ++ allNothing posSamLocation jS
-    ++ allNothing posSamSite jS
-    ++ allNothing posSamLatitude jS
-    ++ allNothing posSamLongitude jS
-    ++ allNothing posSamDateC14Labnr jS
-    ++ allNothing posSamDateC14UncalBP jS
-    ++ allNothing posSamDateC14UncalBPErr jS
-    ++ allNothing posSamDateBCADMedian jS
-    ++ allNothing posSamDateBCADStart jS
-    ++ allNothing posSamDateBCADStop jS
-    ++ allNothing posSamDateType jS
-    ++ allNothing posSamNrLibraries jS
-    ++ allNothing posSamDataType jS
-    ++ allNothing posSamGenotypePloidy jS
+    ++ allNothing jCollectionID jS
+    ++ allNothing jSourceTissue jS
+    ++ allNothing jCountry jS
+    ++ allNothing jLocation jS
+    ++ allNothing jSite jS
+    ++ allNothing jLatitude jS
+    ++ allNothing jLongitude jS
+    ++ allNothing jDateC14Labnr jS
+    ++ allNothing jDateC14UncalBP jS
+    ++ allNothing jDateC14UncalBPErr jS
+    ++ allNothing jDateBCADMedian jS
+    ++ allNothing jDateBCADStart jS
+    ++ allNothing jDateBCADStop jS
+    ++ allNothing jDateType jS
+    ++ allNothing jNrLibraries jS
+    ++ allNothing jDataType jS
+    ++ allNothing jGenotypePloidy jS
     ++ "M"
     ++ "M"
-    ++ allNothing posSamNrAutosomalSNPs jS
-    ++ allNothing posSamCoverage1240K jS
-    ++ allNothing posSamMTHaplogroup jS
-    ++ allNothing posSamYHaplogroup jS
-    ++ allNothing posSamEndogenous jS
-    ++ allNothing posSamUDG jS
-    ++ allNothing posSamDamage jS
-    ++ allNothing posSamNuclearContam jS
-    ++ allNothing posSamNuclearContamErr jS
-    ++ allNothing posSamMTContam jS
-    ++ allNothing posSamMTContamErr jS
-    ++ allNothing posSamPrimaryContact jS
-    ++ allNothing posSamPublication jS
-    ++ allNothing posSamComments jS
-    ++ allNothing posSamKeywords jS
+    ++ allNothing jNrAutosomalSNPs jS
+    ++ allNothing jCoverage1240K jS
+    ++ allNothing jMTHaplogroup jS
+    ++ allNothing jYHaplogroup jS
+    ++ allNothing jEndogenous jS
+    ++ allNothing jUDG jS
+    ++ allNothing jDamage jS
+    ++ allNothing jNuclearContam jS
+    ++ allNothing jNuclearContamErr jS
+    ++ allNothing jMTContam jS
+    ++ allNothing jMTContamErr jS
+    ++ allNothing jPrimaryContact jS
+    ++ allNothing jPublication jS
+    ++ allNothing jComments jS
+    ++ allNothing jKeywords jS
 
-allNothing :: (PoseidonSample -> Maybe a) -> [PoseidonSample] -> String
-allNothing column jannoSamples =
-    if all (isNothing . column) jannoSamples
+allNothing :: (JannoRow -> Maybe a) -> [JannoRow] -> String
+allNothing column jannoRows =
+    if all (isNothing . column) jannoRows
         then "."
         else "X"

@@ -108,7 +108,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
-        let jannoIndIds = map posSamIndividualID relevantJannoRows
+        let jannoIndIds = map jIndividualID relevantJannoRows
         -- TODO: This check might be redundant now, because the input data is now already
         -- screened for cross-file order issues
         when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
@@ -154,15 +154,15 @@ filterPackages entities packages = do
         then return (Just pac)
         else return Nothing
 
-filterJannoRows :: EntitiesList -> [PoseidonSample] -> [PoseidonSample]
+filterJannoRows :: EntitiesList -> [JannoRow] -> [JannoRow]
 filterJannoRows entities samples =
     let groupNamesStats = [ group | Group group <- entities]
         indNamesStats   = [ ind   | Ind   ind   <- entities]
-        comparison x    =  posSamIndividualID x `elem` indNamesStats
-                           || head (posSamGroupName x) `elem` groupNamesStats
+        comparison x    =  jIndividualID x `elem` indNamesStats
+                           || head (jGroupName x) `elem` groupNamesStats
     in filter comparison samples
 
-filterJannoFiles :: EntitiesList -> [(String, [PoseidonSample])] -> [PoseidonSample]
+filterJannoFiles :: EntitiesList -> [(String, [JannoRow])] -> [JannoRow]
 filterJannoFiles entities packages =
     let requestedPacs           = [ pac | Pac pac <- entities]
         filterJannoOrNot (a, b) = if a `elem` requestedPacs
@@ -170,9 +170,9 @@ filterJannoFiles entities packages =
                                   else filterJannoRows entities b
     in concatMap filterJannoOrNot packages
 
-filterBibEntries :: [PoseidonSample] -> [Reference] -> [Reference]
+filterBibEntries :: [JannoRow] -> [Reference] -> [Reference]
 filterBibEntries samples references =
-    let relevantPublications = nub $ mapMaybe posSamPublication samples
+    let relevantPublications = nub $ mapMaybe jPublication samples
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]

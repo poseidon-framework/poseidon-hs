@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Janno              (PoseidonSample (..))
+import           Poseidon.Janno              (JannoRow (..))
 import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
                                               readPoseidonPackageCollection)
-import           Poseidon.Utils              (IndividualInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -94,7 +93,7 @@ main = do
                 Just fn -> file fn
                 Nothing -> raise ("unknown package " <> p)
         get "/individuals_all" $
-            json (getAllIndividualInfo allPackages)
+            json (getAllPacJannoPairs allPackages)
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
@@ -198,8 +197,8 @@ makeZipArchive pac ignoreGenoFiles =
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
-getAllIndividualInfo :: [PoseidonPackage] -> [(String, Janno)]
-getAllIndividualInfo packages = [(posPacTitle pac, posPacJanno pac) |pac <- packages]
+getAllPacJannoPairs :: [PoseidonPackage] -> [(String, [JannoRow])]
+getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
 optParserInfo :: OP.ParserInfo CommandLineOptions
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
