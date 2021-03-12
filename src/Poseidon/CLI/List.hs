@@ -9,7 +9,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM)
+import           Control.Monad              (forM, (>=>))
 import           Data.Aeson                 (FromJSON, (.:), parseJSON, withObject, eitherDecode')
 import qualified Data.ByteString.Lazy       as LB
 import           Data.List                  (groupBy, intercalate, nub, sortOn)
@@ -30,12 +30,10 @@ data ListOptions = ListOptions
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
 
-type JannoColumn = String
-
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
     | ListGroups
-    | ListIndividuals -- [JannoColumn]
+    | ListIndividuals [String]
 
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
@@ -72,18 +70,18 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                     return [groupName, groupPacs, groupNrInds]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
             return (tableH, tableB)
-        ListIndividuals -> do
-            let tableH = ["Package", "Individual", "Group"]
-            let tableB = do
-                    (pacName, rows) <- allSampleInfo
-                    row <- rows
-                    return [pacName, jIndividualID row, head (jGroupName row)]
+        ListIndividuals moreJannoColumns -> do
+            let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
+            tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
+                forM rows (\row -> do
+                    moreFields <- extractAdditionalFields row moreJannoColumns
+                    return ([pacName, jIndividualID row, head (jGroupName row)] ++ moreFields))
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
     if rawOutput then
         putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
-        let colSpecs = replicate 3 (column (expandUntil 60) def def def)
+        let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 readSampleInfo :: LB.ByteString -> IO [(String, [JannoRow])]
@@ -91,3 +89,57 @@ readSampleInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
         Right sam -> return sam
+
+extractAdditionalFields :: JannoRow -> [String] -> IO [String]
+extractAdditionalFields jannoRow = mapM (\f -> extractAdditionalField f jannoRow)
+
+extractAdditionalField :: String -> JannoRow -> IO String
+extractAdditionalField "Individual_ID"         = return . jIndividualID
+extractAdditionalField "Collection_ID"         = handleMaybe     jCollectionID 
+extractAdditionalField "Source_Tissue"         = handleMaybe     (fmap (intercalate ",") . jSourceTissue)
+extractAdditionalField "Country"               = handleMaybe     jCountry
+extractAdditionalField "Location"              = handleMaybe     jLocation
+extractAdditionalField "Site"                  = handleMaybe     jSite
+extractAdditionalField "Latitude"              = handleMaybeShow jLatitude
+extractAdditionalField "Longitude"             = handleMaybeShow jLongitude
+extractAdditionalField "Date_C14_Labnr"        = handleMaybe     (fmap (intercalate ",") . jDateC14Labnr)
+extractAdditionalField "Date_C14_Uncal_BP"     = handleMaybeShow jDateC14UncalBP
+extractAdditionalField "Date_C14_Uncal_BP_Err" = handleMaybeShow jDateC14UncalBPErr
+extractAdditionalField "Date_BC_AD_Median"     = handleMaybeShow jDateBCADMedian
+extractAdditionalField "Date_BC_AD_Start"      = handleMaybeShow jDateBCADStart
+extractAdditionalField "Date_BC_AD_Stop"       = handleMaybeShow jDateBCADStop
+extractAdditionalField "Date_Type"             = handleMaybeShow jDateType
+extractAdditionalField "No_of_Libraries"       = handleMaybeShow jNrLibraries
+extractAdditionalField "Data_Type"             = handleMaybe     (fmap (intercalate "," . map show) . jDataType)
+extractAdditionalField "Genotype_Ploidy"       = handleMaybeShow jGenotypePloidy
+extractAdditionalField "Group_Name"            = return . intercalate "," . jGroupName
+extractAdditionalField "Genetic_Sex"           = return . show . jGeneticSex
+extractAdditionalField "Nr_autosomal_SNPs"     = handleMaybeShow jNrAutosomalSNPs
+extractAdditionalField "Coverage_1240K"        = handleMaybeShow jCoverage1240K
+extractAdditionalField "MT_Haplogroup"         = handleMaybe     jMTHaplogroup
+extractAdditionalField "Y_Haplogroup"          = handleMaybe     jYHaplogroup
+extractAdditionalField "Endogenous"            = handleMaybeShow jEndogenous
+extractAdditionalField "UDG"                   = handleMaybeShow jUDG
+extractAdditionalField "Library_Built"         = handleMaybeShow jLibraryBuilt
+extractAdditionalField "Damage"                = handleMaybeShow jDamage
+extractAdditionalField "Xcontam"               = handleMaybeShow jNuclearContam
+extractAdditionalField "Xcontam_stderr"        = handleMaybeShow jNuclearContamErr
+extractAdditionalField "mtContam"              = handleMaybeShow jMTContam
+extractAdditionalField "mtContam_stderr"       = handleMaybeShow jMTContamErr
+extractAdditionalField "Primary_Contact"       = handleMaybe     jPrimaryContact
+extractAdditionalField "Publication_Status"    = handleMaybe     jPublication
+extractAdditionalField "Note"                  = handleMaybe     jComments
+extractAdditionalField "Keywords"              = handleMaybe     (fmap (intercalate ",") . jKeywords)
+extractAdditionalField f                       = const (throwIO $ PoseidonGenericException (f ++ " is not a valid Janno column name"))
+
+handleMaybe :: (JannoRow -> Maybe String) -> JannoRow -> IO String
+handleMaybe func row =
+    case func row of
+        Just val -> return val
+        Nothing -> return "n/a"
+
+handleMaybeShow :: Show a => (JannoRow -> Maybe a) -> JannoRow -> IO String
+handleMaybeShow func row =
+    case func row of
+        Just val -> return (show val)
+        Nothing -> return "n/a"
