@@ -5,6 +5,7 @@ import           Poseidon.Janno              (JannoRow (..))
 import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
                                               readPoseidonPackageCollection)
+import           Poseidon.Utils              (IndividualInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -92,8 +93,10 @@ main = do
             case zipFN of
                 Just fn -> file fn
                 Nothing -> raise ("unknown package " <> p)
-        get "/individuals_all" $
+        get "/janno_all" $
             json (getAllPacJannoPairs allPackages)
+        get "/individuals_all" $
+            json (getAllIndividualInfo allPackages)
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
@@ -196,6 +199,15 @@ makeZipArchive pac ignoreGenoFiles =
         modTime <- (round . utcTimeToPOSIXSeconds) <$> getModificationTime fullFN
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
+
+getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getAllIndividualInfo packages = do
+    pac <- packages
+    jannoRow <- posPacJanno pac
+    let name = jIndividualID jannoRow
+        group = head . jGroupName $ jannoRow
+        pacName = posPacTitle pac
+    return $ IndividualInfo name group pacName
 
 getAllPacJannoPairs :: [PoseidonPackage] -> [(String, [JannoRow])]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]

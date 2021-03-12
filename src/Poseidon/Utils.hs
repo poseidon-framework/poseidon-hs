@@ -2,7 +2,8 @@
 
 module Poseidon.Utils (
     PoseidonException(..),
-    renderPoseidonException
+    renderPoseidonException,
+    IndividualInfo(..)
 ) where
 
 import           Control.Exception (Exception)
@@ -64,3 +65,20 @@ renderPoseidonException PoseidonEmptyForgeException =
 renderPoseidonException (PoseidonNewPackageConstructionException s) =
     show s
 
+data IndividualInfo = IndividualInfo
+    { indInfoName    :: String
+    , indInfoGroup   :: String
+    , indInfoPacName :: String
+    }
+
+instance ToJSON IndividualInfo where
+    toJSON x = object [
+        "name" .= indInfoName x,
+        "group" .= indInfoGroup x,
+        "pacName" .= indInfoPacName x]
+
+instance FromJSON IndividualInfo where
+    parseJSON = withObject "IndividualInfo" $ \v -> IndividualInfo
+        <$> v .:   "name"
+        <*> v .:   "group"
+        <*> v .:  "pacName"
