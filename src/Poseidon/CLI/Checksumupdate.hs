@@ -1,5 +1,5 @@
-module Poseidon.CLI.Update (
-    runUpdate, UpdateOptions (..),
+module Poseidon.CLI.Checksumupdate (
+    runChecksumupdate, ChecksumupdateOptions (..),
     ) where
 
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -9,12 +9,12 @@ import           Poseidon.Package           (PoseidonPackage (..),
 
 import           System.IO                  (hPutStrLn, stderr)
 
-data UpdateOptions = UpdateOptions
+data ChecksumupdateOptions = ChecksumupdateOptions
     { _jaBaseDirs :: [FilePath]
     }
 
-runUpdate :: UpdateOptions -> IO ()
-runUpdate (UpdateOptions baseDirs) = do
+runChecksumupdate :: ChecksumupdateOptions -> IO ()
+runChecksumupdate (ChecksumupdateOptions baseDirs) = do
     allPackages <- readPoseidonPackageCollection True True baseDirs
     hPutStrLn stderr "Updating checksums in the packages"
     updatedPackages <- mapM updateChecksumsInPackage allPackages

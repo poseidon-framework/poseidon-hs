@@ -18,7 +18,7 @@ library
                         Poseidon.CLI.FStats, Poseidon.CLI.List, 
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
-                        Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert
+                        Poseidon.CLI.Checksumupdate, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats, text, time, pipes-safe,
