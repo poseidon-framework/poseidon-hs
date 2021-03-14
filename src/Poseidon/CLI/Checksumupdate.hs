@@ -16,7 +16,11 @@ data ChecksumupdateOptions = ChecksumupdateOptions
 runChecksumupdate :: ChecksumupdateOptions -> IO ()
 runChecksumupdate (ChecksumupdateOptions baseDirs) = do
     allPackages <- readPoseidonPackageCollection True True baseDirs
-    hPutStrLn stderr "Updating checksums in the packages"
+    hPutStrLn stderr "Calculating checksums"
     updatedPackages <- mapM updateChecksumsInPackage allPackages
-    hPutStrLn stderr "Writing modified POSEIDON.yml files"
-    mapM_ writePoseidonPackage updatedPackages
+    if allPackages == updatedPackages
+    then do 
+        hPutStrLn stderr "All checksums were already up-to-date"
+    else do 
+        hPutStrLn stderr "Writing modified POSEIDON.yml files"
+        mapM_ writePoseidonPackage updatedPackages
