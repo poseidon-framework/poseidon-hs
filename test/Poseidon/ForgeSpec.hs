@@ -3,7 +3,7 @@ module Poseidon.ForgeSpec (spec) where
 import           Poseidon.CLI.Forge
 import           Poseidon.EntitiesList       (PoseidonEntity (..), 
                                              EntitiesList (..))
-import           Poseidon.Janno             (PoseidonSample (..),
+import           Poseidon.Janno             (JannoRow (..),
                                              readJannoFile,
                                              createMinimalJanno)
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -70,7 +70,7 @@ testFilterJannoFiles =
         let pacNames = map posPacTitle rps
         let jannos = map posPacJanno rps
         let filteredJannos = filterJannoFiles goodEntities $ zip pacNames jannos
-        map posSamIndividualID filteredJannos `shouldMatchList` [
+        map jIndividualID filteredJannos `shouldMatchList` [
                 -- Schiffels 2016
                 "XXX001", "XXX002", "XXX003", "XXX004", "XXX005",
                 "XXX006", "XXX007", "XXX008", "XXX009", "XXX010",

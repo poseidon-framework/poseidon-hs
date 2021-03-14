@@ -329,11 +329,15 @@ parseShowWarnings :: OP.Parser Bool
 parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
 
 parseListEntity :: OP.Parser ListEntity
-parseListEntity = parseListPackages <|> parseListGroups <|> parseListIndividuals
+parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividualsDummy *> parseListIndividualsExtraCols)
   where
-    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list packages")
-    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list groups")
-    parseListIndividuals = OP.flag' ListIndividuals (OP.long "individuals" <> OP.help "list individuals")
+    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list all packages")
+    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list all groups, ignoring any group names after the first as specified in the Janno-file")
+    parseListIndividualsDummy = OP.flag' () (OP.long "individuals" <> OP.help "list individuals")
+    parseListIndividualsExtraCols = ListIndividuals <$> OP.many parseExtraCol
+    parseExtraCol = OP.strOption (OP.short 'j' <> OP.long "jannoColumn" <> OP.metavar "JANNO_HEADER" <>
+        OP.help "list additional fields from the janno files, using the Janno column heading name, such as \
+        \Country, Site, Date_C14_Uncal_BP, Endogenous, ...")
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (

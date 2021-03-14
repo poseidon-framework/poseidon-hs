@@ -29,6 +29,7 @@ data PoseidonException =
     | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
     | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
+    | PoseidonGenericException String -- ^ A catch-all for any other type of exception
     deriving (Show)
 
 instance Exception PoseidonException
@@ -64,7 +65,7 @@ renderPoseidonException PoseidonEmptyForgeException =
     "Nothing to be forged"
 renderPoseidonException (PoseidonNewPackageConstructionException s) =
     show s
-
+renderPoseidonException (PoseidonGenericException s) = s
 
 data IndividualInfo = IndividualInfo
     { indInfoName    :: String

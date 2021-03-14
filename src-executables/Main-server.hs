@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Janno              (PoseidonSample (..))
+import           Poseidon.Janno              (JannoRow (..))
 import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
                                               readPoseidonPackageCollection)
@@ -93,6 +93,8 @@ main = do
             case zipFN of
                 Just fn -> file fn
                 Nothing -> raise ("unknown package " <> p)
+        get "/janno_all" $
+            json (getAllPacJannoPairs allPackages)
         get "/individuals_all" $
             json (getAllIndividualInfo allPackages)
         notFound $ raise "Unknown request"
@@ -202,10 +204,13 @@ getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getAllIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
-    let name = posSamIndividualID jannoRow
-        group = head . posSamGroupName $ jannoRow
+    let name = jIndividualID jannoRow
+        group = head . jGroupName $ jannoRow
         pacName = posPacTitle pac
     return $ IndividualInfo name group pacName
+
+getAllPacJannoPairs :: [PoseidonPackage] -> [(String, [JannoRow])]
+getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
 optParserInfo :: OP.ParserInfo CommandLineOptions
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
