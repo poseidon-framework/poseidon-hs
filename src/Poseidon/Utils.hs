@@ -65,7 +65,7 @@ renderPoseidonException PoseidonEmptyForgeException =
     "Nothing to be forged"
 renderPoseidonException (PoseidonNewPackageConstructionException s) =
     show s
-renderPoseidonException (PoseidonGenericException s) = show s
+renderPoseidonException (PoseidonGenericException s) = s
 
 data IndividualInfo = IndividualInfo
     { indInfoName    :: String
