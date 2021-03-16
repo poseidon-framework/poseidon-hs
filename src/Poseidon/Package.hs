@@ -348,11 +348,12 @@ checkJannoBibConsistency pacName janno bibtex = do
 -- | a utility function to load all poseidon packages found recursively in multiple base directories. 
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
-readPoseidonPackageCollection :: Bool -- ^ whether to ignore all checksums
+readPoseidonPackageCollection :: Bool -- ^ whether to stop on duplicated individuals
+                              -> Bool -- ^ whether to ignore all checksums
                               -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = do
+readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFilesMissing dirs = do
     hPutStr stderr $ "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
@@ -373,7 +374,7 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
             \x -> hPrint stderr x
     -- individual duplication check
     individuals <- mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
-    checkIndividualsUnique $ concat individuals
+    checkIndividualsUnique stopOnDuplicates $ concat individuals
     -- report number of valid packages
     hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
@@ -387,14 +388,23 @@ readPoseidonPackageCollection ignoreChecksums ignoreGenotypeFilesMissing dirs = 
         hFlush stderr
         try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing $ path
 
-checkIndividualsUnique :: [EigenstratIndEntry] -> IO ()
-checkIndividualsUnique indEntries = do
+checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
+checkIndividualsUnique stopOnDuplicates indEntries = do
     let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
-    when (length genoIDs /= length (nub genoIDs)) $
-        throwM $ PoseidonCollectionException $
-            "Duplicate individuals (" ++
-            intercalate ", " (genoIDs \\ nub genoIDs) ++
-            ")"
+    when (length genoIDs /= length (nub genoIDs)) $ do
+        if stopOnDuplicates
+        then do
+            throwM $ PoseidonCollectionException $
+                "Duplicate individuals (" ++
+                intercalate ", " (genoIDs \\ nub genoIDs) ++
+                ")"
+        else do
+            hPutStrLn stderr $
+                "Warning: Duplicate individuals (" ++
+                intercalate ", " (take 3 $ genoIDs \\ nub genoIDs) ++
+                if length (genoIDs \\ nub genoIDs) > 3
+                then ", ...)"
+                else ")"
 
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do
