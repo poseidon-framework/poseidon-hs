@@ -20,7 +20,7 @@ data ValidateOptions = ValidateOptions
 runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection False ignoreGeno baseDirs
+    allPackages <- readPoseidonPackageCollection True False ignoreGeno baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates

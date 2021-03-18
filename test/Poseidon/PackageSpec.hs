@@ -29,7 +29,7 @@ import           Text.RawString.QQ
 
 spec = do
     testPoseidonFromYAML
-    testReadPoseidonPackageCollection
+    testreadPoseidonPackageCollection
     testGetChecksum
     testRenderMismatch
     testZipWithPadding
@@ -141,11 +141,11 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     it "should fail with lastModified missing" $ do
         p `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
 
-testReadPoseidonPackageCollection :: Spec
-testReadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
+testreadPoseidonPackageCollection :: Spec
+testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
     it "should discover packages correctly" $ do
-        pac <- readPoseidonPackageCollection False False [dir]
+        pac <- readPoseidonPackageCollection True False False [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),

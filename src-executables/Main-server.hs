@@ -65,7 +65,7 @@ main = do
     updateGlobalLogger logger (setHandlers [fh] . setLevel INFO)
     infoM logger "Server starting up. Loading packages..."
     opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
-    allPackages <- readPoseidonPackageCollection False ignoreGenoFiles baseDirs
+    allPackages <- readPoseidonPackageCollection True False ignoreGenoFiles baseDirs
     infoM logger "Checking whether zip files are missing or outdated"
     zipDict <- forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"
