@@ -15,7 +15,7 @@ import           Poseidon.EntitiesList  (PoseidonEntity (..),
                                         poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
+import           Poseidon.CLI.Checksumupdate (runChecksumupdate, ChecksumupdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
 import           Poseidon.Utils         (PoseidonException (..), 
                                         renderPoseidonException)
@@ -38,7 +38,7 @@ data Options = CmdFstats FstatsOptions
     | CmdGenoconvert GenoconvertOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
-    | CmdUpdate UpdateOptions
+    | CmdChecksumupdate ChecksumupdateOptions
     | CmdValidate ValidateOptions
 
 main :: IO ()
@@ -62,7 +62,7 @@ runCmd o = case o of
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
-    CmdUpdate opts    -> runUpdate opts
+    CmdChecksumupdate opts -> runChecksumupdate opts
     CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -80,11 +80,11 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
+        OP.command "checksumupdate" checksumupdateOptInfo <>
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
-        OP.command "update" updateOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -115,7 +115,7 @@ optParser = OP.subparser (
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
-    updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
+    checksumupdateOptInfo = OP.info (OP.helper <*> (CmdChecksumupdate <$> checksumupdateOptParser))
         (OP.progDesc "Update checksums in POSEIDON.yml files")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
@@ -176,8 +176,8 @@ surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
 
-updateOptParser :: OP.Parser UpdateOptions
-updateOptParser = UpdateOptions <$> parseBasePaths
+checksumupdateOptParser :: OP.Parser ChecksumupdateOptions
+checksumupdateOptParser = ChecksumupdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
