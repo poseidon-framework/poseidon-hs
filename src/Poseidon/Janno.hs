@@ -459,6 +459,7 @@ writeJannoFile path samples = do
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
       Csv.encDelimiter = fromIntegral (ord '\t')
+    , Csv.encUseCrLf = False
     , Csv.encIncludeHeader = True
     , Csv.encQuoting = Csv.QuoteMinimal
 }
