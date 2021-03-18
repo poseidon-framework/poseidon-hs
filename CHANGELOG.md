@@ -18,3 +18,4 @@
 - V 0.10.0: List now has `--remote` option to view packages, groups and individuals on a remote server
 - V 0.11.0: Added the module genoconvert to automatically switch the genotype data format in packages
 - V 0.12.0: List can now also display janno columns with the `-j` option for the `--individuals` case
+- V 0.13.0: Renamed the update module to checksumupdate, allowed trident to ignore duplicate individuals for some inspection modules, switched to Unix file endings for janno file encoding
