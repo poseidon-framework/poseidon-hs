@@ -487,32 +487,32 @@ updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
 updateChecksumsInPackage pac = do
     let d = posPacBaseDir pac
     jannoChkSum <- case posPacJannoFile pac of
-        Nothing -> return Nothing
+        Nothing -> return $ posPacJannoFileChkSum pac
         Just fn -> Just <$> getChecksum (d </> fn)
     bibChkSum <- case posPacBibFile pac of
-        Nothing -> return Nothing
+        Nothing -> return $ posPacBibFileChkSum pac
         Just fn -> Just <$> getChecksum (d </> fn)
     let gd = posPacGenotypeData pac
     genoExists <- doesFileExist (d </> genoFile gd)
     genoChkSum <- if genoExists
                   then Just <$> getChecksum (d </> genoFile gd)
-                  else return Nothing
+                  else return $ genoFileChkSum gd
     snpExists <-  doesFileExist (d </> snpFile gd)
     snpChkSum <-  if snpExists
                   then Just <$> getChecksum (d </> snpFile gd)
-                  else return Nothing
+                  else return $ snpFileChkSum gd
     indExists <-  doesFileExist (d </> indFile gd)
     indChkSum <-  if indExists
                   then Just <$> getChecksum (d </> indFile gd)
-                  else return Nothing
+                  else return $ indFileChkSum gd
     return $ pac {
-        posPacBibFileChkSum = bibChkSum,
-        posPacJannoFileChkSum = jannoChkSum,
         posPacGenotypeData = gd {
             genoFileChkSum = genoChkSum,
             snpFileChkSum = snpChkSum,
             indFileChkSum = indChkSum
-        }
+        },
+        posPacJannoFileChkSum = jannoChkSum,
+        posPacBibFileChkSum = bibChkSum
     } 
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
