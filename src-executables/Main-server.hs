@@ -67,7 +67,7 @@ main = do
     opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
     allPackages <- readPoseidonPackageCollection True False ignoreGenoFiles baseDirs
     infoM logger "Checking whether zip files are missing or outdated"
-    zipDict <- forM allPackages (\pac -> do
+    zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"
         zipFileOutdated <- checkZipFileOutdated pac fn ignoreGenoFiles
         when zipFileOutdated $ do
@@ -87,7 +87,7 @@ main = do
             html . makeHTMLtable $ allPackages
         get "/package_table_md.md" $
             text . makeMDtable $ allPackages
-        get "/zip_file/:package_name" $ do
+        when (not ignoreGenoFiles) . get "/zip_file/:package_name" $ do
             p <- param "package_name"
             let zipFN = lookup (unpack p) zipDict
             case zipFN of
@@ -97,6 +97,8 @@ main = do
             json (getAllPacJannoPairs allPackages)
         get "/individuals_all" $
             json (getAllIndividualInfo allPackages)
+        get "/server_version" $
+            text . pack . showVersion $ version
         notFound $ raise "Unknown request"
   where
     p = OP.prefs OP.showHelpOnEmpty
