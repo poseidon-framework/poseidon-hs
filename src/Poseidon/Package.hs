@@ -95,6 +95,8 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlJannoFileChkSum :: Maybe String
     , _posYamlBibFile         :: Maybe FilePath
     , _posYamlBibFileChkSum   :: Maybe String
+    , _posYamlReadmeFile      :: Maybe String
+    , _posYamlChangelogFile   :: Maybe String
 } deriving (Show, Eq, Generic)
 
 poseidonJannoFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
@@ -102,7 +104,6 @@ poseidonJannoFilePath baseDir yml = (baseDir </>) <$> _posYamlJannoFile yml
 
 poseidonBibFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
 poseidonBibFilePath baseDir yml = (baseDir </>) <$> _posYamlBibFile yml
-
 
 instance FromJSON PoseidonYamlStruct where
     parseJSON = withObject "PoseidonYamlStruct" $ \v -> PoseidonYamlStruct
@@ -117,6 +118,8 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:?  "jannoFileChkSum"
         <*> v .:?  "bibFile"
         <*> v .:?  "bibFileChkSum"
+        <*> v .:?  "readmeFile"
+        <*> v .:?  "changelogFile"
 
 instance ToJSON PoseidonYamlStruct where
     toJSON x = object [
@@ -130,7 +133,9 @@ instance ToJSON PoseidonYamlStruct where
         "jannoFile"       .= _posYamlJannoFile x,
         "jannoFileChkSum" .= _posYamlJannoFileChkSum x,
         "bibFile"         .= _posYamlBibFile x,
-        "bibFileChkSum"   .= _posYamlBibFileChkSum x
+        "bibFileChkSum"   .= _posYamlBibFileChkSum x,
+        "readmeFile"      .= _posYamlReadmeFile x,
+        "changelogFile"   .= _posYamlChangelogFile x
         ]
 
 instance ToPrettyYaml PoseidonYamlStruct where
@@ -154,7 +159,9 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "jannoFile",
         "jannoFileChkSum",
         "bibFile",
-        "bibFileChkSum"
+        "bibFileChkSum",
+        "readmeFile",
+        "changelogFile"
         ]
 
 
@@ -188,8 +195,12 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the path to the BibTeX file
     , posPacBib             :: BibTeX
     -- ^ the loaded bibliography file
-    , posPacBibFileChkSum   :: Maybe String
+    , posPacBibFileChkSum   :: Maybe String 
     -- ^ the optional bibfile chksum
+    , posPacReadmeFile      :: Maybe FilePath
+    -- ^ the path to the README file
+    , posPacChangelogFile   :: Maybe FilePath
+    -- ^ the path to the CHANGELOG file
     , posPacDuplicate       :: Int
     -- ^ how many packages of this name exist in the current collection
     }
@@ -227,10 +238,10 @@ readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
     -- read yml files
-    (PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC) <- case decodeEither' bs of
+    (PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwIO $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
-    let yml = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC
+    let yml = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC readF changeF
     -- file existence and checksum test
     checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml
     -- read janno (or fill with empty dummy object)
@@ -250,7 +261,7 @@ readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing ymlPath = do
             checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC 1
+    let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC readF changeF 1
     return pac
 
 -- throws exception if any checksum isn't correct
@@ -480,6 +491,8 @@ newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) ind
                 Nothing -> [] :: BibTeX
                 Just a -> a
     ,   posPacBibFileChkSum = Nothing
+    ,   posPacReadmeFile = Nothing
+    ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
 
@@ -516,7 +529,7 @@ updateChecksumsInPackage pac = do
     } 
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC _) = do
-    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC
+writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
+    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac
