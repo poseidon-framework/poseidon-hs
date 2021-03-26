@@ -223,28 +223,36 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Right x -> Right x
 
 parseForgeEntitiesDirect :: OP.Parser [PoseidonEntity]
-parseForgeEntitiesDirect = OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
+parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
-    OP.value [] <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
         \<individual_id>. You can combine multiple values with comma, so for example: \
-        \\"*package_1*, <individual_1>, <individual_2>, group_1\"")
+        \\"*package_1*, <individual_1>, <individual_2>, group_1\""))
 
 parseFetchEntitiesDirect :: OP.Parser [PoseidonEntity]
-parseFetchEntitiesDirect = OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
+parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
     OP.short 'f' <>
-    OP.value [] <>
     OP.help "List of packages to be downloaded from the remote server. \
         \Package names should be wrapped in asterisks: *package_title*. You can combine multiple values with comma, so for example: \
-        \\"*package_1*, *package_2*, *package_3*\"")
+        \\"*package_1*, *package_2*, *package_3*\""))
 
-parseForgeEntitiesFromFile :: OP.Parser (Maybe FilePath)
-parseForgeEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "forgeFile" <>
-    OP.value Nothing <>
+parseForgeEntitiesFromFile :: OP.Parser [FilePath]
+parseForgeEntitiesFromFile = OP.many (OP.strOption (OP.long "forgeFile" <>
     OP.help "A file with a list of packages, groups or individual samples. \
     \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-    \-f and --forgeFile can be combined.")
+    \-f and --forgeFile can be combined."))
+
+parseFetchEntitiesFromFile :: OP.Parser [FilePath]
+parseFetchEntitiesFromFile = OP.many (OP.strOption (OP.long "fetchFile" <>
+    OP.help "A file with a list of packages. \
+    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
+    \-f and --fetchFile can be combined."))
+
+readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
+readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
+    Left p  -> Left (show p)
+    Right x -> Right x
 
 parseIntersect :: OP.Parser (Bool)
 parseIntersect = OP.switch (OP.long "intersect" <>
@@ -252,18 +260,6 @@ parseIntersect = OP.switch (OP.long "intersect" <>
         \The default (if this option is not set) is to output the union of all SNPs, with genotypes \
         \defined as missing in those packages which do not have a SNP that is present in another package. \
         \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
-
-parseFetchEntitiesFromFile :: OP.Parser (Maybe FilePath)
-parseFetchEntitiesFromFile = OP.option (Just <$> OP.str) (OP.long "fetchFile" <>
-    OP.value Nothing <>
-    OP.help "A file with a list of packages. \
-    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-    \-f and --fetchFile can be combined.")
-
-readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
-readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
-    Left p  -> Left (show p)
-    Right x -> Right x
 
 parseRepoLocation :: OP.Parser RepoLocationSpec
 parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))

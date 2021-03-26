@@ -43,7 +43,7 @@ import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 data ForgeOptions = ForgeOptions
     { _jaBaseDirs   :: [FilePath]
     , _entityList   :: EntitiesList
-    , _entityFile   :: Maybe FilePath
+    , _entityFiles   :: [FilePath]
     , _intersect    :: Bool
     , _outPacPath   :: FilePath
     , _outPacName   :: String
@@ -55,10 +55,8 @@ data ForgeOptions = ForgeOptions
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName outFormat showWarnings) = do
     -- compile entities
-    entitiesFromFile <- case entitiesFile of
-        Nothing -> return []
-        Just f  -> readEntitiesFromFile f
-    let entities = entitiesDirect ++ entitiesFromFile
+    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    let entities = nub $ entitiesDirect ++ concat entitiesFromFile
     -- load packages --
     allPackages <- readPoseidonPackageCollection True True False baseDirs
     -- check for entities that do not exist this this dataset

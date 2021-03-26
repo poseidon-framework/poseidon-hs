@@ -38,7 +38,7 @@ import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
 data FetchOptions = FetchOptions
     { _jaBaseDirs :: [FilePath]
     , _entityList :: EntitiesList
-    , _entityFile :: Maybe FilePath
+    , _entityFiles :: [FilePath]
     , _remoteURL :: String
     , _upgrade :: Bool
     , _downloadAllPacs :: Bool
@@ -56,10 +56,8 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     -- compile entities
-    entitiesFromFile <- case entitiesFile of
-        Nothing -> return []
-        Just f -> readEntitiesFromFile f
-    let entities = nub $ entitiesDirect ++ entitiesFromFile --this nub could also be relevant for forge
+    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    let entities = nub $ entitiesDirect ++ concat entitiesFromFile --this nub could also be relevant for forge
         desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
     -- load local packages
     allLocalPackages <- readPoseidonPackageCollection False True False baseDirs
