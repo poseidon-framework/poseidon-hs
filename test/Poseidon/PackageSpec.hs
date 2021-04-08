@@ -81,7 +81,9 @@ truePackageRelPaths = PoseidonYamlStruct {
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
     _posYamlBibFile         = Just "sources.bib",
-    _posYamlBibFileChkSum   = Nothing
+    _posYamlBibFileChkSum   = Nothing,
+    _posYamlReadmeFile      = Nothing,
+    _posYamlChangelogFile   = Nothing
 }
 
 truePackageAbsPaths :: PoseidonYamlStruct
@@ -104,7 +106,9 @@ truePackageAbsPaths = PoseidonYamlStruct {
     _posYamlJannoFile       = Just "/tmp/Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
     _posYamlBibFile         = Just "/tmp/sources.bib",
-    _posYamlBibFileChkSum   = Nothing
+    _posYamlBibFileChkSum   = Nothing,
+    _posYamlReadmeFile      = Nothing,
+    _posYamlChangelogFile   = Nothing
 }
 
 testPoseidonFromYAML :: Spec

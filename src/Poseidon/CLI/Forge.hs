@@ -43,7 +43,7 @@ import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 data ForgeOptions = ForgeOptions
     { _jaBaseDirs   :: [FilePath]
     , _entityList   :: EntitiesList
-    , _entityFile   :: Maybe FilePath
+    , _entityFiles   :: [FilePath]
     , _intersect    :: Bool
     , _outPacPath   :: FilePath
     , _outPacName   :: String
@@ -55,12 +55,10 @@ data ForgeOptions = ForgeOptions
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName outFormat showWarnings) = do
     -- compile entities
-    entitiesFromFile <- case entitiesFile of
-        Nothing -> return []
-        Just f  -> readEntitiesFromFile f
-    let entities = entitiesDirect ++ entitiesFromFile
+    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    let entities = nub $ entitiesDirect ++ concat entitiesFromFile
     -- load packages --
-    allPackages <- readPoseidonPackageCollection True True False baseDirs
+    allPackages <- readPoseidonPackageCollection False True False baseDirs
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages
     unless (null nonExistentEntities) $
@@ -76,7 +74,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     let namesOfRelevantPackages = map posPacTitle relevantPackages
     let jannos = map posPacJanno relevantPackages
     let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages jannos
-    -- -- bib
+    -- check for duplicates among the individuals selected for merging
+    checkIndividualsUniqueJanno relevantJannoRows
+    -- bib
     let bibEntries = concatMap posPacBib relevantPackages
     let relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
     -- genotype data
@@ -121,6 +121,15 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
         liftIO $ hClearLine stderr
         liftIO $ hSetCursorColumn stderr 0
         liftIO $ hPutStrLn stderr "SNPs processed: All done"
+
+checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
+checkIndividualsUniqueJanno rows = do
+    let indIDs = map jIndividualID rows
+    when (length indIDs /= length (nub indIDs)) $ do
+        throwM $ PoseidonForgeEntitiesException $
+            "Duplicate individuals in selection (" ++
+            intercalate ", " (indIDs \\ nub indIDs) ++
+            ")"
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
