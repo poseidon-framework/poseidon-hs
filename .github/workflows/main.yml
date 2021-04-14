@@ -52,7 +52,7 @@ jobs:
       run: |
         # https://github.com/8c6794b6/hpc-codecov
         stack install hpc-codecov --local-bin-path ~/hpc-codecov --system-ghc
-        TIX=$(find . -name 'poseidon-tools-tests.tix')
+        TIX=$(find . -mmin -$((5)) -name 'poseidon-tools-tests.tix')
         MIX=$(stack path --dist-dir)/hpc
         stack exec -- ~/hpc-codecov/hpc-codecov --mix=$MIX -o codecov.json $TIX
 
