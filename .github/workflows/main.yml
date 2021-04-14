@@ -49,12 +49,9 @@ jobs:
         --coverage
 
     - name: Generate coverage report
-      run: |
-        # https://github.com/8c6794b6/hpc-codecov
-        stack install hpc-codecov --local-bin-path ~/hpc-codecov --system-ghc
-        TIX=$(find . -mmin -$((5)) -name 'poseidon-tools-tests.tix')
-        MIX=$(stack path --dist-dir)/hpc
-        stack exec -- ~/hpc-codecov/hpc-codecov --mix=$MIX -o codecov.json $TIX
+      uses: 8c6794b6/hpc-codecov-action@v2
+      with:
+        target: stack:poseidon-tools-tests
 
-    - name: Upload coverage report
-      run: bash <(curl -s https://codecov.io/bash)
+    - name: Send coverage report
+      uses: codecov/codecov-action@v1
