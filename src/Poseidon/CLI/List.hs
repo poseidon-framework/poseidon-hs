@@ -94,42 +94,42 @@ extractAdditionalFields :: JannoRow -> [String] -> IO [String]
 extractAdditionalFields jannoRow = mapM (\f -> extractAdditionalField f jannoRow)
 
 extractAdditionalField :: String -> JannoRow -> IO String
-extractAdditionalField "Individual_ID"         = return . jIndividualID
-extractAdditionalField "Collection_ID"         = handleMaybe     jCollectionID 
-extractAdditionalField "Source_Tissue"         = handleMaybe     (fmap (intercalate ",") . jSourceTissue)
-extractAdditionalField "Country"               = handleMaybe     jCountry
-extractAdditionalField "Location"              = handleMaybe     jLocation
-extractAdditionalField "Site"                  = handleMaybe     jSite
-extractAdditionalField "Latitude"              = handleMaybeShow jLatitude
-extractAdditionalField "Longitude"             = handleMaybeShow jLongitude
-extractAdditionalField "Date_C14_Labnr"        = handleMaybe     (fmap (intercalate ",") . jDateC14Labnr)
-extractAdditionalField "Date_C14_Uncal_BP"     = handleMaybeShow jDateC14UncalBP
-extractAdditionalField "Date_C14_Uncal_BP_Err" = handleMaybeShow jDateC14UncalBPErr
-extractAdditionalField "Date_BC_AD_Median"     = handleMaybeShow jDateBCADMedian
-extractAdditionalField "Date_BC_AD_Start"      = handleMaybeShow jDateBCADStart
-extractAdditionalField "Date_BC_AD_Stop"       = handleMaybeShow jDateBCADStop
-extractAdditionalField "Date_Type"             = handleMaybeShow jDateType
-extractAdditionalField "No_of_Libraries"       = handleMaybeShow jNrLibraries
-extractAdditionalField "Data_Type"             = handleMaybe     (fmap (intercalate "," . map show) . jDataType)
-extractAdditionalField "Genotype_Ploidy"       = handleMaybeShow jGenotypePloidy
-extractAdditionalField "Group_Name"            = return . intercalate "," . jGroupName
-extractAdditionalField "Genetic_Sex"           = return . show . jGeneticSex
-extractAdditionalField "Nr_autosomal_SNPs"     = handleMaybeShow jNrAutosomalSNPs
-extractAdditionalField "Coverage_1240K"        = handleMaybeShow jCoverage1240K
-extractAdditionalField "MT_Haplogroup"         = handleMaybe     jMTHaplogroup
-extractAdditionalField "Y_Haplogroup"          = handleMaybe     jYHaplogroup
-extractAdditionalField "Endogenous"            = handleMaybeShow jEndogenous
-extractAdditionalField "UDG"                   = handleMaybeShow jUDG
-extractAdditionalField "Library_Built"         = handleMaybeShow jLibraryBuilt
-extractAdditionalField "Damage"                = handleMaybeShow jDamage
-extractAdditionalField "Xcontam"               = handleMaybeShow jNuclearContam
-extractAdditionalField "Xcontam_stderr"        = handleMaybeShow jNuclearContamErr
-extractAdditionalField "mtContam"              = handleMaybeShow jMTContam
-extractAdditionalField "mtContam_stderr"       = handleMaybeShow jMTContamErr
-extractAdditionalField "Primary_Contact"       = handleMaybe     jPrimaryContact
-extractAdditionalField "Publication_Status"    = handleMaybe     jPublication
-extractAdditionalField "Note"                  = handleMaybe     jComments
-extractAdditionalField "Keywords"              = handleMaybe     (fmap (intercalate ",") . jKeywords)
+extractAdditionalField "Individual_ID"         = return .                   jIndividualID
+extractAdditionalField "Collection_ID"         = handleMaybe                jCollectionID 
+extractAdditionalField "Source_Tissue"         = handleMaybeList            jSourceTissue
+extractAdditionalField "Country"               = handleMaybe                jCountry
+extractAdditionalField "Location"              = handleMaybe                jLocation
+extractAdditionalField "Site"                  = handleMaybe                jSite
+extractAdditionalField "Latitude"              = handleMaybeShow            jLatitude
+extractAdditionalField "Longitude"             = handleMaybeShow            jLongitude
+extractAdditionalField "Date_C14_Labnr"        = handleMaybeList            jDateC14Labnr
+extractAdditionalField "Date_C14_Uncal_BP"     = handleMaybeShowList        jDateC14UncalBP
+extractAdditionalField "Date_C14_Uncal_BP_Err" = handleMaybeShowList        jDateC14UncalBPErr
+extractAdditionalField "Date_BC_AD_Median"     = handleMaybeShow            jDateBCADMedian
+extractAdditionalField "Date_BC_AD_Start"      = handleMaybeShow            jDateBCADStart
+extractAdditionalField "Date_BC_AD_Stop"       = handleMaybeShow            jDateBCADStop
+extractAdditionalField "Date_Type"             = handleMaybeShow            jDateType
+extractAdditionalField "No_of_Libraries"       = handleMaybeShow            jNrLibraries
+extractAdditionalField "Data_Type"             = handleMaybeShowList        jDataType
+extractAdditionalField "Genotype_Ploidy"       = handleMaybeShow            jGenotypePloidy
+extractAdditionalField "Group_Name"            = return . intercalate ";" . jGroupName
+extractAdditionalField "Genetic_Sex"           = return . show .            jGeneticSex
+extractAdditionalField "Nr_autosomal_SNPs"     = handleMaybeShow            jNrAutosomalSNPs
+extractAdditionalField "Coverage_1240K"        = handleMaybeShow            jCoverage1240K
+extractAdditionalField "MT_Haplogroup"         = handleMaybe                jMTHaplogroup
+extractAdditionalField "Y_Haplogroup"          = handleMaybe                jYHaplogroup
+extractAdditionalField "Endogenous"            = handleMaybeShow            jEndogenous
+extractAdditionalField "UDG"                   = handleMaybeShow            jUDG
+extractAdditionalField "Library_Built"         = handleMaybeShow            jLibraryBuilt
+extractAdditionalField "Damage"                = handleMaybeShow            jDamage
+extractAdditionalField "Xcontam"               = handleMaybeShow            jNuclearContam
+extractAdditionalField "Xcontam_stderr"        = handleMaybeShow            jNuclearContamErr
+extractAdditionalField "mtContam"              = handleMaybeShow            jMTContam
+extractAdditionalField "mtContam_stderr"       = handleMaybeShow            jMTContamErr
+extractAdditionalField "Primary_Contact"       = handleMaybe                jPrimaryContact
+extractAdditionalField "Publication_Status"    = handleMaybe                jPublication
+extractAdditionalField "Note"                  = handleMaybe                jComments
+extractAdditionalField "Keywords"              = handleMaybeList            jKeywords
 extractAdditionalField f                       = const (throwIO $ PoseidonGenericException (f ++ " is not a valid Janno column name"))
 
 handleMaybe :: (JannoRow -> Maybe String) -> JannoRow -> IO String
@@ -141,5 +141,17 @@ handleMaybe func row =
 handleMaybeShow :: Show a => (JannoRow -> Maybe a) -> JannoRow -> IO String
 handleMaybeShow func row =
     case func row of
-        Just val -> return (show val)
+        Just val -> return $ show val
+        Nothing -> return "n/a"
+
+handleMaybeList :: (JannoRow -> Maybe [String]) -> JannoRow -> IO String
+handleMaybeList func row =
+    case func row of
+        Just vals -> return $ intercalate ";" vals
+        Nothing -> return "n/a"
+
+handleMaybeShowList :: Show a => (JannoRow -> Maybe [a]) -> JannoRow -> IO String
+handleMaybeShowList func row =
+    case func row of
+        Just vals -> return $ intercalate ";" $ map show vals
         Nothing -> return "n/a"

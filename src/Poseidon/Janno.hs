@@ -81,7 +81,7 @@ instance ToJSON Sex where
 data JannoDateType = C14
     | Contextual
     | Modern
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON JannoDateType where
     toEncoding = genericToEncoding defaultOptions
@@ -100,12 +100,17 @@ instance Csv.ToField JannoDateType where
     toField Contextual = "contextual"
     toField Modern     = "modern"
 
+instance Show JannoDateType where
+    show C14        = "C14"
+    show Contextual = "contextual"
+    show Modern     = "modern"
+
 -- |A datatype to represent Data_Type in a janno file
 data JannoDataType = Shotgun
     | A1240K
     | OtherCapture
     | ReferenceGenome
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON JannoDataType where
     toEncoding = genericToEncoding defaultOptions
@@ -126,10 +131,16 @@ instance Csv.ToField JannoDataType where
     toField OtherCapture    = "OtherCapture"
     toField ReferenceGenome = "ReferenceGenome"
 
+instance Show JannoDataType where
+    show Shotgun         = "Shotgun"
+    show A1240K          = "1240K"
+    show OtherCapture    = "OtherCapture"
+    show ReferenceGenome = "ReferenceGenome"
+
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = Diploid
     | Haploid
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON JannoGenotypePloidy where
     toEncoding = genericToEncoding defaultOptions
@@ -146,12 +157,16 @@ instance Csv.ToField JannoGenotypePloidy where
     toField Diploid = "diploid"
     toField Haploid = "haploid"
 
+instance Show JannoGenotypePloidy where
+    show Diploid = "diploid"
+    show Haploid = "haploid"
+
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
     | Half
     | Plus
     | Mixed
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON JannoUDG where
     toEncoding = genericToEncoding defaultOptions
@@ -172,11 +187,17 @@ instance Csv.ToField JannoUDG where
     toField Plus  = "plus"
     toField Mixed = "mixed"
 
+instance Show JannoUDG where
+    show Minus = "minus"
+    show Half  = "half"
+    show Plus  = "plus"
+    show Mixed = "mixed"
+
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = DS
     | SS
     | Other
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance Csv.FromField JannoLibraryBuilt where
     parseField x
@@ -190,6 +211,11 @@ instance Csv.ToField JannoLibraryBuilt where
     toField SS    = "ss"
     toField Other = "other"
 
+instance Show JannoLibraryBuilt where
+    show DS    = "ds"
+    show SS    = "ss"
+    show Other = "other"
+
 instance ToJSON JannoLibraryBuilt where
     toEncoding = genericToEncoding defaultOptions
 
@@ -198,7 +224,7 @@ instance FromJSON JannoLibraryBuilt
 -- | A datatype for Latitudes
 newtype Latitude =
         Latitude Double
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON Latitude where
     toEncoding = genericToEncoding defaultOptions
@@ -215,10 +241,13 @@ instance Csv.FromField Latitude where
 instance Csv.ToField Latitude where
     toField (Latitude x) = Csv.toField x
 
+instance Show Latitude where
+    show (Latitude x) = show x
+
 -- | A datatype for Longitudes
 newtype Longitude =
         Longitude Double
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON Longitude where
     toEncoding = genericToEncoding defaultOptions
@@ -235,16 +264,18 @@ instance Csv.FromField Longitude where
 instance Csv.ToField Longitude where
     toField (Longitude x) = Csv.toField x
 
+instance Show Longitude where
+    show (Longitude x) = show x
+
 -- | A datatype for Percent values
 newtype Percent =
         Percent Double
-    deriving (Eq, Show, Ord, Generic)
+    deriving (Eq, Ord, Generic)
 
 instance ToJSON Percent where
     toEncoding = genericToEncoding defaultOptions
 
 instance FromJSON Percent
-
 
 instance Csv.FromField Percent where
     parseField x = do
@@ -255,6 +286,9 @@ instance Csv.FromField Percent where
 
 instance Csv.ToField Percent where
     toField (Percent x) = Csv.toField x
+
+instance Show Percent where
+    show (Percent x) = show x
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
