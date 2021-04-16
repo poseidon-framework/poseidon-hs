@@ -135,13 +135,13 @@ loadJointGenotypeData showAllWarnings intersect gdTuples = do
 joinEntries :: (MonadSafe m) => Bool -> [Int] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries showAllWarnings nrInds maybeTupleList = do
     let allSnpEntries    = map fst . catMaybes $ maybeTupleList
-    snpEntry@(EigenstratSnpEntry _ _ _ _ refA altA) <- getConsensusSnpEntry showAllWarnings allSnpEntries
+    consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
     recodedGenotypes <- forM (zip nrInds maybeTupleList) $ \(n, maybeTuple) ->
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
-            Just (EigenstratSnpEntry _ _ _ _ refA1 altA1, genoLine) ->
-                genotypes2alleles refA1 altA1 genoLine >>= recodeAlleles refA altA
-    return (snpEntry, V.concat recodedGenotypes)
+            Just (snpEntry, genoLine) ->
+                genotypes2alleles snpEntry genoLine >>= recodeAlleles consensusSnpEntry
+    return (consensusSnpEntry, V.concat recodedGenotypes)
 
 getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 getConsensusSnpEntry showAllWarnings snpEntries = do
@@ -187,27 +187,27 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
-genotypes2alleles :: (MonadThrow m) => Char -> Char -> GenoLine -> m (V.Vector (Char, Char))
-genotypes2alleles ref alt = V.mapM g2a
+genotypes2alleles :: (MonadThrow m) => EigenstratSnpEntry -> GenoLine -> m (V.Vector (Char, Char))
+genotypes2alleles snpEntry@(EigenstratSnpEntry chrom pos _ _ ref alt) = V.mapM g2a
   where
     g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
     g2a HomRef =
         if ref `notElem` na
         then return (ref, ref)
-        else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Ref with Ref-Allele missing")
+        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Ref with Ref-Allele missing"))
     g2a Het =
         if ref `notElem` na && alt `notElem` na
         then return (ref, alt)
-        else throwM (PoseidonGenotypeException "encountered illegal genotype Het with Ref-Allele or Alt-Allele missing")
+        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Het with Ref-Allele or Alt-Allele missing"))
     g2a HomAlt =
         if alt `notElem` na
         then return (alt, alt)
-        else throwM (PoseidonGenotypeException "encountered illegal genotype Hom-Alt with Alt-Allele missing")
+        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Alt with Alt-Allele missing"))
     g2a Missing = return ('N', 'N')
     na = ['0', 'N', 'X']
 
-recodeAlleles :: (MonadThrow m) => Char -> Char -> V.Vector (Char, Char) -> m GenoLine
-recodeAlleles ref alt = V.mapM a2g
+recodeAlleles :: (MonadThrow m) => EigenstratSnpEntry -> V.Vector (Char, Char) -> m GenoLine
+recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM a2g
   where
     a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
     a2g (a1, a2)
@@ -216,7 +216,7 @@ recodeAlleles ref alt = V.mapM a2g
         | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
         | a1 `elem` na && a2 `elem` na                                                                 = return Missing
         | otherwise                                                                                    = throwM (err a1 a2)
-    err a1 a2 = PoseidonGenotypeException ("cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
+    err a1 a2 = PoseidonGenotypeException ("At snp " ++ show snpEntry ++ ": cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
     na = ['0', 'N', 'X']
 
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
