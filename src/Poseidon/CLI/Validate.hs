@@ -27,6 +27,7 @@ runValidate (ValidateOptions baseDirs ignoreGeno) = do
     allPackages <- readPoseidonPackageCollection True False ignoreGeno baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
+    hPutStrLn stderr "Checking first 100 SNPs of genotype data"
     runSafeT $ do
         (_, eigenstratProd) <- getJointGenotypeData False False allPackages
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
