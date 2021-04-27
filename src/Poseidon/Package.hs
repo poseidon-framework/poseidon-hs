@@ -383,7 +383,12 @@ readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFil
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
         hPutStrLn stderr "Some packages were skipped due to issues:"
-        forM_ (lefts eitherPackages) $ \e -> hPutStrLn stderr (renderPoseidonException e)
+        forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
+            case epac of
+                Left e -> do
+                    hPutStrLn stderr ("In the package described in " ++ posF ++ ":")
+                    hPutStrLn stderr (renderPoseidonException e)
+                _ -> return ()
     let loadedPackages = rights eitherPackages
     -- package duplication check 
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
