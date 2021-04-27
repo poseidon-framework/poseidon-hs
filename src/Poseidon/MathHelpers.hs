@@ -1,6 +1,7 @@
 module Poseidon.MathHelpers where
 
 import          Data.List        (foldl')
+import          Text.Printf      (PrintfArg, printf)
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double
@@ -13,6 +14,10 @@ roundTo n x = fromIntegral val / t
   where
     val = round (x * t) :: Int
     t = 10^n
+
+-- | A helper function to print rounded doubles
+roundToStr :: (PrintfArg a, Floating a) => Int -> a -> String
+roundToStr = printf "%0.*f"
 
 -- | A helper function to calculate the standard deviation of a list of doubles
 stdev :: [Double] -> Double

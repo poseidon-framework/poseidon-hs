@@ -4,7 +4,7 @@ module Poseidon.CLI.Fetch where
 
 import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList (..), 
                                              readEntitiesFromFile)
-import           Poseidon.MathHelpers       (roundTo)
+import           Poseidon.MathHelpers       (roundTo, roundToStr)
 import           Poseidon.Package           (PackageInfo (..),
                                              PoseidonPackage (..),
                                              readPoseidonPackageCollection)
@@ -149,7 +149,7 @@ unzipPackage zip outDir = do
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
-    let pacNameNormsize = padString 40 pacName
+    let paddedPacName = padString 40 pacName
     downloadManager <- newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     runResourceT $ do 
@@ -157,8 +157,9 @@ downloadPackage pathToRepo remote pacName = do
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = read $ B8.unpack fileSize
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000 / 1000)
+        liftIO $ hPutStrLn stderr (paddedPacName ++ "> " ++ show fileSizeMB ++ "MB to download")
         sealConduitT (responseBody response) $$+- 
-            printDownloadProgress pacNameNormsize fileSizeMB .| 
+            printDownloadProgress fileSizeMB .| 
             sinkFile (pathToRepo </> pacName)
     putStrLn ""
     return ()
@@ -169,18 +170,18 @@ padString n s
     | length s < n  = s ++ replicate (n - length s) ' '
     | otherwise     = s
 
-printDownloadProgress :: String -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printDownloadProgress pacName fileSizeMB = loop 0 0
+printDownloadProgress :: Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printDownloadProgress fileSizeMB = loop 0 0
     where
-        loop loadedKB loadedMB = do
+        loop loadedB loadedMB = do
             x <- await
-            maybe (return ()) (showDownloaded fileSizeMB loadedKB) x
+            maybe (return ()) (showDownloaded fileSizeMB loadedB) x
             where
                 showDownloaded fileSizeMB loadedKB x = do
-                    let newLoadedKB = loadedKB + B.length x
-                    let curLoadedMB = roundTo 1 (fromIntegral newLoadedKB / 1000 / 1000)
-                                          -- update progress counter every 1%
-                    let newLoadedMB = if (curLoadedMB/fileSizeMB - loadedMB/fileSizeMB >= 0.01 &&
+                    let newLoadedB = loadedB + B.length x
+                    let curLoadedMB = roundTo 1 (fromIntegral newLoadedB / 1000 / 1000)
+                                          -- update progress counter every 5%
+                    let newLoadedMB = if (curLoadedMB/fileSizeMB - loadedMB/fileSizeMB >= 0.05 &&
                                           -- but only at at least 200KB 
                                           curLoadedMB - loadedMB > 0.2) || 
                                           -- and of course at the end of the sequence
@@ -188,9 +189,10 @@ printDownloadProgress pacName fileSizeMB = loop 0 0
                                       then curLoadedMB
                                       else loadedMB
                     when (loadedMB /= newLoadedMB) $ do
+                        let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB) * 100
                         liftIO $ hClearLine stderr
                         liftIO $ hSetCursorColumn stderr 0
-                        liftIO $ hPutStr stderr (pacName ++ show newLoadedMB ++ "/" ++ show fileSizeMB ++ "MB")
+                        liftIO $ hPutStr stderr ("> " ++ roundToStr 1 leadedPercent ++ "% ")
                         liftIO $ hFlush stderr
                     yield x
-                    loop newLoadedKB newLoadedMB
+                    loop newLoadedB newLoadedMB
