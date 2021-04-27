@@ -226,7 +226,7 @@ printSNPCopyProgress = loop 0
         when (n `rem` 1000 == 0) $ do
             liftIO $ hClearLine stderr
             liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStr stderr ("SNPs processed: " ++ show n)
+            liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
             liftIO $ hFlush stderr
         x <- await
         yield x

@@ -117,10 +117,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
         let outConsumer = case outFormat of
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
+        liftIO $ hPutStrLn stderr "Processing SNPs..."
         runEffect $ eigenstratProd >-> printSNPCopyProgress >-> P.map (selectIndices indices) >-> outConsumer
-        liftIO $ hClearLine stderr
-        liftIO $ hSetCursorColumn stderr 0
-        liftIO $ hPutStrLn stderr "SNPs processed: All done"
+        liftIO $ hPutStrLn stderr "Done"
 
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
 checkIndividualsUniqueJanno rows = do
