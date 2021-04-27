@@ -23,3 +23,4 @@
 - V 0.14.0: Multiple minor changes: allowed multiple forgeStrings/fetchStrings and forgeFiles/fetchFiles, added readmeFile and changelogFile to the package data structures, relaxed duplicate check in forge to only stop if there is an overlap within the specific selection relevant for the new package
 - V 0.14.1: added more helpful error messages to forge
 - V.0.14.2: Modified show instances of multiple janno column types and fixed output of list
+- V.0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output

@@ -66,10 +66,9 @@ convertGenoTo outFormat removeOld pac = do
                 let outConsumer = case outFormat of
                         GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                         GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
+                liftIO $ hPutStrLn stderr "Processing SNPs..."
                 runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
-                liftIO $ hClearLine stderr
-                liftIO $ hSetCursorColumn stderr 0
-                liftIO $ hPutStrLn stderr "SNPs processed: All done"
+                liftIO $ hPutStrLn stderr "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
                 newPac = pac { posPacGenotypeData = genotypeData }
