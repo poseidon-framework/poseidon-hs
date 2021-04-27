@@ -368,7 +368,7 @@ readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFil
     hPutStr stderr $ "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
-    hPutStr stderr "Initializing packages... "
+    hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
     hPutStrLn stderr ""
     -- notifying the users of package problems
@@ -395,7 +395,7 @@ readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFil
     tryDecodePoseidonPackage (numberPackage, path) = do
         hClearLine stderr
         hSetCursorColumn stderr 0
-        hPutStr stderr $ "Initializing packages... " ++ show numberPackage ++ " initialized"
+        hPutStr stderr $ "> " ++ show numberPackage ++ " "
         hFlush stderr
         try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing $ path
 
