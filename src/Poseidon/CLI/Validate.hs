@@ -24,15 +24,15 @@ data ValidateOptions = ValidateOptions
 runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection True False ignoreGeno baseDirs
+    allPackages <- readPoseidonPackageCollection True False ignoreGeno True baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
-    hPutStrLn stderr "Checking first 100 SNPs of genotype data"
-    runSafeT $ do
-        (_, eigenstratProd) <- getJointGenotypeData False False allPackages
-        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
     then do
+        hPutStrLn stderr "Checking joint genotype data for consistency"
+        runSafeT $ do
+            (_, eigenstratProd) <- getJointGenotypeData False False allPackages
+            runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         hPutStrLn stderr "Validation passed ✓"
         exitSuccess
     else do
