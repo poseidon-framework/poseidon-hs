@@ -44,7 +44,7 @@ runValidate (ValidateOptions baseDirs ignoreGeno) = do
 
 checkJointGenotypeData :: [PoseidonPackage] -> IO Bool
 checkJointGenotypeData packageList = do
-    hPutStrLn stderr "Checking joint genotype data for consistency..."
+    hPutStrLn stderr "Checking first 100 SNPs for cross-package consistency..."
     parseFirst100SNPs packageList `catch` handler
     where
         handler :: SomeException -> IO Bool
