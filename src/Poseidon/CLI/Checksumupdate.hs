@@ -15,7 +15,7 @@ data ChecksumupdateOptions = ChecksumupdateOptions
 
 runChecksumupdate :: ChecksumupdateOptions -> IO ()
 runChecksumupdate (ChecksumupdateOptions baseDirs) = do
-    allPackages <- readPoseidonPackageCollection True True True baseDirs
+    allPackages <- readPoseidonPackageCollection True True True False baseDirs
     hPutStrLn stderr "Calculating checksums"
     updatedPackages <- mapM updateChecksumsInPackage allPackages
     if allPackages == updatedPackages

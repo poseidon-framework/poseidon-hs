@@ -29,6 +29,7 @@ import           Control.Applicative        (Alternative((<|>)), ZipList (..))
 import           Control.Exception          (throwIO, try, throw)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad              (when, filterM, forM_, forM, unless)
+import Control.Monad.IO.Class (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
@@ -45,8 +46,9 @@ import           Data.Version               (Version, makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..), encodeFilePretty)
 import           GHC.Generics               (Generic)
-import           Pipes                      (Producer)
-import           Pipes.Safe                 (MonadSafe)
+import           Pipes                      (Producer, (>->), runEffect)
+import qualified Pipes.Prelude              as P
+import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoLine)
@@ -232,9 +234,10 @@ instance ToJSON ContributorSpec where
 -- make paths absolute.
 readPoseidonPackage :: Bool -- ^ whether to ignore all checksums
                     -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
+                    -> Bool -- ^ whether to check the first 100 SNPs of the genotypes
                     -> FilePath -- ^ the file path to the yaml file
                     -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing ymlPath = do
+readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
     -- read yml files
@@ -261,6 +264,11 @@ readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing ymlPath = do
             checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
+    when (not ignoreGenotypeFilesMissing && checkGenotypes) . runSafeT $ do
+        -- we're using loadJointGenotypeData here on a single package to check for SNP consistency
+        -- since that check is only implemented in the jointLoading function, not in the per-package loading
+        (_, eigenstratProd) <- loadJointGenotypeData False False [(baseDir, geno)]
+        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod geno jannoF janno jannoC bibF bib bibC readF changeF 1
     return pac
 
@@ -362,9 +370,10 @@ checkJannoBibConsistency pacName janno bibtex = do
 readPoseidonPackageCollection :: Bool -- ^ whether to stop on duplicated individuals
                               -> Bool -- ^ whether to ignore all checksums
                               -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
+                              -> Bool -- ^ whether to check the top 100 SNPs of the genotype data
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFilesMissing dirs = do
+readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes dirs = do
     hPutStr stderr $ "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
@@ -374,7 +383,12 @@ readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFil
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
         hPutStrLn stderr "Some packages were skipped due to issues:"
-        forM_ (lefts eitherPackages) $ \e -> hPutStrLn stderr (renderPoseidonException e)
+        forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
+            case epac of
+                Left e -> do
+                    hPutStrLn stderr ("In the package described in " ++ posF ++ ":")
+                    hPutStrLn stderr (renderPoseidonException e)
+                _ -> return ()
     let loadedPackages = rights eitherPackages
     -- package duplication check 
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
@@ -397,7 +411,7 @@ readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFil
         hSetCursorColumn stderr 0
         hPutStr stderr $ "> " ++ show numberPackage ++ " "
         hFlush stderr
-        try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing $ path
+        try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
 
 checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
