@@ -24,3 +24,4 @@
 - V 0.14.1: added more helpful error messages to forge
 - V.0.14.2: Modified show instances of multiple janno column types and fixed output of list
 - V.0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output
+- V.0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
