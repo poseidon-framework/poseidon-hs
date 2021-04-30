@@ -14,6 +14,7 @@ genotypeData:
   snpFileChkSum: 6771d7c873219039ba3d5bdd96031ce3
   indFile: ind.txt
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
+  snpSet: Other
 jannoFile: Schiffels_2016.janno
 bibFile: sources.bib
 bibFileChkSum: 70cd3d5801cee8a93fc2eb40a99c63fa

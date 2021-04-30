@@ -3,7 +3,8 @@
 module Poseidon.PackageSpec (spec) where
 
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
-                                            GenotypeFormatSpec (..))
+                                            GenotypeFormatSpec (..),
+                                            SNPSetSpec (..))
 import           Poseidon.Package          (ContributorSpec (..),
                                             PoseidonYamlStruct (..),
                                             PoseidonPackage (..),
@@ -53,6 +54,7 @@ genotypeData:
   genoFile: Schiffels_2016.bed
   snpFile: Schiffels_2016.bim
   indFile: Schiffels_2016.fam
+  snpSet: Other
 jannoFile: Schiffels_2016.janno
 |]
 
@@ -76,7 +78,8 @@ truePackageRelPaths = PoseidonYamlStruct {
         snpFile  = "Schiffels_2016.bim",
         snpFileChkSum = Nothing,
         indFile  = "Schiffels_2016.fam",
-        indFileChkSum = Nothing
+        indFileChkSum = Nothing,
+        snpSet = SNPSetOther
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -101,7 +104,8 @@ truePackageAbsPaths = PoseidonYamlStruct {
         snpFile  = "/tmp/Schiffels_2016.bim",
         snpFileChkSum = Nothing,
         indFile  = "/tmp/Schiffels_2016.fam",
-        indFileChkSum = Nothing
+        indFileChkSum = Nothing,
+        snpSet = SNPSetOther
     },
     _posYamlJannoFile       = Just "/tmp/Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
