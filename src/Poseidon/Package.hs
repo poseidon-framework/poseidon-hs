@@ -477,7 +477,7 @@ getJointGenotypeData showAllWarnings intersect pacs =
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into 
 -- the directory into which the YAML file will be written
 newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
-newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) inds janno bib = do
+newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _ snpSet) inds janno bib = do
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
         posPacBaseDir = baseDir
@@ -487,7 +487,7 @@ newPackageTemplate baseDir name (GenotypeDataSpec format geno _ snp _ ind _) ind
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
     ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
     ,   posPacLastModified = Just today
-    ,   posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing
+    ,   posPacGenotypeData = GenotypeDataSpec format (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet
     ,   posPacJannoFile = Just $ name ++ ".janno"
     -- TODO: This is not a good solution. Maybe we need pattern matching with 
     -- two different implementations of newPackageTemplate depending on whether

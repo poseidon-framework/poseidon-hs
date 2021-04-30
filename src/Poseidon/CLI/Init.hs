@@ -2,7 +2,10 @@ module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..), loadIndividuals)
+                                             GenotypeFormatSpec (..), 
+                                             loadIndividuals,
+                                             SNPSetSpec (..)
+                                             )
 import           Poseidon.Janno             (createMinimalJanno, 
                                              writeJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),
@@ -32,7 +35,7 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     let outInd = takeFileName indFile
         outSnp = takeFileName snpFile
         outGeno = takeFileName genoFile
-        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing
+        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing SNPSetOther
     -- genotype data
     hPutStrLn stderr "Copying genotype data"
     copyFile indFile $ outPath </> outInd
