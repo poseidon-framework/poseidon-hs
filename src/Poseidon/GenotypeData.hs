@@ -121,10 +121,7 @@ instance ToJSON SNPSetSpec where
         SNPSetOther         -> "Other"
 
 snpSetMergeList :: [SNPSetSpec] -> Bool -> SNPSetSpec
-snpSetMergeList [] _ = SNPSetOther
-snpSetMergeList [x] _ = x
-snpSetMergeList [x,y] intersect  = snpSetMerge x y intersect
-snpSetMergeList (x:zs) intersect = snpSetMergeList zs intersect
+snpSetMergeList (x:xs) intersect = foldr (\a b -> snpSetMerge a b intersect) x xs
 
 snpSetMerge :: SNPSetSpec -> SNPSetSpec -> Bool -> SNPSetSpec
 snpSetMerge SNPSet1240K         SNPSet1240K         _       = SNPSet1240K
