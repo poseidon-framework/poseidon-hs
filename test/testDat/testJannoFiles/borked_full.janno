@@ -1,24 +1,25 @@
-Individual_ID	Collection_ID	Source_Tissue	Country	Location	Site	Latitude	Longitude	Date_C14_Labnr	Date_C14_Uncal_BP	Date_C14_Uncal_BP_Err	Date_BC_AD_Median	Date_BC_AD_Start	Date_BC_AD_Stop	Date_Type	No_of_Libraries	Data_Type	Genotype_Ploidy	Group_Name	Genetic_Sex	Nr_autosomal_SNPs	Coverage_1240K	MT_Haplogroup	Y_Haplogroup	Endogenous	UDG	Library_Built	Damage	Xcontam	Xcontam_stderr	mtContam	mtContam_stderr	Primary_Contact	Publication_Status	Note	Keywords
-n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP1	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX017	n/a	n/a	n/a	n/a	n/a	1000	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP5	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX018	n/a	n/a	n/a	n/a	n/a	n/a	-1000	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP6	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX019	n/a	n/a	n/a	n/a	n/a	n/a	n/a	A-1;A-2;A-3	1000;2000	10;20	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP7	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX022	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	POP10	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX023	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	POP11	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX024	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	POP12	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX025	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	POP13	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX026	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	POP14	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX027	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	POP15	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX028	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	POP16	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX029	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX030	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP18	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX031	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP19	M	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX032	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP20	M	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX035	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP23	M	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX036	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP24	M	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX037	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP25	M	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX038	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP26	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX039	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP27	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX040	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP28	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a
-XXX041	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP29	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a
-XXX042	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP30	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a
+Individual_ID	Collection_ID	Source_Tissue	Country	Location	Site	Latitude	Longitude	Date_C14_Labnr	Date_C14_Uncal_BP	Date_C14_Uncal_BP_Err	Date_BC_AD_Median	Date_BC_AD_Start	Date_BC_AD_Stop	Date_Type	No_of_Libraries	Data_Type	Genotype_Ploidy	Group_Name	Genetic_Sex	Nr_autosomal_SNPs	Coverage_1240K	MT_Haplogroup	Y_Haplogroup	Endogenous	UDG	Library_Built	Damage	Xcontam	Xcontam_stderr	mtContam	mtContam_stderr	Genetic_Source_Accession_IDs	Data_Preparation_Pipeline_URL	Primary_Contact	Publication_Status	Note	Keywords
+n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP1	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX017	n/a	n/a	n/a	n/a	n/a	1000	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP5	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX018	n/a	n/a	n/a	n/a	n/a	n/a	-1000	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP6	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX019	n/a	n/a	n/a	n/a	n/a	n/a	n/a	A-1;A-2;A-3	1000;2000	10;20	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP7	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX022	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	POP10	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX023	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	POP11	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX024	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	POP12	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX025	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	POP13	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX026	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	POP14	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX027	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	POP15	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX028	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	POP16	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX029	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX030	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP18	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX031	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP19	M	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX032	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP20	M	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX035	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP23	M	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX036	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP24	M	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX037	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP25	M	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX038	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP26	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX039	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP27	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX040	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP28	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX041	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP29	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+XXX042	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP30	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a	n/a	n/a
+XXX044	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP32	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	something	n/a	n/a	n/a	n/a

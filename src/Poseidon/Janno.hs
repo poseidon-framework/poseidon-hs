@@ -13,6 +13,7 @@ module Poseidon.Janno (
     JannoGenotypePloidy (..),
     Percent (..),
     JannoUDG (..),
+    JURI (..),
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,

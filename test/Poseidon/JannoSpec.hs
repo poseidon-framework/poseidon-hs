@@ -9,6 +9,7 @@ import           Poseidon.Janno            (JannoRow (..),
                                             JannoGenotypePloidy (..),
                                             Percent (..),
                                             JannoUDG (..),
+                                            JURI (..),
                                             JannoLibraryBuilt (..),
                                             readJannoFile)
 import           Poseidon.Utils            (PoseidonException (..))
@@ -72,6 +73,9 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jUDG janno            `shouldBe` [Just Minus, Just Half, Just Plus]
         map jLibraryBuilt janno   `shouldBe` [Just DS, Just SS, Just Other]
         map jDamage janno         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
+        map jDataPreparationPipelineURL janno `shouldBe` [Just (JURI "ftp://test.test"),
+                                                          Just (JURI "https://www.google.de"), 
+                                                          Just (JURI "http://huhu.org/23&test")]
     it "should fail to read borked janno files" $ do
         readJannoFile borkedFullJannoPath `shouldThrow` anyException
         readJannoFile borkedPartialJannoPath `shouldThrow` anyException
