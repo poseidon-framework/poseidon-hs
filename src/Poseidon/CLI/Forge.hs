@@ -182,7 +182,7 @@ filterJannoFiles entities packages =
 
 filterBibEntries :: [JannoRow] -> [Reference] -> [Reference]
 filterBibEntries samples references =
-    let relevantPublications = nub $ mapMaybe jPublication samples
+    let relevantPublications = nub $ concat $ mapMaybe jPublication samples
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]

@@ -312,7 +312,7 @@ instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
 
 instance Show JURI where
-    show (JURI x) = show x
+    show (JURI x) = x
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
@@ -353,7 +353,7 @@ data JannoRow = JannoRow
     , jGeneticSourceAccessionIDs    :: Maybe [String]
     , jDataPreparationPipelineURL   :: Maybe JURI
     , jPrimaryContact               :: Maybe String
-    , jPublication                  :: Maybe String
+    , jPublication                  :: Maybe [String]
     , jComments                     :: Maybe String
     , jKeywords                     :: Maybe [String]
     }

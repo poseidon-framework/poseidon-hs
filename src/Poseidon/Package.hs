@@ -357,7 +357,7 @@ zipWithPadding _ b xs     []     = zip xs (repeat b)
 checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub $ mapMaybe jPublication janno
+    let literatureInJanno = nub $ concat $ mapMaybe jPublication janno
         literatureInBib = nub $ map (unpack . unLiteral . refId) bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $ 
