@@ -93,6 +93,8 @@ renderJannoCompleteness jS =
     ++ allNothing jNuclearContamErr jS
     ++ allNothing jMTContam jS
     ++ allNothing jMTContamErr jS
+    ++ allNothing jGeneticSourceAccessionIDs jS
+    ++ allNothing jDataPreparationPipelineURL jS
     ++ allNothing jPrimaryContact jS
     ++ allNothing jPublication jS
     ++ allNothing jComments jS
