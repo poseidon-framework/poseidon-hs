@@ -103,20 +103,20 @@ data SNPSetSpec =
     deriving (Eq)
 
 instance Show SNPSetSpec where
-    show SNPSet1240K        = "1240k"
+    show SNPSet1240K        = "1240K"
     show SNPSetHumanOrigins = "HumanOrigins"
     show SNPSetOther        = "Other"
 
 instance FromJSON SNPSetSpec where
     parseJSON = withText "snpSet" $ \v -> case v of
-        "1240k"         -> pure SNPSet1240K
+        "1240K"         -> pure SNPSet1240K
         "HumanOrigins"  -> pure SNPSetHumanOrigins
         "Other"         -> pure SNPSetOther
         _               -> fail ("unknown snpSet " ++ T.unpack v)
 
 instance ToJSON SNPSetSpec where
     toJSON a = case a of
-        SNPSet1240K         -> "1240k"
+        SNPSet1240K         -> "1240K"
         SNPSetHumanOrigins  -> "HumanOrigins"
         SNPSetOther         -> "Other"
 
