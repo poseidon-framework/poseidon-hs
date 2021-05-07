@@ -158,6 +158,7 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "snpFileChkSum",
         "indFile",
         "indFileChkSum",
+        "snpSet",
         "jannoFile",
         "jannoFileChkSum",
         "bibFile",
