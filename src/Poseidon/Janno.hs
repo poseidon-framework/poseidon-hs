@@ -38,8 +38,10 @@ import           Data.Either                (isLeft, isRight, lefts, rights)
 import           Data.Either.Combinators    (rightToMaybe)
 import qualified Data.HashMap.Lazy          as HM
 import           Data.List                  (intercalate, nub)
+import           Data.Maybe                 (fromMaybe)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
+import           Network.URI                (isURI)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.Directory           (doesFileExist)
 import           System.IO                  (hPutStrLn, stderr)
@@ -290,46 +292,70 @@ instance Csv.ToField Percent where
 instance Show Percent where
     show (Percent x) = show x
 
+-- |A datatype to represent URIs in a janno file
+newtype JURI = JURI String
+    deriving (Eq, Ord, Generic)
+
+instance ToJSON JURI where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON JURI
+
+instance Csv.FromField JURI where
+    parseField x = do
+        val <- Csv.parseField x
+        if not $ isURI val
+        then empty 
+        else pure $ JURI val
+
+instance Csv.ToField JURI where
+    toField x = Csv.toField $ show x
+
+instance Show JURI where
+    show (JURI x) = show x
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
-    { jIndividualID      :: String
-    , jCollectionID      :: Maybe String
-    , jSourceTissue      :: Maybe [String]
-    , jCountry           :: Maybe String
-    , jLocation          :: Maybe String
-    , jSite              :: Maybe String
-    , jLatitude          :: Maybe Latitude
-    , jLongitude         :: Maybe Longitude
-    , jDateC14Labnr      :: Maybe [String]
-    , jDateC14UncalBP    :: Maybe [Int]
-    , jDateC14UncalBPErr :: Maybe [Int]
-    , jDateBCADMedian    :: Maybe Int
-    , jDateBCADStart     :: Maybe Int
-    , jDateBCADStop      :: Maybe Int
-    , jDateType          :: Maybe JannoDateType
-    , jNrLibraries       :: Maybe Int
-    , jDataType          :: Maybe [JannoDataType]
-    , jGenotypePloidy    :: Maybe JannoGenotypePloidy
-    , jGroupName         :: [String]
-    , jGeneticSex        :: Sex
-    , jNrAutosomalSNPs   :: Maybe Int
-    , jCoverage1240K     :: Maybe Double
-    , jMTHaplogroup      :: Maybe String
-    , jYHaplogroup       :: Maybe String
-    , jEndogenous        :: Maybe Percent
-    , jUDG               :: Maybe JannoUDG
-    , jLibraryBuilt      :: Maybe JannoLibraryBuilt
-    , jDamage            :: Maybe Percent
-    , jNuclearContam     :: Maybe Double
-    , jNuclearContamErr  :: Maybe Double
-    , jMTContam          :: Maybe Double
-    , jMTContamErr       :: Maybe Double
-    , jPrimaryContact    :: Maybe String
-    , jPublication       :: Maybe String
-    , jComments          :: Maybe String
-    , jKeywords          :: Maybe [String]
+    { jIndividualID                 :: String
+    , jCollectionID                 :: Maybe String
+    , jSourceTissue                 :: Maybe [String]
+    , jCountry                      :: Maybe String
+    , jLocation                     :: Maybe String
+    , jSite                         :: Maybe String
+    , jLatitude                     :: Maybe Latitude
+    , jLongitude                    :: Maybe Longitude
+    , jDateC14Labnr                 :: Maybe [String]
+    , jDateC14UncalBP               :: Maybe [Int]
+    , jDateC14UncalBPErr            :: Maybe [Int]
+    , jDateBCADMedian               :: Maybe Int
+    , jDateBCADStart                :: Maybe Int
+    , jDateBCADStop                 :: Maybe Int
+    , jDateType                     :: Maybe JannoDateType
+    , jNrLibraries                  :: Maybe Int
+    , jDataType                     :: Maybe [JannoDataType]
+    , jGenotypePloidy               :: Maybe JannoGenotypePloidy
+    , jGroupName                    :: [String]
+    , jGeneticSex                   :: Sex
+    , jNrAutosomalSNPs              :: Maybe Int
+    , jCoverage1240K                :: Maybe Double
+    , jMTHaplogroup                 :: Maybe String
+    , jYHaplogroup                  :: Maybe String
+    , jEndogenous                   :: Maybe Percent
+    , jUDG                          :: Maybe JannoUDG
+    , jLibraryBuilt                 :: Maybe JannoLibraryBuilt
+    , jDamage                       :: Maybe Percent
+    , jNuclearContam                :: Maybe Double
+    , jNuclearContamErr             :: Maybe Double
+    , jMTContam                     :: Maybe Double
+    , jMTContamErr                  :: Maybe Double
+    , jGeneticSourceAccessionIDs    :: Maybe [String]
+    , jDataPreparationPipelineURL   :: Maybe JURI
+    , jPrimaryContact               :: Maybe String
+    , jPublication                  :: Maybe String
+    , jComments                     :: Maybe String
+    , jKeywords                     :: Maybe [String]
     }
     deriving (Show, Eq, Generic)
 
@@ -340,7 +366,7 @@ instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = pure JannoRow
-        <*> filterLookup m "Individual_ID"
+        <*> filterLookup         m "Individual_ID"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -358,8 +384,8 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "No_of_Libraries"
         <*> filterLookupOptional m "Data_Type"
         <*> filterLookupOptional m "Genotype_Ploidy"
-        <*> filterLookup m "Group_Name"
-        <*> filterLookup m "Genetic_Sex"
+        <*> filterLookup         m "Group_Name"
+        <*> filterLookup         m "Genetic_Sex"
         <*> filterLookupOptional m "Nr_autosomal_SNPs"
         <*> filterLookupOptional m "Coverage_1240K"
         <*> filterLookupOptional m "MT_Haplogroup"
@@ -372,6 +398,8 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Xcontam_stderr"
         <*> filterLookupOptional m "mtContam"
         <*> filterLookupOptional m "mtContam_stderr"
+        <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
+        <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
         <*> filterLookupOptional m "Primary_Contact"
         <*> filterLookupOptional m "Publication_Status"
         <*> filterLookupOptional m "Note"
@@ -400,43 +428,46 @@ instance Csv.ToNamedRecord JannoRow where
         jNrLibraries jDataType jGenotypePloidy jGroupName jGeneticSex
         jNrAutosomalSNPs jCoverage1240K jMTHaplogroup jYHaplogroup jEndogenous
         jUDG jLibraryBuilt jDamage jNuclearContam jNuclearContamErr jMTContam
-        jMTContamErr jPrimaryContact jPublication jComments jKeywords) = Csv.namedRecord [
-          "Individual_ID"           Csv..= jIndividualID
-        , "Collection_ID"           Csv..= jCollectionID
-        , "Source_Tissue"           Csv..= jSourceTissue
-        , "Country"                 Csv..= jCountry
-        , "Location"                Csv..= jLocation
-        , "Site"                    Csv..= jSite
-        , "Latitude"                Csv..= jLatitude
-        , "Longitude"               Csv..= jLongitude
-        , "Date_C14_Labnr"          Csv..= jDateC14UncalBP
-        , "Date_C14_Uncal_BP"       Csv..= jDateC14UncalBP
-        , "Date_C14_Uncal_BP_Err"   Csv..= jDateC14UncalBPErr
-        , "Date_BC_AD_Median"       Csv..= jDateBCADMedian
-        , "Date_BC_AD_Start"        Csv..= jDateBCADStart
-        , "Date_BC_AD_Stop"         Csv..= jDateBCADStop
-        , "Date_Type"               Csv..= jDateType
-        , "No_of_Libraries"         Csv..= jNrLibraries
-        , "Data_Type"               Csv..= jDataType
-        , "Genotype_Ploidy"         Csv..= jGenotypePloidy
-        , "Group_Name"              Csv..= jGroupName
-        , "Genetic_Sex"             Csv..= jGeneticSex
-        , "Nr_autosomal_SNPs"       Csv..= jNrAutosomalSNPs
-        , "Coverage_1240K"          Csv..= jCoverage1240K
-        , "MT_Haplogroup"           Csv..= jMTHaplogroup
-        , "Y_Haplogroup"            Csv..= jYHaplogroup
-        , "Endogenous"              Csv..= jEndogenous
-        , "UDG"                     Csv..= jUDG
-        , "Library_Built"           Csv..= jLibraryBuilt
-        , "Damage"                  Csv..= jDamage
-        , "Xcontam"                 Csv..= jNuclearContam
-        , "Xcontam_stderr"          Csv..= jNuclearContamErr
-        , "mtContam"                Csv..= jMTContam
-        , "mtContam_stderr"         Csv..= jMTContamErr
-        , "Primary_Contact"         Csv..= jPrimaryContact
-        , "Publication_Status"      Csv..= jPublication
-        , "Note"                    Csv..= jComments
-        , "Keywords"                Csv..= jKeywords
+        jMTContamErr jGeneticSourceAccessionIDs jDataPreparationPipelineURL 
+        jPrimaryContact jPublication jComments jKeywords) = Csv.namedRecord [
+          "Individual_ID"                   Csv..= jIndividualID
+        , "Collection_ID"                   Csv..= jCollectionID
+        , "Source_Tissue"                   Csv..= jSourceTissue
+        , "Country"                         Csv..= jCountry
+        , "Location"                        Csv..= jLocation
+        , "Site"                            Csv..= jSite
+        , "Latitude"                        Csv..= jLatitude
+        , "Longitude"                       Csv..= jLongitude
+        , "Date_C14_Labnr"                  Csv..= jDateC14UncalBP
+        , "Date_C14_Uncal_BP"               Csv..= jDateC14UncalBP
+        , "Date_C14_Uncal_BP_Err"           Csv..= jDateC14UncalBPErr
+        , "Date_BC_AD_Median"               Csv..= jDateBCADMedian
+        , "Date_BC_AD_Start"                Csv..= jDateBCADStart
+        , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop
+        , "Date_Type"                       Csv..= jDateType
+        , "No_of_Libraries"                 Csv..= jNrLibraries
+        , "Data_Type"                       Csv..= jDataType
+        , "Genotype_Ploidy"                 Csv..= jGenotypePloidy
+        , "Group_Name"                      Csv..= jGroupName
+        , "Genetic_Sex"                     Csv..= jGeneticSex
+        , "Nr_autosomal_SNPs"               Csv..= jNrAutosomalSNPs
+        , "Coverage_1240K"                  Csv..= jCoverage1240K
+        , "MT_Haplogroup"                   Csv..= jMTHaplogroup
+        , "Y_Haplogroup"                    Csv..= jYHaplogroup
+        , "Endogenous"                      Csv..= jEndogenous
+        , "UDG"                             Csv..= jUDG
+        , "Library_Built"                   Csv..= jLibraryBuilt
+        , "Damage"                          Csv..= jDamage
+        , "Xcontam"                         Csv..= jNuclearContam
+        , "Xcontam_stderr"                  Csv..= jNuclearContamErr
+        , "mtContam"                        Csv..= jMTContam
+        , "mtContam_stderr"                 Csv..= jMTContamErr
+        , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs
+        , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL
+        , "Primary_Contact"                 Csv..= jPrimaryContact
+        , "Publication_Status"              Csv..= jPublication
+        , "Note"                            Csv..= jComments
+        , "Keywords"                        Csv..= jKeywords
         ]
 
 instance Csv.DefaultOrdered JannoRow where
@@ -449,7 +480,8 @@ jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
     "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
     "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
     "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
-    "mtContam_stderr","Primary_Contact","Publication_Status","Note","Keywords"
+    "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
+    "Primary_Contact","Publication_Status","Note","Keywords"
     ]
 
 -- | A helper function to create semi-colon separated field values from lists
@@ -566,43 +598,45 @@ createMinimalJanno = map createMinimalSample
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id sex pop) =
-    JannoRow
-        { jIndividualID      = id
-        , jCollectionID      = Nothing
-        , jSourceTissue      = Nothing
-        , jCountry           = Nothing
-        , jLocation          = Nothing
-        , jSite              = Nothing
-        , jLatitude          = Nothing
-        , jLongitude         = Nothing
-        , jDateC14Labnr      = Nothing
-        , jDateC14UncalBP    = Nothing
-        , jDateC14UncalBPErr = Nothing
-        , jDateBCADMedian    = Nothing
-        , jDateBCADStart     = Nothing
-        , jDateBCADStop      = Nothing
-        , jDateType          = Nothing
-        , jNrLibraries       = Nothing
-        , jDataType          = Nothing
-        , jGenotypePloidy    = Nothing
-        , jGroupName         = [pop]
-        , jGeneticSex        = sex
-        , jNrAutosomalSNPs   = Nothing
-        , jCoverage1240K     = Nothing
-        , jMTHaplogroup      = Nothing
-        , jYHaplogroup       = Nothing
-        , jEndogenous        = Nothing
-        , jUDG               = Nothing
-        , jLibraryBuilt      = Nothing
-        , jDamage            = Nothing
-        , jNuclearContam     = Nothing
-        , jNuclearContamErr  = Nothing
-        , jMTContam          = Nothing
-        , jMTContamErr       = Nothing
-        , jPrimaryContact    = Nothing
-        , jPublication       = Nothing
-        , jComments          = Nothing
-        , jKeywords          = Nothing
+    JannoRow { 
+          jIndividualID                 = id
+        , jCollectionID                 = Nothing
+        , jSourceTissue                 = Nothing
+        , jCountry                      = Nothing
+        , jLocation                     = Nothing
+        , jSite                         = Nothing
+        , jLatitude                     = Nothing
+        , jLongitude                    = Nothing
+        , jDateC14Labnr                 = Nothing
+        , jDateC14UncalBP               = Nothing
+        , jDateC14UncalBPErr            = Nothing
+        , jDateBCADMedian               = Nothing
+        , jDateBCADStart                = Nothing
+        , jDateBCADStop                 = Nothing
+        , jDateType                     = Nothing
+        , jNrLibraries                  = Nothing
+        , jDataType                     = Nothing
+        , jGenotypePloidy               = Nothing
+        , jGroupName                    = [pop]
+        , jGeneticSex                   = sex
+        , jNrAutosomalSNPs              = Nothing
+        , jCoverage1240K                = Nothing
+        , jMTHaplogroup                 = Nothing
+        , jYHaplogroup                  = Nothing
+        , jEndogenous                   = Nothing
+        , jUDG                          = Nothing
+        , jLibraryBuilt                 = Nothing
+        , jDamage                       = Nothing
+        , jNuclearContam                = Nothing
+        , jNuclearContamErr             = Nothing
+        , jMTContam                     = Nothing
+        , jMTContamErr                  = Nothing
+        , jGeneticSourceAccessionIDs    = Nothing
+        , jDataPreparationPipelineURL   = Nothing
+        , jPrimaryContact               = Nothing
+        , jPublication                  = Nothing
+        , jComments                     = Nothing
+        , jKeywords                     = Nothing
     }
 
 -- Janno consistency checks
