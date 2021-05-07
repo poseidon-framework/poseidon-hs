@@ -53,6 +53,6 @@ Test-Suite poseidon-tools-tests
                        pandoc-citeproc, text, QuickCheck
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
-                       Poseidon.SummariseSpec, Poseidon.SurveySpec
+                       Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec
   default-language:    Haskell2010
 
