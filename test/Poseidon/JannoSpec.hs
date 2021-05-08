@@ -1,6 +1,7 @@
 module Poseidon.JannoSpec (spec) where
 
 import           Poseidon.Janno            (JannoRow (..),
+                                            JannoSex (..),
                                             Sex (..),
                                             Latitude (..),
                                             Longitude (..),
@@ -45,7 +46,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDataType janno       `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno `shouldBe` [Nothing, Nothing, Nothing]
         map jGroupName janno      `shouldBe` [["POP1"], ["POP2"], ["POP1"]]
-        map jGeneticSex janno     `shouldBe` [Male, Female, Male]
+        map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverage1240K janno  `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jLibraryBuilt janno   `shouldBe` [Nothing, Nothing, Nothing]
@@ -67,7 +68,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDataType janno       `shouldBe` [Just [Shotgun, A1240K], Just [A1240K], Just [ReferenceGenome]]
         map jGenotypePloidy janno `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
         map jGroupName janno      `shouldBe` [["POP1", "POP3"], ["POP2"], ["POP1"]]
-        map jGeneticSex janno     `shouldBe` [Male, Female, Male]
+        map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverage1240K janno  `shouldBe` [Just 0, Just 0, Just 0]
         map jUDG janno            `shouldBe` [Just Minus, Just Half, Just Plus]
         map jLibraryBuilt janno   `shouldBe` [Just DS, Just SS, Just Other]

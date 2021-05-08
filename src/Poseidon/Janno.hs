@@ -6,6 +6,7 @@
 module Poseidon.Janno (
     JannoRow(..),
     JannoSex (..),
+    Sex (..),
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
