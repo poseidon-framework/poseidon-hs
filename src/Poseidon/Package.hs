@@ -380,7 +380,7 @@ readPoseidonPackageCollection verbose stopOnDuplicates ignoreChecksums ignoreGen
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
     hPutStrLn stderr "Initializing packages... "
-    eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
+    eitherPackages <- mapM (tryDecodePoseidonPackage verbose) $ zip [1..] posFiles
     hPutStrLn stderr ""
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
@@ -407,12 +407,15 @@ readPoseidonPackageCollection verbose stopOnDuplicates ignoreChecksums ignoreGen
     -- return package list
     return finalPackageList
   where
-    tryDecodePoseidonPackage :: (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage (numberPackage, path) = do
+    tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage False (numberPackage, path) = do
         hClearLine stderr
         hSetCursorColumn stderr 0
         hPutStr stderr $ "> " ++ show numberPackage ++ " "
         hFlush stderr
+        try . readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
+    tryDecodePoseidonPackage True (numberPackage, path) = do
+        hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
 
 checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
