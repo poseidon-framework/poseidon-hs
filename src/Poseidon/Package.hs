@@ -22,7 +22,7 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (readBibTeXFile, BibTeX (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec(..), loadIndividuals, loadJointGenotypeData)
-import           Poseidon.Janno             (JannoRow(..), readJannoFile, createMinimalJanno)
+import           Poseidon.Janno             (JannoRow (..), JannoSex (..), readJannoFile, createMinimalJanno)
 import           Poseidon.Utils             (PoseidonException (..), renderPoseidonException)
 
 import           Control.Applicative        (Alternative((<|>)), ZipList (..))
@@ -56,8 +56,8 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist,
                                              listDirectory,
                                              doesFileExist)
-import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath, 
-                                             splitDirectories, dropDrive, makeRelative)
+import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>), joinPath,
+                                             splitDirectories, dropDrive, makeRelative, splitExtension)
 import           System.IO                  (hPrint, hPutStr, hPutStrLn, stderr, hFlush)
 import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
@@ -325,7 +325,7 @@ checkJannoIndConsistency pacName janno indEntries = do
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
     let jannoIDs        = map jIndividualID janno
-        jannoSexs       = map jGeneticSex janno
+        jannoSexs       = map (sfSex . jGeneticSex) janno
         jannoGroups     = map (head . jGroupName) janno
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
@@ -340,6 +340,7 @@ checkJannoIndConsistency pacName janno indEntries = do
     when groupMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual GroupID mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch genoGroups jannoGroups
+    
 
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b =
