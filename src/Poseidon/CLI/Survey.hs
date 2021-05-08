@@ -25,7 +25,7 @@ data SurveyOptions = SurveyOptions
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
-    allPackages <- readPoseidonPackageCollection False True True False baseDirs
+    allPackages <- readPoseidonPackageCollection False False True True False baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages
     -- geno

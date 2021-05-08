@@ -37,7 +37,7 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (isLeft, isRight, lefts, rights)
 import           Data.Either.Combinators    (rightToMaybe)
 import qualified Data.HashMap.Lazy          as HM
-import           Data.List                  (intercalate, nub)
+import           Data.List                  (intercalate, nub, (\\))
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
@@ -499,18 +499,33 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> IO [JannoRow]
-readJannoFile jannoPath = do
+readJannoFile :: Bool -- whether to print verbose output
+              -> FilePath 
+              -> IO [JannoRow]
+readJannoFile verbose jannoPath = do
+    when verbose $ do
+        hPutStrLn stderr $ jannoPath ++ ":"
     jannoFile <- Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
+    when verbose $ do
+        hPutStrLn stderr $ show (length jannoFileRows - 1) ++ " samples in this file"
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     -- filter out empty lines
-    let jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
+        jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- create header + individual line combination
-    let headerOnly = snd $ head jannoFileRowsWithNumberFiltered
-    let rowsOnly = tail jannoFileRowsWithNumberFiltered
-    let jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
+        headerOnly = snd $ head jannoFileRowsWithNumberFiltered
+        rowsOnly = tail jannoFileRowsWithNumberFiltered
+        jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
+    -- report missing or additional columns
+    when verbose $ do
+        let jannoColNames = map Bch.toStrict (Bch.split '\t' headerOnly)
+            missing_columns = map Bchs.unpack $ jannoHeader \\ jannoColNames
+            additional_columns = map Bchs.unpack $ jannoColNames \\ jannoHeader
+        unless (null missing_columns) $ do
+            hPutStrLn stderr $ "Missing standard columns: " ++ intercalate ", " missing_columns
+        unless (null additional_columns) $ do
+            hPutStrLn stderr $ "Additional standard columns: " ++ intercalate ", " additional_columns
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
     -- error case management

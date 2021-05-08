@@ -45,7 +45,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/janno_all")
             readSampleInfo remoteOverviewJSONByteString
         RepoLocal baseDirs -> do
-            allPackages <- readPoseidonPackageCollection False True ignoreGeno False baseDirs
+            allPackages <- readPoseidonPackageCollection False False True ignoreGeno False baseDirs
             return [(posPacTitle pac, posPacJanno pac) | pac <- allPackages]
     -- construct output
     hPutStrLn stderr "Preparing output table"
