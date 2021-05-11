@@ -22,6 +22,7 @@
 - V 0.13.1: added `/server_version` API and changed server behaviour to only zip files when genotype data is not ignored
 - V 0.14.0: Multiple minor changes: allowed multiple forgeStrings/fetchStrings and forgeFiles/fetchFiles, added readmeFile and changelogFile to the package data structures, relaxed duplicate check in forge to only stop if there is an overlap within the specific selection relevant for the new package
 - V 0.14.1: added more helpful error messages to forge
-- V.0.14.2: Modified show instances of multiple janno column types and fixed output of list
-- V.0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output
-- V.0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
+- V 0.14.2: Modified show instances of multiple janno column types and fixed output of list
+- V 0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output
+- V 0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
+- V 0.15.1: Completed the task in 0.14.2 with a newtype JannoSex to enable a custom Show action
