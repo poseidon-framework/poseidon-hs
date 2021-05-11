@@ -27,3 +27,4 @@
 - V 0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
 - V 0.15.1: Completed the task in 0.14.2 with a newtype JannoSex to enable a custom Show action
 - V 0.15.2: Better handling of individuals linked to multiple groups/populations in list
+- V 0.16.0: Added a verbose switch to the package reading functions. It's only available with validate (--verbose) to show all sorts of additional output, at the moment only unspecified and missing janno columns
