@@ -6,7 +6,8 @@ import           Poseidon.EntitiesList      (EntitiesList (..),
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
-                                             printSNPCopyProgress)
+                                             printSNPCopyProgress,
+                                             snpSetMergeList)
 import           Poseidon.Janno             (JannoRow (..),
                                              writeJannoFile)
 import           Poseidon.Package           (ContributorSpec (..),
@@ -89,7 +90,8 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     let [outInd, outSnp, outGeno] = case outFormat of 
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
-    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
+    let newSNPSet = snpSetMergeList (map (snpSet . posPacGenotypeData) relevantPackages) intersect
+    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing newSNPSet
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     pac <- newPackageTemplate outPath outName genotypeData Nothing (Just relevantJannoRows) (Just relevantBibEntries)
@@ -180,7 +182,7 @@ filterJannoFiles entities packages =
 
 filterBibEntries :: [JannoRow] -> [Reference] -> [Reference]
 filterBibEntries samples references =
-    let relevantPublications = nub $ mapMaybe jPublication samples
+    let relevantPublications = nub $ concat $ mapMaybe jPublication samples
     in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]

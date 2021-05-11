@@ -12,4 +12,5 @@ genotypeData:
   genoFile: Wang_2020.bed
   snpFile: Wang_2020.bim
   indFile: Wang_2020.fam
+  snpSet: Other
 jannoFile: Wang_2020.janno

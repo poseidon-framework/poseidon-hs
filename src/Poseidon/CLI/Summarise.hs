@@ -37,7 +37,7 @@ summariseJannoRows xs rawOutput = do
                 ["Nr Groups", show $ length $ nub $ map jGroupName xs],
                 ["Groups", printFrequencyString ", " $ frequency $ map (head . jGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map jPublication xs],
-                ["Publications", printFrequencyMaybeString ", " $ frequency $ map jPublication xs],
+                ["Publications", paste $ nub $ concat $ mapMaybe jPublication xs],
                 ["Nr Countries", show $ length $ nub $ map jCountry xs],
                 ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
                 ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe jDateBCADMedian xs],

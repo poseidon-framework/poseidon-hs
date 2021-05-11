@@ -12,4 +12,5 @@ genotypeData:
   genoFile: geno.txt
   snpFile: snp.txt
   indFile: ind.txt
+  snpSet: Other
 jannoFile: Lamnidis_2018.janno

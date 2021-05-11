@@ -26,7 +26,7 @@ library
                         vector, foldl, pipes-ordered-zip, pipes-group, table-layout, lens-family,
                         cassava, pandoc-citeproc, either, ansi-terminal, pureMD5,
                         yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
-                        unordered-containers
+                        unordered-containers, network-uri
     default-language:   Haskell2010
 
 executable trident
@@ -53,6 +53,6 @@ Test-Suite poseidon-tools-tests
                        pandoc-citeproc, text, QuickCheck
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
-                       Poseidon.SummariseSpec, Poseidon.SurveySpec
+                       Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec
   default-language:    Haskell2010
 

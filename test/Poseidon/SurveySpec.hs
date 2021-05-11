@@ -24,9 +24,9 @@ testRenderJannoCompleteness =
         janno <- readJannoFile False testJannoNormal
         renderJannoCompleteness janno 
             `shouldBe` 
-            "M.XXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXX"
+            "M.XXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXXXX"
     it "should work for a minimum janno file" $ do
         janno <- readJannoFile False testJannoMinimal
         renderJannoCompleteness janno
             `shouldBe`
-            "M.................MM..............."
+            "M.................MM................."

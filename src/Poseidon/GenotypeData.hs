@@ -45,6 +45,8 @@ data GenotypeDataSpec = GenotypeDataSpec
     -- ^ path to the ind file
     , indFileChkSum  :: Maybe String
     -- ^ the optional checksum for the indfile
+    , snpSet         :: SNPSetSpec
+    -- ^ the SNP set de facto listed in the genotype data
     }
     deriving (Show, Eq)
 
@@ -58,17 +60,19 @@ instance FromJSON GenotypeDataSpec where
         <*> v .:? "snpFileChkSum"
         <*> v .: "indFile"
         <*> v .:? "indFileChkSum"
+        <*> v .: "snpSet"
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
     toJSON x = object [
-        "format" .= format x,
-        "genoFile" .= genoFile x,
-        "genoFileChkSum" .= genoFileChkSum x,
-        "snpFile" .= snpFile x,
-        "snpFileChkSum" .= snpFileChkSum x,
-        "indFile" .= indFile x,
-        "indFileChkSum" .= indFileChkSum x
+        "format"            .= format x,
+        "genoFile"          .= genoFile x,
+        "genoFileChkSum"    .= genoFileChkSum x,
+        "snpFile"           .= snpFile x,
+        "snpFileChkSum"     .= snpFileChkSum x,
+        "indFile"           .= indFile x,
+        "indFileChkSum"     .= indFileChkSum x,
+        "snpSet"            .= snpSet x
         ]
 
 -- | A data type representing the options fo the genotype format
@@ -92,6 +96,43 @@ instance ToJSON GenotypeFormatSpec where
         GenotypeFormatPlink      -> "PLINK"
         GenotypeFormatEigenstrat -> "EIGENSTRAT"
 
+data SNPSetSpec = 
+        SNPSet1240K
+    |   SNPSetHumanOrigins
+    |   SNPSetOther
+    deriving (Eq)
+
+instance Show SNPSetSpec where
+    show SNPSet1240K        = "1240K"
+    show SNPSetHumanOrigins = "HumanOrigins"
+    show SNPSetOther        = "Other"
+
+instance FromJSON SNPSetSpec where
+    parseJSON = withText "snpSet" $ \v -> case v of
+        "1240K"         -> pure SNPSet1240K
+        "HumanOrigins"  -> pure SNPSetHumanOrigins
+        "Other"         -> pure SNPSetOther
+        _               -> fail ("unknown snpSet " ++ T.unpack v)
+
+instance ToJSON SNPSetSpec where
+    toJSON a = case a of
+        SNPSet1240K         -> "1240K"
+        SNPSetHumanOrigins  -> "HumanOrigins"
+        SNPSetOther         -> "Other"
+
+snpSetMergeList :: [SNPSetSpec] -> Bool -> SNPSetSpec
+snpSetMergeList (x:xs) intersect = foldr (\a b -> snpSetMerge a b intersect) x xs
+
+snpSetMerge :: SNPSetSpec -> SNPSetSpec -> Bool -> SNPSetSpec
+snpSetMerge SNPSet1240K         SNPSet1240K         _       = SNPSet1240K
+snpSetMerge SNPSetHumanOrigins  SNPSetHumanOrigins  _       = SNPSetHumanOrigins
+snpSetMerge SNPSetOther         _                   _       = SNPSetOther
+snpSetMerge _                   SNPSetOther         _       = SNPSetOther
+snpSetMerge SNPSet1240K         SNPSetHumanOrigins  True    = SNPSetHumanOrigins
+snpSetMerge SNPSetHumanOrigins  SNPSet1240K         True    = SNPSetHumanOrigins
+snpSetMerge SNPSet1240K         SNPSetHumanOrigins  False   = SNPSet1240K
+snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False   = SNPSet1240K
+
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
@@ -107,7 +148,7 @@ loadGenotypeData :: (MonadSafe m) =>
                 -> GenotypeDataSpec -- ^ the genotype spec
                 -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _) =
+loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ snpSet) =
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)

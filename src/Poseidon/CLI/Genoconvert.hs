@@ -70,7 +70,7 @@ convertGenoTo outFormat removeOld pac = do
                 runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
                 liftIO $ hPutStrLn stderr "Done"
             -- overwrite genotype data field in POSEIDON.yml file
-            let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing
+            let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
                 newPac = pac { posPacGenotypeData = genotypeData }
             writePoseidonPackage newPac
             -- delete now replaced input genotype data
