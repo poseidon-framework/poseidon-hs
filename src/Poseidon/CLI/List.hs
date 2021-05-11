@@ -12,7 +12,7 @@ import           Control.Exception          (throwIO)
 import           Control.Monad              (forM, (>=>))
 import           Data.Aeson                 (FromJSON, (.:), parseJSON, withObject, eitherDecode')
 import qualified Data.ByteString.Lazy       as LB
-import           Data.List                  (groupBy, intercalate, nub, sortOn)
+import           Data.List                  (group, intercalate, nub, sortOn)
 import           Network.HTTP.Conduit       (simpleHttp)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
 import           System.IO                  (hPutStrLn, stderr)
@@ -62,10 +62,10 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                     row <- rows
                     return (pacName, row)
                 tableB = do
-                    oneGroup <- groupBy (\x y -> (head . jGroupName . snd) x == (head . jGroupName . snd) y) $ 
-                        sortOn (head . jGroupName . snd) pacJannoPairs
-                    let groupName = head . jGroupName . snd . head $ oneGroup
-                        groupPacs = intercalate "," $ nub $ map fst oneGroup
+                    let pacGroupPairsForIndividuals = unnestGroupNames pacJannoPairs
+                    oneGroup <- group $ sortOn snd pacGroupPairsForIndividuals
+                    let groupName = head $ map snd oneGroup
+                        groupPacs = head $ map fst oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
@@ -83,6 +83,14 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
     else do
         let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+
+unnestGroupNames :: [(String, JannoRow)] -> [(String, String)]
+unnestGroupNames = concatMap unnestOne
+    where 
+        unnestOne :: (String, JannoRow) -> [(String, String)]
+        unnestOne (pac, jR) = 
+            let groups = jGroupName jR
+            in zip (repeat pac) groups
 
 readSampleInfo :: LB.ByteString -> IO [(String, [JannoRow])]
 readSampleInfo bs = do
