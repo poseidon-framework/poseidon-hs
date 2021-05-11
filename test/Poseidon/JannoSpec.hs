@@ -31,8 +31,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
     let borkedWrongNameJannoPath  = "test/testDat/testJannoFiles/borked_wrong_name.janno"
     it "should read minimal janno files correctly" $ do
-        janno <- readJannoFile minimalFullJannoPath
-        janno_partial <- readJannoFile minimalPartialJannoPath
+        janno <- readJannoFile False minimalFullJannoPath
+        janno_partial <- readJannoFile False minimalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -52,8 +52,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLibraryBuilt janno   `shouldBe` [Nothing, Nothing, Nothing]
         map jDamage janno         `shouldBe` [Nothing, Nothing, Nothing]
     it "should read normal janno files correctly" $ do
-        janno <- readJannoFile normalFullJannoPath
-        janno_partial <- readJannoFile normalPartialJannoPath
+        janno <- readJannoFile False normalFullJannoPath
+        janno_partial <- readJannoFile False normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -74,6 +74,6 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLibraryBuilt janno   `shouldBe` [Just DS, Just SS, Just Other]
         map jDamage janno         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
     it "should fail to read borked janno files" $ do
-        readJannoFile borkedFullJannoPath `shouldThrow` anyException
-        readJannoFile borkedPartialJannoPath `shouldThrow` anyException
-        readJannoFile borkedWrongNameJannoPath `shouldThrow` anyException
+        readJannoFile False borkedFullJannoPath `shouldThrow` anyException
+        readJannoFile False borkedPartialJannoPath `shouldThrow` anyException
+        readJannoFile False borkedWrongNameJannoPath `shouldThrow` anyException

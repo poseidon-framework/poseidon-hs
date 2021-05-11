@@ -22,7 +22,7 @@ data SummariseOptions = SummariseOptions
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
-    allPackages <- readPoseidonPackageCollection False True True False baseDirs
+    allPackages <- readPoseidonPackageCollection False False True True False baseDirs
     let jannos = map posPacJanno allPackages
     summariseJannoRows (concat jannos) rawOutput
 

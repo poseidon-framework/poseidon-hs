@@ -232,12 +232,13 @@ instance ToJSON ContributorSpec where
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
-readPoseidonPackage :: Bool -- ^ whether to ignore all checksums
+readPoseidonPackage :: Bool -- whether to print verbose output
+                    -> Bool -- ^ whether to ignore all checksums
                     -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
                     -> Bool -- ^ whether to check the first 100 SNPs of the genotypes
                     -> FilePath -- ^ the file path to the yaml file
                     -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes ymlPath = do
+readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
     -- read yml files
@@ -253,7 +254,7 @@ readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes ym
         Nothing -> do
             return $ createMinimalJanno indEntries
         Just p -> do
-            loadedJanno <- readJannoFile p
+            loadedJanno <- readJannoFile verbose p
             checkJannoIndConsistency tit loadedJanno indEntries
             return loadedJanno
     -- read bib (or fill with empty list)
@@ -368,18 +369,19 @@ checkJannoBibConsistency pacName janno bibtex = do
 -- | a utility function to load all poseidon packages found recursively in multiple base directories. 
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
-readPoseidonPackageCollection :: Bool -- ^ whether to stop on duplicated individuals
+readPoseidonPackageCollection :: Bool -- whether to print verbose output
+                              -> Bool -- ^ whether to stop on duplicated individuals
                               -> Bool -- ^ whether to ignore all checksums
                               -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
                               -> Bool -- ^ whether to check the top 100 SNPs of the genotype data
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes dirs = do
+readPoseidonPackageCollection verbose stopOnDuplicates ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes dirs = do
     hPutStr stderr $ "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
     hPutStrLn stderr "Initializing packages... "
-    eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
+    eitherPackages <- mapM (tryDecodePoseidonPackage verbose) $ zip [1..] posFiles
     hPutStrLn stderr ""
     -- notifying the users of package problems
     when (not . null . lefts $ eitherPackages) $ do
@@ -406,13 +408,16 @@ readPoseidonPackageCollection stopOnDuplicates ignoreChecksums ignoreGenotypeFil
     -- return package list
     return finalPackageList
   where
-    tryDecodePoseidonPackage :: (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage (numberPackage, path) = do
+    tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage False (numberPackage, path) = do
         hClearLine stderr
         hSetCursorColumn stderr 0
         hPutStr stderr $ "> " ++ show numberPackage ++ " "
         hFlush stderr
-        try . readPoseidonPackage ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
+        try . readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
+    tryDecodePoseidonPackage True (numberPackage, path) = do
+        hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
+        try . readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
 
 checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
