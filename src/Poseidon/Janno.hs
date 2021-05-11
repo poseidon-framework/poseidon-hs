@@ -5,6 +5,7 @@
 
 module Poseidon.Janno (
     JannoRow(..),
+    JannoSex (..),
     Sex (..),
     Latitude (..),
     Longitude (..),
@@ -44,38 +45,46 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.Directory           (doesFileExist)
 import           System.IO                  (hPutStrLn, stderr)
 
-instance Ord Sex where
-    compare Female Male    = GT
-    compare Male Female    = LT
-    compare Male Unknown   = GT
-    compare Unknown Male   = LT
-    compare Female Unknown = GT
-    compare Unknown Female = LT
+newtype JannoSex = JannoSex { sfSex :: Sex }
+    deriving (Eq)
+
+instance Ord JannoSex where
+    compare (JannoSex Female) (JannoSex Male)    = GT
+    compare (JannoSex Male) (JannoSex Female)    = LT
+    compare (JannoSex Male) (JannoSex Unknown)   = GT
+    compare (JannoSex Unknown) (JannoSex Male)   = LT
+    compare (JannoSex Female) (JannoSex Unknown) = GT
+    compare (JannoSex Unknown) (JannoSex Female) = LT
     compare _ _            = EQ
 
-instance Csv.FromField Sex where
+instance Csv.FromField JannoSex where
     parseField x
-        | x == "F" = pure Female
-        | x == "M" = pure Male
-        | x == "U" = pure Unknown
+        | x == "F" = pure (JannoSex Female)
+        | x == "M" = pure (JannoSex Male)
+        | x == "U" = pure (JannoSex Unknown)
         | otherwise = empty
 
-instance Csv.ToField Sex where
-    toField Female  = "F"
-    toField Male    = "M"
-    toField Unknown = "U"
+instance Csv.ToField JannoSex where
+    toField (JannoSex Female)  = "F"
+    toField (JannoSex Male)    = "M"
+    toField (JannoSex Unknown) = "U"
 
-instance FromJSON Sex where
-    parseJSON (String "M") = pure Male
-    parseJSON (String "F") = pure Female
-    parseJSON (String "U") = pure Unknown
-    parseJSON v = fail ("could not parse " ++ show v ++ " as Sex")
+instance FromJSON JannoSex where
+    parseJSON (String "F") = pure (JannoSex Female)
+    parseJSON (String "M") = pure (JannoSex Male)
+    parseJSON (String "U") = pure (JannoSex Unknown)
+    parseJSON v = fail ("could not parse " ++ show v ++ " as JannoSex")
 
-instance ToJSON Sex where
+instance ToJSON JannoSex where
     -- this encodes directly to a bytestring Builder
-    toJSON Male = String "M"
-    toJSON Female = String "F"
-    toJSON Unknown = String "U"
+    toJSON (JannoSex Female)  = String "F"
+    toJSON (JannoSex Male)    = String "M"
+    toJSON (JannoSex Unknown) = String "U"
+
+instance Show JannoSex where
+    show (JannoSex Female)  = "F"
+    show (JannoSex Male)    = "M"
+    show (JannoSex Unknown) = "U"
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -313,7 +322,7 @@ data JannoRow = JannoRow
     , jDataType          :: Maybe [JannoDataType]
     , jGenotypePloidy    :: Maybe JannoGenotypePloidy
     , jGroupName         :: [String]
-    , jGeneticSex        :: Sex
+    , jGeneticSex        :: JannoSex
     , jNrAutosomalSNPs   :: Maybe Int
     , jCoverage1240K     :: Maybe Double
     , jMTHaplogroup      :: Maybe String
@@ -586,7 +595,7 @@ createMinimalSample (EigenstratIndEntry id sex pop) =
         , jDataType          = Nothing
         , jGenotypePloidy    = Nothing
         , jGroupName         = [pop]
-        , jGeneticSex        = sex
+        , jGeneticSex        = JannoSex sex
         , jNrAutosomalSNPs   = Nothing
         , jCoverage1240K     = Nothing
         , jMTHaplogroup      = Nothing
