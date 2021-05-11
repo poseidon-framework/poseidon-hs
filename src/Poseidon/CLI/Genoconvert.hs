@@ -33,7 +33,7 @@ data GenoconvertOptions = GenoconvertOptions
 runGenoconvert :: GenoconvertOptions -> IO ()
 runGenoconvert (GenoconvertOptions baseDirs outFormat removeOld) = do
     -- load packages
-    allPackages <- readPoseidonPackageCollection True True False True baseDirs
+    allPackages <- readPoseidonPackageCollection False True True False True baseDirs
     -- convert
     mapM_ (convertGenoTo outFormat removeOld) allPackages
 

@@ -60,7 +60,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile --this nub could also be relevant for forge
         desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
     -- load local packages
-    allLocalPackages <- readPoseidonPackageCollection False True False False baseDirs
+    allLocalPackages <- readPoseidonPackageCollection False False True False False baseDirs
     -- load remote package list
     hPutStrLn stderr "Downloading package list from remote"
     remoteOverviewJSONByteString <- simpleHttp (remote ++ "/packages")

@@ -59,7 +59,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
     -- load packages --
-    allPackages <- readPoseidonPackageCollection False True False True baseDirs
+    allPackages <- readPoseidonPackageCollection False False True False True baseDirs
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages
     unless (null nonExistentEntities) $

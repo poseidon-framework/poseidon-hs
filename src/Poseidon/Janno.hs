@@ -5,6 +5,7 @@
 
 module Poseidon.Janno (
     JannoRow(..),
+    JannoSex (..),
     Sex (..),
     Latitude (..),
     Longitude (..),
@@ -38,8 +39,8 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (isLeft, isRight, lefts, rights)
 import           Data.Either.Combinators    (rightToMaybe)
 import qualified Data.HashMap.Lazy          as HM
-import           Data.List                  (intercalate, nub)
 import           Data.Maybe                 (fromMaybe)
+import           Data.List                  (intercalate, nub, (\\))
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURI)
@@ -47,38 +48,46 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.Directory           (doesFileExist)
 import           System.IO                  (hPutStrLn, stderr)
 
-instance Ord Sex where
-    compare Female Male    = GT
-    compare Male Female    = LT
-    compare Male Unknown   = GT
-    compare Unknown Male   = LT
-    compare Female Unknown = GT
-    compare Unknown Female = LT
+newtype JannoSex = JannoSex { sfSex :: Sex }
+    deriving (Eq)
+
+instance Ord JannoSex where
+    compare (JannoSex Female) (JannoSex Male)    = GT
+    compare (JannoSex Male) (JannoSex Female)    = LT
+    compare (JannoSex Male) (JannoSex Unknown)   = GT
+    compare (JannoSex Unknown) (JannoSex Male)   = LT
+    compare (JannoSex Female) (JannoSex Unknown) = GT
+    compare (JannoSex Unknown) (JannoSex Female) = LT
     compare _ _            = EQ
 
-instance Csv.FromField Sex where
+instance Csv.FromField JannoSex where
     parseField x
-        | x == "F" = pure Female
-        | x == "M" = pure Male
-        | x == "U" = pure Unknown
+        | x == "F" = pure (JannoSex Female)
+        | x == "M" = pure (JannoSex Male)
+        | x == "U" = pure (JannoSex Unknown)
         | otherwise = empty
 
-instance Csv.ToField Sex where
-    toField Female  = "F"
-    toField Male    = "M"
-    toField Unknown = "U"
+instance Csv.ToField JannoSex where
+    toField (JannoSex Female)  = "F"
+    toField (JannoSex Male)    = "M"
+    toField (JannoSex Unknown) = "U"
 
-instance FromJSON Sex where
-    parseJSON (String "M") = pure Male
-    parseJSON (String "F") = pure Female
-    parseJSON (String "U") = pure Unknown
-    parseJSON v = fail ("could not parse " ++ show v ++ " as Sex")
+instance FromJSON JannoSex where
+    parseJSON (String "F") = pure (JannoSex Female)
+    parseJSON (String "M") = pure (JannoSex Male)
+    parseJSON (String "U") = pure (JannoSex Unknown)
+    parseJSON v = fail ("could not parse " ++ show v ++ " as JannoSex")
 
-instance ToJSON Sex where
+instance ToJSON JannoSex where
     -- this encodes directly to a bytestring Builder
-    toJSON Male = String "M"
-    toJSON Female = String "F"
-    toJSON Unknown = String "U"
+    toJSON (JannoSex Female)  = String "F"
+    toJSON (JannoSex Male)    = String "M"
+    toJSON (JannoSex Unknown) = String "U"
+
+instance Show JannoSex where
+    show (JannoSex Female)  = "F"
+    show (JannoSex Male)    = "M"
+    show (JannoSex Unknown) = "U"
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -338,7 +347,7 @@ data JannoRow = JannoRow
     , jDataType                     :: Maybe [JannoDataType]
     , jGenotypePloidy               :: Maybe JannoGenotypePloidy
     , jGroupName                    :: [String]
-    , jGeneticSex                   :: Sex
+    , jGeneticSex                   :: JannoSex
     , jNrAutosomalSNPs              :: Maybe Int
     , jCoverage1240K                :: Maybe Double
     , jMTHaplogroup                 :: Maybe String
@@ -532,18 +541,33 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> IO [JannoRow]
-readJannoFile jannoPath = do
+readJannoFile :: Bool -- whether to print verbose output
+              -> FilePath 
+              -> IO [JannoRow]
+readJannoFile verbose jannoPath = do
+    when verbose $ do
+        hPutStrLn stderr $ jannoPath ++ ":"
     jannoFile <- Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
+    when verbose $ do
+        hPutStrLn stderr $ show (length jannoFileRows - 1) ++ " samples in this file"
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     -- filter out empty lines
-    let jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
+        jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- create header + individual line combination
-    let headerOnly = snd $ head jannoFileRowsWithNumberFiltered
-    let rowsOnly = tail jannoFileRowsWithNumberFiltered
-    let jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
+        headerOnly = snd $ head jannoFileRowsWithNumberFiltered
+        rowsOnly = tail jannoFileRowsWithNumberFiltered
+        jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
+    -- report missing or additional columns
+    when verbose $ do
+        let jannoColNames = map Bch.toStrict (Bch.split '\t' headerOnly)
+            missing_columns = map Bchs.unpack $ jannoHeader \\ jannoColNames
+            additional_columns = map Bchs.unpack $ jannoColNames \\ jannoHeader
+        unless (null missing_columns) $ do
+            hPutStrLn stderr $ "Missing standard columns: " ++ intercalate ", " missing_columns
+        unless (null additional_columns) $ do
+            hPutStrLn stderr $ "Additional standard columns: " ++ intercalate ", " additional_columns
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
     -- error case management
@@ -619,7 +643,7 @@ createMinimalSample (EigenstratIndEntry id sex pop) =
         , jDataType                     = Nothing
         , jGenotypePloidy               = Nothing
         , jGroupName                    = [pop]
-        , jGeneticSex                   = sex
+        , jGeneticSex                   = JannoSex sex
         , jNrAutosomalSNPs              = Nothing
         , jCoverage1240K                = Nothing
         , jMTHaplogroup                 = Nothing

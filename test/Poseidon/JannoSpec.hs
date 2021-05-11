@@ -1,6 +1,7 @@
 module Poseidon.JannoSpec (spec) where
 
 import           Poseidon.Janno            (JannoRow (..),
+                                            JannoSex (..),
                                             Sex (..),
                                             Latitude (..),
                                             Longitude (..),
@@ -31,8 +32,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
     let borkedWrongNameJannoPath  = "test/testDat/testJannoFiles/borked_wrong_name.janno"
     it "should read minimal janno files correctly" $ do
-        janno <- readJannoFile minimalFullJannoPath
-        janno_partial <- readJannoFile minimalPartialJannoPath
+        janno <- readJannoFile False minimalFullJannoPath
+        janno_partial <- readJannoFile False minimalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -46,14 +47,14 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDataType janno       `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno `shouldBe` [Nothing, Nothing, Nothing]
         map jGroupName janno      `shouldBe` [["POP1"], ["POP2"], ["POP1"]]
-        map jGeneticSex janno     `shouldBe` [Male, Female, Male]
+        map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverage1240K janno  `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jLibraryBuilt janno   `shouldBe` [Nothing, Nothing, Nothing]
         map jDamage janno         `shouldBe` [Nothing, Nothing, Nothing]
     it "should read normal janno files correctly" $ do
-        janno <- readJannoFile normalFullJannoPath
-        janno_partial <- readJannoFile normalPartialJannoPath
+        janno <- readJannoFile False normalFullJannoPath
+        janno_partial <- readJannoFile False normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -68,7 +69,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDataType janno       `shouldBe` [Just [Shotgun, A1240K], Just [A1240K], Just [ReferenceGenome]]
         map jGenotypePloidy janno `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
         map jGroupName janno      `shouldBe` [["POP1", "POP3"], ["POP2"], ["POP1"]]
-        map jGeneticSex janno     `shouldBe` [Male, Female, Male]
+        map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverage1240K janno  `shouldBe` [Just 0, Just 0, Just 0]
         map jUDG janno            `shouldBe` [Just Minus, Just Half, Just Plus]
         map jLibraryBuilt janno   `shouldBe` [Just DS, Just SS, Just Other]
@@ -77,6 +78,6 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
                                                           Just (JURI "https://www.google.de"), 
                                                           Just (JURI "http://huhu.org/23&test")]
     it "should fail to read borked janno files" $ do
-        readJannoFile borkedFullJannoPath `shouldThrow` anyException
-        readJannoFile borkedPartialJannoPath `shouldThrow` anyException
-        readJannoFile borkedWrongNameJannoPath `shouldThrow` anyException
+        readJannoFile False borkedFullJannoPath `shouldThrow` anyException
+        readJannoFile False borkedPartialJannoPath `shouldThrow` anyException
+        readJannoFile False borkedWrongNameJannoPath `shouldThrow` anyException

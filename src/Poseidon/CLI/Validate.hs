@@ -20,13 +20,14 @@ import           System.IO         (hPutStrLn, stderr)
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
     { _jaBaseDirs    :: [FilePath]
+    , _optVerbose    :: Bool
     , _optIgnoreGeno :: Bool
     }
 
 runValidate :: ValidateOptions -> IO ()
-runValidate (ValidateOptions baseDirs ignoreGeno) = do
+runValidate (ValidateOptions baseDirs verbose ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection True False ignoreGeno True baseDirs
+    allPackages <- readPoseidonPackageCollection verbose True False ignoreGeno True baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     check <- if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates

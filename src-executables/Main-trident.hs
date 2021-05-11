@@ -181,6 +181,7 @@ checksumupdateOptParser = ChecksumupdateOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
+                                    <*> parseVerbose
                                     <*> parseIgnoreGeno
 
 parseJackknife :: OP.Parser JackknifeMode
@@ -339,6 +340,12 @@ parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
     OP.long "raw" <> 
     OP.help "output table as tsv without header. Useful for piping into grep or awk"
+    )
+
+parseVerbose :: OP.Parser Bool
+parseVerbose = OP.switch (
+    OP.long "verbose" <>
+    OP.help "print more output to the command line"
     )
 
 parseIgnoreGeno :: OP.Parser Bool
