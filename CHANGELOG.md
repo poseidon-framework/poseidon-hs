@@ -13,16 +13,17 @@
 - V 0.7.1: Added a check for ID duplicates when reading package collections
 - V 0.7.2: Turned off checksum validation for every module but validate
 - V 0.7.3: Enabled the validate module to handle duplicated packages
-- V 0.8.0: Forge now has new option `--intersect` to control merging behaviour.
+- V 0.8.0: Forge now has new option --intersect to control merging behaviour.
 - V 0.9.0: Plink output now supported in forge.
-- V 0.10.0: List now has `--remote` option to view packages, groups and individuals on a remote server
+- V 0.10.0: List now has --remote option to view packages, groups and individuals on a remote server
 - V 0.11.0: Added the module genoconvert to automatically switch the genotype data format in packages
-- V 0.12.0: List can now also display janno columns with the `-j` option for the `--individuals` case
+- V 0.12.0: List can now also display janno columns with the -j option for the --individuals case
 - V 0.13.0: Renamed the update module to checksumupdate, allowed trident to ignore duplicate individuals for some inspection modules, switched to Unix file endings for janno file encoding
-- V 0.13.1: added `/server_version` API and changed server behaviour to only zip files when genotype data is not ignored
+- V 0.13.1: added /server_version API and changed server behaviour to only zip files when genotype data is not ignored
 - V 0.14.0: Multiple minor changes: allowed multiple forgeStrings/fetchStrings and forgeFiles/fetchFiles, added readmeFile and changelogFile to the package data structures, relaxed duplicate check in forge to only stop if there is an overlap within the specific selection relevant for the new package
 - V 0.14.1: added more helpful error messages to forge
 - V 0.14.2: Modified show instances of multiple janno column types and fixed output of list
 - V 0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output
 - V 0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
 - V 0.15.1: Completed the task in 0.14.2 with a newtype JannoSex to enable a custom Show action
+- V 0.15.2: Better handling of individuals linked to multiple groups/populations in list
