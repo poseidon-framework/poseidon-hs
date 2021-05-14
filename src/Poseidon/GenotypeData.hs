@@ -60,7 +60,11 @@ instance FromJSON GenotypeDataSpec where
         <*> v .:? "snpFileChkSum"
         <*> v .: "indFile"
         <*> v .:? "indFileChkSum"
-        <*> v .: "snpSet"
+        <*> (convertMaybeSnpSet <$> (v .:? "snpSet"))
+      where
+        convertMaybeSnpSet :: Maybe SNPSetSpec -> SNPSetSpec
+        convertMaybeSnpSet Nothing = SNPSetOther
+        convertMaybeSnpSet (Just s) = s
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
