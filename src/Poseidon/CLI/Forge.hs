@@ -92,17 +92,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- output warning if any snpSet is set to Other
-    let snpSetList = map (snpSet . posPacGenotypeData) relevantPackages
-    let packageNamesWithSnpSetOther =
-            map snd . filter ((==SNPSetOther) . fst) . zip snpSetList . map posPacTitle $ relevantPackages
-    when (not . null $ packageNamesWithSnpSetOther) $ do
-        hPutStrLn stderr ("A friendly warning: One or more of your source packages (" ++ show packageNamesWithSnpSetOther ++
-            ") has snpSet: Other, which will result in your forged package to also have \
-            \snpSet: Other. If this is intended, please ignore this message. If not, \
-            \please enter the correct snpSet in those packages to make sure our forging can deduce \
-            \the right target snpSet")
+    snpSetList <- fillMissingSnpSets relevantPackages
     let newSNPSet = snpSetMergeList snpSetList intersect
-    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing newSNPSet
+    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     pac <- newPackageTemplate outPath outName genotypeData Nothing (Just relevantJannoRows) (Just relevantBibEntries)
@@ -216,3 +208,14 @@ zipGroup list nestedList =
         listWithlenghtsNestedList = zip lenghtsNestedList list
         longerA = map (uncurry replicate) listWithlenghtsNestedList
     in zip3 [0..] (concat longerA) (concat nestedList)
+
+fillMissingSnpSets :: [PoseidonPackage] -> IO [SNPSetSpec]
+fillMissingSnpSets packages = forM packages $ \pac -> do
+    let title = posPacTitle pac
+        maybeSnpSet = snpSet . posPacGenotypeData $ pac
+    case maybeSnpSet of
+        Just s -> return s
+        Nothing -> do
+            hPutStrLn stderr ("Warning for package " ++ title ++ ": field \"snpSet\" \
+            \is not set. I will interpret this as \"snpSet: Other\"")
+            return SNPSetOther

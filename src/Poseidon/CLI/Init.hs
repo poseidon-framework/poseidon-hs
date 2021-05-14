@@ -36,7 +36,7 @@ runInit (InitOptions format snpSet genoFile snpFile indFile outPath outName) = d
     let outInd = takeFileName indFile
         outSnp = takeFileName snpFile
         outGeno = takeFileName genoFile
-        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing snpSet
+        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing (Just snpSet)
     -- genotype data
     hPutStrLn stderr "Copying genotype data"
     copyFile indFile $ outPath </> outInd

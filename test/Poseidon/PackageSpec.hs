@@ -79,7 +79,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         snpFileChkSum = Nothing,
         indFile  = "Schiffels_2016.fam",
         indFileChkSum = Nothing,
-        snpSet = SNPSet1240K
+        snpSet = Just SNPSet1240K
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -105,7 +105,7 @@ truePackageAbsPaths = PoseidonYamlStruct {
         snpFileChkSum = Nothing,
         indFile  = "/tmp/Schiffels_2016.fam",
         indFileChkSum = Nothing,
-        snpSet = SNPSet1240K
+        snpSet = Just SNPSet1240K
     },
     _posYamlJannoFile       = Just "/tmp/Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -148,12 +148,12 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
             (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         p `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
-    it "should parse missing snpSet field as SnpSetOther" $ do
+    it "should parse missing snpSet field as Nothing" $ do
         let yamlPackageNoSnpSet = replace "  snpSet: 1240K\n" "" yamlPackage 
             (Right p) = decodeEither' yamlPackageNoSnpSet :: Either ParseException PoseidonYamlStruct
             gd = _posYamlGenotypeData p
             gdTrue = _posYamlGenotypeData truePackageRelPaths
-        gd `shouldBe` gdTrue {snpSet = SNPSetOther}
+        gd `shouldBe` gdTrue {snpSet = Nothing}
 
 testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
