@@ -54,7 +54,7 @@ genotypeData:
   genoFile: Schiffels_2016.bed
   snpFile: Schiffels_2016.bim
   indFile: Schiffels_2016.fam
-  snpSet: Other
+  snpSet: 1240K
 jannoFile: Schiffels_2016.janno
 |]
 
@@ -79,7 +79,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         snpFileChkSum = Nothing,
         indFile  = "Schiffels_2016.fam",
         indFileChkSum = Nothing,
-        snpSet = SNPSetOther
+        snpSet = Just SNPSet1240K
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -105,7 +105,7 @@ truePackageAbsPaths = PoseidonYamlStruct {
         snpFileChkSum = Nothing,
         indFile  = "/tmp/Schiffels_2016.fam",
         indFileChkSum = Nothing,
-        snpSet = SNPSetOther
+        snpSet = Just SNPSet1240K
     },
     _posYamlJannoFile       = Just "/tmp/Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -120,34 +120,40 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
     let (Right p) = decodeEither' yamlPackage :: Either ParseException PoseidonYamlStruct
     it "should parse correct YAML data" $
         p `shouldBe` truePackageRelPaths
-    let yamlPackage2 = replace "2020-02-28" "2019-07-10sss" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give error with incorrect date string" $ do
+        let yamlPackage2 = replace "2020-02-28" "2019-07-10sss" yamlPackage
+            (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         show err `shouldBe` "AesonException \"Error in $.lastModified: could not parse date: endOfInput\""
-    let yamlPackage2 = replace "2.0.1" "1.0.0sss" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give error with incorrect poseidonVersion string" $ do
+        let yamlPackage2 = replace "2.0.1" "1.0.0sss" yamlPackage
+            (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         show err `shouldBe` "AesonException \"Error in $.poseidonVersion: parsing Version failed\""
-    let yamlPackage2 = replace "1.0.0" "a.b.c" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give error with incorrect packageVersion string" $ do
+        let yamlPackage2 = replace "1.0.0" "a.b.c" yamlPackage
+            (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         show err `shouldBe` "AesonException \"Error in $.packageVersion: parsing Version failed\""
-    let yamlPackage2 = replace "bibFile: sources.bib\n" "" yamlPackage
-        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should give Nothing for missing bibFile" $ do
+        let yamlPackage2 = replace "bibFile: sources.bib\n" "" yamlPackage
+            (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         p `shouldBe` truePackageRelPaths {_posYamlBibFile = Nothing}
-    let yamlPackage2 = replace "title: Schiffels_2016\n" "" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should fail with title missing" $ do
+        let yamlPackage2 = replace "title: Schiffels_2016\n" "" yamlPackage
+            (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         show err `shouldBe` "AesonException \"Error in $: key \\\"title\\\" not found\""
-    let yamlPackage2 = replace "poseidonVersion: 2.0.1\n" "" yamlPackage
-        (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should fail with poseidonVersion missing" $ do
+        let yamlPackage2 = replace "poseidonVersion: 2.0.1\n" "" yamlPackage
+            (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         show err `shouldBe` "AesonException \"Error in $: key \\\"poseidonVersion\\\" not found\""
-    let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
-        (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
     it "should fail with lastModified missing" $ do
+        let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
+            (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         p `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
+    it "should parse missing snpSet field as Nothing" $ do
+        let yamlPackageNoSnpSet = replace "  snpSet: 1240K\n" "" yamlPackage 
+            (Right p) = decodeEither' yamlPackageNoSnpSet :: Either ParseException PoseidonYamlStruct
+            gd = _posYamlGenotypeData p
+            gdTrue = _posYamlGenotypeData truePackageRelPaths
+        gd `shouldBe` gdTrue {snpSet = Nothing}
 
 testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do

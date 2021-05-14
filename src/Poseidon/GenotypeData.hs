@@ -45,7 +45,7 @@ data GenotypeDataSpec = GenotypeDataSpec
     -- ^ path to the ind file
     , indFileChkSum  :: Maybe String
     -- ^ the optional checksum for the indfile
-    , snpSet         :: SNPSetSpec
+    , snpSet         :: Maybe SNPSetSpec
     -- ^ the SNP set de facto listed in the genotype data
     }
     deriving (Show, Eq)
@@ -53,26 +53,26 @@ data GenotypeDataSpec = GenotypeDataSpec
 -- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
 instance FromJSON GenotypeDataSpec where
     parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
-        <$> v .: "format"
-        <*> v .: "genoFile"
+        <$> v .:  "format"
+        <*> v .:  "genoFile"
         <*> v .:? "genoFileChkSum"
-        <*> v .: "snpFile"
+        <*> v .:  "snpFile"
         <*> v .:? "snpFileChkSum"
-        <*> v .: "indFile"
+        <*> v .:  "indFile"
         <*> v .:? "indFileChkSum"
-        <*> v .: "snpSet"
+        <*> v .:? "snpSet"
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
     toJSON x = object [
-        "format"            .= format x,
-        "genoFile"          .= genoFile x,
-        "genoFileChkSum"    .= genoFileChkSum x,
-        "snpFile"           .= snpFile x,
-        "snpFileChkSum"     .= snpFileChkSum x,
-        "indFile"           .= indFile x,
-        "indFileChkSum"     .= indFileChkSum x,
-        "snpSet"            .= snpSet x
+        "format"        .= format x,
+        "genoFile"      .= genoFile x,
+        "genoFileChkSum".= genoFileChkSum x,
+        "snpFile"       .= snpFile x,
+        "snpFileChkSum" .= snpFileChkSum x,
+        "indFile"       .= indFile x,
+        "indFileChkSum" .= indFileChkSum x,
+        "snpSet"        .= snpSet x
         ]
 
 -- | A data type representing the options fo the genotype format

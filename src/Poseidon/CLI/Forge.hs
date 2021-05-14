@@ -6,6 +6,7 @@ import           Poseidon.EntitiesList      (EntitiesList (..),
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
+                                             SNPSetSpec(..),
                                              printSNPCopyProgress,
                                              snpSetMergeList)
 import           Poseidon.Janno             (JannoRow (..),
@@ -90,8 +91,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     let [outInd, outSnp, outGeno] = case outFormat of 
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
-    let newSNPSet = snpSetMergeList (map (snpSet . posPacGenotypeData) relevantPackages) intersect
-    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing newSNPSet
+    -- output warning if any snpSet is set to Other
+    snpSetList <- fillMissingSnpSets relevantPackages
+    let newSNPSet = snpSetMergeList snpSetList intersect
+    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     pac <- newPackageTemplate outPath outName genotypeData Nothing (Just relevantJannoRows) (Just relevantBibEntries)
@@ -205,3 +208,14 @@ zipGroup list nestedList =
         listWithlenghtsNestedList = zip lenghtsNestedList list
         longerA = map (uncurry replicate) listWithlenghtsNestedList
     in zip3 [0..] (concat longerA) (concat nestedList)
+
+fillMissingSnpSets :: [PoseidonPackage] -> IO [SNPSetSpec]
+fillMissingSnpSets packages = forM packages $ \pac -> do
+    let title = posPacTitle pac
+        maybeSnpSet = snpSet . posPacGenotypeData $ pac
+    case maybeSnpSet of
+        Just s -> return s
+        Nothing -> do
+            hPutStrLn stderr ("Warning for package " ++ title ++ ": field \"snpSet\" \
+            \is not set. I will interpret this as \"snpSet: Other\"")
+            return SNPSetOther
