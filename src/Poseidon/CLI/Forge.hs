@@ -6,6 +6,7 @@ import           Poseidon.EntitiesList      (EntitiesList (..),
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
+                                             SNPSetSpec(..),
                                              printSNPCopyProgress,
                                              snpSetMergeList)
 import           Poseidon.Janno             (JannoRow (..),
@@ -90,7 +91,17 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     let [outInd, outSnp, outGeno] = case outFormat of 
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
-    let newSNPSet = snpSetMergeList (map (snpSet . posPacGenotypeData) relevantPackages) intersect
+    -- output warning if any snpSet is set to Other
+    let snpSetList = map (snpSet . posPacGenotypeData) relevantPackages
+    let packageNamesWithSnpSetOther =
+            map snd . filter ((==SNPSetOther) . fst) . zip snpSetList . map posPacTitle $ relevantPackages
+    when (not . null $ packageNamesWithSnpSetOther) $ do
+        hPutStrLn stderr ("A friendly warning: One or more of your source packages (" ++ show packageNamesWithSnpSetOther ++
+            ") has snpSet: Other, which will result in your forged package to also have \
+            \snpSet: Other. If this is intended, please ignore this message. If not, \
+            \please enter the correct snpSet in those packages to make sure our forging can deduce \
+            \the right target snpSet")
+    let newSNPSet = snpSetMergeList snpSetList intersect
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing newSNPSet
     -- create new package
     hPutStrLn stderr "Creating new package entity"

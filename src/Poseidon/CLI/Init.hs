@@ -19,6 +19,7 @@ import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
     { _inGenoFormat :: GenotypeFormatSpec
+    , _inGenoSnpSet :: SNPSetSpec
     , _inGenoFile :: FilePath
     , _inSnpFile :: FilePath
     , _inIndFile :: FilePath
@@ -27,7 +28,7 @@ data InitOptions = InitOptions
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
+runInit (InitOptions format snpSet genoFile snpFile indFile outPath outName) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
@@ -35,7 +36,7 @@ runInit (InitOptions format genoFile snpFile indFile outPath outName) = do
     let outInd = takeFileName indFile
         outSnp = takeFileName snpFile
         outGeno = takeFileName genoFile
-        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing SNPSetOther
+        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing snpSet
     -- genotype data
     hPutStrLn stderr "Copying genotype data"
     copyFile indFile $ outPath </> outInd

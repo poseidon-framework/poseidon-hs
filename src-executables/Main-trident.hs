@@ -4,7 +4,7 @@ import           Paths_poseidon_hs      (version)
 import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
                                         JackknifeMode (..), fStatSpecParser,
                                         runFstats, runParser)
-import           Poseidon.GenotypeData  (GenotypeFormatSpec (..))
+import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList, RepoLocationSpec(..))
@@ -130,6 +130,7 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeFormat
+                            <*> parseGenotypeSNPSet
                             <*> parseInGenoFile
                             <*> parseInSnpFile
                             <*> parseInIndFile
@@ -277,17 +278,30 @@ parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
     OP.help "the format of the input genotype data: EIGENSTRAT or PLINK") 
-    where
+  where
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of
         "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
+parseGenotypeSNPSet :: OP.Parser SNPSetSpec
+parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (OP.long "snpSet" <>
+    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other")
+  where
+    readSnpSet :: String -> Either String SNPSetSpec
+    readSnpSet s = case s of
+        "1240K"        -> Right SNPSet1240K
+        "HumanOrigins" -> Right SNPSetHumanOrigins
+        "Other"        -> Right SNPSetOther
+        _              -> Left "Could not read snpSet. Must be \"1240K\", \
+                                \\"HumanOrigins\" or \"Other\""
+
+
 parseOutGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseOutGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "outFormat" <>
     OP.help "the format of the output genotype data: EIGENSTRAT or PLINK") 
-    where
+  where
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of
         "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
