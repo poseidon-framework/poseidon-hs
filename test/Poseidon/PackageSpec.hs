@@ -12,7 +12,8 @@ import           Poseidon.Package          (ContributorSpec (..),
                                             readPoseidonPackageCollection,
                                             renderMismatch,
                                             zipWithPadding,
-                                            getChecksum)
+                                            getChecksum,
+                                            PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.Trans.Class (lift)
@@ -34,6 +35,15 @@ spec = do
     testGetChecksum
     testRenderMismatch
     testZipWithPadding
+
+testPacReadOpts :: PackageReadOptions
+testPacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = True
+    , _readOptIgnoreChecksums  = False
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = False
+    }
 
 yamlTestPath :: FilePath
 yamlTestPath = "/tmp/poseidon_test.yml"
@@ -159,7 +169,7 @@ testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testModules/ancient"
     it "should discover packages correctly" $ do
-        pac <- readPoseidonPackageCollection False True False False False [dir]
+        pac <- readPoseidonPackageCollection testPacReadOpts [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 2 28),
