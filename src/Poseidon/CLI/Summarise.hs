@@ -4,7 +4,8 @@ module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (Percent (..), JannoRow (..))
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
-import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection)
+import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection,
+                                         PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Monad          (when)
 import           Data.List              (sortBy, nub, group, sort, intercalate)
@@ -19,10 +20,19 @@ data SummariseOptions = SummariseOptions
     , _optRawOutput :: Bool
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = True
+    , _readOptGenoCheck        = False
+    }
+
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> IO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
-    allPackages <- readPoseidonPackageCollection False False True True False baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
     summariseJannoRows (concat jannos) rawOutput
 

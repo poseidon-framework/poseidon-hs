@@ -18,7 +18,8 @@ module Poseidon.Package (
     renderMismatch,
     zipWithPadding,
     updateChecksumsInPackage,
-    writePoseidonPackage
+    writePoseidonPackage,
+    defaultPackageReadOptions
 ) where
 
 import           Poseidon.BibFile           (readBibTeXFile, BibTeX (..))
@@ -239,12 +240,13 @@ data PackageReadOptions = PackageReadOptions {
     , _readOptGenoCheck :: Bool        -- whether to check the first 100 SNPs of the genotypes
     }
 
+defaultPackageReadOptions :: PackageReadOptions
 defaultPackageReadOptions = PackageReadOptions {
-      _readOptVerbose = False 
-    , _readOptStopOnDuplicates = False 
-    , _readOptIgnoreChecksums = False 
-    , _readOptIgnoreGeno = False 
-    , _readOptGenoCheck = True
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = False
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = True
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories. 

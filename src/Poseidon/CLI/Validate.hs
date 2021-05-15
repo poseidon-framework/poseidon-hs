@@ -5,7 +5,8 @@ module Poseidon.CLI.Validate where
 import           Poseidon.Package  (PoseidonPackage (..),
                                    findAllPoseidonYmlFiles,
                                    getJointGenotypeData,
-                                   readPoseidonPackageCollection)
+                                   readPoseidonPackageCollection,
+                                   PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Exception (SomeException, catch)
 import           Control.Monad     (unless)
@@ -24,10 +25,19 @@ data ValidateOptions = ValidateOptions
     , _optIgnoreGeno :: Bool
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptStopOnDuplicates = True
+    , _readOptIgnoreChecksums  = False
+    , _readOptGenoCheck        = True
+    }
+
 runValidate :: ValidateOptions -> IO ()
 runValidate (ValidateOptions baseDirs verbose ignoreGeno) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection verbose True False ignoreGeno True baseDirs
+    allPackages <- readPoseidonPackageCollection 
+        pacReadOpts {_readOptVerbose = verbose, _readOptIgnoreGeno = ignoreGeno} 
+        baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     check <- if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates

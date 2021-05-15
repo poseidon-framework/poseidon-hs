@@ -7,7 +7,8 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Package           (findAllPoseidonYmlFiles,
                                              readPoseidonPackageCollection,
                                              PoseidonPackage (..),
-                                             writePoseidonPackage)
+                                             writePoseidonPackage,
+                                             PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Monad              (when)
 import           Pipes                      (MonadIO (liftIO), 
@@ -30,10 +31,19 @@ data GenoconvertOptions = GenoconvertOptions
     , _removeOld :: Bool
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = True
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = True
+    }
+
 runGenoconvert :: GenoconvertOptions -> IO ()
 runGenoconvert (GenoconvertOptions baseDirs outFormat removeOld) = do
     -- load packages
-    allPackages <- readPoseidonPackageCollection False True True False True baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- convert
     mapM_ (convertGenoTo outFormat removeOld) allPackages
 
