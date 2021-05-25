@@ -28,10 +28,7 @@ jobs:
         stack-version: ${{ matrix.stack }}
 
     - name: Cache ~/.stack
-      uses: actions/cache@v2
-      with:
-        path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack
+      uses: freckle/stack-cache-action@main
 
     - name: Build
       run: |
