@@ -21,7 +21,7 @@ Important packages to look into to understand the architecture of this tool:
 
 ## Preparing a new stable release
 
-The Github Actions script in `.github/workflows/release.yml` registeres a new draft release and automatically builds and uploads trident binaries when a new Git tag with the prefix `v*` is pushed. 
+The Github Actions script in `.github/workflows/release.yml` registers a new draft release and automatically builds and uploads trident binaries when a new Git tag with the prefix `v*` is pushed. 
 
 ```bash
 # locally register a new tag (e.g. 0.3.1)
