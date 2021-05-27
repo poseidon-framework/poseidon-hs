@@ -37,14 +37,14 @@ jobs:
         --test \
         --bench \
         --no-run-tests \
-        --no-run-benchmarks
+        --no-run-benchmarks \
+        --pedantic
 
     - name: Test
       run: |
         stack test \
         --system-ghc \
-        --coverage \
-        --pedantic
+        --coverage
 
     - name: Generate coverage report
       uses: 8c6794b6/hpc-codecov-action@v2
