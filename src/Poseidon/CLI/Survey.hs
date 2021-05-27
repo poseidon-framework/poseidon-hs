@@ -5,7 +5,8 @@ module Poseidon.CLI.Survey where
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Janno        (JannoRow (..))
 import           Poseidon.Package      (PoseidonPackage (..),
-                                        readPoseidonPackageCollection)
+                                        readPoseidonPackageCollection,
+                                        PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.BibFile      (BibTeX (..))
 
 import           Control.Monad         (forM, when)
@@ -22,10 +23,19 @@ data SurveyOptions = SurveyOptions
     , _optRawOutput :: Bool
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = True
+    , _readOptGenoCheck        = False
+    }
+
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> IO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
-    allPackages <- readPoseidonPackageCollection False False True True False baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages
     -- geno

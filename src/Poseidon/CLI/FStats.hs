@@ -13,7 +13,8 @@ module Poseidon.CLI.FStats (
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
                                              getIndividuals,
-                                             getJointGenotypeData)
+                                             getJointGenotypeData,
+                                             PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Applicative        ((<|>))
@@ -214,11 +215,20 @@ getPopIndices indEntries popSpec =
             PopSpecInd   n -> Left $ PoseidonIndSearchException ("Individual name " ++ n ++ " not found")
         else Right ret
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = True
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = True
+    }
+
 -- | The main function running the FStats command.
 runFstats :: FstatsOptions -> IO ()
 runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect maybeStatSpecsFile rawOutput) = do
     -- load packages --
-    allPackages <- readPoseidonPackageCollection False True True False True baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     statSpecsFromFile <- case maybeStatSpecsFile of
         Nothing -> return []
         Just f -> readStatSpecsFromFile f

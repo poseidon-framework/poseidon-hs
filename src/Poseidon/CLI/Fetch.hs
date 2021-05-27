@@ -7,7 +7,8 @@ import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList 
 import           Poseidon.MathHelpers       (roundTo, roundToStr)
 import           Poseidon.Package           (PackageInfo (..),
                                              PoseidonPackage (..),
-                                             readPoseidonPackageCollection)
+                                             readPoseidonPackageCollection,
+                                             PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Codec.Archive.Zip          (ZipOption (..), extractFilesFromArchive, toArchive)
@@ -49,6 +50,15 @@ data PackageState = NotLocal -- ^ Package exists only on remote and can be downl
                   | LaterRemote -- ^ The remote version is later. An upgrade should be optional
                   | LaterLocal -- ^ The local version is later. Nothing should be done
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = False
+    }
+
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
@@ -60,7 +70,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile --this nub could also be relevant for forge
         desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
     -- load local packages
-    allLocalPackages <- readPoseidonPackageCollection False False True False False baseDirs
+    allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- load remote package list
     hPutStrLn stderr "Downloading package list from remote"
     remoteOverviewJSONByteString <- simpleHttp (remote ++ "/packages")

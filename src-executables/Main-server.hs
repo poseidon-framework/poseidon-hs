@@ -4,7 +4,8 @@ import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
 import           Poseidon.Janno              (JannoRow (..))
 import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
-                                              readPoseidonPackageCollection)
+                                              readPoseidonPackageCollection,
+                                              PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils              (IndividualInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
@@ -58,6 +59,14 @@ packageToPackageInfo pac = PackageInfo {
 logger :: String
 logger = rootLoggerName
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = True
+    , _readOptIgnoreChecksums  = False
+    , _readOptGenoCheck        = True
+    }
+
 main :: IO ()
 main = do
     h <- streamHandler stderr INFO
@@ -65,7 +74,7 @@ main = do
     updateGlobalLogger logger (setHandlers [fh] . setLevel INFO)
     infoM logger "Server starting up. Loading packages..."
     opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
-    allPackages <- readPoseidonPackageCollection False True False ignoreGenoFiles True baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGenoFiles} baseDirs
     infoM logger "Checking whether zip files are missing or outdated"
     zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"

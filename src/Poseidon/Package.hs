@@ -7,6 +7,7 @@ module Poseidon.Package (
     PoseidonPackage(..),
     ContributorSpec(..),
     PoseidonException(..),
+    PackageReadOptions (..),
     filterDuplicatePackages,
     findAllPoseidonYmlFiles,
     readPoseidonPackageCollection,
@@ -17,7 +18,8 @@ module Poseidon.Package (
     renderMismatch,
     zipWithPadding,
     updateChecksumsInPackage,
-    writePoseidonPackage
+    writePoseidonPackage,
+    defaultPackageReadOptions
 ) where
 
 import           Poseidon.BibFile           (readBibTeXFile, BibTeX (..))
@@ -230,16 +232,78 @@ instance ToJSON ContributorSpec where
         "email" .= contributorEmail x
         ]
 
+data PackageReadOptions = PackageReadOptions {
+      _readOptVerbose :: Bool          -- whether to print verbose output
+    , _readOptStopOnDuplicates :: Bool -- whether to stop on duplicated individuals
+    , _readOptIgnoreChecksums :: Bool  -- whether to ignore all checksums
+    , _readOptIgnoreGeno :: Bool       -- whether to ignore missing genotype files, useful for developer use cases
+    , _readOptGenoCheck :: Bool        -- whether to check the first 100 SNPs of the genotypes
+    }
+
+defaultPackageReadOptions :: PackageReadOptions
+defaultPackageReadOptions = PackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = False
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = True
+    }
+
+-- | a utility function to load all poseidon packages found recursively in multiple base directories. 
+-- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
+-- warnings
+readPoseidonPackageCollection :: PackageReadOptions
+                              -> [FilePath] -- ^ A list of base directories where to search in
+                              -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
+readPoseidonPackageCollection opts dirs = do
+    hPutStr stderr $ "Searching POSEIDON.yml files... "
+    posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
+    hPutStrLn stderr $ show (length posFiles) ++ " found"
+    hPutStrLn stderr "Initializing packages... "
+    eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
+    hPutStrLn stderr ""
+    -- notifying the users of package problems
+    when (not . null . lefts $ eitherPackages) $ do
+        hPutStrLn stderr "Some packages were skipped due to issues:"
+        forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
+            case epac of
+                Left e -> do
+                    hPutStrLn stderr ("In the package described in " ++ posF ++ ":")
+                    hPutStrLn stderr (renderPoseidonException e)
+                _ -> return ()
+    let loadedPackages = rights eitherPackages
+    -- package duplication check 
+    -- This will throw if packages come with same versions and titles (see filterDuplicates)
+    finalPackageList <- filterDuplicatePackages loadedPackages
+    when (length loadedPackages > length finalPackageList) $ do
+        hPutStrLn stderr "Some packages were skipped as duplicates:"
+        forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
+            \x -> hPrint stderr x
+    -- individual duplication check
+    individuals <- mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
+    checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
+    -- report number of valid packages
+    hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
+    -- return package list
+    return finalPackageList
+  where
+    tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage False (numberPackage, path) = do
+        hClearLine stderr
+        hSetCursorColumn stderr 0
+        hPutStr stderr $ "> " ++ show numberPackage ++ " "
+        hFlush stderr
+        try . readPoseidonPackage opts $ path
+    tryDecodePoseidonPackage True (numberPackage, path) = do
+        hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
+        try . readPoseidonPackage opts $ path
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
-readPoseidonPackage :: Bool -- whether to print verbose output
-                    -> Bool -- ^ whether to ignore all checksums
-                    -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
-                    -> Bool -- ^ whether to check the first 100 SNPs of the genotypes
+readPoseidonPackage :: PackageReadOptions
                     -> FilePath -- ^ the file path to the yaml file
                     -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
-readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes ymlPath = do
+readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
     -- read yml files
@@ -248,14 +312,14 @@ readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGeno
         Right pac -> return pac
     let yml = PoseidonYamlStruct ver tit des con pacVer mod geno jannoF jannoC bibF bibC readF changeF
     -- file existence and checksum test
-    checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml
+    checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
         Just p -> do
-            loadedJanno <- readJannoFile verbose p
+            loadedJanno <- readJannoFile (_readOptVerbose opts) p
             checkJannoIndConsistency tit loadedJanno indEntries
             return loadedJanno
     -- read bib (or fill with empty list)
@@ -266,7 +330,7 @@ readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGeno
             checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
-    when (not ignoreGenotypeFilesMissing && checkGenotypes) . runSafeT $ do
+    when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
         -- we're using loadJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
         (_, eigenstratProd) <- loadJointGenotypeData False False [(baseDir, geno)]
@@ -366,59 +430,6 @@ checkJannoBibConsistency pacName janno bibtex = do
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $ 
         "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
-
--- | a utility function to load all poseidon packages found recursively in multiple base directories. 
--- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
--- warnings
-readPoseidonPackageCollection :: Bool -- whether to print verbose output
-                              -> Bool -- ^ whether to stop on duplicated individuals
-                              -> Bool -- ^ whether to ignore all checksums
-                              -> Bool -- ^ whether to ignore missing genotype files, useful for developer use cases
-                              -> Bool -- ^ whether to check the top 100 SNPs of the genotype data
-                              -> [FilePath] -- ^ A list of base directories where to search in
-                              -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection verbose stopOnDuplicates ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes dirs = do
-    hPutStr stderr $ "Searching POSEIDON.yml files... "
-    posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    hPutStrLn stderr $ show (length posFiles) ++ " found"
-    hPutStrLn stderr "Initializing packages... "
-    eitherPackages <- mapM (tryDecodePoseidonPackage verbose) $ zip [1..] posFiles
-    hPutStrLn stderr ""
-    -- notifying the users of package problems
-    when (not . null . lefts $ eitherPackages) $ do
-        hPutStrLn stderr "Some packages were skipped due to issues:"
-        forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
-            case epac of
-                Left e -> do
-                    hPutStrLn stderr ("In the package described in " ++ posF ++ ":")
-                    hPutStrLn stderr (renderPoseidonException e)
-                _ -> return ()
-    let loadedPackages = rights eitherPackages
-    -- package duplication check 
-    -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    finalPackageList <- filterDuplicatePackages loadedPackages
-    when (length loadedPackages > length finalPackageList) $ do
-        hPutStrLn stderr "Some packages were skipped as duplicates:"
-        forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
-            \x -> hPrint stderr x
-    -- individual duplication check
-    individuals <- mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
-    checkIndividualsUnique stopOnDuplicates $ concat individuals
-    -- report number of valid packages
-    hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
-    -- return package list
-    return finalPackageList
-  where
-    tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage False (numberPackage, path) = do
-        hClearLine stderr
-        hSetCursorColumn stderr 0
-        hPutStr stderr $ "> " ++ show numberPackage ++ " "
-        hFlush stderr
-        try . readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
-    tryDecodePoseidonPackage True (numberPackage, path) = do
-        hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
-        try . readPoseidonPackage verbose ignoreChecksums ignoreGenotypeFilesMissing checkGenotypes $ path
 
 checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
