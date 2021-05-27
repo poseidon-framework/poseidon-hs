@@ -68,6 +68,8 @@ renderPoseidonException PoseidonEmptyForgeException =
     "Nothing to be forged"
 renderPoseidonException (PoseidonNewPackageConstructionException s) =
     show s
+renderPoseidonException (PoseidonRemoteJSONParsingException s) =
+    "Error in parsing JSON: " ++ show s
 renderPoseidonException (PoseidonGenericException s) = s
 
 data IndividualInfo = IndividualInfo
