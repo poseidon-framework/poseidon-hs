@@ -7,6 +7,7 @@ import           Text.CSL.Reference      (unLiteral, Reference (..))
 --import           Text.CSL.Style          (Agent (..))
 import           Test.Hspec
 
+spec :: Spec
 spec = do
     testBibReadWriteReadCycle
 

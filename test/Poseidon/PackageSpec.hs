@@ -8,27 +8,21 @@ import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
 import           Poseidon.Package          (ContributorSpec (..),
                                             PoseidonYamlStruct (..),
                                             PoseidonPackage (..),
-                                            filterDuplicatePackages,
                                             readPoseidonPackageCollection,
                                             renderMismatch,
                                             zipWithPadding,
                                             getChecksum,
                                             PackageReadOptions (..), defaultPackageReadOptions)
 
-import           Control.Monad.IO.Class    (liftIO)
-import           Control.Monad.Trans.Class (lift)
 import qualified Data.ByteString.Char8     as B
 import           Data.List                 (sort)
-import           Data.Time                 (defaultTimeLocale, fromGregorian,
-                                            parseTimeOrError)
+import           Data.Time                 (fromGregorian)
 import           Data.Version              (makeVersion)
-import           Data.Yaml                 (ParseException, decodeEither',
-                                            encodeFile)
-import           System.IO                 (IOMode (..), hPutStrLn, stderr,
-                                            withFile)
+import           Data.Yaml                 (ParseException, decodeEither')
 import           Test.Hspec
 import           Text.RawString.QQ
 
+spec :: Spec
 spec = do
     testPoseidonFromYAML
     testreadPoseidonPackageCollection
@@ -44,9 +38,6 @@ testPacReadOpts = defaultPackageReadOptions {
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
     }
-
-yamlTestPath :: FilePath
-yamlTestPath = "/tmp/poseidon_test.yml"
 
 yamlPackage :: B.ByteString
 yamlPackage = [r|
@@ -94,32 +85,6 @@ truePackageRelPaths = PoseidonYamlStruct {
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
     _posYamlBibFile         = Just "sources.bib",
-    _posYamlBibFileChkSum   = Nothing,
-    _posYamlReadmeFile      = Nothing,
-    _posYamlChangelogFile   = Nothing
-}
-
-truePackageAbsPaths :: PoseidonYamlStruct
-truePackageAbsPaths = PoseidonYamlStruct {
-    _posYamlPoseidonVersion = makeVersion [2, 0, 1],
-    _posYamlTitle           = "Schiffels_2016",
-    _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
-    _posYamlContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
-    _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
-    _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
-    _posYamlGenotypeData    = GenotypeDataSpec {
-        format   = GenotypeFormatPlink,
-        genoFile = "/tmp/Schiffels_2016.bed",
-        genoFileChkSum = Nothing,
-        snpFile  = "/tmp/Schiffels_2016.bim",
-        snpFileChkSum = Nothing,
-        indFile  = "/tmp/Schiffels_2016.fam",
-        indFileChkSum = Nothing,
-        snpSet = Just SNPSet1240K
-    },
-    _posYamlJannoFile       = Just "/tmp/Schiffels_2016.janno",
-    _posYamlJannoFileChkSum = Nothing,
-    _posYamlBibFile         = Just "/tmp/sources.bib",
     _posYamlBibFileChkSum   = Nothing,
     _posYamlReadmeFile      = Nothing,
     _posYamlChangelogFile   = Nothing

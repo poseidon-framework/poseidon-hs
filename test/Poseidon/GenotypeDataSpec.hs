@@ -4,6 +4,7 @@ import           Poseidon.GenotypeData
 
 import           Test.Hspec
 
+spec :: Spec
 spec = do
     testSNPSetMergeList
 
