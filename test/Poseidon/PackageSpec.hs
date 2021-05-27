@@ -109,8 +109,8 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         show err `shouldBe` "AesonException \"Error in $.packageVersion: parsing Version failed\""
     it "should give Nothing for missing bibFile" $ do
         let yamlPackage2 = replace "bibFile: sources.bib\n" "" yamlPackage
-            (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
-        p `shouldBe` truePackageRelPaths {_posYamlBibFile = Nothing}
+            (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
+        p_ `shouldBe` truePackageRelPaths {_posYamlBibFile = Nothing}
     it "should fail with title missing" $ do
         let yamlPackage2 = replace "title: Schiffels_2016\n" "" yamlPackage
             (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
@@ -121,12 +121,12 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         show err `shouldBe` "AesonException \"Error in $: key \\\"poseidonVersion\\\" not found\""
     it "should fail with lastModified missing" $ do
         let yamlPackage2 = replace "lastModified: 2020-02-28\n" "" yamlPackage
-            (Right p) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
-        p `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
+            (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
+        p_ `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
     it "should parse missing snpSet field as Nothing" $ do
         let yamlPackageNoSnpSet = replace "  snpSet: 1240K\n" "" yamlPackage 
-            (Right p) = decodeEither' yamlPackageNoSnpSet :: Either ParseException PoseidonYamlStruct
-            gd = _posYamlGenotypeData p
+            (Right p_) = decodeEither' yamlPackageNoSnpSet :: Either ParseException PoseidonYamlStruct
+            gd = _posYamlGenotypeData p_
             gdTrue = _posYamlGenotypeData truePackageRelPaths
         gd `shouldBe` gdTrue {snpSet = Nothing}
 
@@ -140,12 +140,14 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
                                                       Just (fromGregorian 2020 2 28),
                                                       Just (fromGregorian 2020 05 20)]
 
+files :: [String]
 files  = ["test/testDat/testModules/ancient/Schiffels_2016/geno.txt",
           "test/testDat/testModules/ancient/Schiffels_2016/snp.txt",
           "test/testDat/testModules/ancient/Schiffels_2016/ind.txt",
           "test/testDat/testModules/ancient/Schiffels_2016/Schiffels_2016.janno",
           "test/testDat/testModules/ancient/Schiffels_2016/sources.bib"]
 
+checksums :: [String]
 checksums = ["95b093eefacc1d6499afcfe89b15d56c",
              "6771d7c873219039ba3d5bdd96031ce3",
              "f77dc756666dbfef3bb35191ae15a167",
@@ -185,13 +187,14 @@ testRenderMismatch =
             "(a = d), (b = ?), (c = ?)"
 
 testZipWithPadding :: Spec
-testZipWithPadding = 
-    describe "Poseidon.CLI.Validate.zipWithPadding" $ do
-    it "should zip normally for lists of equal length" $ do
-        zipWithPadding "?" "!" ["a", "b"] ["c", "d"] `shouldBe` [("a", "c"), ("b", "d")]
-    it "should fill for empty lists" $ do
-        zipWithPadding "?" "!" ["a"] [] `shouldBe` [("a", "!")]
-    it "should fill empty elements right" $ do
-        zipWithPadding "?" "!" ["a", "b"] ["c"] `shouldBe` [("a", "c"), ("b", "!")]
-    it "should fill empty elements left" $ do
-        zipWithPadding "?" "!" ["a"] ["b", "c"] `shouldBe` [("a", "b"), ("?", "c")]
+testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
+    it "should zip normally for lists of equal length" $
+        zwp ["a", "b"] ["c", "d"] `shouldBe` [("a", "c"), ("b", "d")]
+    it "should fill for empty lists" $
+        zwp ["a"] [] `shouldBe` [("a", "!")]
+    it "should fill empty elements right" $
+        zwp ["a", "b"] ["c"] `shouldBe` [("a", "c"), ("b", "!")]
+    it "should fill empty elements left" $
+        zwp ["a"] ["b", "c"] `shouldBe` [("a", "b"), ("?", "c")]
+  where
+    zwp = zipWithPadding ("?" :: String) ("!" :: String)
