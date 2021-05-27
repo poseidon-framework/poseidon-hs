@@ -17,7 +17,8 @@ import           Poseidon.Package           (ContributorSpec (..),
                                              getJointGenotypeData,
                                              newPackageTemplate,
                                              readPoseidonPackageCollection,
-                                             writePoseidonPackage)
+                                             writePoseidonPackage,
+                                             PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Monad              (forM, unless, when)
@@ -53,6 +54,15 @@ data ForgeOptions = ForgeOptions
     , _showWarnings :: Bool
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = False
+    , _readOptGenoCheck        = True
+    }
+
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName outFormat showWarnings) = do
@@ -60,7 +70,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
     -- load packages --
-    allPackages <- readPoseidonPackageCollection False False True False True baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- check for entities that do not exist this this dataset
     nonExistentEntities <- findNonExistentEntities entities allPackages
     unless (null nonExistentEntities) $

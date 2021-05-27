@@ -5,7 +5,8 @@ module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocation
 import           Poseidon.Janno             (JannoRow (..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
-                                             readPoseidonPackageCollection)
+                                             readPoseidonPackageCollection,
+                                             PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO)
@@ -35,6 +36,14 @@ data ListEntity = ListPackages
     | ListGroups
     | ListIndividuals [String]
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptGenoCheck        = False
+    }
+
 -- | The main function running the list command
 runList :: ListOptions -> IO ()
 runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
@@ -45,7 +54,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/janno_all")
             readSampleInfo remoteOverviewJSONByteString
         RepoLocal baseDirs -> do
-            allPackages <- readPoseidonPackageCollection False False True ignoreGeno False baseDirs
+            allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGeno} baseDirs
             return [(posPacTitle pac, posPacJanno pac) | pac <- allPackages]
     -- construct output
     hPutStrLn stderr "Preparing output table"

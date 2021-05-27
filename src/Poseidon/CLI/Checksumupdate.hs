@@ -4,8 +4,9 @@ module Poseidon.CLI.Checksumupdate (
 
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
-                                             updateChecksumsInPackage, 
-                                             writePoseidonPackage)
+                                             updateChecksumsInPackage,
+                                             writePoseidonPackage, 
+                                             PackageReadOptions (..), defaultPackageReadOptions)
 
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -13,9 +14,18 @@ data ChecksumupdateOptions = ChecksumupdateOptions
     { _jaBaseDirs :: [FilePath]
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptVerbose          = False
+    , _readOptStopOnDuplicates = True
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = True
+    , _readOptGenoCheck        = False
+    }
+
 runChecksumupdate :: ChecksumupdateOptions -> IO ()
 runChecksumupdate (ChecksumupdateOptions baseDirs) = do
-    allPackages <- readPoseidonPackageCollection False True True True False baseDirs
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     hPutStrLn stderr "Calculating checksums"
     updatedPackages <- mapM updateChecksumsInPackage allPackages
     if allPackages == updatedPackages
