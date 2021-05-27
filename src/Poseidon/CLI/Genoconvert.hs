@@ -4,25 +4,20 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress)
-import           Poseidon.Package           (findAllPoseidonYmlFiles,
-                                             readPoseidonPackageCollection,
+import           Poseidon.Package           (readPoseidonPackageCollection,
                                              PoseidonPackage (..),
                                              writePoseidonPackage,
                                              PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Monad              (when)
 import           Pipes                      (MonadIO (liftIO), 
-                                            lift, runEffect, (>->))
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (SafeT (..), runSafeT, throwM)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..), GenoLine,
-                                             writeEigenstrat)
+                                            runEffect, (>->))
+import           Pipes.Safe                 (runSafeT)
+import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (removeFile, doesFileExist)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStr, hPutStrLn, stderr)
+import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions

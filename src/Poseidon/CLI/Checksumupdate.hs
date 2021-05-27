@@ -2,8 +2,7 @@ module Poseidon.CLI.Checksumupdate (
     runChecksumupdate, ChecksumupdateOptions (..),
     ) where
 
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             readPoseidonPackageCollection,
+import           Poseidon.Package           (readPoseidonPackageCollection,
                                              updateChecksumsInPackage,
                                              writePoseidonPackage, 
                                              PackageReadOptions (..), defaultPackageReadOptions)

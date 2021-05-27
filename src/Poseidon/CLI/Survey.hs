@@ -7,15 +7,14 @@ import           Poseidon.Janno        (JannoRow (..))
 import           Poseidon.Package      (PoseidonPackage (..),
                                         readPoseidonPackageCollection,
                                         PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.BibFile      (BibTeX (..))
+import           Poseidon.BibFile      (BibTeX)
 
-import           Control.Monad         (forM, when)
+import           Control.Monad         (forM)
 import           Data.List             (zip4, intercalate)
-import           Data.Maybe            (isJust, isNothing)
+import           Data.Maybe            (isNothing)
 import           System.Directory      (doesFileExist)
 import           System.FilePath.Posix ((</>))
-import           System.IO             (hPutStrLn, stderr)
-import           Text.Layout.Table     (asciiRoundS, column, def, expand,
+import           Text.Layout.Table     (asciiRoundS, column, def,
                                         rowsG, tableString, titlesH, expandUntil)
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -111,7 +110,7 @@ renderJannoCompleteness jS =
     ++ allNothing jKeywords jS
 
 allNothing :: (JannoRow -> Maybe a) -> [JannoRow] -> String
-allNothing column jannoRows =
-    if all (isNothing . column) jannoRows
+allNothing column_ jannoRows =
+    if all (isNothing . column_) jannoRows
         then "."
         else "X"
