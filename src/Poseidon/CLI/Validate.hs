@@ -9,7 +9,6 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Exception (SomeException, catch)
-import           Control.Monad     (unless)
 import           Data.List         (foldl')
 import           Pipes             (runEffect, (>->))
 import qualified Pipes.Prelude     as P

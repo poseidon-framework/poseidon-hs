@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Janno              (JannoRow (..))
+import           Poseidon.Janno              (JannoRow (..), JannoList(..))
 import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
                                               readPoseidonPackageCollection,
@@ -12,14 +12,11 @@ import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
                                               toEntry)
 import           Control.Applicative         ((<|>))
-import           Control.Monad               (forM, when, (<=<))
-import           Control.Monad.IO.Class      (liftIO)
-import           Data.Aeson                  (ToJSON, object, toJSON, (.=))
+import           Control.Monad               (forM, when)
 import qualified Data.ByteString.Lazy        as B
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
-import           Data.Time                   (Day)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
-import           Data.Version                (Version, showVersion)
+import           Data.Version                (showVersion)
 import           Network.Wai.Handler.Warp    (defaultSettings, run, setPort)
 import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
                                               tlsSettingsChain)
@@ -29,11 +26,11 @@ import           Paths_poseidon_hs           (version)
 import           System.Directory            (doesFileExist,
                                               getModificationTime)
 import           System.FilePath.Posix       ((<.>), (</>))
-import           System.IO                   (hPutStrLn, stderr)
+import           System.IO                   (stderr)
 import           System.Log.Formatter        (simpleLogFormatter)
 import           System.Log.Handler          (setFormatter)
 import           System.Log.Handler.Simple   (streamHandler)
-import           System.Log.Logger           (Priority (..), addHandler, infoM,
+import           System.Log.Logger           (Priority (..), infoM,
                                               rootLoggerName, setHandlers,
                                               setLevel, updateGlobalLogger)
 import           Web.Scotty                  (ScottyM, file, get, html, json,
@@ -73,7 +70,7 @@ main = do
     let fh = setFormatter h (simpleLogFormatter "[$time] $msg")
     updateGlobalLogger logger (setHandlers [fh] . setLevel INFO)
     infoM logger "Server starting up. Loading packages..."
-    opts@(CommandLineOptions baseDirs port ignoreGenoFiles certFiles) <- OP.customExecParser p optParserInfo
+    CommandLineOptions baseDirs port ignoreGenoFiles certFiles <- OP.customExecParser p optParserInfo
     allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGenoFiles} baseDirs
     infoM logger "Checking whether zip files are missing or outdated"
     zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
@@ -81,8 +78,8 @@ main = do
         zipFileOutdated <- checkZipFileOutdated pac fn ignoreGenoFiles
         when zipFileOutdated $ do
             infoM logger ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
-            zip <- makeZipArchive pac ignoreGenoFiles
-            let zip_raw = fromArchive zip
+            zip_ <- makeZipArchive pac ignoreGenoFiles
+            let zip_raw = fromArchive zip_
             B.writeFile fn zip_raw
         return (posPacTitle pac, fn))
     let runScotty = case certFiles of
@@ -97,11 +94,11 @@ main = do
         get "/package_table_md.md" $
             text . makeMDtable $ allPackages
         when (not ignoreGenoFiles) . get "/zip_file/:package_name" $ do
-            p <- param "package_name"
-            let zipFN = lookup (unpack p) zipDict
+            p_ <- param "package_name"
+            let zipFN = lookup (unpack p_) zipDict
             case zipFN of
                 Just fn -> file fn
-                Nothing -> raise ("unknown package " <> p)
+                Nothing -> raise ("unknown package " <> p_)
         get "/janno_all" $
             json (getAllPacJannoPairs allPackages)
         get "/individuals_all" $
@@ -150,7 +147,7 @@ checkZipFileOutdated pac fn ignoreGenoFiles = do
     else
         return True
   where
-    checkOutdated zipModTime fn = (> zipModTime) <$> getModificationTime fn
+    checkOutdated zipModTime fn_ = (> zipModTime) <$> getModificationTime fn_
 
 makeHTMLtable :: [PoseidonPackage] -> Text
 makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
@@ -160,11 +157,11 @@ makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
     body :: Text
     body = intercalate "\n" $ do
         pac <- packages
-        let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
+        let (PackageInfo title version_ desc lastMod) = packageToPackageInfo pac
         let link = "<a href=\"https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> "\">" <> pack title <> "</a>"
         return $ "<tr><td>" <> pack title <> "</td><td>" <>
             maybe "n/a" pack desc <> "</td><td>" <>
-            maybe "n/a" (pack . showVersion) version <> "</td><td>" <>
+            maybe "n/a" (pack . showVersion) version_ <> "</td><td>" <>
             maybe "n/a" (pack . show) lastMod <> "</td><td>" <>
             link <> "</td></tr>"
 
@@ -176,11 +173,11 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
     body :: Text
     body = intercalate "\n" $ do
         pac <- packages
-        let (PackageInfo title version desc lastMod) = packageToPackageInfo pac
+        let (PackageInfo title version_ desc lastMod) = packageToPackageInfo pac
         let link = "[" <> pack title <> "](https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> ")"
         return $ "| " <> pack title <> " | " <>
             maybe "n/a" pack desc <> " | " <>
-            maybe "n/a" (pack . showVersion) version <> " | " <>
+            maybe "n/a" (pack . showVersion) version_ <> " | " <>
             maybe "n/a" (pack . show) lastMod <> " | " <>
             link <> " | "
 
@@ -216,7 +213,7 @@ getAllIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
     let name = jIndividualID jannoRow
-        group = head . jGroupName $ jannoRow
+        group = head . getJannoList . jGroupName $ jannoRow
         pacName = posPacTitle pac
     return $ IndividualInfo name group pacName
 

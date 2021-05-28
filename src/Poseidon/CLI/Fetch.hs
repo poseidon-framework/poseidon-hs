@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList (..), 
+import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList, 
                                              readEntitiesFromFile)
 import           Poseidon.MathHelpers       (roundTo, roundToStr)
 import           Poseidon.Package           (PackageInfo (..),
@@ -16,12 +16,12 @@ import           Conduit                    (runResourceT, sinkFile, ResourceT, 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (when, unless)
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.Aeson                 (Value, eitherDecode')
+import           Data.Aeson                 (eitherDecode')
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
 import           Data.ByteString.Char8      as B8 (unpack)
 import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
-import           Data.List                  ((\\), nub, intercalate, intersect)
+import           Data.List                  (nub)
 import           Data.Version               (Version, showVersion)
 import           Network.HTTP.Conduit       (simpleHttp,
                                              newManager,
@@ -116,6 +116,7 @@ determinePackageState localPacs desiredRemotePac
         (LaterRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
     | localVersionOfDesired > desiredRemotePacVersion = 
         (LaterLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
+    | otherwise = error "determinePackageState: should never happen"
     where 
         desiredRemotePacTitle = pTitle desiredRemotePac
         desiredRemotePacVersion = pVersion desiredRemotePac
@@ -152,8 +153,8 @@ downloadAndUnzipPackage baseDir tempDir remote pacName = do
     removeFile (tempDir </> pacName)
 
 unzipPackage :: FilePath -> FilePath -> IO ()
-unzipPackage zip outDir = do
-    archiveBS <- LB.readFile zip
+unzipPackage zip_ outDir = do
+    archiveBS <- LB.readFile zip_
     let archive = toArchive archiveBS
     extractFilesFromArchive [OptRecursive, OptDestination outDir] archive
 
@@ -165,8 +166,8 @@ downloadPackage pathToRepo remote pacName = do
     runResourceT $ do 
         response <- http packageRequest downloadManager
         let Just fileSize = lookup hContentLength (responseHeaders response)
-        let fileSizeKB = read $ B8.unpack fileSize
-        let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000 / 1000)
+        let fileSizeKB = (read $ B8.unpack fileSize) :: Int
+        let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
         liftIO $ hPutStrLn stderr (paddedPacName ++ "> " ++ show fileSizeMB ++ "MB to download")
         sealConduitT (responseBody response) $$+- 
             printDownloadProgress fileSizeMB .| 
@@ -187,19 +188,19 @@ printDownloadProgress fileSizeMB = loop 0 0
             x <- await
             maybe (return ()) (showDownloaded fileSizeMB loadedB) x
             where
-                showDownloaded fileSizeMB loadedKB x = do
-                    let newLoadedB = loadedB + B.length x
+                showDownloaded fileSizeMB_ loadedB_ x = do
+                    let newLoadedB = loadedB_ + B.length x
                     let curLoadedMB = roundTo 1 (fromIntegral newLoadedB / 1000 / 1000)
                                           -- update progress counter every 5%
-                    let newLoadedMB = if (curLoadedMB/fileSizeMB - loadedMB/fileSizeMB >= 0.05 &&
+                    let newLoadedMB = if (curLoadedMB/fileSizeMB_ - loadedMB/fileSizeMB_ >= 0.05 &&
                                           -- but only at at least 200KB 
                                           curLoadedMB - loadedMB > 0.2) || 
                                           -- and of course at the end of the sequence
-                                          curLoadedMB == fileSizeMB
+                                          curLoadedMB == fileSizeMB_
                                       then curLoadedMB
                                       else loadedMB
                     when (loadedMB /= newLoadedMB) $ do
-                        let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB) * 100
+                        let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
                         liftIO $ hClearLine stderr
                         liftIO $ hSetCursorColumn stderr 0
                         liftIO $ hPutStr stderr ("> " ++ roundToStr 1 leadedPercent ++ "% ")

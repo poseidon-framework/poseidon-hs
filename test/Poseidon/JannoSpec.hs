@@ -2,6 +2,7 @@ module Poseidon.JannoSpec (spec) where
 
 import           Poseidon.Janno            (JannoRow (..),
                                             JannoSex (..),
+                                            JannoList(..),
                                             Sex (..),
                                             Latitude (..),
                                             Longitude (..),
@@ -13,12 +14,10 @@ import           Poseidon.Janno            (JannoRow (..),
                                             JURI (..),
                                             JannoLibraryBuilt (..),
                                             readJannoFile)
-import           Poseidon.Utils            (PoseidonException (..))
 
-import qualified Data.ByteString.Char8     as B
-import           Data.Either               (isRight, rights, isLeft, lefts)
 import           Test.Hspec
 
+spec :: Spec
 spec = do
     testPoseidonSampleFromJannoFile
 
@@ -46,7 +45,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateType janno       `shouldBe` [Nothing, Nothing, Nothing]
         map jDataType janno       `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno `shouldBe` [Nothing, Nothing, Nothing]
-        map jGroupName janno      `shouldBe` [["POP1"], ["POP2"], ["POP1"]]
+        map jGroupName janno      `shouldBe` [JannoList ["POP1"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverage1240K janno  `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno            `shouldBe` [Nothing, Nothing, Nothing]
@@ -59,16 +58,16 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         length janno `shouldBe` 3
         map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
         map jCollectionID janno   `shouldBe` [Nothing, Nothing, Nothing]
-        map jSourceTissue janno   `shouldBe` [Just ["xxx", "yyy"], Just ["xxx"], Just ["xxx"]]
+        map jSourceTissue janno   `shouldBe` [Just (JannoList ["xxx", "yyy"]), Just (JannoList ["xxx"]), Just (JannoList ["xxx"])]
         map jCountry janno        `shouldBe` [Just "xxx", Just "xxx", Just "xxx"]
         map jLatitude janno       `shouldBe` [Just (Latitude 0), Just (Latitude (-90)), Just (Latitude 90)]
         map jLongitude janno      `shouldBe` [Just (Longitude 0), Just (Longitude (-180)), Just (Longitude 180)]
-        map jDateC14UncalBP janno `shouldBe` [Just [3000, 3100, 2900], Nothing, Nothing]
+        map jDateC14UncalBP janno `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
         map jDateBCADMedian janno `shouldBe` [Just (-1000), Just (-5000), Just 2000]
         map jDateType janno       `shouldBe` [Just C14, Just Contextual, Just Modern]
-        map jDataType janno       `shouldBe` [Just [Shotgun, A1240K], Just [A1240K], Just [ReferenceGenome]]
+        map jDataType janno       `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
-        map jGroupName janno      `shouldBe` [["POP1", "POP3"], ["POP2"], ["POP1"]]
+        map jGroupName janno      `shouldBe` [JannoList ["POP1", "POP3"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverage1240K janno  `shouldBe` [Just 0, Just 0, Just 0]
         map jUDG janno            `shouldBe` [Just Minus, Just Half, Just Plus]

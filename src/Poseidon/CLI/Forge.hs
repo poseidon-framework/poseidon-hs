@@ -1,7 +1,7 @@
 module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile           (writeBibTeXFile)
-import           Poseidon.EntitiesList      (EntitiesList (..),
+import           Poseidon.EntitiesList      (EntitiesList,
                                              PoseidonEntity (..),
                                              readEntitiesFromFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
@@ -10,9 +10,8 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              printSNPCopyProgress,
                                              snpSetMergeList)
 import           Poseidon.Janno             (JannoRow (..),
-                                             writeJannoFile)
-import           Poseidon.Package           (ContributorSpec (..),
-                                             PoseidonPackage (..), getChecksum,
+                                             writeJannoFile, JannoList(..))
+import           Poseidon.Package           (PoseidonPackage (..),
                                              getIndividuals,
                                              getJointGenotypeData,
                                              newPackageTemplate,
@@ -23,23 +22,20 @@ import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Monad              (forM, unless, when)
 import           Data.List                  (intercalate, intersect, nub,
-                                             sortOn, (\\))
-import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
+                                             (\\))
+import           Data.Maybe                 (catMaybes, mapMaybe)
 import           Data.Text                  (unpack)
 import qualified Data.Vector                as V
-import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
-import           Pipes                      (MonadIO (liftIO), Pipe (..), await,
-                                             lift, runEffect, yield, (>->))
+import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (SafeT (..), runSafeT, throwM)
+import           Pipes.Safe                 (runSafeT, throwM)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..), GenoLine,
                                              writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
+import           System.IO                  (hPutStrLn, stderr)
 import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 -- | A datatype representing command line options for the survey command
@@ -65,7 +61,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath outName outFormat showWarnings) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -103,7 +99,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- output warning if any snpSet is set to Other
     snpSetList <- fillMissingSnpSets relevantPackages
-    let newSNPSet = snpSetMergeList snpSetList intersect
+    let newSNPSet = snpSetMergeList snpSetList intersect_
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
@@ -120,7 +116,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect outPath ou
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
     runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect relevantPackages
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
         let jannoIndIds = map jIndividualID relevantJannoRows
@@ -182,7 +178,7 @@ filterJannoRows entities samples =
     let groupNamesStats = [ group | Group group <- entities]
         indNamesStats   = [ ind   | Ind   ind   <- entities]
         comparison x    =  jIndividualID x `elem` indNamesStats
-                           || head (jGroupName x) `elem` groupNamesStats
+                           || head (getJannoList . jGroupName $ x) `elem` groupNamesStats
     in filter comparison samples
 
 filterJannoFiles :: EntitiesList -> [(String, [JannoRow])] -> [JannoRow]
@@ -194,9 +190,9 @@ filterJannoFiles entities packages =
     in concatMap filterJannoOrNot packages
 
 filterBibEntries :: [JannoRow] -> [Reference] -> [Reference]
-filterBibEntries samples references =
-    let relevantPublications = nub $ concat $ mapMaybe jPublication samples
-    in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references
+filterBibEntries samples references_ =
+    let relevantPublications = nub . concat . map getJannoList . mapMaybe jPublication $ samples
+    in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references_
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities relevantPackages = do
@@ -221,11 +217,11 @@ zipGroup list nestedList =
 
 fillMissingSnpSets :: [PoseidonPackage] -> IO [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do
-    let title = posPacTitle pac
+    let title_ = posPacTitle pac
         maybeSnpSet = snpSet . posPacGenotypeData $ pac
     case maybeSnpSet of
         Just s -> return s
         Nothing -> do
-            hPutStrLn stderr ("Warning for package " ++ title ++ ": field \"snpSet\" \
+            hPutStrLn stderr ("Warning for package " ++ title_ ++ ": field \"snpSet\" \
             \is not set. I will interpret this as \"snpSet: Other\"")
             return SNPSetOther

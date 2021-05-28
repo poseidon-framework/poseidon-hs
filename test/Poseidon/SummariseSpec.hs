@@ -2,9 +2,9 @@ module Poseidon.SummariseSpec (spec) where
 
 import           Poseidon.CLI.Summarise
 
-import           Data.Maybe             (Maybe(..))
 import           Test.Hspec
 
+spec :: Spec
 spec = do
     testPaste
     testFrequency
@@ -29,7 +29,7 @@ testFrequency =
         frequency ["ab", "bc", "cd", "cd", "ab"] `shouldBe` 
             [("ab", 2), ("cd", 2), ("bc", 1)]
     it "should calculate frequencies correctly for integers" $ do
-        frequency [1, 2, 3, 1, 1] `shouldBe` 
+        frequency [1 :: Int, 2, 3, 1, 1] `shouldBe` 
             [(1, 3), (2, 1), (3, 1)]
 
 testPrintFrequency :: Spec
@@ -41,7 +41,7 @@ testPrintFrequency =
         printFrequency ", " (frequency ["ab", "bc", "cd", "cd", "ab"]) `shouldBe` 
             "\"ab\": 2, \"cd\": 2, \"bc\": 1"
     it "should display frequencies correctly for integers" $ do
-        printFrequency " | " (frequency [1, 2, 3, 1, 1]) `shouldBe` 
+        printFrequency " | " (frequency [1 :: Int, 2, 3, 1, 1]) `shouldBe` 
             "1: 3 | 2: 1 | 3: 1"
 
 testPrintFrequencyMaybe :: Spec
@@ -55,7 +55,7 @@ testPrintFrequencyMaybe =
         printFrequencyMaybe ", " (frequency [Just "ab", Just "bc", Nothing, Just "ab"]) `shouldBe` 
             "\"ab\": 2, n/a: 1, \"bc\": 1"
     it "should display frequencies correctly for integers" $ do
-        printFrequencyMaybe " | " (frequency [Just 1, Just 2, Nothing, Just 1, Nothing]) `shouldBe` 
+        printFrequencyMaybe " | " (frequency [Just (1 :: Int), Just 2, Nothing, Just 1, Nothing]) `shouldBe` 
             "n/a: 2 | 1: 2 | 2: 1"
 
 testMaybeShow :: Spec

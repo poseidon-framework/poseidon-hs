@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX(..)) where
+module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX) where
 
 import           Poseidon.Utils          (PoseidonException(..))
 
 import           Control.Exception       (throwIO, catch)
 import           Control.Monad           (when)
-import           Data.Either.Combinators (rightToMaybe)
 import qualified Data.Text               as T
 import qualified Data.Text.IO            as Tio
 import           System.Directory        (doesFileExist)

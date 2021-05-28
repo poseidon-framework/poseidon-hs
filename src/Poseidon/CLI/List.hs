@@ -2,22 +2,20 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno             (JannoRow (..))
+import           Poseidon.Janno             (JannoRow (..), JannoList(..))
 import           Poseidon.Package           (PoseidonPackage (..),
-                                             getIndividuals,
                                              readPoseidonPackageCollection,
                                              PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils             (PoseidonException (..))
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, (>=>))
-import           Data.Aeson                 (FromJSON, (.:), parseJSON, withObject, eitherDecode')
+import           Control.Monad              (forM)
+import           Data.Aeson                 (eitherDecode')
 import qualified Data.ByteString.Lazy       as LB
-import           Data.List                  (group, intercalate, nub, sortOn)
+import           Data.List                  (group, intercalate, sortOn)
 import           Network.HTTP.Conduit       (simpleHttp)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..))
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.Layout.Table          (asciiRoundS, column, def, expand,
+import           Text.Layout.Table          (asciiRoundS, column, def,
                                              expandUntil, rowsG, tableString,
                                              titlesH)
 
@@ -84,7 +82,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
                 forM rows (\row -> do
                     moreFields <- extractAdditionalFields row moreJannoColumns
-                    return ([pacName, jIndividualID row, head (jGroupName row)] ++ moreFields))
+                    return ([pacName, jIndividualID row, head . getJannoList . jGroupName $ row] ++ moreFields))
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
     if rawOutput then
@@ -98,7 +96,7 @@ unnestGroupNames = concatMap unnestOne
     where 
         unnestOne :: (String, JannoRow) -> [(String, String)]
         unnestOne (pac, jR) = 
-            let groups = jGroupName jR
+            let groups = getJannoList . jGroupName $ jR
             in zip (repeat pac) groups
 
 readSampleInfo :: LB.ByteString -> IO [(String, [JannoRow])]
@@ -129,7 +127,7 @@ extractAdditionalField "Date_Type"                      = handleMaybeShow       
 extractAdditionalField "No_of_Libraries"                = handleMaybeShow            jNrLibraries
 extractAdditionalField "Data_Type"                      = handleMaybeShowList        jDataType
 extractAdditionalField "Genotype_Ploidy"                = handleMaybeShow            jGenotypePloidy
-extractAdditionalField "Group_Name"                     = return . intercalate ";" . jGroupName
+extractAdditionalField "Group_Name"                     = return . intercalate ";" . getJannoList . jGroupName
 extractAdditionalField "Genetic_Sex"                    = return . show .            jGeneticSex
 extractAdditionalField "Nr_autosomal_SNPs"              = handleMaybeShow            jNrAutosomalSNPs
 extractAdditionalField "Coverage_1240K"                 = handleMaybeShow            jCoverage1240K
@@ -163,14 +161,14 @@ handleMaybeShow func row =
         Just val -> return $ show val
         Nothing -> return "n/a"
 
-handleMaybeList :: (JannoRow -> Maybe [String]) -> JannoRow -> IO String
+handleMaybeList :: (JannoRow -> Maybe (JannoList String)) -> JannoRow -> IO String
 handleMaybeList func row =
     case func row of
-        Just vals -> return $ intercalate ";" vals
+        Just vals -> return . intercalate ";" . getJannoList $ vals
         Nothing -> return "n/a"
 
-handleMaybeShowList :: Show a => (JannoRow -> Maybe [a]) -> JannoRow -> IO String
+handleMaybeShowList :: Show a => (JannoRow -> Maybe (JannoList a)) -> JannoRow -> IO String
 handleMaybeShowList func row =
     case func row of
-        Just vals -> return $ intercalate ";" $ map show vals
+        Just vals -> return . intercalate ";" . map show . getJannoList $ vals
         Nothing -> return "n/a"

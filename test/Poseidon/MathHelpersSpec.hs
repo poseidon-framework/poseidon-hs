@@ -5,6 +5,7 @@ import           Poseidon.MathHelpers
 import           Test.Hspec
 import           Test.QuickCheck
 
+spec :: Spec
 spec = do
     testAvg
     testRoundTo

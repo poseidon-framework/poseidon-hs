@@ -37,7 +37,8 @@ jobs:
         --test \
         --bench \
         --no-run-tests \
-        --no-run-benchmarks
+        --no-run-benchmarks \
+        --pedantic
 
     - name: Test
       run: |

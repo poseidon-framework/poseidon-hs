@@ -6,13 +6,11 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
                                              SNPSetSpec (..)
                                              )
-import           Poseidon.Janno             (createMinimalJanno, 
-                                             writeJannoFile)
+import           Poseidon.Janno             (writeJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
-                                             getIndividuals, writePoseidonPackage)
+                                             writePoseidonPackage)
 
-import           Data.Yaml.Pretty.Extras    (encodeFilePretty)
 import           System.Directory           (createDirectory, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName)
 import           System.IO                  (hPutStrLn, stderr)
@@ -28,20 +26,20 @@ data InitOptions = InitOptions
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions format snpSet genoFile snpFile indFile outPath outName) = do
+runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath outName) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
     -- compile genotype data structure
-    let outInd = takeFileName indFile
-        outSnp = takeFileName snpFile
-        outGeno = takeFileName genoFile
-        genotypeData = GenotypeDataSpec format outGeno Nothing outSnp Nothing outInd Nothing (Just snpSet)
+    let outInd = takeFileName indFile_
+        outSnp = takeFileName snpFile_
+        outGeno = takeFileName genoFile_
+        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing (Just snpSet_)
     -- genotype data
     hPutStrLn stderr "Copying genotype data"
-    copyFile indFile $ outPath </> outInd
-    copyFile snpFile $ outPath </> outSnp
-    copyFile genoFile $ outPath </> outGeno
+    copyFile indFile_ $ outPath </> outInd
+    copyFile snpFile_ $ outPath </> outSnp
+    copyFile genoFile_ $ outPath </> outGeno
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     inds <- loadIndividuals outPath genotypeData

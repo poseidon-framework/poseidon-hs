@@ -2,19 +2,15 @@ module Poseidon.ForgeSpec (spec) where
 
 import           Poseidon.CLI.Forge
 import           Poseidon.EntitiesList       (PoseidonEntity (..), 
-                                             EntitiesList (..))
-import           Poseidon.Janno             (JannoRow (..),
-                                             readJannoFile,
-                                             createMinimalJanno)
+                                             EntitiesList)
+import           Poseidon.Janno             (JannoRow (..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
                                              PackageReadOptions (..), defaultPackageReadOptions)
 
-import           Data.Maybe                 (catMaybes)
-import           Text.CSL                   (Reference (..) )
 import           Test.Hspec
-import           Text.RawString.QQ
 
+spec :: Spec
 spec = do
     testFindNonExistentEntities
     testFilterPackages

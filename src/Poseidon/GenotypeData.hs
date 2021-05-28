@@ -4,7 +4,7 @@ module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM, forM_, void, when)
+import           Control.Monad              (forM, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -15,18 +15,17 @@ import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes, isNothing)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Producer, (>->), Pipe (..),
+import           Pipes                      (Producer, (>->), Pipe,
                                             await, yield)
-import           Pipes.OrderedZip           (orderCheckPipe, orderedZipAll)
+import           Pipes.OrderedZip           (orderedZipAll)
 import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (MonadSafe, SafeT (..))
+import           Pipes.Safe                 (MonadSafe, SafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (doesFileExist)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
 -- | A datatype to specify genotype files
@@ -122,6 +121,7 @@ instance ToJSON SNPSetSpec where
 
 snpSetMergeList :: [SNPSetSpec] -> Bool -> SNPSetSpec
 snpSetMergeList (x:xs) intersect = foldr (\a b -> snpSetMerge a b intersect) x xs
+snpSetMergeList _ _ = error "snpSetMergeList: This should never happen"
 
 snpSetMerge :: SNPSetSpec -> SNPSetSpec -> Bool -> SNPSetSpec
 snpSetMerge SNPSet1240K         SNPSet1240K         _       = SNPSet1240K
@@ -148,7 +148,7 @@ loadGenotypeData :: (MonadSafe m) =>
                 -> GenotypeDataSpec -- ^ the genotype spec
                 -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ snpSet) =
+loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
@@ -229,7 +229,7 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
 genotypes2alleles :: (MonadThrow m) => EigenstratSnpEntry -> GenoLine -> m (V.Vector (Char, Char))
-genotypes2alleles snpEntry@(EigenstratSnpEntry chrom pos _ _ ref alt) = V.mapM g2a
+genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM g2a
   where
     g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
     g2a HomRef =
@@ -261,7 +261,7 @@ recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM a2g
     na = ['0', 'N', 'X']
 
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
-printSNPCopyProgress = loop 0
+printSNPCopyProgress = loop (0 :: Int)
   where
     loop n = do
         when (n `rem` 1000 == 0) $ do

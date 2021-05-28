@@ -2,16 +2,14 @@
 
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (Percent (..), JannoRow (..))
+import           Poseidon.Janno         (Percent (..), JannoRow (..), JannoList(..))
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
 import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection,
                                          PackageReadOptions (..), defaultPackageReadOptions)
 
-import           Control.Monad          (when)
 import           Data.List              (sortBy, nub, group, sort, intercalate)
-import           Data.Maybe             (catMaybes, isJust, mapMaybe, fromJust)
-import           System.IO              (hPutStrLn, stderr)
-import           Text.Layout.Table      (asciiRoundS, column, def, expand,
+import           Data.Maybe             (mapMaybe)
+import           Text.Layout.Table      (asciiRoundS, column, def,
                                          rowsG, tableString, titlesH, expandUntil)
 
 -- | A datatype representing command line options for the summarise command
@@ -45,9 +43,9 @@ summariseJannoRows xs rawOutput = do
                 ["Nr Individuals", show (length xs)],
                 ["Individuals", paste $ sort $ map jIndividualID xs],
                 ["Nr Groups", show $ length $ nub $ map jGroupName xs],
-                ["Groups", printFrequencyString ", " $ frequency $ map (head . jGroupName) xs],
+                ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map jPublication xs],
-                ["Publications", paste $ nub $ concat $ mapMaybe jPublication xs],
+                ["Publications", paste . nub . concat . map getJannoList . mapMaybe jPublication $ xs],
                 ["Nr Countries", show $ length $ nub $ map jCountry xs],
                 ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
                 ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe jDateBCADMedian xs],
@@ -79,9 +77,10 @@ frequency list = sortBy sortTupelsBySndDesc $ map (\l -> (head l, length l)) (gr
 
 sortTupelsBySndDesc :: (Ord a, Ord b) => (a, b) -> (a, b) -> Ordering
 sortTupelsBySndDesc (a1, b1) (a2, b2)
-  | b1 < b2 = GT
-  | b1 > b2 = LT
-  | b1 == b2 = compare a1 a2
+  | b1 < b2   = GT
+  | b1 > b2   = LT
+  | b1 == b2  = compare a1 a2
+  | otherwise = error "sortTuplesBySndDesc: should never happen"
 
 -- | A helper function to print the output of frequency nicely
 printFrequency :: Show a => String -> [(a,Int)] -> String

@@ -2,12 +2,10 @@ module Poseidon.SurveySpec (spec) where
 
 import           Poseidon.CLI.Survey
 import           Poseidon.Janno
-import           Poseidon.Package
 
-import           Data.Either         (rights)
-import           Data.Maybe          (catMaybes)
 import           Test.Hspec
 
+spec :: Spec
 spec = do
     testRenderJannoCompleteness
 

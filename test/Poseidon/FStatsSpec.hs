@@ -3,13 +3,14 @@
 module Poseidon.FStatsSpec (spec) where
 
 import           Poseidon.CLI.FStats (FStatSpec (..), PopSpec (..), fStatSpecParser,
-                                  runParser, ParseError(..), readStatSpecsFromFile)
+                                  runParser, readStatSpecsFromFile)
 
 import qualified Data.ByteString.Char8     as B
 import           System.IO (withFile, IOMode(..))
 import           Test.Hspec
 import           Text.RawString.QQ
 
+spec :: Spec
 spec = do
     testParseStatSpec
     testParseStatSpecFromFile

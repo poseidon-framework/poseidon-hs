@@ -6,6 +6,7 @@
 module Poseidon.Janno (
     JannoRow(..),
     JannoSex (..),
+    JannoList(..),
     Sex (..),
     Latitude (..),
     Longitude (..),
@@ -25,8 +26,8 @@ import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
 
-import           Control.Applicative        (empty, optional)
-import           Control.Exception          (throwIO, try)
+import           Control.Applicative        (empty)
+import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
 import           Data.Aeson                 (FromJSON, Options (..), ToJSON, Value(..),
                                              defaultOptions, genericToEncoding, toJSON, parseJSON,
@@ -36,16 +37,13 @@ import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
 import           Data.Char                  (ord)
 import qualified Data.Csv                   as Csv
-import           Data.Either                (isLeft, isRight, lefts, rights)
-import           Data.Either.Combinators    (rightToMaybe)
+import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Lazy          as HM
-import           Data.Maybe                 (fromMaybe)
 import           Data.List                  (intercalate, nub, (\\))
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURI)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
-import           System.Directory           (doesFileExist)
 import           System.IO                  (hPutStrLn, stderr)
 
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -324,29 +322,50 @@ instance Csv.ToField JURI where
 instance Show JURI where
     show (JURI x) = x
 
+data JannoList a = JannoList {getJannoList :: [a]} 
+  deriving (Eq, Ord, Generic, Show)
+
+type JannoStringList = JannoList String
+type JannoIntList = JannoList Int
+
+instance (Csv.ToField a) => Csv.ToField (JannoList a) where
+    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList 
+
+instance (Csv.FromField a) => Csv.FromField (JannoList a) where
+    parseField x = do
+        fieldStr <- Csv.parseField x
+        let subStrings = Bchs.splitWith (==';') fieldStr
+        fmap JannoList . mapM Csv.parseField $ subStrings
+
+instance (ToJSON a) => ToJSON (JannoList a) where
+    toJSON (JannoList x) = toJSON x
+
+instance (FromJSON a) => FromJSON (JannoList a) where
+    parseJSON v = JannoList <$> parseJSON v
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
     { jIndividualID                 :: String
     , jCollectionID                 :: Maybe String
-    , jSourceTissue                 :: Maybe [String]
+    , jSourceTissue                 :: Maybe JannoStringList
     , jCountry                      :: Maybe String
     , jLocation                     :: Maybe String
     , jSite                         :: Maybe String
     , jLatitude                     :: Maybe Latitude
     , jLongitude                    :: Maybe Longitude
-    , jDateC14Labnr                 :: Maybe [String]
-    , jDateC14UncalBP               :: Maybe [Int]
-    , jDateC14UncalBPErr            :: Maybe [Int]
+    , jDateC14Labnr                 :: Maybe JannoStringList
+    , jDateC14UncalBP               :: Maybe JannoIntList
+    , jDateC14UncalBPErr            :: Maybe JannoIntList
     , jDateBCADMedian               :: Maybe Int
     , jDateBCADStart                :: Maybe Int
     , jDateBCADStop                 :: Maybe Int
     , jDateType                     :: Maybe JannoDateType
     , jNrLibraries                  :: Maybe Int
-    , jDataType                     :: Maybe [JannoDataType]
+    , jDataType                     :: Maybe (JannoList JannoDataType)
     , jGenotypePloidy               :: Maybe JannoGenotypePloidy
-    , jGroupName                    :: [String]
+    , jGroupName                    :: JannoStringList
     , jGeneticSex                   :: JannoSex
     , jNrAutosomalSNPs              :: Maybe Int
     , jCoverage1240K                :: Maybe Double
@@ -360,12 +379,12 @@ data JannoRow = JannoRow
     , jNuclearContamErr             :: Maybe Double
     , jMTContam                     :: Maybe Double
     , jMTContamErr                  :: Maybe Double
-    , jGeneticSourceAccessionIDs    :: Maybe [String]
+    , jGeneticSourceAccessionIDs    :: Maybe JannoStringList
     , jDataPreparationPipelineURL   :: Maybe JURI
     , jPrimaryContact               :: Maybe String
-    , jPublication                  :: Maybe [String]
+    , jPublication                  :: Maybe JannoStringList
     , jComments                     :: Maybe String
-    , jKeywords                     :: Maybe [String]
+    , jKeywords                     :: Maybe JannoStringList
     }
     deriving (Show, Eq, Generic)
 
@@ -432,52 +451,45 @@ ignoreNA (Just x)     = Just x
 ignoreNA Nothing      = Nothing
 
 instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord (JannoRow jIndividualID jCollectionID jSourceTissue jCountry
-        jLocation jSite jLatitude jLongitude jDateC14Labnr jDateC14UncalBP
-        jDateC14UncalBPErr jDateBCADMedian jDateBCADStart jDateBCADStop jDateType
-        jNrLibraries jDataType jGenotypePloidy jGroupName jGeneticSex
-        jNrAutosomalSNPs jCoverage1240K jMTHaplogroup jYHaplogroup jEndogenous
-        jUDG jLibraryBuilt jDamage jNuclearContam jNuclearContamErr jMTContam
-        jMTContamErr jGeneticSourceAccessionIDs jDataPreparationPipelineURL 
-        jPrimaryContact jPublication jComments jKeywords) = Csv.namedRecord [
-          "Individual_ID"                   Csv..= jIndividualID
-        , "Collection_ID"                   Csv..= jCollectionID
-        , "Source_Tissue"                   Csv..= jSourceTissue
-        , "Country"                         Csv..= jCountry
-        , "Location"                        Csv..= jLocation
-        , "Site"                            Csv..= jSite
-        , "Latitude"                        Csv..= jLatitude
-        , "Longitude"                       Csv..= jLongitude
-        , "Date_C14_Labnr"                  Csv..= jDateC14UncalBP
-        , "Date_C14_Uncal_BP"               Csv..= jDateC14UncalBP
-        , "Date_C14_Uncal_BP_Err"           Csv..= jDateC14UncalBPErr
-        , "Date_BC_AD_Median"               Csv..= jDateBCADMedian
-        , "Date_BC_AD_Start"                Csv..= jDateBCADStart
-        , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop
-        , "Date_Type"                       Csv..= jDateType
-        , "No_of_Libraries"                 Csv..= jNrLibraries
-        , "Data_Type"                       Csv..= jDataType
-        , "Genotype_Ploidy"                 Csv..= jGenotypePloidy
-        , "Group_Name"                      Csv..= jGroupName
-        , "Genetic_Sex"                     Csv..= jGeneticSex
-        , "Nr_autosomal_SNPs"               Csv..= jNrAutosomalSNPs
-        , "Coverage_1240K"                  Csv..= jCoverage1240K
-        , "MT_Haplogroup"                   Csv..= jMTHaplogroup
-        , "Y_Haplogroup"                    Csv..= jYHaplogroup
-        , "Endogenous"                      Csv..= jEndogenous
-        , "UDG"                             Csv..= jUDG
-        , "Library_Built"                   Csv..= jLibraryBuilt
-        , "Damage"                          Csv..= jDamage
-        , "Xcontam"                         Csv..= jNuclearContam
-        , "Xcontam_stderr"                  Csv..= jNuclearContamErr
-        , "mtContam"                        Csv..= jMTContam
-        , "mtContam_stderr"                 Csv..= jMTContamErr
-        , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs
-        , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL
-        , "Primary_Contact"                 Csv..= jPrimaryContact
-        , "Publication_Status"              Csv..= jPublication
-        , "Note"                            Csv..= jComments
-        , "Keywords"                        Csv..= jKeywords
+    toNamedRecord j = Csv.namedRecord [
+          "Individual_ID"                   Csv..= jIndividualID j
+        , "Collection_ID"                   Csv..= jCollectionID j
+        , "Source_Tissue"                   Csv..= jSourceTissue j
+        , "Country"                         Csv..= jCountry j
+        , "Location"                        Csv..= jLocation j
+        , "Site"                            Csv..= jSite j
+        , "Latitude"                        Csv..= jLatitude j
+        , "Longitude"                       Csv..= jLongitude j
+        , "Date_C14_Labnr"                  Csv..= jDateC14UncalBP j
+        , "Date_C14_Uncal_BP"               Csv..= jDateC14UncalBP j
+        , "Date_C14_Uncal_BP_Err"           Csv..= jDateC14UncalBPErr j
+        , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
+        , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
+        , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
+        , "Date_Type"                       Csv..= jDateType j
+        , "No_of_Libraries"                 Csv..= jNrLibraries j
+        , "Data_Type"                       Csv..= jDataType j
+        , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
+        , "Group_Name"                      Csv..= jGroupName j
+        , "Genetic_Sex"                     Csv..= jGeneticSex j
+        , "Nr_autosomal_SNPs"               Csv..= jNrAutosomalSNPs j
+        , "Coverage_1240K"                  Csv..= jCoverage1240K j
+        , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
+        , "Y_Haplogroup"                    Csv..= jYHaplogroup j
+        , "Endogenous"                      Csv..= jEndogenous j
+        , "UDG"                             Csv..= jUDG j
+        , "Library_Built"                   Csv..= jLibraryBuilt j
+        , "Damage"                          Csv..= jDamage j
+        , "Xcontam"                         Csv..= jNuclearContam j
+        , "Xcontam_stderr"                  Csv..= jNuclearContamErr j
+        , "mtContam"                        Csv..= jMTContam j
+        , "mtContam_stderr"                 Csv..= jMTContamErr j
+        , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
+        , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL j
+        , "Primary_Contact"                 Csv..= jPrimaryContact j
+        , "Publication_Status"              Csv..= jPublication j
+        , "Note"                            Csv..= jComments j
+        , "Keywords"                        Csv..= jKeywords j
         ]
 
 instance Csv.DefaultOrdered JannoRow where
@@ -493,36 +505,6 @@ jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
     "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
     "Primary_Contact","Publication_Status","Note","Keywords"
     ]
-
--- | A helper function to create semi-colon separated field values from lists
-deparseFieldList :: (Csv.ToField a) => [a] -> Csv.Field
-deparseFieldList xs = do
-    Csv.toField $ intercalate ";" $ map (read . show . Csv.toField) xs
-
-instance Csv.ToField [String] where
-    toField = deparseFieldList
-
-instance Csv.ToField [Int] where
-    toField = deparseFieldList
-
-instance Csv.ToField [JannoDataType] where
-    toField = deparseFieldList
-
--- | A helper function to parse semi-colon separated field values into lists
-parseFieldList :: (Csv.FromField a) => Csv.Field -> Csv.Parser [a]
-parseFieldList x = do
-    fieldStr <- Csv.parseField x
-    let subStrings = Bchs.splitWith (==';') fieldStr
-    mapM Csv.parseField subStrings
-
-instance Csv.FromField [String] where
-    parseField = parseFieldList
-
-instance Csv.FromField [Int] where
-    parseField = parseFieldList
-
-instance Csv.FromField [JannoDataType] where
-    parseField = parseFieldList
 
 -- Janno file writing
 
@@ -554,7 +536,7 @@ readJannoFile verbose jannoPath = do
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     -- filter out empty lines
-        jannoFileRowsWithNumberFiltered = filter (\(x,y) -> y /= Bch.empty) jannoFileRowsWithNumber
+        jannoFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- create header + individual line combination
         headerOnly = snd $ head jannoFileRowsWithNumberFiltered
         rowsOnly = tail jannoFileRowsWithNumberFiltered
@@ -622,9 +604,9 @@ createMinimalJanno = map createMinimalSample
 
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow
-createMinimalSample (EigenstratIndEntry id sex pop) =
+createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow { 
-          jIndividualID                 = id
+          jIndividualID                 = id_
         , jCollectionID                 = Nothing
         , jSourceTissue                 = Nothing
         , jCountry                      = Nothing
@@ -642,7 +624,7 @@ createMinimalSample (EigenstratIndEntry id sex pop) =
         , jNrLibraries                  = Nothing
         , jDataType                     = Nothing
         , jGenotypePloidy               = Nothing
-        , jGroupName                    = [pop]
+        , jGroupName                    = JannoList [pop]
         , jGeneticSex                   = JannoSex sex
         , jNrAutosomalSNPs              = Nothing
         , jCoverage1240K                = Nothing
@@ -685,15 +667,15 @@ checkJannoRowConsistency jannoPath row x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
 checkMandatoryStringNotEmpty x =
-    not (null $ jIndividualID x)
-    && not (null (jGroupName x))
-    && not (null $ head $ jGroupName x)
+    (not . null . jIndividualID $ x)
+    && (not . null . getJannoList . jGroupName $ x)
+    && (not . null . head . getJannoList . jGroupName $ x)
 
 checkC14ColsConsistent :: JannoRow -> Bool
 checkC14ColsConsistent x =
-    let lLabnr = maybe 0 length $ jDateC14Labnr x
-        lUncalBP = maybe 0 length $ jDateC14UncalBP x
-        lUncalBPErr = maybe 0 length $ jDateC14UncalBPErr x
+    let lLabnr = maybe 0 (length . getJannoList) $ jDateC14Labnr x
+        lUncalBP = maybe 0 (length . getJannoList) $ jDateC14UncalBP x
+        lUncalBPErr = maybe 0 (length . getJannoList) $ jDateC14UncalBPErr x
         shouldBeTypeC14 = lUncalBP > 0
         isTypeC14 = jDateType x == Just C14
     in
