@@ -8,7 +8,7 @@ import           Poseidon.CLI.List          (ListOptions (..), runList,
 import           Poseidon.Package           (getChecksum)
 
 import           GHC.IO.Handle              (hDuplicateTo, hDuplicate, hClose)
-import           System.Directory           (createDirectory,removeDirectoryRecursive)
+import           System.Directory           (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (stdout, IOMode(WriteMode), withFile, openFile, stderr)
 
@@ -48,7 +48,12 @@ listOpts1 = ListOptions
 runCLICommands :: FilePath -> IO ()
 runCLICommands checkSumFilePath = do
     -- create temp dir for test output
-    createDirectory temporaryTestDir
+    testDirExists <- doesDirectoryExist temporaryTestDir
+    if testDirExists
+    then do 
+        removeDirectoryRecursive temporaryTestDir
+        createDirectory temporaryTestDir
+    else createDirectory temporaryTestDir
     -- create error sink
     devNull <- openFile "/dev/null" WriteMode
     hDuplicateTo devNull stderr
@@ -58,11 +63,13 @@ runCLICommands checkSumFilePath = do
     writeFile checkSumFilePath $ fetchCheck1 ++ " fetchCheck1 POSEIDON.yml"
     -- list
     withFile (temporaryTestDir </> "listStdOut.txt") WriteMode $ \handle -> do
+        stdout_old <- hDuplicate stdout -- backup stdout
         hDuplicateTo handle stdout -- redirect stdout to file
         runList listOpts1
+        hDuplicateTo stdout_old stdout -- load backup again
     listCheck1 <- getChecksum $ temporaryTestDir </> "listStdOut.txt"
     appendFile checkSumFilePath $ "\n" ++ listCheck1 ++ " listCheck1 listStdOut.txt"
     -- close error sink
     hClose devNull
     -- delete temp dir for test output
-    removeDirectoryRecursive temporaryTestDir
+    -- removeDirectoryRecursive temporaryTestDir
