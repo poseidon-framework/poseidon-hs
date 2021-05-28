@@ -12,11 +12,13 @@ spec = do
 
 testCommandsAndValidateChecksums :: Spec
 testCommandsAndValidateChecksums = describe 
-    "buhu" $ do
-        it "huhu" $ do
+    "run a whole CLI pipeline" $ do
+        it "should produce the expected output files" $ do
             -- perform actions
             createDynamicCheckSumFile
             static <- readFile staticCheckSumFile
+            let static_list = lines static
             dynamic <- readFile dynamicCheckSumFile
+            let dynamic_list = lines dynamic
             -- test outcome
-            dynamic `shouldBe` static
+            dynamic_list `shouldBe` static_list
