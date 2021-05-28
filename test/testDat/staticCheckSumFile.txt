@@ -1,2 +1,3 @@
 e93e57cf41e62af7d037f935f53d757e fetchCheck1 POSEIDON.yml
-a347ae77362a0e01a4a036019c827e68 listCheck1 listStdOut.txt
+a347ae77362a0e01a4a036019c827e68 tridentList1
+967ef3be15832d9272e6c7b031946ae7 tridentList2
