@@ -1,7 +1,6 @@
 module Poseidon.GoldenTestsRunCommands (createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile) where
 
-import           Poseidon.EntitiesList      (PoseidonEntity (..), EntitiesList, 
-                                             readEntitiesFromFile)
+import           Poseidon.EntitiesList      (PoseidonEntity (..))
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
 import           Poseidon.CLI.List          (ListOptions (..), runList, 
                                              RepoLocationSpec (..), ListEntity (..))
@@ -21,8 +20,8 @@ staticCheckSumFile = "test/testDat/staticCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 
-createStaticCheckSumFile :: IO ()
-createStaticCheckSumFile = runCLICommands staticCheckSumFile 
+-- createStaticCheckSumFile :: IO ()
+-- createStaticCheckSumFile = runCLICommands staticCheckSumFile 
 
 createDynamicCheckSumFile :: IO ()
 createDynamicCheckSumFile = runCLICommands dynamicCheckSumFile 
@@ -89,9 +88,9 @@ runAndChecksumFiles checkSumFilePath testDir action outFiles = do
     mapM_ (appendChecksum checkSumFilePath testDir) outFiles
     where
         appendChecksum :: FilePath -> FilePath -> FilePath -> IO ()
-        appendChecksum checkSumFilePath testDir outFile = do
-            checksum <- getChecksum $ tempTestDir </> outFile
-            appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ outFile
+        appendChecksum checkSumFilePath_ testDir_ outFile = do
+            checksum <- getChecksum $ testDir_ </> outFile
+            appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ outFile
 
 runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> IO ()
 runAndChecksumStdOut checkSumFilePath testDir action outFileName = do
