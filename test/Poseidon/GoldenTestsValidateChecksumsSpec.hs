@@ -12,7 +12,7 @@ spec = do
 
 testCommandsAndValidateChecksums :: Spec
 testCommandsAndValidateChecksums = describe 
-    "run a whole CLI pipeline" $ do
+    "running a CLI pipeline for a frontend test" $ do
         it "should produce the expected output files" $ do
             -- perform actions
             createDynamicCheckSumFile

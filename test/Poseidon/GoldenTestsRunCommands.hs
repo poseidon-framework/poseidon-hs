@@ -62,25 +62,50 @@ runCLICommands checkFilePath = do
         removeDirectoryRecursive tempTestDir
         createDirectory tempTestDir
     else createDirectory tempTestDir
+    -- create/overwrite checksum file
+    writeFile checkFilePath "Checksums for trident CLI output \n\ 
+        \Automatically generated with: ... \n\
+        \"
     -- create error sink
     devNull <- openFile "/dev/null" WriteMode
     hDuplicateTo devNull stderr
     -- fetch
-    runFetch fetchOpts1
-    fetchCheck1 <- getChecksum $ tempTestDir </> "2019_Nikitin_LBK" </> "POSEIDON.yml"
-    writeFile checkFilePath $ fetchCheck1 ++ " fetchCheck1 POSEIDON.yml"
+    runAndChecksumFiles checkFilePath tempTestDir (runFetch fetchOpts1) [
+          "2019_Nikitin_LBK" </> "POSEIDON.yml"
+        , "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
+        , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
+        ]
     -- list
-    runAndStoreChecksum checkFilePath tempTestDir "tridentList1" (runList listOpts1)
-    runAndStoreChecksum checkFilePath tempTestDir "tridentList2" (runList listOpts2)
+    runAndChecksumStdOut checkFilePath tempTestDir (runList listOpts1) "tridentList1"
+    runAndChecksumStdOut checkFilePath tempTestDir (runList listOpts2) "tridentList2"
     -- close error sink
     hClose devNull
 
-runAndStoreChecksum :: FilePath -> FilePath -> String -> IO () -> IO ()
-runAndStoreChecksum checkSumFilePath testDir outFileName action = do
+runAndChecksumFiles :: FilePath -> FilePath -> IO () -> [FilePath] -> IO ()
+runAndChecksumFiles checkSumFilePath testDir action outFiles = do
+    -- run action
+    action
+    -- append checksums to checksum file
+    mapM_ (appendChecksum checkSumFilePath testDir) outFiles
+    where
+        appendChecksum :: FilePath -> FilePath -> FilePath -> IO ()
+        appendChecksum checkSumFilePath testDir outFile = do
+            checksum <- getChecksum $ tempTestDir </> outFile
+            appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ outFile
+
+runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> IO ()
+runAndChecksumStdOut checkSumFilePath testDir action outFileName = do
+    -- store stdout in a specific output file
     withFile (testDir </> outFileName) WriteMode $ \handle -> do
-        stdout_old <- hDuplicate stdout -- backup stdout
-        hDuplicateTo handle stdout -- redirect stdout to file
-        action -- run action
-        hDuplicateTo stdout_old stdout -- load backup again
-    listCheck1 <- getChecksum $ testDir </> outFileName
-    appendFile checkSumFilePath $ "\n" ++ listCheck1 ++ " " ++ outFileName
+        -- backup stdout handle
+        stdout_old <- hDuplicate stdout
+        -- redirect stdout to file
+        hDuplicateTo handle stdout
+        -- run action
+        action
+        -- load backup again
+        hDuplicateTo stdout_old stdout
+    -- get checksum of output file
+    checksum <- getChecksum $ testDir </> outFileName
+    -- write checksum to checksumfile
+    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ outFileName 
