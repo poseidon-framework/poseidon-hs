@@ -13,7 +13,7 @@ import           Poseidon.Package           (getChecksum)
 
 import           Control.Monad              (when, unless)
 import           GHC.IO.Handle              (hDuplicateTo, hDuplicate, hClose)
-import           System.Directory           (createDirectory, removeDirectoryRecursive, doesDirectoryExist, copyFile)
+import           System.Directory           (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix      ((</>))
 import           System.IO                  (stdout, IOMode(WriteMode), withFile, openFile, stderr)
 
