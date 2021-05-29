@@ -49,7 +49,15 @@ runCLICommands interactive testDir checkFilePath = do
     devNull <- openFile "/dev/null" WriteMode
     stderr_old <- hDuplicate stderr
     unless interactive $ hDuplicateTo devNull stderr
-    -- fetch
+    -- run CLI pipeline
+    testPipelineFetch testDir checkFilePath
+    testPipelineList  testDir checkFilePath
+    -- close error sink
+    hClose devNull
+    unless interactive $ hDuplicateTo stderr_old stderr
+
+testPipelineFetch :: FilePath -> FilePath -> IO ()
+testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
         , _entityList       = [Pac "2019_Nikitin_LBK"]
@@ -63,29 +71,28 @@ runCLICommands interactive testDir checkFilePath = do
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
         ]
-    -- list
-    let listOpts1 = ListOptions { 
+
+testPipelineList :: FilePath -> FilePath -> IO ()
+testPipelineList testDir checkFilePath = do
+    let listOpts1 = ListOptions {
           _loRepoLocation  = RepoLocal [testDir  </> "2019_Nikitin_LBK"]
         , _loListEntity    = ListPackages
         , _loRawOutput     = False
         , _optIgnoreGeno   = False
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts1) "tridentList1"
-    let listOpts2 = listOpts1 { 
+    let listOpts2 = listOpts1 {
           _loListEntity    = ListGroups
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts2) "tridentList2"
-    let listOpts3 = listOpts1 { 
+    let listOpts3 = listOpts1 {
           _loListEntity    = ListIndividuals ["Country", "Nr_autosomal_SNPs"]
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts3) "tridentList3"
-    let listOpts4 = listOpts3 { 
+    let listOpts4 = listOpts3 {
           _loRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts4) "tridentList4"
-    -- close error sink
-    hClose devNull
-    unless interactive $ hDuplicateTo stderr_old stderr
 
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action outFiles = do
