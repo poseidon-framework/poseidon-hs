@@ -3,11 +3,8 @@
 import           Paths_poseidon_hs                  (version)
 import           Poseidon.GoldenTestsRunCommands    (createStaticCheckSumFile)
 
-import           Control.Applicative                ((<|>))
-import           Control.Exception                  (catch)
 import           Data.Version                       (showVersion)
 import qualified Options.Applicative                as OP
-import           System.Exit                        (exitFailure)
 import           System.IO                          (hPutStrLn, stderr)
 
 data UpdateGoldenTestsOptions = UpdateGoldenTestsOptions
