@@ -8,7 +8,7 @@ import           Poseidon.CLI.List          (ListOptions (..), runList,
                                              RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.Package           (getChecksum)
 
-import           Control.Monad              (when)
+import           Control.Monad              (when, unless)
 import           GHC.IO.Handle              (hDuplicateTo, hDuplicate, hClose)
 import           System.Directory           (createDirectory, removeDirectoryRecursive, doesDirectoryExist, copyFile)
 import           System.FilePath.Posix      ((</>))
@@ -28,22 +28,15 @@ dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 
 createStaticCheckSumFile :: FilePath -> IO ()
 createStaticCheckSumFile poseidonHSDir = runCLICommands 
+    True
     (poseidonHSDir </> staticTestDir) 
     (poseidonHSDir </> staticCheckSumFile )
 
 createDynamicCheckSumFile :: IO ()
-createDynamicCheckSumFile = runCLICommands tempTestDir dynamicCheckSumFile 
+createDynamicCheckSumFile = runCLICommands False tempTestDir dynamicCheckSumFile 
 
-listOpts2 :: ListOptions
-listOpts2 = ListOptions
-    { _loRepoLocation  = RepoLocal [tempTestDir  </> "2019_Nikitin_LBK"]
-    , _loListEntity    = ListGroups
-    , _loRawOutput     = False
-    , _optIgnoreGeno   = False
-    }
-
-runCLICommands :: FilePath -> FilePath -> IO ()
-runCLICommands testDir checkFilePath = do
+runCLICommands :: Bool -> FilePath -> FilePath -> IO ()
+runCLICommands interactive testDir checkFilePath = do
     -- create temp dir for test output
     tmpTestDirExists <- doesDirectoryExist testDir
     when tmpTestDirExists $ removeDirectoryRecursive testDir
@@ -55,7 +48,7 @@ runCLICommands testDir checkFilePath = do
     -- create error sink
     devNull <- openFile "/dev/null" WriteMode
     stderr_old <- hDuplicate stderr
-    hDuplicateTo devNull stderr
+    unless interactive $ hDuplicateTo devNull stderr
     -- fetch
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
@@ -78,14 +71,13 @@ runCLICommands testDir checkFilePath = do
         , _optIgnoreGeno   = False
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts1) "tridentList1"
-    let listOpts1 = listOpts1 { 
+    let listOpts2 = listOpts1 { 
           _loListEntity    = ListGroups
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts2) "tridentList2"
     -- close error sink
     hClose devNull
-    hDuplicateTo stderr_old stderr
-
+    unless interactive $ hDuplicateTo stderr_old stderr
 
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action outFiles = do
