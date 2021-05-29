@@ -1,4 +1,6 @@
-module Poseidon.GoldenTestsRunCommands (createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile) where
+module Poseidon.GoldenTestsRunCommands (
+    createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
+    ) where
 
 import           Poseidon.EntitiesList      (PoseidonEntity (..))
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
@@ -20,8 +22,8 @@ staticCheckSumFile = "test/testDat/staticCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 
--- createStaticCheckSumFile :: IO ()
--- createStaticCheckSumFile = runCLICommands staticCheckSumFile 
+createStaticCheckSumFile :: FilePath -> IO ()
+createStaticCheckSumFile poseidonHSDir = runCLICommands $ poseidonHSDir </> staticCheckSumFile 
 
 createDynamicCheckSumFile :: IO ()
 createDynamicCheckSumFile = runCLICommands dynamicCheckSumFile 
@@ -104,7 +106,6 @@ runAndChecksumStdOut checkSumFilePath testDir action outFileName = do
         action
         -- load backup again
         hDuplicateTo stdout_old stdout
-    -- get checksum of output file
+    -- append checksum to checksumfile
     checksum <- getChecksum $ testDir </> outFileName
-    -- write checksum to checksumfile
     appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ outFileName 
