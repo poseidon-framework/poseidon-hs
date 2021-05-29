@@ -1,0 +1,16 @@
+poseidonVersion: 2.1.0
+title: Schiffels
+description: Empty package template. Please add a description
+contributor:
+- name: John Doe
+  email: john@doe.net
+packageVersion: 0.1.0
+lastModified: 2021-05-29
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: geno.txt
+  snpFile: snp.txt
+  indFile: ind.txt
+  snpSet: Other
+jannoFile: Schiffels.janno
+bibFile: Schiffels.bib
