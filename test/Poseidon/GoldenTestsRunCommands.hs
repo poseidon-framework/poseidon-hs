@@ -75,6 +75,14 @@ runCLICommands interactive testDir checkFilePath = do
           _loListEntity    = ListGroups
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts2) "tridentList2"
+    let listOpts3 = listOpts1 { 
+          _loListEntity    = ListIndividuals ["Country", "Nr_autosomal_SNPs"]
+        }
+    runAndChecksumStdOut checkFilePath testDir (runList listOpts3) "tridentList3"
+    let listOpts4 = listOpts3 { 
+          _loRawOutput     = True
+        }
+    runAndChecksumStdOut checkFilePath testDir (runList listOpts4) "tridentList4"
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
