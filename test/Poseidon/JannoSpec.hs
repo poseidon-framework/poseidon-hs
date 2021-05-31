@@ -2,7 +2,7 @@ module Poseidon.JannoSpec (spec) where
 
 import           Poseidon.Janno            (JannoRow (..),
                                             JannoSex (..),
-                                            JannoList(..),
+                                            JannoList (..),
                                             Sex (..),
                                             Latitude (..),
                                             Longitude (..),
@@ -62,6 +62,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jCountry janno        `shouldBe` [Just "xxx", Just "xxx", Just "xxx"]
         map jLatitude janno       `shouldBe` [Just (Latitude 0), Just (Latitude (-90)), Just (Latitude 90)]
         map jLongitude janno      `shouldBe` [Just (Longitude 0), Just (Longitude (-180)), Just (Longitude 180)]
+        map jDateC14Labnr janno   `shouldBe` [Just (JannoList ["A-1", "A-2", "A-3"]), Nothing, Nothing]
         map jDateC14UncalBP janno `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
         map jDateBCADMedian janno `shouldBe` [Just (-1000), Just (-5000), Just 2000]
         map jDateType janno       `shouldBe` [Just C14, Just Contextual, Just Modern]

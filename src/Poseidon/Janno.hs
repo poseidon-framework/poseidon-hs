@@ -6,7 +6,7 @@
 module Poseidon.Janno (
     JannoRow(..),
     JannoSex (..),
-    JannoList(..),
+    JannoList (..),
     Sex (..),
     Latitude (..),
     Longitude (..),
@@ -460,7 +460,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Site"                            Csv..= jSite j
         , "Latitude"                        Csv..= jLatitude j
         , "Longitude"                       Csv..= jLongitude j
-        , "Date_C14_Labnr"                  Csv..= jDateC14UncalBP j
+        , "Date_C14_Labnr"                  Csv..= jDateC14Labnr j
         , "Date_C14_Uncal_BP"               Csv..= jDateC14UncalBP j
         , "Date_C14_Uncal_BP_Err"           Csv..= jDateC14UncalBPErr j
         , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
