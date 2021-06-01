@@ -47,7 +47,7 @@ import           Data.List                  (groupBy, intercalate, nub, sortOn,
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import           Data.Text                  (unpack)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import           Data.Version               (Version, makeVersion)
+import           Data.Version               (Version (versionBranch), makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
@@ -557,7 +557,7 @@ updateChecksumsInPackage pac = do
     indChkSum <-  if indExists
                   then Just <$> getChecksum (d </> indFile gd)
                   else return $ indFileChkSum gd
-    return $ pac {
+    let newPac = pac {
         posPacGenotypeData = gd {
             genoFileChkSum = genoChkSum,
             snpFileChkSum = snpChkSum,
@@ -566,6 +566,18 @@ updateChecksumsInPackage pac = do
         posPacJannoFileChkSum = jannoChkSum,
         posPacBibFileChkSum = bibChkSum
     }
+    if newPac == pac
+    then return pac
+    else do
+        (UTCTime today _) <- getCurrentTime
+        return $ newPac {
+            posPacPackageVersion = 
+                makeVersion . updatePatchNumber . versionBranch <$> 
+                posPacPackageVersion newPac,
+            posPacLastModified = Just today
+        }
+    where
+        updatePatchNumber xs = init xs ++ [last xs + 1]
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do

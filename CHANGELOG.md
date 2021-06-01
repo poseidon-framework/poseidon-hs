@@ -33,3 +33,4 @@
 - V 0.17.2: A better internal configuration solution for readPoseidonPackage(Collection)
 - V 0.17.3: Fixed all issues flagged by the --pedantic compiler setting
 - V 0.17.4: Fixed a critical bug in janno file encoding
+- V 0.18.0: checksumupdate now also increments version numbers and updates lastModified fields
