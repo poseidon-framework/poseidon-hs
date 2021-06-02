@@ -11,7 +11,7 @@ on:
 jobs:
   create_release:
     name: Create Github Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Check out code
         uses: actions/checkout@v2
