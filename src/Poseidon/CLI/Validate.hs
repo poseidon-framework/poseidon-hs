@@ -19,9 +19,9 @@ import           System.IO         (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
-    { _jaBaseDirs    :: [FilePath]
-    , _optVerbose    :: Bool
-    , _optIgnoreGeno :: Bool
+    { _validateBaseDirs    :: [FilePath]
+    , _validateVerbose    :: Bool
+    , _validateIgnoreGeno :: Bool
     }
 
 pacReadOpts :: PackageReadOptions

@@ -9,6 +9,7 @@ import           Poseidon.CLI.List          (ListOptions (..), runList,
                                              RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.CLI.Summarise     (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey        (SurveyOptions(..), runSurvey)
+import           Poseidon.CLI.Validate      (ValidateOptions(..), runValidate)
 import           Poseidon.GenotypeData      (GenotypeFormatSpec (..), 
                                              SNPSetSpec (..))
 import           Poseidon.Package           (getChecksum)
@@ -69,6 +70,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- fetch ---"
     testPipelineFetch testDir checkFilePath
+    -- hPutStrLn stderr "--- validate ---"
+    -- testPipelineValidate testDir checkFilePath
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -103,6 +106,28 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , "Wang" </> "Wang.janno"
         , "Wang" </> "Wang_2020.bed"
         ]
+
+
+-- testPipelineValidate :: FilePath -> FilePath -> IO ()
+-- testPipelineValidate testDir checkFilePath = do
+--     let validateOpts1 = ValidateOptions {
+--           _validateBaseDirs     = [testDir]
+--         , _validateVerbose      = False
+--         , _validateIgnoreGeno   = False
+--     }
+--     runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts1) "validate" 1
+--     let validateOpts2 = ValidateOptions {
+--           _validateBaseDirs     = [testDir]
+--         , _validateVerbose      = True
+--         , _validateIgnoreGeno   = False
+--     }
+--     runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts2) "validate" 2
+--     let validateOpts3 = ValidateOptions {
+--           _validateBaseDirs     = [testDir]
+--         , _validateVerbose      = True
+--         , _validateIgnoreGeno   = True
+--     }
+--     runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts3) "validate" 3
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
