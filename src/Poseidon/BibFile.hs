@@ -1,223 +1,119 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX) where
+module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
 
-import           Poseidon.Utils          (PoseidonException(..))
+import           Poseidon.Utils       (PoseidonException (..))
 
-import           Control.Exception       (throwIO, catch)
-import           Control.Monad           (when)
-import qualified Data.Text               as T
-import qualified Data.Text.IO            as Tio
-import           System.Directory        (doesFileExist)
-import           Text.CSL                (procOpts, processBibliography,
-                                          renderPlain, parseCSL)
-import           Text.CSL.Style          (Style (..))
-import           Text.CSL.Exception      (CiteprocException)
-import           Text.CSL.Input.Bibtex   (readBibtex)
-import           Text.CSL.Reference      (Reference (..))
+import           Control.Exception    (throwIO)
+import           Control.Monad        (forM_, liftM, liftM2, liftM3)
+import           System.IO            (IOMode (..), hPutStrLn, withFile)
+import           Text.Parsec          (sepEndBy, try, many, noneOf, char, (<|>), oneOf, many1, between)
+import           Text.Parsec.Char     (digit, letter, alphaNum)
+import           Text.Parsec.Language (emptyDef)
+import           Text.Parsec.String   (Parser, parseFromFile)
+import qualified Text.Parsec.Token    as T
+import Text.ParserCombinators.Parsec.Char (CharParser)
 
-type BibTeX = [Reference]
+data BibEntry = BibEntry
+    { bibEntryType   :: String
+    , bibEntryId     :: String
+    , bibEntryFields :: [(String, String)]
+    }
+    deriving (Show, Eq)
 
-readBibTeXFile :: FilePath -> IO [Reference]
+type BibTeX = [BibEntry]
+
+readBibTeXFile :: FilePath -> IO BibTeX
 readBibTeXFile bibPath = do
-    fileE <- doesFileExist bibPath
-    when (not fileE) . throwIO $ PoseidonFileExistenceException ("Could not find bib file " ++ bibPath)
-    catch (readBibtex (const True) True False bibPath) handler
+    res <- parseFromFile bibFileParser bibPath
+    case res of
+        Left err   -> throwIO $ PoseidonBibTeXException bibPath (show err)
+        Right res_ -> return res_
+
+{-
+Much of the code below was shamelessly copied from the existing Haskell package "bibtex"
+by Henning Thielemann. The package seems to be dead, and I needed to make some changes. So I
+copied the relevant code here and modified it as needed.
+-}
+
+writeBibTeXFile :: FilePath -> BibTeX -> IO ()
+writeBibTeXFile path entries = withFile path WriteMode $ \outH -> do
+    forM_ entries $ \bibEntry -> do
+        let entryString = writeEntry bibEntry
+        hPutStrLn outH entryString
+        hPutStrLn outH ""
   where
-    handler :: CiteprocException -> IO [Reference]
-    handler e = throwIO $ PoseidonBibTeXException bibPath (show e)
+    writeEntry :: BibEntry -> String
+    writeEntry (BibEntry entryType bibId items) =
+        let formatItem (name, value_) =
+                "  " ++ name ++ " = {" ++ value_ ++ "},\n"
+        in  "@" ++ entryType ++ "{" ++ bibId ++ ",\n" ++
+            concatMap formatItem items ++ "}\n"
 
-writeBibTeXFile ::  FilePath -> [Reference] -> IO()
-writeBibTeXFile path references_ = do
-    let renderedReferences = processBibliography procOpts bibTeXCSLStyle references_
-    let referencesTexts = map renderPlain renderedReferences
-    let referencesTextsFixed = map cleanBibTeXString referencesTexts
-    let huup = T.intercalate "\n\n" referencesTextsFixed
-    Tio.writeFile path huup
+bibFileParser :: Parser [BibEntry]
+bibFileParser = bibCommentParser >> sepEndBy bibEntryParser bibCommentParser
 
-cleanBibTeXString :: T.Text -> T.Text
-cleanBibTeXString =
-    T.replace "} }" "}\n}"
-    . T.replace ", title=" ",\n  title="
-    . T.replace "   " "  "
-    . T.replace "}," "},\n  "
-    . T.replace "\n" " "
+bibCommentParser :: Parser String
+bibCommentParser = many $ noneOf "@"
 
-bibTeXCSLStyle :: Style
-bibTeXCSLStyle = parseCSL "\
-    \ <?xml version=\"1.0\" encoding=\"utf-8\"?> \
-    \ <style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" version=\"1.0\" demote-non-dropping-particle=\"sort-only\" default-locale=\"en-US\"> \
-    \ <info> \
-        \ <title>BibTeX generic citation style</title> \
-        \ <id>http://www.zotero.org/styles/bibtex</id> \
-        \ <link href=\"http://www.zotero.org/styles/bibtex\" rel=\"self\"/> \
-        \ <link href=\"http://www.bibtex.org/\" rel=\"documentation\"/> \
-        \ <author> \
-        \ <name>Markus Schaffner</name> \
-        \ </author> \
-        \ <contributor> \
-        \ <name>Richard Karnesky</name> \
-        \ <email>karnesky+zotero@gmail.com</email> \
-        \ <uri>http://arc.nucapt.northwestern.edu/Richard_Karnesky</uri> \
-        \ </contributor> \
-        \ <category citation-format=\"author-date\"/> \
-        \ <category field=\"generic-base\"/> \
-        \ <updated>2012-09-14T21:22:32+00:00</updated> \
-        \ <rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights> \
-    \ </info> \
-    \ <macro name=\"zotero2bibtexType\"> \
-        \ <choose> \
-        \ <if type=\"bill book graphic legal_case legislation motion_picture report song\" match=\"any\"> \
-            \ <text value=\"book\"/> \
-        \ </if> \
-        \ <else-if type=\"chapter\" match=\"any\"> \
-            \ <text value=\"inbook\"/> \
-        \ </else-if> \
-        \ <else-if type=\"article article-journal article-magazine article-newspaper\" match=\"any\"> \
-            \ <text value=\"article\"/> \
-        \ </else-if> \
-        \ <else-if type=\"thesis\" match=\"any\"> \
-            \ <text value=\"phdthesis\"/> \
-        \ </else-if> \
-        \ <else-if type=\"manuscript\" match=\"any\"> \
-            \ <text value=\"unpublished\"/> \
-        \ </else-if> \
-        \ <else-if type=\"paper-conference\" match=\"any\"> \
-            \ <text value=\"inproceedings\"/> \
-        \ </else-if> \
-        \ <else-if type=\"report\" match=\"any\"> \
-            \ <text value=\"techreport\"/> \
-        \ </else-if> \
-        \ <else> \
-            \ <text value=\"misc\"/> \
-        \ </else> \
-        \ </choose> \
-    \ </macro> \
-    \ <!-- <macro name=\"citeKey\"> \
-        \ <group delimiter=\"_\"> \
-        \ <text macro=\"author-short\" text-case=\"lowercase\"/> \
-        \ <text macro=\"issued-year\"/> \
-        \ </group> \
-    \ </macro> --> \
-    \ <macro name=\"author-short\"> \
-        \ <names variable=\"author\"> \
-        \ <name form=\"short\" delimiter=\"_\" delimiter-precedes-last=\"always\"/> \
-        \ <substitute> \
-            \ <names variable=\"editor\"/> \
-            \ <names variable=\"translator\"/> \
-            \ <choose> \
-            \ <if type=\"bill book graphic legal_case legislation motion_picture report song\" match=\"any\"> \
-                \ <text variable=\"title\" form=\"short\"/> \
-            \ </if> \
-            \ <else> \
-                \ <text variable=\"title\" form=\"short\"/> \
-            \ </else> \
-            \ </choose> \
-        \ </substitute> \
-        \ </names> \
-    \ </macro> \
-    \ <macro name=\"issued-year\"> \
-        \ <date variable=\"issued\"> \
-        \ <date-part name=\"year\"/> \
-        \ </date> \
-    \ </macro> \
-    \ <macro name=\"issued-month\"> \
-        \ <date variable=\"issued\"> \
-        \ <date-part name=\"month\" form=\"short\" strip-periods=\"true\"/> \
-        \ </date> \
-    \ </macro> \
-    \ <macro name=\"author\"> \
-        \ <names variable=\"author\"> \
-        \ <name sort-separator=\", \" delimiter=\" and \" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/> \
-        \ </names> \
-    \ </macro> \
-    \ <macro name=\"editor-translator\"> \
-        \ <names variable=\"editor translator\" delimiter=\", \"> \
-        \ <name sort-separator=\", \" delimiter=\" and \" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/> \
-        \ </names> \
-    \ </macro> \
-    \ <macro name=\"title\"> \
-        \ <text variable=\"title\"/> \
-    \ </macro> \
-    \ <macro name=\"number\"> \
-        \ <text variable=\"issue\"/> \
-        \ <text variable=\"number\"/> \
-    \ </macro> \
-    \ <macro name=\"container-title\"> \
-        \ <choose> \
-        \ <if type=\"chapter paper-conference\" match=\"any\"> \
-            \ <text variable=\"container-title\" prefix=\" booktitle={\" suffix=\"}\"/> \
-        \ </if> \
-        \ <else> \
-            \ <text variable=\"container-title\" prefix=\" journal={\" suffix=\"}\"/> \
-        \ </else> \
-        \ </choose> \
-    \ </macro> \
-    \ <macro name=\"publisher\"> \
-        \ <choose> \
-        \ <if type=\"thesis\"> \
-            \ <text variable=\"publisher\" prefix=\" school={\" suffix=\"}\"/> \
-        \ </if> \
-        \ <else-if type=\"report\"> \
-            \ <text variable=\"publisher\" prefix=\" institution={\" suffix=\"}\"/> \
-        \ </else-if> \
-        \ <else> \
-            \ <text variable=\"publisher\" prefix=\" publisher={\" suffix=\"}\"/> \
-        \ </else> \
-        \ </choose> \
-    \ </macro> \
-    \ <macro name=\"pages\"> \
-        \ <text variable=\"page\"/> \
-    \ </macro> \
-    \ <macro name=\"edition\"> \
-        \ <text variable=\"edition\"/> \
-    \ </macro> \
-    \ <!-- <citation et-al-min=\"11\" et-al-use-first=\"10\" disambiguate-add-year-suffix=\"true\" disambiguate-add-names=\"false\" disambiguate-add-givenname=\"false\" collapse=\"year\"> \
-        \ <sort> \
-        \ <key macro=\"author\"/> \
-        \ <key variable=\"issued\"/> \
-        \ </sort> \
-        \ <layout delimiter=\"_\"> \
-        \ <text macro=\"citeKey\"/> \
-        \ </layout> \
-    \ </citation> --> \
-    \ <bibliography hanging-indent=\"false\" et-al-min=\"100\" et-al-use-first=\"100\"> \
-        \ <sort> \
-        \ <key macro=\"author\"/> \
-        \ <key variable=\"issued\"/> \
-        \ </sort> \
-        \ <layout> \
-        \ <text macro=\"zotero2bibtexType\" prefix=\" @\"/> \
-        \ <group prefix=\"{\" suffix=\" }\" delimiter=\", \"> \
-            \ <!-- <text macro=\"citeKey\"/> --> \
-            \ <text variable=\"ref-id\"/> \
-            \ <text variable=\"publisher-place\" prefix=\" place={\" suffix=\"}\"/> \
-            \ <!--Fix This--> \
-            \ <text variable=\"chapter-number\" prefix=\" chapter={\" suffix=\"}\"/> \
-            \ <!--Fix This--> \
-            \ <text macro=\"edition\" prefix=\" edition={\" suffix=\"}\"/> \
-            \ <!--Is this in CSL? <text variable=\"type\" prefix=\" type={\" suffix=\"}\"/>--> \
-            \ <text variable=\"collection-title\" prefix=\" series={\" suffix=\"}\"/> \
-            \ <text macro=\"title\" prefix=\" title={\" suffix=\"}\"/> \
-            \ <text variable=\"volume\" prefix=\" volume={\" suffix=\"}\"/> \
-            \ <!--Not in CSL<text variable=\"rights\" prefix=\" rights={\" suffix=\"}\"/>--> \
-            \ <text variable=\"ISBN\" prefix=\" ISBN={\" suffix=\"}\"/> \
-            \ <text variable=\"ISSN\" prefix=\" ISSN={\" suffix=\"}\"/> \
-            \ <!--Not in CSL <text variable=\"LCCN\" prefix=\" callNumber={\" suffix=\"}\"/>--> \
-            \ <text variable=\"archive_location\" prefix=\" archiveLocation={\" suffix=\"}\"/> \
-            \ <text variable=\"URL\" prefix=\" url={\" suffix=\"}\"/> \
-            \ <text variable=\"DOI\" prefix=\" DOI={\" suffix=\"}\"/> \
-            \ <!-- <text variable=\"abstract\" prefix=\" abstractNote={\" suffix=\"}\"/> --> \
-            \ <text variable=\"note\" prefix=\" note={\" suffix=\"}\"/> \
-            \ <text macro=\"number\" prefix=\" number={\" suffix=\"}\"/> \
-            \ <text macro=\"container-title\"/> \
-            \ <text macro=\"publisher\"/> \
-            \ <text macro=\"author\" prefix=\" author={\" suffix=\"}\"/> \
-            \ <text macro=\"editor-translator\" prefix=\" editor={\" suffix=\"}\"/> \
-            \ <text macro=\"issued-year\" prefix=\" year={\" suffix=\"}\"/> \
-            \ <text macro=\"issued-month\" prefix=\" month={\" suffix=\"}\"/> \
-            \ <text macro=\"pages\" prefix=\" pages={\" suffix=\"}\"/> \
-            \ <text variable=\"collection-title\" prefix=\" collection={\" suffix=\"}\"/> \
-        \ </group> \
-        \ </layout> \
-    \ </bibliography> \
-    \ </style>"
+bibEntryParser :: Parser BibEntry
+bibEntryParser =
+   do entryType <- char '@' >> identifier
+      braces $
+         liftM2 (BibEntry entryType)
+            (try bibIdentifier)
+            (comma >> sepEndBy assignment comma)
+
+identifier :: CharParser st String
+identifier = T.identifier lexer
+
+lexer :: T.TokenParser st
+lexer =
+   T.makeTokenParser $ emptyDef {
+      T.commentLine = "%",
+      T.identStart = alphaNum,
+      T.identLetter = alphaNum
+   }
+
+braces :: CharParser st a -> CharParser st a
+braces = T.braces lexer
+
+bibIdentifier :: Parser String
+bibIdentifier = lexeme $
+   liftM2 (:) (alphaNum <|> char '_') (many (alphaNum <|> oneOf "&;:-_.?+/"))
+
+lexeme :: CharParser st a -> CharParser st a
+lexeme = T.lexeme lexer
+
+assignment :: Parser (String, String)
+assignment =
+   liftM2 (,)
+      bibIdentifier
+      (equals >> value)
+
+equals :: CharParser st String
+equals = T.symbol lexer "="
+
+value :: Parser String
+value =
+   lexeme (many1 letter) <|> -- for fields like: month = jul
+   lexeme (many1 digit)  <|> -- for fields like: year = 2010
+   braces (texSequence '}') <|>
+   lexeme (between (char '"') (char '"') (texSequence '"'))
+
+texSequence :: Char -> Parser String
+texSequence closeChar =
+   liftM concat (many (texBlock closeChar))
+
+texBlock :: Char -> Parser String
+texBlock closeChar =
+   liftM3 (\open body close -> open : body ++ close : [])
+      (char '{') (texSequence '}') (char '}') <|>
+   sequence
+      [char '\\',
+       oneOf "=\\_{}[]$|'`^&%\".,~# " <|> letter] <|>
+   fmap (:[]) (noneOf [closeChar])
+
+
+comma :: CharParser st String
+comma = T.comma lexer
+
