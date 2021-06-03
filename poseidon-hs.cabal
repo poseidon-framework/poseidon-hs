@@ -49,8 +49,8 @@ Test-Suite poseidon-tools-tests
   main-is:             Spec.hs
   hs-source-dirs:      test
   build-depends:       base, hspec, poseidon-hs, bytestring,
-                       raw-strings-qq, yaml, time, transformers,
-                       pandoc-citeproc, text, QuickCheck, directory,
+                       raw-strings-qq, yaml, time,
+                       text, QuickCheck, directory,
                        filepath
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
