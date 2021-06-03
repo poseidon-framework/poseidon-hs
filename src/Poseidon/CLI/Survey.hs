@@ -2,23 +2,24 @@
 
 module Poseidon.CLI.Survey where
 
+import           Poseidon.BibFile      (BibTeX)
 import           Poseidon.GenotypeData (GenotypeDataSpec (..))
 import           Poseidon.Janno        (JannoRow (..))
-import           Poseidon.Package      (PoseidonPackage (..),
-                                        readPoseidonPackageCollection,
-                                        PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.BibFile      (BibTeX)
+import           Poseidon.Package      (PackageReadOptions (..),
+                                        PoseidonPackage (..),
+                                        defaultPackageReadOptions,
+                                        readPoseidonPackageCollection)
 
 import           Control.Monad         (forM)
-import           Data.List             (zip4, intercalate)
+import           Data.List             (intercalate, zip4)
 import           Data.Maybe            (isNothing)
 import           System.Directory      (doesFileExist)
-import           System.FilePath.Posix ((</>))
-import           Text.Layout.Table     (asciiRoundS, column, def,
-                                        rowsG, tableString, titlesH, expandUntil)
+import           System.FilePath       ((</>))
+import           Text.Layout.Table     (asciiRoundS, column, def, expandUntil,
+                                        rowsG, tableString, titlesH)
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _jaBaseDirs :: [FilePath]
+    { _jaBaseDirs   :: [FilePath]
     , _optRawOutput :: Bool
     }
 

@@ -22,7 +22,8 @@ module Poseidon.Package (
     defaultPackageReadOptions
 ) where
 
-import           Poseidon.BibFile           (BibTeX, readBibTeXFile, BibEntry(..))
+import           Poseidon.BibFile           (BibEntry (..), BibTeX,
+                                             readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
                                              loadJointGenotypeData)
@@ -46,7 +47,8 @@ import           Data.List                  (groupBy, intercalate, nub, sortOn,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import           Data.Version               (Version (versionBranch), makeVersion)
+import           Data.Version               (Version (versionBranch),
+                                             makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
@@ -59,7 +61,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
-import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
+import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
 
@@ -569,8 +571,8 @@ updateChecksumsInPackage pac = do
     else do
         (UTCTime today _) <- getCurrentTime
         return $ newPac {
-            posPacPackageVersion = 
-                makeVersion . updatePatchNumber . versionBranch <$> 
+            posPacPackageVersion =
+                makeVersion . updatePatchNumber . versionBranch <$>
                 posPacPackageVersion newPac,
             posPacLastModified = Just today
         }

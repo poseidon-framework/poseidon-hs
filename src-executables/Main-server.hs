@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Janno              (JannoRow (..), JannoList(..))
+import           Poseidon.Janno              (JannoList (..), JannoRow (..))
 import           Poseidon.Package            (PackageInfo (..),
+                                              PackageReadOptions (..),
                                               PoseidonPackage (..),
-                                              readPoseidonPackageCollection,
-                                              PackageReadOptions (..), defaultPackageReadOptions)
+                                              defaultPackageReadOptions,
+                                              readPoseidonPackageCollection)
 import           Poseidon.Utils              (IndividualInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
@@ -25,7 +26,7 @@ import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
 import           System.Directory            (doesFileExist,
                                               getModificationTime)
-import           System.FilePath.Posix       ((<.>), (</>))
+import           System.FilePath             ((<.>), (</>))
 import           System.IO                   (stderr)
 import           System.Log.Formatter        (simpleLogFormatter)
 import           System.Log.Handler          (setFormatter)

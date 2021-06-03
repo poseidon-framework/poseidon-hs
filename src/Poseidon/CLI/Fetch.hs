@@ -2,53 +2,53 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList       (PoseidonEntity (..), EntitiesList, 
-                                             readEntitiesFromFile)
-import           Poseidon.MathHelpers       (roundTo, roundToStr)
-import           Poseidon.Package           (PackageInfo (..),
-                                             PoseidonPackage (..),
-                                             readPoseidonPackageCollection,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.EntitiesList  (EntitiesList, PoseidonEntity (..),
+                                         readEntitiesFromFile)
+import           Poseidon.MathHelpers   (roundTo, roundToStr)
+import           Poseidon.Package       (PackageInfo (..),
+                                         PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonException (..))
 
-import           Codec.Archive.Zip          (ZipOption (..), extractFilesFromArchive, toArchive)
-import           Conduit                    (runResourceT, sinkFile, ResourceT, await, yield)
-import           Control.Exception          (throwIO)
-import           Control.Monad              (when, unless)
-import           Control.Monad.IO.Class     (liftIO)
-import           Data.Aeson                 (eitherDecode')
-import qualified Data.ByteString            as B
-import qualified Data.ByteString.Lazy       as LB
-import           Data.ByteString.Char8      as B8 (unpack)
-import           Data.Conduit               (($$+-), (.|), sealConduitT, ConduitT)               
-import           Data.List                  (nub)
-import           Data.Version               (Version, showVersion)
-import           Network.HTTP.Conduit       (simpleHttp,
-                                             newManager,
-                                             tlsManagerSettings,
-                                             parseRequest, 
-                                             http, 
-                                             responseBody,
-                                             responseHeaders)
-import           Network.HTTP.Types         (hContentLength)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (createDirectoryIfMissing, removeFile, removeDirectory)
-import           System.FilePath.Posix      ((</>))
-import           System.IO                  (hPutStrLn, stderr, hFlush, hPutStr)
+import           Codec.Archive.Zip      (ZipOption (..),
+                                         extractFilesFromArchive, toArchive)
+import           Conduit                (ResourceT, await, runResourceT,
+                                         sinkFile, yield)
+import           Control.Exception      (throwIO)
+import           Control.Monad          (unless, when)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Aeson             (eitherDecode')
+import qualified Data.ByteString        as B
+import           Data.ByteString.Char8  as B8 (unpack)
+import qualified Data.ByteString.Lazy   as LB
+import           Data.Conduit           (ConduitT, sealConduitT, ($$+-), (.|))
+import           Data.List              (nub)
+import           Data.Version           (Version, showVersion)
+import           Network.HTTP.Conduit   (http, newManager, parseRequest,
+                                         responseBody, responseHeaders,
+                                         simpleHttp, tlsManagerSettings)
+import           Network.HTTP.Types     (hContentLength)
+import           System.Console.ANSI    (hClearLine, hSetCursorColumn)
+import           System.Directory       (createDirectoryIfMissing,
+                                         removeDirectory, removeFile)
+import           System.FilePath        ((</>))
+import           System.IO              (hFlush, hPutStr, hPutStrLn, stderr)
 
 data FetchOptions = FetchOptions
-    { _jaBaseDirs :: [FilePath]
-    , _entityList :: EntitiesList
-    , _entityFiles :: [FilePath]
-    , _remoteURL :: String
-    , _upgrade :: Bool
+    { _jaBaseDirs      :: [FilePath]
+    , _entityList      :: EntitiesList
+    , _entityFiles     :: [FilePath]
+    , _remoteURL       :: String
+    , _upgrade         :: Bool
     , _downloadAllPacs :: Bool
     }
 
-data PackageState = NotLocal -- ^ Package exists only on remote and can be downloaded directly
-                  | EqualLocalRemote -- ^ Local and remote package version are equal. Nothing should be done
-                  | LaterRemote -- ^ The remote version is later. An upgrade should be optional
-                  | LaterLocal -- ^ The local version is later. Nothing should be done
+data PackageState = NotLocal
+    | EqualLocalRemote
+    | LaterRemote
+    | LaterLocal
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -77,7 +77,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
     allRemotePackages <- readPackageInfo remoteOverviewJSONByteString
     -- check which remote packages the User wants to have
     hPutStr stderr "Determine requested packages... "
-    let desiredRemotePackages = if downloadAllPacs 
+    let desiredRemotePackages = if downloadAllPacs
                                 then allRemotePackages
                                 else filter (\x -> pTitle x `elem` desiredPacsTitles) allRemotePackages
     hPutStrLn stderr $ show (length desiredRemotePackages) ++ " requested and available"
@@ -96,9 +96,9 @@ entities2PacTitles xs = do
     map getEntityStrings pacEntities
     where
         getEntityStrings :: PoseidonEntity -> String
-        getEntityStrings (Pac x) = x
+        getEntityStrings (Pac x)   = x
         getEntityStrings (Group x) = x
-        getEntityStrings (Ind x) = x
+        getEntityStrings (Ind x)   = x
 
 readPackageInfo :: LB.ByteString -> IO [PackageInfo]
 readPackageInfo bs = do
@@ -108,16 +108,16 @@ readPackageInfo bs = do
 
 determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
 determinePackageState localPacs desiredRemotePac
-    | desiredRemotePacTitle `notElem` localPacsTitles = 
+    | desiredRemotePacTitle `notElem` localPacsTitles =
         (NotLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
-    | desiredRemotePacSimple `elem` localPacsSimple = 
+    | desiredRemotePacSimple `elem` localPacsSimple =
         (EqualLocalRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
-    | localVersionOfDesired < desiredRemotePacVersion = 
+    | localVersionOfDesired < desiredRemotePacVersion =
         (LaterRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
-    | localVersionOfDesired > desiredRemotePacVersion = 
+    | localVersionOfDesired > desiredRemotePacVersion =
         (LaterLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
     | otherwise = error "determinePackageState: should never happen"
-    where 
+    where
         desiredRemotePacTitle = pTitle desiredRemotePac
         desiredRemotePacVersion = pVersion desiredRemotePac
         desiredRemotePacSimple = (desiredRemotePacTitle, desiredRemotePacVersion)
@@ -127,23 +127,23 @@ determinePackageState localPacs desiredRemotePac
         localVersionOfDesired = snd $ head $ filter (\x -> fst x == desiredRemotePacTitle) localPacsSimple
 
 handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> IO ()
-handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do 
+handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
     downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
-    hPutStrLn stderr $ padString 40 pac ++ 
+    hPutStrLn stderr $ padString 40 pac ++
         "local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
     then downloadAndUnzipPackage downloadDir tempDir remote pac
-    else hPutStrLn stderr $ padString 40 pac ++ 
+    else hPutStrLn stderr $ padString 40 pac ++
         "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
 handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
-    hPutStrLn stderr $ padString 40 pac ++ 
+    hPutStrLn stderr $ padString 40 pac ++
         "local " ++ printV localV ++ " > remote " ++ printV remoteV
 
-printV :: Maybe Version -> String 
-printV Nothing = "?.?.?"
+printV :: Maybe Version -> String
+printV Nothing  = "?.?.?"
 printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
@@ -163,14 +163,14 @@ downloadPackage pathToRepo remote pacName = do
     let paddedPacName = padString 40 pacName
     downloadManager <- newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
-    runResourceT $ do 
+    runResourceT $ do
         response <- http packageRequest downloadManager
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
         liftIO $ hPutStrLn stderr (paddedPacName ++ "> " ++ show fileSizeMB ++ "MB to download")
-        sealConduitT (responseBody response) $$+- 
-            printDownloadProgress fileSizeMB .| 
+        sealConduitT (responseBody response) $$+-
+            printDownloadProgress fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
     putStrLn ""
     return ()
@@ -193,8 +193,8 @@ printDownloadProgress fileSizeMB = loop 0 0
                     let curLoadedMB = roundTo 1 (fromIntegral newLoadedB / 1000 / 1000)
                                           -- update progress counter every 5%
                     let newLoadedMB = if (curLoadedMB/fileSizeMB_ - loadedMB/fileSizeMB_ >= 0.05 &&
-                                          -- but only at at least 200KB 
-                                          curLoadedMB - loadedMB > 0.2) || 
+                                          -- but only at at least 200KB
+                                          curLoadedMB - loadedMB > 0.2) ||
                                           -- and of course at the end of the sequence
                                           curLoadedMB == fileSizeMB_
                                       then curLoadedMB
