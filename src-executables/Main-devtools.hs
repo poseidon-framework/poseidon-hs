@@ -54,5 +54,7 @@ parsePoseidonHSDir = OP.strOption (
 runUpdateGoldenTests :: UpdateGoldenTestsOptions -> IO ()
 runUpdateGoldenTests (UpdateGoldenTestsOptions poseidonHSDir) = do
     hPutStrLn stderr "Attempting to run pipeline"
+    hPutStrLn stderr "---"
     createStaticCheckSumFile poseidonHSDir
+    hPutStrLn stderr "---"
     hPutStrLn stderr "Checksum update successful"

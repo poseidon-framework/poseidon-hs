@@ -1,5 +1,5 @@
 poseidonVersion: 2.1.0
-title: Schiffels
+title: Wang
 description: Empty package template. Please add a description
 contributor:
 - name: John Doe
@@ -7,10 +7,10 @@ contributor:
 packageVersion: 0.1.0
 lastModified: 2021-06-03
 genotypeData:
-  format: EIGENSTRAT
-  genoFile: geno.txt
-  snpFile: snp.txt
-  indFile: ind.txt
+  format: PLINK
+  genoFile: Wang_2020.bed
+  snpFile: Wang_2020.bim
+  indFile: Wang_2020.fam
   snpSet: Other
-jannoFile: Schiffels.janno
-bibFile: Schiffels.bib
+jannoFile: Wang.janno
+bibFile: Wang.bib

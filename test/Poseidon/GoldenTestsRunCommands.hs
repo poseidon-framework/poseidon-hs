@@ -5,24 +5,25 @@ module Poseidon.GoldenTestsRunCommands (
 import           Poseidon.EntitiesList      (PoseidonEntity (..))
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
-import           Poseidon.GenotypeData      (GenotypeFormatSpec (..), 
-                                             SNPSetSpec (..))
 import           Poseidon.CLI.List          (ListOptions (..), runList, 
                                              RepoLocationSpec (..), ListEntity (..))
+import           Poseidon.CLI.Summarise     (SummariseOptions (..), runSummarise)
+import           Poseidon.GenotypeData      (GenotypeFormatSpec (..), 
+                                             SNPSetSpec (..))
 import           Poseidon.Package           (getChecksum)
 
 import           Control.Monad              (when, unless)
 import           GHC.IO.Handle              (hDuplicateTo, hDuplicate, hClose)
 import           System.Directory           (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix      ((</>))
-import           System.IO                  (stdout, IOMode(WriteMode), withFile, openFile, stderr)
+import           System.IO                  (stdout, IOMode(WriteMode), withFile, openFile, stderr, hPutStrLn)
 
 tempTestDir :: FilePath
 tempTestDir = "/tmp/poseidonHSGoldenTestData"
 staticTestDir :: FilePath
 staticTestDir = "test/testDat/poseidonHSGoldenTestData"
 staticCheckSumFile :: FilePath
-staticCheckSumFile = "test/testDat/staticCheckSumFile.txt"
+staticCheckSumFile = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 smallTestPacsDir :: FilePath
@@ -57,9 +58,14 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     stderr_old <- hDuplicate stderr
     unless interactive $ hDuplicateTo devNull stderr
     -- run CLI pipeline
+    hPutStrLn stderr "--- init ---"
     testPipelineInit  testDir checkFilePath testPacsDir
-    testPipelineFetch testDir checkFilePath
+    hPutStrLn stderr "--- list ---"
     testPipelineList  testDir checkFilePath
+    hPutStrLn stderr "--- summarise ---"
+    testPipelineSummarise testDir checkFilePath
+    hPutStrLn stderr "--- fetch ---"
+    testPipelineFetch testDir checkFilePath
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -80,27 +86,25 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , "Schiffels" </> "Schiffels.janno"
         , "Schiffels" </> "geno.txt"
         ]
-
-testPipelineFetch :: FilePath -> FilePath -> IO ()
-testPipelineFetch testDir checkFilePath = do
-    let fetchOpts1 = FetchOptions { 
-          _jaBaseDirs       = [testDir]
-        , _entityList       = [Pac "2019_Nikitin_LBK"]
-        , _entityFiles      = []
-        , _remoteURL        = "https://c107-224.cloud.gwdg.de"
-        , _upgrade          = True
-        , _downloadAllPacs  = False 
-        }
-    runAndChecksumFiles checkFilePath testDir (runFetch fetchOpts1) "fetch" [
-          "2019_Nikitin_LBK" </> "POSEIDON.yml"
-        , "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
-        , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
+    let initOpts2 = InitOptions {
+          _inGenoFormat = GenotypeFormatPlink 
+        , _inGenoSnpSet = SNPSetOther
+        , _inGenoFile   = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
+        , _inSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
+        , _inIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
+        , _outPacPath   = testDir </> "Wang"
+        , _outPacName   = "Wang"
+    }
+    runAndChecksumFiles checkFilePath testDir (runInit initOpts2) "init" [
+          "Wang" </> "POSEIDON.yml"
+        , "Wang" </> "Wang.janno"
+        , "Wang" </> "Wang_2020.bed"
         ]
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
     let listOpts1 = ListOptions {
-          _loRepoLocation  = RepoLocal [testDir  </> "2019_Nikitin_LBK"]
+          _loRepoLocation  = RepoLocal [testDir </> "Schiffels", testDir  </> "Wang"]
         , _loListEntity    = ListPackages
         , _loRawOutput     = False
         , _optIgnoreGeno   = False
@@ -118,6 +122,35 @@ testPipelineList testDir checkFilePath = do
           _loRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts4) "list" 4
+
+testPipelineSummarise :: FilePath -> FilePath -> IO ()
+testPipelineSummarise testDir checkFilePath = do
+    let summariseOpts1 = SummariseOptions { 
+          _summariseBaseDirs = [testDir]
+        , _optRawOutput = False
+    }
+    runAndChecksumStdOut checkFilePath testDir (runSummarise summariseOpts1) "summarise" 1
+    let summariseOpts2 = SummariseOptions { 
+          _summariseBaseDirs = [testDir]
+        , _optRawOutput = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (runSummarise summariseOpts2) "summarise" 2
+
+testPipelineFetch :: FilePath -> FilePath -> IO ()
+testPipelineFetch testDir checkFilePath = do
+    let fetchOpts1 = FetchOptions { 
+          _jaBaseDirs       = [testDir]
+        , _entityList       = [Pac "2019_Nikitin_LBK"]
+        , _entityFiles      = []
+        , _remoteURL        = "https://c107-224.cloud.gwdg.de"
+        , _upgrade          = True
+        , _downloadAllPacs  = False 
+        }
+    runAndChecksumFiles checkFilePath testDir (runFetch fetchOpts1) "fetch" [
+          "2019_Nikitin_LBK" </> "POSEIDON.yml"
+        , "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
+        , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
+        ]
 
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do

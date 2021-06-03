@@ -1,0 +1,18 @@
+Checksums for trident CLI output
+Automatically generated with: poseidon-devtools updateGoldenTests
+
+6fb8c949312c71c278fee5f509152c24 init Schiffels/POSEIDON.yml
+04686d2b18f41b9137807a0d5521670d init Schiffels/Schiffels.janno
+95b093eefacc1d6499afcfe89b15d56c init Schiffels/geno.txt
+c131f92cf64951fa36cfd6a937edb58c init Wang/POSEIDON.yml
+51731d04de568ede6152a81e9c1420da init Wang/Wang.janno
+ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
+338208621f2547bbb0eb2f8abf17db7d list list1
+c27895a4e15eb46f0d4473cd37488cae list list2
+73371da7bc569c259a996b8cb0988572 list list3
+a9f5b04f5b40eeff3aabf1ad7bd22771 list list4
+551620f20ad8b9f4e2717c54765fff74 summarise summarise1
+fb074b54961035f8903f3055c0bbb24e summarise summarise2
+e93e57cf41e62af7d037f935f53d757e fetch 2019_Nikitin_LBK/POSEIDON.yml
+4dedd209cdc4d4a986c184d70dedecd1 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
+3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam
