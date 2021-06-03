@@ -1,81 +1,114 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX, Reference(..)) where
+module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
 
-import           Poseidon.Utils    (PoseidonException (..))
+import           Poseidon.Utils       (PoseidonException (..))
 
-import           Control.Exception (throwIO)
-import           Control.Monad     (forM_)
-import           Data.Char         (isSpace)
-import Data.List (intercalate)
-import System.IO (hPutStr, withFile, IOMode(..), hPutStrLn)
-import           Text.Parsec       (many, many1, sepBy1, try, (<|>), manyTill)
-import           Text.Parsec.Char  (char, newline, satisfy, spaces, alphaNum, string, letter, anyChar)
-import           Text.Parsec.Text  (Parser, parseFromFile)
+import           Control.Exception    (throwIO)
+import           Control.Monad        (forM_, liftM, liftM2, liftM3)
+import           System.IO            (IOMode (..), hPutStrLn, withFile)
+import           Text.Parsec          (sepEndBy, try, many, noneOf, char, (<|>), oneOf, many1, between)
+import           Text.Parsec.Char     (digit, letter, alphaNum)
+import           Text.Parsec.Language (emptyDef)
+import           Text.Parsec.String   (Parser, parseFromFile)
+import qualified Text.Parsec.Token    as T
+import Text.ParserCombinators.Parsec.Char (CharParser)
 
-data Reference = Reference
-    { _bibIdent :: String
-    , _bibId   :: String
-    , _bibProperties :: [BibProperty]
+-- this is a thin wrapper
+data BibEntry = BibEntry
+    { bibEntryType   :: String
+    , bibEntryId     :: String
+    , bibEntryFields :: [(String, String)]
     }
     deriving (Show, Eq)
 
-data BibProperty = BibProperty {
-    _bibPropKey :: String,
-    _bibPropVal :: String
-} deriving (Show, Eq)
+type BibTeX = [BibEntry]
 
-type BibTeX = [Reference]
-
-readBibTeXFile :: FilePath -> IO [Reference]
+readBibTeXFile :: FilePath -> IO BibTeX
 readBibTeXFile bibPath = do
-    res <- parseFromFile bibTeXParser bibPath
+    res <- parseFromFile bibFileParser bibPath
     case res of
-        Left err  -> throwIO $ PoseidonBibTeXException bibPath (show err)
+        Left err   -> throwIO $ PoseidonBibTeXException bibPath (show err)
         Right res_ -> return res_
 
-writeBibTeXFile :: FilePath -> [Reference] -> IO ()
-writeBibTeXFile path references = withFile path WriteMode $ \outH -> do
-    forM_ references $ \r -> do
-        hPutStrLn outH ("@" ++ _bibIdent r ++ "{" ++ _bibId r ++ ",")
-        let propLines = ["  " ++ _bibPropKey prop ++ " = " ++ _bibPropVal prop | prop <- _bibProperties r]
-        hPutStr outH $ intercalate ",\n" propLines
-        hPutStrLn outH "\n}\n"
-
-
-bibTeXParser :: Parser BibTeX
-bibTeXParser = many1 referenceParser
-
-referenceParser :: Parser Reference
-referenceParser = do
-    _ <- char '@'
-    ident <- many1 letter
-    _ <- char '{'
-    bibkey <- many1 (satisfy (\c -> c /= ',' && not (isSpace c)))
-    _ <- char ','
-    _ <- string "\n  "
-    body <- sepBy1 parseBibProperty (string ",\n  ")
-    _ <- newline
-    _ <- string "}"
-    _ <- spaces
-    return $ Reference ident bibkey body
-
-parseBibProperty :: Parser BibProperty
-parseBibProperty = do
-    key <- many1 letter
-    _ <- spaces
-    _ <- char '='
-    _ <- spaces
-    val <- try parseQuotedVal <|> try parseCurelyBracketedVal <|> parseNonQuotedVal
-    return $ BibProperty key val
+writeBibTeXFile :: FilePath -> BibTeX -> IO ()
+writeBibTeXFile path entries = withFile path WriteMode $ \outH -> do
+    forM_ entries $ \bibEntry -> do
+        let entryString = writeEntry bibEntry
+        hPutStrLn outH entryString
+        hPutStrLn outH ""
   where
-    parseQuotedVal = do
-        o <- char '"'
-        -- this looks complicated because it needs to allow for the presence of escaped quotes \"
-        middle <- many (try (string "\\\"") <|> ((\a -> [a]) <$> satisfy (/= '"')))
-        c <- char '"'
-        return ([o] ++ concat middle ++ [c])
-    parseCurelyBracketedVal = do
-        o <- char '{'
-        middle <- manyTill anyChar newline
-        return ([o] ++ middle)
-    parseNonQuotedVal = many1 alphaNum
+    writeEntry :: BibEntry -> String
+    writeEntry (BibEntry entryType bibId items) =
+        let formatItem (name, value_) =
+                "  " ++ name ++ " = {" ++ value_ ++ "},\n"
+        in  "@" ++ entryType ++ "{" ++ bibId ++ ",\n" ++
+            concatMap formatItem items ++ "}\n"
+
+bibFileParser :: Parser [BibEntry]
+bibFileParser = bibCommentParser >> sepEndBy bibEntryParser bibCommentParser
+
+bibCommentParser :: Parser String
+bibCommentParser = many $ noneOf "@"
+
+bibEntryParser :: Parser BibEntry
+bibEntryParser =
+   do entryType <- char '@' >> identifier
+      braces $
+         liftM2 (BibEntry entryType)
+            (try bibIdentifier)
+            (comma >> sepEndBy assignment comma)
+
+identifier :: CharParser st String
+identifier = T.identifier lexer
+
+lexer :: T.TokenParser st
+lexer =
+   T.makeTokenParser $ emptyDef {
+      T.commentLine = "%",
+      T.identStart = alphaNum,
+      T.identLetter = alphaNum
+   }
+
+braces :: CharParser st a -> CharParser st a
+braces = T.braces lexer
+
+bibIdentifier :: Parser String
+bibIdentifier = lexeme $
+   liftM2 (:) (alphaNum <|> char '_') (many (alphaNum <|> oneOf "&;:-_.?+/"))
+
+lexeme :: CharParser st a -> CharParser st a
+lexeme = T.lexeme lexer
+
+assignment :: Parser (String, String)
+assignment =
+   liftM2 (,)
+      bibIdentifier
+      (equals >> value)
+
+equals :: CharParser st String
+equals = T.symbol lexer "="
+
+value :: Parser String
+value =
+   lexeme (many1 letter) <|> -- for fields like: month = jul
+   lexeme (many1 digit)  <|> -- for fields like: year = 2010
+   braces (texSequence '}') <|>
+   lexeme (between (char '"') (char '"') (texSequence '"'))
+
+texSequence :: Char -> Parser String
+texSequence closeChar =
+   liftM concat (many (texBlock closeChar))
+
+texBlock :: Char -> Parser String
+texBlock closeChar =
+   liftM3 (\open body close -> open : body ++ close : [])
+      (char '{') (texSequence '}') (char '}') <|>
+   sequence
+      [char '\\',
+       oneOf "=\\_{}[]$|'`^&%\".,~# " <|> letter] <|>
+   fmap (:[]) (noneOf [closeChar])
+
+
+comma :: CharParser st String
+comma = T.comma lexer
+

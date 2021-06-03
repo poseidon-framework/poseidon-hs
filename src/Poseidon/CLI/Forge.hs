@@ -1,6 +1,6 @@
 module Poseidon.CLI.Forge where
 
-import           Poseidon.BibFile           (writeBibTeXFile, Reference(..))
+import           Poseidon.BibFile           (writeBibTeXFile, BibTeX, BibEntry(..))
 import           Poseidon.EntitiesList      (EntitiesList,
                                              PoseidonEntity (..),
                                              readEntitiesFromFile)
@@ -187,10 +187,10 @@ filterJannoFiles entities packages =
                                   else filterJannoRows entities b
     in concatMap filterJannoOrNot packages
 
-filterBibEntries :: [JannoRow] -> [Reference] -> [Reference]
+filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 filterBibEntries samples references_ =
     let relevantPublications = nub . concat . map getJannoList . mapMaybe jPublication $ samples
-    in filter (\x-> _bibId x `elem` relevantPublications) references_
+    in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities relevantPackages = do

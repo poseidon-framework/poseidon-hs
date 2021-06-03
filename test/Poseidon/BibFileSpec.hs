@@ -1,6 +1,6 @@
 module Poseidon.BibFileSpec (spec) where
 
-import           Poseidon.BibFile        (readBibTeXFile, writeBibTeXFile, Reference(..))
+import           Poseidon.BibFile        (readBibTeXFile, writeBibTeXFile, BibEntry(..))
 
 import           Test.Hspec
 
@@ -20,6 +20,6 @@ testBibReadWriteReadCycle = describe
             testReferences2 <- readBibTeXFile testBibFileOut
 
             -- test outcome
-            map _bibId testReferences1 `shouldMatchList` ["A1971", "B2014", "P2020"]
-            map _bibId testReferences1 `shouldMatchList` map _bibId testReferences2
-            map _bibProperties testReferences1 `shouldMatchList` map _bibProperties testReferences2
+            map bibEntryId testReferences1 `shouldMatchList` ["A1971", "B2014", "P2020"]
+            map bibEntryId testReferences1 `shouldMatchList` map bibEntryId testReferences2
+            map bibEntryFields testReferences1 `shouldMatchList` map bibEntryFields testReferences2

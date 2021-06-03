@@ -22,7 +22,7 @@ module Poseidon.Package (
     defaultPackageReadOptions
 ) where
 
-import           Poseidon.BibFile           (BibTeX, readBibTeXFile, Reference(..))
+import           Poseidon.BibFile           (BibTeX, readBibTeXFile, BibEntry(..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
                                              loadJointGenotypeData)
@@ -430,7 +430,7 @@ checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
     let literatureInJanno = nub . concat . map getJannoList . mapMaybe jPublication $ janno
-        literatureInBib = nub $ map _bibId bibtex
+        literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "The following papers lack BibTeX entries: " ++
