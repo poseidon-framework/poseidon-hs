@@ -13,7 +13,6 @@ import           Text.Parsec.String   (Parser, parseFromFile)
 import qualified Text.Parsec.Token    as T
 import Text.ParserCombinators.Parsec.Char (CharParser)
 
--- this is a thin wrapper
 data BibEntry = BibEntry
     { bibEntryType   :: String
     , bibEntryId     :: String
@@ -29,6 +28,12 @@ readBibTeXFile bibPath = do
     case res of
         Left err   -> throwIO $ PoseidonBibTeXException bibPath (show err)
         Right res_ -> return res_
+
+{-
+Much of the code below was shamelessly copied from the existing Haskell package "bibtex"
+by Henning Thielemann. The package seems to be dead, and I needed to make some changes. So I
+copied the relevant code here and modified it as needed.
+-}
 
 writeBibTeXFile :: FilePath -> BibTeX -> IO ()
 writeBibTeXFile path entries = withFile path WriteMode $ \outH -> do
