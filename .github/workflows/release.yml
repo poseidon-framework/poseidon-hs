@@ -11,7 +11,7 @@ on:
 jobs:
   create_release:
     name: Create Github Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -41,7 +41,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-18.04, macOS-latest, windows-latest]
         cabal: ["3.2"]
         ghc: ["8.10.3"]
 

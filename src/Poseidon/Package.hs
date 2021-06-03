@@ -22,7 +22,8 @@ module Poseidon.Package (
     defaultPackageReadOptions
 ) where
 
-import           Poseidon.BibFile           (BibTeX, readBibTeXFile)
+import           Poseidon.BibFile           (BibEntry (..), BibTeX,
+                                             readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
                                              loadJointGenotypeData)
@@ -45,9 +46,9 @@ import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, intercalate, nub, sortOn,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
-import           Data.Text                  (unpack)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import           Data.Version               (Version, makeVersion)
+import           Data.Version               (Version (versionBranch),
+                                             makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
@@ -60,10 +61,9 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
-import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
+import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
-import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 {-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
 data PackageInfo = PackageInfo
@@ -264,7 +264,7 @@ readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
-    hPutStr stderr $ "Searching POSEIDON.yml files... "
+    hPutStr stderr "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
     hPutStrLn stderr "Initializing packages... "
@@ -432,7 +432,7 @@ checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
     let literatureInJanno = nub . concat . map getJannoList . mapMaybe jPublication $ janno
-        literatureInBib = nub $ map (unpack . unLiteral . refId) bibtex
+        literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "The following papers lack BibTeX entries: " ++
@@ -557,7 +557,7 @@ updateChecksumsInPackage pac = do
     indChkSum <-  if indExists
                   then Just <$> getChecksum (d </> indFile gd)
                   else return $ indFileChkSum gd
-    return $ pac {
+    let newPac = pac {
         posPacGenotypeData = gd {
             genoFileChkSum = genoChkSum,
             snpFileChkSum = snpChkSum,
@@ -566,6 +566,18 @@ updateChecksumsInPackage pac = do
         posPacJannoFileChkSum = jannoChkSum,
         posPacBibFileChkSum = bibChkSum
     }
+    if newPac == pac
+    then return pac
+    else do
+        (UTCTime today _) <- getCurrentTime
+        return $ newPac {
+            posPacPackageVersion =
+                makeVersion . updatePatchNumber . versionBranch <$>
+                posPacPackageVersion newPac,
+            posPacLastModified = Just today
+        }
+    where
+        updatePatchNumber xs = init xs ++ [last xs + 1]
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do

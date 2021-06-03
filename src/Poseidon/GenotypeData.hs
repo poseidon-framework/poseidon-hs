@@ -15,8 +15,8 @@ import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes, isNothing)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Producer, (>->), Pipe,
-                                            await, yield)
+import           Pipes                      (Pipe, Producer, await, yield,
+                                             (>->))
 import           Pipes.OrderedZip           (orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, SafeT)
@@ -26,7 +26,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.FilePath.Posix      ((</>))
+import           System.FilePath            ((</>))
 import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
@@ -95,10 +95,9 @@ instance ToJSON GenotypeFormatSpec where
         GenotypeFormatPlink      -> "PLINK"
         GenotypeFormatEigenstrat -> "EIGENSTRAT"
 
-data SNPSetSpec = 
-        SNPSet1240K
-    |   SNPSetHumanOrigins
-    |   SNPSetOther
+data SNPSetSpec = SNPSet1240K
+    | SNPSetHumanOrigins
+    | SNPSetOther
     deriving (Eq)
 
 instance Show SNPSetSpec where
@@ -108,30 +107,30 @@ instance Show SNPSetSpec where
 
 instance FromJSON SNPSetSpec where
     parseJSON = withText "snpSet" $ \v -> case v of
-        "1240K"         -> pure SNPSet1240K
-        "HumanOrigins"  -> pure SNPSetHumanOrigins
-        "Other"         -> pure SNPSetOther
-        _               -> fail ("unknown snpSet " ++ T.unpack v)
+        "1240K"        -> pure SNPSet1240K
+        "HumanOrigins" -> pure SNPSetHumanOrigins
+        "Other"        -> pure SNPSetOther
+        _              -> fail ("unknown snpSet " ++ T.unpack v)
 
 instance ToJSON SNPSetSpec where
     toJSON a = case a of
-        SNPSet1240K         -> "1240K"
-        SNPSetHumanOrigins  -> "HumanOrigins"
-        SNPSetOther         -> "Other"
+        SNPSet1240K        -> "1240K"
+        SNPSetHumanOrigins -> "HumanOrigins"
+        SNPSetOther        -> "Other"
 
 snpSetMergeList :: [SNPSetSpec] -> Bool -> SNPSetSpec
 snpSetMergeList (x:xs) intersect = foldr (\a b -> snpSetMerge a b intersect) x xs
 snpSetMergeList _ _ = error "snpSetMergeList: This should never happen"
 
 snpSetMerge :: SNPSetSpec -> SNPSetSpec -> Bool -> SNPSetSpec
-snpSetMerge SNPSet1240K         SNPSet1240K         _       = SNPSet1240K
-snpSetMerge SNPSetHumanOrigins  SNPSetHumanOrigins  _       = SNPSetHumanOrigins
-snpSetMerge SNPSetOther         _                   _       = SNPSetOther
-snpSetMerge _                   SNPSetOther         _       = SNPSetOther
-snpSetMerge SNPSet1240K         SNPSetHumanOrigins  True    = SNPSetHumanOrigins
-snpSetMerge SNPSetHumanOrigins  SNPSet1240K         True    = SNPSetHumanOrigins
-snpSetMerge SNPSet1240K         SNPSetHumanOrigins  False   = SNPSet1240K
-snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False   = SNPSet1240K
+snpSetMerge SNPSet1240K         SNPSet1240K         _     = SNPSet1240K
+snpSetMerge SNPSetHumanOrigins  SNPSetHumanOrigins  _     = SNPSetHumanOrigins
+snpSetMerge SNPSetOther         _                   _     = SNPSetOther
+snpSetMerge _                   SNPSetOther         _     = SNPSetOther
+snpSetMerge SNPSet1240K         SNPSetHumanOrigins  True  = SNPSetHumanOrigins
+snpSetMerge SNPSetHumanOrigins  SNPSet1240K         True  = SNPSetHumanOrigins
+snpSetMerge SNPSet1240K         SNPSetHumanOrigins  False = SNPSet1240K
+snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory
