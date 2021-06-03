@@ -24,7 +24,7 @@ library
     build-depends:      base >= 4.7 && < 5, sequence-formats, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, foldl, pipes-ordered-zip, pipes-group, table-layout, lens-family,
-                        cassava, pandoc-citeproc, either, ansi-terminal, pureMD5,
+                        cassava, pandoc-citeproc, ansi-terminal, pureMD5,
                         yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri
     default-language:   Haskell2010
@@ -49,7 +49,7 @@ Test-Suite poseidon-tools-tests
   main-is:             Spec.hs
   hs-source-dirs:      test
   build-depends:       base, hspec, poseidon-hs, bytestring,
-                       raw-strings-qq, yaml, time, transformers,
+                       raw-strings-qq, yaml, time,
                        pandoc-citeproc, text, QuickCheck
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
