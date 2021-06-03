@@ -1,6 +1,6 @@
 module Poseidon.CLI.Forge where
 
-import           Poseidon.BibFile           (writeBibTeXFile)
+import           Poseidon.BibFile           (writeBibTeXFile, Reference(..))
 import           Poseidon.EntitiesList      (EntitiesList,
                                              PoseidonEntity (..),
                                              readEntitiesFromFile)
@@ -36,7 +36,7 @@ import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
-import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
+-- import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -192,7 +192,7 @@ filterJannoFiles entities packages =
 filterBibEntries :: [JannoRow] -> [Reference] -> [Reference]
 filterBibEntries samples references_ =
     let relevantPublications = nub . concat . map getJannoList . mapMaybe jPublication $ samples
-    in filter (\x-> (unpack . unLiteral . refId) x `elem` relevantPublications) references_
+    in filter (\x-> _bibId x `elem` relevantPublications) references_
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities relevantPackages = do

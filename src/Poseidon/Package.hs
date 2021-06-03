@@ -22,7 +22,7 @@ module Poseidon.Package (
     defaultPackageReadOptions
 ) where
 
-import           Poseidon.BibFile           (BibTeX, readBibTeXFile)
+import           Poseidon.BibFile           (BibTeX, readBibTeXFile, Reference(..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
                                              loadJointGenotypeData)
@@ -63,7 +63,7 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
-import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
+-- import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 {-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
 data PackageInfo = PackageInfo
@@ -264,7 +264,7 @@ readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
-    hPutStr stderr $ "Searching POSEIDON.yml files... "
+    hPutStr stderr "Searching POSEIDON.yml files... "
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFiles) ++ " found"
     hPutStrLn stderr "Initializing packages... "
@@ -432,7 +432,7 @@ checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
     let literatureInJanno = nub . concat . map getJannoList . mapMaybe jPublication $ janno
-        literatureInBib = nub $ map (unpack . unLiteral . refId) bibtex
+        literatureInBib = nub $ map _bibId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "The following papers lack BibTeX entries: " ++
