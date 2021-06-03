@@ -24,7 +24,6 @@ import           Control.Monad              (forM, unless, when)
 import           Data.List                  (intercalate, intersect, nub,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
-import           Data.Text                  (unpack)
 import qualified Data.Vector                as V
 import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import qualified Pipes.Prelude              as P
@@ -36,7 +35,6 @@ import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
--- import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions

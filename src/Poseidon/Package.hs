@@ -45,7 +45,6 @@ import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, intercalate, nub, sortOn,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
-import           Data.Text                  (unpack)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version (versionBranch), makeVersion)
 import           Data.Yaml                  (decodeEither')
@@ -63,7 +62,6 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
 import           System.FilePath.Posix      (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
--- import           Text.CSL.Reference         (Reference (..), refId, unLiteral)
 
 {-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
 data PackageInfo = PackageInfo
