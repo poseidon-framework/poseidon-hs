@@ -15,7 +15,7 @@ import           Text.Layout.Table      (asciiRoundS, column, def,
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
     { _summariseBaseDirs :: [FilePath]
-    , _optRawOutput :: Bool
+    , _summariseRawOutput :: Bool
     }
 
 pacReadOpts :: PackageReadOptions

@@ -8,6 +8,7 @@ import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
 import           Poseidon.CLI.List          (ListOptions (..), runList, 
                                              RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.CLI.Summarise     (SummariseOptions (..), runSummarise)
+import           Poseidon.CLI.Survey        (SurveyOptions(..), runSurvey)
 import           Poseidon.GenotypeData      (GenotypeFormatSpec (..), 
                                              SNPSetSpec (..))
 import           Poseidon.Package           (getChecksum)
@@ -64,6 +65,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     testPipelineList  testDir checkFilePath
     hPutStrLn stderr "--- summarise ---"
     testPipelineSummarise testDir checkFilePath
+    hPutStrLn stderr "--- survey ---"
+    testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- fetch ---"
     testPipelineFetch testDir checkFilePath
     -- close error sink
@@ -127,14 +130,27 @@ testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
     let summariseOpts1 = SummariseOptions { 
           _summariseBaseDirs = [testDir]
-        , _optRawOutput = False
+        , _summariseRawOutput = False
     }
     runAndChecksumStdOut checkFilePath testDir (runSummarise summariseOpts1) "summarise" 1
     let summariseOpts2 = SummariseOptions { 
           _summariseBaseDirs = [testDir]
-        , _optRawOutput = True
+        , _summariseRawOutput = True
     }
     runAndChecksumStdOut checkFilePath testDir (runSummarise summariseOpts2) "summarise" 2
+
+testPipelineSurvey :: FilePath -> FilePath -> IO ()
+testPipelineSurvey testDir checkFilePath = do
+    let surveyOpts1 = SurveyOptions { 
+          _surveyBaseDirs = [testDir]
+        , _surveyRawOutput = False
+    }
+    runAndChecksumStdOut checkFilePath testDir (runSurvey surveyOpts1) "survey" 1
+    let surveyOpts2 = SurveyOptions { 
+          _surveyBaseDirs = [testDir]
+        , _surveyRawOutput = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (runSurvey surveyOpts2) "survey" 2
 
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
