@@ -9,7 +9,7 @@ import           Poseidon.CLI.List          (ListOptions (..), runList,
                                              RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.CLI.Summarise     (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey        (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Validate      (ValidateOptions(..), runValidate)
+--import           Poseidon.CLI.Validate      (ValidateOptions(..), runValidate)
 import           Poseidon.GenotypeData      (GenotypeFormatSpec (..), 
                                              SNPSetSpec (..))
 import           Poseidon.Package           (getChecksum)
