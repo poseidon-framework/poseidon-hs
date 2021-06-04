@@ -38,14 +38,14 @@ import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _jaBaseDirs   :: [FilePath]
-    , _entityList   :: EntitiesList
-    , _entityFiles   :: [FilePath]
-    , _intersect    :: Bool
-    , _outPacPath   :: FilePath
-    , _outPacName   :: String
-    , _outFormat    :: GenotypeFormatSpec
-    , _showWarnings :: Bool
+    { _forgeBaseDirs     :: [FilePath]
+    , _forgeEntityList   :: EntitiesList
+    , _forgeEntityFiles  :: [FilePath]
+    , _forgeIntersect    :: Bool
+    , _forgeOutPacPath   :: FilePath
+    , _forgeOutPacName   :: String
+    , _forgeOutFormat    :: GenotypeFormatSpec
+    , _forgeShowWarnings :: Bool
     }
 
 pacReadOpts :: PackageReadOptions

@@ -21,6 +21,10 @@ b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
 bb08bacdf59553b52f3525f134a600d8 genoconvert Schiffels/Schiffels.bed
 67c3a8780a816ba9bf1bb9636d14d277 genoconvert Schiffels/Schiffels.bim
 a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/Schiffels.fam
+814d71c65037eb20bb8a636e804c9dd9 forge ForgePac1/ForgePac1.geno
+0e8a3a81039f3344ec598da10475af63 forge ForgePac1/ForgePac1.janno
+e8a7d4c9ac62234f36ea2d5b4d0a17df forge ForgePac2/ForgePac2.bed
+0e8a3a81039f3344ec598da10475af63 forge ForgePac2/ForgePac2.janno
 53edcde25d7b66b94ea9ee306a315864 fetch 2019_Nikitin_LBK/POSEIDON.yml
 4dedd209cdc4d4a986c184d70dedecd1 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam

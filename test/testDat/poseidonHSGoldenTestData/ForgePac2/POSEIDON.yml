@@ -1,0 +1,16 @@
+poseidonVersion: 2.1.0
+title: ForgePac2
+description: Empty package template. Please add a description
+contributor:
+- name: John Doe
+  email: john@doe.net
+packageVersion: 0.1.0
+lastModified: 2021-06-04
+genotypeData:
+  format: PLINK
+  genoFile: ForgePac2.bed
+  snpFile: ForgePac2.bim
+  indFile: ForgePac2.fam
+  snpSet: Other
+jannoFile: ForgePac2.janno
+bibFile: ForgePac2.bib

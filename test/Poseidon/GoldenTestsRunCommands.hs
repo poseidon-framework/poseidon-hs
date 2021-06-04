@@ -6,6 +6,7 @@ import           Poseidon.EntitiesList      (PoseidonEntity (..))
 import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge)
 import           Poseidon.CLI.List          (ListOptions (..), runList, 
                                              RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.CLI.Summarise     (SummariseOptions (..), runSummarise)
@@ -71,6 +72,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- genoconvert ---"
     testPipelineGenoconvert testDir checkFilePath
+    hPutStrLn stderr "--- forge ---"
+    testPipelineForge testDir checkFilePath
     hPutStrLn stderr "--- fetch ---"
     testPipelineFetch testDir checkFilePath
     -- hPutStrLn stderr "--- validate ---"
@@ -201,6 +204,37 @@ testPipelineGenoconvert testDir checkFilePath = do
           "Schiffels" </> "Schiffels.bed"
         , "Schiffels" </> "Schiffels.bim"
         , "Schiffels" </> "Schiffels.fam"
+        ]
+
+testPipelineForge :: FilePath -> FilePath -> IO ()
+testPipelineForge testDir checkFilePath = do
+    let forgeOpts1 = ForgeOptions { 
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeEntityList   = [Group "POP2", Ind "SAMPLE2", Ind "SAMPLE4"]
+        , _forgeEntityFiles  = []
+        , _forgeIntersect    = False
+        , _forgeOutPacPath   = testDir </> "ForgePac1"
+        , _forgeOutPacName   = "ForgePac1"
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeShowWarnings = False
+    }
+    runAndChecksumFiles checkFilePath testDir (runForge forgeOpts1) "forge" [
+          "ForgePac1" </> "ForgePac1.geno"
+        , "ForgePac1" </> "ForgePac1.janno"
+        ]
+    let forgeOpts2 = ForgeOptions { 
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeEntityList   = [Group "POP2", Ind "SAMPLE2", Ind "SAMPLE4"]
+        , _forgeEntityFiles  = []
+        , _forgeIntersect    = False
+        , _forgeOutPacPath   = testDir </> "ForgePac2"
+        , _forgeOutPacName   = "ForgePac2"
+        , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeShowWarnings = False
+    }
+    runAndChecksumFiles checkFilePath testDir (runForge forgeOpts2) "forge" [
+          "ForgePac2" </> "ForgePac2.bed"
+        , "ForgePac2" </> "ForgePac2.janno"
         ]
 
 testPipelineFetch :: FilePath -> FilePath -> IO ()
