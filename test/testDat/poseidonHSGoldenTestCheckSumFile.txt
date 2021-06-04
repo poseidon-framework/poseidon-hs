@@ -1,10 +1,10 @@
 Checksums for trident CLI output
 Automatically generated with: poseidon-devtools updateGoldenTests
 
-6fb8c949312c71c278fee5f509152c24 init Schiffels/POSEIDON.yml
+dcac0bf1a420dbab2aead8e035ea5d40 init Schiffels/POSEIDON.yml
 04686d2b18f41b9137807a0d5521670d init Schiffels/Schiffels.janno
 95b093eefacc1d6499afcfe89b15d56c init Schiffels/geno.txt
-c131f92cf64951fa36cfd6a937edb58c init Wang/POSEIDON.yml
+c04c18282c5aecdb4d9a81c9d83a697f init Wang/POSEIDON.yml
 51731d04de568ede6152a81e9c1420da init Wang/Wang.janno
 ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
 338208621f2547bbb0eb2f8abf17db7d list list1
@@ -15,6 +15,12 @@ a9f5b04f5b40eeff3aabf1ad7bd22771 list list4
 fb074b54961035f8903f3055c0bbb24e summarise summarise2
 0a3dc431b6d4f0200127eeaaf0db9fa0 survey survey1
 a90879ebee3943dba0596c115b951c05 survey survey2
-e93e57cf41e62af7d037f935f53d757e fetch 2019_Nikitin_LBK/POSEIDON.yml
+3feaa876c5d05fd000470c5ba840cc2d genoconvert Wang/Wang.geno
+b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
+2faf8a7b87037451d4fd5ae9cc9af460 genoconvert Wang/Wang.ind
+bb08bacdf59553b52f3525f134a600d8 genoconvert Schiffels/Schiffels.bed
+67c3a8780a816ba9bf1bb9636d14d277 genoconvert Schiffels/Schiffels.bim
+a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/Schiffels.fam
+53edcde25d7b66b94ea9ee306a315864 fetch 2019_Nikitin_LBK/POSEIDON.yml
 4dedd209cdc4d4a986c184d70dedecd1 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam

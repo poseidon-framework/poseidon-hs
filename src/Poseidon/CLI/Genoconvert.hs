@@ -21,9 +21,9 @@ import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _baseDirs :: [FilePath]
-    , _outFormat :: GenotypeFormatSpec
-    , _removeOld :: Bool
+    { _genoconvertBaseDirs :: [FilePath]
+    , _genoConvertOutFormat :: GenotypeFormatSpec
+    , _genoconvertRemoveOld :: Bool
     }
 
 pacReadOpts :: PackageReadOptions

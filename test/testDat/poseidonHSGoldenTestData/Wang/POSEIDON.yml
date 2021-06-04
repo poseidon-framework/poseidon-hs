@@ -5,12 +5,12 @@ contributor:
 - name: John Doe
   email: john@doe.net
 packageVersion: 0.1.0
-lastModified: 2021-06-03
+lastModified: 2021-06-04
 genotypeData:
-  format: PLINK
-  genoFile: Wang_2020.bed
-  snpFile: Wang_2020.bim
-  indFile: Wang_2020.fam
+  format: EIGENSTRAT
+  genoFile: Wang.geno
+  snpFile: Wang.snp
+  indFile: Wang.ind
   snpSet: Other
 jannoFile: Wang.janno
 bibFile: Wang.bib

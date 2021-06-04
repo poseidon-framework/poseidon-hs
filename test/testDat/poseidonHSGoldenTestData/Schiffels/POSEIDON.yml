@@ -5,12 +5,12 @@ contributor:
 - name: John Doe
   email: john@doe.net
 packageVersion: 0.1.0
-lastModified: 2021-06-03
+lastModified: 2021-06-04
 genotypeData:
-  format: EIGENSTRAT
-  genoFile: geno.txt
-  snpFile: snp.txt
-  indFile: ind.txt
+  format: PLINK
+  genoFile: Schiffels.bed
+  snpFile: Schiffels.bim
+  indFile: Schiffels.fam
   snpSet: Other
 jannoFile: Schiffels.janno
 bibFile: Schiffels.bib

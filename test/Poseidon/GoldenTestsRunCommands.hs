@@ -3,6 +3,7 @@ module Poseidon.GoldenTestsRunCommands (
     ) where
 
 import           Poseidon.EntitiesList      (PoseidonEntity (..))
+import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
 import           Poseidon.CLI.List          (ListOptions (..), runList, 
@@ -68,6 +69,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     testPipelineSummarise testDir checkFilePath
     hPutStrLn stderr "--- survey ---"
     testPipelineSurvey testDir checkFilePath
+    hPutStrLn stderr "--- genoconvert ---"
+    testPipelineGenoconvert testDir checkFilePath
     hPutStrLn stderr "--- fetch ---"
     testPipelineFetch testDir checkFilePath
     -- hPutStrLn stderr "--- validate ---"
@@ -176,6 +179,29 @@ testPipelineSurvey testDir checkFilePath = do
         , _surveyRawOutput = True
     }
     runAndChecksumStdOut checkFilePath testDir (runSurvey surveyOpts2) "survey" 2
+
+testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
+testPipelineGenoconvert testDir checkFilePath = do
+    let genoconvertOpts1 = GenoconvertOptions {
+          _genoconvertBaseDirs = [testDir </> "Wang"]
+        , _genoConvertOutFormat = GenotypeFormatEigenstrat
+        , _genoconvertRemoveOld = False
+    }
+    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts1) "genoconvert" [
+          "Wang" </> "Wang.geno"
+        , "Wang" </> "Wang.snp"
+        , "Wang" </> "Wang.ind"
+        ]
+    let genoconvertOpts2 = GenoconvertOptions {
+          _genoconvertBaseDirs = [testDir </> "Schiffels"]
+        , _genoConvertOutFormat = GenotypeFormatPlink
+        , _genoconvertRemoveOld = False
+    }
+    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts2) "genoconvert" [
+          "Schiffels" </> "Schiffels.bed"
+        , "Schiffels" </> "Schiffels.bim"
+        , "Schiffels" </> "Schiffels.fam"
+        ]
 
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
