@@ -184,6 +184,7 @@ validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseVerbose
                                     <*> parseIgnoreGeno
+                                    <*> parseNoExitCode
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
@@ -366,6 +367,13 @@ parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <> 
     OP.help "ignore SNP and GenoFile for the validation" <>
+    OP.hidden
+    )
+
+parseNoExitCode :: OP.Parser Bool
+parseNoExitCode = OP.switch (
+    OP.long "noExitCode" <> 
+    OP.help "do not produce an explicit exit code" <>
     OP.hidden
     )
 

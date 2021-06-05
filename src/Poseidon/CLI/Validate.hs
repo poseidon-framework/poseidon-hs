@@ -9,19 +9,21 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    PackageReadOptions (..), defaultPackageReadOptions)
 
 import           Control.Exception (SomeException, catch)
+import           Control.Monad     (unless)
 import           Data.List         (foldl')
 import           Pipes             (runEffect, (>->))
 import qualified Pipes.Prelude     as P
 import           Pipes.Safe        (runSafeT)
 import           System.Exit       (exitFailure, exitSuccess)
-import           System.IO         (hPutStrLn, stderr)
+import           System.IO         (hPutStrLn, stderr, stdout)
 
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
-    { _validateBaseDirs    :: [FilePath]
-    , _validateVerbose    :: Bool
-    , _validateIgnoreGeno :: Bool
+    { _validateBaseDirs     :: [FilePath]
+    , _validateVerbose      :: Bool
+    , _validateIgnoreGeno   :: Bool
+    , _validateNoExitCode   :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -32,7 +34,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runValidate :: ValidateOptions -> IO ()
-runValidate (ValidateOptions baseDirs verbose ignoreGeno) = do
+runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
     posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
     allPackages <- readPoseidonPackageCollection 
         pacReadOpts {_readOptVerbose = verbose, _readOptIgnoreGeno = ignoreGeno} 
@@ -46,11 +48,11 @@ runValidate (ValidateOptions baseDirs verbose ignoreGeno) = do
              else return False
     if check
     then do
-        hPutStrLn stderr "Validation passed ✓"
-        exitSuccess
+        hPutStrLn stdout "Validation passed ✓"
+        unless noExitCode exitSuccess
     else do
-        hPutStrLn stderr "Validation failed ✗"
-        exitFailure
+        hPutStrLn stdout "Validation failed ✗"
+        unless noExitCode exitFailure
 
 checkJointGenotypeData :: [PoseidonPackage] -> IO Bool
 checkJointGenotypeData packageList = do

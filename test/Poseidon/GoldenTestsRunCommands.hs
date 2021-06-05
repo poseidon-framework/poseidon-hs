@@ -12,7 +12,7 @@ import           Poseidon.CLI.List              (ListOptions (..), runList,
                                                  RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
---import         Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
+import         Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
 import           Poseidon.GenotypeData          (GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..))
 import           Poseidon.Package               (getChecksum)
@@ -67,6 +67,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     testPipelineInit  testDir checkFilePath testPacsDir
     hPutStrLn stderr "--- checksumupdate ---"
     testPipelineChecksumupdate  testDir checkFilePath
+    hPutStrLn stderr "--- validate ---"
+    testPipelineValidate testDir checkFilePath
     hPutStrLn stderr "--- list ---"
     testPipelineList  testDir checkFilePath
     hPutStrLn stderr "--- summarise ---"
@@ -79,8 +81,6 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     testPipelineForge testDir checkFilePath
     hPutStrLn stderr "--- fetch ---"
     testPipelineFetch testDir checkFilePath
-    -- hPutStrLn stderr "--- validate ---"
-    -- testPipelineValidate testDir checkFilePath
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -117,26 +117,23 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         ]
 
 
--- testPipelineValidate :: FilePath -> FilePath -> IO ()
--- testPipelineValidate testDir checkFilePath = do
---     let validateOpts1 = ValidateOptions {
---           _validateBaseDirs     = [testDir]
---         , _validateVerbose      = False
---         , _validateIgnoreGeno   = False
---     }
---     runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts1) "validate" 1
---     let validateOpts2 = ValidateOptions {
---           _validateBaseDirs     = [testDir]
---         , _validateVerbose      = True
---         , _validateIgnoreGeno   = False
---     }
---     runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts2) "validate" 2
---     let validateOpts3 = ValidateOptions {
---           _validateBaseDirs     = [testDir]
---         , _validateVerbose      = True
---         , _validateIgnoreGeno   = True
---     }
---     runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts3) "validate" 3
+testPipelineValidate :: FilePath -> FilePath -> IO ()
+testPipelineValidate testDir checkFilePath = do
+    let validateOpts1 = ValidateOptions {
+          _validateBaseDirs     = [testDir]
+        , _validateVerbose      = False
+        , _validateIgnoreGeno   = False
+        , _validateNoExitCode   = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts1) "validate" 1
+    let validateOpts2 = validateOpts1 {
+          _validateVerbose      = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts2) "validate" 2
+    let validateOpts3 = validateOpts2 {
+          _validateIgnoreGeno   = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts3) "validate" 3
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
