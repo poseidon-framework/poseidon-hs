@@ -88,13 +88,13 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
 testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineInit testDir checkFilePath testPacsDir = do
     let initOpts1 = InitOptions {
-          _inGenoFormat = GenotypeFormatEigenstrat
-        , _inGenoSnpSet = SNPSetOther
-        , _inGenoFile   = testPacsDir </> "Schiffels_2016" </> "geno.txt"
-        , _inSnpFile    = testPacsDir </> "Schiffels_2016" </> "snp.txt"
-        , _inIndFile    = testPacsDir </> "Schiffels_2016" </> "ind.txt"
-        , _outPacPath   = testDir </> "Schiffels"
-        , _outPacName   = "Schiffels"
+          _initGenoFormat = GenotypeFormatEigenstrat
+        , _initGenoSnpSet = SNPSetOther
+        , _initGenoFile   = testPacsDir </> "Schiffels_2016" </> "geno.txt"
+        , _initSnpFile    = testPacsDir </> "Schiffels_2016" </> "snp.txt"
+        , _initIndFile    = testPacsDir </> "Schiffels_2016" </> "ind.txt"
+        , _initPacPath   = testDir </> "Schiffels"
+        , _initPacName   = "Schiffels"
     }
     runAndChecksumFiles checkFilePath testDir (runInit initOpts1) "init" [
           "Schiffels" </> "POSEIDON.yml"
@@ -102,13 +102,13 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , "Schiffels" </> "geno.txt"
         ]
     let initOpts2 = InitOptions {
-          _inGenoFormat = GenotypeFormatPlink 
-        , _inGenoSnpSet = SNPSetOther
-        , _inGenoFile   = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
-        , _inSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
-        , _inIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
-        , _outPacPath   = testDir </> "Wang"
-        , _outPacName   = "Wang"
+          _initGenoFormat = GenotypeFormatPlink 
+        , _initGenoSnpSet = SNPSetOther
+        , _initGenoFile   = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
+        , _initSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
+        , _initIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
+        , _initPacPath   = testDir </> "Wang"
+        , _initPacName   = "Wang"
     }
     runAndChecksumFiles checkFilePath testDir (runInit initOpts2) "init" [
           "Wang" </> "POSEIDON.yml"
@@ -141,22 +141,22 @@ testPipelineInit testDir checkFilePath testPacsDir = do
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
     let listOpts1 = ListOptions {
-          _loRepoLocation  = RepoLocal [testDir </> "Schiffels", testDir  </> "Wang"]
-        , _loListEntity    = ListPackages
-        , _loRawOutput     = False
-        , _optIgnoreGeno   = False
+          _listRepoLocation  = RepoLocal [testDir </> "Schiffels", testDir  </> "Wang"]
+        , _listListEntity    = ListPackages
+        , _listRawOutput     = False
+        , _listIgnoreGeno   = False
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
-          _loListEntity    = ListGroups
+          _listListEntity    = ListGroups
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
-          _loListEntity    = ListIndividuals ["Country", "Nr_autosomal_SNPs"]
+          _listListEntity    = ListIndividuals ["Country", "Nr_autosomal_SNPs"]
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {
-          _loRawOutput     = True
+          _listRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts4) "list" 4
 

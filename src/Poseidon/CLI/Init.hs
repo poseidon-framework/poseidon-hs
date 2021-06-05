@@ -16,13 +16,13 @@ import           System.FilePath            ((<.>), (</>), takeFileName)
 import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
-    { _inGenoFormat :: GenotypeFormatSpec
-    , _inGenoSnpSet :: SNPSetSpec
-    , _inGenoFile :: FilePath
-    , _inSnpFile :: FilePath
-    , _inIndFile :: FilePath
-    , _outPacPath :: FilePath
-    , _outPacName :: String
+    { _initGenoFormat :: GenotypeFormatSpec
+    , _initGenoSnpSet :: SNPSetSpec
+    , _initGenoFile :: FilePath
+    , _initSnpFile :: FilePath
+    , _initIndFile :: FilePath
+    , _initPacPath :: FilePath
+    , _initPacName :: String
     }
 
 runInit :: InitOptions -> IO ()
