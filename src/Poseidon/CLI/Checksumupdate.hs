@@ -10,7 +10,7 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
 import           System.IO                  (hPutStrLn, stderr)
 
 data ChecksumupdateOptions = ChecksumupdateOptions
-    { _jaBaseDirs :: [FilePath]
+    { _checksumupdateBaseDirs :: [FilePath]
     }
 
 pacReadOpts :: PackageReadOptions

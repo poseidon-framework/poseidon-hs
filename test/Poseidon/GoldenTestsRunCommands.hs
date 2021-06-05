@@ -2,25 +2,26 @@ module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.EntitiesList      (PoseidonEntity (..))
-import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.CLI.Init          (InitOptions (..), runInit)
-import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge)
-import           Poseidon.CLI.List          (ListOptions (..), runList, 
-                                             RepoLocationSpec (..), ListEntity (..))
-import           Poseidon.CLI.Summarise     (SummariseOptions (..), runSummarise)
-import           Poseidon.CLI.Survey        (SurveyOptions(..), runSurvey)
---import           Poseidon.CLI.Validate      (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData      (GenotypeFormatSpec (..), 
-                                             SNPSetSpec (..))
-import           Poseidon.Package           (getChecksum)
+import           Poseidon.EntitiesList          (PoseidonEntity (..))
+import           Poseidon.CLI.Checksumupdate    (ChecksumupdateOptions (..), runChecksumupdate)
+import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
+import           Poseidon.CLI.Init              (InitOptions (..), runInit)
+import           Poseidon.CLI.Fetch             (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Forge             (ForgeOptions (..), runForge)
+import           Poseidon.CLI.List              (ListOptions (..), runList, 
+                                                 RepoLocationSpec (..), ListEntity (..))
+import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
+import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
+--import         Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
+import           Poseidon.GenotypeData          (GenotypeFormatSpec (..), 
+                                                 SNPSetSpec (..))
+import           Poseidon.Package               (getChecksum)
 
-import           Control.Monad              (when, unless)
-import           GHC.IO.Handle              (hDuplicateTo, hDuplicate, hClose)
-import           System.Directory           (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
-import           System.FilePath.Posix      ((</>))
-import           System.IO                  (stdout, IOMode(WriteMode), withFile, openFile, stderr, hPutStrLn)
+import           Control.Monad                  (when, unless)
+import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
+import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
+import           System.FilePath.Posix          ((</>))
+import           System.IO                      (stdout, IOMode(WriteMode), withFile, openFile, stderr, hPutStrLn)
 
 tempTestDir :: FilePath
 tempTestDir = "/tmp/poseidonHSGoldenTestData"
@@ -64,6 +65,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     -- run CLI pipeline
     hPutStrLn stderr "--- init ---"
     testPipelineInit  testDir checkFilePath testPacsDir
+    hPutStrLn stderr "--- checksumupdate ---"
+    testPipelineChecksumupdate  testDir checkFilePath
     hPutStrLn stderr "--- list ---"
     testPipelineList  testDir checkFilePath
     hPutStrLn stderr "--- summarise ---"
@@ -235,6 +238,15 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir (runForge forgeOpts2) "forge" [
           "ForgePac2" </> "ForgePac2.bed"
         , "ForgePac2" </> "ForgePac2.janno"
+        ]
+
+testPipelineChecksumupdate :: FilePath -> FilePath -> IO ()
+testPipelineChecksumupdate testDir checkFilePath = do
+    let checksumOpts1 = ChecksumupdateOptions { 
+          _checksumupdateBaseDirs = [testDir </> "Schiffels"]
+        }
+    runAndChecksumFiles checkFilePath testDir (runChecksumupdate checksumOpts1) "checksumupdate" [
+          "Schiffels" </> "POSEIDON.yml"
         ]
 
 testPipelineFetch :: FilePath -> FilePath -> IO ()

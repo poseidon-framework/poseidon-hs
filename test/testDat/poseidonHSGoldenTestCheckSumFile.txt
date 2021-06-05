@@ -1,12 +1,13 @@
 Checksums for trident CLI output
 Automatically generated with: poseidon-devtools updateGoldenTests
 
-dcac0bf1a420dbab2aead8e035ea5d40 init Schiffels/POSEIDON.yml
+fef79e81f1e35653fd507b8de4a4c3df init Schiffels/POSEIDON.yml
 04686d2b18f41b9137807a0d5521670d init Schiffels/Schiffels.janno
 95b093eefacc1d6499afcfe89b15d56c init Schiffels/geno.txt
-c04c18282c5aecdb4d9a81c9d83a697f init Wang/POSEIDON.yml
+b69e22b6af449870242e597c74c21697 init Wang/POSEIDON.yml
 51731d04de568ede6152a81e9c1420da init Wang/Wang.janno
 ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
+f4412d50110ca306919f497440b0d1a5 checksumupdate Schiffels/POSEIDON.yml
 338208621f2547bbb0eb2f8abf17db7d list list1
 c27895a4e15eb46f0d4473cd37488cae list list2
 73371da7bc569c259a996b8cb0988572 list list3
