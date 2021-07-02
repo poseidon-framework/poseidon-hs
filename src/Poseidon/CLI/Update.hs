@@ -44,25 +44,46 @@ pacReadOpts = defaultPackageReadOptions {
 runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdate ignoreGeno date newContributors log force) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    -- updating poseidon version
     let updatedPacsPoseidonVersion = do
         if isNothing poseidonVersion
         then allPackages
         else map (updatePoseidonVersion poseidonVersion) allPackages
+    -- updating checksums
     hPutStrLn stderr "Calculating and updating checksums"
     updatedPacsChecksums <-
         if not checksumUpdate
         then return updatedPacsPoseidonVersion
         else mapM (updateChecksums ignoreGeno) updatedPacsPoseidonVersion
+    -- see which packages were changed and need to be updated formally
     let updatedPacsChanged = do
         if force
         then updatedPacsChecksums
-        else map fst $ filter (uncurry (/=)) $ zip updatedPacsChecksums allPackages 
+        else map fst $ filter (uncurry (/=)) $ zip updatedPacsChecksums allPackages
     if null updatedPacsChanged
     then hPutStrLn stderr "No packages changed"
     else do
+        -- update yml files
         let updatedPacsMeta = map (updateMeta versionComponent date newContributors) updatedPacsChanged
+        -- write/update CHANGELOG files
+        hPutStrLn stderr "Updating CHANGELOG files"
+        updatedPacsWithChangelog <- mapM writeOrUpdateChangelogFile updatedPacsMeta
+        -- write yml files with all changes
         hPutStrLn stderr "Writing modified POSEIDON.yml files"
-        mapM_ writePoseidonPackage updatedPacsMeta
+        mapM_ writePoseidonPackage updatedPacsWithChangelog
+
+writeOrUpdateChangelogFile :: PoseidonPackage -> IO PoseidonPackage
+writeOrUpdateChangelogFile pac = do
+    case posPacChangelogFile pac of
+        Nothing -> do
+            writeFile (posPacBaseDir pac </> "CHANGELOG.md") $ "V " ++ show (posPacPoseidonVersion pac) ++ ": ..."
+            return pac {
+                posPacChangelogFile = Just "CHANGELOG.md"
+            }
+        Just x -> do
+            changelogFile <- readFile (posPacBaseDir pac </> x)
+            writeFile (posPacBaseDir pac </> x) $ "V " ++ show (posPacPoseidonVersion pac) ++ ": ...\n" ++ changelogFile
+            return pac
 
 updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
 updateMeta versionComponent date newContributors pac = 
@@ -80,16 +101,6 @@ updateMeta versionComponent date newContributors pac =
                 Patch -> [v !! 0, v !! 1, (v !! 2) + 1]
                 Minor -> [v !! 0, (v !! 1) + 1, v !! 2]
                 Major -> [(v !! 0) + 1, v !! 1, v !! 2]
-
-updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonPackage
-updatePoseidonVersion maybeNewPoseidonVersion pac = pac {
-        posPacPoseidonVersion = fromMaybe (posPacPoseidonVersion pac) maybeNewPoseidonVersion
-    }
-
--- updatePackageVersion :: Maybe Version -> PoseidonPackage -> PoseidonPackage
--- updatePackageVersion maybeNewPoseidonVersion pac = pac {
---         posPacPoseidonVersion = fromMaybe (posPacPoseidonVersion pac) maybeNewPoseidonVersion
---     }
 
 updateChecksums :: Bool -> PoseidonPackage -> IO PoseidonPackage
 updateChecksums ignoreGeno pac = do
@@ -127,3 +138,8 @@ updateChecksums ignoreGeno pac = do
                 indFileChkSum = indChkSum
             }
         }
+
+updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonPackage
+updatePoseidonVersion maybeNewPoseidonVersion pac = pac {
+        posPacPoseidonVersion = fromMaybe (posPacPoseidonVersion pac) maybeNewPoseidonVersion
+    }
