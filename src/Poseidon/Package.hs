@@ -17,7 +17,6 @@ module Poseidon.Package (
     newPackageTemplate,
     renderMismatch,
     zipWithPadding,
-    updateChecksumsInPackage,
     writePoseidonPackage,
     defaultPackageReadOptions
 ) where
@@ -534,50 +533,6 @@ newPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snp
     ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
-
-updateChecksumsInPackage :: PoseidonPackage -> IO PoseidonPackage
-updateChecksumsInPackage pac = do
-    let d = posPacBaseDir pac
-    jannoChkSum <- case posPacJannoFile pac of
-        Nothing -> return $ posPacJannoFileChkSum pac
-        Just fn -> Just <$> getChecksum (d </> fn)
-    bibChkSum <- case posPacBibFile pac of
-        Nothing -> return $ posPacBibFileChkSum pac
-        Just fn -> Just <$> getChecksum (d </> fn)
-    let gd = posPacGenotypeData pac
-    genoExists <- doesFileExist (d </> genoFile gd)
-    genoChkSum <- if genoExists
-                  then Just <$> getChecksum (d </> genoFile gd)
-                  else return $ genoFileChkSum gd
-    snpExists <-  doesFileExist (d </> snpFile gd)
-    snpChkSum <-  if snpExists
-                  then Just <$> getChecksum (d </> snpFile gd)
-                  else return $ snpFileChkSum gd
-    indExists <-  doesFileExist (d </> indFile gd)
-    indChkSum <-  if indExists
-                  then Just <$> getChecksum (d </> indFile gd)
-                  else return $ indFileChkSum gd
-    let newPac = pac {
-        posPacGenotypeData = gd {
-            genoFileChkSum = genoChkSum,
-            snpFileChkSum = snpChkSum,
-            indFileChkSum = indChkSum
-        },
-        posPacJannoFileChkSum = jannoChkSum,
-        posPacBibFileChkSum = bibChkSum
-    }
-    if newPac == pac
-    then return pac
-    else do
-        (UTCTime today _) <- getCurrentTime
-        return $ newPac {
-            posPacPackageVersion =
-                makeVersion . updatePatchNumber . versionBranch <$>
-                posPacPackageVersion newPac,
-            posPacLastModified = Just today
-        }
-    where
-        updatePatchNumber xs = init xs ++ [last xs + 1]
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
