@@ -17,14 +17,13 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..), VersionComponent (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.Package       (ContributorSpec (..))
+import           Poseidon.SecondaryTypes (ContributorSpec (..), poseidonVersionParser, contributorSpecParser)
 import           Poseidon.Utils         (PoseidonException (..), 
                                         renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
-import           Data.Time              (Day, getCurrentTime)
 import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
@@ -185,7 +184,6 @@ updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parseVersionComponent
                                 <*> parseChecksumUpdate
                                 <*> parseIgnoreGeno
-                                <*> parseDate
                                 <*> parseContributors
                                 <*> parseLog
                                 <*> parseForce
@@ -197,25 +195,63 @@ validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseNoExitCode
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
-parsePoseidonVersion = undefined
+parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
+    OP.long "poseidonVersion" <> 
+    OP.help "Poseidon version the packages should be updated to: \
+            \e.g. \"2.5.3\""
+    )
+    where 
+        readPoseidonVersionString :: String -> Either String Version
+        readPoseidonVersionString s = case runParser poseidonVersionParser () "" s of
+            Left p  -> Left (show p)
+            Right x -> Right x
 
 parseVersionComponent :: OP.Parser VersionComponent
-parseVersionComponent = undefined
+parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
+    OP.long "versionComponent" <> 
+    OP.help "..." <>
+    OP.value Patch <>
+    OP.showDefault
+    )
+    where
+        readVersionComponent :: String -> Either String VersionComponent
+        readVersionComponent s = case s of
+            "major" -> Right Major
+            "minor" -> Right Minor
+            "patch" -> Right Patch
+            _       -> Left "must be major, minor or patch"
 
 parseChecksumUpdate :: OP.Parser Bool
-parseChecksumUpdate = undefined
-
-parseDate :: OP.Parser Day
-parseDate = undefined
+parseChecksumUpdate = OP.switch (
+    OP.long "checksumUpdate" <>
+    OP.help "..."
+    )
 
 parseContributors :: OP.Parser [ContributorSpec]
-parseContributors = undefined
+parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
+    OP.short 'f' <>
+    OP.help "..")
+    )
+    where
+        readPoseidonEntitiesString :: String -> Either String [ContributorSpec]
+        readPoseidonEntitiesString s = case runParser contributorSpecParser () "" s of
+            Left p  -> Left (show p)
+            Right x -> Right x
+
 
 parseLog :: OP.Parser String
-parseLog = undefined
+parseLog = OP.strOption (
+    OP.long "logText" <> 
+    OP.help "..." <>
+    OP.value "not specified" <>
+    OP.showDefault
+    )
 
 parseForce :: OP.Parser Bool
-parseForce = undefined
+parseForce = OP.switch (
+    OP.long "force" <>
+    OP.help "..."
+    )
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>

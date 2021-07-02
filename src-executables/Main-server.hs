@@ -7,7 +7,7 @@ import           Poseidon.Package            (PackageInfo (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               readPoseidonPackageCollection)
-import           Poseidon.Utils              (IndividualInfo (..))
+import           Poseidon.SecondaryTypes     (IndividualInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,

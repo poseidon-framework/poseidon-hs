@@ -5,7 +5,6 @@ module Poseidon.Package (
     PackageInfo (..),
     PoseidonYamlStruct (..),
     PoseidonPackage(..),
-    ContributorSpec(..),
     PoseidonException(..),
     PackageReadOptions (..),
     filterDuplicatePackages,
@@ -29,6 +28,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
+import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
@@ -213,27 +213,6 @@ data PoseidonPackage = PoseidonPackage
     -- ^ how many packages of this name exist in the current collection
     }
     deriving (Show, Eq, Generic)
-
--- | A data type to represent a contributor
-data ContributorSpec = ContributorSpec
-    { contributorName  :: String -- ^ the name of a contributor
-    -- ^ the email address of a contributor
-    , contributorEmail :: String -- ^ the email address of a contributor
-    }
-    deriving (Show, Eq)
-
--- | To facilitate automatic parsing of ContributorSpec from JSON files
-instance FromJSON ContributorSpec where
-    parseJSON = withObject "contributor" $ \v -> ContributorSpec
-        <$> v .: "name"
-        <*> v .: "email"
-
-instance ToJSON ContributorSpec where
-    -- this encodes directly to a bytestring Builder
-    toJSON x = object [
-        "name" .= contributorName x,
-        "email" .= contributorEmail x
-        ]
 
 data PackageReadOptions = PackageReadOptions
     { _readOptVerbose          :: Bool -- whether to print verbose output

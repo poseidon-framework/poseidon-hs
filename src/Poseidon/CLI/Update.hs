@@ -8,8 +8,8 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              writePoseidonPackage, 
                                              PackageReadOptions (..), 
                                              defaultPackageReadOptions,
-                                             ContributorSpec,
                                              getChecksum)
+import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 
 import           Data.Maybe                 (fromMaybe, isNothing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -24,13 +24,13 @@ data UpdateOptions = UpdateOptions
     , _updateVersionUpdate :: VersionComponent
     , _updateChecksumUpdate :: Bool
     , _updateIgnoreGeno :: Bool
-    , _updateDate :: Day
     , _updateNewContributors :: [ContributorSpec]
     , _updateLog :: String
     , _updateForce :: Bool
     }
 
 data VersionComponent = Major | Minor | Patch
+    deriving Show
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -42,7 +42,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runUpdate :: UpdateOptions -> IO ()
-runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdate ignoreGeno date newContributors log force) = do
+runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdate ignoreGeno newContributors log force) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- updating poseidon version
     let updatedPacsPoseidonVersion = if isNothing poseidonVersion
@@ -62,25 +62,28 @@ runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdat
     then hPutStrLn stderr "No packages changed"
     else do
         -- update yml files
-        let updatedPacsMeta = map (updateMeta versionComponent date newContributors) updatedPacsChanged
+        (UTCTime today _) <- getCurrentTime
+        let updatedPacsMeta = map (updateMeta versionComponent today newContributors) updatedPacsChanged
         -- write/update CHANGELOG files
         hPutStrLn stderr "Updating CHANGELOG files"
-        updatedPacsWithChangelog <- mapM writeOrUpdateChangelogFile updatedPacsMeta
+        updatedPacsWithChangelog <- mapM (writeOrUpdateChangelogFile log) updatedPacsMeta
         -- write yml files with all changes
         hPutStrLn stderr "Writing modified POSEIDON.yml files"
         mapM_ writePoseidonPackage updatedPacsWithChangelog
 
-writeOrUpdateChangelogFile :: PoseidonPackage -> IO PoseidonPackage
-writeOrUpdateChangelogFile pac = do
+writeOrUpdateChangelogFile :: String -> PoseidonPackage -> IO PoseidonPackage
+writeOrUpdateChangelogFile log pac = do
     case posPacChangelogFile pac of
         Nothing -> do
-            writeFile (posPacBaseDir pac </> "CHANGELOG.md") $ "V " ++ show (posPacPoseidonVersion pac) ++ ": ..."
+            writeFile (posPacBaseDir pac </> "CHANGELOG.md") $ 
+                "V " ++ show (posPacPoseidonVersion pac) ++ ": " ++ log
             return pac {
                 posPacChangelogFile = Just "CHANGELOG.md"
             }
         Just x -> do
             changelogFile <- readFile (posPacBaseDir pac </> x)
-            writeFile (posPacBaseDir pac </> x) $ "V " ++ show (posPacPoseidonVersion pac) ++ ": ...\n" ++ changelogFile
+            writeFile (posPacBaseDir pac </> x) $ 
+                "V " ++ show (posPacPoseidonVersion pac) ++ ": " ++ log ++ "\n" ++ changelogFile
             return pac
 
 updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
