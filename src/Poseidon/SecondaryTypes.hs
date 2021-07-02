@@ -4,7 +4,8 @@ module Poseidon.SecondaryTypes (
     poseidonVersionParser,
     ContributorSpec (..),
     contributorSpecParser,
-    IndividualInfo (..)
+    IndividualInfo (..),
+    VersionComponent (..)
 ) where
 
 import           Data.Aeson             (FromJSON, ToJSON, object,
@@ -13,6 +14,9 @@ import           Data.Aeson             (FromJSON, ToJSON, object,
 import           Data.Version           (Version (..), makeVersion)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
+
+data VersionComponent = Major | Minor | Patch
+    deriving Show
 
 data IndividualInfo = IndividualInfo
     { indInfoName    :: String

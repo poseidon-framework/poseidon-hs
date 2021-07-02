@@ -3,7 +3,7 @@ module Poseidon.GoldenTestsRunCommands (
     ) where
 
 import           Poseidon.EntitiesList          (PoseidonEntity (..))
-import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
+--import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init              (InitOptions (..), runInit)
 import           Poseidon.CLI.Fetch             (FetchOptions (..), runFetch)

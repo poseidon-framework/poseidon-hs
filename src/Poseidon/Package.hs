@@ -46,8 +46,7 @@ import           Data.List                  (groupBy, intercalate, nub, sortOn,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import           Data.Version               (Version (versionBranch),
-                                             makeVersion)
+import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)

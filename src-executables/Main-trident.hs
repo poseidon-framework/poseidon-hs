@@ -15,9 +15,12 @@ import           Poseidon.EntitiesList  (PoseidonEntity (..),
                                         poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..), VersionComponent (..))
+import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.SecondaryTypes (ContributorSpec (..), poseidonVersionParser, contributorSpecParser)
+import           Poseidon.SecondaryTypes (ContributorSpec (..),
+                                        VersionComponent (..),
+                                        poseidonVersionParser, 
+                                        contributorSpecParser)
 import           Poseidon.Utils         (PoseidonException (..), 
                                         renderPoseidonException)
 
@@ -228,13 +231,13 @@ parseChecksumUpdate = OP.switch (
     )
 
 parseContributors :: OP.Parser [ContributorSpec]
-parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
+parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.help "..")
     )
     where
-        readPoseidonEntitiesString :: String -> Either String [ContributorSpec]
-        readPoseidonEntitiesString s = case runParser contributorSpecParser () "" s of
+        readContributorString :: String -> Either String [ContributorSpec]
+        readContributorString s = case runParser contributorSpecParser () "" s of
             Left p  -> Left (show p)
             Right x -> Right x
 
