@@ -23,7 +23,7 @@ data UpdateOptions = UpdateOptions
     { _updateBaseDirs :: [FilePath]
     , _updatePoseidonVersion :: Maybe Version
     , _updateVersionUpdate :: VersionComponent
-    , _updateChecksumUpdate :: Bool
+    , _updateNoChecksumUpdate :: Bool
     , _updateIgnoreGeno :: Bool
     , _updateNewContributors :: [ContributorSpec]
     , _updateLog :: String
@@ -40,7 +40,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runUpdate :: UpdateOptions -> IO ()
-runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdate ignoreGeno newContributors logText force) = do
+runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- updating poseidon version
     let updatedPacsPoseidonVersion = if isNothing poseidonVersion
@@ -49,7 +49,7 @@ runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdat
     -- updating checksums
     hPutStrLn stderr "Calculating and updating checksums"
     updatedPacsChecksums <-
-        if not checksumUpdate
+        if noChecksumUpdate
         then return updatedPacsPoseidonVersion
         else mapM (updateChecksums ignoreGeno) updatedPacsPoseidonVersion
     -- see which packages were changed and need to be updated formally

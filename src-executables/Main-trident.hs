@@ -120,7 +120,7 @@ optParser = OP.subparser (
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
-        (OP.progDesc "Update checksums in POSEIDON.yml files")
+        (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
@@ -185,7 +185,7 @@ updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parsePoseidonVersion
                                 <*> parseVersionComponent
-                                <*> parseChecksumUpdate
+                                <*> parseNoChecksumUpdate
                                 <*> parseIgnoreGeno
                                 <*> parseContributors
                                 <*> parseLog
@@ -212,29 +212,32 @@ parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionSt
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
     OP.long "versionComponent" <> 
-    OP.help "..." <>
+    OP.help "Part of the package version number in the POSEIDON.yml file \
+            \that should be updated: \
+            \Major, Minor or Patch (see https://semver.org)" <>
     OP.value Patch <>
     OP.showDefault
     )
     where
         readVersionComponent :: String -> Either String VersionComponent
         readVersionComponent s = case s of
-            "major" -> Right Major
-            "minor" -> Right Minor
-            "patch" -> Right Patch
-            _       -> Left "must be major, minor or patch"
+            "Major" -> Right Major
+            "Minor" -> Right Minor
+            "Patch" -> Right Patch
+            _       -> Left "must be Major, Minor or Patch"
 
-parseChecksumUpdate :: OP.Parser Bool
-parseChecksumUpdate = OP.switch (
-    OP.long "checksumUpdate" <>
-    OP.help "..."
+parseNoChecksumUpdate :: OP.Parser Bool
+parseNoChecksumUpdate = OP.switch (
+    OP.long "noChecksumUpdate" <>
+    OP.help "Should update of checksums in the POSEIDON.yml file be skipped"
     )
 
 parseContributors :: OP.Parser [ContributorSpec]
 parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (OP.long "forgeString" <>
     OP.short 'f' <>
-    OP.help "..")
-    )
+    OP.help "Contributors to add to the POSEIDON.yml file \
+            \ in the form \"Firstname Lastname,Email address;...\""
+    ))
     where
         readContributorString :: String -> Either String [ContributorSpec]
         readContributorString s = case runParser contributorSpecParser () "" s of
@@ -245,7 +248,7 @@ parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContribut
 parseLog :: OP.Parser String
 parseLog = OP.strOption (
     OP.long "logText" <> 
-    OP.help "..." <>
+    OP.help "Log text for this version jump in the CHANGELOG file" <>
     OP.value "not specified" <>
     OP.showDefault
     )
@@ -253,7 +256,10 @@ parseLog = OP.strOption (
 parseForce :: OP.Parser Bool
 parseForce = OP.switch (
     OP.long "force" <>
-    OP.help "..."
+    OP.help "Normally the POSEIDON.yml files are only changed if the \
+            \poseidonVersion is adjusted or any of the checksums change. \
+            \With --force a package version update can be triggered even \
+            \if this is not the case."
     )
 
 parseJackknife :: OP.Parser JackknifeMode
@@ -436,7 +442,7 @@ parseVerbose = OP.switch (
 parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <> 
-    OP.help "ignore SNP and GenoFile for the validation" <>
+    OP.help "ignore SNP and GenoFile" <>
     OP.hidden
     )
 
