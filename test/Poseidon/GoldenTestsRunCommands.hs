@@ -3,7 +3,7 @@ module Poseidon.GoldenTestsRunCommands (
     ) where
 
 import           Poseidon.EntitiesList          (PoseidonEntity (..))
-import           Poseidon.CLI.Checksumupdate    (ChecksumupdateOptions (..), runChecksumupdate)
+import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init              (InitOptions (..), runInit)
 import           Poseidon.CLI.Fetch             (FetchOptions (..), runFetch)
@@ -12,7 +12,7 @@ import           Poseidon.CLI.List              (ListOptions (..), runList,
                                                  RepoLocationSpec (..), ListEntity (..))
 import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
-import         Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
+import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
 import           Poseidon.GenotypeData          (GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..))
 import           Poseidon.Package               (getChecksum)
@@ -65,8 +65,8 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     -- run CLI pipeline
     hPutStrLn stderr "--- init ---"
     testPipelineInit  testDir checkFilePath testPacsDir
-    hPutStrLn stderr "--- checksumupdate ---"
-    testPipelineChecksumupdate  testDir checkFilePath
+    -- hPutStrLn stderr "--- checksumupdate ---"
+    -- testPipelineChecksumupdate  testDir checkFilePath
     hPutStrLn stderr "--- validate ---"
     testPipelineValidate testDir checkFilePath
     hPutStrLn stderr "--- list ---"
@@ -237,14 +237,14 @@ testPipelineForge testDir checkFilePath = do
         , "ForgePac2" </> "ForgePac2.janno"
         ]
 
-testPipelineChecksumupdate :: FilePath -> FilePath -> IO ()
-testPipelineChecksumupdate testDir checkFilePath = do
-    let checksumOpts1 = ChecksumupdateOptions { 
-          _checksumupdateBaseDirs = [testDir </> "Schiffels"]
-        }
-    runAndChecksumFiles checkFilePath testDir (runChecksumupdate checksumOpts1) "checksumupdate" [
-          "Schiffels" </> "POSEIDON.yml"
-        ]
+-- testPipelineChecksumupdate :: FilePath -> FilePath -> IO ()
+-- testPipelineChecksumupdate testDir checkFilePath = do
+--     let checksumOpts1 = ChecksumupdateOptions { 
+--           _checksumupdateBaseDirs = [testDir </> "Schiffels"]
+--         }
+--     runAndChecksumFiles checkFilePath testDir (runChecksumupdate checksumOpts1) "checksumupdate" [
+--           "Schiffels" </> "POSEIDON.yml"
+--         ]
 
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do

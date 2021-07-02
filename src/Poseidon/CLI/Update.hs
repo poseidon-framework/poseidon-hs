@@ -1,5 +1,5 @@
 module Poseidon.CLI.Update (
-    runUpdate, UpdateOptions (..),
+    runUpdate, UpdateOptions (..), VersionComponent (..)
     ) where
 
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..))
@@ -11,12 +11,12 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              ContributorSpec,
                                              getChecksum)
 
+import           Data.Maybe                 (fromMaybe, isNothing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version (..), makeVersion)
+import           System.Directory           (doesFileExist)
+import           System.FilePath            ((</>))
 import           System.IO                  (hPutStrLn, stderr)
-import System.Directory (doesFileExist)
-import System.FilePath ((</>))
-import Data.Maybe (fromMaybe, isNothing)
 
 data UpdateOptions = UpdateOptions
     { _updateBaseDirs :: [FilePath]
@@ -45,8 +45,7 @@ runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdate ignoreGeno date newContributors log force) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- updating poseidon version
-    let updatedPacsPoseidonVersion = do
-        if isNothing poseidonVersion
+    let updatedPacsPoseidonVersion = if isNothing poseidonVersion
         then allPackages
         else map (updatePoseidonVersion poseidonVersion) allPackages
     -- updating checksums
@@ -56,8 +55,7 @@ runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent checksumUpdat
         then return updatedPacsPoseidonVersion
         else mapM (updateChecksums ignoreGeno) updatedPacsPoseidonVersion
     -- see which packages were changed and need to be updated formally
-    let updatedPacsChanged = do
-        if force
+    let updatedPacsChanged = if force
         then updatedPacsChecksums
         else map fst $ filter (uncurry (/=)) $ zip updatedPacsChecksums allPackages
     if null updatedPacsChanged

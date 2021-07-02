@@ -15,15 +15,17 @@ import           Poseidon.EntitiesList  (PoseidonEntity (..),
                                         poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Checksumupdate (runChecksumupdate, ChecksumupdateOptions (..))
+import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..), VersionComponent (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.Package       (ContributorSpec (..))
 import           Poseidon.Utils         (PoseidonException (..), 
                                         renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
-import           Data.Version           (showVersion)
+import           Data.Time              (Day, getCurrentTime)
+import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
 import           System.Exit            (exitFailure)
@@ -38,7 +40,7 @@ data Options = CmdFstats FstatsOptions
     | CmdGenoconvert GenoconvertOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
-    | CmdChecksumupdate ChecksumupdateOptions
+    | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
 
 main :: IO ()
@@ -62,7 +64,7 @@ runCmd o = case o of
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
-    CmdChecksumupdate opts -> runChecksumupdate opts
+    CmdUpdate opts -> runUpdate opts
     CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -80,7 +82,7 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
-        OP.command "checksumupdate" checksumupdateOptInfo <>
+        OP.command "update" updateOptInfo <>
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
@@ -115,7 +117,7 @@ optParser = OP.subparser (
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
-    checksumupdateOptInfo = OP.info (OP.helper <*> (CmdChecksumupdate <$> checksumupdateOptParser))
+    updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
         (OP.progDesc "Update checksums in POSEIDON.yml files")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
@@ -177,14 +179,43 @@ surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
 
-checksumupdateOptParser :: OP.Parser ChecksumupdateOptions
-checksumupdateOptParser = ChecksumupdateOptions <$> parseBasePaths
+updateOptParser :: OP.Parser UpdateOptions
+updateOptParser = UpdateOptions <$> parseBasePaths
+                                <*> parsePoseidonVersion
+                                <*> parseVersionComponent
+                                <*> parseChecksumUpdate
+                                <*> parseIgnoreGeno
+                                <*> parseDate
+                                <*> parseContributors
+                                <*> parseLog
+                                <*> parseForce
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseVerbose
                                     <*> parseIgnoreGeno
                                     <*> parseNoExitCode
+
+parsePoseidonVersion :: OP.Parser (Maybe Version)
+parsePoseidonVersion = undefined
+
+parseVersionComponent :: OP.Parser VersionComponent
+parseVersionComponent = undefined
+
+parseChecksumUpdate :: OP.Parser Bool
+parseChecksumUpdate = undefined
+
+parseDate :: OP.Parser Day
+parseDate = undefined
+
+parseContributors :: OP.Parser [ContributorSpec]
+parseContributors = undefined
+
+parseLog :: OP.Parser String
+parseLog = undefined
+
+parseForce :: OP.Parser Bool
+parseForce = undefined
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
