@@ -84,11 +84,11 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
-        OP.command "update" updateOptInfo <>
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
+        OP.command "update" updateOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -201,7 +201,9 @@ parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
     OP.long "poseidonVersion" <> 
     OP.help "Poseidon version the packages should be updated to: \
-            \e.g. \"2.5.3\""
+            \e.g. \"2.5.3\"" <>
+    OP.value Nothing <>
+    OP.showDefault
     )
     where 
         readPoseidonVersionString :: String -> Either String Version

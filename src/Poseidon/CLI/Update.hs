@@ -12,10 +12,10 @@ import           Poseidon.Package           (PoseidonPackage (..),
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                             VersionComponent (..))
 
-import           Data.Maybe                 (fromMaybe, isNothing)
+import           Data.Maybe                 (fromMaybe, isNothing, fromJust)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import           Data.Version               (Version (..), makeVersion)
-import           System.Directory           (doesFileExist)
+import           Data.Version               (Version (..), makeVersion, showVersion)
+import           System.Directory           (doesFileExist, removeFile)
 import           System.FilePath            ((</>))
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -74,14 +74,15 @@ writeOrUpdateChangelogFile logText pac = do
     case posPacChangelogFile pac of
         Nothing -> do
             writeFile (posPacBaseDir pac </> "CHANGELOG.md") $ 
-                "V " ++ show (posPacPoseidonVersion pac) ++ ": " ++ logText
+                "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
             return pac {
                 posPacChangelogFile = Just "CHANGELOG.md"
             }
         Just x -> do
             changelogFile <- readFile (posPacBaseDir pac </> x)
+            removeFile (posPacBaseDir pac </> x)
             writeFile (posPacBaseDir pac </> x) $ 
-                "V " ++ show (posPacPoseidonVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
+                "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
             return pac
 
 updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
