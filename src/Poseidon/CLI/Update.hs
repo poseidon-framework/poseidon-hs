@@ -132,7 +132,7 @@ updateChecksums ignoreGeno pac = do
         indChkSum <-  if indExists
                     then Just <$> getChecksum (d </> indFile gd)
                     else return $ indFileChkSum gd
-        return $ pac {
+        return $ newPac1 {
             posPacGenotypeData = gd {
                 genoFileChkSum = genoChkSum,
                 snpFileChkSum = snpChkSum,
