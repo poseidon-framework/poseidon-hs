@@ -100,8 +100,8 @@ updateMeta versionComponent date newContributors pac =
         updateVersionInt component v = 
             case component of
                 Patch -> [v !! 0, v !! 1, (v !! 2) + 1]
-                Minor -> [v !! 0, (v !! 1) + 1, v !! 2]
-                Major -> [(v !! 0) + 1, v !! 1, v !! 2]
+                Minor -> [v !! 0, (v !! 1) + 1, 0]
+                Major -> [(v !! 0) + 1, 0, 0]
 
 updateChecksums :: Bool -> PoseidonPackage -> IO PoseidonPackage
 updateChecksums ignoreGeno pac = do
