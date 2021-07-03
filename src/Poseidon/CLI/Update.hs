@@ -18,6 +18,7 @@ import           Data.Version               (Version (..), makeVersion, showVers
 import           System.Directory           (doesFileExist, removeFile)
 import           System.FilePath            ((</>))
 import           System.IO                  (hPutStrLn, stderr)
+import Data.List (nub)
 
 data UpdateOptions = UpdateOptions
     { _updateBaseDirs :: [FilePath]
@@ -47,7 +48,7 @@ runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent noChecksumUpd
         then allPackages
         else map (updatePoseidonVersion poseidonVersion) allPackages
     -- updating checksums
-    hPutStrLn stderr "Calculating and updating checksums"
+    hPutStrLn stderr "Calculating checksums"
     updatedPacsChecksums <-
         if noChecksumUpdate
         then return updatedPacsPoseidonVersion
@@ -92,7 +93,7 @@ updateMeta versionComponent date newContributors pac =
             (Just . makeVersion . updateVersionInt versionComponent . versionBranch) 
             (posPacPackageVersion pac)
         , posPacLastModified = Just date
-        , posPacContributor = posPacContributor pac ++ newContributors
+        , posPacContributor = nub $ posPacContributor pac ++ newContributors
     }
     where
         updateVersionInt :: VersionComponent -> [Int] -> [Int] 

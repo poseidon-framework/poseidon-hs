@@ -71,7 +71,6 @@ contributorSpecParser = P.try (P.sepBy oneContributorSpecParser (P.char ';' <* P
 
 oneContributorSpecParser :: P.Parser ContributorSpec
 oneContributorSpecParser = do
-    name <- read <$> P.many1 P.anyChar
-    _ <- P.oneOf ","
-    email <- read <$> P.many1 P.anyChar
+    name <- P.between (P.char '[') (P.char ']') (P.manyTill P.anyChar (P.lookAhead (P.char ']')))
+    email <- P.between (P.char '(') (P.char ')') (P.manyTill P.anyChar (P.lookAhead (P.char ')')))
     return (ContributorSpec name email)

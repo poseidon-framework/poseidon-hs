@@ -235,10 +235,10 @@ parseNoChecksumUpdate = OP.switch (
     )
 
 parseContributors :: OP.Parser [ContributorSpec]
-parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (OP.long "forgeString" <>
-    OP.short 'f' <>
+parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (
+    OP.long "newContributors" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"Firstname Lastname,Email address;...\""
+            \ in the form \"[Firstname Lastname](Email address);...\""
     ))
     where
         readContributorString :: String -> Either String [ContributorSpec]
