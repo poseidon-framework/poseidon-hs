@@ -5,7 +5,7 @@ contributor:
 - name: John Doe
   email: john@doe.net
 packageVersion: 0.1.0
-lastModified: 2021-07-03
+lastModified: 2021-07-07
 genotypeData:
   format: PLINK
   genoFile: ForgePac2.bed

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
@@ -18,6 +19,8 @@ import           Poseidon.GenotypeData          (GenotypeFormatSpec (..),
 import           Poseidon.Package               (getChecksum)
 
 import           Control.Monad                  (when, unless)
+import qualified Data.Text.IO                   as T
+import qualified Data.Text                      as T
 import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
 import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix          ((</>))
@@ -96,7 +99,8 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacPath   = testDir </> "Schiffels"
         , _initPacName   = "Schiffels"
     }
-    runAndChecksumFiles checkFilePath testDir (runInit initOpts1) "init" [
+    let action = runInit initOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action "init" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
         , "Schiffels" </> "geno.txt"
@@ -110,12 +114,22 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacPath   = testDir </> "Wang"
         , _initPacName   = "Wang"
     }
-    runAndChecksumFiles checkFilePath testDir (runInit initOpts2) "init" [
+    let action2 = runInit initOpts2 >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
         , "Wang" </> "Wang.janno"
         , "Wang" </> "Wang_2020.bed"
         ]
 
+patchLastModified :: FilePath -> FilePath -> IO ()
+patchLastModified testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "lastModified" `T.isPrefixOf` l
+                then return "lastModified: 1970-01-01"
+                else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
