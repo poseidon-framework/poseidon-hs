@@ -21,10 +21,10 @@ import           Text.Layout.Table          (asciiRoundS, column, def,
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _loRepoLocation  :: RepoLocationSpec -- ^ the list of base directories to search for packages
-    , _loListEntity    :: ListEntity -- ^ what to list
-    , _loRawOutput     :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
-    , _optIgnoreGeno   :: Bool
+    { _listRepoLocation  :: RepoLocationSpec -- ^ the list of base directories to search for packages
+    , _listListEntity    :: ListEntity -- ^ what to list
+    , _listRawOutput     :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _listIgnoreGeno   :: Bool
     }
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String

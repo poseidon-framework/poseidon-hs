@@ -1,0 +1,18 @@
+poseidonVersion: 2.1.0
+title: Schiffels
+description: Empty package template. Please add a description
+contributor:
+- name: John Doe
+  email: john@doe.net
+packageVersion: 0.1.1
+lastModified: 1970-01-01
+genotypeData:
+  format: PLINK
+  genoFile: Schiffels.bed
+  snpFile: Schiffels.bim
+  indFile: Schiffels.fam
+  snpSet: Other
+jannoFile: Schiffels.janno
+jannoFileChkSum: 04686d2b18f41b9137807a0d5521670d
+bibFile: Schiffels.bib
+bibFileChkSum: d41d8cd98f00b204e9800998ecf8427e
