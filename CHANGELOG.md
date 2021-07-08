@@ -1,37 +1,38 @@
-- V 0.0.1: First working command line utility, poseidon summary
-- V 0.1.0: List command and Fstat commands work in early tests.
-- V 0.2.0: List command and Fstat commands seem to work correctly. Testing needed.
-- V 0.2.1: Added option to read F-Statistics by file.
-- V 0.2.2: Various new commands and rename executable to trident.
-- ...
-- V 0.5.0: Added fetch command to download data from a poseidon server
-- V 0.5.1: Added --downloadAll option to fetch
-- V 0.5.2: Fixed a bug that prevented fetch from running after an interrupted run
-- V 0.5.3: Replaced the .csl data-file setup for bibtex parsing with an in-code solution to solve a related issue with the binary executables
-- V 0.6.0: Added the /individuals_all API to the webserver
-- V 0.7.0: Made janno reading a lot more flexible
-- V 0.7.1: Added a check for ID duplicates when reading package collections
-- V 0.7.2: Turned off checksum validation for every module but validate
-- V 0.7.3: Enabled the validate module to handle duplicated packages
-- V 0.8.0: Forge now has new option --intersect to control merging behaviour.
-- V 0.9.0: Plink output now supported in forge.
-- V 0.10.0: List now has --remote option to view packages, groups and individuals on a remote server
-- V 0.11.0: Added the module genoconvert to automatically switch the genotype data format in packages
-- V 0.12.0: List can now also display janno columns with the -j option for the --individuals case
-- V 0.13.0: Renamed the update module to checksumupdate, allowed trident to ignore duplicate individuals for some inspection modules, switched to Unix file endings for janno file encoding
-- V 0.13.1: added /server_version API and changed server behaviour to only zip files when genotype data is not ignored
-- V 0.14.0: Multiple minor changes: allowed multiple forgeStrings/fetchStrings and forgeFiles/fetchFiles, added readmeFile and changelogFile to the package data structures, relaxed duplicate check in forge to only stop if there is an overlap within the specific selection relevant for the new package
-- V 0.14.1: added more helpful error messages to forge
-- V 0.14.2: Modified show instances of multiple janno column types and fixed output of list
-- V 0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output
-- V 0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
-- V 0.15.1: Completed the task in 0.14.2 with a newtype JannoSex to enable a custom Show action
-- V 0.15.2: Better handling of individuals linked to multiple groups/populations in list
-- V 0.16.0: Added a verbose switch to the package reading functions. It's only available with validate (--verbose) to show all sorts of additional output, at the moment only unspecified and missing janno columns
-- V 0.17.0: Added and changed fields in the POSEIDON.yml and .janno file data types as defined in Poseidon V 2.3.1
-- V 0.17.1: Made snpSet non-mandatory to keep backwards-compatibility.
-- V 0.17.2: A better internal configuration solution for readPoseidonPackage(Collection)
-- V 0.17.3: Fixed all issues flagged by the --pedantic compiler setting
-- V 0.17.4: Fixed a critical bug in janno file encoding
-- V 0.18.0: checksumupdate now also increments version numbers and updates lastModified fields
+- V 0.18.2: Added a golden test feature to make sure code changes do not accidentally modify the output of trident modules
 - V 0.18.1: Removes Pandoc-dependency by implementing a custom bibtex-parser
+- V 0.18.0: checksumupdate now also increments version numbers and updates lastModified fields
+- V 0.17.4: Fixed a critical bug in janno file encoding
+- V 0.17.3: Fixed all issues flagged by the --pedantic compiler setting
+- V 0.17.2: A better internal configuration solution for readPoseidonPackage(Collection)
+- V 0.17.1: Made snpSet non-mandatory to keep backwards-compatibility.
+- V 0.17.0: Added and changed fields in the POSEIDON.yml and .janno file data types as defined in Poseidon V 2.3.1
+- V 0.16.0: Added a verbose switch to the package reading functions. It's only available with validate (--verbose) to show all sorts of additional output, at the moment only unspecified and missing janno columns
+- V 0.15.2: Better handling of individuals linked to multiple groups/populations in list
+- V 0.15.1: Completed the task in 0.14.2 with a newtype JannoSex to enable a custom Show action
+- V 0.15.0: Introduced genotype data structure validation on the first 100 SNPs for the package reading process
+- V 0.14.3: Small change in how progress indicators for reading/downloading packages and processing SNPs are printed. This should improve the output in cli-enviroments without the ability to overwrite already printed output
+- V 0.14.2: Modified show instances of multiple janno column types and fixed output of list
+- V 0.14.1: added more helpful error messages to forge
+- V 0.14.0: Multiple minor changes: allowed multiple forgeStrings/fetchStrings and forgeFiles/fetchFiles, added readmeFile and changelogFile to the package data structures, relaxed duplicate check in forge to only stop if there is an overlap within the specific selection relevant for the new package
+- V 0.13.1: added /server_version API and changed server behaviour to only zip files when genotype data is not ignored
+- V 0.13.0: Renamed the update module to checksumupdate, allowed trident to ignore duplicate individuals for some inspection modules, switched to Unix file endings for janno file encoding
+- V 0.12.0: List can now also display janno columns with the -j option for the --individuals case
+- V 0.11.0: Added the module genoconvert to automatically switch the genotype data format in packages
+- V 0.10.0: List now has --remote option to view packages, groups and individuals on a remote server
+- V 0.9.0: Plink output now supported in forge.
+- V 0.8.0: Forge now has new option --intersect to control merging behaviour.
+- V 0.7.3: Enabled the validate module to handle duplicated packages
+- V 0.7.2: Turned off checksum validation for every module but validate
+- V 0.7.1: Added a check for ID duplicates when reading package collections
+- V 0.7.0: Made janno reading a lot more flexible
+- V 0.6.0: Added the /individuals_all API to the webserver
+- V 0.5.3: Replaced the .csl data-file setup for bibtex parsing with an in-code solution to solve a related issue with the binary executables
+- V 0.5.2: Fixed a bug that prevented fetch from running after an interrupted run
+- V 0.5.1: Added --downloadAll option to fetch
+- V 0.5.0: Added fetch command to download data from a poseidon server
+- ...
+- V 0.2.2: Various new commands and rename executable to trident.
+- V 0.2.1: Added option to read F-Statistics by file.
+- V 0.2.0: List command and Fstat commands seem to work correctly. Testing needed.
+- V 0.1.0: List command and Fstat commands work in early tests.
+- V 0.0.1: First working command line utility, poseidon summary
