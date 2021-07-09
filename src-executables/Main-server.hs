@@ -140,11 +140,17 @@ checkZipFileOutdated pac fn ignoreGenoFiles = do
         jannoOutdated <- case posPacJannoFile pac of
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
             Nothing  -> return False
+        readmeOutdated <- case posPacReadmeFile pac of
+            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+            Nothing -> return False
+        changelogOutdated <- case posPacChangelogFile pac of
+            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+            Nothing -> return False
         let gd = posPacGenotypeData pac
         genoOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
         snpOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
         indOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
-        return $ or [yamlOutdated, bibOutdated, jannoOutdated, genoOutdated, snpOutdated, indOutdated]
+        return $ or [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated, changelogOutdated, genoOutdated, snpOutdated, indOutdated]
     else
         return True
   where
@@ -185,13 +191,19 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
 
 makeZipArchive :: PoseidonPackage -> Bool -> IO Archive
 makeZipArchive pac ignoreGenoFiles =
-    return emptyArchive >>= addYaml >>= addJanno >>= addBib >>= addInd >>= addSnp >>= addGeno
+    return emptyArchive >>= addYaml >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno
   where
     addYaml = addFN "POSEIDON.yml" (posPacBaseDir pac)
     addJanno = case posPacJannoFile pac of
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
     addBib = case posPacBibFile pac of
+        Nothing -> return
+        Just fn -> addFN fn (posPacBaseDir pac)
+    addReadme = case posPacReadmeFile pac of
+        Nothing -> return
+        Just fn -> addFN fn (posPacBaseDir pac)
+    addChangelog = case posPacChangelogFile pac of
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
     addInd = addFN (indFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
