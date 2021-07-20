@@ -14,11 +14,11 @@ extra-source-files:  README.md,
 
 library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
-                        Poseidon.EntitiesList, Poseidon.MathHelpers
+                        Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes
                         Poseidon.CLI.FStats, Poseidon.CLI.List, 
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
-                        Poseidon.CLI.Checksumupdate, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert
+                        Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,

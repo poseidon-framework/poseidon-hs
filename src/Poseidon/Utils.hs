@@ -2,14 +2,11 @@
 
 module Poseidon.Utils (
     PoseidonException(..),
-    renderPoseidonException,
-    IndividualInfo(..)
+    renderPoseidonException
 ) where
 
-import           Control.Exception (Exception)
-import           Data.Aeson        (FromJSON, ToJSON, object, parseJSON, toJSON,
-                                    withObject, (.:), (.=))
-import           Data.Yaml         (ParseException)
+import           Control.Exception      (Exception)
+import           Data.Yaml              (ParseException)
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
@@ -71,21 +68,3 @@ renderPoseidonException (PoseidonNewPackageConstructionException s) =
 renderPoseidonException (PoseidonRemoteJSONParsingException s) =
     "Error in parsing JSON: " ++ show s
 renderPoseidonException (PoseidonGenericException s) = s
-
-data IndividualInfo = IndividualInfo
-    { indInfoName    :: String
-    , indInfoGroup   :: String
-    , indInfoPacName :: String
-    }
-
-instance ToJSON IndividualInfo where
-    toJSON x = object [
-        "name" .= indInfoName x,
-        "group" .= indInfoGroup x,
-        "pacName" .= indInfoPacName x]
-
-instance FromJSON IndividualInfo where
-    parseJSON = withObject "IndividualInfo" $ \v -> IndividualInfo
-        <$> v .:   "name"
-        <*> v .:   "group"
-        <*> v .:  "pacName"

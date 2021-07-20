@@ -5,14 +5,14 @@ module Poseidon.PackageSpec (spec) where
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFormatSpec (..),
                                             SNPSetSpec (..))
-import           Poseidon.Package          (ContributorSpec (..),
-                                            PoseidonYamlStruct (..),
+import           Poseidon.Package          (PoseidonYamlStruct (..),
                                             PoseidonPackage (..),
                                             readPoseidonPackageCollection,
                                             renderMismatch,
                                             zipWithPadding,
                                             getChecksum,
                                             PackageReadOptions (..), defaultPackageReadOptions)
+import          Poseidon.SecondaryTypes    (ContributorSpec (..))
 
 import qualified Data.ByteString.Char8     as B
 import           Data.List                 (sort)

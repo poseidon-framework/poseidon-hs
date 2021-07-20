@@ -1,18 +1,26 @@
-poseidonVersion: 2.1.0
+poseidonVersion: 2.9.9
 title: Schiffels
 description: Empty package template. Please add a description
 contributor:
 - name: John Doe
   email: john@doe.net
-packageVersion: 0.1.1
+- name: Berta Testfrau
+  email: berta@testfrau.org
+- name: Herbert Testmann
+  email: herbert@testmann.tw
+packageVersion: 1.1.1
 lastModified: 1970-01-01
 genotypeData:
   format: PLINK
   genoFile: Schiffels.bed
+  genoFileChkSum: bb08bacdf59553b52f3525f134a600d8
   snpFile: Schiffels.bim
+  snpFileChkSum: 67c3a8780a816ba9bf1bb9636d14d277
   indFile: Schiffels.fam
+  indFileChkSum: a9fcb59cb933d8f183f3c3f6fbf2e213
   snpSet: Other
 jannoFile: Schiffels.janno
 jannoFileChkSum: 04686d2b18f41b9137807a0d5521670d
 bibFile: Schiffels.bib
 bibFileChkSum: d41d8cd98f00b204e9800998ecf8427e
+changelogFile: CHANGELOG.md

@@ -15,15 +15,19 @@ import           Poseidon.EntitiesList  (PoseidonEntity (..),
                                         poseidonEntitiesParser)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Checksumupdate (runChecksumupdate, ChecksumupdateOptions (..))
+import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.SecondaryTypes (ContributorSpec (..),
+                                        VersionComponent (..),
+                                        poseidonVersionParser, 
+                                        contributorSpecParser)
 import           Poseidon.Utils         (PoseidonException (..), 
                                         renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
-import           Data.Version           (showVersion)
+import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
 import           System.Exit            (exitFailure)
@@ -38,7 +42,7 @@ data Options = CmdFstats FstatsOptions
     | CmdGenoconvert GenoconvertOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
-    | CmdChecksumupdate ChecksumupdateOptions
+    | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
 
 main :: IO ()
@@ -62,7 +66,7 @@ runCmd o = case o of
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
-    CmdChecksumupdate opts -> runChecksumupdate opts
+    CmdUpdate opts -> runUpdate opts
     CmdValidate opts  -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -80,11 +84,11 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
-        OP.command "checksumupdate" checksumupdateOptInfo <>
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
+        OP.command "update" updateOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -115,8 +119,8 @@ optParser = OP.subparser (
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
-    checksumupdateOptInfo = OP.info (OP.helper <*> (CmdChecksumupdate <$> checksumupdateOptParser))
-        (OP.progDesc "Update checksums in POSEIDON.yml files")
+    updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
+        (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
@@ -177,14 +181,88 @@ surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
 
-checksumupdateOptParser :: OP.Parser ChecksumupdateOptions
-checksumupdateOptParser = ChecksumupdateOptions <$> parseBasePaths
+updateOptParser :: OP.Parser UpdateOptions
+updateOptParser = UpdateOptions <$> parseBasePaths
+                                <*> parsePoseidonVersion
+                                <*> parseVersionComponent
+                                <*> parseNoChecksumUpdate
+                                <*> parseIgnoreGeno
+                                <*> parseContributors
+                                <*> parseLog
+                                <*> parseForce
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseVerbose
                                     <*> parseIgnoreGeno
                                     <*> parseNoExitCode
+
+parsePoseidonVersion :: OP.Parser (Maybe Version)
+parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
+    OP.long "poseidonVersion" <> 
+    OP.help "Poseidon version the packages should be updated to: \
+            \e.g. \"2.5.3\"" <>
+    OP.value Nothing <>
+    OP.showDefault
+    )
+    where 
+        readPoseidonVersionString :: String -> Either String Version
+        readPoseidonVersionString s = case runParser poseidonVersionParser () "" s of
+            Left p  -> Left (show p)
+            Right x -> Right x
+
+parseVersionComponent :: OP.Parser VersionComponent
+parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
+    OP.long "versionComponent" <> 
+    OP.help "Part of the package version number in the POSEIDON.yml file \
+            \that should be updated: \
+            \Major, Minor or Patch (see https://semver.org)" <>
+    OP.value Patch <>
+    OP.showDefault
+    )
+    where
+        readVersionComponent :: String -> Either String VersionComponent
+        readVersionComponent s = case s of
+            "Major" -> Right Major
+            "Minor" -> Right Minor
+            "Patch" -> Right Patch
+            _       -> Left "must be Major, Minor or Patch"
+
+parseNoChecksumUpdate :: OP.Parser Bool
+parseNoChecksumUpdate = OP.switch (
+    OP.long "noChecksumUpdate" <>
+    OP.help "Should update of checksums in the POSEIDON.yml file be skipped"
+    )
+
+parseContributors :: OP.Parser [ContributorSpec]
+parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (
+    OP.long "newContributors" <>
+    OP.help "Contributors to add to the POSEIDON.yml file \
+            \ in the form \"[Firstname Lastname](Email address);...\""
+    ))
+    where
+        readContributorString :: String -> Either String [ContributorSpec]
+        readContributorString s = case runParser contributorSpecParser () "" s of
+            Left p  -> Left (show p)
+            Right x -> Right x
+
+
+parseLog :: OP.Parser String
+parseLog = OP.strOption (
+    OP.long "logText" <> 
+    OP.help "Log text for this version jump in the CHANGELOG file" <>
+    OP.value "not specified" <>
+    OP.showDefault
+    )
+
+parseForce :: OP.Parser Bool
+parseForce = OP.switch (
+    OP.long "force" <>
+    OP.help "Normally the POSEIDON.yml files are only changed if the \
+            \poseidonVersion is adjusted or any of the checksums change. \
+            \With --force a package version update can be triggered even \
+            \if this is not the case."
+    )
 
 parseJackknife :: OP.Parser JackknifeMode
 parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
@@ -366,7 +444,7 @@ parseVerbose = OP.switch (
 parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <> 
-    OP.help "ignore SNP and GenoFile for the validation" <>
+    OP.help "ignore SNP and GenoFile" <>
     OP.hidden
     )
 
