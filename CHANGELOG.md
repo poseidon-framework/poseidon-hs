@@ -1,3 +1,4 @@
+- V 0.19.0: Replaced trident checksumupdate with the much more powerful trident update
 - V 0.18.2: Added a golden test feature to make sure code changes do not accidentally modify the output of trident modules
 - V 0.18.1: Removes Pandoc-dependency by implementing a custom bibtex-parser
 - V 0.18.0: checksumupdate now also increments version numbers and updates lastModified fields
