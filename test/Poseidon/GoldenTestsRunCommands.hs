@@ -236,8 +236,8 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test1"
         , _updateForce = True
         }
-    let action = runUpdate updateOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action "update" [
+    let action1 = runUpdate updateOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
         ]
@@ -251,8 +251,8 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test2"
         , _updateForce = False
         }
-    let action = runUpdate updateOpts2 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action "update" [
+    let action2 = runUpdate updateOpts2 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
         ]
@@ -269,8 +269,8 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test3"
         , _updateForce = False
         }
-    let action = runUpdate updateOpts3 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action "update" [
+    let action3 = runUpdate updateOpts3 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action3 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
         ]
@@ -287,8 +287,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeShowWarnings = False
     }
-    let action = runForge forgeOpts1 >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action "forge" [
+    let action1 = runForge forgeOpts1 >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "forge" [
           "ForgePac1" </> "POSEIDON.yml"
         , "ForgePac1" </> "ForgePac1.geno"
         , "ForgePac1" </> "ForgePac1.janno"
@@ -303,8 +303,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutFormat    = GenotypeFormatPlink
         , _forgeShowWarnings = False
     }
-    let action = runForge forgeOpts2 >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action "forge" [
+    let action2 = runForge forgeOpts2 >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "forge" [
           "ForgePac2" </> "POSEIDON.yml"
         , "ForgePac2" </> "ForgePac2.bed"
         , "ForgePac2" </> "ForgePac2.janno"
