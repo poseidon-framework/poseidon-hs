@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
 import           Poseidon.EntitiesList          (PoseidonEntity (..))
---import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
+import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init              (InitOptions (..), runInit)
 import           Poseidon.CLI.Fetch             (FetchOptions (..), runFetch)
@@ -17,10 +18,13 @@ import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidat
 import           Poseidon.GenotypeData          (GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..))
 import           Poseidon.Package               (getChecksum)
+import           Poseidon.SecondaryTypes        (ContributorSpec (..),
+                                                 VersionComponent (..))
 
 import           Control.Monad                  (when, unless)
 import qualified Data.Text.IO                   as T
 import qualified Data.Text                      as T
+import           Data.Version                   (makeVersion)
 import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
 import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix          ((</>))
@@ -67,19 +71,19 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     unless interactive $ hDuplicateTo devNull stderr
     -- run CLI pipeline
     hPutStrLn stderr "--- init ---"
-    testPipelineInit  testDir checkFilePath testPacsDir
-    -- hPutStrLn stderr "--- checksumupdate ---"
-    -- testPipelineChecksumupdate  testDir checkFilePath
+    testPipelineInit testDir checkFilePath testPacsDir
     hPutStrLn stderr "--- validate ---"
     testPipelineValidate testDir checkFilePath
     hPutStrLn stderr "--- list ---"
-    testPipelineList  testDir checkFilePath
+    testPipelineList testDir checkFilePath
     hPutStrLn stderr "--- summarise ---"
     testPipelineSummarise testDir checkFilePath
     hPutStrLn stderr "--- survey ---"
     testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- genoconvert ---"
     testPipelineGenoconvert testDir checkFilePath
+    hPutStrLn stderr "--- update ---"
+    testPipelineUpdate testDir checkFilePath
     hPutStrLn stderr "--- forge ---"
     testPipelineForge testDir checkFilePath
     hPutStrLn stderr "--- fetch ---"
@@ -220,6 +224,57 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "Schiffels" </> "Schiffels.fam"
         ]
 
+testPipelineUpdate :: FilePath -> FilePath -> IO ()
+testPipelineUpdate testDir checkFilePath = do
+    let updateOpts1 = UpdateOptions {
+          _updateBaseDirs = [testDir </> "Schiffels"]
+        , _updatePoseidonVersion = Nothing
+        , _updateVersionUpdate = Major
+        , _updateNoChecksumUpdate = True
+        , _updateIgnoreGeno = True
+        , _updateNewContributors = []
+        , _updateLog = "test1"
+        , _updateForce = True
+        }
+    let action = runUpdate updateOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action "update" [
+          "Schiffels" </> "POSEIDON.yml"
+        , "Schiffels" </> "CHANGELOG.md"
+        ]
+    let updateOpts2 = UpdateOptions {
+          _updateBaseDirs = [testDir </> "Schiffels"]
+        , _updatePoseidonVersion = Nothing
+        , _updateVersionUpdate = Minor
+        , _updateNoChecksumUpdate = False
+        , _updateIgnoreGeno = False
+        , _updateNewContributors = []
+        , _updateLog = "test2"
+        , _updateForce = False
+        }
+    let action = runUpdate updateOpts2 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action "update" [
+          "Schiffels" </> "POSEIDON.yml"
+        , "Schiffels" </> "CHANGELOG.md"
+        ]
+    let updateOpts3 = UpdateOptions {
+          _updateBaseDirs = [testDir </> "Schiffels"]
+        , _updatePoseidonVersion = Just $ makeVersion [2,9,9]
+        , _updateVersionUpdate = Patch
+        , _updateNoChecksumUpdate = False
+        , _updateIgnoreGeno = False
+        , _updateNewContributors = [
+            ContributorSpec "Berta Testfrau" "berta@testfrau.org",
+            ContributorSpec "Herbert Testmann" "herbert@testmann.tw"
+            ]
+        , _updateLog = "test3"
+        , _updateForce = False
+        }
+    let action = runUpdate updateOpts3 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action "update" [
+          "Schiffels" </> "POSEIDON.yml"
+        , "Schiffels" </> "CHANGELOG.md"
+        ]
+
 testPipelineForge :: FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath = do
     let forgeOpts1 = ForgeOptions { 
@@ -232,8 +287,10 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeShowWarnings = False
     }
-    runAndChecksumFiles checkFilePath testDir (runForge forgeOpts1) "forge" [
-          "ForgePac1" </> "ForgePac1.geno"
+    let action = runForge forgeOpts1 >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action "forge" [
+          "ForgePac1" </> "POSEIDON.yml"
+        , "ForgePac1" </> "ForgePac1.geno"
         , "ForgePac1" </> "ForgePac1.janno"
         ]
     let forgeOpts2 = ForgeOptions { 
@@ -246,19 +303,12 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutFormat    = GenotypeFormatPlink
         , _forgeShowWarnings = False
     }
-    runAndChecksumFiles checkFilePath testDir (runForge forgeOpts2) "forge" [
-          "ForgePac2" </> "ForgePac2.bed"
+    let action = runForge forgeOpts2 >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action "forge" [
+          "ForgePac2" </> "POSEIDON.yml"
+        , "ForgePac2" </> "ForgePac2.bed"
         , "ForgePac2" </> "ForgePac2.janno"
         ]
-
--- testPipelineChecksumupdate :: FilePath -> FilePath -> IO ()
--- testPipelineChecksumupdate testDir checkFilePath = do
---     let checksumOpts1 = ChecksumupdateOptions { 
---           _checksumupdateBaseDirs = [testDir </> "Schiffels"]
---         }
---     runAndChecksumFiles checkFilePath testDir (runChecksumupdate checksumOpts1) "checksumupdate" [
---           "Schiffels" </> "POSEIDON.yml"
---         ]
 
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
