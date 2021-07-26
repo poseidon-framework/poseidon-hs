@@ -30,7 +30,7 @@ import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT, throwM)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..), GenoLine,
-                                             writeEigenstrat)
+                                             writeEigenstrat, GenoEntry (Missing))
 import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (createDirectory)
 import           System.FilePath            ((<.>), (</>))
@@ -105,9 +105,6 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
-    -- janno
-    hPutStrLn stderr "Creating .janno file"
-    writeJannoFile (outPath </> outName <.> "janno") relevantJannoRows
     -- bib
     hPutStrLn stderr "Creating .bib file"
     writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
@@ -127,8 +124,37 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
         liftIO $ hPutStrLn stderr "Processing SNPs..."
-        runEffect $ eigenstratProd >-> printSNPCopyProgress >-> P.map (selectIndices indices) >-> outConsumer
+        -- merge
+        runEffect $ eigenstratProd >->
+            printSNPCopyProgress >->
+            P.map (selectIndices indices) >->
+            outConsumer
         liftIO $ hPutStrLn stderr "Done"
+    -- counting Nr of SNPs
+    hPutStrLn stderr "Counting non-missing SNPs"
+    newNrAutosomalSNPs <- runSafeT $ do
+        liftIO $ hPutStrLn stderr "Counting..."
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData False False [pac]
+        let startAcc = V.replicate (length eigenstratIndEntries) 0 :: V.Vector Int
+        snpVec <- P.fold sumNonMissingSNPs startAcc id (eigenstratProd >-> printSNPCopyProgress)
+        liftIO $ hPutStrLn stderr "Done"
+        return snpVec
+    -- janno (with updated SNP numbers)
+    hPutStrLn stderr "Creating .janno file"
+    let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
+                                             relevantJannoRows
+                                             (V.toList newNrAutosomalSNPs)
+    writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
+
+sumNonMissingSNPs :: V.Vector Int -> (EigenstratSnpEntry, GenoLine) -> V.Vector Int
+sumNonMissingSNPs accumulator (_, geno) =
+    let nonMissingInt = V.map nonMissingToInt geno
+    in V.zipWith (+) accumulator nonMissingInt
+    where
+        nonMissingToInt :: GenoEntry -> Int
+        nonMissingToInt x
+            | x == Missing = 0
+            | otherwise = 1
 
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
 checkIndividualsUniqueJanno rows = do
