@@ -176,11 +176,11 @@ joinEntries :: (MonadSafe m) => Bool -> [Int] -> [Maybe (EigenstratSnpEntry, Gen
 joinEntries showAllWarnings nrInds maybeTupleList = do
     let allSnpEntries    = map fst . catMaybes $ maybeTupleList
     consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
-    recodedGenotypes <- forM (zip nrInds maybeTupleList) $ \(n, maybeTuple) ->
-        case maybeTuple of
-            Nothing -> return (V.replicate n Missing)
-            Just (snpEntry, genoLine) ->
-                genotypes2alleles snpEntry genoLine >>= recodeAlleles consensusSnpEntry
+    let recodedGenotypes = zipWith (\n maybeTuple -> 
+            case maybeTuple of
+                Nothing                   -> V.replicate n Missing
+                Just (snpEntry, genoLine) -> recodeAlleles consensusSnpEntry (genotypes2alleles snpEntry genoLine)
+            ) nrInds maybeTupleList
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
 getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
@@ -227,37 +227,37 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
-genotypes2alleles :: (MonadThrow m) => EigenstratSnpEntry -> GenoLine -> m (V.Vector (Char, Char))
-genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM g2a
+genotypes2alleles :: EigenstratSnpEntry -> GenoLine -> V.Vector (Char, Char)
+genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map g2a
   where
-    g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
+    g2a :: GenoEntry -> (Char, Char)
     g2a HomRef =
-        if ref `notElem` na
-        then return (ref, ref)
-        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Ref with Ref-Allele missing"))
+        if ref /= 'N' && ref /= '0' && ref /= 'X'
+        then (ref, ref)
+        else error "1" -- throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Ref with Ref-Allele missing"))
     g2a Het =
-        if ref `notElem` na && alt `notElem` na
-        then return (ref, alt)
-        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Het with Ref-Allele or Alt-Allele missing"))
+        if ref /= 'N' && ref /= '0' && ref /= 'X' && alt /= 'N' && alt /= '0' && alt /= 'X'
+        then (ref, alt)
+        else error "2" -- throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Het with Ref-Allele or Alt-Allele missing"))
     g2a HomAlt =
-        if alt `notElem` na
-        then return (alt, alt)
-        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Alt with Alt-Allele missing"))
-    g2a Missing = return ('N', 'N')
-    na = ['0', 'N', 'X']
+        if alt /= 'N' && alt /= '0' && alt /= 'X'
+        then (alt, alt)
+        else error "3" -- throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Alt with Alt-Allele missing"))
+    g2a Missing = ('N', 'N')
 
-recodeAlleles :: (MonadThrow m) => EigenstratSnpEntry -> V.Vector (Char, Char) -> m GenoLine
-recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM a2g
+recodeAlleles :: EigenstratSnpEntry -> V.Vector (Char, Char) -> GenoLine
+recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map a2g
   where
-    a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
+    a2g :: (Char, Char) -> GenoEntry
     a2g (a1, a2)
-        | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef
-        | (a1, a2)  == (alt, alt)                            && alt `notElem` na                       = return HomAlt
-        | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
-        | a1 `elem` na && a2 `elem` na                                                                 = return Missing
-        | otherwise                                                                                    = throwM (err a1 a2)
-    err a1 a2 = PoseidonGenotypeException ("At snp " ++ show snpEntry ++ ": cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
-    na = ['0', 'N', 'X']
+        | (a1, a2)  == (ref, ref) && ref /= 'N' && ref /= '0' && ref /= 'X'                            = HomRef
+        | (a1, a2)  == (alt, alt) && alt /= 'N' && alt /= '0' && alt /= 'X'                            = HomAlt
+        | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && 
+            (ref /= 'N' && ref /= '0' && ref /= 'X' && alt /= 'N' && alt /= '0' && alt /= 'X') 
+            = Het
+        | (a1 == 'N' || a1 == '0' || a1 == 'X') && (a2 == 'N' || a2 == '0' || a2 == 'X')               = Missing
+        | otherwise                                                                                    = error "4" -- throwM (err a1 a2)
+    --err a1 a2 = PoseidonGenotypeException ("At snp " ++ show snpEntry ++ ": cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
 
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
 printSNPCopyProgress = loop (0 :: Int)

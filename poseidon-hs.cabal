@@ -35,6 +35,7 @@ executable trident
     build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
+    ghc-options:        -O2
 
 executable poseidon-http-server
     main-is:            Main-server.hs
