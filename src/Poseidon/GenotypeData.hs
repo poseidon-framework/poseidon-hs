@@ -4,8 +4,8 @@ module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM, void, when)
-import           Control.Monad.Catch        (MonadThrow, throwM)
+import           Control.Monad              (void, when)--(forM, void, when)
+import           Control.Monad.Catch        (throwM)--(MonadThrow, throwM)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -228,7 +228,8 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
 genotypes2alleles :: EigenstratSnpEntry -> GenoLine -> V.Vector (Char, Char)
-genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map g2a
+--genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map g2a
+genotypes2alleles (EigenstratSnpEntry _ _ _ _ ref alt) = V.map g2a
   where
     g2a :: GenoEntry -> (Char, Char)
     g2a HomRef =
@@ -246,7 +247,8 @@ genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map g2a
     g2a Missing = ('N', 'N')
 
 recodeAlleles :: EigenstratSnpEntry -> V.Vector (Char, Char) -> GenoLine
-recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map a2g
+--recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.map a2g
+recodeAlleles (EigenstratSnpEntry _ _ _ _ ref alt) = V.map a2g
   where
     a2g :: (Char, Char) -> GenoEntry
     a2g (a1, a2)
