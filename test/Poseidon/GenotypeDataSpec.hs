@@ -33,15 +33,21 @@ testEntriesTuplesList1 :: [Maybe (EigenstratSnpEntry, GenoLine)]
 testEntriesTuplesList1 = [
     Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'A' 'C', V.fromList [HomRef, Het, HomAlt]),
     Nothing,
-    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'A' 'C', V.fromList [HomAlt, Missing, HomRef])]
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'C' 'A', V.fromList [HomAlt, Missing, HomRef]),
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'C' 'N', V.fromList [HomRef, Missing, HomRef]),
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'N' 'A', V.fromList [HomAlt, HomAlt, HomAlt])]
 
 mergedTestEntries1 :: (EigenstratSnpEntry, GenoLine)
 mergedTestEntries1 = (
     EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'A' 'C',
-    V.fromList [HomRef, Het, HomAlt, Missing, Missing, Missing, HomAlt, Missing, HomRef])
+    V.fromList [HomRef, Het, HomAlt,
+                Missing, Missing, Missing,
+                HomRef, Missing, HomAlt,
+                HomAlt, Missing, HomAlt,
+                HomRef, HomRef, HomRef])
 
 testJoinGenoEntries :: Spec
 testJoinGenoEntries =
     describe "Poseidon.GenotypeData.joinEntries" $
         it "should just work" $
-            joinEntries True [3, 3, 3] testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
+            joinEntries True [3, 3, 3, 3, 3] testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
