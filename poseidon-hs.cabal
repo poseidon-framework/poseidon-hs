@@ -44,6 +44,12 @@ executable poseidon-http-server
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
+executable trident-forge-benchmark
+  main-is:             MainBench.hs
+  hs-source-dirs:      src-bench
+  build-depends:       base, poseidon-hs, directory, filepath
+  default-language:    Haskell2010
+
 Test-Suite poseidon-tools-tests
   type:                exitcode-stdio-1.0
   main-is:             Spec.hs
