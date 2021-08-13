@@ -4,9 +4,10 @@ module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
+import Control.Exception (throwIO)
 import           Control.Monad              (forM, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
-import           Control.Monad.IO.Class     (liftIO)
+import           Control.Monad.IO.Class     (liftIO, MonadIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
@@ -172,7 +173,7 @@ loadJointGenotypeData showAllWarnings intersect gdTuples = do
     filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
     filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
 
-joinEntries :: (MonadSafe m) => Bool -> [Int] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries :: (MonadIO m) => Bool -> [Int] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries showAllWarnings nrInds maybeTupleList = do
     let allSnpEntries    = map fst . catMaybes $ maybeTupleList
     consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
@@ -180,10 +181,10 @@ joinEntries showAllWarnings nrInds maybeTupleList = do
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
             Just (snpEntry, genoLine) ->
-                genotypes2alleles snpEntry genoLine >>= recodeAlleles consensusSnpEntry
+                liftIO (genotypes2alleles snpEntry genoLine >>= recodeAlleles consensusSnpEntry)
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+getConsensusSnpEntry :: (MonadIO m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 getConsensusSnpEntry showAllWarnings snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
@@ -225,7 +226,7 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
                 liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
-        _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
+        _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
 genotypes2alleles :: (MonadThrow m) => EigenstratSnpEntry -> GenoLine -> m (V.Vector (Char, Char))
 genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM g2a
