@@ -475,42 +475,61 @@ getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
 getJointGenotypeData showAllWarnings intersect pacs =
     loadJointGenotypeData showAllWarnings intersect [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
 
--- | A function to create a dummy POSEIDON.yml file
--- This will take only the filenames of the provided files, so it assumes that the files will be copied into
--- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
-newPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) inds janno bib = do
-    (UTCTime today _) <- getCurrentTime
-    return PoseidonPackage {
+-- | A function to create a minimal POSEIDON package
+newMinimalPoseidonPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
+newMinimalPoseidonPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
+    PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = makeVersion [2, 1, 0]
+    ,   posPacPoseidonVersion = makeVersion [2, 4, 0]
     ,   posPacTitle = name
-    ,   posPacDescription = Just "Empty package template. Please add a description"
+    ,   posPacDescription = Nothing
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
-    ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
-    ,   posPacLastModified = Just today
+    ,   posPacPackageVersion = Nothing
+    ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
-    ,   posPacJannoFile = Just $ name ++ ".janno"
-    -- TODO: This is not a good solution. Maybe we need pattern matching with
-    -- two different implementations of newPackageTemplate depending on whether
-    -- the input janno object is Nothing or not
-    ,   posPacJanno =
-            case janno of
-                Nothing -> case inds of
-                    Nothing -> throw $ PoseidonNewPackageConstructionException "Missing Individual- and Group IDs. This should never happen"
-                    Just a -> createMinimalJanno a
-                Just a -> a
+    ,   posPacJannoFile = Nothing
+    ,   posPacJanno = []
     ,   posPacJannoFileChkSum = Nothing
-    ,   posPacBibFile = Just $ name ++ ".bib"
-    ,   posPacBib =
-            case bib of
-                Nothing -> [] :: BibTeX
-                Just a  -> a
+    ,   posPacBibFile = Nothing
+    ,   posPacBib = [] :: BibTeX
     ,   posPacBibFileChkSum = Nothing
     ,   posPacReadmeFile = Nothing
     ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
+
+-- | A function to create a more complete POSEIDON package
+-- This will take only the filenames of the provided files, so it assumes that the files will be copied into
+-- the directory into which the YAML file will be written
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
+newPackageTemplate baseDir name genoData@(GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) inds janno bib = do
+    (UTCTime today _) <- getCurrentTime
+    let minimalTemplate = newMinimalPoseidonPackageTemplate baseDir name genoData
+        fluffedUpTemplate = minimalTemplate {
+            posPacDescription = Just "Empty package template. Please add a description"
+        ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
+        ,   posPacLastModified = Just today
+        }
+    return $ completeBibSpec name bib $ completeJannoSpec name inds janno fluffedUpTemplate
+    where
+        completeJannoSpec _ Nothing Nothing inTemplate = inTemplate
+        completeJannoSpec name (Just a) Nothing inTemplate =
+            inTemplate {
+                posPacJannoFile = Just $ name ++ ".janno",
+                posPacJanno = createMinimalJanno a
+            }
+        completeJannoSpec name Nothing (Just b) inTemplate =
+            inTemplate {
+                posPacJannoFile = Just $ name ++ ".janno",
+                posPacJanno = b
+            }
+        completeBibSpec _ Nothing inTemplate = inTemplate
+        completeBibSpec name (Just c) inTemplate =
+            inTemplate {
+                posPacBibFile = Just $ name ++ ".bib",
+                posPacBib = c
+            }
+
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
