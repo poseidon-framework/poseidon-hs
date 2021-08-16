@@ -13,7 +13,7 @@ module Poseidon.Package (
     getChecksum,
     getJointGenotypeData,
     getIndividuals,
-    newMinimalPoseidonPackageTemplate,
+    newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
     zipWithPadding,
@@ -477,8 +477,8 @@ getJointGenotypeData showAllWarnings intersect pacs =
     loadJointGenotypeData showAllWarnings intersect [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
 
 -- | A function to create a minimal POSEIDON package
-newMinimalPoseidonPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
-newMinimalPoseidonPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
+newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
+newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
     PoseidonPackage {
         posPacBaseDir = baseDir
     ,   posPacPoseidonVersion = makeVersion [2, 4, 0]
@@ -505,7 +505,7 @@ newMinimalPoseidonPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ 
 newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> Maybe BibTeX -> IO PoseidonPackage
 newPackageTemplate baseDir name genoData indsOrJanno bib = do
     (UTCTime today _) <- getCurrentTime
-    let minimalTemplate = newMinimalPoseidonPackageTemplate baseDir name genoData
+    let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
