@@ -17,16 +17,16 @@ entities = [
     Pac "2020_Wang_EastAsia_modern",
     Pac "2020_Bergstrom_HGDP"]
 
-entities2 :: [PoseidonEntity]
-entities2 = [
-    Ind "Inuk.SG",
-    Ind "JK2134",
-    Ind "DAV-A-8_38.SG",
-    Ind "I0041",
-    Ind "523a.SG",
-    Ind "HGDP01319.SDG",
-    Ind "BDB001",
-    Ind "GN01"]
+-- entities2 :: [PoseidonEntity]
+-- entities2 = [
+--     Ind "Inuk.SG",
+--     Ind "JK2134",
+--     Ind "DAV-A-8_38.SG",
+--     Ind "I0041",
+--     Ind "523a.SG",
+--     Ind "HGDP01319.SDG",
+--     Ind "BDB001",
+--     Ind "GN01"]
 
 -- August 13: Forging 50,000 SNPs takes about 9.5 seconds.
 -- August 16: Forging 50,000 SNPs takes about 8.9 seconds... not much difference despite new algorithm... hmm
@@ -39,7 +39,7 @@ main = do
     let baseDir = h </> "poseidon/repo"
     let forgeOptions = ForgeOptions {
         _forgeBaseDirs     = [baseDir],
-        _forgeEntityList   = entities2,
+        _forgeEntityList   = entities,
         _forgeEntityFiles  = [],
         _forgeIntersect    = False,
         _forgeOutPacPath   = "/tmp/outPac",
