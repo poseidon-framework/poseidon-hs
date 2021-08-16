@@ -19,17 +19,18 @@ entities = [
 
 entities2 :: [PoseidonEntity]
 entities2 = [
-    Group "Greenland_Saqqaq.SG",
-    Group "Egypt_ThirdIntermediatePeriod",
-    Group "Iceland_Pre_Christian.SG",
-    Group "Peru_Lauricocha_8600BP",
-    Group "Alaskan_Athabskan.SG",
-    Group "Germany_Meso_BDB",
-    Group "Tibetan_Gannan",
-    Group "China_Lahu.SDG"]
+    Ind "Inuk.SG",
+    Ind "JK2134",
+    Ind "DAV-A-8_38.SG",
+    Ind "I0041",
+    Ind "523a.SG",
+    Ind "HGDP01319.SDG",
+    Ind "BDB001",
+    Ind "GN01"]
 
 -- August 13: Forging 50,000 SNPs takes about 9.5 seconds.
 -- August 16: Forging 50,000 SNPs takes about 8.9 seconds... not much difference despite new algorithm... hmm
+-- BUT found out that selectIndices is the main culprit, since in my test case I have selected all individuals per package. Have changed that now.
 
 main :: IO ()
 main = do
