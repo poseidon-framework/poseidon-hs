@@ -13,6 +13,7 @@ module Poseidon.Package (
     getChecksum,
     getJointGenotypeData,
     getIndividuals,
+    newMinimalPoseidonPackageTemplate,
     newPackageTemplate,
     renderMismatch,
     zipWithPadding,
@@ -32,7 +33,7 @@ import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
-import           Control.Exception          (throw, throwIO, try)
+import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -501,8 +502,8 @@ newMinimalPoseidonPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ 
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
-newPackageTemplate baseDir name genoData@(GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) inds janno bib = do
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> Maybe BibTeX -> IO PoseidonPackage
+newPackageTemplate baseDir name genoData indsOrJanno bib = do
     (UTCTime today _) <- getCurrentTime
     let minimalTemplate = newMinimalPoseidonPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
@@ -510,23 +511,23 @@ newPackageTemplate baseDir name genoData@(GenotypeDataSpec format_ geno _ snp _ 
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
-    return $ completeBibSpec name bib $ completeJannoSpec name inds janno fluffedUpTemplate
+    return $ completeBibSpec name bib $ completeJannoSpec name indsOrJanno fluffedUpTemplate
     where
-        completeJannoSpec _ Nothing Nothing inTemplate = inTemplate
-        completeJannoSpec name (Just a) Nothing inTemplate =
+        completeJannoSpec _ Nothing inTemplate = inTemplate
+        completeJannoSpec name_ (Just (Left a)) inTemplate =
             inTemplate {
-                posPacJannoFile = Just $ name ++ ".janno",
+                posPacJannoFile = Just $ name_ ++ ".janno",
                 posPacJanno = createMinimalJanno a
             }
-        completeJannoSpec name Nothing (Just b) inTemplate =
+        completeJannoSpec name_ (Just (Right b)) inTemplate =
             inTemplate {
-                posPacJannoFile = Just $ name ++ ".janno",
+                posPacJannoFile = Just $ name_ ++ ".janno",
                 posPacJanno = b
             }
         completeBibSpec _ Nothing inTemplate = inTemplate
-        completeBibSpec name (Just c) inTemplate =
+        completeBibSpec name_ (Just c) inTemplate =
             inTemplate {
-                posPacBibFile = Just $ name ++ ".bib",
+                posPacBibFile = Just $ name_ ++ ".bib",
                 posPacBib = c
             }
 
