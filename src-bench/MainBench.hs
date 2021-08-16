@@ -1,4 +1,4 @@
-import           System.Directory (getHomeDirectory, removeDirectoryRecursive)
+import           System.Directory (getHomeDirectory, removePathForcibly)
 import           System.FilePath  ((</>))
 
 import Poseidon.CLI.Forge (ForgeOptions(..), runForge)
@@ -17,7 +17,20 @@ entities = [
     Pac "2020_Wang_EastAsia_modern",
     Pac "2020_Bergstrom_HGDP"]
 
+entities2 :: [PoseidonEntity]
+entities2 = [
+    Group "Greenland_Saqqaq.SG",
+    Group "Egypt_ThirdIntermediatePeriod",
+    Group "Iceland_Pre_Christian.SG",
+    Group "Peru_Lauricocha_8600BP",
+    Group "Alaskan_Athabskan.SG",
+    Group "Germany_Meso_BDB",
+    Group "Tibetan_Gannan",
+    Group "China_Lahu.SDG"]
+
 -- August 13: Forging 50,000 SNPs takes about 9.5 seconds.
+-- August 16: Forging 50,000 SNPs takes about 8.9 seconds... not much difference despite new algorithm... hmm
+
 main :: IO ()
 main = do
     h <- getHomeDirectory
@@ -25,7 +38,7 @@ main = do
     let baseDir = h </> "poseidon/repo"
     let forgeOptions = ForgeOptions {
         _forgeBaseDirs     = [baseDir],
-        _forgeEntityList   = entities,
+        _forgeEntityList   = entities2,
         _forgeEntityFiles  = [],
         _forgeIntersect    = False,
         _forgeOutPacPath   = "/tmp/outPac",
@@ -33,5 +46,5 @@ main = do
         _forgeOutFormat    = GenotypeFormatPlink,
         _forgeShowWarnings = False
     }
-    removeDirectoryRecursive "/tmp/outPac"
+    removePathForcibly "/tmp/outPac"
     runForge forgeOptions

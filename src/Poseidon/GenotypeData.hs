@@ -207,38 +207,6 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
--- genotypes2alleles :: (MonadThrow m) => EigenstratSnpEntry -> GenoLine -> m (V.Vector (Char, Char))
--- genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM g2a
---   where
---     g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
---     g2a HomRef =
---         if ref `notElem` na
---         then return (ref, ref)
---         else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Ref with Ref-Allele missing"))
---     g2a Het =
---         if ref `notElem` na && alt `notElem` na
---         then return (ref, alt)
---         else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Het with Ref-Allele or Alt-Allele missing"))
---     g2a HomAlt =
---         if alt `notElem` na
---         then return (alt, alt)
---         else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Alt with Alt-Allele missing"))
---     g2a Missing = return ('N', 'N')
---     na = ['0', 'N', 'X']
-
--- recodeAlleles :: (MonadThrow m) => EigenstratSnpEntry -> V.Vector (Char, Char) -> m GenoLine
--- recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM a2g
---   where
---     a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
---     a2g (a1, a2)
---         | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef
---         | (a1, a2)  == (alt, alt)                            && alt `notElem` na                       = return HomAlt
---         | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
---         | a1 `elem` na && a2 `elem` na                                                                 = return Missing
---         | otherwise                                                                                    = throwM (err a1 a2)
---     err a1 a2 = PoseidonGenotypeException ("At snp " ++ show snpEntry ++ ": cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
---     na = ['0', 'N', 'X']
-
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
 recodeAlleles consensusSnpEntry snpEntry genoLine = do
     let (EigenstratSnpEntry _ _ _ _ consRefA consAltA) = consensusSnpEntry
