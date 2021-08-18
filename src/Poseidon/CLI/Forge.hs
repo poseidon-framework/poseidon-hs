@@ -25,7 +25,7 @@ import           Data.List                  (intercalate, intersect, nub,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import qualified Data.Vector                as V
-import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
+import           Pipes                      (MonadIO (liftIO), (>->))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT, throwM)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -110,7 +110,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
-    runSafeT $ do
+    newNrAutosomalSNPs <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
@@ -124,22 +124,18 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
         liftIO $ hPutStrLn stderr "Processing SNPs..."
-        -- merge
-        runEffect $ eigenstratProd >->
-            printSNPCopyProgress >->
-            P.map (selectIndices indices) >->
-            outConsumer
-        liftIO $ hPutStrLn stderr "Done"
-    -- counting Nr of SNPs
-    hPutStrLn stderr "Counting non-missing SNPs"
-    newNrAutosomalSNPs <- runSafeT $ do
-        liftIO $ hPutStrLn stderr "Counting..."
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData False False [pac]
-        let startAcc = V.replicate (length eigenstratIndEntries) 0 :: V.Vector Int
-        snpVec <- P.fold sumNonMissingSNPs startAcc id (eigenstratProd >-> printSNPCopyProgress)
-        liftIO $ hPutStrLn stderr "Done"
-        return snpVec
+        
+        -- define main forge pipe including file output.
+        -- The final tee forwards the results to be used in the snpCounting-fold
+        let forgePipe = eigenstratProd >->
+                printSNPCopyProgress >->
+                P.map (selectIndices indices) >->
+                P.tee outConsumer
+
+        let startAcc = V.replicate (length newEigenstratIndEntries) 0 :: V.Vector Int
+        P.fold sumNonMissingSNPs startAcc id forgePipe
     -- janno (with updated SNP numbers)
+    liftIO $ hPutStrLn stderr "Done"
     hPutStrLn stderr "Creating .janno file"
     let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
                                              relevantJannoRows
