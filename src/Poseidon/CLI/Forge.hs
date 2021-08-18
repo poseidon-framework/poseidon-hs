@@ -25,7 +25,7 @@ import           Data.List                  (intercalate, intersect, nub,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import qualified Data.Vector                as V
-import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
+import           Pipes                      (MonadIO (liftIO), runEffect, (>->), cat)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT, throwM)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -46,6 +46,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutPacName   :: String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeShowWarnings :: Bool
+    , _forgeNoExtract    :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -59,7 +60,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings noExtract) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -127,7 +128,8 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
         liftIO $ hPutStrLn stderr "Processing SNPs..."
-        runEffect $ eigenstratProd >-> printSNPCopyProgress >-> P.map (selectIndices indices) >-> outConsumer
+        let extractPipe = if noExtract then cat else P.map (selectIndices indices)
+        runEffect $ eigenstratProd >-> printSNPCopyProgress >-> extractPipe >-> outConsumer
         liftIO $ hPutStrLn stderr "Done"
 
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
