@@ -4,21 +4,18 @@ module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad              (forM, void, when)
-import           Control.Monad.Catch        (MonadThrow, throwM)
-import           Control.Monad.IO.Class     (liftIO)
+import           Control.Exception          (throwIO)
+import           Control.Monad              (forM, when)
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
 import           Data.List                  (nub, sort)
-import           Data.Maybe                 (catMaybes, isNothing)
+import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, await, yield,
-                                             (>->))
-import           Pipes.OrderedZip           (orderedZipAll)
-import qualified Pipes.Prelude              as P
+import           Pipes                      (Pipe, Producer, await, yield)
 import           Pipes.Safe                 (MonadSafe, SafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -152,38 +149,21 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
 
--- | A function to read genotype data jointly from multiple packages
-loadJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
-                     -> Bool -- ^ whether to generate an intersection instead of a union of all input files
-                     -> [(FilePath, GenotypeDataSpec)]-- ^ A list of tuples of base directories and genotype data
-                     -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-                     -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-loadJointGenotypeData showAllWarnings intersect gdTuples = do
-    genotypeTuples <- sequence [loadGenotypeData baseDir gd | (baseDir, gd) <- gdTuples]
-    let indEntries      = map fst genotypeTuples
-        jointIndEntries = concat indEntries
-        nrInds          = map length indEntries
-        jointProducer   = (orderedZipAll compFunc . map snd) genotypeTuples >->
-            P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds)
-    return (jointIndEntries, void jointProducer)
-  where
-    compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
-    compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
-    filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
-    filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
-
-joinEntries :: (MonadSafe m) => Bool -> [Int] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-joinEntries showAllWarnings nrInds maybeTupleList = do
-    let allSnpEntries    = map fst . catMaybes $ maybeTupleList
+joinEntries :: (MonadIO m) => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries showAllWarnings nrInds pacNames maybeTupleList = do
+    let allSnpEntries = map fst . catMaybes $ maybeTupleList
     consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
-    recodedGenotypes <- forM (zip nrInds maybeTupleList) $ \(n, maybeTuple) ->
+    recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) ->
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
-            Just (snpEntry, genoLine) ->
-                genotypes2alleles snpEntry genoLine >>= recodeAlleles consensusSnpEntry
+            Just (snpEntry, genoLine) -> case recodeAlleles consensusSnpEntry snpEntry genoLine of
+                Left err -> do
+                    let msg = "Error in genotype data of package " ++ name ++ ": " ++ err
+                    liftIO . throwIO $ PoseidonGenotypeException msg
+                Right x -> return x
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadSafe m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+getConsensusSnpEntry :: (MonadIO m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 getConsensusSnpEntry showAllWarnings snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
@@ -225,39 +205,48 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
                 liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
-        _ -> throwM $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
+        _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
-genotypes2alleles :: (MonadThrow m) => EigenstratSnpEntry -> GenoLine -> m (V.Vector (Char, Char))
-genotypes2alleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM g2a
+recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
+recodeAlleles consensusSnpEntry snpEntry genoLine = do
+    let (EigenstratSnpEntry _ _ _ _ consRefA consAltA) = consensusSnpEntry
+    let (EigenstratSnpEntry _ _ _ _ refA altA) = snpEntry
+    let maybeRecodedGenoline = case (isMissing consRefA, isMissing consAltA) of
+            (False, False) -> maybeFlipGenoLine1 consRefA consAltA refA altA
+            (False, True)  -> maybeFlipGenoLine2 consRefA          refA altA
+            (True, False)  -> maybeFlipGenoLine3          consAltA refA altA
+            (True, True)   -> maybeFlipGenoLine4
+    case maybeRecodedGenoline of
+        Left err -> Left ("At snp " ++ show snpEntry ++ ": allele coding error due to inconsistent \
+                           \alleles with consensus alleles ref = " ++ [consRefA] ++ ", alt = " ++ [consAltA] ++
+                           ". Error: " ++ err)
+        Right recodedGenoLine -> return recodedGenoLine
   where
-    g2a :: (MonadThrow m) => GenoEntry -> m (Char, Char)
-    g2a HomRef =
-        if ref `notElem` na
-        then return (ref, ref)
-        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Ref with Ref-Allele missing"))
-    g2a Het =
-        if ref `notElem` na && alt `notElem` na
-        then return (ref, alt)
-        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Het with Ref-Allele or Alt-Allele missing"))
-    g2a HomAlt =
-        if alt `notElem` na
-        then return (alt, alt)
-        else throwM (PoseidonGenotypeException (show snpEntry ++ ": encountered illegal genotype Hom-Alt with Alt-Allele missing"))
-    g2a Missing = return ('N', 'N')
-    na = ['0', 'N', 'X']
-
-recodeAlleles :: (MonadThrow m) => EigenstratSnpEntry -> V.Vector (Char, Char) -> m GenoLine
-recodeAlleles snpEntry@(EigenstratSnpEntry _ _ _ _ ref alt) = V.mapM a2g
-  where
-    a2g :: (MonadThrow m) => (Char, Char) -> m GenoEntry
-    a2g (a1, a2)
-        | (a1, a2)  == (ref, ref)                            && ref `notElem` na                       = return HomRef
-        | (a1, a2)  == (alt, alt)                            && alt `notElem` na                       = return HomAlt
-        | ((a1, a2) == (ref, alt) || (a1, a2) == (alt, ref)) && (ref `notElem` na && alt `notElem` na) = return Het
-        | a1 `elem` na && a2 `elem` na                                                                 = return Missing
-        | otherwise                                                                                    = throwM (err a1 a2)
-    err a1 a2 = PoseidonGenotypeException ("At snp " ++ show snpEntry ++ ": cannot recode allele-pair " ++ show (a1, a2) ++ " with ref,alt alleles " ++ show (ref, alt))
-    na = ['0', 'N', 'X']
+    isMissing '0' = True
+    isMissing 'N' = True
+    isMissing _   = False
+    maybeFlipGenoLine1 consRefA consAltA refA altA
+        | (refA, altA) == (consRefA, consAltA) = return genoLine -- simple concordance
+        | (refA, altA) == (consAltA, consRefA) = return (V.map flipGeno genoLine) -- alleles flipped
+        | refA == consRefA                     = checked HomRef $ return genoLine -- refs equal, alts different, need everything HomRef or Missing
+        | altA == consAltA                     = checked HomAlt $ return genoLine -- alts equal, refs different, need everything HomAlt
+        | refA == consAltA                     = checked HomRef $ return (V.map flipGeno genoLine) -- need everything HomRef, then flip
+        | altA == consRefA                     = checked HomAlt $ return (V.map flipGeno genoLine) -- need everything HomAlt, then flip
+        | otherwise                            = checked Missing $ return genoLine
+    maybeFlipGenoLine2 consRefA refA altA
+        | refA == consRefA                     = checked HomRef $ return genoLine -- refs equal, need everything HomRef or Missing
+        | altA == consRefA                     = checked HomAlt $ return (V.map flipGeno genoLine) -- ref flipped, need everything HomAlt or Missing, then flip
+        | otherwise                            = checked Missing $ return genoLine
+    maybeFlipGenoLine3 consAltA refA altA
+        | refA == consAltA                     = checked HomRef $ return (V.map flipGeno genoLine) -- alt flipped, need everything HomAlt or Missing, then flip
+        | altA == consAltA                     = checked HomAlt $ return genoLine -- alts equal, need everything HomAlt or Missing
+        | otherwise                            = checked Missing $ return genoLine
+    maybeFlipGenoLine4 = checked Missing $ return genoLine
+    checked Missing action = if V.any (/= Missing) genoLine then Left "Requiring all genotype missing" else action
+    checked t       action = if V.any (\g -> g /= Missing && g /= t) genoLine then Left ("requiring all genotypes missing or " ++ show t) else action
+    flipGeno HomRef = HomAlt
+    flipGeno HomAlt = HomRef
+    flipGeno g      = g
 
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
 printSNPCopyProgress = loop (0 :: Int)
