@@ -43,7 +43,7 @@ runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath outName
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     inds <- loadIndividuals outPath genotypeData
-    pac <- newPackageTemplate outPath outName genotypeData (Just (Left inds)) Nothing
+    pac <- newPackageTemplate outPath outName genotypeData (Just (Left inds)) []
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac

@@ -101,7 +101,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
-    pac <- newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) (Just relevantBibEntries)
+    pac <- newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac

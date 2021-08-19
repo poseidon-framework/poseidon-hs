@@ -502,7 +502,7 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> Maybe BibTeX -> IO PoseidonPackage
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> BibTeX -> IO PoseidonPackage
 newPackageTemplate baseDir name genoData indsOrJanno bib = do
     (UTCTime today _) <- getCurrentTime
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
@@ -524,11 +524,11 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
                 posPacJannoFile = Just $ name_ ++ ".janno",
                 posPacJanno = b
             }
-        completeBibSpec _ Nothing inTemplate = inTemplate
-        completeBibSpec name_ (Just c) inTemplate =
+        completeBibSpec _ [] inTemplate = inTemplate
+        completeBibSpec name_ xs inTemplate =
             inTemplate {
                 posPacBibFile = Just $ name_ ++ ".bib",
-                posPacBib = c
+                posPacBib = xs
             }
 
 
