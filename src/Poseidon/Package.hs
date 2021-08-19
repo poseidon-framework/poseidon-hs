@@ -511,7 +511,9 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
-    return $ completeBibSpec name bib $ completeJannoSpec name indsOrJanno fluffedUpTemplate
+        jannoFilledTemplate = completeJannoSpec name indsOrJanno fluffedUpTemplate
+        bibFilledTemplate = completeBibSpec name bib jannoFilledTemplate
+    return bibFilledTemplate
     where
         completeJannoSpec _ Nothing inTemplate = inTemplate
         completeJannoSpec name_ (Just (Left a)) inTemplate =
@@ -530,7 +532,6 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
                 posPacBibFile = Just $ name_ ++ ".bib",
                 posPacBib = xs
             }
-
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
