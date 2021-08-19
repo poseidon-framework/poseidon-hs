@@ -1,41 +1,44 @@
 module Poseidon.CLI.Forge where
 
-import           Poseidon.BibFile           (writeBibTeXFile, BibTeX, BibEntry(..))
-import           Poseidon.EntitiesList      (EntitiesList,
-                                             PoseidonEntity (..),
-                                             readEntitiesFromFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..),
-                                             SNPSetSpec(..),
-                                             printSNPCopyProgress,
-                                             snpSetMergeList)
-import           Poseidon.Janno             (JannoRow (..),
-                                             writeJannoFile, JannoList(..))
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             getIndividuals,
-                                             getJointGenotypeData,
-                                             newPackageTemplate,
-                                             readPoseidonPackageCollection,
-                                             writePoseidonPackage,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.BibFile            (BibEntry (..), BibTeX,
+                                              writeBibTeXFile)
+import           Poseidon.EntitiesList       (EntitiesList, PoseidonEntity (..),
+                                              readEntitiesFromFile)
+import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
+                                              GenotypeFormatSpec (..),
+                                              SNPSetSpec (..),
+                                              printSNPCopyProgress,
+                                              snpSetMergeList)
+import           Poseidon.Janno              (JannoList (..), JannoRow (..),
+                                              writeJannoFile)
+import           Poseidon.Package            (PackageReadOptions (..),
+                                              PoseidonPackage (..),
+                                              defaultPackageReadOptions,
+                                              getIndividuals,
+                                              getJointGenotypeData,
+                                              newPackageTemplate,
+                                              readPoseidonPackageCollection,
+                                              writePoseidonPackage)
+import           Poseidon.Utils              (PoseidonException (..))
 
-import           Control.Monad              (forM, unless, when)
-import           Data.List                  (intercalate, intersect, nub,
-                                             (\\))
-import           Data.Maybe                 (catMaybes, mapMaybe)
-import qualified Data.Vector                as V
-import qualified Data.Vector.Unboxed        as VU
-import           Pipes                      (MonadIO (liftIO), (>->))
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (runSafeT, throwM)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..), GenoLine,
-                                             writeEigenstrat, GenoEntry (Missing))
-import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (createDirectory)
-import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr)
+import           Control.Monad               (forM, unless, when, forM_)
+import Control.Monad.Trans.Class (lift)
+import           Data.List                   (intercalate, intersect, nub, (\\))
+import           Data.Maybe                  (catMaybes, mapMaybe)
+import qualified Data.Vector                 as V
+import qualified Data.Vector.Unboxed         as VU
+import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Pipes                       (MonadIO (liftIO), (>->))
+import qualified Pipes.Prelude               as P
+import           Pipes.Safe                  (runSafeT, throwM, SafeT)
+import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
+                                              EigenstratSnpEntry (..),
+                                              GenoEntry (Missing), GenoLine,
+                                              writeEigenstrat)
+import           SequenceFormats.Plink       (writePlink)
+import           System.Directory            (createDirectory)
+import           System.FilePath             ((<.>), (</>))
+import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -93,7 +96,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
     -- compile genotype data structure
-    let [outInd, outSnp, outGeno] = case outFormat of 
+    let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- output warning if any snpSet is set to Other
@@ -125,7 +128,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
         liftIO $ hPutStrLn stderr "Processing SNPs..."
-        
+
         -- define main forge pipe including file output.
         -- The final tee forwards the results to be used in the snpCounting-fold
         let forgePipe = eigenstratProd >->
@@ -133,25 +136,31 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 P.map (selectIndices indices) >->
                 P.tee outConsumer
 
-        let startAcc = VU.replicate (length newEigenstratIndEntries) 0 :: VU.Vector Int
-        P.fold sumNonMissingSNPs startAcc id forgePipe
+        -- let startAcc = VU.replicate (length newEigenstratIndEntries) 0 :: VU.Vector Int
+        startAcc <- VUM.replicate (length newEigenstratIndEntries) 0
+        P.foldM sumNonMissingSNPs startAcc return forgePipe
     -- janno (with updated SNP numbers)
     liftIO $ hPutStrLn stderr "Done"
     hPutStrLn stderr "Creating .janno file"
+    autosomalSnpList <- VU.freeze newNrAutosomalSNPs
     let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
                                              relevantJannoRows
-                                             (VU.toList newNrAutosomalSNPs)
+                                             (VU.toList autosomalSnpList)
     writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
 
-sumNonMissingSNPs :: VU.Vector Int -> (EigenstratSnpEntry, GenoLine) -> VU.Vector Int
-sumNonMissingSNPs accumulator (_, geno) =
-    let nonMissingInt = VU.fromList . V.toList . V.map nonMissingToInt $ geno
-    in VU.zipWith (+) accumulator nonMissingInt
-    where
-        nonMissingToInt :: GenoEntry -> Int
-        nonMissingToInt x
-            | x == Missing = 0
-            | otherwise = 1
+-- sumNonMissingSNPs :: (MonadIO m) => VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> m (VUM.IOVector Int)
+sumNonMissingSNPs accumulator (_, geno) = do
+    forM_ (zip (V.toList geno) [0..]) $ (\(g, i) -> do
+        let x = nonMissingToInt g
+        VUM.modify accumulator (+x) i)
+    return accumulator
+    -- let nonMissingInt = VU.fromList . V.toList . V.map nonMissingToInt $ geno
+    -- in VU.zipWith (+) accumulator nonMissingInt
+  where
+    nonMissingToInt :: GenoEntry -> Int
+    nonMissingToInt x
+        | x == Missing = 0
+        | otherwise = 1
 
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
 checkIndividualsUniqueJanno rows = do
