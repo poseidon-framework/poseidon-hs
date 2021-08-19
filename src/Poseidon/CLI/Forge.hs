@@ -25,6 +25,7 @@ import           Data.List                  (intercalate, intersect, nub,
                                              (\\))
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import qualified Data.Vector                as V
+import qualified Data.Vector.Unboxed        as VU
 import           Pipes                      (MonadIO (liftIO), (>->))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT, throwM)
@@ -132,20 +133,20 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 P.map (selectIndices indices) >->
                 P.tee outConsumer
 
-        let startAcc = V.replicate (length newEigenstratIndEntries) 0 :: V.Vector Int
+        let startAcc = VU.replicate (length newEigenstratIndEntries) 0 :: VU.Vector Int
         P.fold sumNonMissingSNPs startAcc id forgePipe
     -- janno (with updated SNP numbers)
     liftIO $ hPutStrLn stderr "Done"
     hPutStrLn stderr "Creating .janno file"
     let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
                                              relevantJannoRows
-                                             (V.toList newNrAutosomalSNPs)
+                                             (VU.toList newNrAutosomalSNPs)
     writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
 
-sumNonMissingSNPs :: V.Vector Int -> (EigenstratSnpEntry, GenoLine) -> V.Vector Int
+sumNonMissingSNPs :: VU.Vector Int -> (EigenstratSnpEntry, GenoLine) -> VU.Vector Int
 sumNonMissingSNPs accumulator (_, geno) =
-    let nonMissingInt = V.map nonMissingToInt geno
-    in V.zipWith (+) accumulator nonMissingInt
+    let nonMissingInt = VU.fromList . V.toList . V.map nonMissingToInt $ geno
+    in VU.zipWith (+) accumulator nonMissingInt
     where
         nonMissingToInt :: GenoEntry -> Int
         nonMissingToInt x
