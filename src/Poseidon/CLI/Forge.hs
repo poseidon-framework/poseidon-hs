@@ -1,43 +1,40 @@
 module Poseidon.CLI.Forge where
 
-import           Poseidon.BibFile            (BibEntry (..), BibTeX,
-                                              writeBibTeXFile)
-import           Poseidon.EntitiesList       (EntitiesList, PoseidonEntity (..),
-                                              readEntitiesFromFile)
-import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
-                                              GenotypeFormatSpec (..),
-                                              SNPSetSpec (..),
-                                              printSNPCopyProgress,
-                                              snpSetMergeList)
-import           Poseidon.Janno              (JannoList (..), JannoRow (..),
-                                              writeJannoFile)
-import           Poseidon.Package            (PackageReadOptions (..),
-                                              PoseidonPackage (..),
-                                              defaultPackageReadOptions,
-                                              getIndividuals,
-                                              getJointGenotypeData,
-                                              newPackageTemplate,
-                                              readPoseidonPackageCollection,
-                                              writePoseidonPackage)
-import           Poseidon.Utils              (PoseidonException (..))
+import           Poseidon.BibFile           (writeBibTeXFile, BibTeX, BibEntry(..))
+import           Poseidon.EntitiesList      (EntitiesList,
+                                             PoseidonEntity (..),
+                                             readEntitiesFromFile)
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..),
+                                             SNPSetSpec(..),
+                                             printSNPCopyProgress,
+                                             snpSetMergeList)
+import           Poseidon.Janno             (JannoRow (..),
+                                             writeJannoFile, JannoList(..))
+import           Poseidon.Package           (PoseidonPackage (..),
+                                             getIndividuals,
+                                             getJointGenotypeData,
+                                             newPackageTemplate,
+                                             readPoseidonPackageCollection,
+                                             writePoseidonPackage,
+                                             PackageReadOptions (..), defaultPackageReadOptions)
+import           Poseidon.Utils             (PoseidonException (..))
 
-import           Control.Monad               (forM, unless, when, forM_)
-import           Data.List                   (intercalate, intersect, nub, (\\))
-import           Data.Maybe                  (catMaybes, mapMaybe)
-import qualified Data.Vector                 as V
-import qualified Data.Vector.Unboxed         as VU
-import qualified Data.Vector.Unboxed.Mutable as VUM
-import           Pipes                       (MonadIO (liftIO), (>->))
-import qualified Pipes.Prelude               as P
-import           Pipes.Safe                  (runSafeT, throwM, SafeT)
-import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
-                                              EigenstratSnpEntry (..),
-                                              GenoEntry (Missing), GenoLine,
-                                              writeEigenstrat)
-import           SequenceFormats.Plink       (writePlink)
-import           System.Directory            (createDirectory)
-import           System.FilePath             ((<.>), (</>))
-import           System.IO                   (hPutStrLn, stderr)
+import           Control.Monad              (forM, unless, when)
+import           Data.List                  (intercalate, intersect, nub,
+                                             (\\))
+import           Data.Maybe                 (catMaybes, mapMaybe)
+import qualified Data.Vector                as V
+import           Pipes                      (MonadIO (liftIO), runEffect, (>->), cat)
+import qualified Pipes.Prelude              as P
+import           Pipes.Safe                 (runSafeT, throwM)
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
+                                             EigenstratSnpEntry (..), GenoLine,
+                                             writeEigenstrat)
+import           SequenceFormats.Plink      (writePlink)
+import           System.Directory           (createDirectory)
+import           System.FilePath            ((<.>), (</>))
+import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -49,6 +46,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutPacName   :: String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeShowWarnings :: Bool
+    , _forgeNoExtract    :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -62,7 +60,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings noExtract) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
