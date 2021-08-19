@@ -22,7 +22,6 @@ import           Poseidon.Package            (PackageReadOptions (..),
 import           Poseidon.Utils              (PoseidonException (..))
 
 import           Control.Monad               (forM, unless, when, forM_)
-import Control.Monad.Trans.Class (lift)
 import           Data.List                   (intercalate, intersect, nub, (\\))
 import           Data.Maybe                  (catMaybes, mapMaybe)
 import qualified Data.Vector                 as V
@@ -136,8 +135,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 P.map (selectIndices indices) >->
                 P.tee outConsumer
 
-        -- let startAcc = VU.replicate (length newEigenstratIndEntries) 0 :: VU.Vector Int
-        startAcc <- VUM.replicate (length newEigenstratIndEntries) 0
+        let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0 
         P.foldM sumNonMissingSNPs startAcc return forgePipe
     -- janno (with updated SNP numbers)
     liftIO $ hPutStrLn stderr "Done"
@@ -148,14 +146,13 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                                              (VU.toList autosomalSnpList)
     writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
 
--- sumNonMissingSNPs :: (MonadIO m) => VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> m (VUM.IOVector Int)
+
+sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do
     forM_ (zip (V.toList geno) [0..]) $ (\(g, i) -> do
         let x = nonMissingToInt g
         VUM.modify accumulator (+x) i)
     return accumulator
-    -- let nonMissingInt = VU.fromList . V.toList . V.map nonMissingToInt $ geno
-    -- in VU.zipWith (+) accumulator nonMissingInt
   where
     nonMissingToInt :: GenoEntry -> Int
     nonMissingToInt x
