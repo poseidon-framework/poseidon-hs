@@ -422,10 +422,10 @@ parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Sh
 parseNoExtract :: OP.Parser Bool
 parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection step in forge. This will result in \
     \outputting all individuals in the relevant packages, and hence a superset of the requested \
-    \individuals/groups. May result in better performance in cases where one wants to forge entire packages or almost entire packages \
-    \. Note that this will also ignore any ordering in the output \
-    \groups/individuals. With this option active, individuals from the relevant packages will just be output in the order \
-    \that they appear in the original packages.")
+    \individuals/groups. It may result in better performance in cases where one wants to forge entire packages or \
+    \almost entire packages. \
+    \Note that this will also ignore any ordering in the output groups/individuals. With this option active, \
+    \individuals from the relevant packages will just be written in the order that they appear in the original packages.")
 
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividualsDummy *> parseListIndividualsExtraCols)

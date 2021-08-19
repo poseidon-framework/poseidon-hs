@@ -151,7 +151,7 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
 
 joinEntries :: (MonadIO m) => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries showAllWarnings nrInds pacNames maybeTupleList = do
-    let allSnpEntries    = map fst . catMaybes $ maybeTupleList
+    let allSnpEntries = map fst . catMaybes $ maybeTupleList
     consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
     recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) ->
         case maybeTuple of
@@ -242,12 +242,11 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
         | altA == consAltA                     = checked HomAlt $ return genoLine -- alts equal, need everything HomAlt or Missing
         | otherwise                            = checked Missing $ return genoLine
     maybeFlipGenoLine4 = checked Missing $ return genoLine
-    checked Missing action = if (V.any (/=Missing) genoLine) then Left "Requiring all genotype missing" else action
-    checked t       action = if (V.any (\g -> g /= Missing && g /= t) genoLine) then Left ("requiring all genotypes missing or " ++ show t) else action
+    checked Missing action = if V.any (/= Missing) genoLine then Left "Requiring all genotype missing" else action
+    checked t       action = if V.any (\g -> g /= Missing && g /= t) genoLine then Left ("requiring all genotypes missing or " ++ show t) else action
     flipGeno HomRef = HomAlt
     flipGeno HomAlt = HomRef
     flipGeno g      = g
-
 
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
 printSNPCopyProgress = loop (0 :: Int)
