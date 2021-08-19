@@ -24,7 +24,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
-                                             loadJointGenotypeData)
+                                             joinEntries,
+                                             loadGenotypeData)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
@@ -33,7 +34,7 @@ import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
 import           Control.Exception          (throw, throwIO, try)
-import           Control.Monad              (filterM, forM_, unless, when)
+import           Control.Monad              (filterM, forM_, unless, when, void)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -44,7 +45,7 @@ import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, intercalate, nub, sortOn,
                                              (\\))
-import           Data.Maybe                 (catMaybes, mapMaybe)
+import           Data.Maybe                 (catMaybes, mapMaybe, isNothing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
@@ -52,6 +53,7 @@ import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Producer, runEffect, (>->))
+import           Pipes.OrderedZip           (orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -315,12 +317,12 @@ readPoseidonPackage opts ymlPath = do
             checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
-    when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
-        -- we're using loadJointGenotypeData here on a single package to check for SNP consistency
-        -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- loadJointGenotypeData False False [(baseDir, geno)]
-        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
+    when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
+        -- we're using getJointGenotypeData here on a single package to check for SNP consistency
+        -- since that check is only implemented in the jointLoading function, not in the per-package loading
+        (_, eigenstratProd) <- getJointGenotypeData False False [pac]
+        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
 -- throws exception if any checksum isn't correct
@@ -472,8 +474,20 @@ getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData showAllWarnings intersect pacs =
-    loadJointGenotypeData showAllWarnings intersect [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
+getJointGenotypeData showAllWarnings intersect pacs = do
+    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
+    let indEntries      = map fst genotypeTuples
+        jointIndEntries = concat indEntries
+        nrInds          = map length indEntries
+        pacNames        = map posPacTitle pacs
+        jointProducer   = (orderedZipAll compFunc . map snd) genotypeTuples >->
+            P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds pacNames)
+    return (jointIndEntries, void jointProducer)
+  where
+    compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
+    compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
+    filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
+    filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
 
 -- | A function to create a dummy POSEIDON.yml file
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
