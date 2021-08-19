@@ -34,7 +34,7 @@ import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
-import           Control.Exception          (throw, throwIO, try)
+import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, when, void)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
