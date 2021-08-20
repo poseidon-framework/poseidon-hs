@@ -110,8 +110,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     hPutStrLn stderr "Creating .janno file"
     writeJannoFile (outPath </> outName <.> "janno") relevantJannoRows
     -- bib
-    hPutStrLn stderr "Creating .bib file"
-    writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
+    unless (null relevantBibEntries) $ do
+        hPutStrLn stderr "Creating .bib file"
+        writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
     runSafeT $ do
