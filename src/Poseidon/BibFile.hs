@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
+module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
 
 import           Poseidon.Utils       (PoseidonException (..))
 
@@ -21,6 +21,23 @@ data BibEntry = BibEntry
     deriving (Show, Eq)
 
 type BibTeX = [BibEntry]
+
+dummyBibEntry :: BibEntry
+dummyBibEntry = BibEntry
+    { bibEntryType   = "article"
+    , bibEntryId     = "exampleBibtexKey"
+    , bibEntryFields = [
+       ("title", "Example Paper"),
+       ("author", "Doe, John"),
+       ("year", "2018"),
+       ("journal", "Example Journal"),
+       ("volume", "47"),
+       ("issue", "10"),
+       ("publisher", "The example society for example research"),
+       ("doi","10.XXXX/ExampleJournal.47.777"),
+       ("url","https://doi.org/10.XXXX/ExampleJournal.47.777")
+      ]
+    }
 
 readBibTeXFile :: FilePath -> IO BibTeX
 readBibTeXFile bibPath = do

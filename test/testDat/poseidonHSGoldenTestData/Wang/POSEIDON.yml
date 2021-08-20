@@ -13,3 +13,4 @@ genotypeData:
   indFile: Wang.ind
   snpSet: Other
 jannoFile: Wang.janno
+bibFile: Wang.bib
