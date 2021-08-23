@@ -1,4 +1,4 @@
-poseidonVersion: 2.1.0
+poseidonVersion: 2.4.0
 title: ForgePac1
 description: Empty package template. Please add a description
 contributor:
@@ -13,4 +13,3 @@ genotypeData:
   indFile: ForgePac1.ind
   snpSet: Other
 jannoFile: ForgePac1.janno
-bibFile: ForgePac1.bib

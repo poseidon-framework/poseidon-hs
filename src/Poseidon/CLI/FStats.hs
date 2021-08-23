@@ -251,7 +251,7 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect ma
                 Left e  ->  throwM e
                 Right f -> return f
             let summaryStatsProd = purely folds statsFold eigenstratProdInChunks
-            purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.stdoutLn))
+            purely P.fold list (summaryStatsProd >-> P.tee (P.map showBlockLogOutput >-> P.toHandle stderr))
         let jackknifeEstimates = [computeJackknife (map blockSiteCount blocks) (map blockVal blocks) | blocks <- transpose blockData]
             colSpecs = replicate 4 (column expand def def def)
             tableH = ["Statistic", "Estimate", "StdErr", "Z score"]
