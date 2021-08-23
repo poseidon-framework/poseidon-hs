@@ -33,10 +33,10 @@ c1fef4d80eb867df825211115598081a update Schiffels/POSEIDON.yml
 2dabf673712faabac1403e1002bec9e0 update Schiffels/CHANGELOG.md
 80121e7c99b47e63529194f9a961b51f forge ForgePac1/POSEIDON.yml
 814d71c65037eb20bb8a636e804c9dd9 forge ForgePac1/ForgePac1.geno
-0e8a3a81039f3344ec598da10475af63 forge ForgePac1/ForgePac1.janno
+9485ef192ccee3846da2dafb36128f67 forge ForgePac1/ForgePac1.janno
 87dfb1aa71425b7a1ed97d37bcd1dbae forge ForgePac2/POSEIDON.yml
 e8a7d4c9ac62234f36ea2d5b4d0a17df forge ForgePac2/ForgePac2.bed
-0e8a3a81039f3344ec598da10475af63 forge ForgePac2/ForgePac2.janno
+9485ef192ccee3846da2dafb36128f67 forge ForgePac2/ForgePac2.janno
 53edcde25d7b66b94ea9ee306a315864 fetch 2019_Nikitin_LBK/POSEIDON.yml
 4dedd209cdc4d4a986c184d70dedecd1 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam
