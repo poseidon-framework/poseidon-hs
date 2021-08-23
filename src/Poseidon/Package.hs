@@ -13,6 +13,7 @@ module Poseidon.Package (
     getChecksum,
     getJointGenotypeData,
     getIndividuals,
+    newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
     zipWithPadding,
@@ -33,7 +34,7 @@ import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
-import           Control.Exception          (throw, throwIO, try)
+import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, when, void)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -460,6 +461,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 return . last . sortOn posPacPackageVersion $ pacs_
             else
                 let t   = posPacTitle $ head pacs_
+                
                     msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
 
@@ -489,42 +491,62 @@ getJointGenotypeData showAllWarnings intersect pacs = do
     filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
     filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
 
--- | A function to create a dummy POSEIDON.yml file
--- This will take only the filenames of the provided files, so it assumes that the files will be copied into
--- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
-newPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) inds janno bib = do
-    (UTCTime today _) <- getCurrentTime
-    return PoseidonPackage {
+-- | A function to create a minimal POSEIDON package
+newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
+newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
+    PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = makeVersion [2, 1, 0]
+    ,   posPacPoseidonVersion = makeVersion [2, 4, 0]
     ,   posPacTitle = name
-    ,   posPacDescription = Just "Empty package template. Please add a description"
+    ,   posPacDescription = Nothing
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
-    ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
-    ,   posPacLastModified = Just today
+    ,   posPacPackageVersion = Nothing
+    ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
-    ,   posPacJannoFile = Just $ name ++ ".janno"
-    -- TODO: This is not a good solution. Maybe we need pattern matching with
-    -- two different implementations of newPackageTemplate depending on whether
-    -- the input janno object is Nothing or not
-    ,   posPacJanno =
-            case janno of
-                Nothing -> case inds of
-                    Nothing -> throw $ PoseidonNewPackageConstructionException "Missing Individual- and Group IDs. This should never happen"
-                    Just a -> createMinimalJanno a
-                Just a -> a
+    ,   posPacJannoFile = Nothing
+    ,   posPacJanno = []
     ,   posPacJannoFileChkSum = Nothing
-    ,   posPacBibFile = Just $ name ++ ".bib"
-    ,   posPacBib =
-            case bib of
-                Nothing -> [] :: BibTeX
-                Just a  -> a
+    ,   posPacBibFile = Nothing
+    ,   posPacBib = [] :: BibTeX
     ,   posPacBibFileChkSum = Nothing
     ,   posPacReadmeFile = Nothing
     ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
+
+-- | A function to create a more complete POSEIDON package
+-- This will take only the filenames of the provided files, so it assumes that the files will be copied into
+-- the directory into which the YAML file will be written
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> BibTeX -> IO PoseidonPackage
+newPackageTemplate baseDir name genoData indsOrJanno bib = do
+    (UTCTime today _) <- getCurrentTime
+    let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
+        fluffedUpTemplate = minimalTemplate {
+            posPacDescription = Just "Empty package template. Please add a description"
+        ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
+        ,   posPacLastModified = Just today
+        }
+        jannoFilledTemplate = completeJannoSpec name indsOrJanno fluffedUpTemplate
+        bibFilledTemplate = completeBibSpec name bib jannoFilledTemplate
+    return bibFilledTemplate
+    where
+        completeJannoSpec _ Nothing inTemplate = inTemplate
+        completeJannoSpec name_ (Just (Left a)) inTemplate =
+            inTemplate {
+                posPacJannoFile = Just $ name_ ++ ".janno",
+                posPacJanno = createMinimalJanno a
+            }
+        completeJannoSpec name_ (Just (Right b)) inTemplate =
+            inTemplate {
+                posPacJannoFile = Just $ name_ ++ ".janno",
+                posPacJanno = b
+            }
+        completeBibSpec _ [] inTemplate = inTemplate
+        completeBibSpec name_ xs inTemplate =
+            inTemplate {
+                posPacBibFile = Just $ name_ ++ ".bib",
+                posPacBib = xs
+            }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do

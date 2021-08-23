@@ -108,6 +108,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
         , "Schiffels" </> "geno.txt"
+        , "Schiffels" </> "Schiffels.bib"
         ]
     let initOpts2 = InitOptions {
           _initGenoFormat = GenotypeFormatPlink 

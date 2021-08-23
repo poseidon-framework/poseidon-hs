@@ -1,6 +1,6 @@
 module Poseidon.CLI.Init where
 
-import           Poseidon.BibFile           (writeBibTeXFile)
+import           Poseidon.BibFile           (dummyBibEntry, writeBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..), 
                                              loadIndividuals,
@@ -43,14 +43,14 @@ runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath outName
     -- create new package
     hPutStrLn stderr "Creating new package entity"
     inds <- loadIndividuals outPath genotypeData
-    pac <- newPackageTemplate outPath outName genotypeData (Just inds) Nothing Nothing
+    pac <- newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
     -- janno
-    hPutStrLn stderr "Creating empty .janno file"
+    hPutStrLn stderr "Creating minimal .janno file"
     writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
     -- bib
-    hPutStrLn stderr "Creating empty .bib file"
+    hPutStrLn stderr "Creating dummy .bib file"
     writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac
 
