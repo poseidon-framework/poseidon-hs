@@ -5,9 +5,11 @@
 # poseidon-hs
 A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
 
-Detailed documentation can be found on our [github-page](https://poseidon-framework.github.io/#/trident)
+**Detailed user documentation can be found on our github-page [here](https://poseidon-framework.github.io/#/trident).**
 
 ## For developers
+
+The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html).
 
 ### Development Quickstart
 
