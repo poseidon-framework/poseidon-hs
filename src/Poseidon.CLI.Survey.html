@@ -1,0 +1,558 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Poseidon.CLI.Survey</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.BibFile.html"><span class="hs-identifier">Poseidon.BibFile</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibTeX"><span class="hs-identifier">BibTeX</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.GenotypeData.html"><span class="hs-identifier">Poseidon.GenotypeData</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier">GenotypeDataSpec</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Janno.html"><span class="hs-identifier">Poseidon.Janno</span></a></span><span>        </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier">JannoRow</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Package.html"><span class="hs-identifier">Poseidon.Package</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Package.html#PackageReadOptions"><span class="hs-identifier">PackageReadOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>                                        </span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier">PoseidonPackage</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>                                        </span><span class="annot"><a href="Poseidon.Package.html#defaultPackageReadOptions"><span class="hs-identifier">defaultPackageReadOptions</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>                                        </span><span class="annot"><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier">readPoseidonPackageCollection</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">forM</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>             </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">intercalate</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">zip4</span></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isNothing</span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.Directory</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">doesFileExist</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.FilePath</span></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&lt;/&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Text.Layout.Table</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">asciiRoundS</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">column</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">def</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">expandUntil</span></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>                                        </span><span class="annot"><span class="hs-identifier">rowsG</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">tableString</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">titlesH</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- | A datatype representing command line options for the survey command</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">data</span><span> </span><span id="SurveyOptions"><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-var">SurveyOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="SurveyOptions"><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-var">SurveyOptions</span></a></span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_surveyBaseDirs"><span class="annot"><span class="annottext">SurveyOptions -&gt; [FilePath]
+</span><a href="Poseidon.CLI.Survey.html#_surveyBaseDirs"><span class="hs-identifier hs-var hs-var">_surveyBaseDirs</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">]</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_surveyRawOutput"><span class="annot"><span class="annottext">SurveyOptions -&gt; Bool
+</span><a href="Poseidon.CLI.Survey.html#_surveyRawOutput"><span class="hs-identifier hs-var hs-var">_surveyRawOutput</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#pacReadOpts"><span class="hs-identifier hs-type">pacReadOpts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Package.html#PackageReadOptions"><span class="hs-identifier hs-type">PackageReadOptions</span></a></span><span>
+</span><span id="line-27"></span><span id="pacReadOpts"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
+</span><a href="Poseidon.CLI.Survey.html#pacReadOpts"><span class="hs-identifier hs-var hs-var">pacReadOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
+</span><a href="Poseidon.Package.html#defaultPackageReadOptions"><span class="hs-identifier hs-var">defaultPackageReadOptions</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-28"></span><span>      </span><span class="annot"><span class="annottext">_readOptVerbose :: Bool
+</span><a href="Poseidon.Package.html#_readOptVerbose"><span class="hs-identifier hs-var">_readOptVerbose</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptStopOnDuplicates :: Bool
+</span><a href="Poseidon.Package.html#_readOptStopOnDuplicates"><span class="hs-identifier hs-var">_readOptStopOnDuplicates</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreChecksums :: Bool
+</span><a href="Poseidon.Package.html#_readOptIgnoreChecksums"><span class="hs-identifier hs-var">_readOptIgnoreChecksums</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreGeno :: Bool
+</span><a href="Poseidon.Package.html#_readOptIgnoreGeno"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptGenoCheck :: Bool
+</span><a href="Poseidon.Package.html#_readOptGenoCheck"><span class="hs-identifier hs-var">_readOptGenoCheck</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- | The main function running the janno command</span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#runSurvey"><span class="hs-identifier hs-type">runSurvey</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-type">SurveyOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span id="runSurvey"><span class="annot"><span class="annottext">runSurvey :: SurveyOptions -&gt; IO ()
+</span><a href="Poseidon.CLI.Survey.html#runSurvey"><span class="hs-identifier hs-var hs-var">runSurvey</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-type">SurveyOptions</span></a></span><span> </span><span id="local-6989586621679147408"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147408"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679147407"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147407"><span class="hs-identifier hs-var">rawOutput</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679147406"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679147406"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [FilePath] -&gt; IO [PoseidonPackage]
+</span><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier hs-var">readPoseidonPackageCollection</span></a></span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
+</span><a href="Poseidon.CLI.Survey.html#pacReadOpts"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147408"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">-- collect information</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147405"><span class="annot"><span class="annottext">packageNames :: [FilePath]
+</span><a href="#local-6989586621679147405"><span class="hs-identifier hs-var hs-var">packageNames</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; FilePath) -&gt; [PoseidonPackage] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; FilePath
+</span><a href="Poseidon.Package.html#posPacTitle"><span class="hs-identifier hs-var hs-var">posPacTitle</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679147406"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- geno</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147403"><span class="annot"><span class="annottext">genotypeDataTuples :: [(FilePath, GenotypeDataSpec)]
+</span><a href="#local-6989586621679147403"><span class="hs-identifier hs-var hs-var">genotypeDataTuples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; FilePath
+</span><a href="Poseidon.Package.html#posPacBaseDir"><span class="hs-identifier hs-var hs-var">posPacBaseDir</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679147401"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; GenotypeDataSpec
+</span><a href="Poseidon.Package.html#posPacGenotypeData"><span class="hs-identifier hs-var hs-var">posPacGenotypeData</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679147401"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679147401"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679147401"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679147406"><span class="hs-identifier hs-var">allPackages</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679147399"><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147399"><span class="hs-identifier hs-var">genoFilesExist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[IO Bool] -&gt; IO [Bool]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Traversable t, Monad m) =&gt;
+t (m a) -&gt; m (t a)
+</span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath -&gt; IO Bool
+</span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679147397"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; FilePath
+</span><a href="Poseidon.GenotypeData.html#genoFile"><span class="hs-identifier hs-var hs-var">genoFile</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679147395"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679147397"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679147397"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679147395"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679147395"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(FilePath, GenotypeDataSpec)]
+</span><a href="#local-6989586621679147403"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-44"></span><span>    </span><span id="local-6989586621679147394"><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147394"><span class="hs-identifier hs-var">snpFilesExist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[IO Bool] -&gt; IO [Bool]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Traversable t, Monad m) =&gt;
+t (m a) -&gt; m (t a)
+</span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath -&gt; IO Bool
+</span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679147393"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; FilePath
+</span><a href="Poseidon.GenotypeData.html#snpFile"><span class="hs-identifier hs-var hs-var">snpFile</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679147391"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679147393"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679147393"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679147391"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679147391"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(FilePath, GenotypeDataSpec)]
+</span><a href="#local-6989586621679147403"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-45"></span><span>    </span><span id="local-6989586621679147390"><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147390"><span class="hs-identifier hs-var">indFilesExist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[IO Bool] -&gt; IO [Bool]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Traversable t, Monad m) =&gt;
+t (m a) -&gt; m (t a)
+</span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath -&gt; IO Bool
+</span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679147389"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; FilePath
+</span><a href="Poseidon.GenotypeData.html#indFile"><span class="hs-identifier hs-var hs-var">indFile</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679147387"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679147389"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679147389"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679147387"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679147387"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(FilePath, GenotypeDataSpec)]
+</span><a href="#local-6989586621679147403"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147386"><span class="annot"><span class="annottext">genoTypeDataExists :: [Bool]
+</span><a href="#local-6989586621679147386"><span class="hs-identifier hs-var hs-var">genoTypeDataExists</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Bool, Bool, Bool) -&gt; Bool) -&gt; [(Bool, Bool, Bool)] -&gt; [Bool]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679147385"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147385"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679147384"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147384"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679147383"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147383"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147385"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147384"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147383"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([(Bool, Bool, Bool)] -&gt; [Bool]) -&gt; [(Bool, Bool, Bool)] -&gt; [Bool]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Bool] -&gt; [Bool] -&gt; [Bool] -&gt; [(Bool, Bool, Bool)]
+forall a b c. [a] -&gt; [b] -&gt; [c] -&gt; [(a, b, c)]
+</span><span class="hs-identifier hs-var">zip3</span></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147399"><span class="hs-identifier hs-var">genoFilesExist</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147394"><span class="hs-identifier hs-var">snpFilesExist</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147390"><span class="hs-identifier hs-var">indFilesExist</span></a></span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-comment">-- janno</span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147380"><span class="annot"><span class="annottext">jannos :: [[JannoRow]]
+</span><a href="#local-6989586621679147380"><span class="hs-identifier hs-var hs-var">jannos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; [JannoRow])
+-&gt; [PoseidonPackage] -&gt; [[JannoRow]]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; [JannoRow]
+</span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679147406"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">-- -- bib</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147378"><span class="annot"><span class="annottext">bibs :: [BibTeX]
+</span><a href="#local-6989586621679147378"><span class="hs-identifier hs-var hs-var">bibs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; BibTeX) -&gt; [PoseidonPackage] -&gt; [BibTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; BibTeX
+</span><a href="Poseidon.Package.html#posPacBib"><span class="hs-identifier hs-var hs-var">posPacBib</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679147406"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-comment">-- print information</span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679147376"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147376"><span class="hs-identifier hs-var">tableH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679147375"><span class="annot"><span class="annottext">[[FilePath]]
+</span><a href="#local-6989586621679147375"><span class="hs-identifier hs-var">tableB</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-53"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147374"><span class="annot"><span class="annottext">tableH :: [FilePath]
+</span><a href="#local-6989586621679147374"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;Package&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;Survey&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-54"></span><span>        </span><span id="local-6989586621679147373"><span class="annot"><span class="annottext">[[FilePath]]
+</span><a href="#local-6989586621679147373"><span class="hs-identifier hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(FilePath, Bool, [JannoRow], BibTeX)]
+-&gt; ((FilePath, Bool, [JannoRow], BibTeX) -&gt; IO [FilePath])
+-&gt; IO [[FilePath]]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span><span class="hs-identifier hs-var">forM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[FilePath]
+-&gt; [Bool]
+-&gt; [[JannoRow]]
+-&gt; [BibTeX]
+-&gt; [(FilePath, Bool, [JannoRow], BibTeX)]
+forall a b c d. [a] -&gt; [b] -&gt; [c] -&gt; [d] -&gt; [(a, b, c, d)]
+</span><span class="hs-identifier hs-var">zip4</span></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147405"><span class="hs-identifier hs-var">packageNames</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679147386"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span><span> </span><span class="annot"><span class="annottext">[[JannoRow]]
+</span><a href="#local-6989586621679147380"><span class="hs-identifier hs-var">jannos</span></a></span><span> </span><span class="annot"><span class="annottext">[BibTeX]
+</span><a href="#local-6989586621679147378"><span class="hs-identifier hs-var">bibs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(((FilePath, Bool, [JannoRow], BibTeX) -&gt; IO [FilePath])
+ -&gt; IO [[FilePath]])
+-&gt; ((FilePath, Bool, [JannoRow], BibTeX) -&gt; IO [FilePath])
+-&gt; IO [[FilePath]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679147372"><span class="annot"><span class="annottext">(FilePath, Bool, [JannoRow], BibTeX)
+</span><a href="#local-6989586621679147372"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-55"></span><span>            </span><span class="annot"><span class="annottext">[FilePath] -&gt; IO [FilePath]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">(FilePath, Bool, [JannoRow], BibTeX) -&gt; FilePath
+forall a b c d. (a, b, c, d) -&gt; a
+</span><a href="Poseidon.CLI.Survey.html#extractFirst"><span class="hs-identifier hs-var">extractFirst</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath, Bool, [JannoRow], BibTeX)
+</span><a href="#local-6989586621679147372"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(FilePath, Bool, [JannoRow], BibTeX) -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-var">renderPackageWithCompleteness</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath, Bool, [JannoRow], BibTeX)
+</span><a href="#local-6989586621679147372"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-56"></span><span>        </span><span class="annot"><span class="annottext">([FilePath], [[FilePath]]) -&gt; IO ([FilePath], [[FilePath]])
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147374"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[FilePath]]
+</span><a href="#local-6989586621679147373"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147369"><span class="annot"><span class="annottext">colSpecs :: [ColSpec]
+</span><a href="#local-6989586621679147369"><span class="hs-identifier hs-var hs-var">colSpecs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ColSpec -&gt; [ColSpec]
+forall a. Int -&gt; a -&gt; [a]
+</span><span class="hs-identifier hs-var">replicate</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LenSpec -&gt; Position H -&gt; AlignSpec -&gt; CutMark -&gt; ColSpec
+</span><span class="hs-identifier hs-var">column</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; LenSpec
+</span><span class="hs-identifier hs-var">expandUntil</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">60</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Position H
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">AlignSpec
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">CutMark
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147407"><span class="hs-identifier hs-var">rawOutput</span></a></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; [FilePath] -&gt; FilePath
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;\n&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath -&gt; [FilePath] -&gt; FilePath
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;\t&quot;</span></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147366"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679147366"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147366"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[FilePath]]
+</span><a href="#local-6989586621679147375"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[ColSpec]
+-&gt; TableStyle -&gt; HeaderSpec -&gt; [RowGroup FilePath] -&gt; FilePath
+forall a.
+Cell a =&gt;
+[ColSpec] -&gt; TableStyle -&gt; HeaderSpec -&gt; [RowGroup a] -&gt; FilePath
+</span><span class="hs-identifier hs-var">tableString</span></span><span> </span><span class="annot"><span class="annottext">[ColSpec]
+</span><a href="#local-6989586621679147369"><span class="hs-identifier hs-var">colSpecs</span></a></span><span> </span><span class="annot"><span class="annottext">TableStyle
+</span><span class="hs-identifier hs-var">asciiRoundS</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[FilePath] -&gt; HeaderSpec
+</span><span class="hs-identifier hs-var">titlesH</span></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147376"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[[FilePath]] -&gt; RowGroup FilePath
+forall a. [Row a] -&gt; RowGroup a
+</span><span class="hs-identifier hs-var">rowsG</span></span><span> </span><span class="annot"><span class="annottext">[[FilePath]]
+</span><a href="#local-6989586621679147375"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span id="local-6989586621679147477"><span id="local-6989586621679147478"><span id="local-6989586621679147479"><span id="local-6989586621679147480"><span class="annot"><a href="Poseidon.CLI.Survey.html#extractFirst"><span class="hs-identifier hs-type">extractFirst</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679147480"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679147479"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679147478"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679147477"><span class="hs-identifier hs-type">d</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679147480"><span class="hs-identifier hs-type">a</span></a></span></span></span></span></span><span>
+</span><span id="line-63"></span><span id="extractFirst"><span class="annot"><span class="annottext">extractFirst :: (a, b, c, d) -&gt; a
+</span><a href="Poseidon.CLI.Survey.html#extractFirst"><span class="hs-identifier hs-var hs-var">extractFirst</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679147365"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679147365"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">b
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">c
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">d
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679147365"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-type">renderPackageWithCompleteness</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibTeX"><span class="hs-identifier hs-type">BibTeX</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-66"></span><span id="renderPackageWithCompleteness"><span class="annot"><span class="annottext">renderPackageWithCompleteness :: (FilePath, Bool, [JannoRow], BibTeX) -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-var hs-var">renderPackageWithCompleteness</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span id="local-6989586621679147363"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147363"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679147362"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147362"><span class="hs-identifier hs-var">janno</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679147361"><span class="annot"><span class="annottext">BibTeX
+</span><a href="#local-6989586621679147361"><span class="hs-identifier hs-var">bib</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-67"></span><span>       </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147363"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;G&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-69"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-var">renderJannoCompleteness</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147362"><span class="hs-identifier hs-var">janno</span></a></span><span>
+</span><span id="line-70"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-71"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BibTeX -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">BibTeX
+</span><a href="#local-6989586621679147361"><span class="hs-identifier hs-var">bib</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;B&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-type">renderJannoCompleteness</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-74"></span><span id="renderJannoCompleteness"><span class="annot"><span class="annottext">renderJannoCompleteness :: [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-var hs-var">renderJannoCompleteness</span></a></span></span><span> </span><span id="local-6989586621679147357"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;M&quot;</span></span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jCollectionID"><span class="hs-identifier hs-var hs-var">jCollectionID</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoStringList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoStringList
+</span><a href="Poseidon.Janno.html#jSourceTissue"><span class="hs-identifier hs-var hs-var">jSourceTissue</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jCountry"><span class="hs-identifier hs-var hs-var">jCountry</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jLocation"><span class="hs-identifier hs-var hs-var">jLocation</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-80"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jSite"><span class="hs-identifier hs-var hs-var">jSite</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-81"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Latitude) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Latitude
+</span><a href="Poseidon.Janno.html#jLatitude"><span class="hs-identifier hs-var hs-var">jLatitude</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-82"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Longitude) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Longitude
+</span><a href="Poseidon.Janno.html#jLongitude"><span class="hs-identifier hs-var hs-var">jLongitude</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoStringList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoStringList
+</span><a href="Poseidon.Janno.html#jDateC14Labnr"><span class="hs-identifier hs-var hs-var">jDateC14Labnr</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-84"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoIntList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoIntList
+</span><a href="Poseidon.Janno.html#jDateC14UncalBP"><span class="hs-identifier hs-var hs-var">jDateC14UncalBP</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoIntList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoIntList
+</span><a href="Poseidon.Janno.html#jDateC14UncalBPErr"><span class="hs-identifier hs-var hs-var">jDateC14UncalBPErr</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Int) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Int
+</span><a href="Poseidon.Janno.html#jDateBCADMedian"><span class="hs-identifier hs-var hs-var">jDateBCADMedian</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Int) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Int
+</span><a href="Poseidon.Janno.html#jDateBCADStart"><span class="hs-identifier hs-var hs-var">jDateBCADStart</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-88"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Int) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Int
+</span><a href="Poseidon.Janno.html#jDateBCADStop"><span class="hs-identifier hs-var hs-var">jDateBCADStop</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoDateType) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoDateType
+</span><a href="Poseidon.Janno.html#jDateType"><span class="hs-identifier hs-var hs-var">jDateType</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-90"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Int) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Int
+</span><a href="Poseidon.Janno.html#jNrLibraries"><span class="hs-identifier hs-var hs-var">jNrLibraries</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-91"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe (JannoList JannoDataType))
+-&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList JannoDataType)
+</span><a href="Poseidon.Janno.html#jDataType"><span class="hs-identifier hs-var hs-var">jDataType</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoGenotypePloidy) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoGenotypePloidy
+</span><a href="Poseidon.Janno.html#jGenotypePloidy"><span class="hs-identifier hs-var hs-var">jGenotypePloidy</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;M&quot;</span></span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;M&quot;</span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Int) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Int
+</span><a href="Poseidon.Janno.html#jNrAutosomalSNPs"><span class="hs-identifier hs-var hs-var">jNrAutosomalSNPs</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Double) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Double
+</span><a href="Poseidon.Janno.html#jCoverage1240K"><span class="hs-identifier hs-var hs-var">jCoverage1240K</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jMTHaplogroup"><span class="hs-identifier hs-var hs-var">jMTHaplogroup</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jYHaplogroup"><span class="hs-identifier hs-var hs-var">jYHaplogroup</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-99"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Percent) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Percent
+</span><a href="Poseidon.Janno.html#jEndogenous"><span class="hs-identifier hs-var hs-var">jEndogenous</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoUDG) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoUDG
+</span><a href="Poseidon.Janno.html#jUDG"><span class="hs-identifier hs-var hs-var">jUDG</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Percent) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Percent
+</span><a href="Poseidon.Janno.html#jDamage"><span class="hs-identifier hs-var hs-var">jDamage</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Double) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Double
+</span><a href="Poseidon.Janno.html#jNuclearContam"><span class="hs-identifier hs-var hs-var">jNuclearContam</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Double) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Double
+</span><a href="Poseidon.Janno.html#jNuclearContamErr"><span class="hs-identifier hs-var hs-var">jNuclearContamErr</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Double) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Double
+</span><a href="Poseidon.Janno.html#jMTContam"><span class="hs-identifier hs-var hs-var">jMTContam</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe Double) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe Double
+</span><a href="Poseidon.Janno.html#jMTContamErr"><span class="hs-identifier hs-var hs-var">jMTContamErr</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-106"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoStringList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoStringList
+</span><a href="Poseidon.Janno.html#jGeneticSourceAccessionIDs"><span class="hs-identifier hs-var hs-var">jGeneticSourceAccessionIDs</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JURI) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JURI
+</span><a href="Poseidon.Janno.html#jDataPreparationPipelineURL"><span class="hs-identifier hs-var hs-var">jDataPreparationPipelineURL</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jPrimaryContact"><span class="hs-identifier hs-var hs-var">jPrimaryContact</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoStringList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoStringList
+</span><a href="Poseidon.Janno.html#jPublication"><span class="hs-identifier hs-var hs-var">jPublication</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe FilePath) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe FilePath
+</span><a href="Poseidon.Janno.html#jComments"><span class="hs-identifier hs-var hs-var">jComments</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe JannoStringList) -&gt; [JannoRow] -&gt; FilePath
+forall a. (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var">allNothing</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe JannoStringList
+</span><a href="Poseidon.Janno.html#jKeywords"><span class="hs-identifier hs-var hs-var">jKeywords</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147357"><span class="hs-identifier hs-var">jS</span></a></span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span id="local-6989586621679147452"><span class="annot"><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-type">allNothing</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679147452"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-114"></span><span id="allNothing"><span class="annot"><span class="annottext">allNothing :: (JannoRow -&gt; Maybe a) -&gt; [JannoRow] -&gt; FilePath
+</span><a href="Poseidon.CLI.Survey.html#allNothing"><span class="hs-identifier hs-var hs-var">allNothing</span></a></span></span><span> </span><span id="local-6989586621679147321"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe a
+</span><a href="#local-6989586621679147321"><span class="hs-identifier hs-var">column_</span></a></span></span><span> </span><span id="local-6989586621679147320"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147320"><span class="hs-identifier hs-var">jannoRows</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Bool) -&gt; [JannoRow] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe a -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isNothing</span></span><span> </span><span class="annot"><span class="annottext">(Maybe a -&gt; Bool) -&gt; (JannoRow -&gt; Maybe a) -&gt; JannoRow -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe a
+</span><a href="#local-6989586621679147321"><span class="hs-identifier hs-var">column_</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679147320"><span class="hs-identifier hs-var">jannoRows</span></a></span><span>
+</span><span id="line-116"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;.&quot;</span></span><span>
+</span><span id="line-117"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;X&quot;</span></span><span>
+</span><span id="line-118"></span></pre></body></html>
