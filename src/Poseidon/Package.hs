@@ -66,7 +66,7 @@ import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
 
-{-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
+-- | Minimal package representation on Poseidon servers
 data PackageInfo = PackageInfo
     { pTitle        :: String
     , pVersion      :: Maybe Version
@@ -90,7 +90,7 @@ instance FromJSON PackageInfo where
         <*> v .:?  "description"
         <*> v .:   "lastModified"
 
-{-   ######################### POSEIDONYAMLSTRUCT: Internal structure for YAML loading only ######################### -}
+-- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
     { _posYamlPoseidonVersion :: Version
     , _posYamlTitle           :: String
@@ -173,9 +173,6 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "readmeFile",
         "changelogFile"
         ]
-
-
-{- ######################### MAIN PUBLIC POSEIDON-PACKAGE DATA STRUCTURE #########################-}
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage

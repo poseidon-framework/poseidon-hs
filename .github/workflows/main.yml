@@ -17,6 +17,7 @@ jobs:
         ghc: ["8.10.3"]
 
     steps:
+    # setup and loading cache
     - name: Check out code
       uses: actions/checkout@v2
 
@@ -30,6 +31,7 @@ jobs:
     - name: Cache ~/.stack
       uses: freckle/stack-cache-action@main
 
+    # basic build test
     - name: Build
       run: |
         stack build \
@@ -40,6 +42,7 @@ jobs:
         --no-run-benchmarks \
         --pedantic
 
+    # run tests and deploy coverage
     - name: Test
       run: |
         stack test \
@@ -53,3 +56,28 @@ jobs:
 
     - name: Send coverage report
       uses: codecov/codecov-action@v1
+
+    # render and deploy haddock documentation
+    - name: Render haddock documentation
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      run: |
+        stack haddock \
+        --no-haddock-deps \
+        --fast
+
+    - name: Get path to haddock documentation
+      id: haddockpath
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      run: |
+        docpathgeneral=`stack path --local-install-root`/doc
+        echo $docpathgeneral
+        docpath=`find $docpathgeneral -type d -name "poseidon-hs*" -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2`
+        echo $docpath
+        echo "::set-output name=DOCPATH::$docpath"
+    
+    - name: Deploy haddock documentation
+      uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ${{ steps.haddockpath.outputs.DOCPATH }}
