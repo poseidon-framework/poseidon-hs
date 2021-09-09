@@ -2,12 +2,11 @@
 
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
 import           Poseidon.Janno              (JannoList (..), JannoRow (..))
-import           Poseidon.Package            (PackageInfo (..),
-                                              PackageReadOptions (..),
+import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes     (IndividualInfo (..))
+import           Poseidon.SecondaryTypes     (IndividualInfo (..), PackageInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,

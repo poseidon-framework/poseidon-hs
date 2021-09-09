@@ -5,17 +5,21 @@ module Poseidon.SecondaryTypes (
     ContributorSpec (..),
     contributorSpecParser,
     IndividualInfo (..),
-    VersionComponent (..)
+    VersionComponent (..),
+    PackageInfo(..)
 ) where
 
-import           Data.Aeson             (FromJSON, ToJSON, object,
-                                        parseJSON, toJSON, withObject,
-                                        (.:), (.=))
-import           Data.Version           (Version (..), makeVersion)
-import qualified Text.Parsec            as P
-import qualified Text.Parsec.String     as P
+import           Data.Aeson         (FromJSON, ToJSON, object, parseJSON,
+                                     toJSON, withObject, (.:), (.=), (.:?))
+import           Data.Time          (Day)
+import           Data.Version       (Version (..), makeVersion)
+import qualified Text.Parsec        as P
+import qualified Text.Parsec.String as P
 
-data VersionComponent = Major | Minor | Patch
+
+data VersionComponent = Major
+    | Minor
+    | Patch
     deriving Show
 
 data IndividualInfo = IndividualInfo
@@ -35,6 +39,31 @@ instance FromJSON IndividualInfo where
         <$> v .:   "name"
         <*> v .:   "group"
         <*> v .:  "pacName"
+
+-- | Minimal package representation on Poseidon servers
+data PackageInfo = PackageInfo
+    { pTitle        :: String
+    , pVersion      :: Maybe Version
+    , pDescription  :: Maybe String
+    , pLastModified :: Maybe Day
+    }
+    deriving (Show)
+
+instance ToJSON PackageInfo where
+    toJSON x = object [
+        "title"        .= pTitle x,
+        "version"      .= pVersion x,
+        "description"  .= pDescription x,
+        "lastModified" .= pLastModified x
+        ]
+
+instance FromJSON PackageInfo where
+    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
+        <$> v .:   "title"
+        <*> v .:   "version"
+        <*> v .:?  "description"
+        <*> v .:   "lastModified"
+
 
 poseidonVersionParser :: P.Parser Version
 poseidonVersionParser = do
