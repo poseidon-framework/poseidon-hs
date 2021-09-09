@@ -6,7 +6,9 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes     (IndividualInfo (..), PackageInfo (..))
+import           Poseidon.SecondaryTypes     (GroupInfo (..),
+                                              IndividualInfo (..),
+                                              PackageInfo (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -14,6 +16,7 @@ import           Codec.Archive.Zip           (Archive, addEntryToArchive,
 import           Control.Applicative         ((<|>))
 import           Control.Monad               (forM, when)
 import qualified Data.ByteString.Lazy        as B
+import           Data.List                   (group, sortOn, nub)
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (showVersion)
@@ -182,10 +185,10 @@ checkZipFileOutdated pac fn ignoreGenoFiles = do
             Nothing  -> return False
         readmeOutdated <- case posPacReadmeFile pac of
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing -> return False
+            Nothing  -> return False
         changelogOutdated <- case posPacChangelogFile pac of
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing -> return False
+            Nothing  -> return False
         let gd = posPacGenotypeData pac
         genoOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
         snpOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
@@ -252,7 +255,7 @@ makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
     body :: Text
     body = intercalate "\n" $ do
         pac <- packages
-        let (PackageInfo title version_ desc lastMod) = packageToPackageInfo pac
+        let (PackageInfo title version_ desc lastMod _) = packageToPackageInfo pac
         let link = "<a href=\"https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> "\">" <> pack title <> "</a>"
         return $ "<tr><td>" <> pack title <> "</td><td>" <>
             maybe "n/a" pack desc <> "</td><td>" <>
@@ -268,7 +271,7 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
     body :: Text
     body = intercalate "\n" $ do
         pac <- packages
-        let (PackageInfo title version_ desc lastMod) = packageToPackageInfo pac
+        let (PackageInfo title version_ desc lastMod _) = packageToPackageInfo pac
         let link = "[" <> pack title <> "](https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> ")"
         return $ "| " <> pack title <> " | " <>
             maybe "n/a" pack desc <> " | " <>
@@ -284,17 +287,29 @@ getAllIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
     let name = jIndividualID jannoRow
-        group = head . getJannoList . jGroupName $ jannoRow
+        groups = getJannoList . jGroupName $ jannoRow
         pacName = posPacTitle pac
-    return $ IndividualInfo name group pacName
+    return $ IndividualInfo name groups pacName
 
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
-getAllGroupInfo packages = undefined
+getAllGroupInfo packages = do
+    let unnestedPairs = do
+            IndividualInfo _ groups pacName <- getAllIndividualInfo packages
+            group_ <- groups
+            return (group_, pacName)
+    let groupedPairs = group . sortOn fst $ unnestedPairs
+    group_ <- groupedPairs
+    let groupName = head . map fst $ group_
+        groupPacs = nub . map snd $ group_
+        groupNrInds = length group_
+    return $ GroupInfo groupName groupPacs groupNrInds
+
 
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 packageToPackageInfo pac = PackageInfo {
-    pTitle = posPacTitle pac,
-    pVersion = posPacPackageVersion pac,
-    pDescription = posPacDescription pac,
-    pLastModified = posPacLastModified pac
+    pTitle         = posPacTitle pac,
+    pVersion       = posPacPackageVersion pac,
+    pDescription   = posPacDescription pac,
+    pLastModified  = posPacLastModified pac,
+    pNrIndividuals = (length . posPacJanno) pac
 }
