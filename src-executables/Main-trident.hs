@@ -17,7 +17,7 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.PoseidonVersion (currentPoseidonVersion, showPoseidonVersion)
+import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
                                         poseidonVersionParser, 
@@ -28,6 +28,7 @@ import           Poseidon.Utils         (PoseidonException (..),
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
+import           Data.List              (intercalate)
 import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
@@ -84,8 +85,10 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 renderVersion :: String
 renderVersion = 
-    "trident v" ++ showVersion version ++ " for poseidon v" ++ showPoseidonVersion currentPoseidonVersion++
-    " — https://poseidon-framework.github.io"
+    "trident v" ++ showVersion version ++ " for poseidon v" ++ 
+    (intercalate ", v" $ map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
+    "https://poseidon-framework.github.io" ++ "\n" ++
+    "~ ~ ⎯⎯⎯⎯∈ ~ ~ <°}))>< ~ ~"
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
