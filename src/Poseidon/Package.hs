@@ -28,6 +28,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
+import           Poseidon.PoseidonVersion   (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
@@ -43,7 +44,7 @@ import qualified Data.ByteString.Lazy       as LB
 import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, intercalate, nub, sortOn,
-                                             (\\))
+                                             (\\), elemIndex)
 import           Data.Maybe                 (catMaybes, mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version (..), makeVersion)
@@ -62,6 +63,7 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
+import Data.Char (isSpace)
 
 {-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
 data PackageInfo = PackageInfo
@@ -234,6 +236,25 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptGenoCheck        = True
     }
 
+filterByPoseidonVersion :: [FilePath] -> IO [FilePath]
+filterByPoseidonVersion posFiles = do
+    filterM isInVersionRange posFiles
+    where 
+        isInVersionRange :: FilePath -> IO Bool
+        isInVersionRange posFile = do
+            content <- readFile posFile
+            let posLines = lines content
+            case elemIndex "poseidonVersion:" (map (take 16) posLines) of
+              Nothing -> do
+                throwM $ PoseidonPackageVersionException posFile "Unknown"
+                return False
+              Just n -> do
+                let versionLine = posLines !! n
+                    versionString = filter (not . isSpace) $ drop 16 versionLine
+                if versionString `elem` map showPoseidonVersion validPoseidonVersions
+                then return True
+                else throwM $ PoseidonPackageVersionException posFile versionString
+
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
@@ -242,8 +263,10 @@ readPoseidonPackageCollection :: PackageReadOptions
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
     hPutStr stderr "Searching POSEIDON.yml files... "
-    posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    hPutStrLn stderr $ show (length posFiles) ++ " found"
+    posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
+    hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
+    hPutStrLn stderr "Checking package Poseidon versions... "
+    posFiles <- filterByPoseidonVersion posFilesAllVersions
     hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     hPutStrLn stderr ""

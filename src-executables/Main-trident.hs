@@ -86,9 +86,9 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 renderVersion :: String
 renderVersion = 
     "trident v" ++ showVersion version ++ " for poseidon v" ++ 
-    (intercalate ", v" $ map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
+    intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
     "https://poseidon-framework.github.io" ++ "\n" ++
-    "~ ~ ⎯⎯⎯⎯∈ ~ ~ <°}))>< ~ ~"
+    " ⎯⎯⎯⎯∈ <°}))>("
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
