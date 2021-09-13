@@ -247,7 +247,8 @@ readPoseidonPackageCollection opts dirs = do
     posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
     hPutStrLn stderr "Checking Poseidon versions... "
-    posFiles <- filterByPoseidonVersion posFilesAllVersions
+    --posFiles <- filterByPoseidonVersion posFilesAllVersions
+    let posFiles = posFilesAllVersions
     hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     hPutStrLn stderr ""
