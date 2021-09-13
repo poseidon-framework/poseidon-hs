@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Package (
-    PackageInfo (..),
     PoseidonYamlStruct (..),
     PoseidonPackage(..),
     PoseidonException(..),
@@ -13,6 +12,7 @@ module Poseidon.Package (
     getChecksum,
     getJointGenotypeData,
     getIndividuals,
+    newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
     zipWithPadding,
@@ -24,7 +24,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadIndividuals,
-                                             loadJointGenotypeData)
+                                             joinEntries,
+                                             loadGenotypeData)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
@@ -33,8 +34,8 @@ import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
-import           Control.Exception          (throw, throwIO, try)
-import           Control.Monad              (filterM, forM_, unless, when)
+import           Control.Exception          (throwIO, try)
+import           Control.Monad              (filterM, forM_, unless, when, void)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -45,7 +46,7 @@ import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, intercalate, nub, sortOn,
                                              (\\), elemIndex)
-import           Data.Maybe                 (catMaybes, mapMaybe)
+import           Data.Maybe                 (catMaybes, mapMaybe, isNothing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
@@ -53,6 +54,7 @@ import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Producer, runEffect, (>->))
+import           Pipes.OrderedZip           (orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
@@ -65,31 +67,7 @@ import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr, withFile, IOMode (ReadMode), hGetContents)
 import Data.Char (isSpace)
 
-{-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
-data PackageInfo = PackageInfo
-    { pTitle        :: String
-    , pVersion      :: Maybe Version
-    , pDescription  :: Maybe String
-    , pLastModified :: Maybe Day
-    }
-    deriving (Show)
-
-instance ToJSON PackageInfo where
-    toJSON x = object [
-        "title"        .= pTitle x,
-        "version"      .= pVersion x,
-        "description"  .= pDescription x,
-        "lastModified" .= pLastModified x
-        ]
-
-instance FromJSON PackageInfo where
-    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-        <$> v .:   "title"
-        <*> v .:   "version"
-        <*> v .:?  "description"
-        <*> v .:   "lastModified"
-
-{-   ######################### POSEIDONYAMLSTRUCT: Internal structure for YAML loading only ######################### -}
+-- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
     { _posYamlPoseidonVersion :: Version
     , _posYamlTitle           :: String
@@ -172,9 +150,6 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "readmeFile",
         "changelogFile"
         ]
-
-
-{- ######################### MAIN PUBLIC POSEIDON-PACKAGE DATA STRUCTURE #########################-}
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -341,12 +316,12 @@ readPoseidonPackage opts ymlPath = do
             checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
-    when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
-        -- we're using loadJointGenotypeData here on a single package to check for SNP consistency
-        -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- loadJointGenotypeData False False [(baseDir, geno)]
-        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
+    when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
+        -- we're using getJointGenotypeData here on a single package to check for SNP consistency
+        -- since that check is only implemented in the jointLoading function, not in the per-package loading
+        (_, eigenstratProd) <- getJointGenotypeData False False [pac]
+        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
 -- throws exception if any checksum isn't correct
@@ -484,6 +459,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 return . last . sortOn posPacPackageVersion $ pacs_
             else
                 let t   = posPacTitle $ head pacs_
+                
                     msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
 
@@ -498,45 +474,77 @@ getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData showAllWarnings intersect pacs =
-    loadJointGenotypeData showAllWarnings intersect [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- pacs]
+getJointGenotypeData showAllWarnings intersect pacs = do
+    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
+    let indEntries      = map fst genotypeTuples
+        jointIndEntries = concat indEntries
+        nrInds          = map length indEntries
+        pacNames        = map posPacTitle pacs
+        jointProducer   = (orderedZipAll compFunc . map snd) genotypeTuples >->
+            P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds pacNames)
+    return (jointIndEntries, void jointProducer)
+  where
+    compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
+    compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
+    filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
+    filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
 
--- | A function to create a dummy POSEIDON.yml file
--- This will take only the filenames of the provided files, so it assumes that the files will be copied into
--- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe [EigenstratIndEntry] -> Maybe [JannoRow] -> Maybe BibTeX -> IO PoseidonPackage
-newPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) inds janno bib = do
-    (UTCTime today _) <- getCurrentTime
-    return PoseidonPackage {
+-- | A function to create a minimal POSEIDON package
+newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
+newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
+    PoseidonPackage {
         posPacBaseDir = baseDir
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion 
     ,   posPacTitle = name
-    ,   posPacDescription = Just "Empty package template. Please add a description"
+    ,   posPacDescription = Nothing
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
-    ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
-    ,   posPacLastModified = Just today
+    ,   posPacPackageVersion = Nothing
+    ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
-    ,   posPacJannoFile = Just $ name ++ ".janno"
-    -- TODO: This is not a good solution. Maybe we need pattern matching with
-    -- two different implementations of newPackageTemplate depending on whether
-    -- the input janno object is Nothing or not
-    ,   posPacJanno =
-            case janno of
-                Nothing -> case inds of
-                    Nothing -> throw $ PoseidonNewPackageConstructionException "Missing Individual- and Group IDs. This should never happen"
-                    Just a -> createMinimalJanno a
-                Just a -> a
+    ,   posPacJannoFile = Nothing
+    ,   posPacJanno = []
     ,   posPacJannoFileChkSum = Nothing
-    ,   posPacBibFile = Just $ name ++ ".bib"
-    ,   posPacBib =
-            case bib of
-                Nothing -> [] :: BibTeX
-                Just a  -> a
+    ,   posPacBibFile = Nothing
+    ,   posPacBib = [] :: BibTeX
     ,   posPacBibFileChkSum = Nothing
     ,   posPacReadmeFile = Nothing
     ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
+
+-- | A function to create a more complete POSEIDON package
+-- This will take only the filenames of the provided files, so it assumes that the files will be copied into
+-- the directory into which the YAML file will be written
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> BibTeX -> IO PoseidonPackage
+newPackageTemplate baseDir name genoData indsOrJanno bib = do
+    (UTCTime today _) <- getCurrentTime
+    let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
+        fluffedUpTemplate = minimalTemplate {
+            posPacDescription = Just "Empty package template. Please add a description"
+        ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
+        ,   posPacLastModified = Just today
+        }
+        jannoFilledTemplate = completeJannoSpec name indsOrJanno fluffedUpTemplate
+        bibFilledTemplate = completeBibSpec name bib jannoFilledTemplate
+    return bibFilledTemplate
+    where
+        completeJannoSpec _ Nothing inTemplate = inTemplate
+        completeJannoSpec name_ (Just (Left a)) inTemplate =
+            inTemplate {
+                posPacJannoFile = Just $ name_ ++ ".janno",
+                posPacJanno = createMinimalJanno a
+            }
+        completeJannoSpec name_ (Just (Right b)) inTemplate =
+            inTemplate {
+                posPacJannoFile = Just $ name_ ++ ".janno",
+                posPacJanno = b
+            }
+        completeBibSpec _ [] inTemplate = inTemplate
+        completeBibSpec name_ xs inTemplate =
+            inTemplate {
+                posPacBibFile = Just $ name_ ++ ".bib",
+                posPacBib = xs
+            }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do

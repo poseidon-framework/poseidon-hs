@@ -5,29 +5,34 @@ module Poseidon.SecondaryTypes (
     ContributorSpec (..),
     contributorSpecParser,
     IndividualInfo (..),
-    VersionComponent (..)
+    GroupInfo(..),
+    VersionComponent (..),
+    PackageInfo(..)
 ) where
 
-import           Data.Aeson             (FromJSON, ToJSON, object,
-                                        parseJSON, toJSON, withObject,
-                                        (.:), (.=))
-import           Data.Version           (Version (..), makeVersion)
-import qualified Text.Parsec            as P
-import qualified Text.Parsec.String     as P
+import           Data.Aeson         (FromJSON, ToJSON, object, parseJSON,
+                                     toJSON, withObject, (.:), (.:?), (.=))
+import           Data.Time          (Day)
+import           Data.Version       (Version (..), makeVersion)
+import qualified Text.Parsec        as P
+import qualified Text.Parsec.String as P
 
-data VersionComponent = Major | Minor | Patch
+
+data VersionComponent = Major
+    | Minor
+    | Patch
     deriving Show
 
 data IndividualInfo = IndividualInfo
     { indInfoName    :: String
-    , indInfoGroup   :: String
+    , indInfoGroups   :: [String]
     , indInfoPacName :: String
     }
 
 instance ToJSON IndividualInfo where
     toJSON x = object [
-        "name" .= indInfoName x,
-        "group" .= indInfoGroup x,
+        "name"    .= indInfoName x,
+        "group"   .= indInfoGroups x,
         "pacName" .= indInfoPacName x]
 
 instance FromJSON IndividualInfo where
@@ -35,6 +40,51 @@ instance FromJSON IndividualInfo where
         <$> v .:   "name"
         <*> v .:   "group"
         <*> v .:  "pacName"
+
+-- | Minimal package representation on Poseidon servers
+data PackageInfo = PackageInfo
+    { pTitle         :: String
+    , pVersion       :: Maybe Version
+    , pDescription   :: Maybe String
+    , pLastModified  :: Maybe Day
+    , pNrIndividuals :: Int
+    }
+    deriving (Show)
+
+instance ToJSON PackageInfo where
+    toJSON x = object [
+        "title"         .= pTitle x,
+        "version"       .= pVersion x,
+        "description"   .= pDescription x,
+        "lastModified"  .= pLastModified x,
+        "nrIndividuals" .= pNrIndividuals x
+        ]
+
+instance FromJSON PackageInfo where
+    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
+        <$> v .:   "title"
+        <*> v .:   "version"
+        <*> v .:?  "description"
+        <*> v .:   "lastModified"
+        <*> v .:   "nrIndividuals"
+
+data GroupInfo = GroupInfo
+    { gName          :: String
+    , gPackageNames  :: [String]
+    , gNrIndividuals :: Int
+    }
+
+instance ToJSON GroupInfo where
+    toJSON x = object [
+        "name"          .= gName x,
+        "packages"      .= gPackageNames x,
+        "nrIndividuals" .= gNrIndividuals x]
+
+instance FromJSON GroupInfo where
+    parseJSON = withObject "GroupInfo" $ \v -> GroupInfo
+        <$> v .: "name"
+        <*> v .: "packages"
+        <*> v .: "nrIndividuals"
 
 poseidonVersionParser :: P.Parser Version
 poseidonVersionParser = do

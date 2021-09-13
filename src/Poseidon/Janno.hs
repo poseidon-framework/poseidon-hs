@@ -600,7 +600,8 @@ replaceInJannoBytestring from to tsv =
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
-createMinimalJanno = map createMinimalSample
+createMinimalJanno [] = []
+createMinimalJanno xs = map createMinimalSample xs
 
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow

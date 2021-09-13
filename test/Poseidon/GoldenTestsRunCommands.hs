@@ -108,6 +108,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
         , "Schiffels" </> "geno.txt"
+        , "Schiffels" </> "Schiffels.bib"
         ]
     let initOpts2 = InitOptions {
           _initGenoFormat = GenotypeFormatPlink 
@@ -286,6 +287,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = "ForgePac1"
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
     }
     let action1 = runForge forgeOpts1 >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
@@ -302,6 +304,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = "ForgePac2"
         , _forgeOutFormat    = GenotypeFormatPlink
         , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
     }
     let action2 = runForge forgeOpts2 >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
@@ -310,13 +313,18 @@ testPipelineForge testDir checkFilePath = do
         , "ForgePac2" </> "ForgePac2.janno"
         ]
 
+ -- Note: We here use our test server (no SSL and different port). The reason is that 
+ -- sometimes we would like to implement new features that affect the communication
+ -- between server and client, and we need tests succeeding before Pull Requests are merged, so
+ -- we adopt the policy to run experimental builds on the test server in order to test features
+ -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
         , _entityList       = [Pac "2019_Nikitin_LBK"]
         , _entityFiles      = []
-        , _remoteURL        = "https://c107-224.cloud.gwdg.de"
+        , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
         , _upgrade          = True
         , _downloadAllPacs  = False 
         }

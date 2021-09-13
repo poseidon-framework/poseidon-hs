@@ -1,40 +1,43 @@
 module Poseidon.CLI.Forge where
 
-import           Poseidon.BibFile           (writeBibTeXFile, BibTeX, BibEntry(..))
-import           Poseidon.EntitiesList      (EntitiesList,
-                                             PoseidonEntity (..),
-                                             readEntitiesFromFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..),
-                                             SNPSetSpec(..),
-                                             printSNPCopyProgress,
-                                             snpSetMergeList)
-import           Poseidon.Janno             (JannoRow (..),
-                                             writeJannoFile, JannoList(..))
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             getIndividuals,
-                                             getJointGenotypeData,
-                                             newPackageTemplate,
-                                             readPoseidonPackageCollection,
-                                             writePoseidonPackage,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.BibFile            (BibEntry (..), BibTeX,
+                                              writeBibTeXFile)
+import           Poseidon.EntitiesList       (EntitiesList, PoseidonEntity (..),
+                                              readEntitiesFromFile)
+import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
+                                              GenotypeFormatSpec (..),
+                                              SNPSetSpec (..),
+                                              printSNPCopyProgress,
+                                              snpSetMergeList)
+import           Poseidon.Janno              (JannoList (..), JannoRow (..),
+                                              writeJannoFile)
+import           Poseidon.Package            (PackageReadOptions (..),
+                                              PoseidonPackage (..),
+                                              defaultPackageReadOptions,
+                                              getIndividuals,
+                                              getJointGenotypeData,
+                                              newPackageTemplate,
+                                              readPoseidonPackageCollection,
+                                              writePoseidonPackage)
+import           Poseidon.Utils              (PoseidonException (..))
 
-import           Control.Monad              (forM, unless, when)
-import           Data.List                  (intercalate, intersect, nub,
-                                             (\\))
-import           Data.Maybe                 (catMaybes, mapMaybe)
-import qualified Data.Vector                as V
-import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (runSafeT, throwM)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..), GenoLine,
-                                             writeEigenstrat)
-import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (createDirectory)
-import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr)
+import           Control.Monad               (forM, unless, when, forM_)
+import           Data.List                   (intercalate, intersect, nub, (\\))
+import           Data.Maybe                  (catMaybes, mapMaybe)
+import qualified Data.Vector                 as V
+import qualified Data.Vector.Unboxed         as VU
+import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Pipes                       (MonadIO (liftIO), cat,
+                                              (>->))
+import qualified Pipes.Prelude               as P
+import           Pipes.Safe                  (runSafeT, throwM, SafeT)
+import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
+                                              EigenstratSnpEntry (..), GenoLine,
+                                              writeEigenstrat, GenoEntry(..))
+import           SequenceFormats.Plink       (writePlink)
+import           System.Directory            (createDirectory)
+import           System.FilePath             ((<.>), (</>))
+import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -46,6 +49,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutPacName   :: String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeShowWarnings :: Bool
+    , _forgeNoExtract    :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -59,7 +63,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings noExtract) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -92,7 +96,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectory outPath
     -- compile genotype data structure
-    let [outInd, outSnp, outGeno] = case outFormat of 
+    let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- output warning if any snpSet is set to Other
@@ -101,19 +105,17 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
-    pac <- newPackageTemplate outPath outName genotypeData Nothing (Just relevantJannoRows) (Just relevantBibEntries)
+    pac <- newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
-    -- janno
-    hPutStrLn stderr "Creating .janno file"
-    writeJannoFile (outPath </> outName <.> "janno") relevantJannoRows
     -- bib
-    hPutStrLn stderr "Creating .bib file"
-    writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
+    unless (null relevantBibEntries) $ do
+        hPutStrLn stderr "Creating .bib file"
+        writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
-    runSafeT $ do
+    newNrAutosomalSNPs <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
@@ -127,8 +129,37 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
         liftIO $ hPutStrLn stderr "Processing SNPs..."
-        runEffect $ eigenstratProd >-> printSNPCopyProgress >-> P.map (selectIndices indices) >-> outConsumer
-        liftIO $ hPutStrLn stderr "Done"
+        let extractPipe = if noExtract then cat else P.map (selectIndices indices)
+        -- define main forge pipe including file output.
+        -- The final tee forwards the results to be used in the snpCounting-fold
+        let forgePipe = eigenstratProd >->
+                printSNPCopyProgress >->
+                extractPipe >->
+                P.tee outConsumer
+
+        let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
+        P.foldM sumNonMissingSNPs startAcc return forgePipe
+    -- janno (with updated SNP numbers)
+    liftIO $ hPutStrLn stderr "Done"
+    hPutStrLn stderr "Creating .janno file"
+    autosomalSnpList <- VU.freeze newNrAutosomalSNPs
+    let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
+                                             relevantJannoRows
+                                             (VU.toList autosomalSnpList)
+    writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
+
+
+sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
+sumNonMissingSNPs accumulator (_, geno) = do
+    forM_ (zip (V.toList geno) [0..]) $ (\(g, i) -> do
+        let x = nonMissingToInt g
+        VUM.modify accumulator (+x) i)
+    return accumulator
+  where
+    nonMissingToInt :: GenoEntry -> Int
+    nonMissingToInt x
+        | x == Missing = 0
+        | otherwise = 1
 
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
 checkIndividualsUniqueJanno rows = do
