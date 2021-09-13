@@ -313,13 +313,18 @@ testPipelineForge testDir checkFilePath = do
         , "ForgePac2" </> "ForgePac2.janno"
         ]
 
+ -- Note: We here use our test server (no SSL and different port). The reason is that 
+ -- sometimes we would like to implement new features that affect the communication
+ -- between server and client, and we need tests succeeding before Pull Requests are merged, so
+ -- we adopt the policy to run experimental builds on the test server in order to test features
+ -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
         , _entityList       = [Pac "2019_Nikitin_LBK"]
         , _entityFiles      = []
-        , _remoteURL        = "https://c107-224.cloud.gwdg.de"
+        , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
         , _upgrade          = True
         , _downloadAllPacs  = False 
         }

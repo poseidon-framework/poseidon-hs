@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Package (
-    PackageInfo (..),
     PoseidonYamlStruct (..),
     PoseidonPackage(..),
     PoseidonException(..),
@@ -65,30 +64,6 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
                                              stderr)
-
--- | Minimal package representation on Poseidon servers
-data PackageInfo = PackageInfo
-    { pTitle        :: String
-    , pVersion      :: Maybe Version
-    , pDescription  :: Maybe String
-    , pLastModified :: Maybe Day
-    }
-    deriving (Show)
-
-instance ToJSON PackageInfo where
-    toJSON x = object [
-        "title"        .= pTitle x,
-        "version"      .= pVersion x,
-        "description"  .= pDescription x,
-        "lastModified" .= pLastModified x
-        ]
-
-instance FromJSON PackageInfo where
-    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-        <$> v .:   "title"
-        <*> v .:   "version"
-        <*> v .:?  "description"
-        <*> v .:   "lastModified"
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct

@@ -2,39 +2,39 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList  (EntitiesList, PoseidonEntity (..),
-                                         readEntitiesFromFile)
-import           Poseidon.MathHelpers   (roundTo, roundToStr)
-import           Poseidon.Package       (PackageInfo (..),
-                                         PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..))
+import           Poseidon.EntitiesList   (EntitiesList, PoseidonEntity (..),
+                                          readEntitiesFromFile)
+import           Poseidon.MathHelpers    (roundTo, roundToStr)
+import           Poseidon.Package        (PackageReadOptions (..),
+                                          PoseidonPackage (..),
+                                          defaultPackageReadOptions,
+                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes (PackageInfo (..))
+import           Poseidon.Utils          (PoseidonException (..))
 
-import           Codec.Archive.Zip      (ZipOption (..),
-                                         extractFilesFromArchive, toArchive)
-import           Conduit                (ResourceT, await, runResourceT,
-                                         sinkFile, yield)
-import           Control.Exception      (throwIO)
-import           Control.Monad          (unless, when)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Aeson             (eitherDecode')
-import qualified Data.ByteString        as B
-import           Data.ByteString.Char8  as B8 (unpack)
-import qualified Data.ByteString.Lazy   as LB
-import           Data.Conduit           (ConduitT, sealConduitT, ($$+-), (.|))
-import           Data.List              (nub)
-import           Data.Version           (Version, showVersion)
-import           Network.HTTP.Conduit   (http, newManager, parseRequest,
-                                         responseBody, responseHeaders,
-                                         simpleHttp, tlsManagerSettings)
-import           Network.HTTP.Types     (hContentLength)
-import           System.Console.ANSI    (hClearLine, hSetCursorColumn)
-import           System.Directory       (createDirectoryIfMissing,
-                                         removeDirectory, removeFile)
-import           System.FilePath        ((</>))
-import           System.IO              (hFlush, hPutStr, hPutStrLn, stderr)
+import           Codec.Archive.Zip       (ZipOption (..),
+                                          extractFilesFromArchive, toArchive)
+import           Conduit                 (ResourceT, await, runResourceT,
+                                          sinkFile, yield)
+import           Control.Exception       (throwIO)
+import           Control.Monad           (unless, when)
+import           Control.Monad.IO.Class  (liftIO)
+import           Data.Aeson              (eitherDecode')
+import qualified Data.ByteString         as B
+import           Data.ByteString.Char8   as B8 (unpack)
+import qualified Data.ByteString.Lazy    as LB
+import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
+import           Data.List               (nub)
+import           Data.Version            (Version, showVersion)
+import           Network.HTTP.Conduit    (http, newManager, parseRequest,
+                                          responseBody, responseHeaders,
+                                          simpleHttp, tlsManagerSettings)
+import           Network.HTTP.Types      (hContentLength)
+import           System.Console.ANSI     (hClearLine, hSetCursorColumn)
+import           System.Directory        (createDirectoryIfMissing,
+                                          removeDirectory, removeFile)
+import           System.FilePath         ((</>))
+import           System.IO               (hFlush, hPutStr, hPutStrLn, stderr)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs      :: [FilePath]
