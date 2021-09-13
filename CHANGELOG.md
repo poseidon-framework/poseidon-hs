@@ -1,3 +1,4 @@
+- V 0.20.1: Updated poseidon-http-server with new APIs and updated previous APIs.
 - V 0.20.0: New forging algorithm, much faster, and new option `--no-extract` in forge. Also new minimal package template.
 - V 0.19.0: Replaced trident checksumupdate with the much more powerful trident update
 - V 0.18.2: Added a golden test feature to make sure code changes do not accidentally modify the output of trident modules
