@@ -28,7 +28,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
-import           Poseidon.PoseidonVersion   (validPoseidonVersions, showPoseidonVersion)
+import           Poseidon.PoseidonVersion   (validPoseidonVersions, showPoseidonVersion, latestPoseidonVersion, asVersion)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
@@ -505,7 +505,7 @@ newPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snp
     (UTCTime today _) <- getCurrentTime
     return PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = makeVersion [2, 1, 0]
+    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion 
     ,   posPacTitle = name
     ,   posPacDescription = Just "Empty package template. Please add a description"
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]

@@ -1,6 +1,8 @@
 module Poseidon.PoseidonVersion (
     validPoseidonVersions, 
-    showPoseidonVersion
+    showPoseidonVersion,
+    latestPoseidonVersion,
+    asVersion
 ) where
 
 import           Data.Version               (Version (..), makeVersion, showVersion)
@@ -13,6 +15,9 @@ validPoseidonVersions = map (PoseidonVersion . makeVersion) [[2,4,0]]
 
 latestPoseidonVersion :: PoseidonVersion
 latestPoseidonVersion = last validPoseidonVersions
+
+asVersion :: PoseidonVersion -> Version
+asVersion (PoseidonVersion x) = x
 
 showPoseidonVersion :: PoseidonVersion -> String
 showPoseidonVersion (PoseidonVersion x) = showVersion x

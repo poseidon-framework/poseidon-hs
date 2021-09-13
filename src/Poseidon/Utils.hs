@@ -5,8 +5,6 @@ module Poseidon.Utils (
     renderPoseidonException
 ) where
 
-import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
-
 import           Control.Exception      (Exception)
 import           Data.Yaml              (ParseException)
 
