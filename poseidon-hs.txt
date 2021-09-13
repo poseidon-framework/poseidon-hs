@@ -47,19 +47,38 @@ ContributorSpec :: String -> String -> ContributorSpec
 [contributorEmail] :: ContributorSpec -> String
 contributorSpecParser :: Parser [ContributorSpec]
 data IndividualInfo
-IndividualInfo :: String -> String -> String -> IndividualInfo
+IndividualInfo :: String -> [String] -> String -> IndividualInfo
 [indInfoName] :: IndividualInfo -> String
-[indInfoGroup] :: IndividualInfo -> String
+[indInfoGroups] :: IndividualInfo -> [String]
 [indInfoPacName] :: IndividualInfo -> String
+data GroupInfo
+GroupInfo :: String -> [String] -> Int -> GroupInfo
+[gName] :: GroupInfo -> String
+[gPackageNames] :: GroupInfo -> [String]
+[gNrIndividuals] :: GroupInfo -> Int
 data VersionComponent
 Major :: VersionComponent
 Minor :: VersionComponent
 Patch :: VersionComponent
+
+-- | Minimal package representation on Poseidon servers
+data PackageInfo
+PackageInfo :: String -> Maybe Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
+[pTitle] :: PackageInfo -> String
+[pVersion] :: PackageInfo -> Maybe Version
+[pDescription] :: PackageInfo -> Maybe String
+[pLastModified] :: PackageInfo -> Maybe Day
+[pNrIndividuals] :: PackageInfo -> Int
 instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
+instance GHC.Show.Show Poseidon.SecondaryTypes.PackageInfo
 instance GHC.Classes.Eq Poseidon.SecondaryTypes.ContributorSpec
 instance GHC.Show.Show Poseidon.SecondaryTypes.ContributorSpec
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ContributorSpec
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ContributorSpec
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.GroupInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.GroupInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PackageInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PackageInfo
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.IndividualInfo
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.IndividualInfo
 
@@ -428,14 +447,6 @@ instance GHC.Show.Show Poseidon.BibFile.BibEntry
 
 module Poseidon.Package
 
--- | Minimal package representation on Poseidon servers
-data PackageInfo
-PackageInfo :: String -> Maybe Version -> Maybe String -> Maybe Day -> PackageInfo
-[pTitle] :: PackageInfo -> String
-[pVersion] :: PackageInfo -> Maybe Version
-[pDescription] :: PackageInfo -> Maybe String
-[pLastModified] :: PackageInfo -> Maybe Day
-
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct
 PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe String -> Maybe String -> Maybe String -> PoseidonYamlStruct
@@ -607,7 +618,6 @@ renderMismatch :: [String] -> [String] -> String
 zipWithPadding :: a -> b -> [a] -> [b] -> [(a, b)]
 writePoseidonPackage :: PoseidonPackage -> IO ()
 defaultPackageReadOptions :: PackageReadOptions
-instance GHC.Show.Show Poseidon.Package.PackageInfo
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -617,8 +627,6 @@ instance GHC.Show.Show Poseidon.Package.PoseidonPackage
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Yaml.Pretty.Extras.ToPrettyYaml Poseidon.Package.PoseidonYamlStruct
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PackageInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PackageInfo
 
 module Poseidon.CLI.Validate
 
