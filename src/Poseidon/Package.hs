@@ -62,7 +62,7 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
-                                             stderr)
+                                             stderr, withFile, IOMode (ReadMode), hGetContents)
 import Data.Char (isSpace)
 
 {-   ######################### PACKAGEINFO: Minimal package representation on Poseidon servers ######################### -}
@@ -247,8 +247,7 @@ readPoseidonPackageCollection opts dirs = do
     posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
     hPutStrLn stderr "Checking Poseidon versions... "
-    --posFiles <- filterByPoseidonVersion posFilesAllVersions
-    let posFiles = posFilesAllVersions
+    posFiles <- filterByPoseidonVersion posFilesAllVersions
     hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     hPutStrLn stderr ""
@@ -285,7 +284,7 @@ readPoseidonPackageCollection opts dirs = do
         where 
             isInVersionRange :: FilePath -> IO (Either PoseidonException FilePath)
             isInVersionRange posFile = do
-                content <- readFile posFile
+                content <- readFile' posFile
                 let posLines = lines content
                 case elemIndex "poseidonVersion:" (map (take 16) posLines) of
                     Nothing -> return $ Left $ PoseidonPackageVersionException posFile "Unknown"
@@ -295,6 +294,10 @@ readPoseidonPackageCollection opts dirs = do
                         if versionString `elem` map showPoseidonVersion validPoseidonVersions
                         then return $ Right posFile
                         else return $ Left $ PoseidonPackageVersionException posFile versionString
+            readFile' :: FilePath -> IO String
+            readFile' filename = withFile filename ReadMode $ \handle -> do
+                theContent <- hGetContents handle
+                mapM return theContent
     tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage False (numberPackage, path) = do
         hClearLine stderr

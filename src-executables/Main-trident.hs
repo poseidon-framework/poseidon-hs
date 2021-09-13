@@ -50,6 +50,7 @@ data Options = CmdFstats FstatsOptions
 main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
+    hPutStrLn stderr ""
     cmdOpts <- OP.customExecParser p optParserInfo
     catch (runCmd cmdOpts) handler
     where
@@ -88,7 +89,7 @@ renderVersion =
     "trident v" ++ showVersion version ++ " for poseidon v" ++ 
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
     "https://poseidon-framework.github.io" ++ "\n" ++
-    "─────E ~ <°}))>("
+    ")<(({°> ~ ────E ~ <°}))>("
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
