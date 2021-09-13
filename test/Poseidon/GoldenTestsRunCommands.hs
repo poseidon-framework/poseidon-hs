@@ -24,7 +24,6 @@ import           Poseidon.SecondaryTypes        (ContributorSpec (..),
 import           Control.Monad                  (when, unless)
 import qualified Data.Text.IO                   as T
 import qualified Data.Text                      as T
-import           Data.Version                   (makeVersion)
 import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
 import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix          ((</>))
