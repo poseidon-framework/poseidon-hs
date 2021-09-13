@@ -41,7 +41,7 @@ renderPoseidonException (PoseidonYamlParseException fn e) =
 renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
-    "Poseidon version missmatch in " ++ show p ++ 
+    "Poseidon version mismatch in " ++ show p ++ 
     ". It has version \"" ++ s ++ "\", which is not supported by this trident version. " ++
     "Please update the package or trident."
 renderPoseidonException (PoseidonIndSearchException s) =

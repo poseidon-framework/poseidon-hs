@@ -88,7 +88,7 @@ renderVersion =
     "trident v" ++ showVersion version ++ " for poseidon v" ++ 
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
     "https://poseidon-framework.github.io" ++ "\n" ++
-    " ⎯⎯⎯⎯∈ <°}))>("
+    "─────E ~ <°}))>("
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (

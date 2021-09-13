@@ -236,25 +236,6 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptGenoCheck        = True
     }
 
-filterByPoseidonVersion :: [FilePath] -> IO [FilePath]
-filterByPoseidonVersion posFiles = do
-    filterM isInVersionRange posFiles
-    where 
-        isInVersionRange :: FilePath -> IO Bool
-        isInVersionRange posFile = do
-            content <- readFile posFile
-            let posLines = lines content
-            case elemIndex "poseidonVersion:" (map (take 16) posLines) of
-              Nothing -> do
-                throwM $ PoseidonPackageVersionException posFile "Unknown"
-                return False
-              Just n -> do
-                let versionLine = posLines !! n
-                    versionString = filter (not . isSpace) $ drop 16 versionLine
-                if versionString `elem` map showPoseidonVersion validPoseidonVersions
-                then return True
-                else throwM $ PoseidonPackageVersionException posFile versionString
-
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
@@ -265,7 +246,7 @@ readPoseidonPackageCollection opts dirs = do
     hPutStr stderr "Searching POSEIDON.yml files... "
     posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
-    hPutStrLn stderr "Checking package Poseidon versions... "
+    hPutStrLn stderr "Checking Poseidon versions... "
     posFiles <- filterByPoseidonVersion posFilesAllVersions
     hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
@@ -295,6 +276,24 @@ readPoseidonPackageCollection opts dirs = do
     -- return package list
     return finalPackageList
   where
+    filterByPoseidonVersion :: [FilePath] -> IO [FilePath]
+    filterByPoseidonVersion posFiles = do
+        eitherPaths <- mapM isInVersionRange posFiles
+        mapM_ (hPutStrLn stderr . renderPoseidonException) $ lefts eitherPaths
+        return $ rights eitherPaths
+        where 
+            isInVersionRange :: FilePath -> IO (Either PoseidonException FilePath)
+            isInVersionRange posFile = do
+                content <- readFile posFile
+                let posLines = lines content
+                case elemIndex "poseidonVersion:" (map (take 16) posLines) of
+                    Nothing -> return $ Left $ PoseidonPackageVersionException posFile "Unknown"
+                    Just n -> do
+                        let versionLine = posLines !! n
+                            versionString = filter (not . isSpace) $ drop 16 versionLine
+                        if versionString `elem` map showPoseidonVersion validPoseidonVersions
+                        then return $ Right posFile
+                        else return $ Left $ PoseidonPackageVersionException posFile versionString
     tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage False (numberPackage, path) = do
         hClearLine stderr
