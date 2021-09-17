@@ -106,3 +106,20 @@ jobs:
           asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
           asset_name: trident-${{ runner.os }}${{ steps.ifwin.outputs.EXT }}
           asset_content_type: application/octet-stream
+  
+  centos-build-artifact:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Build Docker image
+      run: docker build -t linux -f .github/workflows/Dockerfile.centos .
+    - name: Create container
+      run: docker create --name linuxcontainer linux
+    - name: Copy executable
+      run: docker cp linuxcontainer:/root/.local/bin/trident trident-centos
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+        with:
+          name: trident-centos
+          path: trident-centos
