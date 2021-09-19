@@ -267,10 +267,9 @@ readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- B.readFile ymlPath
     -- read yml files
-    (PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwIO $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
-    let yml = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF
     -- file existence and checksum test
     checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
     -- read janno (or fill with empty dummy object)
