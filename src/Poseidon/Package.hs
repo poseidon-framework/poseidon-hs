@@ -266,7 +266,7 @@ readPoseidonPackageCollection opts dirs = do
                 -- a POSEIDON.yml file in JSON format, a wrong version
                 -- can not be caught.
                 case elemIndex "poseidonVersion:" (map (take 16) posLines) of
-                    Nothing -> return $ Left $ PoseidonPackageVersionException posFile "Unknown"
+                    Nothing -> return $ Left $ PoseidonPackageMissingVersionException posFile
                     Just n -> do
                         let versionLine = posLines !! n
                             versionString = filter (not . isSpace) $ drop 16 versionLine
