@@ -261,6 +261,10 @@ readPoseidonPackageCollection opts dirs = do
             isInVersionRange posFile = do
                 content <- readFile' posFile
                 let posLines = lines content
+                -- This implementation only works with a true YAML file.
+                -- But technically also JSON is YAML. If somebody prepares
+                -- a POSEIDON.yml file in JSON format, a wrong version
+                -- can not be caught.
                 case elemIndex "poseidonVersion:" (map (take 16) posLines) of
                     Nothing -> return $ Left $ PoseidonPackageVersionException posFile "Unknown"
                     Just n -> do
