@@ -17,16 +17,18 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
                                         poseidonVersionParser, 
                                         contributorSpecParser)
-import           Poseidon.Utils         (PoseidonException (..), 
+import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.ByteString.Char8  (pack, splitWith)
+import           Data.List              (intercalate)
 import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           SequenceFormats.Utils  (Chrom (..))
@@ -47,6 +49,8 @@ data Options = CmdFstats FstatsOptions
 
 main :: IO ()
 main = do
+    hPutStrLn stderr renderVersion
+    hPutStrLn stderr ""
     cmdOpts <- OP.customExecParser p optParserInfo
     catch (runCmd cmdOpts) handler
     where
@@ -73,14 +77,19 @@ optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
-                \More information: \
-                \https://poseidon-framework.github.io. \
-                \Report issues: \
+                \Report issues here: \
                 \https://github.com/poseidon-framework/poseidon-hs/issues"
     )
 
 versionOption :: OP.Parser (a -> a)
-versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
+versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version number")
+
+renderVersion :: String
+renderVersion = 
+    "trident v" ++ showVersion version ++ " for poseidon v" ++ 
+    intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
+    "https://poseidon-framework.github.io" -- ++ "\n" ++
+    --")<(({°> ~ ────E ~ <°}))>("
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (

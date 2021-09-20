@@ -24,7 +24,6 @@ import           Poseidon.SecondaryTypes        (ContributorSpec (..),
 import           Control.Monad                  (when, unless)
 import qualified Data.Text.IO                   as T
 import qualified Data.Text                      as T
-import           Data.Version                   (makeVersion)
 import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
 import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
 import           System.FilePath.Posix          ((</>))
@@ -259,7 +258,7 @@ testPipelineUpdate testDir checkFilePath = do
         ]
     let updateOpts3 = UpdateOptions {
           _updateBaseDirs = [testDir </> "Schiffels"]
-        , _updatePoseidonVersion = Just $ makeVersion [2,9,9]
+        , _updatePoseidonVersion = Nothing
         , _updateVersionUpdate = Patch
         , _updateNoChecksumUpdate = False
         , _updateIgnoreGeno = False
@@ -268,7 +267,7 @@ testPipelineUpdate testDir checkFilePath = do
             ContributorSpec "Herbert Testmann" "herbert@testmann.tw"
             ]
         , _updateLog = "test3"
-        , _updateForce = False
+        , _updateForce = True
         }
     let action3 = runUpdate updateOpts3 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "update" [

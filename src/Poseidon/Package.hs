@@ -29,6 +29,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
+import           Poseidon.PoseidonVersion   (validPoseidonVersions, showPoseidonVersion, latestPoseidonVersion, asVersion)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
@@ -44,7 +45,7 @@ import qualified Data.ByteString.Lazy       as LB
 import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights)
 import           Data.List                  (groupBy, intercalate, nub, sortOn,
-                                             (\\))
+                                             (\\), elemIndex)
 import           Data.Maybe                 (catMaybes, mapMaybe, isNothing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import           Data.Version               (Version (..), makeVersion)
@@ -63,7 +64,8 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
-                                             stderr)
+                                             stderr, withFile, IOMode (ReadMode), hGetContents)
+import Data.Char (isSpace)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -217,8 +219,10 @@ readPoseidonPackageCollection :: PackageReadOptions
                               -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
     hPutStr stderr "Searching POSEIDON.yml files... "
-    posFiles <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    hPutStrLn stderr $ show (length posFiles) ++ " found"
+    posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
+    hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
+    hPutStrLn stderr "Checking Poseidon versions... "
+    posFiles <- filterByPoseidonVersion posFilesAllVersions
     hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     hPutStrLn stderr ""
@@ -247,6 +251,32 @@ readPoseidonPackageCollection opts dirs = do
     -- return package list
     return finalPackageList
   where
+    filterByPoseidonVersion :: [FilePath] -> IO [FilePath]
+    filterByPoseidonVersion posFiles = do
+        eitherPaths <- mapM isInVersionRange posFiles
+        mapM_ (hPutStrLn stderr . renderPoseidonException) $ lefts eitherPaths
+        return $ rights eitherPaths
+        where 
+            isInVersionRange :: FilePath -> IO (Either PoseidonException FilePath)
+            isInVersionRange posFile = do
+                content <- readFile' posFile
+                let posLines = lines content
+                -- This implementation only works with a true YAML file.
+                -- But technically also JSON is YAML. If somebody prepares
+                -- a POSEIDON.yml file in JSON format, a wrong version
+                -- can not be caught.
+                case elemIndex "poseidonVersion:" (map (take 16) posLines) of
+                    Nothing -> return $ Left $ PoseidonPackageMissingVersionException posFile
+                    Just n -> do
+                        let versionLine = posLines !! n
+                            versionString = filter (not . isSpace) $ drop 16 versionLine
+                        if versionString `elem` map showPoseidonVersion validPoseidonVersions
+                        then return $ Right posFile
+                        else return $ Left $ PoseidonPackageVersionException posFile versionString
+            readFile' :: FilePath -> IO String
+            readFile' filename = withFile filename ReadMode $ \handle -> do
+                theContent <- hGetContents handle
+                mapM return theContent
     tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage False (numberPackage, path) = do
         hClearLine stderr
@@ -467,7 +497,7 @@ newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonP
 newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
     PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = makeVersion [2, 4, 0]
+    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion 
     ,   posPacTitle = name
     ,   posPacDescription = Nothing
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]

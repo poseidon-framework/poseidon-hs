@@ -12,6 +12,8 @@ import           Data.Yaml              (ParseException)
 data PoseidonException = 
     PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
+    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
+    | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
     | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
@@ -37,6 +39,12 @@ renderPoseidonException (PoseidonYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ": " ++ show e
 renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
+renderPoseidonException (PoseidonPackageVersionException p s) =
+    "Poseidon version mismatch in " ++ show p ++ 
+    ". It has version \"" ++ s ++ "\", which is not supported by this trident version."
+renderPoseidonException (PoseidonPackageMissingVersionException p) =
+    "The POSEIDON.yml file " ++ show p ++ " has no poseidonVersion field. " ++
+    "This is mandatory."
 renderPoseidonException (PoseidonIndSearchException s) =
     show s
 renderPoseidonException (PoseidonGenotypeException s) =
