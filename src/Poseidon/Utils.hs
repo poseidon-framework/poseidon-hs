@@ -41,10 +41,9 @@ renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++ 
-    ". It has version \"" ++ s ++ "\", which is not supported by this trident version. " ++
-    "Please update the package or trident."
+    ". It has version \"" ++ s ++ "\", which is not supported by this trident version."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
-    "The POSEIDON.yml file at " ++ show p ++ "has no poseidonVersion field. " ++
+    "The POSEIDON.yml file " ++ show p ++ " has no poseidonVersion field. " ++
     "This is mandatory."
 renderPoseidonException (PoseidonIndSearchException s) =
     show s
