@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.20.1
+@version 0.21.0
 
 module Poseidon.MathHelpers
 
@@ -32,6 +32,15 @@ meanAndSdRoundTo :: Int -> [Double] -> String
 -- | A helper function to get a nice string with mean and sd for a list of
 --   doubles (here rounded to integer)
 meanAndSdInteger :: [Double] -> String
+
+module Poseidon.PoseidonVersion
+validPoseidonVersions :: [PoseidonVersion]
+showPoseidonVersion :: PoseidonVersion -> String
+latestPoseidonVersion :: PoseidonVersion
+asVersion :: PoseidonVersion -> Version
+instance GHC.Classes.Ord Poseidon.PoseidonVersion.PoseidonVersion
+instance GHC.Classes.Eq Poseidon.PoseidonVersion.PoseidonVersion
+instance GHC.Show.Show Poseidon.PoseidonVersion.PoseidonVersion
 
 module Poseidon.SecondaryTypes
 poseidonVersionParser :: Parser Version
@@ -92,6 +101,12 @@ PoseidonYamlParseException :: FilePath -> ParseException -> PoseidonException
 
 -- | An exception to represent a logical error in a package
 PoseidonPackageException :: String -> PoseidonException
+
+-- | An exception to represent an issue with a package version
+PoseidonPackageVersionException :: FilePath -> String -> PoseidonException
+
+-- | An exception to indicate a missing poseidonVersion field
+PoseidonPackageMissingVersionException :: FilePath -> PoseidonException
 
 -- | An exception to represent an error when searching for individuals or
 --   populations
@@ -527,6 +542,12 @@ PoseidonYamlParseException :: FilePath -> ParseException -> PoseidonException
 
 -- | An exception to represent a logical error in a package
 PoseidonPackageException :: String -> PoseidonException
+
+-- | An exception to represent an issue with a package version
+PoseidonPackageVersionException :: FilePath -> String -> PoseidonException
+
+-- | An exception to indicate a missing poseidonVersion field
+PoseidonPackageMissingVersionException :: FilePath -> PoseidonException
 
 -- | An exception to represent an error when searching for individuals or
 --   populations

@@ -34,14 +34,14 @@
 </span><span id="line-27"></span><span>
 </span><span id="line-28"></span><span class="annot"><a href="Poseidon.CLI.Init.html#runInit"><span class="hs-identifier hs-type">runInit</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Init.html#InitOptions"><span class="hs-identifier hs-type">InitOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-29"></span><span id="runInit"><span class="annot"><span class="annottext">runInit :: InitOptions -&gt; IO ()
-</span><a href="Poseidon.CLI.Init.html#runInit"><span class="hs-identifier hs-var hs-var">runInit</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Init.html#InitOptions"><span class="hs-identifier hs-type">InitOptions</span></a></span><span> </span><span id="local-6989586621679147738"><span class="annot"><span class="annottext">GenotypeFormatSpec
-</span><a href="#local-6989586621679147738"><span class="hs-identifier hs-var">format_</span></a></span></span><span> </span><span id="local-6989586621679147737"><span class="annot"><span class="annottext">SNPSetSpec
-</span><a href="#local-6989586621679147737"><span class="hs-identifier hs-var">snpSet_</span></a></span></span><span> </span><span id="local-6989586621679147736"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147736"><span class="hs-identifier hs-var">genoFile_</span></a></span></span><span> </span><span id="local-6989586621679147735"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147735"><span class="hs-identifier hs-var">snpFile_</span></a></span></span><span> </span><span id="local-6989586621679147734"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147734"><span class="hs-identifier hs-var">indFile_</span></a></span></span><span> </span><span id="local-6989586621679147733"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span></span><span> </span><span id="local-6989586621679147732"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147732"><span class="hs-identifier hs-var">outName</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.CLI.Init.html#runInit"><span class="hs-identifier hs-var hs-var">runInit</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Init.html#InitOptions"><span class="hs-identifier hs-type">InitOptions</span></a></span><span> </span><span id="local-6989586621679148566"><span class="annot"><span class="annottext">GenotypeFormatSpec
+</span><a href="#local-6989586621679148566"><span class="hs-identifier hs-var">format_</span></a></span></span><span> </span><span id="local-6989586621679148565"><span class="annot"><span class="annottext">SNPSetSpec
+</span><a href="#local-6989586621679148565"><span class="hs-identifier hs-var">snpSet_</span></a></span></span><span> </span><span id="local-6989586621679148564"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148564"><span class="hs-identifier hs-var">genoFile_</span></a></span></span><span> </span><span id="local-6989586621679148563"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148563"><span class="hs-identifier hs-var">snpFile_</span></a></span></span><span> </span><span id="local-6989586621679148562"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148562"><span class="hs-identifier hs-var">indFile_</span></a></span></span><span> </span><span id="local-6989586621679148561"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span></span><span> </span><span id="local-6989586621679148560"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148560"><span class="hs-identifier hs-var">outName</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-30"></span><span>    </span><span class="hs-comment">-- create new directory</span><span>
 </span><span id="line-31"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
@@ -51,25 +51,25 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Creating new package directory: &quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span>
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span>
 </span><span id="line-32"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">createDirectory</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span>
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span>
 </span><span id="line-33"></span><span>    </span><span class="hs-comment">-- compile genotype data structure</span><span>
-</span><span id="line-34"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147731"><span class="annot"><span class="annottext">outInd :: FilePath
-</span><a href="#local-6989586621679147731"><span class="hs-identifier hs-var hs-var">outInd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><span id="line-34"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679148559"><span class="annot"><span class="annottext">outInd :: FilePath
+</span><a href="#local-6989586621679148559"><span class="hs-identifier hs-var hs-var">outInd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
 </span><span class="hs-identifier hs-var">takeFileName</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147734"><span class="hs-identifier hs-var">indFile_</span></a></span><span>
-</span><span id="line-35"></span><span>        </span><span id="local-6989586621679147730"><span class="annot"><span class="annottext">outSnp :: FilePath
-</span><a href="#local-6989586621679147730"><span class="hs-identifier hs-var hs-var">outSnp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148562"><span class="hs-identifier hs-var">indFile_</span></a></span><span>
+</span><span id="line-35"></span><span>        </span><span id="local-6989586621679148558"><span class="annot"><span class="annottext">outSnp :: FilePath
+</span><a href="#local-6989586621679148558"><span class="hs-identifier hs-var hs-var">outSnp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
 </span><span class="hs-identifier hs-var">takeFileName</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147735"><span class="hs-identifier hs-var">snpFile_</span></a></span><span>
-</span><span id="line-36"></span><span>        </span><span id="local-6989586621679147729"><span class="annot"><span class="annottext">outGeno :: FilePath
-</span><a href="#local-6989586621679147729"><span class="hs-identifier hs-var hs-var">outGeno</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148563"><span class="hs-identifier hs-var">snpFile_</span></a></span><span>
+</span><span id="line-36"></span><span>        </span><span id="local-6989586621679148557"><span class="annot"><span class="annottext">outGeno :: FilePath
+</span><a href="#local-6989586621679148557"><span class="hs-identifier hs-var hs-var">outGeno</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
 </span><span class="hs-identifier hs-var">takeFileName</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147736"><span class="hs-identifier hs-var">genoFile_</span></a></span><span>
-</span><span id="line-37"></span><span>        </span><span id="local-6989586621679147728"><span class="annot"><span class="annottext">genotypeData :: GenotypeDataSpec
-</span><a href="#local-6989586621679147728"><span class="hs-identifier hs-var hs-var">genotypeData</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
+</span><a href="#local-6989586621679148564"><span class="hs-identifier hs-var">genoFile_</span></a></span><span>
+</span><span id="line-37"></span><span>        </span><span id="local-6989586621679148556"><span class="annot"><span class="annottext">genotypeData :: GenotypeDataSpec
+</span><a href="#local-6989586621679148556"><span class="hs-identifier hs-var hs-var">genotypeData</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
 -&gt; FilePath
 -&gt; Maybe FilePath
 -&gt; FilePath
@@ -79,19 +79,19 @@ forall a. [a] -&gt; [a] -&gt; [a]
 -&gt; Maybe SNPSetSpec
 -&gt; GenotypeDataSpec
 </span><a href="Poseidon.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier hs-var">GenotypeDataSpec</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
-</span><a href="#local-6989586621679147738"><span class="hs-identifier hs-var">format_</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147729"><span class="hs-identifier hs-var">outGeno</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><a href="#local-6989586621679148566"><span class="hs-identifier hs-var">format_</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148557"><span class="hs-identifier hs-var">outGeno</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147730"><span class="hs-identifier hs-var">outSnp</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><a href="#local-6989586621679148558"><span class="hs-identifier hs-var">outSnp</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147731"><span class="hs-identifier hs-var">outInd</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><a href="#local-6989586621679148559"><span class="hs-identifier hs-var">outInd</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SNPSetSpec -&gt; Maybe SNPSetSpec
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">SNPSetSpec
-</span><a href="#local-6989586621679147737"><span class="hs-identifier hs-var">snpSet_</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679148565"><span class="hs-identifier hs-var">snpSet_</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-38"></span><span>    </span><span class="hs-comment">-- genotype data</span><span>
 </span><span id="line-39"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
@@ -99,55 +99,55 @@ forall a. a -&gt; Maybe a
 </span><span class="hs-string">&quot;Copying genotype data&quot;</span></span><span>
 </span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">copyFile</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147734"><span class="hs-identifier hs-var">indFile_</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+</span><a href="#local-6989586621679148562"><span class="hs-identifier hs-var">indFile_</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147731"><span class="hs-identifier hs-var">outInd</span></a></span><span>
+</span><a href="#local-6989586621679148559"><span class="hs-identifier hs-var">outInd</span></a></span><span>
 </span><span id="line-41"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">copyFile</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147735"><span class="hs-identifier hs-var">snpFile_</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+</span><a href="#local-6989586621679148563"><span class="hs-identifier hs-var">snpFile_</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147730"><span class="hs-identifier hs-var">outSnp</span></a></span><span>
+</span><a href="#local-6989586621679148558"><span class="hs-identifier hs-var">outSnp</span></a></span><span>
 </span><span id="line-42"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">copyFile</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147736"><span class="hs-identifier hs-var">genoFile_</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+</span><a href="#local-6989586621679148564"><span class="hs-identifier hs-var">genoFile_</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147729"><span class="hs-identifier hs-var">outGeno</span></a></span><span>
+</span><a href="#local-6989586621679148557"><span class="hs-identifier hs-var">outGeno</span></a></span><span>
 </span><span id="line-43"></span><span>    </span><span class="hs-comment">-- create new package</span><span>
 </span><span id="line-44"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
 </span><span class="hs-identifier hs-var">stderr</span></span><span> </span><span class="annot"><span class="annottext">FilePath
 </span><span class="hs-string">&quot;Creating new package entity&quot;</span></span><span>
-</span><span id="line-45"></span><span>    </span><span id="local-6989586621679147726"><span class="annot"><span class="annottext">[EigenstratIndEntry]
-</span><a href="#local-6989586621679147726"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; GenotypeDataSpec -&gt; IO [EigenstratIndEntry]
+</span><span id="line-45"></span><span>    </span><span id="local-6989586621679148554"><span class="annot"><span class="annottext">[EigenstratIndEntry]
+</span><a href="#local-6989586621679148554"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; GenotypeDataSpec -&gt; IO [EigenstratIndEntry]
 </span><a href="Poseidon.GenotypeData.html#loadIndividuals"><span class="hs-identifier hs-var">loadIndividuals</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679147728"><span class="hs-identifier hs-var">genotypeData</span></a></span><span>
-</span><span id="line-46"></span><span>    </span><span id="local-6989586621679147725"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679147725"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679148556"><span class="hs-identifier hs-var">genotypeData</span></a></span><span>
+</span><span id="line-46"></span><span>    </span><span id="local-6989586621679148553"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679148553"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath
 -&gt; FilePath
 -&gt; GenotypeDataSpec
 -&gt; Maybe (Either [EigenstratIndEntry] [JannoRow])
 -&gt; BibTeX
 -&gt; IO PoseidonPackage
 </span><a href="Poseidon.Package.html#newPackageTemplate"><span class="hs-identifier hs-var">newPackageTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147732"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679147728"><span class="hs-identifier hs-var">genotypeData</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Either [EigenstratIndEntry] [JannoRow]
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679148560"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679148556"><span class="hs-identifier hs-var">genotypeData</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Either [EigenstratIndEntry] [JannoRow]
 -&gt; Maybe (Either [EigenstratIndEntry] [JannoRow])
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[EigenstratIndEntry] -&gt; Either [EigenstratIndEntry] [JannoRow]
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">[EigenstratIndEntry]
-</span><a href="#local-6989586621679147726"><span class="hs-identifier hs-var">inds</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">BibEntry
+</span><a href="#local-6989586621679148554"><span class="hs-identifier hs-var">inds</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">BibEntry
 </span><a href="Poseidon.BibFile.html#dummyBibEntry"><span class="hs-identifier hs-var">dummyBibEntry</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-47"></span><span>    </span><span class="hs-comment">-- POSEIDON.yml</span><span>
 </span><span id="line-48"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
@@ -156,7 +156,7 @@ forall a b. a -&gt; Either a b
 </span><span class="hs-string">&quot;Creating POSEIDON.yml&quot;</span></span><span>
 </span><span id="line-49"></span><span>    </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; IO ()
 </span><a href="Poseidon.Package.html#writePoseidonPackage"><span class="hs-identifier hs-var">writePoseidonPackage</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679147725"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679148553"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-50"></span><span>    </span><span class="hs-comment">-- janno</span><span>
 </span><span id="line-51"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
@@ -164,15 +164,15 @@ forall a b. a -&gt; Either a b
 </span><span class="hs-string">&quot;Creating minimal .janno file&quot;</span></span><span>
 </span><span id="line-52"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; [JannoRow] -&gt; IO ()
 </span><a href="Poseidon.Janno.html#writeJannoFile"><span class="hs-identifier hs-var">writeJannoFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147732"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148560"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
 </span><span class="hs-string">&quot;janno&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([JannoRow] -&gt; IO ()) -&gt; [JannoRow] -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; [JannoRow]
 </span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679147725"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679148553"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-53"></span><span>    </span><span class="hs-comment">-- bib</span><span>
 </span><span id="line-54"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
@@ -180,14 +180,14 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Creating dummy .bib file&quot;</span></span><span>
 </span><span id="line-55"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; BibTeX -&gt; IO ()
 </span><a href="Poseidon.BibFile.html#writeBibTeXFile"><span class="hs-identifier hs-var">writeBibTeXFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147733"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148561"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679147732"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="#local-6989586621679148560"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
 </span><span class="hs-string">&quot;bib&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(BibTeX -&gt; IO ()) -&gt; BibTeX -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; BibTeX
 </span><a href="Poseidon.Package.html#posPacBib"><span class="hs-identifier hs-var hs-var">posPacBib</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679147725"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679148553"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-56"></span><span>
 </span><span id="line-57"></span></pre></body></html>
