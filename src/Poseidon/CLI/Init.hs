@@ -11,7 +11,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
                                              writePoseidonPackage)
 
-import           System.Directory           (createDirectory, copyFile)
+import           System.Directory           (createDirectoryIfMissing, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName)
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -29,7 +29,7 @@ runInit :: InitOptions -> IO ()
 runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath outName) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
-    createDirectory outPath
+    createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let outInd = takeFileName indFile_
         outSnp = takeFileName snpFile_

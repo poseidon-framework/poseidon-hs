@@ -35,7 +35,7 @@ import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
                                               EigenstratSnpEntry (..), GenoLine,
                                               writeEigenstrat, GenoEntry(..))
 import           SequenceFormats.Plink       (writePlink)
-import           System.Directory            (createDirectory)
+import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             ((<.>), (</>))
 import           System.IO                   (hPutStrLn, stderr)
 
@@ -94,7 +94,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     -- create new package --
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
-    createDirectory outPath
+    createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
