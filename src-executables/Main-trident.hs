@@ -148,7 +148,7 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseInSnpFile
                             <*> parseInIndFile
                             <*> parseOutPackagePath
-                            <*> parseOutPackageName
+                            <*> parseMaybeOutPackageName
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -170,7 +170,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesFromFile
                               <*> parseIntersect
                               <*> parseOutPackagePath
-                              <*> parseOutPackageName
+                              <*> parseMaybeOutPackageName
                               <*> parseOutFormat
                               <*> parseShowWarnings
                               <*> parseNoExtract
@@ -414,10 +414,15 @@ parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
     OP.short 'o' <>
     OP.help "the output package directory path")
 
-parseOutPackageName :: OP.Parser FilePath
-parseOutPackageName = OP.strOption (OP.long "outPackageName" <>
+parseMaybeOutPackageName :: OP.Parser (Maybe String)
+parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.short 'n' <>
-    OP.help "the output package name")
+    OP.long "outPackageName" <>
+    OP.help "the output package name - this is optional: If no name is provided, \
+            \then the package name defaults to the basename of the (mandatory) \
+            \--outPackagePath argument" <> 
+    OP.value Nothing
+    )
 
 parseOutFormat :: OP.Parser GenotypeFormatSpec
 parseOutFormat = parseEigenstratFormat <|> pure GenotypeFormatPlink

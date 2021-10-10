@@ -12,7 +12,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              writePoseidonPackage)
 
 import           System.Directory           (createDirectoryIfMissing, copyFile)
-import           System.FilePath            ((<.>), (</>), takeFileName)
+import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
 import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
@@ -22,11 +22,11 @@ data InitOptions = InitOptions
     , _initSnpFile :: FilePath
     , _initIndFile :: FilePath
     , _initPacPath :: FilePath
-    , _initPacName :: String
+    , _initPacName :: Maybe String
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath outName) = do
+runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath maybeOutName) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectoryIfMissing True outPath
@@ -42,6 +42,9 @@ runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath outName
     copyFile genoFile_ $ outPath </> outGeno
     -- create new package
     hPutStrLn stderr "Creating new package entity"
+    let outName = case maybeOutName of -- take basename of outPath, if name is not provided
+            Just x -> x
+            Nothing -> takeBaseName outPath
     inds <- loadIndividuals outPath genotypeData
     pac <- newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
     -- POSEIDON.yml
