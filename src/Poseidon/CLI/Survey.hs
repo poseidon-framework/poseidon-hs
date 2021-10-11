@@ -77,7 +77,7 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
         -- https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list
         insertEveryN :: Int -> a -> [a] -> [a]
         insertEveryN n y xs = intercalate [y] . groups n $ xs
-            where groups n xs = takeWhile (not . null) . unfoldr (Just . splitAt n) $ xs
+            where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
