@@ -17,6 +17,7 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.Janno         (jannoHeaderString)
 import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
@@ -31,6 +32,7 @@ import           Data.ByteString.Char8  (pack, splitWith)
 import           Data.List              (intercalate)
 import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
+import           Options.Applicative.Help.Pretty (string)
 import           SequenceFormats.Utils  (Chrom (..))
 import           System.Exit            (exitFailure)
 import           System.IO              (hPutStrLn, stderr)
@@ -127,7 +129,11 @@ optParser = OP.subparser (
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
-        (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
+        (OP.progDesc "Survey the degree of context information completeness for Poseidon packages" <>
+        OP.footerDoc (Just $ string $
+            ".janno column order in the output table: \n" ++
+            intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) [1..] jannoHeaderString)
+            ))
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))

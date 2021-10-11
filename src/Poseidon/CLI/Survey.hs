@@ -77,6 +77,7 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
 
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
+    
       '█'
     : getColChar jS jCollectionID
     : getColChar jS jSourceTissue
@@ -104,6 +105,7 @@ renderJannoCompleteness jS =
     : getColChar jS jEndogenous
     : getColChar jS jUDG
     : getColChar jS jDamage
+    : getColChar jS jLibraryBuilt
     : getColChar jS jNuclearContam
     : getColChar jS jNuclearContamErr
     : getColChar jS jMTContam
