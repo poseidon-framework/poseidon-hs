@@ -19,7 +19,8 @@ module Poseidon.Janno (
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,
-    createMinimalJanno
+    createMinimalJanno,
+    jannoHeader
 ) where
 
 import           Poseidon.Utils             (PoseidonException (..),
