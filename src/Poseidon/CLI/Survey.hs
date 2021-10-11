@@ -12,7 +12,8 @@ import           Poseidon.Package      (PackageReadOptions (..),
 
 import           Control.Monad         (forM)
 import           Data.List             (intercalate, zip4)
-import           Data.Maybe            (isNothing)
+import           Data.Ratio            (Ratio, (%))
+import           Data.Maybe            (isJust)
 import           System.Directory      (doesFileExist)
 import           System.FilePath       ((</>))
 import           Text.Layout.Table     (asciiRoundS, column, def, expandUntil,
@@ -46,7 +47,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
     let jannos = map posPacJanno allPackages
-    -- -- bib
+    -- bib
     let bibs = map posPacBib allPackages
     -- print information
     (tableH, tableB) <- do
@@ -73,45 +74,53 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
     "M"
-    ++ allNothing jCollectionID jS
-    ++ allNothing jSourceTissue jS
-    ++ allNothing jCountry jS
-    ++ allNothing jLocation jS
-    ++ allNothing jSite jS
-    ++ allNothing jLatitude jS
-    ++ allNothing jLongitude jS
-    ++ allNothing jDateC14Labnr jS
-    ++ allNothing jDateC14UncalBP jS
-    ++ allNothing jDateC14UncalBPErr jS
-    ++ allNothing jDateBCADMedian jS
-    ++ allNothing jDateBCADStart jS
-    ++ allNothing jDateBCADStop jS
-    ++ allNothing jDateType jS
-    ++ allNothing jNrLibraries jS
-    ++ allNothing jDataType jS
-    ++ allNothing jGenotypePloidy jS
+    ++ getColString jCollectionID jS
+    ++ getColString jSourceTissue jS
+    ++ getColString jCountry jS
+    ++ getColString jLocation jS
+    ++ getColString jSite jS
+    ++ getColString jLatitude jS
+    ++ getColString jLongitude jS
+    ++ getColString jDateC14Labnr jS
+    ++ getColString jDateC14UncalBP jS
+    ++ getColString jDateC14UncalBPErr jS
+    ++ getColString jDateBCADMedian jS
+    ++ getColString jDateBCADStart jS
+    ++ getColString jDateBCADStop jS
+    ++ getColString jDateType jS
+    ++ getColString jNrLibraries jS
+    ++ getColString jDataType jS
+    ++ getColString jGenotypePloidy jS
     ++ "M"
     ++ "M"
-    ++ allNothing jNrAutosomalSNPs jS
-    ++ allNothing jCoverage1240K jS
-    ++ allNothing jMTHaplogroup jS
-    ++ allNothing jYHaplogroup jS
-    ++ allNothing jEndogenous jS
-    ++ allNothing jUDG jS
-    ++ allNothing jDamage jS
-    ++ allNothing jNuclearContam jS
-    ++ allNothing jNuclearContamErr jS
-    ++ allNothing jMTContam jS
-    ++ allNothing jMTContamErr jS
-    ++ allNothing jGeneticSourceAccessionIDs jS
-    ++ allNothing jDataPreparationPipelineURL jS
-    ++ allNothing jPrimaryContact jS
-    ++ allNothing jPublication jS
-    ++ allNothing jComments jS
-    ++ allNothing jKeywords jS
-
-allNothing :: (JannoRow -> Maybe a) -> [JannoRow] -> String
-allNothing column_ jannoRows =
-    if all (isNothing . column_) jannoRows
-        then "."
-        else "X"
+    ++ getColString jNrAutosomalSNPs jS
+    ++ getColString jCoverage1240K jS
+    ++ getColString jMTHaplogroup jS
+    ++ getColString jYHaplogroup jS
+    ++ getColString jEndogenous jS
+    ++ getColString jUDG jS
+    ++ getColString jDamage jS
+    ++ getColString jNuclearContam jS
+    ++ getColString jNuclearContamErr jS
+    ++ getColString jMTContam jS
+    ++ getColString jMTContamErr jS
+    ++ getColString jGeneticSourceAccessionIDs jS
+    ++ getColString jDataPreparationPipelineURL jS
+    ++ getColString jPrimaryContact jS
+    ++ getColString jPublication jS
+    ++ getColString jComments jS
+    ++ getColString jKeywords jS
+    where
+        nrRows = length jS
+        getColString :: (JannoRow -> Maybe a) -> [JannoRow] -> String
+        getColString column_ jannoRows =
+             let nrFilledValues = length $ filter (isJust . column_) jannoRows
+             in prop2String $ nrFilledValues % nrRows
+        prop2String :: Ratio Int -> String
+        prop2String r
+            | r == 0    = "."
+            | r < 0.25  = "░"
+            | r < 0.5   = "▒"
+            | r < 1     = "▓"
+            | r == 1    = "█"
+            | otherwise = "?"
