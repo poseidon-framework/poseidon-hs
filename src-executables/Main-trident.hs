@@ -131,8 +131,9 @@ optParser = OP.subparser (
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages" <>
         OP.footerDoc (Just $ string $
-            ".janno column order in the output table: \n" ++
-            intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) [1..] jannoHeaderString)
+               "Output structure and .janno column order:\n"
+            ++ "G: Genotype data present, B: Bibliography file present, "
+            ++ intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) [1..] jannoHeaderString)
             ))
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
         (OP.progDesc "Update POSEIDON.yml files automatically")

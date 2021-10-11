@@ -16,8 +16,10 @@ import           Data.Ratio            (Ratio, (%))
 import           Data.Maybe            (isJust)
 import           System.Directory      (doesFileExist)
 import           System.FilePath       ((</>))
+import           System.IO             (hPutStrLn, stderr)
 import           Text.Layout.Table     (asciiRoundS, column, def, expandUntil,
                                         rowsG, tableString, titlesH)
+
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
     { _surveyBaseDirs :: [FilePath]
@@ -59,6 +61,8 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    -- print help
+    hPutStrLn stderr "see trident survey -h for a list of column names" 
 
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
@@ -77,7 +81,6 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
 
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
-    
       '█'
     : getColChar jS jCollectionID
     : getColChar jS jSourceTissue
