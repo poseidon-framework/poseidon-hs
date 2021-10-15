@@ -40,10 +40,12 @@ import           Data.Char                  (ord)
 import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Lazy          as HM
-import           Data.List                  (intercalate, nub, (\\))
+import           Data.List                  (intercalate, nub, (\\), elemIndex)
+import           Data.Maybe                 (fromJust)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURI)
+import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -553,7 +555,10 @@ readJannoFile verbose jannoPath = do
         unless (null missing_columns) $ do
             hPutStrLn stderr $ "Missing standard columns: " ++ intercalate ", " missing_columns
         unless (null additional_columns) $ do
-            hPutStrLn stderr $ "Additional standard columns: " ++ intercalate ", " additional_columns
+            hPutStrLn stderr $ "Additional columns: " ++ 
+                -- for each additional column a standard column is suggested: "Countro (Country?)"
+                intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)") 
+                    additional_columns (findSimilarNames missing_columns additional_columns))
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
     -- error case management
@@ -571,6 +576,14 @@ readJannoFile verbose jannoPath = do
                 -- putStrLn $ show $ map jLongitude x
                 -- putStrLn $ show $ map jUDG x
                 return x
+
+findSimilarNames :: [String] -> [String] -> [String]
+findSimilarNames reference toLookUp = map (findSimilar reference) toLookUp
+    where
+        findSimilar ::  [String] -> String -> String
+        findSimilar ref x = 
+            let dists = map (\y -> x `editDistance` y) ref
+            in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
 readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException JannoRow)
