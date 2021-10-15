@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.21.0
+@version 0.21.1
 
 module Poseidon.MathHelpers
 
@@ -272,6 +272,7 @@ readJannoFile :: Bool -> FilePath -> IO [JannoRow]
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
+jannoHeaderString :: [String]
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.JannoDateType
 instance GHC.Classes.Ord Poseidon.Janno.JannoDateType
@@ -899,31 +900,30 @@ runSurvey :: SurveyOptions -> IO ()
 extractFirst :: (a, b, c, d) -> a
 renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
 renderJannoCompleteness :: [JannoRow] -> String
-allNothing :: (JannoRow -> Maybe a) -> [JannoRow] -> String
 
 module Poseidon.CLI.Init
 data InitOptions
-InitOptions :: GenotypeFormatSpec -> SNPSetSpec -> FilePath -> FilePath -> FilePath -> FilePath -> String -> InitOptions
+InitOptions :: GenotypeFormatSpec -> SNPSetSpec -> FilePath -> FilePath -> FilePath -> FilePath -> Maybe String -> InitOptions
 [_initGenoFormat] :: InitOptions -> GenotypeFormatSpec
 [_initGenoSnpSet] :: InitOptions -> SNPSetSpec
 [_initGenoFile] :: InitOptions -> FilePath
 [_initSnpFile] :: InitOptions -> FilePath
 [_initIndFile] :: InitOptions -> FilePath
 [_initPacPath] :: InitOptions -> FilePath
-[_initPacName] :: InitOptions -> String
+[_initPacName] :: InitOptions -> Maybe String
 runInit :: InitOptions -> IO ()
 
 module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> String -> GenotypeFormatSpec -> Bool -> Bool -> ForgeOptions
+ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
 [_forgeEntityList] :: ForgeOptions -> EntitiesList
 [_forgeEntityFiles] :: ForgeOptions -> [FilePath]
 [_forgeIntersect] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
-[_forgeOutPacName] :: ForgeOptions -> String
+[_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
 [_forgeShowWarnings] :: ForgeOptions -> Bool
 [_forgeNoExtract] :: ForgeOptions -> Bool
