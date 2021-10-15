@@ -558,7 +558,7 @@ readJannoFile verbose jannoPath = do
             hPutStrLn stderr $ "Additional columns: " ++ 
                 -- for each additional column a standard column is suggested: "Countro (Country?)"
                 intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)") 
-                    additional_columns (findSimilarNames jannoHeaderString additional_columns))
+                    additional_columns (findSimilarNames missing_columns additional_columns))
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
     -- error case management
