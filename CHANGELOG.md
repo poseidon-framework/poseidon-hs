@@ -1,3 +1,4 @@
+- V 0.21.2: Made trident survey more useful
 - V 0.21.1: Simplified package creation in init and forge by enabling creation of deeper paths and by making the output package name argument optional
 - V 0.21.0: Added a poseidonVersion pre-parsing check in the reading pipeline, which strictly excludes packages with missing or wrong version
 - V 0.20.1: Updated poseidon-http-server with new APIs and updated previous APIs.
