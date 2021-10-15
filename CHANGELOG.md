@@ -1,7 +1,9 @@
 - V 0.21.3: Added a column name suggestion mechanism to the .janno file reading procedure
+- V 0.21.2: Made trident survey more useful
+- V 0.21.1: Simplified package creation in init and forge by enabling creation of deeper paths and by making the output package name argument optional
 - V 0.21.0: Added a poseidonVersion pre-parsing check in the reading pipeline, which strictly excludes packages with missing or wrong version
 - V 0.20.1: Updated poseidon-http-server with new APIs and updated previous APIs.
-- V 0.20.0: New forging algorithm, much faster, and new option `--no-extract` in forge. Also new minimal package template.
+- V 0.20.0: New forging algorithm, much faster, and new option --no-extract in forge. Also new minimal package template.
 - V 0.19.0: Replaced trident checksumupdate with the much more powerful trident update
 - V 0.18.2: Added a golden test feature to make sure code changes do not accidentally modify the output of trident modules
 - V 0.18.1: Removes Pandoc-dependency by implementing a custom bibtex-parser

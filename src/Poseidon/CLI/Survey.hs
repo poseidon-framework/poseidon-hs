@@ -11,12 +11,15 @@ import           Poseidon.Package      (PackageReadOptions (..),
                                         readPoseidonPackageCollection)
 
 import           Control.Monad         (forM)
-import           Data.List             (intercalate, zip4)
-import           Data.Maybe            (isNothing)
+import           Data.List             (intercalate, zip4, unfoldr)
+import           Data.Ratio            (Ratio, (%))
+import           Data.Maybe            (isJust)
 import           System.Directory      (doesFileExist)
 import           System.FilePath       ((</>))
+import           System.IO             (hPutStrLn, stderr)
 import           Text.Layout.Table     (asciiRoundS, column, def, expandUntil,
                                         rowsG, tableString, titlesH)
+
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
     { _surveyBaseDirs :: [FilePath]
@@ -46,7 +49,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
     let jannos = map posPacJanno allPackages
-    -- -- bib
+    -- bib
     let bibs = map posPacBib allPackages
     -- print information
     (tableH, tableB) <- do
@@ -58,6 +61,8 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    -- print help
+    hPutStrLn stderr "see trident survey -h for a list of column names" 
 
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
@@ -65,53 +70,67 @@ extractFirst (a,_,_,_) = a
 renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
 renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
        (if genoTypeDataExists then "G" else ".")
-    ++ "-"
-    ++ renderJannoCompleteness janno
-    ++ "-"
     ++ (if not (null bib) then "B" else ".")
+    ++ "|"
+    ++ insertEveryN 5 '|' (renderJannoCompleteness janno)
+    where
+        -- https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list
+        insertEveryN :: Int -> a -> [a] -> [a]
+        insertEveryN n y xs = intercalate [y] . groups n $ xs
+            where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
-    "M"
-    ++ allNothing jCollectionID jS
-    ++ allNothing jSourceTissue jS
-    ++ allNothing jCountry jS
-    ++ allNothing jLocation jS
-    ++ allNothing jSite jS
-    ++ allNothing jLatitude jS
-    ++ allNothing jLongitude jS
-    ++ allNothing jDateC14Labnr jS
-    ++ allNothing jDateC14UncalBP jS
-    ++ allNothing jDateC14UncalBPErr jS
-    ++ allNothing jDateBCADMedian jS
-    ++ allNothing jDateBCADStart jS
-    ++ allNothing jDateBCADStop jS
-    ++ allNothing jDateType jS
-    ++ allNothing jNrLibraries jS
-    ++ allNothing jDataType jS
-    ++ allNothing jGenotypePloidy jS
-    ++ "M"
-    ++ "M"
-    ++ allNothing jNrAutosomalSNPs jS
-    ++ allNothing jCoverage1240K jS
-    ++ allNothing jMTHaplogroup jS
-    ++ allNothing jYHaplogroup jS
-    ++ allNothing jEndogenous jS
-    ++ allNothing jUDG jS
-    ++ allNothing jDamage jS
-    ++ allNothing jNuclearContam jS
-    ++ allNothing jNuclearContamErr jS
-    ++ allNothing jMTContam jS
-    ++ allNothing jMTContamErr jS
-    ++ allNothing jGeneticSourceAccessionIDs jS
-    ++ allNothing jDataPreparationPipelineURL jS
-    ++ allNothing jPrimaryContact jS
-    ++ allNothing jPublication jS
-    ++ allNothing jComments jS
-    ++ allNothing jKeywords jS
-
-allNothing :: (JannoRow -> Maybe a) -> [JannoRow] -> String
-allNothing column_ jannoRows =
-    if all (isNothing . column_) jannoRows
-        then "."
-        else "X"
+      '█'
+    : getColChar jS jCollectionID
+    : getColChar jS jSourceTissue
+    : getColChar jS jCountry
+    : getColChar jS jLocation
+    : getColChar jS jSite
+    : getColChar jS jLatitude
+    : getColChar jS jLongitude
+    : getColChar jS jDateC14Labnr
+    : getColChar jS jDateC14UncalBP
+    : getColChar jS jDateC14UncalBPErr
+    : getColChar jS jDateBCADMedian
+    : getColChar jS jDateBCADStart
+    : getColChar jS jDateBCADStop
+    : getColChar jS jDateType
+    : getColChar jS jNrLibraries
+    : getColChar jS jDataType
+    : getColChar jS jGenotypePloidy
+    : '█' 
+    : '█'
+    : getColChar jS jNrAutosomalSNPs
+    : getColChar jS jCoverage1240K
+    : getColChar jS jMTHaplogroup
+    : getColChar jS jYHaplogroup
+    : getColChar jS jEndogenous
+    : getColChar jS jUDG
+    : getColChar jS jDamage
+    : getColChar jS jLibraryBuilt
+    : getColChar jS jNuclearContam
+    : getColChar jS jNuclearContamErr
+    : getColChar jS jMTContam
+    : getColChar jS jMTContamErr
+    : getColChar jS jGeneticSourceAccessionIDs
+    : getColChar jS jDataPreparationPipelineURL
+    : getColChar jS jPrimaryContact
+    : getColChar jS jPublication
+    : getColChar jS jComments
+    : getColChar jS jKeywords
+    : ""
+    where
+        nrRows = length jS
+        getColChar :: [JannoRow] -> (JannoRow -> Maybe a) -> Char
+        getColChar jannoRows column_ =
+             let nrFilledValues = length $ filter (isJust . column_) jannoRows
+             in prop2Char $ nrFilledValues % nrRows
+        prop2Char :: Ratio Int -> Char
+        prop2Char r
+            | r == 0    = '.'
+            | r < 0.25  = '░'
+            | r < 0.5   = '▒'
+            | r < 1     = '▓'
+            | r == 1    = '█'
+            | otherwise = '?'

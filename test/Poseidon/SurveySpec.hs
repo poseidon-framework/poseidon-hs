@@ -22,9 +22,9 @@ testRenderJannoCompleteness =
         janno <- readJannoFile False testJannoNormal
         renderJannoCompleteness janno 
             `shouldBe` 
-            "M.XXXXXXXXXXXXXXXXMMXXXXXXXXXXXXXXXXX"
+            "\9608.\9608\9608\9608\9608\9608\9608\9618\9618\9618\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9619\9619"
     it "should work for a minimum janno file" $ do
         janno <- readJannoFile False testJannoMinimal
         renderJannoCompleteness janno
             `shouldBe`
-            "M.................MM................."
+            "\9608.................\9608\9608.................."
