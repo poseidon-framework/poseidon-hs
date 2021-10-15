@@ -100,7 +100,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initSnpFile    = testPacsDir </> "Schiffels_2016" </> "snp.txt"
         , _initIndFile    = testPacsDir </> "Schiffels_2016" </> "ind.txt"
         , _initPacPath   = testDir </> "Schiffels"
-        , _initPacName   = "Schiffels"
+        , _initPacName   = Just "Schiffels"
     }
     let action = runInit initOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action "init" [
@@ -116,7 +116,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
         , _initIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
         , _initPacPath   = testDir </> "Wang"
-        , _initPacName   = "Wang"
+        , _initPacName   = Nothing
     }
     let action2 = runInit initOpts2 >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
@@ -283,7 +283,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityFiles  = []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac1"
-        , _forgeOutPacName   = "ForgePac1"
+        , _forgeOutPacName   = Just "ForgePac1"
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
@@ -300,7 +300,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityFiles  = []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac2"
-        , _forgeOutPacName   = "ForgePac2"
+        , _forgeOutPacName   = Nothing
         , _forgeOutFormat    = GenotypeFormatPlink
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False

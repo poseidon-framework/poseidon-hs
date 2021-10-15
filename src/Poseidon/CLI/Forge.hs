@@ -35,8 +35,8 @@ import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
                                               EigenstratSnpEntry (..), GenoLine,
                                               writeEigenstrat, GenoEntry(..))
 import           SequenceFormats.Plink       (writePlink)
-import           System.Directory            (createDirectory)
-import           System.FilePath             ((<.>), (</>))
+import           System.Directory            (createDirectoryIfMissing)
+import           System.FilePath             ((<.>), (</>), takeBaseName)
 import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
@@ -46,7 +46,7 @@ data ForgeOptions = ForgeOptions
     , _forgeEntityFiles  :: [FilePath]
     , _forgeIntersect    :: Bool
     , _forgeOutPacPath   :: FilePath
-    , _forgeOutPacName   :: String
+    , _forgeOutPacName   :: Maybe String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
@@ -63,7 +63,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath outName outFormat showWarnings noExtract) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat showWarnings noExtract) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -92,9 +92,12 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath o
     -- genotype data
     indices <- extractEntityIndices entities relevantPackages
     -- create new package --
+    let outName = case maybeOutName of -- take basename of outPath, if name is not provided
+            Just x -> x
+            Nothing -> takeBaseName outPath
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
-    createDirectory outPath
+    createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]

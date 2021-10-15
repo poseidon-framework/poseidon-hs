@@ -19,7 +19,8 @@ module Poseidon.Janno (
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,
-    createMinimalJanno
+    createMinimalJanno,
+    jannoHeaderString
 ) where
 
 import           Poseidon.Utils             (PoseidonException (..),
@@ -505,6 +506,9 @@ jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
     "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
     "Primary_Contact","Publication_Status","Note","Keywords"
     ]
+
+jannoHeaderString :: [String]
+jannoHeaderString = map Bchs.unpack jannoHeader
 
 -- Janno file writing
 

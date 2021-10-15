@@ -17,6 +17,7 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.Janno         (jannoHeaderString)
 import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
@@ -31,6 +32,7 @@ import           Data.ByteString.Char8  (pack, splitWith)
 import           Data.List              (intercalate)
 import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
+import           Options.Applicative.Help.Pretty (string)
 import           SequenceFormats.Utils  (Chrom (..))
 import           System.Exit            (exitFailure)
 import           System.IO              (hPutStrLn, stderr)
@@ -127,7 +129,13 @@ optParser = OP.subparser (
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
-        (OP.progDesc "Survey the degree of context information completeness for Poseidon packages")
+        (OP.progDesc "Survey the degree of context information completeness for Poseidon packages" <>
+        OP.footerDoc (Just $ string $
+               "Output structure\n"
+            ++ "Data coverage proportions - 0: ., <0.25: ░, <0.5: ▒, <1: ▓, 1: █\n"
+            ++ ".janno column order - G: Genotype data present, B: Bibliography file present, "
+            ++ intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) ([1..] :: [Int]) jannoHeaderString)
+            ))
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
@@ -148,7 +156,7 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseInSnpFile
                             <*> parseInIndFile
                             <*> parseOutPackagePath
-                            <*> parseOutPackageName
+                            <*> parseMaybeOutPackageName
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -170,7 +178,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseForgeEntitiesFromFile
                               <*> parseIntersect
                               <*> parseOutPackagePath
-                              <*> parseOutPackageName
+                              <*> parseMaybeOutPackageName
                               <*> parseOutFormat
                               <*> parseShowWarnings
                               <*> parseNoExtract
@@ -414,10 +422,15 @@ parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
     OP.short 'o' <>
     OP.help "the output package directory path")
 
-parseOutPackageName :: OP.Parser FilePath
-parseOutPackageName = OP.strOption (OP.long "outPackageName" <>
+parseMaybeOutPackageName :: OP.Parser (Maybe String)
+parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.short 'n' <>
-    OP.help "the output package name")
+    OP.long "outPackageName" <>
+    OP.help "the output package name - this is optional: If no name is provided, \
+            \then the package name defaults to the basename of the (mandatory) \
+            \--outPackagePath argument" <> 
+    OP.value Nothing
+    )
 
 parseOutFormat :: OP.Parser GenotypeFormatSpec
 parseOutFormat = parseEigenstratFormat <|> pure GenotypeFormatPlink
