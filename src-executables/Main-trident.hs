@@ -181,6 +181,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parseOutFormat
+                              <*> parseMakeMinimalPackage
                               <*> parseShowWarnings
                               <*> parseNoExtract
 

@@ -287,6 +287,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacPath   = testDir </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
         , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
@@ -304,6 +305,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacPath   = testDir </> "ForgePac2"
         , _forgeOutPacName   = Nothing
         , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeOutMinimal   = True
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
@@ -311,7 +313,6 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
           "ForgePac2" </> "POSEIDON.yml"
         , "ForgePac2" </> "ForgePac2.bed"
-        , "ForgePac2" </> "ForgePac2.janno"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that 
