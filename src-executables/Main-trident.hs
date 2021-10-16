@@ -157,6 +157,7 @@ initOptParser = InitOptions <$> parseInGenotypeFormat
                             <*> parseInIndFile
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
+                            <*> parseMakeMinimalPackage
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -431,6 +432,10 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
             \--outPackagePath argument" <> 
     OP.value Nothing
     )
+
+parseMakeMinimalPackage :: OP.Parser Bool
+parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
+    OP.help "should only a minimal output package be created?")
 
 parseOutFormat :: OP.Parser GenotypeFormatSpec
 parseOutFormat = parseEigenstratFormat <|> pure GenotypeFormatPlink
