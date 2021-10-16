@@ -123,7 +123,6 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     let action2 = runInit initOpts2 >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
-        , "Wang" </> "Wang.janno"
         , "Wang" </> "Wang_2020.bed"
         ]
 
