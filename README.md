@@ -7,13 +7,18 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 
 **Detailed user documentation can be found on our github-page [here](https://poseidon-framework.github.io/#/trident).**
 
-## For developers
+## For (Haskell) developers
 
-The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html).
+To install the development version of poseidon-hs/trident you can follow these steps:
+
+1. Install the Haskell build tool [Stack](https://docs.haskellstack.org/en/stable/README/)
+2. Clone this repository
+3. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path). This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
+4. To run the tests, execute `stack test` inside the repository to build and run tests.
 
 ### Development Quickstart
 
-You can install the internal documentation using `stack haddock` and open it subsequently using `stack haddock --open`. This will then open a HTML page with all dependency packages and the `poseidon-hs` library itself. The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
+The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html) (you can also render it locally using `stack haddock` and open it subsequently using `stack haddock --open`). The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
 
 Important packages to look into to understand the architecture of this tool:
 
@@ -21,7 +26,6 @@ Important packages to look into to understand the architecture of this tool:
 * The `Poseidon.Utils` module only provides the definition of an Exception type.
 * The modules in `CLI/` define the functionality provided in the command line functions for `trident`.
 * The `list` command might be a good place to start understanding what's going on and how to use the `Poseidon.Package` interface.
-* The `Poseidon.CmdFStats` module is a bit more involved, mainly due to the Jackknifing, which involves chunking up the genotype data as we run through it and compute F-Statistics in each block, and then summarising them again. This is all achieved in one go via the `Pipes.Group` technology.
 
 ### Preparing a new stable release
 
