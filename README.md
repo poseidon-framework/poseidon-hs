@@ -7,6 +7,8 @@ A toolset to work with modular genotype databases formatted using Poseidon. The 
 
 **Detailed user documentation can be found on our github-page [here](https://poseidon-framework.github.io/#/trident).**
 
+***
+
 ## For (Haskell) developers
 
 To install the development version of poseidon-hs/trident you can follow these steps:
