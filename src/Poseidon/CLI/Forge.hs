@@ -52,6 +52,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutMinimal   :: Bool
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
+    , _forgeSnpFile      :: Maybe FilePath
     }
 
 pacReadOpts :: PackageReadOptions
@@ -65,7 +66,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -123,7 +124,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
     newNrAutosomalSNPs <- runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages maybeSnpFile
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
         let jannoIndIds = map jIndividualID relevantJannoRows
