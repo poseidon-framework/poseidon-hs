@@ -1,3 +1,4 @@
+- V 0.22.0: Added a --minimal option for init and forge to create minimal packages without .janno and .bib (e.g. in automatic pipelines)
 - V 0.21.3: Added a column name suggestion mechanism to the .janno file reading procedure
 - V 0.21.2: Made trident survey more useful
 - V 0.21.1: Simplified package creation in init and forge by enabling creation of deeper paths and by making the output package name argument optional
