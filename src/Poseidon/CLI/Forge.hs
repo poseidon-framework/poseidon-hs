@@ -17,6 +17,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               getIndividuals,
                                               getJointGenotypeData,
                                               newPackageTemplate,
+                                              newMinimalPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.Utils              (PoseidonException (..))
@@ -48,6 +49,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutPacPath   :: FilePath
     , _forgeOutPacName   :: Maybe String
     , _forgeOutFormat    :: GenotypeFormatSpec
+    , _forgeOutMinimal   :: Bool
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
     }
@@ -63,7 +65,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat showWarnings noExtract) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -108,12 +110,14 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
-    pac <- newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
+    pac <- if minimal
+           then return $ newMinimalPackageTemplate outPath outName genotypeData
+           else newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
     -- bib
-    unless (null relevantBibEntries) $ do
+    unless (minimal || null relevantBibEntries) $ do
         hPutStrLn stderr "Creating .bib file"
         writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
@@ -144,12 +148,13 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
         P.foldM sumNonMissingSNPs startAcc return forgePipe
     -- janno (with updated SNP numbers)
     liftIO $ hPutStrLn stderr "Done"
-    hPutStrLn stderr "Creating .janno file"
-    autosomalSnpList <- VU.freeze newNrAutosomalSNPs
-    let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
-                                             relevantJannoRows
-                                             (VU.toList autosomalSnpList)
-    writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
+    unless minimal $ do
+        hPutStrLn stderr "Creating .janno file"
+        autosomalSnpList <- VU.freeze newNrAutosomalSNPs
+        let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
+                                                relevantJannoRows
+                                                (VU.toList autosomalSnpList)
+        writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
 
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)

@@ -9,8 +9,10 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (writeJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
+                                             newMinimalPackageTemplate,
                                              writePoseidonPackage)
 
+import           Control.Monad              (unless)
 import           System.Directory           (createDirectoryIfMissing, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
 import           System.IO                  (hPutStrLn, stderr)
@@ -23,10 +25,11 @@ data InitOptions = InitOptions
     , _initIndFile :: FilePath
     , _initPacPath :: FilePath
     , _initPacName :: Maybe String
+    , _initMinimal :: Bool
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath maybeOutName) = do
+runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath maybeOutName minimal) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectoryIfMissing True outPath
@@ -46,14 +49,16 @@ runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath maybeOu
             Just x -> x
             Nothing -> takeBaseName outPath
     inds <- loadIndividuals outPath genotypeData
-    pac <- newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
+    pac <- if minimal
+           then return $ newMinimalPackageTemplate outPath outName genotypeData
+           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
     -- POSEIDON.yml
     hPutStrLn stderr "Creating POSEIDON.yml"
     writePoseidonPackage pac
-    -- janno
-    hPutStrLn stderr "Creating minimal .janno file"
-    writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
-    -- bib
-    hPutStrLn stderr "Creating dummy .bib file"
-    writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac
-
+    unless minimal $ do
+        -- janno
+        hPutStrLn stderr "Creating minimal .janno file"
+        writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
+        -- bib
+        hPutStrLn stderr "Creating dummy .bib file"
+        writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac

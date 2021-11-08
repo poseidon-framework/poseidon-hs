@@ -5,8 +5,7 @@ Automatically generated with: poseidon-devtools updateGoldenTests
 04686d2b18f41b9137807a0d5521670d init Schiffels/Schiffels.janno
 95b093eefacc1d6499afcfe89b15d56c init Schiffels/geno.txt
 66fee695ba94e12688567db73c0f2830 init Schiffels/Schiffels.bib
-e289be3b47db28adcdb1b9c079c3fe06 init Wang/POSEIDON.yml
-51731d04de568ede6152a81e9c1420da init Wang/Wang.janno
+3f6e348b16c2a4c0399af33ee3ee7c0c init Wang/POSEIDON.yml
 ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
 4f054a4d5b9302ba0023a7c7ded8c6af validate validate1
 4f054a4d5b9302ba0023a7c7ded8c6af validate validate2
@@ -17,8 +16,8 @@ c27895a4e15eb46f0d4473cd37488cae list list2
 a9f5b04f5b40eeff3aabf1ad7bd22771 list list4
 551620f20ad8b9f4e2717c54765fff74 summarise summarise1
 fb074b54961035f8903f3055c0bbb24e summarise summarise2
-b73a791bb27db976907d11eaa22f4833 survey survey1
-c2546c037ad2b3aa423fb8a351e8b9a7 survey survey2
+9037ce687dfeddab5d8b36d70098cc1f survey survey1
+c0bbcc92185aa0795e0ef4714d5b26fa survey survey2
 3feaa876c5d05fd000470c5ba840cc2d genoconvert Wang/Wang.geno
 b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
 2faf8a7b87037451d4fd5ae9cc9af460 genoconvert Wang/Wang.ind
@@ -34,9 +33,8 @@ def6f91177d68487802ba27e91e46f81 update Schiffels/POSEIDON.yml
 80121e7c99b47e63529194f9a961b51f forge ForgePac1/POSEIDON.yml
 814d71c65037eb20bb8a636e804c9dd9 forge ForgePac1/ForgePac1.geno
 9485ef192ccee3846da2dafb36128f67 forge ForgePac1/ForgePac1.janno
-87dfb1aa71425b7a1ed97d37bcd1dbae forge ForgePac2/POSEIDON.yml
+494b4b6e467fede4453c1df45d7d565b forge ForgePac2/POSEIDON.yml
 e8a7d4c9ac62234f36ea2d5b4d0a17df forge ForgePac2/ForgePac2.bed
-9485ef192ccee3846da2dafb36128f67 forge ForgePac2/ForgePac2.janno
 53edcde25d7b66b94ea9ee306a315864 fetch 2019_Nikitin_LBK/POSEIDON.yml
 4dedd209cdc4d4a986c184d70dedecd1 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam

@@ -99,8 +99,9 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initGenoFile   = testPacsDir </> "Schiffels_2016" </> "geno.txt"
         , _initSnpFile    = testPacsDir </> "Schiffels_2016" </> "snp.txt"
         , _initIndFile    = testPacsDir </> "Schiffels_2016" </> "ind.txt"
-        , _initPacPath   = testDir </> "Schiffels"
-        , _initPacName   = Just "Schiffels"
+        , _initPacPath    = testDir </> "Schiffels"
+        , _initPacName    = Just "Schiffels"
+        , _initMinimal    = False
     }
     let action = runInit initOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action "init" [
@@ -115,13 +116,13 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initGenoFile   = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
         , _initSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
         , _initIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
-        , _initPacPath   = testDir </> "Wang"
-        , _initPacName   = Nothing
+        , _initPacPath    = testDir </> "Wang"
+        , _initPacName    = Nothing
+        , _initMinimal    = True
     }
     let action2 = runInit initOpts2 >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
-        , "Wang" </> "Wang.janno"
         , "Wang" </> "Wang_2020.bed"
         ]
 
@@ -285,6 +286,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacPath   = testDir </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
         , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
@@ -302,6 +304,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacPath   = testDir </> "ForgePac2"
         , _forgeOutPacName   = Nothing
         , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeOutMinimal   = True
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
@@ -309,7 +312,6 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
           "ForgePac2" </> "POSEIDON.yml"
         , "ForgePac2" </> "ForgePac2.bed"
-        , "ForgePac2" </> "ForgePac2.janno"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that 
