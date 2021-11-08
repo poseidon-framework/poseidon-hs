@@ -22,50 +22,56 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             loadIndividuals,
-                                             joinEntries,
-                                             loadGenotypeData)
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
+                                             loadGenotypeData, loadIndividuals)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
-import           Poseidon.PoseidonVersion   (validPoseidonVersions, showPoseidonVersion, latestPoseidonVersion, asVersion)
+import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
+                                             showPoseidonVersion,
+                                             validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
 import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, forM_, unless, when, void)
+import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy       as LB
+import           Data.Char                  (isSpace)
 import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights)
-import           Data.List                  (groupBy, intercalate, nub, sortOn,
-                                             (\\), elemIndex)
-import           Data.Maybe                 (catMaybes, mapMaybe, isNothing)
+import           Data.List                  (elemIndex, groupBy, intercalate,
+                                             nub, sortOn, (\\))
+import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
+import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import           GHC.Generics               (Generic)
-import           Pipes                      (Producer, runEffect, (>->))
-import           Pipes.OrderedZip           (orderedZipAll)
+import           Pipes                      (Pipe, Producer, for, runEffect,
+                                             (>->), yield, cat)
+import           Pipes.OrderedZip           (orderedZip, orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..), GenoLine)
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), GenoEntry(..),
+                                             EigenstratSnpEntry (..), GenoLine,
+                                             readEigenstratSnpFile)
+import           SequenceFormats.Plink      (readBimFile)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
-import           System.FilePath            (takeDirectory, takeFileName, (</>))
-import           System.IO                  (hFlush, hPrint, hPutStr, hPutStrLn,
-                                             stderr, withFile, IOMode (ReadMode), hGetContents)
-import Data.Char (isSpace)
+import           System.FilePath            (takeDirectory, takeExtension,
+                                             takeFileName, (</>))
+import           System.IO                  (IOMode (ReadMode), hFlush,
+                                             hGetContents, hPrint, hPutStr,
+                                             hPutStrLn, stderr, withFile)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -256,7 +262,7 @@ readPoseidonPackageCollection opts dirs = do
         eitherPaths <- mapM isInVersionRange posFiles
         mapM_ (hPutStrLn stderr . renderPoseidonException) $ lefts eitherPaths
         return $ rights eitherPaths
-        where 
+        where
             isInVersionRange :: FilePath -> IO (Either PoseidonException FilePath)
             isInVersionRange posFile = do
                 content <- readFile' posFile
@@ -323,7 +329,7 @@ readPoseidonPackage opts ymlPath = do
     when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
         -- we're using getJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- getJointGenotypeData False False [pac]
+        (_, eigenstratProd) <- getJointGenotypeData False False [pac] Nothing
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
@@ -462,7 +468,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 return . last . sortOn posPacPackageVersion $ pacs_
             else
                 let t   = posPacTitle $ head pacs_
-                
+
                     msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
 
@@ -484,21 +490,41 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
         pacNames        = map posPacTitle pacs
-        jointProducer   = (orderedZipAll compFunc . map snd) genotypeTuples >->
-            P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds pacNames)
+        prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
+                                P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds pacNames)
+    jointProducer <- case maybeSnpFile of
+        Nothing -> do
+            return prod
+        Just fn -> do
+            let snpProd = loadBimOrSnpFile fn
+            return $ ((orderedZip compFunc2 snpProd prod >> return [()]) >-> selectSnps (sum nrInds))
     return (jointIndEntries, void jointProducer)
   where
     compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
     compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
+    compFunc2 :: (EigenstratSnpEntry) -> (EigenstratSnpEntry, GenoLine) -> Ordering
+    compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
     filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
     filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
+    selectSnps :: (Monad m) => Int -> Pipe (Maybe EigenstratSnpEntry, Maybe (EigenstratSnpEntry, GenoLine)) (EigenstratSnpEntry, GenoLine) m r
+    selectSnps n = for cat $ \maybeTuple -> case maybeTuple of
+        (Nothing, Just (es, gl)) -> when (not intersect) (yield (es, gl))
+        (Just _, Just (es, gl)) -> yield (es, gl)
+        (Just snp, Nothing) -> yield (snp, (V.replicate n Missing))
+        _ -> error "should never happen"
+
+loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
+loadBimOrSnpFile fn =
+    if takeExtension fn == "snp" then readEigenstratSnpFile fn
+    else if takeExtension fn == "bim" then readBimFile fn
+    else throwM (PoseidonGenotypeException "option snpFile requires snp or bim file endings")
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
 newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
     PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion 
+    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
     ,   posPacTitle = name
     ,   posPacDescription = Nothing
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
