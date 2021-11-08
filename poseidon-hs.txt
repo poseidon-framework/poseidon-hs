@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.21.3
+@version 0.22.0
 
 module Poseidon.MathHelpers
 
@@ -903,7 +903,7 @@ renderJannoCompleteness :: [JannoRow] -> String
 
 module Poseidon.CLI.Init
 data InitOptions
-InitOptions :: GenotypeFormatSpec -> SNPSetSpec -> FilePath -> FilePath -> FilePath -> FilePath -> Maybe String -> InitOptions
+InitOptions :: GenotypeFormatSpec -> SNPSetSpec -> FilePath -> FilePath -> FilePath -> FilePath -> Maybe String -> Bool -> InitOptions
 [_initGenoFormat] :: InitOptions -> GenotypeFormatSpec
 [_initGenoSnpSet] :: InitOptions -> SNPSetSpec
 [_initGenoFile] :: InitOptions -> FilePath
@@ -911,13 +911,14 @@ InitOptions :: GenotypeFormatSpec -> SNPSetSpec -> FilePath -> FilePath -> FileP
 [_initIndFile] :: InitOptions -> FilePath
 [_initPacPath] :: InitOptions -> FilePath
 [_initPacName] :: InitOptions -> Maybe String
+[_initMinimal] :: InitOptions -> Bool
 runInit :: InitOptions -> IO ()
 
 module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> ForgeOptions
+ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
 [_forgeEntityList] :: ForgeOptions -> EntitiesList
 [_forgeEntityFiles] :: ForgeOptions -> [FilePath]
@@ -925,6 +926,7 @@ ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> 
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
+[_forgeOutMinimal] :: ForgeOptions -> Bool
 [_forgeShowWarnings] :: ForgeOptions -> Bool
 [_forgeNoExtract] :: ForgeOptions -> Bool
 pacReadOpts :: PackageReadOptions
