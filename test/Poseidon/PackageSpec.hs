@@ -137,8 +137,8 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
         pac <- readPoseidonPackageCollection testPacReadOpts [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
-                                                      Just (fromGregorian 2020 2 28),
-                                                      Just (fromGregorian 2020 05 20)]
+                                                      Just (fromGregorian 2020 5 20),
+                                                      Just (fromGregorian 2021 11 9)]
 
 files :: [String]
 files  = ["test/testDat/testModules/ancient/Schiffels_2016/geno.txt",
@@ -148,8 +148,8 @@ files  = ["test/testDat/testModules/ancient/Schiffels_2016/geno.txt",
           "test/testDat/testModules/ancient/Schiffels_2016/sources.bib"]
 
 checksums :: [String]
-checksums = ["95b093eefacc1d6499afcfe89b15d56c",
-             "6771d7c873219039ba3d5bdd96031ce3",
+checksums = ["0332344057c0c4dce2ff7176f8e1103d",
+             "d76e3e7a8fc0f1f5e435395424b5aeab",
              "f77dc756666dbfef3bb35191ae15a167",
              "555d7733135ebcabd032d581381c5d6f",
              "70cd3d5801cee8a93fc2eb40a99c63fa"]
@@ -199,10 +199,10 @@ testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
   where
     zwp = zipWithPadding ("?" :: String) ("!" :: String)
 
-testGetJoinGenotypeData :: Spec
-testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $
-    it "should correctly load genotype data without intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts)
-            ["test/testDat/testModules/ancient/Lamnidis_2018",
-             "test/testDat/testModules/ancient/Schiffels_2016"]
-        getJointGenotypeData True intersect pacs Nothing
+-- testGetJoinGenotypeData :: Spec
+-- testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $
+--     it "should correctly load genotype data without intersect" $ do
+--         pacs <- mapM (readPoseidonPackage testPacReadOpts)
+--             ["test/testDat/testModules/ancient/Lamnidis_2018",
+--              "test/testDat/testModules/ancient/Schiffels_2016"]
+--         getJointGenotypeData True intersect pacs Nothing
