@@ -107,7 +107,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- output warning if any snpSet is set to Other
     snpSetList <- fillMissingSnpSets relevantPackages
-    let newSNPSet = snpSetMergeList snpSetList intersect_
+    let newSNPSet = case
+            maybeSnpFile of
+                Nothing -> snpSetMergeList snpSetList intersect_
+                Just _  -> SNPSetOther
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"

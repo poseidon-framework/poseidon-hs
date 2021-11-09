@@ -198,3 +198,11 @@ testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
         zwp ["a"] ["b", "c"] `shouldBe` [("a", "b"), ("?", "c")]
   where
     zwp = zipWithPadding ("?" :: String) ("!" :: String)
+
+testGetJoinGenotypeData :: Spec
+testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $
+    it "should correctly load genotype data without intersect" $ do
+        pacs <- mapM (readPoseidonPackage testPacReadOpts)
+            ["test/testDat/testModules/ancient/Lamnidis_2018",
+             "test/testDat/testModules/ancient/Schiffels_2016"]
+        getJointGenotypeData True intersect pacs Nothing
