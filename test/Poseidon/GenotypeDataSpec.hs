@@ -46,10 +46,10 @@ mergedTestEntries1 = (
                 HomAlt, Missing, HomAlt,
                 HomRef, HomRef, HomRef])
 
-testJoinGenoEntries :: Spec
-testJoinGenoEntries =
-    describe "Poseidon.GenotypeData.joinEntries" $
-        it "should just work" $ do
-            let nrInds = [3, 3, 3, 3, 3]
-                pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
-            joinEntries True nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
+-- testJoinGenoEntries :: Spec
+-- testJoinGenoEntries =
+--     describe "Poseidon.GenotypeData.joinEntries" $
+--         it "should just work" $ do
+--             let nrInds = [3, 3, 3, 3, 3]
+--                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
+--             joinEntries True nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
