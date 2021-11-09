@@ -2,23 +2,26 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.PackageSpec (spec) where
 
-import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
-                                            GenotypeFormatSpec (..),
-                                            SNPSetSpec (..))
-import           Poseidon.Package          (PoseidonYamlStruct (..),
-                                            PoseidonPackage (..),
-                                            readPoseidonPackageCollection,
-                                            renderMismatch,
-                                            zipWithPadding,
-                                            getChecksum,
-                                            PackageReadOptions (..), defaultPackageReadOptions)
-import          Poseidon.SecondaryTypes    (ContributorSpec (..))
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..),
+                                             SNPSetSpec (..))
+import           Poseidon.Package           (PackageReadOptions (..),
+                                             PoseidonPackage (..),
+                                             PoseidonYamlStruct (..),
+                                             defaultPackageReadOptions,
+                                             getChecksum,
+                                             readPoseidonPackageCollection,
+                                             renderMismatch, zipWithPadding)
+import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 
-import qualified Data.ByteString.Char8     as B
-import           Data.List                 (sort)
-import           Data.Time                 (fromGregorian)
-import           Data.Version              (makeVersion)
-import           Data.Yaml                 (ParseException, decodeEither')
+import qualified Data.ByteString.Char8      as B
+import           Data.List                  (sort)
+import           Data.Time                  (fromGregorian)
+import           Data.Version               (makeVersion)
+import           Data.Yaml                  (ParseException, decodeEither')
+import           Pipes                      (runEffect, (>->))
+import qualified Pipes.Prelude              as P
+import           SequenceFormats.Eigenstrat (EigenstratSnpEntry, GenoLine)
 import           Test.Hspec
 import           Text.RawString.QQ
 
@@ -124,7 +127,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         p_ `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
     it "should parse missing snpSet field as Nothing" $ do
-        let yamlPackageNoSnpSet = replace "  snpSet: 1240K\n" "" yamlPackage 
+        let yamlPackageNoSnpSet = replace "  snpSet: 1240K\n" "" yamlPackage
             (Right p_) = decodeEither' yamlPackageNoSnpSet :: Either ParseException PoseidonYamlStruct
             gd = _posYamlGenotypeData p_
             gdTrue = _posYamlGenotypeData truePackageRelPaths
@@ -157,13 +160,13 @@ checksums = ["0332344057c0c4dce2ff7176f8e1103d",
 testGetChecksum :: Spec
 testGetChecksum = describe "Poseidon.Package.getChecksum" $ do
     it "should determine checksums correctly" $ do
-        mapM_ (\(f, c) -> do 
-            c_real <- getChecksum f 
+        mapM_ (\(f, c) -> do
+            c_real <- getChecksum f
             c_real `shouldBe` c)
             (zip files checksums)
 
 testRenderMismatch :: Spec
-testRenderMismatch = 
+testRenderMismatch =
     describe "Poseidon.CLI.Validate.renderMismatch" $ do
     it "should not find mismatch for equal one-element lists" $ do
         renderMismatch ["a"] ["a"] `shouldBe` ""
@@ -174,15 +177,15 @@ testRenderMismatch =
     it "should find mismatch for non-equal two-element lists" $ do
         renderMismatch ["a", "b"] ["a", "c"] `shouldBe` "(b = c)"
     it "should stop printing at ten mismatches" $ do
-        renderMismatch 
-            ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"] 
-            ["b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"] 
-            `shouldBe` 
+        renderMismatch
+            ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"]
+            ["b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+            `shouldBe`
             "(a = b), (b = c), (c = d), (d = e), (e = f), ..."
     it "should fill missing values with ?" $ do
-        renderMismatch 
-            ["a", "b", "c"] 
-            ["d"] 
+        renderMismatch
+            ["a", "b", "c"]
+            ["d"]
             `shouldBe`
             "(a = d), (b = ?), (c = ?)"
 
@@ -199,10 +202,14 @@ testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
   where
     zwp = zipWithPadding ("?" :: String) ("!" :: String)
 
--- testGetJoinGenotypeData :: Spec
--- testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $
---     it "should correctly load genotype data without intersect" $ do
---         pacs <- mapM (readPoseidonPackage testPacReadOpts)
---             ["test/testDat/testModules/ancient/Lamnidis_2018",
---              "test/testDat/testModules/ancient/Schiffels_2016"]
---         getJointGenotypeData True intersect pacs Nothing
+jointDatPreCom :: [(EigenstratSnpEntry, GenoLine)]
+jointDatPreCom = undefined
+
+testGetJoinGenotypeData :: Spec
+testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $
+    it "should correctly load genotype data without intersect" $ do
+        pacs <- mapM (readPoseidonPackage testPacReadOpts)
+            ["test/testDat/testModules/ancient/Lamnidis_2018",
+             "test/testDat/testModules/ancient/Schiffels_2016"]
+        jointDat <- runSafeT . runEffect $ getJointGenotypeData True False pacs Nothing >-> P.toListM
+        jointDat `shouldBe` jointDatPreCom

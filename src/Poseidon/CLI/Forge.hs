@@ -163,9 +163,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do
-    forM_ (zip (V.toList geno) [0..]) $ (\(g, i) -> do
+    forM_ (zip (V.toList geno) [0..]) $ \(g, i) -> do
         let x = nonMissingToInt g
-        VUM.modify accumulator (+x) i)
+        VUM.modify accumulator (+x) i
     return accumulator
   where
     nonMissingToInt :: GenoEntry -> Int
