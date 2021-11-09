@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Poseidon.Package (
     PoseidonYamlStruct (..),
@@ -233,7 +234,7 @@ readPoseidonPackageCollection opts dirs = do
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     hPutStrLn stderr ""
     -- notifying the users of package problems
-    when (not . null . lefts $ eitherPackages) $ do
+    unless (null . lefts $ eitherPackages) $ do
         hPutStrLn stderr "Some packages were skipped due to issues:"
         forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
             case epac of
@@ -326,7 +327,7 @@ readPoseidonPackage opts ymlPath = do
             return loadedBib
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
-    when (not (_readOptIgnoreGeno opts) && (_readOptGenoCheck opts)) . runSafeT $ do
+    when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
         -- we're using getJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
         (_, eigenstratProd) <- getJointGenotypeData False False [pac] Nothing
@@ -365,7 +366,7 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
 checkFile :: FilePath -> Maybe String -> IO ()
 checkFile fn maybeChkSum = do
     fe <- doesFileExist fn
-    if (not fe)
+    if not fe
     then throwM (PoseidonFileExistenceException fn)
     else
         case maybeChkSum of
@@ -405,7 +406,7 @@ checkJannoIndConsistency pacName janno indEntries = do
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b =
     let misMatchList = map (\ (x, y) -> "(" ++ x ++ " = " ++ y ++ ")")
-                       (filter (\ (x, y) -> x /= y) $ zipWithPadding "?" "?" a b)
+                       (filter (uncurry (/=)) $ zipWithPadding "?" "?" a b)
     in if length misMatchList > 5
        then intercalate ", " (take 5 misMatchList) ++ ", ..."
        else intercalate ", " misMatchList
@@ -418,7 +419,7 @@ zipWithPadding _ b xs     []     = zip xs (repeat b)
 checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub . concat . map getJannoList . mapMaybe jPublication $ janno
+    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ janno
         literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
@@ -457,7 +458,7 @@ filterDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -- ^ a list of Po
 filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
-    titleEq = (\p1 p2 -> posPacTitle p1 == posPacTitle p2)
+    titleEq = \p1 p2 -> posPacTitle p1 == posPacTitle p2
     checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m PoseidonPackage
     checkDuplicatePackages [pac] = return pac
     checkDuplicatePackages dupliPacs =
@@ -497,26 +498,26 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
             return prod
         Just fn -> do
             let snpProd = loadBimOrSnpFile fn
-            return $ ((orderedZip compFunc2 snpProd prod >> return [()]) >-> selectSnps (sum nrInds))
+            return ((orderedZip compFunc2 snpProd prod >> return [()]) >-> selectSnps (sum nrInds))
     return (jointIndEntries, void jointProducer)
   where
     compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
     compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
-    compFunc2 :: (EigenstratSnpEntry) -> (EigenstratSnpEntry, GenoLine) -> Ordering
+    compFunc2 :: EigenstratSnpEntry -> (EigenstratSnpEntry, GenoLine) -> Ordering
     compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
     filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
     filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
     selectSnps :: (Monad m) => Int -> Pipe (Maybe EigenstratSnpEntry, Maybe (EigenstratSnpEntry, GenoLine)) (EigenstratSnpEntry, GenoLine) m r
-    selectSnps n = for cat $ \maybeTuple -> case maybeTuple of
+    selectSnps n = for cat $ \case
         (Just _, Just (es, gl)) -> yield (es, gl)
-        (Just snp, Nothing) -> when (not intersect) yield (snp, (V.replicate n Missing))
+        (Just snp, Nothing) -> unless intersect $ yield (snp, V.replicate n Missing)
         _ ->  return ()
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
-loadBimOrSnpFile fn =
-    if takeExtension fn == "snp" then readEigenstratSnpFile fn
-    else if takeExtension fn == "bim" then readBimFile fn
-    else throwM (PoseidonGenotypeException "option snpFile requires snp or bim file endings")
+loadBimOrSnpFile fn
+    | takeExtension fn == "snp" = readEigenstratSnpFile fn
+    | takeExtension fn == "bim" = readBimFile fn
+    | otherwise                 = throwM (PoseidonGenotypeException "option snpFile requires snp or bim file endings")
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
