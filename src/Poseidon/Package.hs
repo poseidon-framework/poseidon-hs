@@ -18,7 +18,8 @@ module Poseidon.Package (
     renderMismatch,
     zipWithPadding,
     writePoseidonPackage,
-    defaultPackageReadOptions
+    defaultPackageReadOptions,
+    readPoseidonPackage
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -515,9 +516,9 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
-    | takeExtension fn == "snp" = readEigenstratSnpFile fn
-    | takeExtension fn == "bim" = readBimFile fn
-    | otherwise                 = throwM (PoseidonGenotypeException "option snpFile requires snp or bim file endings")
+    | takeExtension fn == ".snp" = readEigenstratSnpFile fn
+    | takeExtension fn == ".bim" = readBimFile fn
+    | otherwise                  = throwM (PoseidonGenotypeException "option snpFile requires snp or bim file endings")
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage

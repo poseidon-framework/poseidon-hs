@@ -457,11 +457,11 @@ parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection 
     \individuals from the relevant packages will just be written in the order that they appear in the original packages.")
 
 parseMaybeSnpFile :: OP.Parser (Maybe FilePath)
-parseMaybeSnpFile = OP.option (Just <$> OP.str) (OP.value Nothing <> OP.long "snpFile" <>
+parseMaybeSnpFile = OP.option (Just <$> OP.str) (OP.value Nothing <> OP.long "selectSnps" <>
     OP.help "To extract specific SNPs during this forge operation, provide a Snp file. \
-    \Can be either Eigenstrat (file ending '.snp') or Plink (file ending '.bim'). \
-    \When this option is set, the output package will have exactly the SNPs listed in this file, \
-    \unless option '--intersect' is also set, in which case only the SNPs overlapping between the SNP file \
+    \Can be either Eigenstrat (file ending must be '.snp') or Plink (file ending must be '.bim'). \
+    \When this option is set, the output package will have exactly the SNPs listed in this file. Any SNP not \
+    \listed in the file will be excluded. If option '--intersect' is also set, only the SNPs overlapping between the SNP file \
     \and the forged packages are output.")
 
 parseListEntity :: OP.Parser ListEntity
