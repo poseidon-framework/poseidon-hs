@@ -9,23 +9,23 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
                                              defaultPackageReadOptions,
-                                             getChecksum,
+                                             getChecksum, getJointGenotypeData,
+                                             readPoseidonPackage,
                                              readPoseidonPackageCollection,
-                                             renderMismatch, zipWithPadding,
-                                             readPoseidonPackage, getJointGenotypeData)
+                                             renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
 import           Data.Time                  (fromGregorian)
-import qualified Data.Vector as V
+import qualified Data.Vector                as V
 import           Data.Version               (makeVersion)
 import           Data.Yaml                  (ParseException, decodeEither')
-import           Pipes                      (runEffect, (>->))
 import qualified Pipes.Prelude              as P
-import Pipes.Safe (runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratSnpEntry(..), GenoLine, GenoEntry(..))
-import SequenceFormats.Utils (Chrom(..))
+import           Pipes.Safe                 (runSafeT)
+import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
+                                             GenoEntry (..))
+import           SequenceFormats.Utils      (Chrom (..))
 import           Test.Hspec
 import           Text.RawString.QQ
 
@@ -212,7 +212,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testModules/ancient/Lamnidis_2018/POSEIDON.yml",
                     "test/testDat/testModules/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load genotype data without intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles            
+        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True False pacs Nothing
             P.toListM jointProd
@@ -221,7 +221,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
         jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.026288 "2_1018704" 'A' 'G',
                                   V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
     it "should correctly load genotype data with intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles            
+        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True True pacs Nothing
             P.toListM jointProd
@@ -230,13 +230,13 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                                                 HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
         jointDat !! 4 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1045331 0.026665 "2_1045331" 'G' 'A', V.fromList $ replicate 20 HomRef)
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles            
+        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True False pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 6
     it "should correctly load the right nr of SNPs with snpFile and intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles            
+        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True True pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
