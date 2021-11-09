@@ -508,10 +508,9 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
     filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
     selectSnps :: (Monad m) => Int -> Pipe (Maybe EigenstratSnpEntry, Maybe (EigenstratSnpEntry, GenoLine)) (EigenstratSnpEntry, GenoLine) m r
     selectSnps n = for cat $ \maybeTuple -> case maybeTuple of
-        (Nothing, Just (es, gl)) -> when (not intersect) (yield (es, gl))
         (Just _, Just (es, gl)) -> yield (es, gl)
-        (Just snp, Nothing) -> yield (snp, (V.replicate n Missing))
-        _ -> error "should never happen"
+        (Just snp, Nothing) -> when (not intersect) yield (snp, (V.replicate n Missing))
+        _ ->  return ()
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn =
