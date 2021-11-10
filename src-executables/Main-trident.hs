@@ -12,7 +12,7 @@ import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.EntitiesList  (PoseidonEntity (..),
-                                        poseidonEntitiesParser)
+                                        readPoseidonEntitiesString)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
@@ -349,11 +349,6 @@ parseFetchEntitiesFromFile = OP.many (OP.strOption (OP.long "fetchFile" <>
     OP.help "A file with a list of packages. \
     \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
     \-f and --fetchFile can be combined."))
-
-readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
-readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
-    Left p  -> Left (show p)
-    Right x -> Right x
 
 parseIntersect :: OP.Parser (Bool)
 parseIntersect = OP.switch (OP.long "intersect" <>

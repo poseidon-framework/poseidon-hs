@@ -1,6 +1,6 @@
 module Poseidon.EntitiesList (
     PoseidonEntity (..), EntitiesList, 
-    poseidonEntitiesParser, readEntitiesFromFile
+    poseidonEntitiesParser, readEntitiesFromFile, readPoseidonEntitiesString
     ) where
 
 import           Poseidon.Utils             (PoseidonException(..))
@@ -43,3 +43,8 @@ readEntitiesFromFile entitiesFile = do
     case eitherParseResult of
         Left err -> throwIO (PoseidonPoseidonEntityParsingException (show err))
         Right r -> return (concat r)
+
+readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
+readPoseidonEntitiesString s = case P.runParser poseidonEntitiesParser () "" s of
+    Left p  -> Left (show p)
+    Right x -> Right x
