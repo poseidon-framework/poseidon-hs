@@ -26,7 +26,7 @@ type EntitiesList = [PoseidonEntity]
 
 -- | A parser to parse entities
 poseidonEntitiesParser :: P.Parser EntitiesList
-poseidonEntitiesParser = P.try (P.sepBy parsePoseidonEntity (P.char ',' <* P.spaces))
+poseidonEntitiesParser = P.try (P.sepBy parsePoseidonEntity (P.char ',' <* P.spaces)) <* P.eof
 
 parsePoseidonEntity :: P.Parser PoseidonEntity
 parsePoseidonEntity = parsePac <|> parseGroup <|> parseInd
