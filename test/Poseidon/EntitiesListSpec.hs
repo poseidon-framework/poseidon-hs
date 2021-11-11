@@ -31,7 +31,7 @@ testReadPoseidonEntitiesString =
         readPoseidonEntitiesString "<a>,b,*c* "   `shouldSatisfy` isLeft
         readPoseidonEntitiesString "<a>,b d,*c*"  `shouldSatisfy` isLeft
         readPoseidonEntitiesString "<a>>,b,*c*"   `shouldSatisfy` isLeft
-        readPoseidonEntitiesString "<a>>,b,*c*c*" `shouldSatisfy` isLeft
+        readPoseidonEntitiesString "<a>,b,*c*c*"  `shouldSatisfy` isLeft
 
 testReadEntitiesFromFile :: Spec
 testReadEntitiesFromFile = 
