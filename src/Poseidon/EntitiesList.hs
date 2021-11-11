@@ -1,6 +1,6 @@
 module Poseidon.EntitiesList (
     PoseidonEntity (..), EntitiesList, 
-    poseidonEntitiesParser, readEntitiesFromFile, readPoseidonEntitiesString
+    readEntitiesFromFile, readPoseidonEntitiesString
     ) where
 
 import           Poseidon.Utils             (PoseidonException(..))
@@ -25,8 +25,8 @@ instance Show PoseidonEntity where
 type EntitiesList = [PoseidonEntity]
 
 -- | A parser to parse entities
-poseidonEntitiesParser :: P.Parser EntitiesList
-poseidonEntitiesParser = P.try (P.sepBy parsePoseidonEntity (P.char ',' <* P.spaces)) <* P.eof
+parsePoseidonEntitiesList :: P.Parser EntitiesList
+parsePoseidonEntitiesList = P.try (P.sepBy parsePoseidonEntity ((P.char ',' <|> P.newline) <* P.spaces)) <* P.eof
 
 parsePoseidonEntity :: P.Parser PoseidonEntity
 parsePoseidonEntity = parsePac <|> parseGroup <|> parseInd
@@ -38,13 +38,12 @@ parsePoseidonEntity = parsePac <|> parseGroup <|> parseInd
 
 readEntitiesFromFile :: FilePath -> IO EntitiesList
 readEntitiesFromFile entitiesFile = do
-    let multiEntityParser = poseidonEntitiesParser `P.sepBy1` (P.newline *> P.spaces)
-    eitherParseResult <- P.parseFromFile (P.spaces *> multiEntityParser <* P.spaces) entitiesFile
+    eitherParseResult <- P.parseFromFile parsePoseidonEntitiesList entitiesFile
     case eitherParseResult of
         Left err -> throwIO (PoseidonPoseidonEntityParsingException (show err))
-        Right r -> return (concat r)
+        Right r -> return r
 
 readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
-readPoseidonEntitiesString s = case P.runParser poseidonEntitiesParser () "" s of
+readPoseidonEntitiesString s = case P.runParser parsePoseidonEntitiesList () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
