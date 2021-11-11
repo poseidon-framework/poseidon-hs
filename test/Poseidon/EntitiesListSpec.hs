@@ -22,7 +22,7 @@ testReadPoseidonEntitiesString =
         fromRight [] (readPoseidonEntitiesString "<a1>,b1,<a2>,*c*,b2") `shouldBe` [Ind "a1", Group "b1", Ind "a2", Pac "c", Group "b2"]
     it "should ignore spaces after commas" $ do
         fromRight [] (readPoseidonEntitiesString "<a>, b, *c*") `shouldBe` [Ind "a", Group "b", Pac "c"]
-        fromRight [] (readPoseidonEntitiesString "*c*, b") `shouldBe` [Pac "c", Group "b"]
+        fromRight [] (readPoseidonEntitiesString "*c*,  b") `shouldBe` [Pac "c", Group "b"]
     it "should fail with any other spaces" $ do
         readPoseidonEntitiesString "<a> ,b,*c*"   `shouldSatisfy` isLeft
         readPoseidonEntitiesString " <a>,b,*c*"   `shouldSatisfy` isLeft
@@ -37,17 +37,13 @@ testReadEntitiesFromFile :: Spec
 testReadEntitiesFromFile = 
     describe "Poseidon.EntitiesList.readEntitiesFromFile" $ do
     let g1 = "test/testDat/testEntityFiles/goodEntities1.txt"
-        g2 = "test/testDat/testEntityFiles/goodEntities1.txt"
+        g2 = "test/testDat/testEntityFiles/goodEntities2.txt"
         b1 = "test/testDat/testEntityFiles/badEntities1.txt"
     it "should parse good, single-value-per-line files correctly" $ do
         g1res <- readEntitiesFromFile g1
         g1res `shouldBe` [Ind "a", Group "b", Pac "c"]
     it "should parse good, multi-value-per-line files correctly" $ do
         g2res <- readEntitiesFromFile g2
-        g2res `shouldBe` [Ind "a", Group "b", Pac "c"]
+        g2res `shouldBe` [Ind "a1", Ind "a2", Group "b1", Pac "c1", Pac "c2", Group "b2", Group "b3"]
     it "should fail to parse bad files and throw an exception" $ do
         readEntitiesFromFile b1 `shouldThrow` anyException
-
-
-
-
