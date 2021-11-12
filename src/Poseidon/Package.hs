@@ -498,7 +498,7 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         Nothing -> do
             return prod
         Just fn -> do
-            let snpProd = loadBimOrSnpFile fn >-> orderCheckPipe
+            let snpProd = loadBimOrSnpFile fn >-> orderCheckPipe compFunc3
             return $ (orderedZip compFunc2 snpProd prod >> return [()]) >-> selectSnps (sum nrInds)
     return (jointIndEntries, void jointProducer)
   where
@@ -506,6 +506,8 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
     compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
     compFunc2 :: EigenstratSnpEntry -> (EigenstratSnpEntry, GenoLine) -> Ordering
     compFunc2 (EigenstratSnpEntry c1 p1 _ _ _ _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
+    compFunc3 :: EigenstratSnpEntry -> EigenstratSnpEntry -> Ordering
+    compFunc3 (EigenstratSnpEntry c1 p1 _ _ _ _) (EigenstratSnpEntry c2 p2 _ _ _ _) = compare (c1, p1) (c2, p2)
     filterUnionOrIntersection :: [Maybe (EigenstratSnpEntry, GenoLine)] -> Bool
     filterUnionOrIntersection maybeTuples = not intersect || not (any isNothing maybeTuples)
     selectSnps :: (Monad m) => Int -> Pipe (Maybe EigenstratSnpEntry, Maybe (EigenstratSnpEntry, GenoLine)) (EigenstratSnpEntry, GenoLine) m r

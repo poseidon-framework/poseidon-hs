@@ -21,6 +21,7 @@ import           Data.Time                  (fromGregorian)
 import qualified Data.Vector                as V
 import           Data.Version               (makeVersion)
 import           Data.Yaml                  (ParseException, decodeEither')
+import           Pipes.OrderedZip           (WrongInputOrderException(..))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
@@ -241,3 +242,12 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
             (_, jointProd) <- getJointGenotypeData True True pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 4
+    it "should fail with unordered SNP input file" $ do
+        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        let makeJointDat = runSafeT $ do
+                (_, jointProd) <- getJointGenotypeData True False pacs (Just "test/testDat/snpFile_unordered.snp")
+                P.toListM jointProd
+        makeJointDat `shouldThrow` isInputOrderException
+  where
+    isInputOrderException :: Selector WrongInputOrderException
+    isInputOrderException (WrongInputOrderException _) = True
