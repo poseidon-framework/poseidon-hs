@@ -10,8 +10,6 @@ import           Control.Exception          (throwIO)
 import           Data.Char                  (isSpace)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
-import Control.Monad (when)
-import Text.Parsec.Prim (lookAhead)
 
 -- | A datatype to represent a package, a group or an individual
 data PoseidonEntity = Pac String
@@ -39,13 +37,13 @@ parsePoseidonEntitiesListFromFile = do
 
 comment :: P.Parser EntitiesList
 comment = do
-    P.string "#"
-    P.manyTill P.anyChar (P.lookAhead P.newline)
+    _ <- P.string "#"
+    _ <- P.manyTill P.anyChar (P.lookAhead P.newline)
     return []
 
 emptyLine :: P.Parser EntitiesList
 emptyLine = do
-    P.manyTill (P.char ' ') (P.lookAhead P.newline)
+    _ <- P.manyTill (P.char ' ') (P.lookAhead P.newline)
     return []
 
 parsePoseidonEntity :: P.Parser PoseidonEntity
