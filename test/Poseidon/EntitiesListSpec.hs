@@ -38,14 +38,16 @@ testReadEntitiesFromFile =
     describe "Poseidon.EntitiesList.readEntitiesFromFile" $ do
     let g1 = "test/testDat/testEntityFiles/goodEntities1.txt"
         g2 = "test/testDat/testEntityFiles/goodEntities2.txt"
+        g3 = "test/testDat/testEntityFiles/goodEntities3.txt"
         b1 = "test/testDat/testEntityFiles/badEntities1.txt"
-        b2 = "test/testDat/testEntityFiles/badEntities2.txt"
     it "should parse good, single-value-per-line files correctly" $ do
         g1res <- readEntitiesFromFile g1
         g1res `shouldBe` [Ind "a", Group "b", Pac "c"]
     it "should parse good, multi-value-per-line files correctly" $ do
         g2res <- readEntitiesFromFile g2
         g2res `shouldBe` [Ind "a1", Ind "a2", Group "b1", Pac "c1", Pac "c2", Group "b2", Group "b3"]
+    it "should parse good, multi-value-per-line files with empty lines and #-comments correctly" $ do
+        g3res <- readEntitiesFromFile g3
+        g3res `shouldBe` [Ind "a1", Ind "a2", Group "b1", Group "b2", Group "b3"]
     it "should fail to parse bad files and throw an exception" $ do
         readEntitiesFromFile b1 `shouldThrow` anyException -- wrong space
-        readEntitiesFromFile b2 `shouldThrow` anyException -- wrong newline
