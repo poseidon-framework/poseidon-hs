@@ -13,9 +13,9 @@ lastModified: 1970-01-01
 genotypeData:
   format: PLINK
   genoFile: Schiffels.bed
-  genoFileChkSum: bb08bacdf59553b52f3525f134a600d8
+  genoFileChkSum: 3c38f40efe215a047c02f4e98e0390da
   snpFile: Schiffels.bim
-  snpFileChkSum: 67c3a8780a816ba9bf1bb9636d14d277
+  snpFileChkSum: 8538ffd971ebb12cf5ef6e338da27970
   indFile: Schiffels.fam
   indFileChkSum: a9fcb59cb933d8f183f3c3f6fbf2e213
   snpSet: Other
