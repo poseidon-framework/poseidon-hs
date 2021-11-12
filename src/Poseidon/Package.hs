@@ -57,7 +57,7 @@ import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
 import           GHC.Generics               (Generic)
 import           Pipes                      (Pipe, Producer, for, runEffect,
                                              (>->), yield, cat)
-import           Pipes.OrderedZip           (orderedZip, orderedZipAll)
+import           Pipes.OrderedZip           (orderedZip, orderedZipAll, orderCheckPipe)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), GenoEntry(..),
@@ -496,7 +496,7 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         Nothing -> do
             return prod
         Just fn -> do
-            let snpProd = loadBimOrSnpFile fn
+            let snpProd = loadBimOrSnpFile fn >-> orderCheckPipe
             return $ ((orderedZip compFunc2 snpProd prod >> return [()]) >-> selectSnps (sum nrInds))
     return (jointIndEntries, void jointProducer)
   where
