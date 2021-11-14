@@ -14,7 +14,7 @@ import qualified Text.Parsec                as P
 import qualified Text.Parsec.String         as P
 
 -- | A datatype to represent a package, a group or an individual
-data PoseidonEntity = 
+data PoseidonEntity =
       Pac String
     | Group String
     | Ind String
@@ -27,7 +27,7 @@ instance Show PoseidonEntity where
 
 type EntitiesList = [PoseidonEntity]
 
-data EntitySign a  =  
+data EntitySign a =
       Include a
     | Exclude a
     deriving (Eq)
