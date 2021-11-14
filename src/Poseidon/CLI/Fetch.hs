@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList   (SignedEntitiesList, EntitiesList, PoseidonEntity (..),
+import           Poseidon.EntitiesList   (SignedEntitiesList, PoseidonEntity (..),
                                           readEntitiesFromFile, entityIncludes)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),

@@ -11,7 +11,7 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.EntitiesList  (PoseidonEntity (..),
+import           Poseidon.EntitiesList  (SignedEntitiesList,
                                         readPoseidonEntitiesString)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
@@ -323,7 +323,7 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
-parseForgeEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
 parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
@@ -331,7 +331,7 @@ parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPo
         \<individual_id>. You can combine multiple values with comma, so for example: \
         \\"*package_1*, <individual_1>, <individual_2>, group_1\""))
 
-parseFetchEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseFetchEntitiesDirect :: OP.Parser SignedEntitiesList
 parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
     OP.short 'f' <>
     OP.help "List of packages to be downloaded from the remote server. \

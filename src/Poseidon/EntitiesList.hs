@@ -1,5 +1,5 @@
 module Poseidon.EntitiesList (
-    PoseidonEntity (..), SignedEntitiesList, EntitiesList, 
+    PoseidonEntity (..), EntitySign (..), SignedEntitiesList, EntitiesList, 
     readEntitiesFromFile, readPoseidonEntitiesString,
     entityIncludes, entityExcludes
     ) where

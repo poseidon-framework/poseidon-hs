@@ -4,7 +4,7 @@ module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.EntitiesList          (PoseidonEntity (..))
+import           Poseidon.EntitiesList          (readPoseidonEntitiesString)
 import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init              (InitOptions (..), runInit)
@@ -22,6 +22,7 @@ import           Poseidon.SecondaryTypes        (ContributorSpec (..),
                                                  VersionComponent (..))
 
 import           Control.Monad                  (when, unless)
+import           Data.Either                    (fromRight)
 import qualified Data.Text.IO                   as T
 import qualified Data.Text                      as T
 import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
@@ -280,7 +281,7 @@ testPipelineForge :: FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath = do
     let forgeOpts1 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeEntityList   = [Group "POP2", Ind "SAMPLE2", Ind "SAMPLE4"]
+        , _forgeEntityList   = fromRight [] $ readPoseidonEntitiesString "POP2,<SAMPLE2>,<SAMPLE4>"
         , _forgeEntityFiles  = []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac1"
@@ -298,7 +299,7 @@ testPipelineForge testDir checkFilePath = do
         ]
     let forgeOpts2 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeEntityList   = [Group "POP2", Ind "SAMPLE2", Ind "SAMPLE4"]
+        , _forgeEntityList   = fromRight [] $ readPoseidonEntitiesString "POP2,<SAMPLE2>,<SAMPLE4>"
         , _forgeEntityFiles  = []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac2"
@@ -323,7 +324,7 @@ testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
-        , _entityList       = [Pac "2019_Nikitin_LBK"]
+        , _entityList       = fromRight [] $ readPoseidonEntitiesString "*2019_Nikitin_LBK*"
         , _entityFiles      = []
         , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
         , _upgrade          = True
