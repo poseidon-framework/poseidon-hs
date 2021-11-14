@@ -1,0 +1,9 @@
+# removing populations
+-1
+-2
+-3
+-4
+-POP2
+-POP3
+# removing individuals
+-<XXX001>
