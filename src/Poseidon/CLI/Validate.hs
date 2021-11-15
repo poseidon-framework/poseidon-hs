@@ -4,18 +4,13 @@ module Poseidon.CLI.Validate where
 
 import           Poseidon.Package  (PoseidonPackage (..),
                                    findAllPoseidonYmlFiles,
-                                   getJointGenotypeData,
                                    readPoseidonPackageCollection,
                                    PackageReadOptions (..), defaultPackageReadOptions)
 
-import           Control.Exception (SomeException, catch)
 import           Control.Monad     (unless)
 import           Data.List         (foldl')
-import           Pipes             (runEffect, (>->))
-import qualified Pipes.Prelude     as P
-import           Pipes.Safe        (runSafeT)
 import           System.Exit       (exitFailure, exitSuccess)
-import           System.IO         (hPutStrLn, stderr, stdout)
+import           System.IO         (hPutStrLn, stdout)
 
 
 -- | A datatype representing command line options for the validate command
@@ -41,32 +36,10 @@ runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
         baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
-    check <- if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
-             then if ignoreGeno
-                  then return True
-                  else do checkJointGenotypeData allPackages
-             else return False
-    if check
+    if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
     then do
         hPutStrLn stdout "Validation passed ✓"
         unless noExitCode exitSuccess
     else do
         hPutStrLn stdout "Validation failed ✗"
         unless noExitCode exitFailure
-
-checkJointGenotypeData :: [PoseidonPackage] -> IO Bool
-checkJointGenotypeData packageList = do
-    hPutStrLn stderr "Checking first 100 SNPs for cross-package consistency..."
-    parseFirst100SNPs packageList `catch` handler
-    where
-        handler :: SomeException -> IO Bool
-        handler e = do
-            print e
-            return False
-
-parseFirst100SNPs :: [PoseidonPackage] -> IO Bool
-parseFirst100SNPs packageList = do
-    runSafeT $ do
-        (_, eigenstratProd) <- getJointGenotypeData False False packageList Nothing
-        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
-    return True
