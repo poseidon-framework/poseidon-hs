@@ -1,3 +1,4 @@
+- V 0.23.1: Cleaned up reduncy genotype checking in validate
 - V 0.23.0: Added a feature to select SNPs during forge.
 - V 0.22.0: Added a --minimal option for init and forge to create minimal packages without .janno and .bib (e.g. in automatic pipelines)
 - V 0.21.3: Added a column name suggestion mechanism to the .janno file reading procedure
