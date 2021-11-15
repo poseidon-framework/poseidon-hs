@@ -3,7 +3,7 @@ Automatically generated with: poseidon-devtools updateGoldenTests
 
 65a211058ef6260b860feb1cd2c37043 init Schiffels/POSEIDON.yml
 04686d2b18f41b9137807a0d5521670d init Schiffels/Schiffels.janno
-95b093eefacc1d6499afcfe89b15d56c init Schiffels/geno.txt
+0332344057c0c4dce2ff7176f8e1103d init Schiffels/geno.txt
 66fee695ba94e12688567db73c0f2830 init Schiffels/Schiffels.bib
 3f6e348b16c2a4c0399af33ee3ee7c0c init Wang/POSEIDON.yml
 ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
@@ -21,20 +21,20 @@ c0bbcc92185aa0795e0ef4714d5b26fa survey survey2
 3feaa876c5d05fd000470c5ba840cc2d genoconvert Wang/Wang.geno
 b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
 2faf8a7b87037451d4fd5ae9cc9af460 genoconvert Wang/Wang.ind
-bb08bacdf59553b52f3525f134a600d8 genoconvert Schiffels/Schiffels.bed
-67c3a8780a816ba9bf1bb9636d14d277 genoconvert Schiffels/Schiffels.bim
+3c38f40efe215a047c02f4e98e0390da genoconvert Schiffels/Schiffels.bed
+8538ffd971ebb12cf5ef6e338da27970 genoconvert Schiffels/Schiffels.bim
 a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/Schiffels.fam
 a87dcef3fb7cd68f396404bfb84530f9 update Schiffels/POSEIDON.yml
 aee009e147a8680bb9a8ec785ae5b664 update Schiffels/CHANGELOG.md
-c1fef4d80eb867df825211115598081a update Schiffels/POSEIDON.yml
+ec260ba1f8da9b1dd385b7c889e7e558 update Schiffels/POSEIDON.yml
 26365b759ce69eea16c62152ffce2938 update Schiffels/CHANGELOG.md
-def6f91177d68487802ba27e91e46f81 update Schiffels/POSEIDON.yml
+576f9034f8dd748d6cfeedb1b99883af update Schiffels/POSEIDON.yml
 2dabf673712faabac1403e1002bec9e0 update Schiffels/CHANGELOG.md
 80121e7c99b47e63529194f9a961b51f forge ForgePac1/POSEIDON.yml
-814d71c65037eb20bb8a636e804c9dd9 forge ForgePac1/ForgePac1.geno
-9485ef192ccee3846da2dafb36128f67 forge ForgePac1/ForgePac1.janno
+1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac1/ForgePac1.geno
+56b6ba5759df30276d1aee31c54bff7a forge ForgePac1/ForgePac1.janno
 494b4b6e467fede4453c1df45d7d565b forge ForgePac2/POSEIDON.yml
-e8a7d4c9ac62234f36ea2d5b4d0a17df forge ForgePac2/ForgePac2.bed
+6010163f73dc9cf5185933fc7a0333df forge ForgePac2/ForgePac2.bed
 53edcde25d7b66b94ea9ee306a315864 fetch 2019_Nikitin_LBK/POSEIDON.yml
 4dedd209cdc4d4a986c184d70dedecd1 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam

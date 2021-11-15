@@ -242,7 +242,7 @@ runFstats (FstatsOptions baseDirs jackknifeMode exclusionList statSpecsDirect ma
         forM_ relevantPackages $ \pac -> hPutStrLn stderr (posPacTitle pac)
         hPutStrLn stderr $ "Computing stats " ++ show statSpecs
         blockData <- runSafeT $ do
-            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData False False relevantPackages
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData False False relevantPackages Nothing
             let eigenstratProdFiltered = eigenstratProd >-> P.filter chromFilter
                 eigenstratProdInChunks = case jackknifeMode of
                     JackknifePerChromosome  -> chunkEigenstratByChromosome eigenstratProdFiltered

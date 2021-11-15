@@ -52,6 +52,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutMinimal   :: Bool
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
+    , _forgeSnpFile      :: Maybe FilePath
     }
 
 pacReadOpts :: PackageReadOptions
@@ -65,7 +66,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract) = do
+runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -106,7 +107,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- output warning if any snpSet is set to Other
     snpSetList <- fillMissingSnpSets relevantPackages
-    let newSNPSet = snpSetMergeList snpSetList intersect_
+    let newSNPSet = case
+            maybeSnpFile of
+                Nothing -> snpSetMergeList snpSetList intersect_
+                Just _  -> SNPSetOther
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create new package
     hPutStrLn stderr "Creating new package entity"
@@ -123,7 +127,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
     newNrAutosomalSNPs <- runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages maybeSnpFile
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
         let jannoIndIds = map jIndividualID relevantJannoRows
@@ -159,9 +163,9 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do
-    forM_ (zip (V.toList geno) [0..]) $ (\(g, i) -> do
+    forM_ (zip (V.toList geno) [0..]) $ \(g, i) -> do
         let x = nonMissingToInt g
-        VUM.modify accumulator (+x) i)
+        VUM.modify accumulator (+x) i
     return accumulator
   where
     nonMissingToInt :: GenoEntry -> Int
