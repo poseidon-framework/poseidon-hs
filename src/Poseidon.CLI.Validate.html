@@ -4,56 +4,51 @@
 </span><span id="line-4"></span><span>
 </span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Package.html"><span class="hs-identifier">Poseidon.Package</span></a></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier">PoseidonPackage</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
 </span><span id="line-6"></span><span>                                   </span><span class="annot"><a href="Poseidon.Package.html#findAllPoseidonYmlFiles"><span class="hs-identifier">findAllPoseidonYmlFiles</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-7"></span><span>                                   </span><span class="annot"><a href="Poseidon.Package.html#getJointGenotypeData"><span class="hs-identifier">getJointGenotypeData</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-8"></span><span>                                   </span><span class="annot"><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier">readPoseidonPackageCollection</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-9"></span><span>                                   </span><span class="annot"><a href="Poseidon.Package.html#PackageReadOptions"><span class="hs-identifier">PackageReadOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Package.html#defaultPackageReadOptions"><span class="hs-identifier">defaultPackageReadOptions</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-10"></span><span>
-</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">SomeException</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">catch</span></span><span class="hs-special">)</span><span>
-</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">unless</span></span><span class="hs-special">)</span><span>
-</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">foldl'</span></span><span class="hs-special">)</span><span>
-</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Pipes</span></span><span>             </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">runEffect</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(&gt;-&gt;)</span></span><span class="hs-special">)</span><span>
-</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Pipes.Prelude</span></span><span>     </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">P</span></span><span>
-</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Pipes.Safe</span></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">runSafeT</span></span><span class="hs-special">)</span><span>
-</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.Exit</span></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">exitFailure</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">exitSuccess</span></span><span class="hs-special">)</span><span>
-</span><span id="line-18"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">hPutStrLn</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">stderr</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">stdout</span></span><span class="hs-special">)</span><span>
-</span><span id="line-19"></span><span>
-</span><span id="line-20"></span><span>
-</span><span id="line-21"></span><span class="hs-comment">-- | A datatype representing command line options for the validate command</span><span>
-</span><span id="line-22"></span><span class="hs-keyword">data</span><span> </span><span id="ValidateOptions"><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-var">ValidateOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ValidateOptions"><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-var">ValidateOptions</span></a></span></span><span>
-</span><span id="line-23"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_validateBaseDirs"><span class="annot"><span class="annottext">ValidateOptions -&gt; [FilePath]
+</span><span id="line-7"></span><span>                                   </span><span class="annot"><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier">readPoseidonPackageCollection</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>                                   </span><span class="annot"><a href="Poseidon.Package.html#PackageReadOptions"><span class="hs-identifier">PackageReadOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Package.html#defaultPackageReadOptions"><span class="hs-identifier">defaultPackageReadOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">unless</span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">foldl'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.Exit</span></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">exitFailure</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">exitSuccess</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">hPutStrLn</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">stdout</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- | A datatype representing command line options for the validate command</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">data</span><span> </span><span id="ValidateOptions"><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-var">ValidateOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ValidateOptions"><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-var">ValidateOptions</span></a></span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_validateBaseDirs"><span class="annot"><span class="annottext">ValidateOptions -&gt; [FilePath]
 </span><a href="Poseidon.CLI.Validate.html#_validateBaseDirs"><span class="hs-identifier hs-var hs-var">_validateBaseDirs</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">]</span><span>
-</span><span id="line-24"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_validateVerbose"><span class="annot"><span class="annottext">ValidateOptions -&gt; Bool
+</span><span id="line-19"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_validateVerbose"><span class="annot"><span class="annottext">ValidateOptions -&gt; Bool
 </span><a href="Poseidon.CLI.Validate.html#_validateVerbose"><span class="hs-identifier hs-var hs-var">_validateVerbose</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-25"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_validateIgnoreGeno"><span class="annot"><span class="annottext">ValidateOptions -&gt; Bool
+</span><span id="line-20"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_validateIgnoreGeno"><span class="annot"><span class="annottext">ValidateOptions -&gt; Bool
 </span><a href="Poseidon.CLI.Validate.html#_validateIgnoreGeno"><span class="hs-identifier hs-var hs-var">_validateIgnoreGeno</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-26"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_validateNoExitCode"><span class="annot"><span class="annottext">ValidateOptions -&gt; Bool
+</span><span id="line-21"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_validateNoExitCode"><span class="annot"><span class="annottext">ValidateOptions -&gt; Bool
 </span><a href="Poseidon.CLI.Validate.html#_validateNoExitCode"><span class="hs-identifier hs-var hs-var">_validateNoExitCode</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-27"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-28"></span><span>
-</span><span id="line-29"></span><span class="annot"><a href="Poseidon.CLI.Validate.html#pacReadOpts"><span class="hs-identifier hs-type">pacReadOpts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Package.html#PackageReadOptions"><span class="hs-identifier hs-type">PackageReadOptions</span></a></span><span>
-</span><span id="line-30"></span><span id="pacReadOpts"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
+</span><span id="line-22"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Poseidon.CLI.Validate.html#pacReadOpts"><span class="hs-identifier hs-type">pacReadOpts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Package.html#PackageReadOptions"><span class="hs-identifier hs-type">PackageReadOptions</span></a></span><span>
+</span><span id="line-25"></span><span id="pacReadOpts"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
 </span><a href="Poseidon.CLI.Validate.html#pacReadOpts"><span class="hs-identifier hs-var hs-var">pacReadOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.Package.html#defaultPackageReadOptions"><span class="hs-identifier hs-var">defaultPackageReadOptions</span></a></span><span> </span><span class="hs-special">{</span><span>
-</span><span id="line-31"></span><span>      </span><span class="annot"><span class="annottext">_readOptStopOnDuplicates :: Bool
+</span><span id="line-26"></span><span>      </span><span class="annot"><span class="annottext">_readOptStopOnDuplicates :: Bool
 </span><a href="Poseidon.Package.html#_readOptStopOnDuplicates"><span class="hs-identifier hs-var">_readOptStopOnDuplicates</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span>
-</span><span id="line-32"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreChecksums :: Bool
+</span><span id="line-27"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreChecksums :: Bool
 </span><a href="Poseidon.Package.html#_readOptIgnoreChecksums"><span class="hs-identifier hs-var">_readOptIgnoreChecksums</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span>
-</span><span id="line-33"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptGenoCheck :: Bool
+</span><span id="line-28"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptGenoCheck :: Bool
 </span><a href="Poseidon.Package.html#_readOptGenoCheck"><span class="hs-identifier hs-var">_readOptGenoCheck</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span>
-</span><span id="line-34"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-35"></span><span>
-</span><span id="line-36"></span><span class="annot"><a href="Poseidon.CLI.Validate.html#runValidate"><span class="hs-identifier hs-type">runValidate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><span id="line-37"></span><span id="runValidate"><span class="annot"><span class="annottext">runValidate :: ValidateOptions -&gt; IO ()
-</span><a href="Poseidon.CLI.Validate.html#runValidate"><span class="hs-identifier hs-var hs-var">runValidate</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span id="local-6989586621679147416"><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679147416"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679147415"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147415"><span class="hs-identifier hs-var">verbose</span></a></span></span><span> </span><span id="local-6989586621679147414"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147414"><span class="hs-identifier hs-var">ignoreGeno</span></a></span></span><span> </span><span id="local-6989586621679147413"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147413"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-38"></span><span>    </span><span id="local-6989586621679147412"><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679147412"><span class="hs-identifier hs-var">posFiles</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[FilePath]] -&gt; [FilePath]
+</span><span id="line-29"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="annot"><a href="Poseidon.CLI.Validate.html#runValidate"><span class="hs-identifier hs-type">runValidate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span id="runValidate"><span class="annot"><span class="annottext">runValidate :: ValidateOptions -&gt; IO ()
+</span><a href="Poseidon.CLI.Validate.html#runValidate"><span class="hs-identifier hs-var hs-var">runValidate</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span id="local-6989586621679147281"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147281"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679147280"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147280"><span class="hs-identifier hs-var">verbose</span></a></span></span><span> </span><span id="local-6989586621679147279"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147279"><span class="hs-identifier hs-var">ignoreGeno</span></a></span></span><span> </span><span id="local-6989586621679147278"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679147278"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-33"></span><span>    </span><span id="local-6989586621679147277"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147277"><span class="hs-identifier hs-var">posFiles</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[FilePath]] -&gt; [FilePath]
 forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">([[FilePath]] -&gt; [FilePath]) -&gt; IO [[FilePath]] -&gt; IO [FilePath]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
@@ -63,25 +58,25 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (a -&gt; m b) -&gt; t a -&gt; m (t b)
 </span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO [FilePath]
 </span><a href="Poseidon.Package.html#findAllPoseidonYmlFiles"><span class="hs-identifier hs-var">findAllPoseidonYmlFiles</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679147416"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
-</span><span id="line-39"></span><span>    </span><span id="local-6989586621679147408"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147408"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [FilePath] -&gt; IO [PoseidonPackage]
+</span><a href="#local-6989586621679147281"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><span id="line-34"></span><span>    </span><span id="local-6989586621679147273"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679147273"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [FilePath] -&gt; IO [PoseidonPackage]
 </span><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier hs-var">readPoseidonPackageCollection</span></a></span><span> </span><span>
-</span><span id="line-40"></span><span>        </span><span class="annot"><span class="annottext">PackageReadOptions
+</span><span id="line-35"></span><span>        </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.CLI.Validate.html#pacReadOpts"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="hs-special">{</span><span class="annot"><span class="annottext">_readOptVerbose :: Bool
 </span><a href="Poseidon.Package.html#_readOptVerbose"><span class="hs-identifier hs-var">_readOptVerbose</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147415"><span class="hs-identifier hs-var">verbose</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreGeno :: Bool
+</span><a href="#local-6989586621679147280"><span class="hs-identifier hs-var">verbose</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreGeno :: Bool
 </span><a href="Poseidon.Package.html#_readOptIgnoreGeno"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147414"><span class="hs-identifier hs-var">ignoreGeno</span></a></span><span class="hs-special">}</span><span> </span><span>
-</span><span id="line-41"></span><span>        </span><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679147416"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
-</span><span id="line-42"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147405"><span class="annot"><span class="annottext">numberOfPOSEIDONymlFiles :: Int
-</span><a href="#local-6989586621679147405"><span class="hs-identifier hs-var hs-var">numberOfPOSEIDONymlFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[FilePath] -&gt; Int
+</span><a href="#local-6989586621679147279"><span class="hs-identifier hs-var">ignoreGeno</span></a></span><span class="hs-special">}</span><span> </span><span>
+</span><span id="line-36"></span><span>        </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679147281"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679147270"><span class="annot"><span class="annottext">numberOfPOSEIDONymlFiles :: Int
+</span><a href="#local-6989586621679147270"><span class="hs-identifier hs-var hs-var">numberOfPOSEIDONymlFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[FilePath] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679147412"><span class="hs-identifier hs-var">posFiles</span></a></span><span>
-</span><span id="line-43"></span><span>        </span><span id="local-6989586621679147403"><span class="annot"><span class="annottext">numberOfLoadedPackagesWithDuplicates :: Int
-</span><a href="#local-6989586621679147403"><span class="hs-identifier hs-var hs-var">numberOfLoadedPackagesWithDuplicates</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int) -&gt; Int -&gt; [Int] -&gt; Int
+</span><a href="#local-6989586621679147277"><span class="hs-identifier hs-var">posFiles</span></a></span><span>
+</span><span id="line-38"></span><span>        </span><span id="local-6989586621679147268"><span class="annot"><span class="annottext">numberOfLoadedPackagesWithDuplicates :: Int
+</span><a href="#local-6989586621679147268"><span class="hs-identifier hs-var hs-var">numberOfLoadedPackagesWithDuplicates</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int) -&gt; Int -&gt; [Int] -&gt; Int
 forall (t :: * -&gt; *) b a.
 Foldable t =&gt;
 (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
@@ -94,153 +89,32 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Int
 </span><a href="Poseidon.Package.html#posPacDuplicate"><span class="hs-identifier hs-var hs-var">posPacDuplicate</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147408"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
-</span><span id="line-44"></span><span>    </span><span id="local-6989586621679147400"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147400"><span class="hs-identifier hs-var">check</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679147405"><span class="hs-identifier hs-var">numberOfPOSEIDONymlFiles</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679147273"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679147270"><span class="hs-identifier hs-var">numberOfPOSEIDONymlFiles</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679147403"><span class="hs-identifier hs-var">numberOfLoadedPackagesWithDuplicates</span></a></span><span>
-</span><span id="line-45"></span><span>             </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147414"><span class="hs-identifier hs-var">ignoreGeno</span></a></span><span>
-</span><span id="line-46"></span><span>                  </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
-forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
-</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span>
-</span><span id="line-47"></span><span>                  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage] -&gt; IO Bool
-</span><a href="Poseidon.CLI.Validate.html#checkJointGenotypeData"><span class="hs-identifier hs-var">checkJointGenotypeData</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147408"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
-</span><span id="line-48"></span><span>             </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
-forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
-</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span>
-</span><span id="line-49"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147400"><span class="hs-identifier hs-var">check</span></a></span><span>
-</span><span id="line-50"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-51"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
+</span><a href="#local-6989586621679147268"><span class="hs-identifier hs-var">numberOfLoadedPackagesWithDuplicates</span></a></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-41"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
 </span><span class="hs-identifier hs-var">stdout</span></span><span> </span><span class="annot"><span class="annottext">FilePath
 </span><span class="hs-string">&quot;Validation passed &#10003;&quot;</span></span><span>
-</span><span id="line-52"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+</span><span id="line-42"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147413"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679147278"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">IO ()
 forall a. IO a
 </span><span class="hs-identifier hs-var">exitSuccess</span></span><span>
-</span><span id="line-53"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-54"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
+</span><span id="line-43"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-44"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
 </span><span class="hs-identifier hs-var">stdout</span></span><span> </span><span class="annot"><span class="annottext">FilePath
 </span><span class="hs-string">&quot;Validation failed &#10007;&quot;</span></span><span>
-</span><span id="line-55"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+</span><span id="line-45"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679147413"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679147278"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">IO ()
 forall a. IO a
 </span><span class="hs-identifier hs-var">exitFailure</span></span><span>
-</span><span id="line-56"></span><span>
-</span><span id="line-57"></span><span class="annot"><a href="Poseidon.CLI.Validate.html#checkJointGenotypeData"><span class="hs-identifier hs-type">checkJointGenotypeData</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-58"></span><span id="checkJointGenotypeData"><span class="annot"><span class="annottext">checkJointGenotypeData :: [PoseidonPackage] -&gt; IO Bool
-</span><a href="Poseidon.CLI.Validate.html#checkJointGenotypeData"><span class="hs-identifier hs-var hs-var">checkJointGenotypeData</span></a></span></span><span> </span><span id="local-6989586621679147398"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147398"><span class="hs-identifier hs-var">packageList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-59"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
-</span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
-</span><span class="hs-identifier hs-var">stderr</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><span class="hs-string">&quot;Checking first 100 SNPs for cross-package consistency...&quot;</span></span><span>
-</span><span id="line-60"></span><span>    </span><span class="annot"><span class="annottext">[PoseidonPackage] -&gt; IO Bool
-</span><a href="Poseidon.CLI.Validate.html#parseFirst100SNPs"><span class="hs-identifier hs-var">parseFirst100SNPs</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147398"><span class="hs-identifier hs-var">packageList</span></a></span><span> </span><span class="annot"><span class="annottext">IO Bool -&gt; (SomeException -&gt; IO Bool) -&gt; IO Bool
-forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
-</span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; IO Bool
-</span><a href="#local-6989586621679147396"><span class="hs-identifier hs-var">handler</span></a></span><span>
-</span><span id="line-61"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-62"></span><span>        </span><span class="annot"><a href="#local-6989586621679147396"><span class="hs-identifier hs-type">handler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-63"></span><span>        </span><span id="local-6989586621679147396"><span class="annot"><span class="annottext">handler :: SomeException -&gt; IO Bool
-</span><a href="#local-6989586621679147396"><span class="hs-identifier hs-var hs-var">handler</span></a></span></span><span> </span><span id="local-6989586621679147395"><span class="annot"><span class="annottext">SomeException
-</span><a href="#local-6989586621679147395"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-64"></span><span>            </span><span class="annot"><span class="annottext">SomeException -&gt; IO ()
-forall a. Show a =&gt; a -&gt; IO ()
-</span><span class="hs-identifier hs-var">print</span></span><span> </span><span class="annot"><span class="annottext">SomeException
-</span><a href="#local-6989586621679147395"><span class="hs-identifier hs-var">e</span></a></span><span>
-</span><span id="line-65"></span><span>            </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
-forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
-</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span>
-</span><span id="line-66"></span><span>
-</span><span id="line-67"></span><span class="annot"><a href="Poseidon.CLI.Validate.html#parseFirst100SNPs"><span class="hs-identifier hs-type">parseFirst100SNPs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-68"></span><span id="parseFirst100SNPs"><span class="annot"><span class="annottext">parseFirst100SNPs :: [PoseidonPackage] -&gt; IO Bool
-</span><a href="Poseidon.CLI.Validate.html#parseFirst100SNPs"><span class="hs-identifier hs-var hs-var">parseFirst100SNPs</span></a></span></span><span> </span><span id="local-6989586621679147394"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147394"><span class="hs-identifier hs-var">packageList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-69"></span><span>    </span><span class="annot"><span class="annottext">SafeT IO () -&gt; IO ()
-forall (m :: * -&gt; *) r.
-(MonadMask m, MonadIO m) =&gt;
-SafeT m r -&gt; m r
-</span><span class="hs-identifier hs-var">runSafeT</span></span><span> </span><span class="annot"><span class="annottext">(SafeT IO () -&gt; IO ()) -&gt; SafeT IO () -&gt; IO ()
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-70"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[EigenstratIndEntry]
-</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679147393"><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) (SafeT IO) ()
-</span><a href="#local-6989586621679147393"><span class="hs-identifier hs-var">eigenstratProd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Bool
--&gt; Bool
--&gt; [PoseidonPackage]
--&gt; Maybe FilePath
--&gt; SafeT
-     IO
-     ([EigenstratIndEntry],
-      Producer (EigenstratSnpEntry, GenoLine) (SafeT IO) ())
-forall (m :: * -&gt; *).
-MonadSafe m =&gt;
-Bool
--&gt; Bool
--&gt; [PoseidonPackage]
--&gt; Maybe FilePath
--&gt; m ([EigenstratIndEntry],
-      Producer (EigenstratSnpEntry, GenoLine) m ())
-</span><a href="Poseidon.Package.html#getJointGenotypeData"><span class="hs-identifier hs-var">getJointGenotypeData</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679147394"><span class="hs-identifier hs-var">packageList</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
-forall a. Maybe a
-</span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-71"></span><span>        </span><span class="annot"><span class="annottext">Effect (SafeT IO) () -&gt; SafeT IO ()
-forall (m :: * -&gt; *) r. Monad m =&gt; Effect m r -&gt; m r
-</span><span class="hs-identifier hs-var">runEffect</span></span><span> </span><span class="annot"><span class="annottext">(Effect (SafeT IO) () -&gt; SafeT IO ())
--&gt; Effect (SafeT IO) () -&gt; SafeT IO ()
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) (SafeT IO) ()
-</span><a href="#local-6989586621679147393"><span class="hs-identifier hs-var">eigenstratProd</span></a></span><span> </span><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) (SafeT IO) ()
--&gt; Proxy
-     ()
-     (EigenstratSnpEntry, GenoLine)
-     ()
-     (EigenstratSnpEntry, GenoLine)
-     (SafeT IO)
-     ()
--&gt; Producer (EigenstratSnpEntry, GenoLine) (SafeT IO) ()
-forall (m :: * -&gt; *) a' a b r c' c.
-Functor m =&gt;
-Proxy a' a () b m r -&gt; Proxy () b c' c m r -&gt; Proxy a' a c' c m r
-</span><span class="hs-operator hs-var">&gt;-&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int
--&gt; Proxy
-     ()
-     (EigenstratSnpEntry, GenoLine)
-     ()
-     (EigenstratSnpEntry, GenoLine)
-     (SafeT IO)
-     ()
-forall (m :: * -&gt; *) a. Functor m =&gt; Int -&gt; Pipe a a m ()
-</span><span class="hs-identifier hs-var">P.take</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><span class="hs-number">100</span></span><span> </span><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) (SafeT IO) ()
--&gt; Proxy () (EigenstratSnpEntry, GenoLine) () X (SafeT IO) ()
--&gt; Effect (SafeT IO) ()
-forall (m :: * -&gt; *) a' a b r c' c.
-Functor m =&gt;
-Proxy a' a () b m r -&gt; Proxy () b c' c m r -&gt; Proxy a' a c' c m r
-</span><span class="hs-operator hs-var">&gt;-&gt;</span></span><span> </span><span class="annot"><span class="annottext">Proxy () (EigenstratSnpEntry, GenoLine) () X (SafeT IO) ()
-forall (m :: * -&gt; *) a r. Functor m =&gt; Consumer' a m r
-</span><span class="hs-identifier hs-var">P.drain</span></span><span>
-</span><span id="line-72"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
-forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
-</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span>
-</span><span id="line-73"></span></pre></body></html>
+</span><span id="line-46"></span></pre></body></html>

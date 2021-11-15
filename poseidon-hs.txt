@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.23.0
+@version 0.23.1
 
 module Poseidon.MathHelpers
 
@@ -665,8 +665,6 @@ ValidateOptions :: [FilePath] -> Bool -> Bool -> Bool -> ValidateOptions
 [_validateNoExitCode] :: ValidateOptions -> Bool
 pacReadOpts :: PackageReadOptions
 runValidate :: ValidateOptions -> IO ()
-checkJointGenotypeData :: [PoseidonPackage] -> IO Bool
-parseFirst100SNPs :: [PoseidonPackage] -> IO Bool
 
 module Poseidon.CLI.Update
 runUpdate :: UpdateOptions -> IO ()
