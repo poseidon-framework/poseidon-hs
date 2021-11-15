@@ -67,6 +67,6 @@ checkJointGenotypeData packageList = do
 parseFirst100SNPs :: [PoseidonPackage] -> IO Bool
 parseFirst100SNPs packageList = do
     runSafeT $ do
-        (_, eigenstratProd) <- getJointGenotypeData False False packageList
+        (_, eigenstratProd) <- getJointGenotypeData False False packageList Nothing
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return True
