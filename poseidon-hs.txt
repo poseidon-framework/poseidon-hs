@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.22.0
+@version 0.23.0
 
 module Poseidon.MathHelpers
 
@@ -622,7 +622,7 @@ readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> IO [Poseido
 getChecksum :: FilePath -> IO String
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: MonadSafe m => Bool -> Bool -> [PoseidonPackage] -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+getJointGenotypeData :: MonadSafe m => Bool -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 
 -- | A function to return a list of all individuals in the genotype files
 --   of a package.
@@ -640,6 +640,10 @@ renderMismatch :: [String] -> [String] -> String
 zipWithPadding :: a -> b -> [a] -> [b] -> [(a, b)]
 writePoseidonPackage :: PoseidonPackage -> IO ()
 defaultPackageReadOptions :: PackageReadOptions
+
+-- | A function to read in a poseidon package from a YAML file. Note that
+--   this function calls the addFullPaths function to make paths absolute.
+readPoseidonPackage :: PackageReadOptions -> FilePath -> IO PoseidonPackage
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -918,7 +922,7 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> ForgeOptions
+ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> Maybe FilePath -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
 [_forgeEntityList] :: ForgeOptions -> EntitiesList
 [_forgeEntityFiles] :: ForgeOptions -> [FilePath]
@@ -929,6 +933,7 @@ ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> 
 [_forgeOutMinimal] :: ForgeOptions -> Bool
 [_forgeShowWarnings] :: ForgeOptions -> Bool
 [_forgeNoExtract] :: ForgeOptions -> Bool
+[_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
