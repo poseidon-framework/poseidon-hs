@@ -1,5 +1,6 @@
 module Poseidon.EntitiesList (
-    PoseidonEntity (..), EntitySign (..), SignedEntitiesList, EntitiesList, 
+    PoseidonEntity (..), SignedEntity (..), 
+    SignedEntitiesList, EntitiesList, 
     readEntitiesFromFile, readPoseidonEntitiesString,
     entityIncludes, entityExcludes
     ) where
@@ -27,26 +28,26 @@ instance Show PoseidonEntity where
 
 type EntitiesList = [PoseidonEntity]
 
-data EntitySign a =
-      Include a
-    | Exclude a
+data SignedEntity = 
+      Include PoseidonEntity 
+    | Exclude PoseidonEntity
     deriving (Eq)
 
-instance Show a => Show (EntitySign a) where
+instance Show SignedEntity where
     show (Include a) = show a
     show (Exclude a) = "-" ++ show a
 
-type SignedEntitiesList = [EntitySign PoseidonEntity]
+type SignedEntitiesList = [SignedEntity]
 
-isInclude :: EntitySign a -> Bool
+isInclude :: SignedEntity -> Bool
 isInclude (Include _) = True
 isInclude _ = False
 
-isExclude :: EntitySign a -> Bool
+isExclude :: SignedEntity -> Bool
 isExclude (Exclude _) = True
 isExclude _ = False
 
-fromSignedEntity :: EntitySign a -> a
+fromSignedEntity :: SignedEntity -> PoseidonEntity
 fromSignedEntity (Include a) = a
 fromSignedEntity (Exclude a) = a
 
@@ -78,7 +79,7 @@ emptyLine = do
     _ <- P.manyTill (P.char ' ') (P.lookAhead P.newline)
     return []
 
-parsePoseidonEntity :: P.Parser (EntitySign PoseidonEntity)
+parsePoseidonEntity :: P.Parser SignedEntity
 parsePoseidonEntity = ap parseSign (parsePac <|> parseGroup <|> parseInd)
   where
     parseSign = (P.char '-' >> return Exclude) <|> (P.optional (P.char '+') >> return Include)
