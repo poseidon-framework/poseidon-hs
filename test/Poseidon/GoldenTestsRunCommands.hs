@@ -366,6 +366,26 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac4" </> "ForgePac4.fam"
         , "ForgePac4" </> "ForgePac4.janno"
         ]
+    -- forge test 5
+    let forgeOpts5 = ForgeOptions { 
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeEntityList   = fromRight [] $ readPoseidonEntitiesString ""
+        , _forgeEntityFiles  = []
+        , _forgeIntersect    = False
+        , _forgeOutPacPath   = testDir </> "ForgePac5"
+        , _forgeOutPacName   = Just "ForgePac5"
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
+    }
+    let action5 = runForge forgeOpts5 >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action5 "forge" [
+          "ForgePac5" </> "POSEIDON.yml"
+        , "ForgePac5" </> "ForgePac5.geno"
+        , "ForgePac5" </> "ForgePac5.janno"
+        ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that 
  -- sometimes we would like to implement new features that affect the communication
