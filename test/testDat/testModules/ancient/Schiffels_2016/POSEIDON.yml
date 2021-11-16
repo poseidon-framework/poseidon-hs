@@ -4,17 +4,19 @@ description: Genetic data published in Schiffels et al. 2016
 contributor:
 - name: Stephan Schiffels
   email: schiffels@institute.org
-packageVersion: 1.0.0
-lastModified: 2020-02-28
+packageVersion: 1.0.1
+lastModified: 2021-11-09
 genotypeData:
   format: EIGENSTRAT
   genoFile: geno.txt
-  genoFileChkSum: 95b093eefacc1d6499afcfe89b15d56c
+  genoFileChkSum: 0332344057c0c4dce2ff7176f8e1103d
   snpFile: snp.txt
-  snpFileChkSum: 6771d7c873219039ba3d5bdd96031ce3
+  snpFileChkSum: d76e3e7a8fc0f1f5e435395424b5aeab
   indFile: ind.txt
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
   snpSet: Other
 jannoFile: Schiffels_2016.janno
+jannoFileChkSum: 555d7733135ebcabd032d581381c5d6f
 bibFile: sources.bib
 bibFileChkSum: 70cd3d5801cee8a93fc2eb40a99c63fa
+changelogFile: CHANGELOG.md

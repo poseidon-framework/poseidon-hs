@@ -184,6 +184,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseMakeMinimalPackage
                               <*> parseShowWarnings
                               <*> parseNoExtract
+                              <*> parseMaybeSnpFile
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
@@ -449,6 +450,14 @@ parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection 
     \almost entire packages. \
     \Note that this will also ignore any ordering in the output groups/individuals. With this option active, \
     \individuals from the relevant packages will just be written in the order that they appear in the original packages.")
+
+parseMaybeSnpFile :: OP.Parser (Maybe FilePath)
+parseMaybeSnpFile = OP.option (Just <$> OP.str) (OP.value Nothing <> OP.long "selectSnps" <>
+    OP.help "To extract specific SNPs during this forge operation, provide a Snp file. \
+    \Can be either Eigenstrat (file ending must be '.snp') or Plink (file ending must be '.bim'). \
+    \When this option is set, the output package will have exactly the SNPs listed in this file. Any SNP not \
+    \listed in the file will be excluded. If option '--intersect' is also set, only the SNPs overlapping between the SNP file \
+    \and the forged packages are output.")
 
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividualsDummy *> parseListIndividualsExtraCols)
