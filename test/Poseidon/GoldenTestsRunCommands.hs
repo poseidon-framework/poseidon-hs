@@ -334,6 +334,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutMinimal   = False
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
     }
     let action3 = runForge forgeOpts3 >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
@@ -355,6 +356,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutMinimal   = False
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
     }
     let action4 = runForge forgeOpts4 >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
