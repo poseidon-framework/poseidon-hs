@@ -4,7 +4,7 @@ module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.EntitiesList          (PoseidonEntity (..))
+import           Poseidon.EntitiesList          (readPoseidonEntitiesString)
 import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init              (InitOptions (..), runInit)
@@ -22,6 +22,7 @@ import           Poseidon.SecondaryTypes        (ContributorSpec (..),
                                                  VersionComponent (..))
 
 import           Control.Monad                  (when, unless)
+import           Data.Either                    (fromRight)
 import qualified Data.Text.IO                   as T
 import qualified Data.Text                      as T
 import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
@@ -38,7 +39,9 @@ staticCheckSumFile = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 smallTestPacsDir :: FilePath
-smallTestPacsDir = "test/testDat/testModules/ancient" 
+smallTestPacsDir = "test/testDat/testModules/ancient"
+smallTestEntityFiles :: FilePath
+smallTestEntityFiles = "test/testDat/testEntityFiles"
 
 createStaticCheckSumFile :: FilePath -> IO ()
 createStaticCheckSumFile poseidonHSDir = runCLICommands 
@@ -46,6 +49,7 @@ createStaticCheckSumFile poseidonHSDir = runCLICommands
     (poseidonHSDir </> staticTestDir) 
     (poseidonHSDir </> staticCheckSumFile)
     (poseidonHSDir </> smallTestPacsDir)
+    (poseidonHSDir </> smallTestEntityFiles)
 
 createDynamicCheckSumFile :: IO ()
 createDynamicCheckSumFile = runCLICommands 
@@ -53,9 +57,10 @@ createDynamicCheckSumFile = runCLICommands
     tempTestDir 
     dynamicCheckSumFile
     smallTestPacsDir
+    smallTestEntityFiles
 
-runCLICommands :: Bool -> FilePath -> FilePath -> FilePath -> IO ()
-runCLICommands interactive testDir checkFilePath testPacsDir = do
+runCLICommands :: Bool -> FilePath -> FilePath -> FilePath -> FilePath -> IO ()
+runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = do
     -- create temp dir for test output
     tmpTestDirExists <- doesDirectoryExist testDir
     when tmpTestDirExists $ removeDirectoryRecursive testDir
@@ -84,7 +89,7 @@ runCLICommands interactive testDir checkFilePath testPacsDir = do
     hPutStrLn stderr "--- update ---"
     testPipelineUpdate testDir checkFilePath
     hPutStrLn stderr "--- forge ---"
-    testPipelineForge testDir checkFilePath
+    testPipelineForge testDir checkFilePath testEntityFiles
     hPutStrLn stderr "--- fetch ---"
     testPipelineFetch testDir checkFilePath
     -- close error sink
@@ -276,11 +281,12 @@ testPipelineUpdate testDir checkFilePath = do
         , "Schiffels" </> "CHANGELOG.md"
         ]
 
-testPipelineForge :: FilePath -> FilePath -> IO ()
-testPipelineForge testDir checkFilePath = do
+testPipelineForge :: FilePath -> FilePath -> FilePath -> IO ()
+testPipelineForge testDir checkFilePath testEntityFiles = do
+    -- forge test 1
     let forgeOpts1 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeEntityList   = [Group "POP2", Ind "SAMPLE2", Ind "SAMPLE4"]
+        , _forgeEntityList   = fromRight [] $ readPoseidonEntitiesString "POP2,<SAMPLE2>,<SAMPLE4>"
         , _forgeEntityFiles  = []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac1"
@@ -296,9 +302,10 @@ testPipelineForge testDir checkFilePath = do
         , "ForgePac1" </> "ForgePac1.geno"
         , "ForgePac1" </> "ForgePac1.janno"
         ]
+    -- forge test 2
     let forgeOpts2 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeEntityList   = [Group "POP2", Ind "SAMPLE2", Ind "SAMPLE4"]
+        , _forgeEntityList   = fromRight [] $ readPoseidonEntitiesString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>"
         , _forgeEntityFiles  = []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac2"
@@ -313,6 +320,48 @@ testPipelineForge testDir checkFilePath = do
           "ForgePac2" </> "POSEIDON.yml"
         , "ForgePac2" </> "ForgePac2.bed"
         ]
+    -- forge test 3
+    let forgeOpts3 = ForgeOptions { 
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeEntityList   = []
+        , _forgeEntityFiles  = [testEntityFiles </> "goldenTestForgeFile1.txt"]
+        , _forgeIntersect    = False
+        , _forgeOutPacPath   = testDir </> "ForgePac3"
+        , _forgeOutPacName   = Nothing
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+    }
+    let action3 = runForge forgeOpts3 >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action3 "forge" [
+          "ForgePac3" </> "POSEIDON.yml"
+        , "ForgePac3" </> "ForgePac3.geno"
+        , "ForgePac3" </> "ForgePac3.snp"
+        , "ForgePac3" </> "ForgePac3.ind"
+        , "ForgePac3" </> "ForgePac3.janno"
+        ]
+    -- forge test 4
+    let forgeOpts4 = ForgeOptions { 
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeEntityList   = []
+        , _forgeEntityFiles  = [testEntityFiles </> "goldenTestForgeFile2.txt"]
+        , _forgeIntersect    = False
+        , _forgeOutPacPath   = testDir </> "ForgePac4"
+        , _forgeOutPacName   = Nothing
+        , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeOutMinimal   = False
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+    }
+    let action4 = runForge forgeOpts4 >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action4 "forge" [
+          "ForgePac4" </> "POSEIDON.yml"
+        , "ForgePac4" </> "ForgePac4.bim"
+        , "ForgePac4" </> "ForgePac4.bed"
+        , "ForgePac4" </> "ForgePac4.fam"
+        , "ForgePac4" </> "ForgePac4.janno"
+        ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that 
  -- sometimes we would like to implement new features that affect the communication
@@ -323,7 +372,7 @@ testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
-        , _entityList       = [Pac "2019_Nikitin_LBK"]
+        , _entityList       = fromRight [] $ readPoseidonEntitiesString "*2019_Nikitin_LBK*"
         , _entityFiles      = []
         , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
         , _upgrade          = True
