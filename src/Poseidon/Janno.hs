@@ -42,6 +42,7 @@ import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Lazy          as HM
 import           Data.List                  (intercalate, nub, (\\), elemIndex)
 import           Data.Maybe                 (fromJust)
+import           Data.Text                  (pack, unpack, replace)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURI)
@@ -136,7 +137,7 @@ instance Csv.FromField JannoDataType where
         | x == "1240K" = pure A1240K
         | x == "OtherCapture" = pure OtherCapture
         | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise = fail $ "Data_Type " ++ show x ++ "  not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
+        | otherwise = fail $ "Data_Type " ++ show x ++ " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
 
 instance Csv.ToField JannoDataType where
     toField Shotgun         = "Shotgun"
@@ -397,8 +398,8 @@ instance ToJSON JannoRow where
 instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
-    parseNamedRecord m = pure JannoRow
-        <*> filterLookup         m "Individual_ID"
+    parseNamedRecord m = JannoRow 
+        <$> filterLookup         m "Individual_ID"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -590,7 +591,7 @@ readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonExce
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
-            return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ e
+            return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ removeUselessSuffix e
         Right (_, jannoRow :: V.Vector JannoRow) -> do
             case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
                 Left e -> do
@@ -602,6 +603,9 @@ decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
     Csv.decDelimiter = fromIntegral (ord '\t')
 }
+
+removeUselessSuffix :: String -> String
+removeUselessSuffix = unpack . replace " at \"\"" "" . pack
 
 -- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
 explicitNA :: Bch.ByteString -> Bch.ByteString
