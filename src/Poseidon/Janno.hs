@@ -66,8 +66,8 @@ instance Csv.FromField JannoSex where
         | x == "F" = pure (JannoSex Female)
         | x == "M" = pure (JannoSex Male)
         | x == "U" = pure (JannoSex Unknown)
-        | otherwise = empty
-
+        | otherwise = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
+ 
 instance Csv.ToField JannoSex where
     toField (JannoSex Female)  = "F"
     toField (JannoSex Male)    = "M"
@@ -106,7 +106,7 @@ instance Csv.FromField JannoDateType where
         | x == "C14" = pure C14
         | x == "contextual" = pure Contextual
         | x == "modern" = pure Modern
-        | otherwise = empty
+        | otherwise = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
 
 instance Csv.ToField JannoDateType where
     toField C14        = "C14"
@@ -136,7 +136,7 @@ instance Csv.FromField JannoDataType where
         | x == "1240K" = pure A1240K
         | x == "OtherCapture" = pure OtherCapture
         | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise = empty
+        | otherwise = fail $ "Data_Type " ++ show x ++ "  not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
 
 instance Csv.ToField JannoDataType where
     toField Shotgun         = "Shotgun"
@@ -164,7 +164,7 @@ instance Csv.FromField JannoGenotypePloidy where
     parseField x
         | x == "diploid" = pure Diploid
         | x == "haploid" = pure Haploid
-        | otherwise = empty
+        | otherwise = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
 
 instance Csv.ToField JannoGenotypePloidy where
     toField Diploid = "diploid"
@@ -192,7 +192,7 @@ instance Csv.FromField JannoUDG where
         | x == "half" = pure Half
         | x == "plus" = pure Plus
         | x == "mixed" = pure Mixed
-        | otherwise = empty
+        | otherwise = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
 
 instance Csv.ToField JannoUDG where
     toField Minus = "minus"
@@ -217,7 +217,7 @@ instance Csv.FromField JannoLibraryBuilt where
         | x == "ds" = pure DS
         | x == "ss" = pure SS
         | x == "other" = pure Other
-        | otherwise = empty
+        | otherwise = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
 
 instance Csv.ToField JannoLibraryBuilt where
     toField DS    = "ds"
@@ -248,7 +248,7 @@ instance Csv.FromField Latitude where
     parseField x = do
         val <- Csv.parseField x
         if val < -90 || val > 90
-        then empty
+        then fail $ "Latitude " ++ show x ++ " not between -90 and 90"
         else pure (Latitude val)
 
 instance Csv.ToField Latitude where
@@ -271,7 +271,7 @@ instance Csv.FromField Longitude where
     parseField x = do
         val <- Csv.parseField x
         if val < -180 || val > 180
-        then empty
+        then fail $ "Longitude " ++ show x ++ " not between -180 and 180"
         else pure (Longitude val)
 
 instance Csv.ToField Longitude where
@@ -294,7 +294,7 @@ instance Csv.FromField Percent where
     parseField x = do
         val <- Csv.parseField x
         if val < 0  || val > 100
-        then empty
+        then fail $ "Percent value " ++ show x ++ " not between 0 and 100"
         else pure (Percent val)
 
 instance Csv.ToField Percent where
@@ -316,7 +316,7 @@ instance Csv.FromField JURI where
     parseField x = do
         val <- Csv.parseField x
         if not $ isURI val
-        then empty 
+        then fail $ "URI " ++ show x ++ " not well structured"
         else pure $ JURI val
 
 instance Csv.ToField JURI where
