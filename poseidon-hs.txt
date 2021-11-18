@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.23.1
+@version 0.24.0
 
 module Poseidon.MathHelpers
 
@@ -440,12 +440,18 @@ data PoseidonEntity
 Pac :: String -> PoseidonEntity
 Group :: String -> PoseidonEntity
 Ind :: String -> PoseidonEntity
+data SignedEntity
+Include :: PoseidonEntity -> SignedEntity
+Exclude :: PoseidonEntity -> SignedEntity
+type SignedEntitiesList = [SignedEntity]
 type EntitiesList = [PoseidonEntity]
-
--- | A parser to parse entities
-poseidonEntitiesParser :: Parser EntitiesList
-readEntitiesFromFile :: FilePath -> IO EntitiesList
+readEntitiesFromFile :: FilePath -> IO SignedEntitiesList
+readPoseidonEntitiesString :: String -> Either String SignedEntitiesList
+entityIncludes :: SignedEntitiesList -> EntitiesList
+entityExcludes :: SignedEntitiesList -> EntitiesList
 instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
+instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
+instance GHC.Show.Show Poseidon.EntitiesList.SignedEntity
 instance GHC.Show.Show Poseidon.EntitiesList.PoseidonEntity
 
 module Poseidon.BibFile
@@ -765,9 +771,9 @@ convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
 
 module Poseidon.CLI.Fetch
 data FetchOptions
-FetchOptions :: [FilePath] -> EntitiesList -> [FilePath] -> String -> Bool -> Bool -> FetchOptions
+FetchOptions :: [FilePath] -> SignedEntitiesList -> [FilePath] -> String -> Bool -> Bool -> FetchOptions
 [_jaBaseDirs] :: FetchOptions -> [FilePath]
-[_entityList] :: FetchOptions -> EntitiesList
+[_entityList] :: FetchOptions -> SignedEntitiesList
 [_entityFiles] :: FetchOptions -> [FilePath]
 [_remoteURL] :: FetchOptions -> String
 [_upgrade] :: FetchOptions -> Bool
@@ -920,9 +926,9 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> EntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> Maybe FilePath -> ForgeOptions
+ForgeOptions :: [FilePath] -> SignedEntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> Maybe FilePath -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
-[_forgeEntityList] :: ForgeOptions -> EntitiesList
+[_forgeEntityList] :: ForgeOptions -> SignedEntitiesList
 [_forgeEntityFiles] :: ForgeOptions -> [FilePath]
 [_forgeIntersect] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
