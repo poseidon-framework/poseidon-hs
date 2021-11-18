@@ -1,12 +1,13 @@
+- V 0.24.0: Made entities parsing in forgeFiles much more powerful, adding exclusion of entities and comments. The changes should be fully backwards compatible
 - V 0.23.1: Cleaned up reduncy genotype checking in validate
-- V 0.23.0: Added a feature to select SNPs during forge.
+- V 0.23.0: Added a feature to select SNPs during forge
 - V 0.22.0: Added a --minimal option for init and forge to create minimal packages without .janno and .bib (e.g. in automatic pipelines)
 - V 0.21.3: Added a column name suggestion mechanism to the .janno file reading procedure
 - V 0.21.2: Made trident survey more useful
 - V 0.21.1: Simplified package creation in init and forge by enabling creation of deeper paths and by making the output package name argument optional
 - V 0.21.0: Added a poseidonVersion pre-parsing check in the reading pipeline, which strictly excludes packages with missing or wrong version
-- V 0.20.1: Updated poseidon-http-server with new APIs and updated previous APIs.
-- V 0.20.0: New forging algorithm, much faster, and new option --no-extract in forge. Also new minimal package template.
+- V 0.20.1: Updated poseidon-http-server with new APIs and updated previous APIs
+- V 0.20.0: New forging algorithm, much faster, and new option --no-extract in forge. Also new minimal package template
 - V 0.19.0: Replaced trident checksumupdate with the much more powerful trident update
 - V 0.18.2: Added a golden test feature to make sure code changes do not accidentally modify the output of trident modules
 - V 0.18.1: Removes Pandoc-dependency by implementing a custom bibtex-parser
@@ -14,7 +15,7 @@
 - V 0.17.4: Fixed a critical bug in janno file encoding
 - V 0.17.3: Fixed all issues flagged by the --pedantic compiler setting
 - V 0.17.2: A better internal configuration solution for readPoseidonPackage(Collection)
-- V 0.17.1: Made snpSet non-mandatory to keep backwards-compatibility.
+- V 0.17.1: Made snpSet non-mandatory to keep backwards-compatibility
 - V 0.17.0: Added and changed fields in the POSEIDON.yml and .janno file data types as defined in Poseidon V 2.3.1
 - V 0.16.0: Added a verbose switch to the package reading functions. It's only available with validate (--verbose) to show all sorts of additional output, at the moment only unspecified and missing janno columns
 - V 0.15.2: Better handling of individuals linked to multiple groups/populations in list
@@ -30,7 +31,7 @@
 - V 0.11.0: Added the module genoconvert to automatically switch the genotype data format in packages
 - V 0.10.0: List now has --remote option to view packages, groups and individuals on a remote server
 - V 0.9.0: Plink output now supported in forge.
-- V 0.8.0: Forge now has new option --intersect to control merging behaviour.
+- V 0.8.0: Forge now has new option --intersect to control merging behaviour
 - V 0.7.3: Enabled the validate module to handle duplicated packages
 - V 0.7.2: Turned off checksum validation for every module but validate
 - V 0.7.1: Added a check for ID duplicates when reading package collections
