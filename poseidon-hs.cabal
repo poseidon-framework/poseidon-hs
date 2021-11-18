@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             0.23.1
+version:             0.24.0
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -56,7 +56,8 @@ Test-Suite poseidon-tools-tests
   other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
                        Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
-                       Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands
+                       Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
+                       Poseidon.EntitiesListSpec
   default-language:    Haskell2010
 
 executable poseidon-devtools

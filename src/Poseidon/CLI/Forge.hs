@@ -2,8 +2,8 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (EntitiesList, PoseidonEntity (..),
-                                              readEntitiesFromFile)
+import           Poseidon.EntitiesList       (SignedEntitiesList, EntitiesList, PoseidonEntity (..),
+                                              readEntitiesFromFile, entityIncludes, entityExcludes)
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
@@ -43,7 +43,7 @@ import           System.IO                   (hPutStrLn, stderr)
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
-    , _forgeEntityList   :: EntitiesList
+    , _forgeEntityList   :: SignedEntitiesList
     , _forgeEntityFiles  :: [FilePath]
     , _forgeIntersect    :: Bool
     , _forgeOutPacPath   :: FilePath
@@ -70,30 +70,38 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
+        entitiesToIncludePreliminary = entityIncludes entities
+        entitiesToExclude = entityExcludes entities
     -- load packages --
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    -- fill entitiesToInclude with all packages, if entitiesToIncludePreliminary is empty
+    let entitiesToInclude = if null entitiesToIncludePreliminary
+                            then map (Pac . posPacTitle) allPackages
+                            else entitiesToIncludePreliminary
     -- check for entities that do not exist this this dataset
-    nonExistentEntities <- findNonExistentEntities entities allPackages
+    nonExistentEntities <- findNonExistentEntities (entitiesToInclude ++ entitiesToExclude) allPackages
     unless (null nonExistentEntities) $
         hPutStrLn stderr $ "The following entities do not exist in this dataset and will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
     -- determine relevant packages
-    relevantPackages <- filterPackages entities allPackages
+    relevantPackages <- filterPackages (entitiesToInclude \\ entitiesToExclude) allPackages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
-    when (null relevantPackages) $
-        throwM PoseidonEmptyForgeException
+    when (null relevantPackages) $ throwM PoseidonEmptyForgeException
     -- collect data --
     -- janno
-    let namesOfRelevantPackages = map posPacTitle relevantPackages
-    let jannos = map posPacJanno relevantPackages
-    let relevantJannoRows = filterJannoFiles entities $ zip namesOfRelevantPackages jannos
+    let pacNameJannoRows = zip (map posPacTitle relevantPackages) (map posPacJanno relevantPackages)
+        jannoRowsToInclude = filterJannoFiles entitiesToInclude pacNameJannoRows
+        jannoRowsToExluce = filterJannoFiles entitiesToExclude pacNameJannoRows
+        relevantJannoRows = jannoRowsToInclude \\ jannoRowsToExluce
     -- check for duplicates among the individuals selected for merging
     checkIndividualsUniqueJanno relevantJannoRows
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
-    let relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
-    -- genotype data
-    indices <- extractEntityIndices entities relevantPackages
+        relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
+    -- genotype data individual indizes
+    indicesToInclude <- extractEntityIndices entitiesToInclude relevantPackages
+    indicesToExclude <- extractEntityIndices entitiesToExclude relevantPackages
+    let indices = indicesToInclude \\ indicesToExclude
     -- create new package --
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x -> x

@@ -11,8 +11,8 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.EntitiesList  (PoseidonEntity (..),
-                                        poseidonEntitiesParser)
+import           Poseidon.EntitiesList  (SignedEntitiesList,
+                                        readPoseidonEntitiesString)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
@@ -324,37 +324,42 @@ readStatSpecString s = case runParser fStatSpecParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
-parseForgeEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
 parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
         \<individual_id>. You can combine multiple values with comma, so for example: \
-        \\"*package_1*, <individual_1>, <individual_2>, group_1\""))
+        \\"*package_1*, <individual_1>, <individual_2>, group_1\". Duplicates are treated as one entry. \
+        \Negative selection is possible by prepending \"-\" to the entity you want to exclude \
+        \(e.g. \"*package_1*, -<individual_1>, -group_1\"). \
+        \forge will first of all collect all entities to include (so the ones without \"-\") \
+        \and then subtract the ones to exclude. If only a negative selection, so only entities for exclusion, \
+        \are listed in the forgeString, then forge will assume you want to merge all individuals in the \
+        \packages found in the baseDirs (except the ones explicitly excluded). \
+        \An empty forgeString will therefore merge all available individuals."))
 
-parseFetchEntitiesDirect :: OP.Parser [PoseidonEntity]
+parseFetchEntitiesDirect :: OP.Parser SignedEntitiesList
 parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
     OP.short 'f' <>
     OP.help "List of packages to be downloaded from the remote server. \
-        \Package names should be wrapped in asterisks: *package_title*. You can combine multiple values with comma, so for example: \
-        \\"*package_1*, *package_2*, *package_3*\""))
+        \Package names should be wrapped in asterisks: *package_title*. \
+        \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
+        \fetchString uses the same parser as forgeString, but discards everything but packages."))
 
 parseForgeEntitiesFromFile :: OP.Parser [FilePath]
 parseForgeEntitiesFromFile = OP.many (OP.strOption (OP.long "forgeFile" <>
     OP.help "A file with a list of packages, groups or individual samples. \
-    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-    \-f and --forgeFile can be combined."))
+        \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
+        \Empty lines are ignored and comments start with \"#\", so everything after \"#\" is ignored \
+        \in one line. \
+        \-f and --forgeFile can be combined."))
 
 parseFetchEntitiesFromFile :: OP.Parser [FilePath]
 parseFetchEntitiesFromFile = OP.many (OP.strOption (OP.long "fetchFile" <>
     OP.help "A file with a list of packages. \
-    \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-    \-f and --fetchFile can be combined."))
-
-readPoseidonEntitiesString :: String -> Either String [PoseidonEntity]
-readPoseidonEntitiesString s = case runParser poseidonEntitiesParser () "" s of
-    Left p  -> Left (show p)
-    Right x -> Right x
+        \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
+        \-f and --fetchFile can be combined."))
 
 parseIntersect :: OP.Parser (Bool)
 parseIntersect = OP.switch (OP.long "intersect" <>
