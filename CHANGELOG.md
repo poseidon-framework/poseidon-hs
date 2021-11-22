@@ -1,3 +1,4 @@
+- V 0.24.1: Added the subcommand summarize as a synonym for summarise to trident
 - V 0.24.0: Made entities parsing in forgeFiles much more powerful, adding exclusion of entities and comments. The changes should be fully backwards compatible
 - V 0.23.1: Cleaned up reduncy genotype checking in validate
 - V 0.23.0: Added a feature to select SNPs during forge

@@ -105,6 +105,7 @@ optParser = OP.subparser (
     OP.subparser (
         OP.command "list" listOptInfo <>
         OP.command "summarise" summariseOptInfo <>
+        OP.command "summarize" summarizeOptInfo <>
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
@@ -128,6 +129,8 @@ optParser = OP.subparser (
         (OP.progDesc "Convert the genotype data in a Poseidon package to a different file format")
     summariseOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
         (OP.progDesc "Get an overview over the content of one or multiple Poseidon packages")
+    summarizeOptInfo = OP.info (OP.helper <*> (CmdSummarise <$> summariseOptParser))
+        (OP.progDesc "Synonym for summarise")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages" <>
         OP.footerDoc (Just $ string $
