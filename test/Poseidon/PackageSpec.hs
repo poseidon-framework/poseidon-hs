@@ -217,6 +217,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True False pacs Nothing
             P.toListM jointProd
+        length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
                                   V.fromList $ [Het, Het, HomAlt, Het, HomRef, HomRef, Het, HomRef, HomRef, HomAlt] ++ replicate 10 Missing)
         jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.026288 "2_1018704" 'A' 'G',
@@ -226,6 +227,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True True pacs Nothing
             P.toListM jointProd
+        length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
                                   V.fromList $ [HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt,
                                                 HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
@@ -248,6 +250,16 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                 (_, jointProd) <- getJointGenotypeData True False pacs (Just "test/testDat/snpFile_unordered.snp")
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
+    it "should skip incongruent alleles" $ do
+        let pacFiles2 = ["test/testDat/testModules/ancient/Lamnidis_2018/POSEIDON.yml",
+                         "test/testDat/testModules/Schiffels_2016_incongruent/POSEIDON.yml"]
+        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles2
+        jointDat <- runSafeT $ do
+            (_, jointProd) <- getJointGenotypeData True False pacs Nothing
+            P.toListM jointProd
+        length jointDat `shouldBe` 7
+
+
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
