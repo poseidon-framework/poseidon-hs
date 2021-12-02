@@ -252,7 +252,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
         makeJointDat `shouldThrow` isInputOrderException
     it "should skip incongruent alleles" $ do
         let pacFiles2 = ["test/testDat/testModules/ancient/Lamnidis_2018/POSEIDON.yml",
-                         "test/testDat/testModules/Schiffels_2016_incongruent/POSEIDON.yml"]
+                         "test/testDat/testModules/test_incongruent_snps/POSEIDON.yml"]
         pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True False pacs Nothing
