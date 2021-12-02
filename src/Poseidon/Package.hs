@@ -517,6 +517,9 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         (Just snp, Nothing) -> unless intersect $ yield (snp, V.replicate n Missing)
         _ ->  return ()
 
+-- | A pipe to merge the genotype entries from multiple packages.
+-- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
+-- If showAllWarnings == True, then a warning is printed,
 joinEntryPipe :: (MonadIO m) => Bool -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
 joinEntryPipe showAllWarnings nrInds pacNames = for cat $ \maybeEntries -> do
     eitherJE <- liftIO . try $ joinEntries showAllWarnings nrInds pacNames maybeEntries
