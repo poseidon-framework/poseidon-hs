@@ -39,6 +39,7 @@ import           Poseidon.Utils             (PoseidonException (..),
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
@@ -493,7 +494,7 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         nrInds          = map length indEntries
         pacNames        = map posPacTitle pacs
         prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
-                                P.filter filterUnionOrIntersection >-> P.mapM (joinEntries showAllWarnings nrInds pacNames)
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe showAllWarnings nrInds pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -515,6 +516,18 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         (Just _, Just (es, gl)) -> yield (es, gl)
         (Just snp, Nothing) -> unless intersect $ yield (snp, V.replicate n Missing)
         _ ->  return ()
+
+-- | A pipe to merge the genotype entries from multiple packages.
+-- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
+-- If showAllWarnings == True, then a warning is printed,
+joinEntryPipe :: (MonadIO m) => Bool -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe showAllWarnings nrInds pacNames = for cat $ \maybeEntries -> do
+    eitherJE <- liftIO . try $ joinEntries showAllWarnings nrInds pacNames maybeEntries
+    case eitherJE of
+        Left (PoseidonGenotypeException err) ->
+            when showAllWarnings . liftIO . hPutStrLn stderr $ "Skipping SNP due to " ++ err
+        Left e -> liftIO . throwIO $ e
+        Right jE -> yield jE
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
