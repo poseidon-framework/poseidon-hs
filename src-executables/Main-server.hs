@@ -167,7 +167,7 @@ pacReadOpts = defaultPackageReadOptions {
       _readOptVerbose          = False
     , _readOptStopOnDuplicates = True
     , _readOptIgnoreChecksums  = False
-    , _readOptGenoCheck        = True
+    , _readOptGenoCheck        = False
     }
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
