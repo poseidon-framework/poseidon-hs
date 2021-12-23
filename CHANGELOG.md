@@ -1,3 +1,4 @@
+- V 0.24.4: switched off geno-check upon server start
 - V 0.24.3: Incongruent SNPs are now skipped, with an optional warning.
 - V 0.24.2: Better error messages for broken .janno files
 - V 0.24.1: Added the subcommand summarize as a synonym for summarise to trident
