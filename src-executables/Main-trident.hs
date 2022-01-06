@@ -1,9 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Paths_poseidon_hs      (version)
-import           Poseidon.CLI.FStats    (FStatSpec (..), FstatsOptions (..),
-                                        JackknifeMode (..), fStatSpecParser,
-                                        runFstats, runParser)
 import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
@@ -22,23 +19,21 @@ import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVe
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
                                         poseidonVersionParser, 
-                                        contributorSpecParser)
+                                        contributorSpecParser,
+                                        runParser)
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
-import           Data.ByteString.Char8  (pack, splitWith)
 import           Data.List              (intercalate)
 import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           Options.Applicative.Help.Pretty (string)
-import           SequenceFormats.Utils  (Chrom (..))
 import           System.Exit            (exitFailure)
 import           System.IO              (hPutStrLn, stderr)
-import           Text.Read              (readEither)
 
-data Options = CmdFstats FstatsOptions
+data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
     | CmdList ListOptions
     | CmdFetch FetchOptions
@@ -64,7 +59,7 @@ main = do
 
 runCmd :: Options -> IO ()
 runCmd o = case o of
-    CmdFstats opts    -> runFstats opts
+    CmdFstats    -> runFstatsDummy
     CmdInit opts      -> runInit opts
     CmdList opts      -> runList opts
     CmdFetch opts     -> runFetch opts
@@ -74,6 +69,12 @@ runCmd o = case o of
     CmdSurvey opts    -> runSurvey opts
     CmdUpdate opts -> runUpdate opts
     CmdValidate opts  -> runValidate opts
+  where
+    runFstatsDummy = hPutStrLn stderr fstatsErrorMessage 
+
+fstatsErrorMessage :: String
+fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
+    \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
@@ -112,11 +113,10 @@ optParser = OP.subparser (
     ) <|>
     OP.subparser (
         OP.command "fstats" fstatsOptInfo <>
-        OP.commandGroup "Analysis commands:"
+        OP.commandGroup "Former analysis command:"
     )
   where
-    fstatsOptInfo = OP.info (OP.helper <*> (CmdFstats <$> fstatsOptParser))
-        (OP.progDesc "Run fstats on groups and invidiuals within and across Poseidon packages")
+    fstatsOptInfo = OP.info (pure CmdFstats) (OP.progDesc fstatsErrorMessage) -- dummy for now
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
@@ -143,14 +143,6 @@ optParser = OP.subparser (
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
-
-fstatsOptParser :: OP.Parser FstatsOptions
-fstatsOptParser = FstatsOptions <$> parseBasePaths
-                                <*> parseJackknife
-                                <*> parseExcludeChroms
-                                <*> OP.many parseStatSpecsDirect
-                                <*> parseStatSpecsFromFile
-                                <*> parseRawOutput
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeFormat
@@ -287,45 +279,6 @@ parseForce = OP.switch (
             \With --force a package version update can be triggered even \
             \if this is not the case."
     )
-
-parseJackknife :: OP.Parser JackknifeMode
-parseJackknife = OP.option (OP.eitherReader readJackknifeString) (OP.long "jackknife" <> OP.short 'j' <>
-    OP.help "Jackknife setting. If given an integer number, this defines the block size in SNPs. \
-        \Set to \"CHR\" if you want jackknife blocks defined as entire chromosomes. The default is at 5000 SNPs" <> OP.value (JackknifePerN 5000))
-  where
-    readJackknifeString :: String -> Either String JackknifeMode
-    readJackknifeString s = case s of
-        "CHR"  -> Right JackknifePerChromosome
-        numStr -> let num = readEither numStr
-                  in  case num of
-                        Left e  -> Left e
-                        Right n -> Right (JackknifePerN n)
-
-parseExcludeChroms :: OP.Parser [Chrom]
-parseExcludeChroms = OP.option (map Chrom . splitWith (==',') . pack <$> OP.str) (OP.long "excludeChroms" <> OP.short 'e' <>
-    OP.help "List of chromosome names to exclude chromosomes, given as comma-separated \
-        \list. Defaults to X, Y, MT, chrX, chrY, chrMT, 23,24,90" <> OP.value [Chrom "X", Chrom "Y", Chrom "MT",
-        Chrom "chrX", Chrom "chrY", Chrom "chrMT", Chrom "23", Chrom "24", Chrom "90"])
-
-parseStatSpecsDirect :: OP.Parser FStatSpec
-parseStatSpecsDirect = OP.option (OP.eitherReader readStatSpecString) (OP.long "stat" <>
-    OP.help "Specify a summary statistic to be computed. Can be given multiple times. \
-        \Possible options are: F4(name1, name2, name3, name4), and similarly F3 and F2 stats, \
-        \as well as PWM(name1,name2) for pairwise mismatch rates. Group names are by default \
-        \matched with group names as indicated in the PLINK or Eigenstrat files in the Poseidon dataset. \
-        \You can also specify individual names using the syntax \"<Ind_name>\", so enclosing them \
-        \in angular brackets. You can also mix groups and individuals, like in \
-        \\"F4(<Ind1>,Group2,Group3,<Ind4>)\". Group or individual names are separated by commas, and a comma \
-        \can be followed by any number of spaces, as in some of the examples in this help text.")
-
-parseStatSpecsFromFile :: OP.Parser (Maybe FilePath)
-parseStatSpecsFromFile = OP.option (Just <$> OP.str) (OP.long "statFile" <> OP.help "Specify a file with F-Statistics specified \
-    \similarly as specified for option --stat. One line per statistics, and no new-line at the end" <> OP.value Nothing)
-
-readStatSpecString :: String -> Either String FStatSpec
-readStatSpecString s = case runParser fStatSpecParser () "" s of
-    Left p  -> Left (show p)
-    Right x -> Right x
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
 parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
