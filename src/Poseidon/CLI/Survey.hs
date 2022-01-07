@@ -97,12 +97,12 @@ renderJannoCompleteness jS =
     : getColChar jS jDateBCADStop
     : getColChar jS jDateType
     : getColChar jS jNrLibraries
-    : getColChar jS jDataType
+    : getColChar jS jCaptureType
     : getColChar jS jGenotypePloidy
     : '█' 
     : '█'
-    : getColChar jS jNrAutosomalSNPs
-    : getColChar jS jCoverage1240K
+    : getColChar jS jNrSNPs
+    : getColChar jS jCoverageOnTargets
     : getColChar jS jMTHaplogroup
     : getColChar jS jYHaplogroup
     : getColChar jS jEndogenous

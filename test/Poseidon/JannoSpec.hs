@@ -7,7 +7,7 @@ import           Poseidon.Janno            (JannoRow (..),
                                             Latitude (..),
                                             Longitude (..),
                                             JannoDateType (..),
-                                            JannoDataType (..),
+                                            JannoCaptureType (..),
                                             JannoGenotypePloidy (..),
                                             Percent (..),
                                             JannoUDG (..),
@@ -43,11 +43,11 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateC14UncalBP janno `shouldBe` [Nothing, Nothing, Nothing]
         map jDateBCADMedian janno `shouldBe` [Nothing, Nothing, Nothing]
         map jDateType janno       `shouldBe` [Nothing, Nothing, Nothing]
-        map jDataType janno       `shouldBe` [Nothing, Nothing, Nothing]
+        map jCaptureType janno       `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno `shouldBe` [Nothing, Nothing, Nothing]
         map jGroupName janno      `shouldBe` [JannoList ["POP1"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
-        map jCoverage1240K janno  `shouldBe` [Nothing, Nothing, Nothing]
+        map jCoverageOnTargets janno  `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jLibraryBuilt janno   `shouldBe` [Nothing, Nothing, Nothing]
         map jDamage janno         `shouldBe` [Nothing, Nothing, Nothing]
@@ -66,11 +66,11 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateC14UncalBP janno `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
         map jDateBCADMedian janno `shouldBe` [Just (-1000), Just (-5000), Just 2000]
         map jDateType janno       `shouldBe` [Just C14, Just Contextual, Just Modern]
-        map jDataType janno       `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
+        map jCaptureType janno       `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
         map jGroupName janno      `shouldBe` [JannoList ["POP1", "POP3"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno     `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
-        map jCoverage1240K janno  `shouldBe` [Just 0, Just 0, Just 0]
+        map jCoverageOnTargets janno  `shouldBe` [Just 0, Just 0, Just 0]
         map jUDG janno            `shouldBe` [Just Minus, Just Half, Just Plus]
         map jLibraryBuilt janno   `shouldBe` [Just DS, Just SS, Just Other]
         map jDamage janno         `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]

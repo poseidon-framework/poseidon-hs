@@ -11,7 +11,7 @@ module Poseidon.Janno (
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
-    JannoDataType (..),
+    JannoCaptureType (..),
     JannoGenotypePloidy (..),
     Percent (..),
     JannoUDG (..),
@@ -119,33 +119,33 @@ instance Show JannoDateType where
     show Contextual = "contextual"
     show Modern     = "modern"
 
--- |A datatype to represent Data_Type in a janno file
-data JannoDataType = Shotgun
+-- |A datatype to represent Capture_Type in a janno file
+data JannoCaptureType = Shotgun
     | A1240K
     | OtherCapture
     | ReferenceGenome
     deriving (Eq, Ord, Generic)
 
-instance ToJSON JannoDataType where
+instance ToJSON JannoCaptureType where
     toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON JannoDataType
+instance FromJSON JannoCaptureType
 
-instance Csv.FromField JannoDataType where
+instance Csv.FromField JannoCaptureType where
     parseField x
         | x == "Shotgun" = pure Shotgun
         | x == "1240K" = pure A1240K
         | x == "OtherCapture" = pure OtherCapture
         | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise = fail $ "Data_Type " ++ show x ++ " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
+        | otherwise = fail $ "Capture_Type " ++ show x ++ " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
 
-instance Csv.ToField JannoDataType where
+instance Csv.ToField JannoCaptureType where
     toField Shotgun         = "Shotgun"
     toField A1240K          = "1240K"
     toField OtherCapture    = "OtherCapture"
     toField ReferenceGenome = "ReferenceGenome"
 
-instance Show JannoDataType where
+instance Show JannoCaptureType where
     show Shotgun         = "Shotgun"
     show A1240K          = "1240K"
     show OtherCapture    = "OtherCapture"
@@ -367,12 +367,12 @@ data JannoRow = JannoRow
     , jDateBCADStop                 :: Maybe Int
     , jDateType                     :: Maybe JannoDateType
     , jNrLibraries                  :: Maybe Int
-    , jDataType                     :: Maybe (JannoList JannoDataType)
+    , jCaptureType                  :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy               :: Maybe JannoGenotypePloidy
     , jGroupName                    :: JannoStringList
     , jGeneticSex                   :: JannoSex
-    , jNrAutosomalSNPs              :: Maybe Int
-    , jCoverage1240K                :: Maybe Double
+    , jNrSNPs                       :: Maybe Int
+    , jCoverageOnTargets            :: Maybe Double
     , jMTHaplogroup                 :: Maybe String
     , jYHaplogroup                  :: Maybe String
     , jEndogenous                   :: Maybe Percent
@@ -399,7 +399,7 @@ instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = JannoRow 
-        <$> filterLookup         m "Individual_ID"
+        <$> filterLookup         m "Poseidon_ID"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -414,13 +414,13 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_BC_AD_Start"
         <*> filterLookupOptional m "Date_BC_AD_Stop"
         <*> filterLookupOptional m "Date_Type"
-        <*> filterLookupOptional m "No_of_Libraries"
-        <*> filterLookupOptional m "Data_Type"
+        <*> filterLookupOptional m "Nr_Libraries"
+        <*> filterLookupOptional m "Capture_Type"
         <*> filterLookupOptional m "Genotype_Ploidy"
         <*> filterLookup         m "Group_Name"
         <*> filterLookup         m "Genetic_Sex"
-        <*> filterLookupOptional m "Nr_autosomal_SNPs"
-        <*> filterLookupOptional m "Coverage_1240K"
+        <*> filterLookupOptional m "Nr_SNPs"
+        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
         <*> filterLookupOptional m "MT_Haplogroup"
         <*> filterLookupOptional m "Y_Haplogroup"
         <*> filterLookupOptional m "Endogenous"
@@ -434,7 +434,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
         <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
         <*> filterLookupOptional m "Primary_Contact"
-        <*> filterLookupOptional m "Publication_Status"
+        <*> filterLookupOptional m "Publication"
         <*> filterLookupOptional m "Note"
         <*> filterLookupOptional m "Keywords"
 
@@ -456,7 +456,7 @@ ignoreNA Nothing      = Nothing
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [
-          "Individual_ID"                   Csv..= jIndividualID j
+          "Poseidon_ID"                     Csv..= jIndividualID j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Source_Tissue"                   Csv..= jSourceTissue j
         , "Country"                         Csv..= jCountry j
@@ -471,13 +471,13 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
         , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
         , "Date_Type"                       Csv..= jDateType j
-        , "No_of_Libraries"                 Csv..= jNrLibraries j
-        , "Data_Type"                       Csv..= jDataType j
+        , "Nr_Libraries"                    Csv..= jNrLibraries j
+        , "Capture_Type"                    Csv..= jCaptureType j
         , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
         , "Group_Name"                      Csv..= jGroupName j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
-        , "Nr_autosomal_SNPs"               Csv..= jNrAutosomalSNPs j
-        , "Coverage_1240K"                  Csv..= jCoverage1240K j
+        , "Nr_SNPs"                         Csv..= jNrSNPs j
+        , "Coverage_on_Target_SNPs"         Csv..= jCoverageOnTargets j
         , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
         , "Y_Haplogroup"                    Csv..= jYHaplogroup j
         , "Endogenous"                      Csv..= jEndogenous j
@@ -491,7 +491,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
         , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL j
         , "Primary_Contact"                 Csv..= jPrimaryContact j
-        , "Publication_Status"              Csv..= jPublication j
+        , "Publication"                     Csv..= jPublication j
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
         ]
@@ -500,14 +500,14 @@ instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
 jannoHeader :: [Bchs.ByteString]
-jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
+jannoHeader = ["Poseidon_ID","Collection_ID","Source_Tissue","Country",
     "Location","Site","Latitude","Longitude","Date_C14_Labnr",
     "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
-    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
-    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
+    "Date_BC_AD_Stop","Date_Type","Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
+    "Genetic_Sex","Nr_SNPs","Coverage_on_Target_SNPs","MT_Haplogroup","Y_Haplogroup",
     "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
     "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
-    "Primary_Contact","Publication_Status","Note","Keywords"
+    "Primary_Contact","Publication","Note","Keywords"
     ]
 
 jannoHeaderString :: [String]
@@ -644,12 +644,12 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateBCADStop                 = Nothing
         , jDateType                     = Nothing
         , jNrLibraries                  = Nothing
-        , jDataType                     = Nothing
+        , jCaptureType                  = Nothing
         , jGenotypePloidy               = Nothing
         , jGroupName                    = JannoList [pop]
         , jGeneticSex                   = JannoSex sex
-        , jNrAutosomalSNPs              = Nothing
-        , jCoverage1240K                = Nothing
+        , jNrSNPs                       = Nothing
+        , jCoverageOnTargets            = Nothing
         , jMTHaplogroup                 = Nothing
         , jYHaplogroup                  = Nothing
         , jEndogenous                   = Nothing
@@ -673,7 +673,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 checkJannoConsistency :: FilePath -> [JannoRow] -> Either PoseidonException [JannoRow]
 checkJannoConsistency jannoPath xs
     | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath
-        "The Individual_IDs are not unique"
+        "The Poseidon_IDs are not unique"
     | otherwise = Right xs
 
 checkIndividualUnique :: [JannoRow] -> Bool
@@ -682,7 +682,7 @@ checkIndividualUnique x = length x == length (nub $ map jIndividualID x)
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
     | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonJannoRowException jannoPath row
-          "The mandatory columns Individual_ID and Group_Name contain empty values"
+          "The mandatory columns Poseidon_ID and Group_Name contain empty values"
     | not $ checkC14ColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
           "The columns Date_C14_Labnr, Date_C14_Uncal_BP, Date_C14_Uncal_BP_Err and Date_Type are not consistent"
     | otherwise = Right x

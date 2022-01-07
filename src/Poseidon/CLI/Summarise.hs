@@ -54,8 +54,8 @@ summariseJannoRows xs rawOutput = do
                 ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup xs],
                 ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map jYHaplogroup xs],
                 ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe jEndogenous xs],
-                ["Nr of SNPs on 1240K", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrAutosomalSNPs xs],
-                ["Coverage on 1240K", meanAndSdRoundTo 2 $ mapMaybe jCoverage1240K xs],
+                ["Nr of SNPs", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrSNPs xs],
+                ["Coverage on target SNPs", meanAndSdRoundTo 2 $ mapMaybe jCoverageOnTargets xs],
                 ["Library type", printFrequencyMaybe ", " $ frequency $ map jLibraryBuilt xs],
                 ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map jUDG xs]
                 ]

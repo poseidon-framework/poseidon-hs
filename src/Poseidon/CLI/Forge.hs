@@ -134,7 +134,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
         writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
     hPutStrLn stderr "Compiling genotype data"
-    newNrAutosomalSNPs <- runSafeT $ do
+    newNrSNPs <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages maybeSnpFile
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
@@ -162,10 +162,10 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     liftIO $ hPutStrLn stderr "Done"
     unless minimal $ do
         hPutStrLn stderr "Creating .janno file"
-        autosomalSnpList <- VU.freeze newNrAutosomalSNPs
-        let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrAutosomalSNPs = Just y})
+        snpList <- VU.freeze newNrSNPs
+        let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrSNPs = Just y})
                                                 relevantJannoRows
-                                                (VU.toList autosomalSnpList)
+                                                (VU.toList snpList)
         writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
 
 
