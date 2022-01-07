@@ -78,6 +78,22 @@ PackageInfo :: String -> Maybe Version -> Maybe String -> Maybe Day -> Int -> Pa
 [pDescription] :: PackageInfo -> Maybe String
 [pLastModified] :: PackageInfo -> Maybe Day
 [pNrIndividuals] :: PackageInfo -> Int
+
+-- | The most general way to run a parser over the Identity monad.
+--   <tt>runParser p state filePath input</tt> runs parser <tt>p</tt> on
+--   the input list of tokens <tt>input</tt>, obtained from source
+--   <tt>filePath</tt> with the initial user state <tt>st</tt>. The
+--   <tt>filePath</tt> is only used in error messages and may be the empty
+--   string. Returns either a <a>ParseError</a> (<a>Left</a>) or a value of
+--   type <tt>a</tt> (<a>Right</a>).
+--   
+--   <pre>
+--   parseFromFile p fname
+--     = do{ input &lt;- readFile fname
+--         ; return (runParser p () fname input)
+--         }
+--   </pre>
+runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Either ParseError a
 instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
 instance GHC.Show.Show Poseidon.SecondaryTypes.PackageInfo
 instance GHC.Classes.Eq Poseidon.SecondaryTypes.ContributorSpec
@@ -797,102 +813,6 @@ unzipPackage :: FilePath -> FilePath -> IO ()
 downloadPackage :: FilePath -> String -> String -> IO ()
 padString :: Int -> String -> String
 printDownloadProgress :: Double -> ConduitT ByteString ByteString (ResourceT IO) ()
-
-module Poseidon.CLI.FStats
-
--- | A datatype to represent Summary Statistics to be computed from
---   genotype data.
-data FStatSpec
-
--- | F4 Statistics
-F4Spec :: PopSpec -> PopSpec -> PopSpec -> PopSpec -> FStatSpec
-
--- | F3 Statistics
-F3Spec :: PopSpec -> PopSpec -> PopSpec -> FStatSpec
-
--- | F2 Statistics
-F2Spec :: PopSpec -> PopSpec -> FStatSpec
-
--- | Pairwise Mismatch Rates between two groups
-PWMspec :: PopSpec -> PopSpec -> FStatSpec
-
--- | The abstract data type <tt>ParseError</tt> represents parse errors. It
---   provides the source position (<a>SourcePos</a>) of the error and a
---   list of error messages (<a>Message</a>). A <tt>ParseError</tt> can be
---   returned by the function <a>parse</a>. <tt>ParseError</tt> is an
---   instance of the <a>Show</a> and <a>Eq</a> classes.
-data ParseError
-
--- | A datatype to represent a group or an individual
-data PopSpec
-
--- | Define a group name
-PopSpecGroup :: String -> PopSpec
-
--- | Define an individual name
-PopSpecInd :: String -> PopSpec
-
--- | A datatype representing the command line options for the F-Statistics
---   command
-data FstatsOptions
-FstatsOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> [FStatSpec] -> Maybe FilePath -> Bool -> FstatsOptions
-
--- | the list of base directories to search for packages
-[_foBaseDirs] :: FstatsOptions -> [FilePath]
-
--- | The way the Jackknife is performed
-[_foJackknifeMode] :: FstatsOptions -> JackknifeMode
-
--- | a list of chromosome names to exclude from the computation
-[_foExcludeChroms] :: FstatsOptions -> [Chrom]
-
--- | A list of F-statistics to compute
-[_foStatSpecsDirect] :: FstatsOptions -> [FStatSpec]
-
--- | a file listing F-statistics to compute
-[_foStatSpecsFile] :: FstatsOptions -> Maybe FilePath
-
--- | whether to output the result table in raw TSV instead of nicely
---   formatted ASCII table/
-[_foRawOutput] :: FstatsOptions -> Bool
-
--- | A datatype representing the two options for how to run the
---   Block-Jackknife
-data JackknifeMode
-
--- | Run the Jackknife in blocks of N consecutive SNPs
-JackknifePerN :: Int -> JackknifeMode
-
--- | Run the Jackknife in blocks defined as entire chromosomes.
-JackknifePerChromosome :: JackknifeMode
-
--- | A parser to parse Summary Statistic specifications.
-fStatSpecParser :: Parser FStatSpec
-
--- | The most general way to run a parser over the Identity monad.
---   <tt>runParser p state filePath input</tt> runs parser <tt>p</tt> on
---   the input list of tokens <tt>input</tt>, obtained from source
---   <tt>filePath</tt> with the initial user state <tt>st</tt>. The
---   <tt>filePath</tt> is only used in error messages and may be the empty
---   string. Returns either a <a>ParseError</a> (<a>Left</a>) or a value of
---   type <tt>a</tt> (<a>Right</a>).
---   
---   <pre>
---   parseFromFile p fname
---     = do{ input &lt;- readFile fname
---         ; return (runParser p () fname input)
---         }
---   </pre>
-runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Either ParseError a
-
--- | The main function running the FStats command.
-runFstats :: FstatsOptions -> IO ()
-readStatSpecsFromFile :: FilePath -> IO [FStatSpec]
-instance GHC.Classes.Eq Poseidon.CLI.FStats.PopSpec
-instance GHC.Classes.Eq Poseidon.CLI.FStats.FStatSpec
-instance GHC.Show.Show Poseidon.CLI.FStats.BlockData
-instance GHC.Show.Show Poseidon.CLI.FStats.FStatSpec
-instance GHC.Show.Show Poseidon.CLI.FStats.PopSpec
 
 module Poseidon.CLI.Survey
 
