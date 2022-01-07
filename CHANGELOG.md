@@ -1,3 +1,4 @@
+- V 0.25.0: moved fstats command into new tool `xerxes` provided by github package poseidon-analysis-hs in the same organisation.
 - V 0.24.4: switched off geno-check upon server start
 - V 0.24.3: Incongruent SNPs are now skipped, with an optional warning.
 - V 0.24.2: Better error messages for broken .janno files
