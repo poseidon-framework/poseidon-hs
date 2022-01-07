@@ -7,7 +7,8 @@ module Poseidon.SecondaryTypes (
     IndividualInfo (..),
     GroupInfo(..),
     VersionComponent (..),
-    PackageInfo(..)
+    PackageInfo(..),
+    P.runParser
 ) where
 
 import           Data.Aeson         (FromJSON, ToJSON, object, parseJSON,

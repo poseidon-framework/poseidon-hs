@@ -16,7 +16,7 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes,
                         Poseidon.PoseidonVersion,
-                        Poseidon.CLI.FStats, Poseidon.CLI.List, 
+                        Poseidon.CLI.List, 
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert
@@ -24,7 +24,7 @@ library
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
-                        vector, foldl, pipes-ordered-zip, pipes-group, table-layout, lens-family,
+                        vector, pipes-ordered-zip, table-layout,
                         cassava, ansi-terminal, pureMD5, transformers,
                         yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative
@@ -53,7 +53,7 @@ Test-Suite poseidon-tools-tests
                        raw-strings-qq, yaml, time, vector,
                        text, QuickCheck, directory, sequence-formats,
                        filepath, pipes, pipes-safe, pipes-ordered-zip
-  other-modules:       Poseidon.PackageSpec, Poseidon.FStatsSpec, Poseidon.JannoSpec,
+  other-modules:       Poseidon.PackageSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
                        Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                        Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
