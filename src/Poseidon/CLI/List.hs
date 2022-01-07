@@ -109,7 +109,11 @@ extractAdditionalFields :: JannoRow -> [String] -> IO [String]
 extractAdditionalFields jannoRow = mapM (\f -> extractAdditionalField f jannoRow)
 
 extractAdditionalField :: String -> JannoRow -> IO String
-extractAdditionalField "Poseidon_ID"                  = return .                   jPoseidonID
+extractAdditionalField "Poseidon_ID"                    = return .                   jPoseidonID
+extractAdditionalField "Alternative_IDs"                = handleMaybeList            jAlternativeIDs
+extractAdditionalField "Relation_To"                    = handleMaybeList            jRelationTo
+extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
+extractAdditionalField "Relation_Degree"                = handleMaybeShowList        jRelationDegree
 extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID 
 extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue
 extractAdditionalField "Country"                        = handleMaybe                jCountry
@@ -124,13 +128,14 @@ extractAdditionalField "Date_BC_AD_Median"              = handleMaybeShow       
 extractAdditionalField "Date_BC_AD_Start"               = handleMaybeShow            jDateBCADStart
 extractAdditionalField "Date_BC_AD_Stop"                = handleMaybeShow            jDateBCADStop
 extractAdditionalField "Date_Type"                      = handleMaybeShow            jDateType
+extractAdditionalField "Date_Note"                      = handleMaybe                jDateNote
 extractAdditionalField "Nr_Libraries"                   = handleMaybeShow            jNrLibraries
 extractAdditionalField "Capture_Type"                   = handleMaybeShowList        jCaptureType
 extractAdditionalField "Genotype_Ploidy"                = handleMaybeShow            jGenotypePloidy
 extractAdditionalField "Group_Name"                     = return . intercalate ";" . getJannoList . jGroupName
 extractAdditionalField "Genetic_Sex"                    = return . show .            jGeneticSex
 extractAdditionalField "Nr_SNPs"                        = handleMaybeShow            jNrSNPs
-extractAdditionalField "Coverage_on_Target_SNPs"                 = handleMaybeShow            jCoverageOnTargets
+extractAdditionalField "Coverage_on_Target_SNPs"        = handleMaybeShow            jCoverageOnTargets
 extractAdditionalField "MT_Haplogroup"                  = handleMaybe                jMTHaplogroup
 extractAdditionalField "Y_Haplogroup"                   = handleMaybe                jYHaplogroup
 extractAdditionalField "Endogenous"                     = handleMaybeShow            jEndogenous
@@ -144,7 +149,7 @@ extractAdditionalField "mtContam_stderr"                = handleMaybeShow       
 extractAdditionalField "Primary_Contact"                = handleMaybe                jPrimaryContact
 extractAdditionalField "Genetic_Source_Accession_IDs"   = handleMaybeShowList        jGeneticSourceAccessionIDs
 extractAdditionalField "Data_Preparation_Pipeline_URL"  = handleMaybeShow            jDataPreparationPipelineURL
-extractAdditionalField "Publication"             = handleMaybeList            jPublication
+extractAdditionalField "Publication"                    = handleMaybeList            jPublication
 extractAdditionalField "Note"                           = handleMaybe                jComments
 extractAdditionalField "Keywords"                       = handleMaybeList            jKeywords
 extractAdditionalField f                                = const (throwIO $ PoseidonGenericException (f ++ " is not a standard Janno column name"))
