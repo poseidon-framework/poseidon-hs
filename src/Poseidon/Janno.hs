@@ -370,6 +370,7 @@ data JannoRow = JannoRow
     , jDateBCADStart                :: Maybe Int
     , jDateBCADStop                 :: Maybe Int
     , jDateType                     :: Maybe JannoDateType
+    , jDateNote                     :: Maybe String
     , jNrLibraries                  :: Maybe Int
     , jCaptureType                  :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy               :: Maybe JannoGenotypePloidy
@@ -422,6 +423,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_BC_AD_Start"
         <*> filterLookupOptional m "Date_BC_AD_Stop"
         <*> filterLookupOptional m "Date_Type"
+        <*> filterLookupOptional m "Date_Note"
         <*> filterLookupOptional m "Nr_Libraries"
         <*> filterLookupOptional m "Capture_Type"
         <*> filterLookupOptional m "Genotype_Ploidy"
@@ -483,6 +485,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
         , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
         , "Date_Type"                       Csv..= jDateType j
+        , "Date_Note"                       Csv..= jDateNote j
         , "Nr_Libraries"                    Csv..= jNrLibraries j
         , "Capture_Type"                    Csv..= jCaptureType j
         , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
@@ -516,7 +519,7 @@ jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Type",
     "Relation_Degree", "Collection_ID","Source_Tissue","Country",
     "Location","Site","Latitude","Longitude","Date_C14_Labnr",
     "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
-    "Date_BC_AD_Stop","Date_Type","Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
+    "Date_BC_AD_Stop","Date_Type", "Date_Note", "Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
     "Genetic_Sex","Nr_SNPs","Coverage_on_Target_SNPs","MT_Haplogroup","Y_Haplogroup",
     "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
     "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
@@ -660,6 +663,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateBCADStart                = Nothing
         , jDateBCADStop                 = Nothing
         , jDateType                     = Nothing
+        , jDateNote                     = Nothing
         , jNrLibraries                  = Nothing
         , jCaptureType                  = Nothing
         , jGenotypePloidy               = Nothing
