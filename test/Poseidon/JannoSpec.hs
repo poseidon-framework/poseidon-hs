@@ -35,7 +35,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         janno_partial <- readJannoFile False minimalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
-        map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
+        map jPoseidonID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
         map jCollectionID janno   `shouldBe` [Nothing, Nothing, Nothing]
         map jSourceTissue janno   `shouldBe` [Nothing, Nothing, Nothing]
         map jLatitude janno       `shouldBe` [Nothing, Nothing, Nothing]
@@ -56,7 +56,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         janno_partial <- readJannoFile False normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
-        map jIndividualID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
+        map jPoseidonID janno   `shouldBe` ["XXX011", "XXX012", "XXX013"]
         map jCollectionID janno   `shouldBe` [Nothing, Nothing, Nothing]
         map jSourceTissue janno   `shouldBe` [Just (JannoList ["xxx", "yyy"]), Just (JannoList ["xxx"]), Just (JannoList ["xxx"])]
         map jCountry janno        `shouldBe` [Just "xxx", Just "xxx", Just "xxx"]

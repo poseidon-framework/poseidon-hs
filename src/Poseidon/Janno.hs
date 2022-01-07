@@ -351,7 +351,11 @@ instance (FromJSON a) => FromJSON (JannoList a) where
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
-    { jIndividualID                 :: String
+    { jPoseidonID                   :: String
+    , jAlternativeIDs               :: Maybe JannoStringList
+    , jRelationTo                   :: Maybe JannoStringList
+    , jRelationType                 :: Maybe JannoStringList -- could be a data type with some options (mother_of, son_of, other, ...)
+    , jRelationDegree               :: Maybe JannoIntList -- could be a more specific data type
     , jCollectionID                 :: Maybe String
     , jSourceTissue                 :: Maybe JannoStringList
     , jCountry                      :: Maybe String
@@ -400,6 +404,10 @@ instance FromJSON JannoRow
 instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = JannoRow 
         <$> filterLookup         m "Poseidon_ID"
+        <*> filterLookupOptional m "Alternative_IDs"
+        <*> filterLookupOptional m "Relation_To"
+        <*> filterLookupOptional m "Relation_Type"
+        <*> filterLookupOptional m "Relation_Degree"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -456,7 +464,11 @@ ignoreNA Nothing      = Nothing
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [
-          "Poseidon_ID"                     Csv..= jIndividualID j
+          "Poseidon_ID"                     Csv..= jPoseidonID j
+        , "Alternative_IDs"                 Csv..= jAlternativeIDs j
+        , "Relation_To"                     Csv..= jRelationTo j
+        , "Relation_Type"                   Csv..= jRelationType j
+        , "Relation_Degree"                 Csv..= jRelationDegree j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Source_Tissue"                   Csv..= jSourceTissue j
         , "Country"                         Csv..= jCountry j
@@ -500,7 +512,8 @@ instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
 jannoHeader :: [Bchs.ByteString]
-jannoHeader = ["Poseidon_ID","Collection_ID","Source_Tissue","Country",
+jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Type",
+    "Relation_Degree", "Collection_ID","Source_Tissue","Country",
     "Location","Site","Latitude","Longitude","Date_C14_Labnr",
     "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
     "Date_BC_AD_Stop","Date_Type","Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
@@ -628,7 +641,11 @@ createMinimalJanno xs = map createMinimalSample xs
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow { 
-          jIndividualID                 = id_
+          jPoseidonID                   = id_
+        , jAlternativeIDs               = Nothing
+        , jRelationTo                   = Nothing
+        , jRelationType                 = Nothing
+        , jRelationDegree               = Nothing
         , jCollectionID                 = Nothing
         , jSourceTissue                 = Nothing
         , jCountry                      = Nothing
@@ -677,7 +694,7 @@ checkJannoConsistency jannoPath xs
     | otherwise = Right xs
 
 checkIndividualUnique :: [JannoRow] -> Bool
-checkIndividualUnique x = length x == length (nub $ map jIndividualID x)
+checkIndividualUnique x = length x == length (nub $ map jPoseidonID x)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
@@ -689,7 +706,7 @@ checkJannoRowConsistency jannoPath row x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
 checkMandatoryStringNotEmpty x =
-    (not . null . jIndividualID $ x)
+    (not . null . jPoseidonID $ x)
     && (not . null . getJannoList . jGroupName $ x)
     && (not . null . head . getJannoList . jGroupName $ x)
 

@@ -82,7 +82,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
                 forM rows (\row -> do
                     moreFields <- extractAdditionalFields row moreJannoColumns
-                    return ([pacName, jIndividualID row, head . getJannoList . jGroupName $ row] ++ moreFields))
+                    return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
             hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
     if rawOutput then
@@ -109,7 +109,7 @@ extractAdditionalFields :: JannoRow -> [String] -> IO [String]
 extractAdditionalFields jannoRow = mapM (\f -> extractAdditionalField f jannoRow)
 
 extractAdditionalField :: String -> JannoRow -> IO String
-extractAdditionalField "Poseidon_ID"                  = return .                   jIndividualID
+extractAdditionalField "Poseidon_ID"                  = return .                   jPoseidonID
 extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID 
 extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue
 extractAdditionalField "Country"                        = handleMaybe                jCountry

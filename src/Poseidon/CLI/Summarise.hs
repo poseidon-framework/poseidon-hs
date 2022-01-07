@@ -41,7 +41,7 @@ summariseJannoRows xs rawOutput = do
         let tableH = ["Summary", "Value"]
             tableB = [
                 ["Nr Individuals", show (length xs)],
-                ["Individuals", paste $ sort $ map jIndividualID xs],
+                ["Individuals", paste $ sort $ map jPoseidonID xs],
                 ["Nr Groups", show $ length $ nub $ map jGroupName xs],
                 ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map jPublication xs],

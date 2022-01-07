@@ -388,7 +388,7 @@ checkJannoIndConsistency pacName janno indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jIndividualID janno
+    let jannoIDs        = map jPoseidonID janno
         jannoSexs       = map (sfSex . jGeneticSex) janno
         jannoGroups     = map (head . getJannoList . jGroupName) janno
     let idMis           = genoIDs /= jannoIDs

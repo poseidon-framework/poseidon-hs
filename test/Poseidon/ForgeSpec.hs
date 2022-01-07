@@ -76,7 +76,7 @@ testFilterJannoFiles =
         let pacNames = map posPacTitle rps
         let jannos = map posPacJanno rps
         let filteredJannos = filterJannoFiles goodEntities $ zip pacNames jannos
-        map jIndividualID filteredJannos `shouldMatchList` [
+        map jPoseidonID filteredJannos `shouldMatchList` [
                 -- Schiffels 2016
                 "XXX001", "XXX002", "XXX003", "XXX004", "XXX005",
                 "XXX006", "XXX007", "XXX008", "XXX009", "XXX010",

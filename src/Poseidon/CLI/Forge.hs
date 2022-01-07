@@ -138,7 +138,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages maybeSnpFile
         let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
         let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
-        let jannoIndIds = map jIndividualID relevantJannoRows
+        let jannoIndIds = map jPoseidonID relevantJannoRows
         -- TODO: This check might be redundant now, because the input data is now already
         -- screened for cross-file order issues
         when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
@@ -183,7 +183,7 @@ sumNonMissingSNPs accumulator (_, geno) = do
 
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
 checkIndividualsUniqueJanno rows = do
-    let indIDs = map jIndividualID rows
+    let indIDs = map jPoseidonID rows
     when (length indIDs /= length (nub indIDs)) $ do
         throwM $ PoseidonForgeEntitiesException $
             "Duplicate individuals in selection (" ++
@@ -226,7 +226,7 @@ filterJannoRows :: EntitiesList -> [JannoRow] -> [JannoRow]
 filterJannoRows entities samples =
     let groupNamesStats = [ group | Group group <- entities]
         indNamesStats   = [ ind   | Ind   ind   <- entities]
-        comparison x    =  jIndividualID x `elem` indNamesStats
+        comparison x    =  jPoseidonID x `elem` indNamesStats
                            || head (getJannoList . jGroupName $ x) `elem` groupNamesStats
     in filter comparison samples
 
