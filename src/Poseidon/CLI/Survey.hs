@@ -109,10 +109,10 @@ renderJannoCompleteness jS =
     : getColChar jS jUDG
     : getColChar jS jDamage
     : getColChar jS jLibraryBuilt
-    : getColChar jS jNuclearContam
-    : getColChar jS jNuclearContamErr
-    : getColChar jS jMTContam
-    : getColChar jS jMTContamErr
+    : getColChar jS jContamination
+    : getColChar jS jContaminationErr
+    : getColChar jS jContaminationMeas
+    : getColChar jS jContaminationNote
     : getColChar jS jGeneticSourceAccessionIDs
     : getColChar jS jDataPreparationPipelineURL
     : getColChar jS jPrimaryContact

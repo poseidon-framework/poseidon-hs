@@ -327,8 +327,8 @@ instance Show JURI where
     show (JURI x) = x
 
 -- | A general datatype for janno list columns
-data JannoList a = JannoList {getJannoList :: [a]} 
-  deriving (Eq, Ord, Generic, Show)
+newtype JannoList a = JannoList {getJannoList :: [a]} 
+    deriving (Eq, Ord, Generic, Show)
 
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int
@@ -402,7 +402,7 @@ data JannoRow = JannoRow
     { jPoseidonID                   :: String
     , jAlternativeIDs               :: Maybe JannoStringList
     , jRelationTo                   :: Maybe JannoStringList
-    , jRelationType                 :: Maybe JannoStringList -- could be a data type with some options (mother_of, son_of, other, ...)
+    , jRelationType                 :: Maybe JannoStringList
     , jRelationDegree               :: Maybe JannoRelationDegreeList
     , jCollectionID                 :: Maybe String
     , jSourceTissue                 :: Maybe JannoStringList
@@ -432,10 +432,10 @@ data JannoRow = JannoRow
     , jUDG                          :: Maybe JannoUDG
     , jLibraryBuilt                 :: Maybe JannoLibraryBuilt
     , jDamage                       :: Maybe Percent
-    , jNuclearContam                :: Maybe Double
-    , jNuclearContamErr             :: Maybe Double
-    , jMTContam                     :: Maybe Double
-    , jMTContamErr                  :: Maybe Double
+    , jContamination                :: Maybe JannoStringList
+    , jContaminationErr             :: Maybe JannoStringList
+    , jContaminationMeas            :: Maybe JannoStringList
+    , jContaminationNote            :: Maybe JannoStringList
     , jGeneticSourceAccessionIDs    :: Maybe JannoStringList
     , jDataPreparationPipelineURL   :: Maybe JURI
     , jPrimaryContact               :: Maybe String
@@ -485,10 +485,10 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "UDG"
         <*> filterLookupOptional m "Library_Built"
         <*> filterLookupOptional m "Damage"
-        <*> filterLookupOptional m "Xcontam"
-        <*> filterLookupOptional m "Xcontam_stderr"
-        <*> filterLookupOptional m "mtContam"
-        <*> filterLookupOptional m "mtContam_stderr"
+        <*> filterLookupOptional m "Contamination"
+        <*> filterLookupOptional m "Contamination_Err"
+        <*> filterLookupOptional m "Contamination_Meas"
+        <*> filterLookupOptional m "Contamination_Note"
         <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
         <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
         <*> filterLookupOptional m "Primary_Contact"
@@ -547,10 +547,10 @@ instance Csv.ToNamedRecord JannoRow where
         , "UDG"                             Csv..= jUDG j
         , "Library_Built"                   Csv..= jLibraryBuilt j
         , "Damage"                          Csv..= jDamage j
-        , "Xcontam"                         Csv..= jNuclearContam j
-        , "Xcontam_stderr"                  Csv..= jNuclearContamErr j
-        , "mtContam"                        Csv..= jMTContam j
-        , "mtContam_stderr"                 Csv..= jMTContamErr j
+        , "Contamination"                   Csv..= jContamination j
+        , "Contamination_Err"               Csv..= jContaminationErr j
+        , "Contamination_Meas"              Csv..= jContaminationMeas j
+        , "Contamination_Note"              Csv..= jContaminationNote j
         , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
         , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL j
         , "Primary_Contact"                 Csv..= jPrimaryContact j
@@ -569,8 +569,8 @@ jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Type",
     "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
     "Date_BC_AD_Stop","Date_Type", "Date_Note", "Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
     "Genetic_Sex","Nr_SNPs","Coverage_on_Target_SNPs","MT_Haplogroup","Y_Haplogroup",
-    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
-    "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
+    "Endogenous","UDG","Library_Built","Damage","Contamination","Contamination_Err","Contamination_Meas",
+    "Contamination_Note", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
     "Primary_Contact","Publication","Note","Keywords"
     ]
 
@@ -725,10 +725,10 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jUDG                          = Nothing
         , jLibraryBuilt                 = Nothing
         , jDamage                       = Nothing
-        , jNuclearContam                = Nothing
-        , jNuclearContamErr             = Nothing
-        , jMTContam                     = Nothing
-        , jMTContamErr                  = Nothing
+        , jContamination                = Nothing
+        , jContaminationErr             = Nothing
+        , jContaminationMeas                     = Nothing
+        , jContaminationNote                  = Nothing
         , jGeneticSourceAccessionIDs    = Nothing
         , jDataPreparationPipelineURL   = Nothing
         , jPrimaryContact               = Nothing
