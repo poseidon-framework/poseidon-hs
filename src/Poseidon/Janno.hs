@@ -783,7 +783,14 @@ checkContamColsConsistent x =
       lContaminationErr   = getCellLength $ jContaminationErr x
       lContaminationMeas  = getCellLength $ jContaminationMeas x
       lContaminationNote  = getCellLength $ jContaminationNote x
-  in length (nub [lContamination, lContaminationErr, lContaminationMeas, lContaminationNote]) == 1
+  in allEqual [lContamination, lContaminationErr, lContaminationMeas, lContaminationNote] 
+    -- that's not sufficient yet
+    -- we rather need some more sophisticated logic like for the c14 cols
   
 getCellLength :: Maybe (JannoList a) -> Int 
 getCellLength = maybe 0 (length . getJannoList)
+
+allEqual :: Eq a => [a] -> Bool
+allEqual x = length (nub x) == 1
+
+-- The Relation_* group will also need a consitency check!
