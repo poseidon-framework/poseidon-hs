@@ -82,6 +82,10 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
       '█'
+    : getColChar jS jAlternativeIDs
+    : getColChar jS jRelationTo
+    : getColChar jS jRelationType
+    : getColChar jS jRelationDegree
     : getColChar jS jCollectionID
     : getColChar jS jSourceTissue
     : getColChar jS jCountry
@@ -96,6 +100,7 @@ renderJannoCompleteness jS =
     : getColChar jS jDateBCADStart
     : getColChar jS jDateBCADStop
     : getColChar jS jDateType
+    : getColChar jS jDateNote
     : getColChar jS jNrLibraries
     : getColChar jS jCaptureType
     : getColChar jS jGenotypePloidy
