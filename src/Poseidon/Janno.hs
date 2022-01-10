@@ -727,8 +727,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDamage                       = Nothing
         , jContamination                = Nothing
         , jContaminationErr             = Nothing
-        , jContaminationMeas                     = Nothing
-        , jContaminationNote                  = Nothing
+        , jContaminationMeas            = Nothing
+        , jContaminationNote            = Nothing
         , jGeneticSourceAccessionIDs    = Nothing
         , jDataPreparationPipelineURL   = Nothing
         , jPrimaryContact               = Nothing
@@ -753,7 +753,9 @@ checkJannoRowConsistency jannoPath row x
     | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonJannoRowException jannoPath row
           "The mandatory columns Poseidon_ID and Group_Name contain empty values"
     | not $ checkC14ColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
-          "The columns Date_C14_Labnr, Date_C14_Uncal_BP, Date_C14_Uncal_BP_Err and Date_Type are not consistent"
+          "The Date_* columns are not consistent"
+    | not $ checkContamColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+          "The Contamination_* columns are not consistent"
     | otherwise = Right x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
@@ -764,13 +766,24 @@ checkMandatoryStringNotEmpty x =
 
 checkC14ColsConsistent :: JannoRow -> Bool
 checkC14ColsConsistent x =
-    let lLabnr = maybe 0 (length . getJannoList) $ jDateC14Labnr x
-        lUncalBP = maybe 0 (length . getJannoList) $ jDateC14UncalBP x
-        lUncalBPErr = maybe 0 (length . getJannoList) $ jDateC14UncalBPErr x
+    let lLabnr          = getCellLength $ jDateC14Labnr x
+        lUncalBP        = getCellLength $ jDateC14UncalBP x
+        lUncalBPErr     = getCellLength $ jDateC14UncalBPErr x
         shouldBeTypeC14 = lUncalBP > 0
-        isTypeC14 = jDateType x == Just C14
+        isTypeC14       = jDateType x == Just C14
     in
         (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
         && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)
         && lUncalBP == lUncalBPErr
-        && ((not shouldBeTypeC14) || isTypeC14)
+        && (not shouldBeTypeC14 || isTypeC14)
+
+checkContamColsConsistent :: JannoRow -> Bool
+checkContamColsConsistent x =
+  let lContamination      = getCellLength $ jContamination x
+      lContaminationErr   = getCellLength $ jContaminationErr x
+      lContaminationMeas  = getCellLength $ jContaminationMeas x
+      lContaminationNote  = getCellLength $ jContaminationNote x
+  in length (nub [lContamination, lContaminationErr, lContaminationMeas, lContaminationNote]) == 1
+  
+getCellLength :: Maybe (JannoList a) -> Int 
+getCellLength = maybe 0 (length . getJannoList)
