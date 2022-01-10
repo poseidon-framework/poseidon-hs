@@ -304,7 +304,7 @@ instance Csv.ToField Percent where
 instance Show Percent where
     show (Percent x) = show x
 
--- |A datatype to represent URIs in a janno file
+-- | A datatype to represent URIs in a janno file
 newtype JURI = JURI String
     deriving (Eq, Ord, Generic)
 
@@ -326,6 +326,7 @@ instance Csv.ToField JURI where
 instance Show JURI where
     show (JURI x) = x
 
+-- | A general datatype for janno list columns
 data JannoList a = JannoList {getJannoList :: [a]} 
   deriving (Eq, Ord, Generic, Show)
 
@@ -347,6 +348,53 @@ instance (ToJSON a) => ToJSON (JannoList a) where
 instance (FromJSON a) => FromJSON (JannoList a) where
     parseJSON v = JannoList <$> parseJSON v
 
+-- |A datatype to represent Relationship degree lists in a janno file
+type JannoRelationDegreeList = JannoList RelationDegree
+
+data RelationDegree = Identical | First | Second | Third | Fourth | Fifth | Sixth | Unrelated | OtherDegree
+    deriving (Eq, Ord, Generic)
+
+instance ToJSON RelationDegree where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON RelationDegree
+
+instance Csv.FromField RelationDegree where
+    parseField x
+        | x == "identical"    = pure Identical
+        | x == "first"        = pure First
+        | x == "second"       = pure Second
+        | x == "third"        = pure Third
+        | x == "fourth"       = pure Fourth
+        | x == "fifth"        = pure Fifth
+        | x == "sixth"        = pure Sixth
+        | x == "unrelated"    = pure Unrelated
+        | x == "other"        = pure OtherDegree
+        | otherwise           = fail $ "Relation degree " ++ show x ++ 
+                                       " not in [identical, first, ..., sixth, unrelated, other]"
+
+instance Csv.ToField RelationDegree where
+    toField Identical         = "identical"
+    toField First             = "first"
+    toField Second            = "second"
+    toField Third             = "third"
+    toField Fourth            = "fourth"
+    toField Fifth             = "fifth"
+    toField Sixth             = "sixth"
+    toField Unrelated         = "unrelated"
+    toField OtherDegree       = "other"
+
+instance Show RelationDegree where
+    show Identical            = "identical"
+    show First                = "first"
+    show Second               = "second"
+    show Third                = "third"
+    show Fourth               = "fourth"
+    show Fifth                = "fifth"
+    show Sixth                = "sixth"
+    show Unrelated            = "unrelated"
+    show OtherDegree          = "other"
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -355,7 +403,7 @@ data JannoRow = JannoRow
     , jAlternativeIDs               :: Maybe JannoStringList
     , jRelationTo                   :: Maybe JannoStringList
     , jRelationType                 :: Maybe JannoStringList -- could be a data type with some options (mother_of, son_of, other, ...)
-    , jRelationDegree               :: Maybe JannoIntList -- could be a more specific data type
+    , jRelationDegree               :: Maybe JannoRelationDegreeList
     , jCollectionID                 :: Maybe String
     , jSourceTissue                 :: Maybe JannoStringList
     , jCountry                      :: Maybe String
