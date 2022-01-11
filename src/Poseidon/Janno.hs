@@ -397,8 +397,8 @@ data JannoRow = JannoRow
     { jPoseidonID                   :: String
     , jAlternativeIDs               :: Maybe JannoStringList
     , jRelationTo                   :: Maybe JannoStringList
-    , jRelationType                 :: Maybe JannoStringList
     , jRelationDegree               :: Maybe JannoRelationDegreeList
+    , jRelationType                 :: Maybe JannoStringList
     , jRelationNote                 :: Maybe String
     , jCollectionID                 :: Maybe String
     , jSourceTissue                 :: Maybe JannoStringList
@@ -451,8 +451,8 @@ instance Csv.FromNamedRecord JannoRow where
         <$> filterLookup         m "Poseidon_ID"
         <*> filterLookupOptional m "Alternative_IDs"
         <*> filterLookupOptional m "Relation_To"
-        <*> filterLookupOptional m "Relation_Type"
         <*> filterLookupOptional m "Relation_Degree"
+        <*> filterLookupOptional m "Relation_Type"
         <*> filterLookupOptional m "Relation_Note"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
@@ -514,8 +514,8 @@ instance Csv.ToNamedRecord JannoRow where
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Alternative_IDs"                 Csv..= jAlternativeIDs j
         , "Relation_To"                     Csv..= jRelationTo j
-        , "Relation_Type"                   Csv..= jRelationType j
         , "Relation_Degree"                 Csv..= jRelationDegree j
+        , "Relation_Type"                   Csv..= jRelationType j
         , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Source_Tissue"                   Csv..= jSourceTissue j
@@ -561,8 +561,8 @@ instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
 jannoHeader :: [Bchs.ByteString]
-jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Type",
-    "Relation_Degree", "Relation_Note", "Collection_ID","Source_Tissue","Country",
+jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Degree",
+    "Relation_Type", "Relation_Note", "Collection_ID","Source_Tissue","Country",
     "Location","Site","Latitude","Longitude","Date_C14_Labnr",
     "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
     "Date_BC_AD_Stop","Date_Type", "Date_Note", "Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
@@ -693,8 +693,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
           jPoseidonID                   = id_
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
-        , jRelationType                 = Nothing
         , jRelationDegree               = Nothing
+        , jRelationType                 = Nothing
         , jRelationNote                 = Nothing
         , jCollectionID                 = Nothing
         , jSourceTissue                 = Nothing
@@ -765,6 +765,12 @@ checkMandatoryStringNotEmpty x =
     && (not . null . getJannoList . jGroupName $ x)
     && (not . null . head . getJannoList . jGroupName $ x)
 
+getCellLength :: Maybe (JannoList a) -> Int 
+getCellLength = maybe 0 (length . getJannoList)
+
+allEqual :: Eq a => [a] -> Bool
+allEqual x = length (nub x) == 1
+
 checkC14ColsConsistent :: JannoRow -> Bool
 checkC14ColsConsistent x =
     let lLabnr          = getCellLength $ jDateC14Labnr x
@@ -785,12 +791,6 @@ checkContamColsConsistent x =
       lContaminationMeas  = getCellLength $ jContaminationMeas x
   in allEqual [lContamination, lContaminationErr, lContaminationMeas]
   
-getCellLength :: Maybe (JannoList a) -> Int 
-getCellLength = maybe 0 (length . getJannoList)
-
-allEqual :: Eq a => [a] -> Bool
-allEqual x = length (nub x) == 1
-
 checkRelationColsConsistent :: JannoRow -> Bool
 checkRelationColsConsistent x =
   let lRelationTo = getCellLength $ jRelationTo x

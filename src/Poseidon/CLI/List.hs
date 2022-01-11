@@ -112,8 +112,8 @@ extractAdditionalField :: String -> JannoRow -> IO String
 extractAdditionalField "Poseidon_ID"                    = return .                   jPoseidonID
 extractAdditionalField "Alternative_IDs"                = handleMaybeList            jAlternativeIDs
 extractAdditionalField "Relation_To"                    = handleMaybeList            jRelationTo
-extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
 extractAdditionalField "Relation_Degree"                = handleMaybeShowList        jRelationDegree
+extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
 extractAdditionalField "Relation_Note"                  = handleMaybe                jRelationNote
 extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID 
 extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue

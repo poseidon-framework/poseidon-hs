@@ -84,8 +84,8 @@ renderJannoCompleteness jS =
       '█'
     : getColChar jS jAlternativeIDs
     : getColChar jS jRelationTo
-    : getColChar jS jRelationType
     : getColChar jS jRelationDegree
+    : getColChar jS jRelationType
     : getColChar jS jRelationNote
     : getColChar jS jCollectionID
     : getColChar jS jSourceTissue
