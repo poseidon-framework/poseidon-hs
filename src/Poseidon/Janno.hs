@@ -41,7 +41,7 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Lazy          as HM
 import           Data.List                  (intercalate, nub, (\\), elemIndex)
-import           Data.Maybe                 (fromJust)
+import           Data.Maybe                 (fromJust, isNothing)
 import           Data.Text                  (pack, unpack, replace)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
@@ -755,6 +755,8 @@ checkJannoRowConsistency jannoPath row x
           "The Date_* columns are not consistent"
     | not $ checkContamColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
           "The Contamination_* columns are not consistent"
+    | not $ checkRelationColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+          "The Relation_* columns are not consistent"
     | otherwise = Right x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
@@ -789,4 +791,10 @@ getCellLength = maybe 0 (length . getJannoList)
 allEqual :: Eq a => [a] -> Bool
 allEqual x = length (nub x) == 1
 
--- The Relation_* group will also need a consitency check!
+checkRelationColsConsistent :: JannoRow -> Bool
+checkRelationColsConsistent x =
+  let lRelationTo = getCellLength $ jRelationTo x
+      lRelationDegree = getCellLength $ jRelationDegree x
+      lRelationType = getCellLength $ jRelationType x
+  in allEqual [lRelationTo, lRelationType, lRelationDegree]
+     || (allEqual [lRelationTo, lRelationDegree] && isNothing (jRelationType x))
