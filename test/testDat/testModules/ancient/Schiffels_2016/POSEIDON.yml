@@ -1,4 +1,4 @@
-poseidonVersion: 2.4.0
+poseidonVersion: 2.5.0
 title: Schiffels_2016
 description: Genetic data published in Schiffels et al. 2016
 contributor:
@@ -16,7 +16,7 @@ genotypeData:
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
   snpSet: Other
 jannoFile: Schiffels_2016.janno
-jannoFileChkSum: 555d7733135ebcabd032d581381c5d6f
+jannoFileChkSum: b38f0bce9f9f3a211f38a1d9951efb48
 bibFile: sources.bib
 bibFileChkSum: 70cd3d5801cee8a93fc2eb40a99c63fa
 changelogFile: CHANGELOG.md

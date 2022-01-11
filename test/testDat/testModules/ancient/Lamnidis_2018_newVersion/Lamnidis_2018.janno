@@ -1,11 +1,11 @@
-Poseidon_ID	Collection_ID	Source_Tissue	Country	Location	Site	Latitude	Longitude	Date_C14_Labnr	Date_C14_Uncal_BP	Date_C14_Uncal_BP_Err	Date_BC_AD_Median	Date_BC_AD_Start	Date_BC_AD_Stop	Date_Type	Nr_Libraries	Capture_Type	Genotype_Ploidy	Group_Name	Genetic_Sex	Nr_SNPs	Coverage_on_Target_SNPs	MT_Haplogroup	Y_Haplogroup	Endogenous	UDG	Library_Built	Damage	Xcontam	Xcontam_stderr	mtContam	mtContam_stderr	Primary_Contact	Publication	Note	Keywords
-XXX011	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP1	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX012	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP2	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX013	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP1	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX014	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP2	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX015	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP2	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX016	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP2	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX017	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP1	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX018	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP3	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX019	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP1	F	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
-XXX020	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	POP3	M	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+Poseidon_ID	Group_Name	Genetic_Sex	Publication
+XXX011	POP1	M	Lamnidis2018
+XXX012	POP2	F	Lamnidis2018
+XXX013	POP1	M	Lamnidis2018
+XXX014	POP2	F	Lamnidis2018
+XXX015	POP2	M	Lamnidis2018
+XXX016	POP2	F	Lamnidis2018
+XXX017	POP1	M	Lamnidis2018
+XXX018	POP3	F	Lamnidis2018
+XXX019	POP1	F	Lamnidis2018
+XXX020	POP3	M	Lamnidis2018
