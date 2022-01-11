@@ -399,6 +399,7 @@ data JannoRow = JannoRow
     , jRelationTo                   :: Maybe JannoStringList
     , jRelationType                 :: Maybe JannoStringList
     , jRelationDegree               :: Maybe JannoRelationDegreeList
+    , jRelationNote                 :: Maybe String
     , jCollectionID                 :: Maybe String
     , jSourceTissue                 :: Maybe JannoStringList
     , jCountry                      :: Maybe String
@@ -452,6 +453,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Relation_To"
         <*> filterLookupOptional m "Relation_Type"
         <*> filterLookupOptional m "Relation_Degree"
+        <*> filterLookupOptional m "Relation_Note"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -514,6 +516,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Relation_To"                     Csv..= jRelationTo j
         , "Relation_Type"                   Csv..= jRelationType j
         , "Relation_Degree"                 Csv..= jRelationDegree j
+        , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Source_Tissue"                   Csv..= jSourceTissue j
         , "Country"                         Csv..= jCountry j
@@ -559,7 +562,7 @@ instance Csv.DefaultOrdered JannoRow where
 
 jannoHeader :: [Bchs.ByteString]
 jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Type",
-    "Relation_Degree", "Collection_ID","Source_Tissue","Country",
+    "Relation_Degree", "Relation_Note", "Collection_ID","Source_Tissue","Country",
     "Location","Site","Latitude","Longitude","Date_C14_Labnr",
     "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
     "Date_BC_AD_Stop","Date_Type", "Date_Note", "Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
@@ -692,6 +695,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jRelationTo                   = Nothing
         , jRelationType                 = Nothing
         , jRelationDegree               = Nothing
+        , jRelationNote                 = Nothing
         , jCollectionID                 = Nothing
         , jSourceTissue                 = Nothing
         , jCountry                      = Nothing

@@ -114,6 +114,7 @@ extractAdditionalField "Alternative_IDs"                = handleMaybeList       
 extractAdditionalField "Relation_To"                    = handleMaybeList            jRelationTo
 extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
 extractAdditionalField "Relation_Degree"                = handleMaybeShowList        jRelationDegree
+extractAdditionalField "Relation_Note"                  = handleMaybe                jRelationNote
 extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID 
 extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue
 extractAdditionalField "Country"                        = handleMaybe                jCountry
