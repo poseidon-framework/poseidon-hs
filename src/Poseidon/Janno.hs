@@ -367,10 +367,12 @@ instance Csv.FromField RelationDegree where
         | x == "second"       = pure Second
         | x == "thirdToFifth" = pure ThirdToFifth
         | x == "sixthToTenth" = pure SixthToTenth
-        | x == "unrelated"    = pure Unrelated
+        | x == "unrelated"    = pure Unrelated -- this should be omitted in the documentation
+                                               -- relations of type "unrelated" don't have to be
+                                               -- listed explicitly
         | x == "other"        = pure OtherDegree
         | otherwise           = fail $ "Relation degree " ++ show x ++ 
-                                       " not in [identical, first, second, thirdToFifth, sixthToTenth, unrelated, other]"
+                                       " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
 
 instance Csv.ToField RelationDegree where
     toField Identical         = "identical"
