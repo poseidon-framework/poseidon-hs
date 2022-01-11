@@ -351,7 +351,7 @@ instance (FromJSON a) => FromJSON (JannoList a) where
 -- |A datatype to represent Relationship degree lists in a janno file
 type JannoRelationDegreeList = JannoList RelationDegree
 
-data RelationDegree = Identical | First | Second | Third | Fourth | Fifth | Sixth | Unrelated | OtherDegree
+data RelationDegree = Identical | First | Second | ThirdToFifth | SixthToTenth | Unrelated | OtherDegree
     deriving (Eq, Ord, Generic)
 
 instance ToJSON RelationDegree where
@@ -364,23 +364,19 @@ instance Csv.FromField RelationDegree where
         | x == "identical"    = pure Identical
         | x == "first"        = pure First
         | x == "second"       = pure Second
-        | x == "third"        = pure Third
-        | x == "fourth"       = pure Fourth
-        | x == "fifth"        = pure Fifth
-        | x == "sixth"        = pure Sixth
+        | x == "thirdToFifth" = pure ThirdToFifth
+        | x == "sixthToTenth" = pure SixthToTenth
         | x == "unrelated"    = pure Unrelated
         | x == "other"        = pure OtherDegree
         | otherwise           = fail $ "Relation degree " ++ show x ++ 
-                                       " not in [identical, first, ..., sixth, unrelated, other]"
+                                       " not in [identical, first, second, thirdToFifth, sixthToTenth, unrelated, other]"
 
 instance Csv.ToField RelationDegree where
     toField Identical         = "identical"
     toField First             = "first"
     toField Second            = "second"
-    toField Third             = "third"
-    toField Fourth            = "fourth"
-    toField Fifth             = "fifth"
-    toField Sixth             = "sixth"
+    toField ThirdToFifth      = "thirdToFifth"
+    toField SixthToTenth      = "sixthToTenth"
     toField Unrelated         = "unrelated"
     toField OtherDegree       = "other"
 
@@ -388,10 +384,8 @@ instance Show RelationDegree where
     show Identical            = "identical"
     show First                = "first"
     show Second               = "second"
-    show Third                = "third"
-    show Fourth               = "fourth"
-    show Fifth                = "fifth"
-    show Sixth                = "sixth"
+    show ThirdToFifth         = "thirdToFifth"
+    show SixthToTenth         = "sixthToTenth"
     show Unrelated            = "unrelated"
     show OtherDegree          = "other"
 
