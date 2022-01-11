@@ -435,7 +435,7 @@ data JannoRow = JannoRow
     , jContamination                :: Maybe JannoStringList
     , jContaminationErr             :: Maybe JannoStringList
     , jContaminationMeas            :: Maybe JannoStringList
-    , jContaminationNote            :: Maybe JannoStringList
+    , jContaminationNote            :: Maybe String
     , jGeneticSourceAccessionIDs    :: Maybe JannoStringList
     , jDataPreparationPipelineURL   :: Maybe JURI
     , jPrimaryContact               :: Maybe String
@@ -782,10 +782,7 @@ checkContamColsConsistent x =
   let lContamination      = getCellLength $ jContamination x
       lContaminationErr   = getCellLength $ jContaminationErr x
       lContaminationMeas  = getCellLength $ jContaminationMeas x
-      lContaminationNote  = getCellLength $ jContaminationNote x
-  in allEqual [lContamination, lContaminationErr, lContaminationMeas, lContaminationNote] 
-    -- that's not sufficient yet
-    -- we rather need some more sophisticated logic like for the c14 cols
+  in allEqual [lContamination, lContaminationErr, lContaminationMeas]
   
 getCellLength :: Maybe (JannoList a) -> Int 
 getCellLength = maybe 0 (length . getJannoList)
