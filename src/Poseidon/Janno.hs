@@ -64,10 +64,10 @@ instance Ord JannoSex where
 
 instance Csv.FromField JannoSex where
     parseField x
-        | x == "F" = pure (JannoSex Female)
-        | x == "M" = pure (JannoSex Male)
-        | x == "U" = pure (JannoSex Unknown)
-        | otherwise = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
+        | x == "F"             = pure (JannoSex Female)
+        | x == "M"             = pure (JannoSex Male)
+        | x == "U"             = pure (JannoSex Unknown)
+        | otherwise            = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
  
 instance Csv.ToField JannoSex where
     toField (JannoSex Female)  = "F"
@@ -75,21 +75,21 @@ instance Csv.ToField JannoSex where
     toField (JannoSex Unknown) = "U"
 
 instance FromJSON JannoSex where
-    parseJSON (String "F") = pure (JannoSex Female)
-    parseJSON (String "M") = pure (JannoSex Male)
-    parseJSON (String "U") = pure (JannoSex Unknown)
-    parseJSON v = fail ("could not parse " ++ show v ++ " as JannoSex")
+    parseJSON (String "F")     = pure (JannoSex Female)
+    parseJSON (String "M")     = pure (JannoSex Male)
+    parseJSON (String "U")     = pure (JannoSex Unknown)
+    parseJSON v                = fail ("could not parse " ++ show v ++ " as JannoSex")
 
 instance ToJSON JannoSex where
     -- this encodes directly to a bytestring Builder
-    toJSON (JannoSex Female)  = String "F"
-    toJSON (JannoSex Male)    = String "M"
-    toJSON (JannoSex Unknown) = String "U"
+    toJSON (JannoSex Female)   = String "F"
+    toJSON (JannoSex Male)     = String "M"
+    toJSON (JannoSex Unknown)  = String "U"
 
 instance Show JannoSex where
-    show (JannoSex Female)  = "F"
-    show (JannoSex Male)    = "M"
-    show (JannoSex Unknown) = "U"
+    show (JannoSex Female)     = "F"
+    show (JannoSex Male)       = "M"
+    show (JannoSex Unknown)    = "U"
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -104,20 +104,20 @@ instance FromJSON JannoDateType
 
 instance Csv.FromField JannoDateType where
     parseField x
-        | x == "C14" = pure C14
+        | x == "C14"        = pure C14
         | x == "contextual" = pure Contextual
-        | x == "modern" = pure Modern
-        | otherwise = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
+        | x == "modern"     = pure Modern
+        | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
 
 instance Csv.ToField JannoDateType where
-    toField C14        = "C14"
-    toField Contextual = "contextual"
-    toField Modern     = "modern"
+    toField C14             = "C14"
+    toField Contextual      = "contextual"
+    toField Modern          = "modern"
 
 instance Show JannoDateType where
-    show C14        = "C14"
-    show Contextual = "contextual"
-    show Modern     = "modern"
+    show C14                = "C14"
+    show Contextual         = "contextual"
+    show Modern             = "modern"
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType = Shotgun
@@ -133,23 +133,24 @@ instance FromJSON JannoCaptureType
 
 instance Csv.FromField JannoCaptureType where
     parseField x
-        | x == "Shotgun" = pure Shotgun
-        | x == "1240K" = pure A1240K
-        | x == "OtherCapture" = pure OtherCapture
+        | x == "Shotgun"         = pure Shotgun
+        | x == "1240K"           = pure A1240K
+        | x == "OtherCapture"    = pure OtherCapture
         | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise = fail $ "Capture_Type " ++ show x ++ " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
+        | otherwise              = fail $ "Capture_Type " ++ show x ++ 
+                                          " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
 
 instance Csv.ToField JannoCaptureType where
-    toField Shotgun         = "Shotgun"
-    toField A1240K          = "1240K"
-    toField OtherCapture    = "OtherCapture"
-    toField ReferenceGenome = "ReferenceGenome"
+    toField Shotgun              = "Shotgun"
+    toField A1240K               = "1240K"
+    toField OtherCapture         = "OtherCapture"
+    toField ReferenceGenome      = "ReferenceGenome"
 
 instance Show JannoCaptureType where
-    show Shotgun         = "Shotgun"
-    show A1240K          = "1240K"
-    show OtherCapture    = "OtherCapture"
-    show ReferenceGenome = "ReferenceGenome"
+    show Shotgun                 = "Shotgun"
+    show A1240K                  = "1240K"
+    show OtherCapture            = "OtherCapture"
+    show ReferenceGenome         = "ReferenceGenome"
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = Diploid
@@ -165,15 +166,15 @@ instance Csv.FromField JannoGenotypePloidy where
     parseField x
         | x == "diploid" = pure Diploid
         | x == "haploid" = pure Haploid
-        | otherwise = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
+        | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
 
 instance Csv.ToField JannoGenotypePloidy where
-    toField Diploid = "diploid"
-    toField Haploid = "haploid"
+    toField Diploid      = "diploid"
+    toField Haploid      = "haploid"
 
 instance Show JannoGenotypePloidy where
-    show Diploid = "diploid"
-    show Haploid = "haploid"
+    show Diploid         = "diploid"
+    show Haploid         = "haploid"
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
@@ -190,22 +191,22 @@ instance FromJSON JannoUDG
 instance Csv.FromField JannoUDG where
     parseField x
         | x == "minus" = pure Minus
-        | x == "half" = pure Half
-        | x == "plus" = pure Plus
+        | x == "half"  = pure Half
+        | x == "plus"  = pure Plus
         | x == "mixed" = pure Mixed
-        | otherwise = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
+        | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
 
 instance Csv.ToField JannoUDG where
-    toField Minus = "minus"
-    toField Half  = "half"
-    toField Plus  = "plus"
-    toField Mixed = "mixed"
+    toField Minus      = "minus"
+    toField Half       = "half"
+    toField Plus       = "plus"
+    toField Mixed      = "mixed"
 
 instance Show JannoUDG where
-    show Minus = "minus"
-    show Half  = "half"
-    show Plus  = "plus"
-    show Mixed = "mixed"
+    show Minus         = "minus"
+    show Half          = "half"
+    show Plus          = "plus"
+    show Mixed         = "mixed"
 
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = DS
@@ -215,20 +216,20 @@ data JannoLibraryBuilt = DS
 
 instance Csv.FromField JannoLibraryBuilt where
     parseField x
-        | x == "ds" = pure DS
-        | x == "ss" = pure SS
+        | x == "ds"    = pure DS
+        | x == "ss"    = pure SS
         | x == "other" = pure Other
-        | otherwise = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
+        | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
 
 instance Csv.ToField JannoLibraryBuilt where
-    toField DS    = "ds"
-    toField SS    = "ss"
-    toField Other = "other"
+    toField DS         = "ds"
+    toField SS         = "ss"
+    toField Other      = "other"
 
 instance Show JannoLibraryBuilt where
-    show DS    = "ds"
-    show SS    = "ss"
-    show Other = "other"
+    show DS            = "ds"
+    show SS            = "ss"
+    show Other         = "other"
 
 instance ToJSON JannoLibraryBuilt where
     toEncoding = genericToEncoding defaultOptions
