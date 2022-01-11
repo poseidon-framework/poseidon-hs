@@ -562,20 +562,112 @@ instance Csv.ToNamedRecord JannoRow where
 instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
+-- This header also defines the output column order when writing to csv!
 jannoHeader :: [Bchs.ByteString]
-jannoHeader = ["Poseidon_ID", "Alternative_IDs", "Relation_To", "Relation_Degree",
-    "Relation_Type", "Relation_Note", "Collection_ID","Source_Tissue","Country",
-    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
-    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
-    "Date_BC_AD_Stop","Date_Type", "Date_Note", "Nr_Libraries","Capture_Type","Genotype_Ploidy","Group_Name",
-    "Genetic_Sex","Nr_SNPs","Coverage_on_Target_SNPs","MT_Haplogroup","Y_Haplogroup",
-    "Endogenous","UDG","Library_Built","Damage","Contamination","Contamination_Err","Contamination_Meas",
-    "Contamination_Note", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
-    "Primary_Contact","Publication","Note","Keywords"
+jannoHeader = [
+      "Poseidon_ID"
+    , "Genetic_Sex"
+    , "Group_Name"
+    , "Alternative_IDs"
+    , "Relation_To"
+    , "Relation_Degree"
+    , "Relation_Type"
+    , "Relation_Note"
+    , "Collection_ID"
+    , "Country"
+    , "Location"
+    , "Site"
+    , "Latitude"
+    , "Longitude"
+    , "Date_Type"
+    , "Date_C14_Labnr"
+    , "Date_C14_Uncal_BP"
+    , "Date_C14_Uncal_BP_Err"
+    , "Date_BC_AD_Start"
+    , "Date_BC_AD_Median"
+    , "Date_BC_AD_Stop"
+    , "Date_Note"
+    , "MT_Haplogroup"
+    , "Y_Haplogroup"
+    , "Source_Tissue"
+    , "Nr_Libraries"
+    , "Capture_Type"
+    , "UDG"
+    , "Library_Built"
+    , "Genotype_Ploidy"
+    , "Data_Preparation_Pipeline_URL"
+    , "Endogenous"
+    , "Nr_SNPs"
+    , "Coverage_on_Target_SNPs"
+    , "Damage"
+    , "Contamination"
+    , "Contamination_Err"
+    , "Contamination_Meas"
+    , "Contamination_Note"
+    , "Genetic_Source_Accession_IDs"
+    , "Primary_Contact"
+    , "Publication"
+    , "Note"
+    , "Keywords"
     ]
 
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
+
+-- | A function to create empty janno rows for a set of individuals
+createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
+createMinimalJanno [] = []
+createMinimalJanno xs = map createMinimalSample xs
+
+-- | A function to create an empty janno row for an individual
+createMinimalSample :: EigenstratIndEntry -> JannoRow
+createMinimalSample (EigenstratIndEntry id_ sex pop) =
+    JannoRow { 
+          jPoseidonID                   = id_
+        , jAlternativeIDs               = Nothing
+        , jRelationTo                   = Nothing
+        , jRelationDegree               = Nothing
+        , jRelationType                 = Nothing
+        , jRelationNote                 = Nothing
+        , jCollectionID                 = Nothing
+        , jSourceTissue                 = Nothing
+        , jCountry                      = Nothing
+        , jLocation                     = Nothing
+        , jSite                         = Nothing
+        , jLatitude                     = Nothing
+        , jLongitude                    = Nothing
+        , jDateC14Labnr                 = Nothing
+        , jDateC14UncalBP               = Nothing
+        , jDateC14UncalBPErr            = Nothing
+        , jDateBCADMedian               = Nothing
+        , jDateBCADStart                = Nothing
+        , jDateBCADStop                 = Nothing
+        , jDateType                     = Nothing
+        , jDateNote                     = Nothing
+        , jNrLibraries                  = Nothing
+        , jCaptureType                  = Nothing
+        , jGenotypePloidy               = Nothing
+        , jGroupName                    = JannoList [pop]
+        , jGeneticSex                   = JannoSex sex
+        , jNrSNPs                       = Nothing
+        , jCoverageOnTargets            = Nothing
+        , jMTHaplogroup                 = Nothing
+        , jYHaplogroup                  = Nothing
+        , jEndogenous                   = Nothing
+        , jUDG                          = Nothing
+        , jLibraryBuilt                 = Nothing
+        , jDamage                       = Nothing
+        , jContamination                = Nothing
+        , jContaminationErr             = Nothing
+        , jContaminationMeas            = Nothing
+        , jContaminationNote            = Nothing
+        , jGeneticSourceAccessionIDs    = Nothing
+        , jDataPreparationPipelineURL   = Nothing
+        , jPrimaryContact               = Nothing
+        , jPublication                  = Nothing
+        , jComments                     = Nothing
+        , jKeywords                     = Nothing
+    }
 
 -- Janno file writing
 
@@ -682,61 +774,6 @@ replaceInJannoBytestring from to tsv =
         tsvCellsUpdated = map (map (\y -> if y == from || y == Bch.append from "\r" then to else y)) tsvCells
         tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
-
--- | A function to create empty janno rows for a set of individuals
-createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
-createMinimalJanno [] = []
-createMinimalJanno xs = map createMinimalSample xs
-
--- | A function to create an empty janno row for an individual
-createMinimalSample :: EigenstratIndEntry -> JannoRow
-createMinimalSample (EigenstratIndEntry id_ sex pop) =
-    JannoRow { 
-          jPoseidonID                   = id_
-        , jAlternativeIDs               = Nothing
-        , jRelationTo                   = Nothing
-        , jRelationDegree               = Nothing
-        , jRelationType                 = Nothing
-        , jRelationNote                 = Nothing
-        , jCollectionID                 = Nothing
-        , jSourceTissue                 = Nothing
-        , jCountry                      = Nothing
-        , jLocation                     = Nothing
-        , jSite                         = Nothing
-        , jLatitude                     = Nothing
-        , jLongitude                    = Nothing
-        , jDateC14Labnr                 = Nothing
-        , jDateC14UncalBP               = Nothing
-        , jDateC14UncalBPErr            = Nothing
-        , jDateBCADMedian               = Nothing
-        , jDateBCADStart                = Nothing
-        , jDateBCADStop                 = Nothing
-        , jDateType                     = Nothing
-        , jDateNote                     = Nothing
-        , jNrLibraries                  = Nothing
-        , jCaptureType                  = Nothing
-        , jGenotypePloidy               = Nothing
-        , jGroupName                    = JannoList [pop]
-        , jGeneticSex                   = JannoSex sex
-        , jNrSNPs                       = Nothing
-        , jCoverageOnTargets            = Nothing
-        , jMTHaplogroup                 = Nothing
-        , jYHaplogroup                  = Nothing
-        , jEndogenous                   = Nothing
-        , jUDG                          = Nothing
-        , jLibraryBuilt                 = Nothing
-        , jDamage                       = Nothing
-        , jContamination                = Nothing
-        , jContaminationErr             = Nothing
-        , jContaminationMeas            = Nothing
-        , jContaminationNote            = Nothing
-        , jGeneticSourceAccessionIDs    = Nothing
-        , jDataPreparationPipelineURL   = Nothing
-        , jPrimaryContact               = Nothing
-        , jPublication                  = Nothing
-        , jComments                     = Nothing
-        , jKeywords                     = Nothing
-    }
 
 -- Janno consistency checks
 
