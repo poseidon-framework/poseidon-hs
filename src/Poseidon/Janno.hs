@@ -16,6 +16,7 @@ module Poseidon.Janno (
     Percent (..),
     JannoUDG (..),
     JURI (..),
+    RelationDegree (..),
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,
