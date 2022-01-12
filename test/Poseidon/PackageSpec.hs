@@ -160,7 +160,7 @@ checksums :: [String]
 checksums = ["0332344057c0c4dce2ff7176f8e1103d",
              "d76e3e7a8fc0f1f5e435395424b5aeab",
              "f77dc756666dbfef3bb35191ae15a167",
-             "555d7733135ebcabd032d581381c5d6f",
+             "b38f0bce9f9f3a211f38a1d9951efb48",
              "70cd3d5801cee8a93fc2eb40a99c63fa"]
 
 testGetChecksum :: Spec
