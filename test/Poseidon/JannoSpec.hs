@@ -15,7 +15,6 @@ import           Poseidon.Janno            (JannoRow (..),
                                             RelationDegree (..),
                                             JannoLibraryBuilt (..),
                                             readJannoFile)
-import           Poseidon.Utils            (PoseidonException (..))
 
 import Test.Hspec
     ( anyException, shouldThrow, shouldBe, it, describe, Spec )
@@ -81,6 +80,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
                                                           Just (JURI "https://www.google.de"), 
                                                           Just (JURI "http://huhu.org/23&test")]
+    -- the following tests should be more precise and comprehensive; we should consider refactoring 
+    -- (maybe when we eventually switch to a different error logging strategy)
     it "should fail to read somehow borked janno files" $ do
         readJannoFile False borkedFullJannoPath `shouldThrow` anyException
         readJannoFile False borkedPartialJannoPath `shouldThrow` anyException
