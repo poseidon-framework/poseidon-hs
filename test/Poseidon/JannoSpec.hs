@@ -15,8 +15,10 @@ import           Poseidon.Janno            (JannoRow (..),
                                             RelationDegree (..),
                                             JannoLibraryBuilt (..),
                                             readJannoFile)
+import           Poseidon.Utils            (PoseidonException (..))
 
-import           Test.Hspec
+import Test.Hspec
+    ( anyException, shouldThrow, shouldBe, it, describe, Spec )
 
 spec :: Spec
 spec = do
@@ -30,7 +32,6 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let normalPartialJannoPath    = "test/testDat/testJannoFiles/normal_partial.janno"
     let borkedFullJannoPath       = "test/testDat/testJannoFiles/borked_full.janno"
     let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
-    let borkedWrongNameJannoPath  = "test/testDat/testJannoFiles/borked_wrong_name.janno"
     it "should read minimal janno files correctly" $ do
         janno <- readJannoFile False minimalFullJannoPath
         janno_partial <- readJannoFile False minimalPartialJannoPath
@@ -80,7 +81,11 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
                                                           Just (JURI "https://www.google.de"), 
                                                           Just (JURI "http://huhu.org/23&test")]
-    it "should fail to read borked janno files" $ do
+    it "should fail to read somehow borked janno files" $ do
         readJannoFile False borkedFullJannoPath `shouldThrow` anyException
         readJannoFile False borkedPartialJannoPath `shouldThrow` anyException
-        readJannoFile False borkedWrongNameJannoPath `shouldThrow` anyException
+    it "should fail to read borked janno files with specific issues" $ do
+        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_wrong_name.janno" `shouldThrow` anyException
+        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_relations.janno" `shouldThrow` anyException
+        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_contamination.janno" `shouldThrow` anyException
+        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_dating.janno" `shouldThrow` anyException
