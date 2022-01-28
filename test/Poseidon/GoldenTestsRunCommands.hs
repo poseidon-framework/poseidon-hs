@@ -39,7 +39,7 @@ staticCheckSumFile = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 smallTestPacsDir :: FilePath
-smallTestPacsDir = "test/testDat/testModules/ancient"
+smallTestPacsDir = "test/testDat/testPackages/ancient"
 smallTestEntityFiles :: FilePath
 smallTestEntityFiles = "test/testDat/testEntityFiles"
 
@@ -173,7 +173,7 @@ testPipelineList testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals ["Country", "Nr_autosomal_SNPs"]
+          _listListEntity    = ListIndividuals ["Country", "Nr_SNPs"]
         }
     runAndChecksumStdOut checkFilePath testDir (runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {

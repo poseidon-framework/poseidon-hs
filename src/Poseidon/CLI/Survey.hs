@@ -79,42 +79,49 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
         insertEveryN n y xs = intercalate [y] . groups n $ xs
             where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
+-- this has to be in the same order as jannoHeader in the janno module
 renderJannoCompleteness :: [JannoRow] -> String
 renderJannoCompleteness jS =
       '█'
+    : '█'
+    : '█'
+    : getColChar jS jAlternativeIDs
+    : getColChar jS jRelationTo
+    : getColChar jS jRelationDegree
+    : getColChar jS jRelationType
+    : getColChar jS jRelationNote
     : getColChar jS jCollectionID
-    : getColChar jS jSourceTissue
     : getColChar jS jCountry
     : getColChar jS jLocation
     : getColChar jS jSite
     : getColChar jS jLatitude
     : getColChar jS jLongitude
+    : getColChar jS jDateType
     : getColChar jS jDateC14Labnr
     : getColChar jS jDateC14UncalBP
     : getColChar jS jDateC14UncalBPErr
-    : getColChar jS jDateBCADMedian
     : getColChar jS jDateBCADStart
+    : getColChar jS jDateBCADMedian
     : getColChar jS jDateBCADStop
-    : getColChar jS jDateType
-    : getColChar jS jNrLibraries
-    : getColChar jS jDataType
-    : getColChar jS jGenotypePloidy
-    : '█' 
-    : '█'
-    : getColChar jS jNrAutosomalSNPs
-    : getColChar jS jCoverage1240K
+    : getColChar jS jDateNote
     : getColChar jS jMTHaplogroup
     : getColChar jS jYHaplogroup
-    : getColChar jS jEndogenous
-    : getColChar jS jUDG
-    : getColChar jS jDamage
+    : getColChar jS jSourceTissue
+    : getColChar jS jNrLibraries
+    : getColChar jS jCaptureType
+    : getColChar jS jUDG 
     : getColChar jS jLibraryBuilt
-    : getColChar jS jNuclearContam
-    : getColChar jS jNuclearContamErr
-    : getColChar jS jMTContam
-    : getColChar jS jMTContamErr
-    : getColChar jS jGeneticSourceAccessionIDs
+    : getColChar jS jGenotypePloidy
     : getColChar jS jDataPreparationPipelineURL
+    : getColChar jS jEndogenous
+    : getColChar jS jNrSNPs
+    : getColChar jS jCoverageOnTargets
+    : getColChar jS jDamage
+    : getColChar jS jContamination
+    : getColChar jS jContaminationErr
+    : getColChar jS jContaminationMeas
+    : getColChar jS jContaminationNote
+    : getColChar jS jGeneticSourceAccessionIDs
     : getColChar jS jPrimaryContact
     : getColChar jS jPublication
     : getColChar jS jComments

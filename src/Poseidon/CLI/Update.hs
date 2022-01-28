@@ -38,6 +38,7 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = True
     , _readOptGenoCheck        = False
+    , _readOptIgnorePacVersion = True -- Probably this should be made optional.
     }
 
 runUpdate :: UpdateOptions -> IO ()

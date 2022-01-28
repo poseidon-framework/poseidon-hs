@@ -200,15 +200,24 @@ data PoseidonPackage = PoseidonPackage
     deriving (Show, Eq, Generic)
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptVerbose          :: Bool -- whether to print verbose output
-    -- whether to stop on duplicated individuals
-    , _readOptStopOnDuplicates :: Bool -- whether to stop on duplicated individuals
-    -- whether to ignore all checksums
-    , _readOptIgnoreChecksums  :: Bool -- whether to ignore all checksums
-    -- whether to ignore missing genotype files, useful for developer use cases
-    , _readOptIgnoreGeno       :: Bool -- whether to ignore missing genotype files, useful for developer use cases
-    -- whether to check the first 100 SNPs of the genotypes
-    , _readOptGenoCheck        :: Bool -- whether to check the first 100 SNPs of the genotypes
+    { _readOptVerbose          :: Bool
+    -- ^ whether to print verbose output
+    , _readOptStopOnDuplicates :: Bool
+    -- ^ whether to stop on duplicated individuals
+    , _readOptIgnoreChecksums  :: Bool
+    -- ^ whether to ignore all checksums
+    , _readOptIgnoreGeno       :: Bool
+    -- ^ whether to ignore missing genotype files, useful for developer use cases
+    , _readOptGenoCheck        :: Bool
+    -- ^ whether to check the first 100 SNPs of the genotypes
+    , _readOptIgnorePacVersion :: Bool
+    -- ^ whether to ignore the version of an input package.
+    -- This can cause runtime errors, if the structural difference
+    -- between versions is too big.
+    -- The option was added to allow trident update to load and update
+    -- packages with older version numbers. In a typical update workflow
+    -- one would adjust the package to the new Poseidon version and then
+    -- run update on the structurally already correct package.
     }
 
 defaultPackageReadOptions :: PackageReadOptions
@@ -218,6 +227,7 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
+    , _readOptIgnorePacVersion = False
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
@@ -230,8 +240,11 @@ readPoseidonPackageCollection opts dirs = do
     hPutStr stderr "Searching POSEIDON.yml files... "
     posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
-    hPutStrLn stderr "Checking Poseidon versions... "
-    posFiles <- filterByPoseidonVersion posFilesAllVersions
+    posFiles <- if _readOptIgnorePacVersion opts
+                then return posFilesAllVersions
+                else do
+                  hPutStrLn stderr "Checking Poseidon versions... "
+                  filterByPoseidonVersion posFilesAllVersions
     hPutStrLn stderr "Initializing packages... "
     eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     hPutStrLn stderr ""
@@ -388,7 +401,7 @@ checkJannoIndConsistency pacName janno indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jIndividualID janno
+    let jannoIDs        = map jPoseidonID janno
         jannoSexs       = map (sfSex . jGeneticSex) janno
         jannoGroups     = map (head . getJannoList . jGroupName) janno
     let idMis           = genoIDs /= jannoIDs

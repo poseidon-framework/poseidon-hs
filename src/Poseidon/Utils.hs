@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Utils (
-    PoseidonException(..),
+    PoseidonException (..),
     renderPoseidonException
 ) where
 

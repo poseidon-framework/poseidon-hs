@@ -1,4 +1,4 @@
-poseidonVersion: 2.4.0
+poseidonVersion: 2.5.0
 title: Schiffels
 description: Empty package template. Please add a description
 contributor:
@@ -20,7 +20,7 @@ genotypeData:
   indFileChkSum: a9fcb59cb933d8f183f3c3f6fbf2e213
   snpSet: Other
 jannoFile: Schiffels.janno
-jannoFileChkSum: 04686d2b18f41b9137807a0d5521670d
+jannoFileChkSum: 79069c0fc198790f481e4460e89c28be
 bibFile: Schiffels.bib
 bibFileChkSum: 66fee695ba94e12688567db73c0f2830
 changelogFile: CHANGELOG.md

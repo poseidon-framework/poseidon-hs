@@ -286,7 +286,7 @@ getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getAllIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
-    let name = jIndividualID jannoRow
+    let name = jPoseidonID jannoRow
         groups = getJannoList . jGroupName $ jannoRow
         pacName = posPacTitle pac
     return $ IndividualInfo name groups pacName

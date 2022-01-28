@@ -1,6 +1,8 @@
-- V 0.25.0: moved fstats command into new tool `xerxes` provided by github package poseidon-analysis-hs in the same organisation.
-- V 0.24.4: switched off geno-check upon server start
-- V 0.24.3: Incongruent SNPs are now skipped, with an optional warning.
+- V 0.26.1: Added an option to ignore a package's version when reading it and activated that by default for the update subcommand
+- V 0.26.0: Updated the library to Poseidon v2.5. This means a number of (breaking) changes in the structure of .janno files
+- V 0.25.0: Moved fstats command into new tool `xerxes` provided by github package poseidon-analysis-hs in the same organisation
+- V 0.24.4: Switched off geno-check upon server start
+- V 0.24.3: Incongruent SNPs are now skipped, with an optional warning
 - V 0.24.2: Better error messages for broken .janno files
 - V 0.24.1: Added the subcommand summarize as a synonym for summarise to trident
 - V 0.24.0: Made entities parsing in forgeFiles much more powerful, adding exclusion of entities and comments. The changes should be fully backwards compatible

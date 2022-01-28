@@ -11,11 +11,12 @@ module Poseidon.Janno (
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
-    JannoDataType (..),
+    JannoCaptureType (..),
     JannoGenotypePloidy (..),
     Percent (..),
     JannoUDG (..),
     JURI (..),
+    RelationDegree (..),
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,
@@ -41,7 +42,7 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Lazy          as HM
 import           Data.List                  (intercalate, nub, (\\), elemIndex)
-import           Data.Maybe                 (fromJust)
+import           Data.Maybe                 (fromJust, isNothing)
 import           Data.Text                  (pack, unpack, replace)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
@@ -64,10 +65,10 @@ instance Ord JannoSex where
 
 instance Csv.FromField JannoSex where
     parseField x
-        | x == "F" = pure (JannoSex Female)
-        | x == "M" = pure (JannoSex Male)
-        | x == "U" = pure (JannoSex Unknown)
-        | otherwise = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
+        | x == "F"             = pure (JannoSex Female)
+        | x == "M"             = pure (JannoSex Male)
+        | x == "U"             = pure (JannoSex Unknown)
+        | otherwise            = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
  
 instance Csv.ToField JannoSex where
     toField (JannoSex Female)  = "F"
@@ -75,21 +76,21 @@ instance Csv.ToField JannoSex where
     toField (JannoSex Unknown) = "U"
 
 instance FromJSON JannoSex where
-    parseJSON (String "F") = pure (JannoSex Female)
-    parseJSON (String "M") = pure (JannoSex Male)
-    parseJSON (String "U") = pure (JannoSex Unknown)
-    parseJSON v = fail ("could not parse " ++ show v ++ " as JannoSex")
+    parseJSON (String "F")     = pure (JannoSex Female)
+    parseJSON (String "M")     = pure (JannoSex Male)
+    parseJSON (String "U")     = pure (JannoSex Unknown)
+    parseJSON v                = fail ("could not parse " ++ show v ++ " as JannoSex")
 
 instance ToJSON JannoSex where
     -- this encodes directly to a bytestring Builder
-    toJSON (JannoSex Female)  = String "F"
-    toJSON (JannoSex Male)    = String "M"
-    toJSON (JannoSex Unknown) = String "U"
+    toJSON (JannoSex Female)   = String "F"
+    toJSON (JannoSex Male)     = String "M"
+    toJSON (JannoSex Unknown)  = String "U"
 
 instance Show JannoSex where
-    show (JannoSex Female)  = "F"
-    show (JannoSex Male)    = "M"
-    show (JannoSex Unknown) = "U"
+    show (JannoSex Female)     = "F"
+    show (JannoSex Male)       = "M"
+    show (JannoSex Unknown)    = "U"
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -104,52 +105,53 @@ instance FromJSON JannoDateType
 
 instance Csv.FromField JannoDateType where
     parseField x
-        | x == "C14" = pure C14
+        | x == "C14"        = pure C14
         | x == "contextual" = pure Contextual
-        | x == "modern" = pure Modern
-        | otherwise = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
+        | x == "modern"     = pure Modern
+        | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
 
 instance Csv.ToField JannoDateType where
-    toField C14        = "C14"
-    toField Contextual = "contextual"
-    toField Modern     = "modern"
+    toField C14             = "C14"
+    toField Contextual      = "contextual"
+    toField Modern          = "modern"
 
 instance Show JannoDateType where
-    show C14        = "C14"
-    show Contextual = "contextual"
-    show Modern     = "modern"
+    show C14                = "C14"
+    show Contextual         = "contextual"
+    show Modern             = "modern"
 
--- |A datatype to represent Data_Type in a janno file
-data JannoDataType = Shotgun
+-- |A datatype to represent Capture_Type in a janno file
+data JannoCaptureType = Shotgun
     | A1240K
     | OtherCapture
     | ReferenceGenome
     deriving (Eq, Ord, Generic)
 
-instance ToJSON JannoDataType where
+instance ToJSON JannoCaptureType where
     toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON JannoDataType
+instance FromJSON JannoCaptureType
 
-instance Csv.FromField JannoDataType where
+instance Csv.FromField JannoCaptureType where
     parseField x
-        | x == "Shotgun" = pure Shotgun
-        | x == "1240K" = pure A1240K
-        | x == "OtherCapture" = pure OtherCapture
+        | x == "Shotgun"         = pure Shotgun
+        | x == "1240K"           = pure A1240K
+        | x == "OtherCapture"    = pure OtherCapture
         | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise = fail $ "Data_Type " ++ show x ++ " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
+        | otherwise              = fail $ "Capture_Type " ++ show x ++ 
+                                          " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
 
-instance Csv.ToField JannoDataType where
-    toField Shotgun         = "Shotgun"
-    toField A1240K          = "1240K"
-    toField OtherCapture    = "OtherCapture"
-    toField ReferenceGenome = "ReferenceGenome"
+instance Csv.ToField JannoCaptureType where
+    toField Shotgun              = "Shotgun"
+    toField A1240K               = "1240K"
+    toField OtherCapture         = "OtherCapture"
+    toField ReferenceGenome      = "ReferenceGenome"
 
-instance Show JannoDataType where
-    show Shotgun         = "Shotgun"
-    show A1240K          = "1240K"
-    show OtherCapture    = "OtherCapture"
-    show ReferenceGenome = "ReferenceGenome"
+instance Show JannoCaptureType where
+    show Shotgun                 = "Shotgun"
+    show A1240K                  = "1240K"
+    show OtherCapture            = "OtherCapture"
+    show ReferenceGenome         = "ReferenceGenome"
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = Diploid
@@ -165,15 +167,15 @@ instance Csv.FromField JannoGenotypePloidy where
     parseField x
         | x == "diploid" = pure Diploid
         | x == "haploid" = pure Haploid
-        | otherwise = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
+        | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
 
 instance Csv.ToField JannoGenotypePloidy where
-    toField Diploid = "diploid"
-    toField Haploid = "haploid"
+    toField Diploid      = "diploid"
+    toField Haploid      = "haploid"
 
 instance Show JannoGenotypePloidy where
-    show Diploid = "diploid"
-    show Haploid = "haploid"
+    show Diploid         = "diploid"
+    show Haploid         = "haploid"
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
@@ -190,22 +192,22 @@ instance FromJSON JannoUDG
 instance Csv.FromField JannoUDG where
     parseField x
         | x == "minus" = pure Minus
-        | x == "half" = pure Half
-        | x == "plus" = pure Plus
+        | x == "half"  = pure Half
+        | x == "plus"  = pure Plus
         | x == "mixed" = pure Mixed
-        | otherwise = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
+        | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
 
 instance Csv.ToField JannoUDG where
-    toField Minus = "minus"
-    toField Half  = "half"
-    toField Plus  = "plus"
-    toField Mixed = "mixed"
+    toField Minus      = "minus"
+    toField Half       = "half"
+    toField Plus       = "plus"
+    toField Mixed      = "mixed"
 
 instance Show JannoUDG where
-    show Minus = "minus"
-    show Half  = "half"
-    show Plus  = "plus"
-    show Mixed = "mixed"
+    show Minus         = "minus"
+    show Half          = "half"
+    show Plus          = "plus"
+    show Mixed         = "mixed"
 
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = DS
@@ -215,20 +217,20 @@ data JannoLibraryBuilt = DS
 
 instance Csv.FromField JannoLibraryBuilt where
     parseField x
-        | x == "ds" = pure DS
-        | x == "ss" = pure SS
+        | x == "ds"    = pure DS
+        | x == "ss"    = pure SS
         | x == "other" = pure Other
-        | otherwise = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
+        | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
 
 instance Csv.ToField JannoLibraryBuilt where
-    toField DS    = "ds"
-    toField SS    = "ss"
-    toField Other = "other"
+    toField DS         = "ds"
+    toField SS         = "ss"
+    toField Other      = "other"
 
 instance Show JannoLibraryBuilt where
-    show DS    = "ds"
-    show SS    = "ss"
-    show Other = "other"
+    show DS            = "ds"
+    show SS            = "ss"
+    show Other         = "other"
 
 instance ToJSON JannoLibraryBuilt where
     toEncoding = genericToEncoding defaultOptions
@@ -304,7 +306,7 @@ instance Csv.ToField Percent where
 instance Show Percent where
     show (Percent x) = show x
 
--- |A datatype to represent URIs in a janno file
+-- | A datatype to represent URIs in a janno file
 newtype JURI = JURI String
     deriving (Eq, Ord, Generic)
 
@@ -326,8 +328,9 @@ instance Csv.ToField JURI where
 instance Show JURI where
     show (JURI x) = x
 
-data JannoList a = JannoList {getJannoList :: [a]} 
-  deriving (Eq, Ord, Generic, Show)
+-- | A general datatype for janno list columns
+newtype JannoList a = JannoList {getJannoList :: [a]} 
+    deriving (Eq, Ord, Generic, Show)
 
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int
@@ -347,11 +350,59 @@ instance (ToJSON a) => ToJSON (JannoList a) where
 instance (FromJSON a) => FromJSON (JannoList a) where
     parseJSON v = JannoList <$> parseJSON v
 
+-- |A datatype to represent Relationship degree lists in a janno file
+type JannoRelationDegreeList = JannoList RelationDegree
+
+data RelationDegree = Identical | First | Second | ThirdToFifth | SixthToTenth | Unrelated | OtherDegree
+    deriving (Eq, Ord, Generic)
+
+instance ToJSON RelationDegree where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON RelationDegree
+
+instance Csv.FromField RelationDegree where
+    parseField x
+        | x == "identical"    = pure Identical
+        | x == "first"        = pure First
+        | x == "second"       = pure Second
+        | x == "thirdToFifth" = pure ThirdToFifth
+        | x == "sixthToTenth" = pure SixthToTenth
+        | x == "unrelated"    = pure Unrelated -- this should be omitted in the documentation
+                                               -- relations of type "unrelated" don't have to be
+                                               -- listed explicitly
+        | x == "other"        = pure OtherDegree
+        | otherwise           = fail $ "Relation degree " ++ show x ++ 
+                                       " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
+
+instance Csv.ToField RelationDegree where
+    toField Identical         = "identical"
+    toField First             = "first"
+    toField Second            = "second"
+    toField ThirdToFifth      = "thirdToFifth"
+    toField SixthToTenth      = "sixthToTenth"
+    toField Unrelated         = "unrelated"
+    toField OtherDegree       = "other"
+
+instance Show RelationDegree where
+    show Identical            = "identical"
+    show First                = "first"
+    show Second               = "second"
+    show ThirdToFifth         = "thirdToFifth"
+    show SixthToTenth         = "sixthToTenth"
+    show Unrelated            = "unrelated"
+    show OtherDegree          = "other"
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
-    { jIndividualID                 :: String
+    { jPoseidonID                   :: String
+    , jAlternativeIDs               :: Maybe JannoStringList
+    , jRelationTo                   :: Maybe JannoStringList
+    , jRelationDegree               :: Maybe JannoRelationDegreeList
+    , jRelationType                 :: Maybe JannoStringList
+    , jRelationNote                 :: Maybe String
     , jCollectionID                 :: Maybe String
     , jSourceTissue                 :: Maybe JannoStringList
     , jCountry                      :: Maybe String
@@ -366,23 +417,24 @@ data JannoRow = JannoRow
     , jDateBCADStart                :: Maybe Int
     , jDateBCADStop                 :: Maybe Int
     , jDateType                     :: Maybe JannoDateType
+    , jDateNote                     :: Maybe String
     , jNrLibraries                  :: Maybe Int
-    , jDataType                     :: Maybe (JannoList JannoDataType)
+    , jCaptureType                  :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy               :: Maybe JannoGenotypePloidy
     , jGroupName                    :: JannoStringList
     , jGeneticSex                   :: JannoSex
-    , jNrAutosomalSNPs              :: Maybe Int
-    , jCoverage1240K                :: Maybe Double
+    , jNrSNPs                       :: Maybe Int
+    , jCoverageOnTargets            :: Maybe Double
     , jMTHaplogroup                 :: Maybe String
     , jYHaplogroup                  :: Maybe String
     , jEndogenous                   :: Maybe Percent
     , jUDG                          :: Maybe JannoUDG
     , jLibraryBuilt                 :: Maybe JannoLibraryBuilt
     , jDamage                       :: Maybe Percent
-    , jNuclearContam                :: Maybe Double
-    , jNuclearContamErr             :: Maybe Double
-    , jMTContam                     :: Maybe Double
-    , jMTContamErr                  :: Maybe Double
+    , jContamination                :: Maybe JannoStringList
+    , jContaminationErr             :: Maybe JannoStringList
+    , jContaminationMeas            :: Maybe JannoStringList
+    , jContaminationNote            :: Maybe String
     , jGeneticSourceAccessionIDs    :: Maybe JannoStringList
     , jDataPreparationPipelineURL   :: Maybe JURI
     , jPrimaryContact               :: Maybe String
@@ -399,7 +451,12 @@ instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = JannoRow 
-        <$> filterLookup         m "Individual_ID"
+        <$> filterLookup         m "Poseidon_ID"
+        <*> filterLookupOptional m "Alternative_IDs"
+        <*> filterLookupOptional m "Relation_To"
+        <*> filterLookupOptional m "Relation_Degree"
+        <*> filterLookupOptional m "Relation_Type"
+        <*> filterLookupOptional m "Relation_Note"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
@@ -414,27 +471,28 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_BC_AD_Start"
         <*> filterLookupOptional m "Date_BC_AD_Stop"
         <*> filterLookupOptional m "Date_Type"
-        <*> filterLookupOptional m "No_of_Libraries"
-        <*> filterLookupOptional m "Data_Type"
+        <*> filterLookupOptional m "Date_Note"
+        <*> filterLookupOptional m "Nr_Libraries"
+        <*> filterLookupOptional m "Capture_Type"
         <*> filterLookupOptional m "Genotype_Ploidy"
         <*> filterLookup         m "Group_Name"
         <*> filterLookup         m "Genetic_Sex"
-        <*> filterLookupOptional m "Nr_autosomal_SNPs"
-        <*> filterLookupOptional m "Coverage_1240K"
+        <*> filterLookupOptional m "Nr_SNPs"
+        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
         <*> filterLookupOptional m "MT_Haplogroup"
         <*> filterLookupOptional m "Y_Haplogroup"
         <*> filterLookupOptional m "Endogenous"
         <*> filterLookupOptional m "UDG"
         <*> filterLookupOptional m "Library_Built"
         <*> filterLookupOptional m "Damage"
-        <*> filterLookupOptional m "Xcontam"
-        <*> filterLookupOptional m "Xcontam_stderr"
-        <*> filterLookupOptional m "mtContam"
-        <*> filterLookupOptional m "mtContam_stderr"
+        <*> filterLookupOptional m "Contamination"
+        <*> filterLookupOptional m "Contamination_Err"
+        <*> filterLookupOptional m "Contamination_Meas"
+        <*> filterLookupOptional m "Contamination_Note"
         <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
         <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
         <*> filterLookupOptional m "Primary_Contact"
-        <*> filterLookupOptional m "Publication_Status"
+        <*> filterLookupOptional m "Publication"
         <*> filterLookupOptional m "Note"
         <*> filterLookupOptional m "Keywords"
 
@@ -456,7 +514,12 @@ ignoreNA Nothing      = Nothing
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [
-          "Individual_ID"                   Csv..= jIndividualID j
+          "Poseidon_ID"                     Csv..= jPoseidonID j
+        , "Alternative_IDs"                 Csv..= jAlternativeIDs j
+        , "Relation_To"                     Csv..= jRelationTo j
+        , "Relation_Degree"                 Csv..= jRelationDegree j
+        , "Relation_Type"                   Csv..= jRelationType j
+        , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Source_Tissue"                   Csv..= jSourceTissue j
         , "Country"                         Csv..= jCountry j
@@ -471,27 +534,28 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
         , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
         , "Date_Type"                       Csv..= jDateType j
-        , "No_of_Libraries"                 Csv..= jNrLibraries j
-        , "Data_Type"                       Csv..= jDataType j
+        , "Date_Note"                       Csv..= jDateNote j
+        , "Nr_Libraries"                    Csv..= jNrLibraries j
+        , "Capture_Type"                    Csv..= jCaptureType j
         , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
         , "Group_Name"                      Csv..= jGroupName j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
-        , "Nr_autosomal_SNPs"               Csv..= jNrAutosomalSNPs j
-        , "Coverage_1240K"                  Csv..= jCoverage1240K j
+        , "Nr_SNPs"                         Csv..= jNrSNPs j
+        , "Coverage_on_Target_SNPs"         Csv..= jCoverageOnTargets j
         , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
         , "Y_Haplogroup"                    Csv..= jYHaplogroup j
         , "Endogenous"                      Csv..= jEndogenous j
         , "UDG"                             Csv..= jUDG j
         , "Library_Built"                   Csv..= jLibraryBuilt j
         , "Damage"                          Csv..= jDamage j
-        , "Xcontam"                         Csv..= jNuclearContam j
-        , "Xcontam_stderr"                  Csv..= jNuclearContamErr j
-        , "mtContam"                        Csv..= jMTContam j
-        , "mtContam_stderr"                 Csv..= jMTContamErr j
+        , "Contamination"                   Csv..= jContamination j
+        , "Contamination_Err"               Csv..= jContaminationErr j
+        , "Contamination_Meas"              Csv..= jContaminationMeas j
+        , "Contamination_Note"              Csv..= jContaminationNote j
         , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
         , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL j
         , "Primary_Contact"                 Csv..= jPrimaryContact j
-        , "Publication_Status"              Csv..= jPublication j
+        , "Publication"                     Csv..= jPublication j
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
         ]
@@ -499,19 +563,113 @@ instance Csv.ToNamedRecord JannoRow where
 instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
+-- This header also defines the output column order when writing to csv!
+-- When the order is changed, don't forget to also update the order in the survey module
 jannoHeader :: [Bchs.ByteString]
-jannoHeader = ["Individual_ID","Collection_ID","Source_Tissue","Country",
-    "Location","Site","Latitude","Longitude","Date_C14_Labnr",
-    "Date_C14_Uncal_BP","Date_C14_Uncal_BP_Err","Date_BC_AD_Median","Date_BC_AD_Start",
-    "Date_BC_AD_Stop","Date_Type","No_of_Libraries","Data_Type","Genotype_Ploidy","Group_Name",
-    "Genetic_Sex","Nr_autosomal_SNPs","Coverage_1240K","MT_Haplogroup","Y_Haplogroup",
-    "Endogenous","UDG","Library_Built","Damage","Xcontam","Xcontam_stderr","mtContam",
-    "mtContam_stderr", "Genetic_Source_Accession_IDs", "Data_Preparation_Pipeline_URL",
-    "Primary_Contact","Publication_Status","Note","Keywords"
+jannoHeader = [
+      "Poseidon_ID"
+    , "Genetic_Sex"
+    , "Group_Name"
+    , "Alternative_IDs"
+    , "Relation_To"
+    , "Relation_Degree"
+    , "Relation_Type"
+    , "Relation_Note"
+    , "Collection_ID"
+    , "Country"
+    , "Location"
+    , "Site"
+    , "Latitude"
+    , "Longitude"
+    , "Date_Type"
+    , "Date_C14_Labnr"
+    , "Date_C14_Uncal_BP"
+    , "Date_C14_Uncal_BP_Err"
+    , "Date_BC_AD_Start"
+    , "Date_BC_AD_Median"
+    , "Date_BC_AD_Stop"
+    , "Date_Note"
+    , "MT_Haplogroup"
+    , "Y_Haplogroup"
+    , "Source_Tissue"
+    , "Nr_Libraries"
+    , "Capture_Type"
+    , "UDG"
+    , "Library_Built"
+    , "Genotype_Ploidy"
+    , "Data_Preparation_Pipeline_URL"
+    , "Endogenous"
+    , "Nr_SNPs"
+    , "Coverage_on_Target_SNPs"
+    , "Damage"
+    , "Contamination"
+    , "Contamination_Err"
+    , "Contamination_Meas"
+    , "Contamination_Note"
+    , "Genetic_Source_Accession_IDs"
+    , "Primary_Contact"
+    , "Publication"
+    , "Note"
+    , "Keywords"
     ]
 
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
+
+-- | A function to create empty janno rows for a set of individuals
+createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
+createMinimalJanno [] = []
+createMinimalJanno xs = map createMinimalSample xs
+
+-- | A function to create an empty janno row for an individual
+createMinimalSample :: EigenstratIndEntry -> JannoRow
+createMinimalSample (EigenstratIndEntry id_ sex pop) =
+    JannoRow { 
+          jPoseidonID                   = id_
+        , jAlternativeIDs               = Nothing
+        , jRelationTo                   = Nothing
+        , jRelationDegree               = Nothing
+        , jRelationType                 = Nothing
+        , jRelationNote                 = Nothing
+        , jCollectionID                 = Nothing
+        , jSourceTissue                 = Nothing
+        , jCountry                      = Nothing
+        , jLocation                     = Nothing
+        , jSite                         = Nothing
+        , jLatitude                     = Nothing
+        , jLongitude                    = Nothing
+        , jDateC14Labnr                 = Nothing
+        , jDateC14UncalBP               = Nothing
+        , jDateC14UncalBPErr            = Nothing
+        , jDateBCADMedian               = Nothing
+        , jDateBCADStart                = Nothing
+        , jDateBCADStop                 = Nothing
+        , jDateType                     = Nothing
+        , jDateNote                     = Nothing
+        , jNrLibraries                  = Nothing
+        , jCaptureType                  = Nothing
+        , jGenotypePloidy               = Nothing
+        , jGroupName                    = JannoList [pop]
+        , jGeneticSex                   = JannoSex sex
+        , jNrSNPs                       = Nothing
+        , jCoverageOnTargets            = Nothing
+        , jMTHaplogroup                 = Nothing
+        , jYHaplogroup                  = Nothing
+        , jEndogenous                   = Nothing
+        , jUDG                          = Nothing
+        , jLibraryBuilt                 = Nothing
+        , jDamage                       = Nothing
+        , jContamination                = Nothing
+        , jContaminationErr             = Nothing
+        , jContaminationMeas            = Nothing
+        , jContaminationNote            = Nothing
+        , jGeneticSourceAccessionIDs    = Nothing
+        , jDataPreparationPipelineURL   = Nothing
+        , jPrimaryContact               = Nothing
+        , jPublication                  = Nothing
+        , jComments                     = Nothing
+        , jKeywords                     = Nothing
+    }
 
 -- Janno file writing
 
@@ -619,89 +777,65 @@ replaceInJannoBytestring from to tsv =
         tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
--- | A function to create empty janno rows for a set of individuals
-createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
-createMinimalJanno [] = []
-createMinimalJanno xs = map createMinimalSample xs
-
--- | A function to create an empty janno row for an individual
-createMinimalSample :: EigenstratIndEntry -> JannoRow
-createMinimalSample (EigenstratIndEntry id_ sex pop) =
-    JannoRow { 
-          jIndividualID                 = id_
-        , jCollectionID                 = Nothing
-        , jSourceTissue                 = Nothing
-        , jCountry                      = Nothing
-        , jLocation                     = Nothing
-        , jSite                         = Nothing
-        , jLatitude                     = Nothing
-        , jLongitude                    = Nothing
-        , jDateC14Labnr                 = Nothing
-        , jDateC14UncalBP               = Nothing
-        , jDateC14UncalBPErr            = Nothing
-        , jDateBCADMedian               = Nothing
-        , jDateBCADStart                = Nothing
-        , jDateBCADStop                 = Nothing
-        , jDateType                     = Nothing
-        , jNrLibraries                  = Nothing
-        , jDataType                     = Nothing
-        , jGenotypePloidy               = Nothing
-        , jGroupName                    = JannoList [pop]
-        , jGeneticSex                   = JannoSex sex
-        , jNrAutosomalSNPs              = Nothing
-        , jCoverage1240K                = Nothing
-        , jMTHaplogroup                 = Nothing
-        , jYHaplogroup                  = Nothing
-        , jEndogenous                   = Nothing
-        , jUDG                          = Nothing
-        , jLibraryBuilt                 = Nothing
-        , jDamage                       = Nothing
-        , jNuclearContam                = Nothing
-        , jNuclearContamErr             = Nothing
-        , jMTContam                     = Nothing
-        , jMTContamErr                  = Nothing
-        , jGeneticSourceAccessionIDs    = Nothing
-        , jDataPreparationPipelineURL   = Nothing
-        , jPrimaryContact               = Nothing
-        , jPublication                  = Nothing
-        , jComments                     = Nothing
-        , jKeywords                     = Nothing
-    }
-
 -- Janno consistency checks
 
 checkJannoConsistency :: FilePath -> [JannoRow] -> Either PoseidonException [JannoRow]
 checkJannoConsistency jannoPath xs
     | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath
-        "The Individual_IDs are not unique"
+        "The Poseidon_IDs are not unique"
     | otherwise = Right xs
 
 checkIndividualUnique :: [JannoRow] -> Bool
-checkIndividualUnique x = length x == length (nub $ map jIndividualID x)
+checkIndividualUnique x = length x == length (nub $ map jPoseidonID x)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
     | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonJannoRowException jannoPath row
-          "The mandatory columns Individual_ID and Group_Name contain empty values"
+          "The mandatory columns Poseidon_ID and Group_Name contain empty values"
     | not $ checkC14ColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
-          "The columns Date_C14_Labnr, Date_C14_Uncal_BP, Date_C14_Uncal_BP_Err and Date_Type are not consistent"
+          "The Date_* columns are not consistent"
+    | not $ checkContamColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+          "The Contamination_* columns are not consistent"
+    | not $ checkRelationColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+          "The Relation_* columns are not consistent"
     | otherwise = Right x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
 checkMandatoryStringNotEmpty x =
-    (not . null . jIndividualID $ x)
+    (not . null . jPoseidonID $ x)
     && (not . null . getJannoList . jGroupName $ x)
     && (not . null . head . getJannoList . jGroupName $ x)
 
+getCellLength :: Maybe (JannoList a) -> Int 
+getCellLength = maybe 0 (length . getJannoList)
+
+allEqual :: Eq a => [a] -> Bool
+allEqual x = length (nub x) == 1
+
 checkC14ColsConsistent :: JannoRow -> Bool
 checkC14ColsConsistent x =
-    let lLabnr = maybe 0 (length . getJannoList) $ jDateC14Labnr x
-        lUncalBP = maybe 0 (length . getJannoList) $ jDateC14UncalBP x
-        lUncalBPErr = maybe 0 (length . getJannoList) $ jDateC14UncalBPErr x
+    let lLabnr          = getCellLength $ jDateC14Labnr x
+        lUncalBP        = getCellLength $ jDateC14UncalBP x
+        lUncalBPErr     = getCellLength $ jDateC14UncalBPErr x
         shouldBeTypeC14 = lUncalBP > 0
-        isTypeC14 = jDateType x == Just C14
+        isTypeC14       = jDateType x == Just C14
     in
         (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
         && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)
         && lUncalBP == lUncalBPErr
-        && ((not shouldBeTypeC14) || isTypeC14)
+        && (not shouldBeTypeC14 || isTypeC14)
+
+checkContamColsConsistent :: JannoRow -> Bool
+checkContamColsConsistent x =
+  let lContamination      = getCellLength $ jContamination x
+      lContaminationErr   = getCellLength $ jContaminationErr x
+      lContaminationMeas  = getCellLength $ jContaminationMeas x
+  in allEqual [lContamination, lContaminationErr, lContaminationMeas]
+  
+checkRelationColsConsistent :: JannoRow -> Bool
+checkRelationColsConsistent x =
+  let lRelationTo = getCellLength $ jRelationTo x
+      lRelationDegree = getCellLength $ jRelationDegree x
+      lRelationType = getCellLength $ jRelationType x
+  in allEqual [lRelationTo, lRelationType, lRelationDegree]
+     || (allEqual [lRelationTo, lRelationDegree] && isNothing (jRelationType x))
