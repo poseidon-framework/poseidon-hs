@@ -564,6 +564,7 @@ instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
 -- This header also defines the output column order when writing to csv!
+-- When the order is changed, don't forget to also update the order in the survey module
 jannoHeader :: [Bchs.ByteString]
 jannoHeader = [
       "Poseidon_ID"
