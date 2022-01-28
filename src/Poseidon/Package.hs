@@ -213,7 +213,11 @@ data PackageReadOptions = PackageReadOptions
     , _readOptIgnorePacVersion :: Bool
     -- ^ whether to ignore the version of an input package.
     -- This can cause runtime errors, if the structural difference
-    -- between versions is too big
+    -- between versions is too big.
+    -- The option was added to allow trident update to load and update
+    -- packages with older version numbers. In a typical update workflow
+    -- one would adjust the package to the new Poseidon version and then
+    -- run update on the structurally already correct package.
     }
 
 defaultPackageReadOptions :: PackageReadOptions
