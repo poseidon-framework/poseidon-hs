@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.25.0
+@version 0.26.1
 
 module Poseidon.MathHelpers
 
@@ -185,8 +185,13 @@ module Poseidon.Janno
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv</a>
 --   for more details
 data JannoRow
-JannoRow :: String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe Int -> Maybe Int -> Maybe Int -> Maybe JannoDateType -> Maybe Int -> Maybe (JannoList JannoDataType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe Double -> Maybe Double -> Maybe Double -> Maybe Double -> Maybe JannoStringList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> JannoRow
-[jIndividualID] :: JannoRow -> String
+JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe Int -> Maybe Int -> Maybe Int -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> JannoRow
+[jPoseidonID] :: JannoRow -> String
+[jAlternativeIDs] :: JannoRow -> Maybe JannoStringList
+[jRelationTo] :: JannoRow -> Maybe JannoStringList
+[jRelationDegree] :: JannoRow -> Maybe JannoRelationDegreeList
+[jRelationType] :: JannoRow -> Maybe JannoStringList
+[jRelationNote] :: JannoRow -> Maybe String
 [jCollectionID] :: JannoRow -> Maybe String
 [jSourceTissue] :: JannoRow -> Maybe JannoStringList
 [jCountry] :: JannoRow -> Maybe String
@@ -201,23 +206,24 @@ JannoRow :: String -> Maybe String -> Maybe JannoStringList -> Maybe String -> M
 [jDateBCADStart] :: JannoRow -> Maybe Int
 [jDateBCADStop] :: JannoRow -> Maybe Int
 [jDateType] :: JannoRow -> Maybe JannoDateType
+[jDateNote] :: JannoRow -> Maybe String
 [jNrLibraries] :: JannoRow -> Maybe Int
-[jDataType] :: JannoRow -> Maybe (JannoList JannoDataType)
+[jCaptureType] :: JannoRow -> Maybe (JannoList JannoCaptureType)
 [jGenotypePloidy] :: JannoRow -> Maybe JannoGenotypePloidy
 [jGroupName] :: JannoRow -> JannoStringList
 [jGeneticSex] :: JannoRow -> JannoSex
-[jNrAutosomalSNPs] :: JannoRow -> Maybe Int
-[jCoverage1240K] :: JannoRow -> Maybe Double
+[jNrSNPs] :: JannoRow -> Maybe Int
+[jCoverageOnTargets] :: JannoRow -> Maybe Double
 [jMTHaplogroup] :: JannoRow -> Maybe String
 [jYHaplogroup] :: JannoRow -> Maybe String
 [jEndogenous] :: JannoRow -> Maybe Percent
 [jUDG] :: JannoRow -> Maybe JannoUDG
 [jLibraryBuilt] :: JannoRow -> Maybe JannoLibraryBuilt
 [jDamage] :: JannoRow -> Maybe Percent
-[jNuclearContam] :: JannoRow -> Maybe Double
-[jNuclearContamErr] :: JannoRow -> Maybe Double
-[jMTContam] :: JannoRow -> Maybe Double
-[jMTContamErr] :: JannoRow -> Maybe Double
+[jContamination] :: JannoRow -> Maybe JannoStringList
+[jContaminationErr] :: JannoRow -> Maybe JannoStringList
+[jContaminationMeas] :: JannoRow -> Maybe JannoStringList
+[jContaminationNote] :: JannoRow -> Maybe String
 [jGeneticSourceAccessionIDs] :: JannoRow -> Maybe JannoStringList
 [jDataPreparationPipelineURL] :: JannoRow -> Maybe JURI
 [jPrimaryContact] :: JannoRow -> Maybe String
@@ -227,7 +233,9 @@ JannoRow :: String -> Maybe String -> Maybe JannoStringList -> Maybe String -> M
 newtype JannoSex
 JannoSex :: Sex -> JannoSex
 [sfSex] :: JannoSex -> Sex
-data JannoList a
+
+-- | A general datatype for janno list columns
+newtype JannoList a
 JannoList :: [a] -> JannoList a
 [getJannoList] :: JannoList a -> [a]
 data Sex
@@ -249,12 +257,12 @@ C14 :: JannoDateType
 Contextual :: JannoDateType
 Modern :: JannoDateType
 
--- | A datatype to represent Data_Type in a janno file
-data JannoDataType
-Shotgun :: JannoDataType
-A1240K :: JannoDataType
-OtherCapture :: JannoDataType
-ReferenceGenome :: JannoDataType
+-- | A datatype to represent Capture_Type in a janno file
+data JannoCaptureType
+Shotgun :: JannoCaptureType
+A1240K :: JannoCaptureType
+OtherCapture :: JannoCaptureType
+ReferenceGenome :: JannoCaptureType
 
 -- | A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy
@@ -275,6 +283,14 @@ Mixed :: JannoUDG
 -- | A datatype to represent URIs in a janno file
 newtype JURI
 JURI :: String -> JURI
+data RelationDegree
+Identical :: RelationDegree
+First :: RelationDegree
+Second :: RelationDegree
+ThirdToFifth :: RelationDegree
+SixthToTenth :: RelationDegree
+Unrelated :: RelationDegree
+OtherDegree :: RelationDegree
 
 -- | A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt
@@ -293,9 +309,9 @@ instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.JannoDateType
 instance GHC.Classes.Ord Poseidon.Janno.JannoDateType
 instance GHC.Classes.Eq Poseidon.Janno.JannoDateType
-instance GHC.Generics.Generic Poseidon.Janno.JannoDataType
-instance GHC.Classes.Ord Poseidon.Janno.JannoDataType
-instance GHC.Classes.Eq Poseidon.Janno.JannoDataType
+instance GHC.Generics.Generic Poseidon.Janno.JannoCaptureType
+instance GHC.Classes.Ord Poseidon.Janno.JannoCaptureType
+instance GHC.Classes.Eq Poseidon.Janno.JannoCaptureType
 instance GHC.Generics.Generic Poseidon.Janno.JannoGenotypePloidy
 instance GHC.Classes.Ord Poseidon.Janno.JannoGenotypePloidy
 instance GHC.Classes.Eq Poseidon.Janno.JannoGenotypePloidy
@@ -321,6 +337,9 @@ instance GHC.Show.Show a => GHC.Show.Show (Poseidon.Janno.JannoList a)
 instance GHC.Generics.Generic (Poseidon.Janno.JannoList a)
 instance GHC.Classes.Ord a => GHC.Classes.Ord (Poseidon.Janno.JannoList a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Poseidon.Janno.JannoList a)
+instance GHC.Generics.Generic Poseidon.Janno.RelationDegree
+instance GHC.Classes.Ord Poseidon.Janno.RelationDegree
+instance GHC.Classes.Eq Poseidon.Janno.RelationDegree
 instance GHC.Generics.Generic Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoRow
 instance GHC.Show.Show Poseidon.Janno.JannoRow
@@ -329,6 +348,11 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.FromNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.RelationDegree
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.RelationDegree
+instance Data.Csv.Conversion.FromField Poseidon.Janno.RelationDegree
+instance Data.Csv.Conversion.ToField Poseidon.Janno.RelationDegree
+instance GHC.Show.Show Poseidon.Janno.RelationDegree
 instance Data.Csv.Conversion.ToField a => Data.Csv.Conversion.ToField (Poseidon.Janno.JannoList a)
 instance Data.Csv.Conversion.FromField a => Data.Csv.Conversion.FromField (Poseidon.Janno.JannoList a)
 instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Poseidon.Janno.JannoList a)
@@ -368,11 +392,11 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoGenotypePloidy
 instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoGenotypePloidy
 instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoGenotypePloidy
 instance GHC.Show.Show Poseidon.Janno.JannoGenotypePloidy
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoDataType
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoDataType
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoDataType
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoDataType
-instance GHC.Show.Show Poseidon.Janno.JannoDataType
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoCaptureType
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoCaptureType
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoCaptureType
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoCaptureType
+instance GHC.Show.Show Poseidon.Janno.JannoCaptureType
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoDateType
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoDateType
 instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoDateType
@@ -624,12 +648,31 @@ PoseidonRemoteJSONParsingException :: String -> PoseidonException
 -- | A catch-all for any other type of exception
 PoseidonGenericException :: String -> PoseidonException
 data PackageReadOptions
-PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
+PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
+
+-- | whether to print verbose output
 [_readOptVerbose] :: PackageReadOptions -> Bool
+
+-- | whether to stop on duplicated individuals
 [_readOptStopOnDuplicates] :: PackageReadOptions -> Bool
+
+-- | whether to ignore all checksums
 [_readOptIgnoreChecksums] :: PackageReadOptions -> Bool
+
+-- | whether to ignore missing genotype files, useful for developer use
+--   cases
 [_readOptIgnoreGeno] :: PackageReadOptions -> Bool
+
+-- | whether to check the first 100 SNPs of the genotypes
 [_readOptGenoCheck] :: PackageReadOptions -> Bool
+
+-- | whether to ignore the version of an input package. This can cause
+--   runtime errors, if the structural difference between versions is too
+--   big. The option was added to allow trident update to load and update
+--   packages with older version numbers. In a typical update workflow one
+--   would adjust the package to the new Poseidon version and then run
+--   update on the structurally already correct package.
+[_readOptIgnorePacVersion] :: PackageReadOptions -> Bool
 
 -- | A helper function to detect packages with duplicate names and select
 --   the most up-to-date ones.
