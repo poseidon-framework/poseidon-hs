@@ -27,7 +27,7 @@ testPacReadOpts = defaultPackageReadOptions {
     }
 
 testBaseDir :: [FilePath]
-testBaseDir = ["test/testDat/testModules/ancient"]
+testBaseDir = ["test/testDat/testPackages/ancient"]
 
 goodEntities :: EntitiesList
 goodEntities = [

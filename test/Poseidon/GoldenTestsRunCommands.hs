@@ -39,7 +39,7 @@ staticCheckSumFile = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 smallTestPacsDir :: FilePath
-smallTestPacsDir = "test/testDat/testModules/ancient"
+smallTestPacsDir = "test/testDat/testPackages/ancient"
 smallTestEntityFiles :: FilePath
 smallTestEntityFiles = "test/testDat/testEntityFiles"
 

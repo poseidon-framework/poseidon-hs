@@ -141,7 +141,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
 
 testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
-    let dir = "test/testDat/testModules/ancient"
+    let dir = "test/testDat/testPackages/ancient"
     it "should discover packages correctly" $ do
         pac <- readPoseidonPackageCollection testPacReadOpts [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
@@ -150,11 +150,11 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
                                                       Just (fromGregorian 2021 11 9)]
 
 files :: [String]
-files  = ["test/testDat/testModules/ancient/Schiffels_2016/geno.txt",
-          "test/testDat/testModules/ancient/Schiffels_2016/snp.txt",
-          "test/testDat/testModules/ancient/Schiffels_2016/ind.txt",
-          "test/testDat/testModules/ancient/Schiffels_2016/Schiffels_2016.janno",
-          "test/testDat/testModules/ancient/Schiffels_2016/sources.bib"]
+files  = ["test/testDat/testPackages/ancient/Schiffels_2016/geno.txt",
+          "test/testDat/testPackages/ancient/Schiffels_2016/snp.txt",
+          "test/testDat/testPackages/ancient/Schiffels_2016/ind.txt",
+          "test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno",
+          "test/testDat/testPackages/ancient/Schiffels_2016/sources.bib"]
 
 checksums :: [String]
 checksums = ["0332344057c0c4dce2ff7176f8e1103d",
@@ -210,8 +210,8 @@ testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
 
 testGetJoinGenotypeData :: Spec
 testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
-    let pacFiles = ["test/testDat/testModules/ancient/Lamnidis_2018/POSEIDON.yml",
-                    "test/testDat/testModules/ancient/Schiffels_2016/POSEIDON.yml"]
+    let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
+                    "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load genotype data without intersect" $ do
         pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
@@ -251,8 +251,8 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
     it "should skip incongruent alleles" $ do
-        let pacFiles2 = ["test/testDat/testModules/ancient/Lamnidis_2018/POSEIDON.yml",
-                         "test/testDat/testModules/test_incongruent_snps/POSEIDON.yml"]
+        let pacFiles2 = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
+                         "test/testDat/testPackages/test_incongruent_snps/POSEIDON.yml"]
         pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
             (_, jointProd) <- getJointGenotypeData True False pacs Nothing
