@@ -106,6 +106,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x -> x
             Nothing -> takeBaseName outPath
+    when (outName == "") $ throwM PoseidonEmptyOutPacNameException
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectoryIfMissing True outPath
