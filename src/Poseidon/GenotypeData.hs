@@ -260,3 +260,6 @@ printSNPCopyProgress = loop (0 :: Int)
         x <- await
         yield x
         loop (n+1)
+
+selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
+selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])

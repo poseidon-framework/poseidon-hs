@@ -2,42 +2,45 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (SignedEntitiesList, EntitiesList, PoseidonEntity (..),
-                                              readEntitiesFromFile, entityIncludes, entityExcludes)
+import           Poseidon.EntitiesList       (EntitiesList, PoseidonEntity (..),
+                                              SignedEntitiesList,
+                                              entityExcludes, entityIncludes,
+                                              readSignedEntitiesFromFile,
+                                              findNonExistentEntities)
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              snpSetMergeList)
+                                              selectIndices, snpSetMergeList,
+                                              selectIndices)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
-                                              getIndividuals,
                                               getJointGenotypeData,
-                                              newPackageTemplate,
                                               newMinimalPackageTemplate,
+                                              newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.Utils              (PoseidonException (..))
 
-import           Control.Monad               (forM, unless, when, forM_)
+import           Control.Monad               (forM, forM_, unless, when)
 import           Data.List                   (intercalate, intersect, nub, (\\))
 import           Data.Maybe                  (catMaybes, mapMaybe)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           Pipes                       (MonadIO (liftIO), cat,
-                                              (>->))
+import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
-import           Pipes.Safe                  (runSafeT, throwM, SafeT)
+import           Pipes.Safe                  (SafeT, runSafeT, throwM)
 import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
-                                              EigenstratSnpEntry (..), GenoLine,
-                                              writeEigenstrat, GenoEntry(..))
+                                              EigenstratSnpEntry (..),
+                                              GenoEntry (..), GenoLine,
+                                              writeEigenstrat)
 import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
-import           System.FilePath             ((<.>), (</>), takeBaseName)
+import           System.FilePath             (takeBaseName, (<.>), (</>))
 import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
@@ -68,7 +71,7 @@ pacReadOpts = defaultPackageReadOptions {
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
     -- compile entities
-    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    entitiesFromFile <- mapM readSignedEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
         entitiesToIncludePreliminary = entityIncludes entities
         entitiesToExclude = entityExcludes entities
@@ -104,7 +107,7 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     let indices = indicesToInclude \\ indicesToExclude
     -- create new package --
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
-            Just x -> x
+            Just x  -> x
             Nothing -> takeBaseName outPath
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
@@ -190,23 +193,6 @@ checkIndividualsUniqueJanno rows = do
             intercalate ", " (indIDs \\ nub indIDs) ++
             ")"
 
-selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
-selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
-
-findNonExistentEntities :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonEntity]
-findNonExistentEntities entities packages = do
-    inds <- concat <$> mapM getIndividuals packages
-    let titlesPac     = map posPacTitle packages
-        indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
-        groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
-    let titlesRequestedPacs = [ pac   | Pac   pac   <- entities]
-        groupNamesStats     = [ group | Group group <- entities]
-        indNamesStats       = [ ind   | Ind   ind   <- entities]
-    let missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
-        missingInds   = map Ind   $ indNamesStats       \\ indNamesPac
-        missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
-    return $ missingPacs ++ missingInds ++ missingGroups
-
 filterPackages :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonPackage]
 filterPackages entities packages = do
     let requestedPacs   = [ pac   | Pac   pac   <- entities]
@@ -217,8 +203,8 @@ filterPackages entities packages = do
         let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
             groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
         if  posPacTitle pac `elem` requestedPacs
-            ||  length (intersect indNamesPac indNamesStats) > 0
-            ||  length (intersect groupNamesPac groupNamesStats) > 0
+            ||  not (null (indNamesPac `intersect` indNamesStats))
+            ||  not (null (groupNamesPac `intersect` groupNamesStats))
         then return (Just pac)
         else return Nothing
 
@@ -240,29 +226,8 @@ filterJannoFiles entities packages =
 
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 filterBibEntries samples references_ =
-    let relevantPublications = nub . concat . map getJannoList . mapMaybe jPublication $ samples
+    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
-
-extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
-extractEntityIndices entities relevantPackages = do
-    let pacNames   = [ pac   | Pac   pac   <- entities]
-        groupNames = [ group | Group group <- entities]
-        indNames   = [ ind   | Ind   ind   <- entities]
-    let allPackageNames = map posPacTitle relevantPackages
-    allIndEntries <- mapM getIndividuals relevantPackages
-    let filterFunc (_ , pacName, EigenstratIndEntry ind _ group) =
-            pacName `elem` pacNames || ind `elem` indNames || group `elem` groupNames
-    return $ map extractFirst $ filter filterFunc (zipGroup allPackageNames allIndEntries)
-
-extractFirst :: (a, b, c) -> a
-extractFirst (a,_,_) = a
-
-zipGroup :: [a] -> [[b]] -> [(Int,a,b)]
-zipGroup list nestedList =
-    let lenghtsNestedList = map length nestedList
-        listWithlenghtsNestedList = zip lenghtsNestedList list
-        longerA = map (uncurry replicate) listWithlenghtsNestedList
-    in zip3 [0..] (concat longerA) (concat nestedList)
 
 fillMissingSnpSets :: [PoseidonPackage] -> IO [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do

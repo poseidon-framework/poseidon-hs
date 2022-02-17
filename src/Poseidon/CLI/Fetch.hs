@@ -3,7 +3,7 @@
 module Poseidon.CLI.Fetch where
 
 import           Poseidon.EntitiesList   (SignedEntitiesList, PoseidonEntity (..),
-                                          readEntitiesFromFile, entityIncludes)
+                                          readSignedEntitiesFromFile, entityIncludes)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -66,7 +66,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     -- compile entities
-    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    entitiesFromFile <- mapM readSignedEntitiesFromFile entitiesFile
     let entities = entityIncludes $ nub $ entitiesDirect ++ concat entitiesFromFile --this nub could also be relevant for forge
         desiredPacsTitles = entities2PacTitles entities -- this whole mechanism can be replaced when the server also returns the individuals and groups in a package
     -- load local packages

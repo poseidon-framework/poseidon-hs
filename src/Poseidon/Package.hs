@@ -13,6 +13,7 @@ module Poseidon.Package (
     getChecksum,
     getJointGenotypeData,
     getIndividuals,
+    getJointJanno,
     newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
@@ -529,6 +530,9 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         (Just _, Just (es, gl)) -> yield (es, gl)
         (Just snp, Nothing) -> unless intersect $ yield (snp, V.replicate n Missing)
         _ ->  return ()
+
+getJointJanno :: [PoseidonPackage] -> [JannoRow]
+getJointJanno = concatMap posPacJanno
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
