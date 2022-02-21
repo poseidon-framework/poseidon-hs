@@ -672,13 +672,13 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageRea
 -- | whether to check the first 100 SNPs of the genotypes
 [_readOptGenoCheck] :: PackageReadOptions -> Bool
 
--- | whether to ignore the version of an input package. This can cause
---   runtime errors, if the structural difference between versions is too
---   big. The option was added to allow trident update to load and update
---   packages with older version numbers. In a typical update workflow one
---   would adjust the package to the new Poseidon version and then run
---   update on the structurally already correct package.
-[_readOptIgnorePacVersion] :: PackageReadOptions -> Bool
+-- | whether to ignore the Poseidon version of an input package. This can
+--   cause runtime errors, if the structural difference between versions is
+--   too big. The option was added to allow trident update to load and
+--   update packages with older version numbers. In a typical update
+--   workflow one would adjust the package to the new Poseidon version and
+--   then run update on the structurally already correct package.
+[_readOptIgnorePosVersion] :: PackageReadOptions -> Bool
 
 -- | A helper function to detect packages with duplicate names and select
 --   the most up-to-date ones.
@@ -740,9 +740,10 @@ runValidate :: ValidateOptions -> IO ()
 module Poseidon.CLI.Update
 runUpdate :: UpdateOptions -> IO ()
 data UpdateOptions
-UpdateOptions :: [FilePath] -> Maybe Version -> VersionComponent -> Bool -> Bool -> [ContributorSpec] -> String -> Bool -> UpdateOptions
+UpdateOptions :: [FilePath] -> Maybe Version -> Bool -> VersionComponent -> Bool -> Bool -> [ContributorSpec] -> String -> Bool -> UpdateOptions
 [_updateBaseDirs] :: UpdateOptions -> [FilePath]
 [_updatePoseidonVersion] :: UpdateOptions -> Maybe Version
+[_updateIgnorePoseidonVersion] :: UpdateOptions -> Bool
 [_updateVersionUpdate] :: UpdateOptions -> VersionComponent
 [_updateNoChecksumUpdate] :: UpdateOptions -> Bool
 [_updateIgnoreGeno] :: UpdateOptions -> Bool
