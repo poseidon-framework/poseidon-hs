@@ -175,6 +175,9 @@ PoseidonRemoteJSONParsingException :: String -> PoseidonException
 
 -- | A catch-all for any other type of exception
 PoseidonGenericException :: String -> PoseidonException
+
+-- | An exception to throw if the output package lacks a name
+PoseidonEmptyOutPacNameException :: PoseidonException
 renderPoseidonException :: PoseidonException -> String
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
@@ -647,6 +650,9 @@ PoseidonRemoteJSONParsingException :: String -> PoseidonException
 
 -- | A catch-all for any other type of exception
 PoseidonGenericException :: String -> PoseidonException
+
+-- | An exception to throw if the output package lacks a name
+PoseidonEmptyOutPacNameException :: PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
