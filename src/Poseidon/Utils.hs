@@ -30,6 +30,7 @@ data PoseidonException =
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
     | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
     | PoseidonGenericException String -- ^ A catch-all for any other type of exception
+    | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
     deriving (Show)
 
 instance Exception PoseidonException
@@ -76,3 +77,5 @@ renderPoseidonException (PoseidonNewPackageConstructionException s) =
 renderPoseidonException (PoseidonRemoteJSONParsingException s) =
     "Error in parsing JSON: " ++ show s
 renderPoseidonException (PoseidonGenericException s) = s
+renderPoseidonException PoseidonEmptyOutPacNameException =
+    "Error when preparing the new package: The output package does not have a name. Add one with: -n YourPackageName"
