@@ -23,6 +23,7 @@ import Data.List (nub)
 data UpdateOptions = UpdateOptions
     { _updateBaseDirs :: [FilePath]
     , _updatePoseidonVersion :: Maybe Version
+    , _updateIgnorePoseidonVersion :: Bool
     , _updateVersionUpdate :: VersionComponent
     , _updateNoChecksumUpdate :: Bool
     , _updateIgnoreGeno :: Bool
@@ -38,12 +39,13 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = True
     , _readOptGenoCheck        = False
-    , _readOptIgnorePacVersion = True -- Probably this should be made optional.
     }
 
 runUpdate :: UpdateOptions -> IO ()
-runUpdate (UpdateOptions baseDirs poseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
+    allPackages <- readPoseidonPackageCollection 
+        pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion} 
+        baseDirs
     -- updating poseidon version
     let updatedPacsPoseidonVersion = if isNothing poseidonVersion
         then allPackages

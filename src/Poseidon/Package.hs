@@ -210,8 +210,8 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to ignore missing genotype files, useful for developer use cases
     , _readOptGenoCheck        :: Bool
     -- ^ whether to check the first 100 SNPs of the genotypes
-    , _readOptIgnorePacVersion :: Bool
-    -- ^ whether to ignore the version of an input package.
+    , _readOptIgnorePosVersion :: Bool
+    -- ^ whether to ignore the Poseidon version of an input package.
     -- This can cause runtime errors, if the structural difference
     -- between versions is too big.
     -- The option was added to allow trident update to load and update
@@ -227,7 +227,7 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
-    , _readOptIgnorePacVersion = False
+    , _readOptIgnorePosVersion = False
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
@@ -240,7 +240,7 @@ readPoseidonPackageCollection opts dirs = do
     hPutStr stderr "Searching POSEIDON.yml files... "
     posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
     hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
-    posFiles <- if _readOptIgnorePacVersion opts
+    posFiles <- if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
                 else do
                   hPutStrLn stderr "Checking Poseidon versions... "

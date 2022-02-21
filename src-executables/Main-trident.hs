@@ -200,6 +200,7 @@ surveyOptParser = SurveyOptions <$> parseBasePaths
 updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parsePoseidonVersion
+                                <*> parseIgnorePoseidonVersion
                                 <*> parseVersionComponent
                                 <*> parseNoChecksumUpdate
                                 <*> parseIgnoreGeno
@@ -278,6 +279,14 @@ parseForce = OP.switch (
             \poseidonVersion is adjusted or any of the checksums change. \
             \With --force a package version update can be triggered even \
             \if this is not the case."
+    )
+
+parseIgnorePoseidonVersion :: OP.Parser Bool
+parseIgnorePoseidonVersion = OP.switch (
+    OP.long "ignorePoseidonVersion" <>
+    OP.help "Read packages even if their poseidonVersion is not compatible with the trident version. \
+        \The assumption is, that the package is already structurally adjusted to the trident version \
+        \and only the version number is lagging behind."
     )
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
