@@ -1,3 +1,4 @@
+- V 0.26.3: Added an option --ignorePoseidonVersion to the update subcommand to allow updating packages that are outdated (by version only)
 - V 0.26.2: Added a check to prevent an empty output package name in the init and forge subcommands
 - V 0.26.1: Added an option to ignore a package's version when reading it and activated that by default for the update subcommand
 - V 0.26.0: Updated the library to Poseidon v2.5. This means a number of (breaking) changes in the structure of .janno files
