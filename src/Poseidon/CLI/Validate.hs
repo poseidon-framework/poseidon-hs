@@ -38,8 +38,8 @@ runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
     then do
-        hPutStrLn stdout "Validation passed ✓"
+        hPutStrLn stdout "Validation passed: OK"
         unless noExitCode exitSuccess
     else do
-        hPutStrLn stdout "Validation failed ✗"
+        hPutStrLn stdout "Validation failed: ERROR"
         unless noExitCode exitFailure
