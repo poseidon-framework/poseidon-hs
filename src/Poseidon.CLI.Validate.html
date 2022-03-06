@@ -99,7 +99,7 @@ forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span id="line-41"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
 </span><span class="hs-identifier hs-var">stdout</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><span class="hs-string">&quot;Validation passed &#10003;&quot;</span></span><span>
+</span><span class="hs-string">&quot;Validation passed: OK&quot;</span></span><span>
 </span><span id="line-42"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
@@ -110,7 +110,7 @@ forall a. IO a
 </span><span id="line-44"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
 </span><span class="hs-identifier hs-var">stdout</span></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><span class="hs-string">&quot;Validation failed &#10007;&quot;</span></span><span>
+</span><span class="hs-string">&quot;Validation failed: ERROR&quot;</span></span><span>
 </span><span id="line-45"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
