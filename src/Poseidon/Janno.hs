@@ -21,7 +21,8 @@ module Poseidon.Janno (
     writeJannoFile,
     readJannoFile,
     createMinimalJanno,
-    jannoHeaderString
+    jannoHeaderString,
+    determineAccessionIDType
 ) where
 
 import           Poseidon.Utils             (PoseidonException (..),
@@ -50,6 +51,7 @@ import           Network.URI                (isURI)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.IO                  (hPutStrLn, stderr)
+import qualified Text.Regex.TDFA            as Reg
 
 newtype JannoSex = JannoSex { sfSex :: Sex }
     deriving (Eq)
@@ -393,6 +395,63 @@ instance Show RelationDegree where
     show Unrelated            = "unrelated"
     show OtherDegree          = "other"
 
+-- |A datatype to represent AccessionID lists in a janno file
+type JannoAccessionIDList = JannoList AccessionID
+
+data AccessionID =
+      ENAProject String
+    | ENAStudy String
+    | ENABioSample String
+    | ENASample String
+    | ENAExperiment String
+    | ENARun String
+    | ENAAnalysis String
+    | OtherAccessionID String
+    deriving (Eq, Ord, Generic)
+
+instance ToJSON AccessionID where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON AccessionID
+
+instance Csv.FromField AccessionID where
+    parseField x = do
+        val <- Csv.parseField x
+        pure $ determineAccessionIDType val
+
+-- the patterns are documented at:
+-- ENA: https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
+determineAccessionIDType :: String -> AccessionID 
+determineAccessionIDType x
+    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"   :: String) = ENAProject x
+    | x Reg.=~ ("[EDS]RP[0-9]{6,}"      :: String) = ENAStudy x
+    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+"  :: String) = ENABioSample x
+    | x Reg.=~ ("[EDS]RS[0-9]{6,}"      :: String) = ENASample x
+    | x Reg.=~ ("[EDS]RX[0-9]{6,}"      :: String) = ENAExperiment x
+    | x Reg.=~ ("[EDS]RR[0-9]{6,}"      :: String) = ENARun x
+    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"      :: String) = ENAAnalysis x
+    | otherwise = OtherAccessionID x
+
+instance Csv.ToField AccessionID where
+    toField (ENAProject x)          = Csv.toField x
+    toField (ENAStudy x)            = Csv.toField x
+    toField (ENABioSample x)        = Csv.toField x
+    toField (ENASample x)           = Csv.toField x
+    toField (ENAExperiment x)       = Csv.toField x
+    toField (ENARun x)              = Csv.toField x
+    toField (ENAAnalysis x)         = Csv.toField x
+    toField (OtherAccessionID x)    = Csv.toField x
+
+instance Show AccessionID where
+    show (ENAProject x)         = x
+    show (ENAStudy x)           = x
+    show (ENABioSample x)       = x
+    show (ENASample x)          = x
+    show (ENAExperiment x)      = x
+    show (ENARun x)             = x
+    show (ENAAnalysis x)        = x
+    show (OtherAccessionID x)   = x
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -435,7 +494,7 @@ data JannoRow = JannoRow
     , jContaminationErr             :: Maybe JannoStringList
     , jContaminationMeas            :: Maybe JannoStringList
     , jContaminationNote            :: Maybe String
-    , jGeneticSourceAccessionIDs    :: Maybe JannoStringList
+    , jGeneticSourceAccessionIDs    :: Maybe JannoAccessionIDList
     , jDataPreparationPipelineURL   :: Maybe JURI
     , jPrimaryContact               :: Maybe String
     , jPublication                  :: Maybe JannoStringList
