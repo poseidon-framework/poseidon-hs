@@ -3,7 +3,7 @@ module Poseidon.EntitiesList (
     SignedEntitiesList, EntitiesList,
     readSignedEntitiesFromFile, readSignedEntitiesFromString,
     entityIncludes, entityExcludes, findNonExistentEntities,
-    extractEntityIndices
+    extractEntityIndices, findNonExistentEntitiesHelper
     ) where
 
 import           Poseidon.Janno      (JannoList (..), JannoRow (..))
@@ -42,46 +42,6 @@ instance Show SignedEntity where
 
 type SignedEntitiesList = [SignedEntity]
 
-isInclude :: SignedEntity -> Bool
-isInclude (Include _) = True
-isInclude _           = False
-
-isExclude :: SignedEntity -> Bool
-isExclude (Exclude _) = True
-isExclude _           = False
-
-fromSignedEntity :: SignedEntity -> PoseidonEntity
-fromSignedEntity (Include a) = a
-fromSignedEntity (Exclude a) = a
-
-entityIncludes :: SignedEntitiesList -> EntitiesList
-entityIncludes xs = map fromSignedEntity $ filter isInclude xs
-
-entityExcludes :: SignedEntitiesList -> EntitiesList
-entityExcludes xs = map fromSignedEntity $ filter isExclude xs
-
--- | A parser to parse entities
-signedEntitiesListP :: P.Parser SignedEntitiesList
-signedEntitiesListP = do
-    eL <- P.sepBy signedPoseidonEntityP (P.char ',' <* P.spaces)
-    P.optional (P.many (P.char ' ') >> commentP)
-    return eL
-
-signedEntitiesListMultilineP :: P.Parser SignedEntitiesList
-signedEntitiesListMultilineP = do
-    concat <$> P.sepBy (P.try emptyLineP <|> commentP <|> signedEntitiesListP) P.newline
-
-commentP :: P.Parser SignedEntitiesList
-commentP = do
-    _ <- P.string "#"
-    _ <- P.manyTill P.anyChar (P.lookAhead P.newline)
-    return []
-
-emptyLineP :: P.Parser SignedEntitiesList
-emptyLineP = do
-    _ <- P.manyTill (P.char ' ') (P.lookAhead P.newline)
-    return []
-
 poseidonEntityP :: P.Parser PoseidonEntity
 poseidonEntityP = parsePac <|> parseGroup <|> parseInd
   where
@@ -95,6 +55,53 @@ signedPoseidonEntityP = ap parseSign poseidonEntityP
   where
     parseSign = (P.char '-' >> return Exclude) <|> (P.optional (P.char '+') >> return Include)
 
+entitiesListP :: P.Parser EntitiesList
+entitiesListP = do
+    eL <- P.sepBy poseidonEntityP (P.char ',' <* P.spaces)
+    P.optional (P.many (P.char ' ') >> commentP)
+    return eL
+
+entitiesListMultilineP :: P.Parser EntitiesList
+entitiesListMultilineP = do
+    concat <$> P.sepBy (P.try emptyLineP <|> commentP <|> signedEntitiesListP) P.newline
+  where
+    emptyLineP = do
+        _ <- P.manyTill (P.char ' ') (P.lookAhead P.newline)
+        return []
+
+-- | A parser to parse entities
+signedEntitiesListP :: P.Parser SignedEntitiesList
+signedEntitiesListP = do
+    eL <- P.sepBy signedPoseidonEntityP (P.char ',' <* P.spaces)
+    P.optional (P.many (P.char ' ') >> commentP)
+    return eL
+
+signedEntitiesListMultilineP :: P.Parser SignedEntitiesList
+signedEntitiesListMultilineP = do
+    concat <$> P.sepBy (P.try emptyLineP <|> commentP <|> signedEntitiesListP) P.newline
+  where
+    emptyLineP = do
+    _ <- P.manyTill (P.char ' ') (P.lookAhead P.newline)
+    return []
+
+commentP :: P.Parser SignedEntitiesList
+commentP = do
+    _ <- P.string "#"
+    _ <- P.manyTill P.anyChar (P.lookAhead P.newline)
+    return []
+
+readEntitiesFromFile :: FilePath -> IO EntitiesList
+readEntitiesFromFile entitiesFile = do
+    eitherParseResult <- P.parseFromFile (entitiesListMultilineP<* P.eof) entitiesFile
+    case eitherParseResult of
+        Left err -> throwIO (PoseidonPoseidonEntityParsingException (show err))
+        Right r -> return r
+
+readEntitiesFromString :: String -> Either PoseidonException EntitiesList
+readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
+    Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
+    Right x -> Right x
+
 readSignedEntitiesFromFile :: FilePath -> IO SignedEntitiesList
 readSignedEntitiesFromFile entitiesFile = do
     eitherParseResult <- P.parseFromFile (signedEntitiesListMultilineP<* P.eof) entitiesFile
@@ -107,19 +114,39 @@ readSignedEntitiesFromString s = case P.runParser (signedEntitiesListP <* P.eof)
     Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
     Right x -> Right x
 
-findNonExistentEntities :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonEntity]
-findNonExistentEntities entities packages = do
-    let jannoRows = getJointJanno packages
-    let titlesPac     = map posPacTitle packages
-        indNamesPac   = map jPoseidonID jannoRows
-        groupNamesPac = concatMap (getJannoList . jGroupName) jannoRows
-    let titlesRequestedPacs = [ pac   | Pac   pac   <- entities]
+filterRelevantPackages :: EntitiesList -> [PoseidonPackage] -> [PoseidonPackage]
+filterRelevantPackages entities packages =
+    let relevantPackageNames = findRelevantPackagesFromIndividuals entities (getJointIndividualInfo packages)
+    in  catMaybes $ do
+            pac <- packages
+            if posPacTitle `elem` relevantPackageNames then
+                return (Just pac)
+            else
+                return Nothing
+
+findRelevantPackageNames :: EntitiesList -> [IndividualInfo] -> [String]
+findRelevantPackageNames entities individuals = do
+    let indNames   = [name | Ind   name <- entities]
+        groupNames = [name | Group name <- entities]
+        pacNames   = [name | Pac   name <- entities]
+    nub $ do
+        Individual name groups pac <- individuals
+        if   name `elem` indNames || not (null (groups `intersect` groupNames)) || pac `elem` pacNames
+        then return (Just pac)
+        else return Nothing
+
+findNonExistentEntities :: EntitiesList -> [IndividualInfo] -> EntitiesList
+findNonExistentEntities entities individuals =
+    let titlesPac     = nub . map indInfoPacName $ individuals
+        indNamesPac   = map indInfoName individuals
+        groupNamesPac = nub . concatMap indInfoGroups $ individuals
+        titlesRequestedPacs = [ pac   | Pac   pac   <- entities]
         groupNamesStats     = [ group | Group group <- entities]
         indNamesStats       = [ ind   | Ind   ind   <- entities]
-    let missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
+        missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
         missingInds   = map Ind   $ indNamesStats       \\ indNamesPac
         missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
-    return $ missingPacs ++ missingInds ++ missingGroups
+    in  missingPacs ++ missingInds ++ missingGroups
 
 extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
 extractEntityIndices entities packages = do
