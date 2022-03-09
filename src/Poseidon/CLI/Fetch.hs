@@ -2,14 +2,14 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList   (EntitiesList, PoseidonEntity (..),
-                                          readEntitiesFromFile)
+import           Poseidon.EntitiesList   (EntitiesList,
+                                          readEntitiesFromFile, findNonExistentEntities, indInfoFindRelevantPackageNames)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo (indInfoPacName))
+import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo(..))
 import           Poseidon.Utils          (PoseidonException (..))
 
 import           Codec.Archive.Zip       (ZipOption (..),
@@ -17,7 +17,7 @@ import           Codec.Archive.Zip       (ZipOption (..),
 import           Conduit                 (ResourceT, await, runResourceT,
                                           sinkFile, yield)
 import           Control.Exception       (throwIO)
-import           Control.Monad           (unless, when)
+import           Control.Monad           (unless, when, forM_)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (eitherDecode')
 import qualified Data.ByteString         as B
@@ -35,7 +35,6 @@ import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
 import           System.IO               (hFlush, hPutStr, hPutStrLn, stderr)
-import Poseidon.CLI.Forge (findNonExistentEntities)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs      :: [FilePath]
@@ -63,16 +62,22 @@ pacReadOpts = defaultPackageReadOptions {
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
+    
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
+    
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
+    
     -- load remote package list
-    hPutStrLn stderr "Downloading overview list from remote"
-    remoteIndList <- simpleHttp (remote ++ "/individuals_all") >>= readServerInfo
+    hPutStrLn stderr "Downloading individual list from remote"
+    remoteIndList <- simpleHttp (remote ++ "/individuals_all") >>= readServerIndInfo
 
+    hPutStrLn stderr "Downloading package list from remote"
+    remotePacList <- simpleHttp (remote ++ "/packages") >>= readServerPackageInfo
+    
     let nonExistentEntities = findNonExistentEntities entities remoteIndList
 
     if (not . null) nonExistentEntities then do
@@ -83,38 +88,36 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
         -- check which remote packages the User wants to have
         hPutStr stderr "Determine requested packages... "
-        let allRemotePackages = nub . map indInfoPacName $ remoteIndList
-            desiredPacTitles =
+        let remotePacTitles = map pTitle remotePacList
+        let desiredPacTitles =
                 if downloadAllPacs then
-                    allRemotePackages
+                    remotePacTitles
                 else
-                    findRelevantPackageNames entities remoteIndList
+                    indInfoFindRelevantPackageNames entities remoteIndList
         
+        let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacTitles) remotePacList
+
         hPutStrLn stderr $ show (length desiredPacTitles) ++ " requested"
-        unless (null desiredPacTitles) $ do
+        unless (null desiredRemotePackages) $ do
             createDirectoryIfMissing False tempDir
-            forM_ desiredPacTitles $ \pacName -> do
+            forM_ desiredRemotePackages $ \pac -> do
                 -- perform package download depending on local-remote state
-                hPutStrLn stderr $ "Comparing local and remote package " ++ pacName
-                let packageState = determinePackageState allLocalPackages pacName
+                hPutStrLn stderr $ "Comparing local and remote package " ++ pTitle pac
+                let packageState = determinePackageState allLocalPackages pac
                 handlePackageByState downloadDir tempDir remote upgrade packageState            
             removeDirectory tempDir
 
-readServerInfo :: LB.ByteString -> IO [IndividualInfo]
-readServerInfo bs = do
+readServerIndInfo :: LB.ByteString -> IO [IndividualInfo]
+readServerIndInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
         Right pac -> return pac
 
-entities2PacTitles :: [PoseidonEntity] ->  [String]
-entities2PacTitles xs = do
-    let pacEntities = [ x | x@Pac {} <- xs]
-    map getEntityStrings pacEntities
-    where
-        getEntityStrings :: PoseidonEntity -> String
-        getEntityStrings (Pac x)   = x
-        getEntityStrings (Group x) = x
-        getEntityStrings (Ind x)   = x
+readServerPackageInfo :: LB.ByteString -> IO [PackageInfo]
+readServerPackageInfo bs = do
+    case eitherDecode' bs of
+        Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
+        Right pac -> return pac
 
 determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
 determinePackageState localPacs desiredRemotePac

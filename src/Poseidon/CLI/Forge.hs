@@ -2,11 +2,12 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (EntitiesList, PoseidonEntity (..),
+import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(..),
                                               SignedEntitiesList,
-                                              entityExcludes, entityIncludes,
-                                              readSignedEntitiesFromFile,
-                                              findNonExistentEntities)
+                                              readEntitiesFromFile,
+                                              findNonExistentEntities,
+                                              filterRelevantPackages,
+                                              conformingEntityIndices)
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
@@ -22,20 +23,21 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newMinimalPackageTemplate,
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
-                                              writePoseidonPackage)
+                                              writePoseidonPackage,
+                                              getJointIndividualInfo,
+                                              getJointJanno)
 import           Poseidon.Utils              (PoseidonException (..))
 
 import           Control.Monad               (forM, forM_, unless, when)
-import           Data.List                   (intercalate, intersect, nub, (\\))
-import           Data.Maybe                  (catMaybes, mapMaybe)
+import           Data.List                   (intercalate, nub, (\\))
+import           Data.Maybe                  (mapMaybe)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (SafeT, runSafeT, throwM)
-import           SequenceFormats.Eigenstrat  (EigenstratIndEntry (..),
-                                              EigenstratSnpEntry (..),
+import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
 import           SequenceFormats.Plink       (writePlink)
@@ -70,41 +72,46 @@ pacReadOpts = defaultPackageReadOptions {
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
 runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
+    
     -- compile entities
-    entitiesFromFile <- mapM readSignedEntitiesFromFile entitiesFile
-    let entities = nub $ entitiesDirect ++ concat entitiesFromFile
-        entitiesToIncludePreliminary = entityIncludes entities
-        entitiesToExclude = entityExcludes entities
+    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    let entitiesInput = nub $ entitiesDirect ++ concat entitiesFromFile
+        entitiesToInclude = [e | Include e <- entitiesInput]
+    
     -- load packages --
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    
     -- fill entitiesToInclude with all packages, if entitiesToIncludePreliminary is empty
-    let entitiesToInclude = if null entitiesToIncludePreliminary
-                            then map (Pac . posPacTitle) allPackages
-                            else entitiesToIncludePreliminary
+    let entities =
+            if null entitiesToInclude then
+                map (Include . Pac . posPacTitle) allPackages ++ entitiesInput -- add all Packages to the front of the list
+            else
+                entitiesInput
+    
     -- check for entities that do not exist this this dataset
-    nonExistentEntities <- findNonExistentEntities (entitiesToInclude ++ entitiesToExclude) allPackages
+    let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
         hPutStrLn stderr $ "The following entities do not exist in this dataset and will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
+    
     -- determine relevant packages
-    relevantPackages <- filterPackages (entitiesToInclude \\ entitiesToExclude) allPackages
+    let relevantPackages = filterRelevantPackages entities allPackages
     hPutStrLn stderr $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ throwM PoseidonEmptyForgeException
+
+    -- determine relevant individual indices
+    let relevantIndices = conformingEntityIndices entities . getJointIndividualInfo $ relevantPackages
+
     -- collect data --
     -- janno
-    let pacNameJannoRows = zip (map posPacTitle relevantPackages) (map posPacJanno relevantPackages)
-        jannoRowsToInclude = filterJannoFiles entitiesToInclude pacNameJannoRows
-        jannoRowsToExluce = filterJannoFiles entitiesToExclude pacNameJannoRows
-        relevantJannoRows = jannoRowsToInclude \\ jannoRowsToExluce
+    let jannoRows = getJointJanno relevantPackages
+        relevantJannoRows = map (jannoRows !!) relevantIndices
+    
     -- check for duplicates among the individuals selected for merging
     checkIndividualsUniqueJanno relevantJannoRows
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
         relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
-    -- genotype data individual indizes
-    indicesToInclude <- extractEntityIndices entitiesToInclude relevantPackages
-    indicesToExclude <- extractEntityIndices entitiesToExclude relevantPackages
-    let indices = indicesToInclude \\ indicesToExclude
     -- create new package --
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x  -> x
@@ -139,19 +146,15 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     hPutStrLn stderr "Compiling genotype data"
     newNrSNPs <- runSafeT $ do
         (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData showWarnings intersect_ relevantPackages maybeSnpFile
-        let eigenstratIndEntriesV = V.fromList eigenstratIndEntries
-        let newEigenstratIndEntries = [eigenstratIndEntriesV V.! i | i <- indices]
-        let jannoIndIds = map jPoseidonID relevantJannoRows
-        -- TODO: This check might be redundant now, because the input data is now already
-        -- screened for cross-file order issues
-        when ([n | EigenstratIndEntry n _ _ <-  newEigenstratIndEntries] /= jannoIndIds) $
-            throwM (PoseidonCrossFileConsistencyException "new package" "Cannot forge: order of individuals in genotype indidividual files and Janno-files not consistent")
+        let eigenstratIndEntriesV = eigenstratIndEntries
+        let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
+
         let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
         let outConsumer = case outFormat of
                 GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                 GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
         liftIO $ hPutStrLn stderr "Processing SNPs..."
-        let extractPipe = if noExtract then cat else P.map (selectIndices indices)
+        let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
         -- define main forge pipe including file output.
         -- The final tee forwards the results to be used in the snpCounting-fold
         let forgePipe = eigenstratProd >->
@@ -192,37 +195,6 @@ checkIndividualsUniqueJanno rows = do
             "Duplicate individuals in selection (" ++
             intercalate ", " (indIDs \\ nub indIDs) ++
             ")"
-
-filterPackages :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonPackage]
-filterPackages entities packages = do
-    let requestedPacs   = [ pac   | Pac   pac   <- entities]
-        groupNamesStats = [ group | Group group <- entities]
-        indNamesStats   = [ ind   | Ind   ind   <- entities]
-    fmap catMaybes . forM packages $ \pac -> do
-        inds <- getIndividuals pac
-        let indNamesPac   = [ind   | EigenstratIndEntry ind _ _     <- inds]
-            groupNamesPac = [group | EigenstratIndEntry _   _ group <- inds]
-        if  posPacTitle pac `elem` requestedPacs
-            ||  not (null (indNamesPac `intersect` indNamesStats))
-            ||  not (null (groupNamesPac `intersect` groupNamesStats))
-        then return (Just pac)
-        else return Nothing
-
-filterJannoRows :: EntitiesList -> [JannoRow] -> [JannoRow]
-filterJannoRows entities samples =
-    let groupNamesStats = [ group | Group group <- entities]
-        indNamesStats   = [ ind   | Ind   ind   <- entities]
-        comparison x    =  jPoseidonID x `elem` indNamesStats
-                           || head (getJannoList . jGroupName $ x) `elem` groupNamesStats
-    in filter comparison samples
-
-filterJannoFiles :: EntitiesList -> [(String, [JannoRow])] -> [JannoRow]
-filterJannoFiles entities packages =
-    let requestedPacs           = [ pac | Pac pac <- entities]
-        filterJannoOrNot (a, b) = if a `elem` requestedPacs
-                                  then b
-                                  else filterJannoRows entities b
-    in concatMap filterJannoOrNot packages
 
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 filterBibEntries samples references_ =

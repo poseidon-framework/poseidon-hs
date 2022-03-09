@@ -12,8 +12,8 @@ module Poseidon.Package (
     readPoseidonPackageCollection,
     getChecksum,
     getJointGenotypeData,
-    getIndividuals,
     getJointJanno,
+    getJointIndividualInfo,
     newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
@@ -533,7 +533,7 @@ getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getJointIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
-    return $ IndividualInfo (jPoseidonID jannoRow) (jGroupName jannoRow) (posPacTitle pac)
+    return $ IndividualInfo (jPoseidonID jannoRow) ((getJannoList . jGroupName) jannoRow) (posPacTitle pac)
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.

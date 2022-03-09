@@ -8,8 +8,8 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.EntitiesList  (SignedEntitiesList,
-                                        readPoseidonEntitiesString)
+import           Poseidon.EntitiesList  (SignedEntitiesList, EntitiesList,
+                                        readEntitiesFromString)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
@@ -281,7 +281,7 @@ parseForce = OP.switch (
     )
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
-parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
+parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
@@ -289,19 +289,28 @@ parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPo
         \\"*package_1*, <individual_1>, <individual_2>, group_1\". Duplicates are treated as one entry. \
         \Negative selection is possible by prepending \"-\" to the entity you want to exclude \
         \(e.g. \"*package_1*, -<individual_1>, -group_1\"). \
-        \forge will first of all collect all entities to include (so the ones without \"-\") \
-        \and then subtract the ones to exclude. If only a negative selection, so only entities for exclusion, \
+        \forge will apply excludes and includes in order. If only a negative selection, so only entities for exclusion, \
         \are listed in the forgeString, then forge will assume you want to merge all individuals in the \
         \packages found in the baseDirs (except the ones explicitly excluded). \
         \An empty forgeString will therefore merge all available individuals."))
+  where
+    readSignedEntities s = case readEntitiesFromString s of
+        Left e -> Left (show e)
+        Right e -> Right e
 
-parseFetchEntitiesDirect :: OP.Parser SignedEntitiesList
-parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
+parseFetchEntitiesDirect :: OP.Parser EntitiesList
+parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readEntities) (OP.long "fetchString" <>
     OP.short 'f' <>
     OP.help "List of packages to be downloaded from the remote server. \
         \Package names should be wrapped in asterisks: *package_title*. \
         \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
-        \fetchString uses the same parser as forgeString, but discards everything but packages."))
+        \fetchString uses the same parser as forgeString, but does not allow excludes. If groups or individuals are \
+        \specified, then packages which include these groups or individuals are included in the download."))
+  where
+    readEntities s = case readEntitiesFromString s of
+        Left e -> Left (show e)
+        Right e -> Right e
+
 
 parseForgeEntitiesFromFile :: OP.Parser [FilePath]
 parseForgeEntitiesFromFile = OP.many (OP.strOption (OP.long "forgeFile" <>
