@@ -1,6 +1,6 @@
 module Poseidon.EntitiesList (
     PoseidonEntity (..), SignedEntity (..),
-    SignedEntitiesList, EntitiesList,
+    SignedEntitiesList, EntitiesList, EntitySpec,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
     conformingEntityIndices) where
