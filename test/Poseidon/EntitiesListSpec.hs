@@ -6,7 +6,9 @@ import           Poseidon.Package      (PackageReadOptions (..),
                                         defaultPackageReadOptions,
                                         readPoseidonPackageCollection, 
                                         getJointIndividualInfo)
+import Poseidon.SecondaryTypes (IndividualInfo(..))
 import           Poseidon.Utils        (PoseidonException)
+
 
 import           Data.Either           (fromRight, isLeft)
 import           Test.Hspec
@@ -120,7 +122,7 @@ badEntities = [
 
 testFindNonExistentEntities :: Spec
 testFindNonExistentEntities =
-    describe "Poseidon.CLI.Forge.findNonExistentEntities" $ do
+    describe "Poseidon.EntitiesList.findNonExistentEntities" $ do
     it "should ignore good entities" $ do
         ps <- readPoseidonPackageCollection testPacReadOpts testBaseDir
         let ents = findNonExistentEntities goodEntities (getJointIndividualInfo ps)
@@ -132,7 +134,7 @@ testFindNonExistentEntities =
 
 testFilterPackages :: Spec
 testFilterPackages =
-    describe "Poseidon.CLI.Forge.filterPackages" $ do
+    describe "Poseidon.EntitiesList.filterPackages" $ do
     it "should select all relevant packages" $ do
         ps <- readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages goodEntities ps
@@ -144,7 +146,7 @@ testFilterPackages =
 
 testExtractEntityIndices :: Spec
 testExtractEntityIndices =
-    describe "Poseidon.CLI.Forge.extractEntityIndices" $ do
+    describe "Poseidon.EntitiesList.extractEntityIndices" $ do
     it "should select all relevant individuals" $ do
         ps <- readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = conformingEntityIndices goodEntities (getJointIndividualInfo ps)
@@ -153,3 +155,17 @@ testExtractEntityIndices =
         ps <- readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = conformingEntityIndices badEntities (getJointIndividualInfo ps)
         indInts `shouldBe` []
+    it "should correctly extract indices with ordered signed entities" $ do
+        let indInfo = [
+                IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1",
+                IndividualInfo "Ind2" ["Pop1", "PopB"] "Pac1",
+                IndividualInfo "Ind3" ["Pop2", "PopB"] "Pac1",
+                IndividualInfo "Ind4" ["Pop2", "PopB"] "Pac1",
+                IndividualInfo "Ind5" ["Pop3", "PopC"] "Pac2",
+                IndividualInfo "Ind6" ["Pop3", "PopC"] "Pac2",
+                IndividualInfo "Ind7" ["Pop4", "PopC"] "Pac2",
+                IndividualInfo "Ind8" ["Pop4", "PopC"] "Pac2"]
+        conformingEntityIndices [Include (Pac "Pac1"), Exclude (Group "Pop2"), Include (Ind "Ind3")] indInfo `shouldBe` [0, 1, 2]
+        conformingEntityIndices [Include (Pac "Pac1")] indInfo `shouldBe` [0, 1, 2, 3]
+
+
