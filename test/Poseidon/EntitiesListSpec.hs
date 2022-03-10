@@ -32,6 +32,11 @@ testReadPoseidonEntitiesString =
             map Include [Ind "a", Group "b", Pac "c"]
         fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2") `shouldBe`
             map Include [Ind "a1", Group "b1", Ind "a2", Pac "c", Group "b2"]
+    it "should parse unsigned entity lists correctly" $ do
+        fromRight [] (readEntitiesFromString "<a>,b,*c*") `shouldBe`
+            [Ind "a", Group "b", Pac "c"]
+        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2") `shouldBe`
+            [Ind "a1", Group "b1", Ind "a2", Pac "c", Group "b2"]
     it "should ignore spaces after commas" $ do
         fromRight [] (readEntitiesFromString "<a>, b, *c*") `shouldBe`
             map Include [Ind "a", Group "b", Pac "c"]
