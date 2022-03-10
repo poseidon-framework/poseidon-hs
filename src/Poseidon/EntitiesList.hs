@@ -1,9 +1,10 @@
 module Poseidon.EntitiesList (
     PoseidonEntity (..), SignedEntity (..),
     SignedEntitiesList, EntitiesList, EntitySpec,
+    indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices) where
+    conformingEntityIndices, entitiesListP) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
