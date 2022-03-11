@@ -14,12 +14,12 @@ import           Poseidon.Utils          (PoseidonException (..))
 import           Control.Applicative     ((<|>))
 import           Control.Exception       (throwIO)
 import           Data.Char               (isSpace)
+import           Data.Foldable           (foldl')
+import           Data.Function           ((&))
 import           Data.List               (nub, (\\))
+import           Data.Maybe              (mapMaybe)
 import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
-import Data.Maybe (mapMaybe)
-import Data.Function ((&))
-import Data.Foldable (foldl')
 
 -- | A datatype to represent a package, a group or an individual
 data PoseidonEntity = Pac String
@@ -52,13 +52,8 @@ class EntitySpec a where
 
 instance EntitySpec SignedEntity where
     indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) =
-      foldl' updateDecision False $ mapMaybe shouldIncExc signedEntities
+      foldl' (\_ y -> y) False $ mapMaybe shouldIncExc signedEntities
       where
-        updateDecision :: Bool -> Bool -> Bool
-        updateDecision True True   = True
-        updateDecision False False = False
-        updateDecision True False  = False
-        updateDecision False True  = True
         shouldIncExc :: SignedEntity -> Maybe Bool
         shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
         shouldIncExc (Exclude entity) = if entity & isIndInfo then Just False else Nothing
@@ -66,15 +61,6 @@ instance EntitySpec SignedEntity where
         isIndInfo (Ind   n) = n == indName
         isIndInfo (Group n) = n `elem` groupNames
         isIndInfo (Pac   n) = n == pacName
-    -- indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) = go signedEntities False
-    --   where
-    --     go [] r = r
-    --     go (Include (Ind   n):rest) r = if n ==     indName    then go rest True  else go rest r
-    --     go (Include (Group n):rest) r = if n `elem` groupNames then go rest True  else go rest r
-    --     go (Include (Pac   n):rest) r = if n ==     pacName    then go rest True  else go rest r
-    --     go (Exclude (Ind   n):rest) r = if n ==     indName    then go rest False else go rest r
-    --     go (Exclude (Group n):rest) r = if n `elem` groupNames then go rest False else go rest r
-    --     go (Exclude (Pac   n):rest) r = if n ==     pacName    then go rest False else go rest r
     underlyingEntity = removeEntitySign
     entitySpecParser = parseSign <*> entitySpecParser
       where
