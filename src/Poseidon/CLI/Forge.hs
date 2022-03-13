@@ -76,17 +76,19 @@ runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath m
     -- compile entities
     entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
     let entitiesInput = nub $ entitiesDirect ++ concat entitiesFromFile
-        entitiesToInclude = [e | Include e <- entitiesInput]
+
+    hPutStrLn stderr $ "Forging with the following entity-list: " ++ show entitiesInput
     
     -- load packages --
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     
-    -- fill entitiesToInclude with all packages, if entitiesToIncludePreliminary is empty
-    let entities =
-            if null entitiesToInclude then
-                map (Include . Pac . posPacTitle) allPackages ++ entitiesInput -- add all Packages to the front of the list
-            else
-                entitiesInput
+    -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
+    entities <- case head entitiesInput of
+        Include _ -> return entitiesInput
+        Exclude _ -> do
+            hPutStrLn stderr $ "forge entities begin with exclude, so implicitly adding all packages as includes before \
+            \applying excludes."
+            return $ map (Include . Pac . posPacTitle) allPackages ++ entitiesInput -- add all Packages to the front of the list
     
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages

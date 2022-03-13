@@ -289,9 +289,9 @@ parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readSi
         \\"*package_1*, <individual_1>, <individual_2>, group_1\". Duplicates are treated as one entry. \
         \Negative selection is possible by prepending \"-\" to the entity you want to exclude \
         \(e.g. \"*package_1*, -<individual_1>, -group_1\"). \
-        \forge will apply excludes and includes in order. If only a negative selection, so only entities for exclusion, \
-        \are listed in the forgeString, then forge will assume you want to merge all individuals in the \
-        \packages found in the baseDirs (except the ones explicitly excluded). \
+        \forge will apply excludes and includes in order. If the first entity is negative, then forge \
+        \will assume you want to merge all individuals in the \
+        \packages found in the baseDirs (except the ones explicitly excluded) before the exclude entities are applied. \
         \An empty forgeString will therefore merge all available individuals."))
   where
     readSignedEntities s = case readEntitiesFromString s of
