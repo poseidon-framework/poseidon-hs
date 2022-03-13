@@ -170,8 +170,7 @@ fetchOptParser = FetchOptions <$> parseBasePaths
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
-                              <*> parseForgeEntitiesDirect
-                              <*> parseForgeEntitiesFromFile
+                              <*> parseForgeEntitySpec
                               <*> parseIntersect
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
@@ -280,6 +279,9 @@ parseForce = OP.switch (
             \if this is not the case."
     )
 
+parseForgeEntitySpec :: OP.Parser (Either SignedEntitiesList FilePath)
+parseForgeEntitySpec = (Left <$> parseForgeEntitiesDirect) <|> (Right <$> parseForgeEntitiesFromFile)
+
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
 parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
     OP.short 'f' <>
@@ -312,13 +314,12 @@ parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readEn
         Right e -> Right e
 
 
-parseForgeEntitiesFromFile :: OP.Parser [FilePath]
-parseForgeEntitiesFromFile = OP.many (OP.strOption (OP.long "forgeFile" <>
+parseForgeEntitiesFromFile :: OP.Parser FilePath
+parseForgeEntitiesFromFile = OP.strOption (OP.long "forgeFile" <>
     OP.help "A file with a list of packages, groups or individual samples. \
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
         \Empty lines are ignored and comments start with \"#\", so everything after \"#\" is ignored \
-        \in one line. \
-        \-f and --forgeFile can be combined."))
+        \in one line.")
 
 parseFetchEntitiesFromFile :: OP.Parser [FilePath]
 parseFetchEntitiesFromFile = OP.many (OP.strOption (OP.long "fetchFile" <>

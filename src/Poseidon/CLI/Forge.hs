@@ -48,8 +48,7 @@ import           System.IO                   (hPutStrLn, stderr)
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
-    , _forgeEntityList   :: SignedEntitiesList
-    , _forgeEntityFiles  :: [FilePath]
+    , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
     , _forgeIntersect    :: Bool
     , _forgeOutPacPath   :: FilePath
     , _forgeOutPacName   :: Maybe String
@@ -71,11 +70,12 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitiesDirect entitiesFile intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
+runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
     
     -- compile entities
-    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
-    let entitiesInput = nub $ entitiesDirect ++ concat entitiesFromFile
+    entitiesInput <- case entitySpec of
+        Left e -> return e
+        Right fp -> readEntitiesFromFile fp
 
     hPutStrLn stderr $ "Forging with the following entity-list: " ++ show entitiesInput
     
