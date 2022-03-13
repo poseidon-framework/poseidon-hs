@@ -283,7 +283,7 @@ parseForgeEntitySpec :: OP.Parser (Either SignedEntitiesList FilePath)
 parseForgeEntitySpec = (Left <$> parseForgeEntitiesDirect) <|> (Right <$> parseForgeEntitiesFromFile)
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
-parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
+parseForgeEntitiesDirect = concat <$> OP.some (OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
@@ -312,7 +312,6 @@ parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readEn
     readEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)
         Right e -> Right e
-
 
 parseForgeEntitiesFromFile :: OP.Parser FilePath
 parseForgeEntitiesFromFile = OP.strOption (OP.long "forgeFile" <>

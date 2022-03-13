@@ -83,12 +83,14 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     
     -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
-    entities <- case head entitiesInput of
-        Include _ -> return entitiesInput
-        Exclude _ -> do
-            hPutStrLn stderr $ "forge entities begin with exclude, so implicitly adding all packages as includes before \
+    let addImplicits = do
+            hPutStrLn stderr $ "forge entities begin with exclude or are empty, so implicitly adding all packages as includes before \
             \applying excludes."
             return $ map (Include . Pac . posPacTitle) allPackages ++ entitiesInput -- add all Packages to the front of the list
+    entities <- case entitiesInput of
+        (Include _:_) -> return entitiesInput
+        (Exclude _:_) -> addImplicits
+        []            -> addImplicits
     
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages

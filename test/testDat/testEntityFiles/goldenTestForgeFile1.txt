@@ -1,5 +1,3 @@
-# removing a package
--*Wang*
 # adding populations
 POP2, POP3
 # removing individuals
