@@ -14,7 +14,6 @@ import           Poseidon.Utils          (PoseidonException (..))
 import           Control.Applicative     ((<|>))
 import           Control.Exception       (throwIO)
 import           Data.Char               (isSpace)
-import           Data.Foldable           (foldl')
 import           Data.Function           ((&))
 import           Data.List               (nub, (\\))
 import           Data.Maybe              (mapMaybe)
@@ -52,7 +51,7 @@ class EntitySpec a where
 
 instance EntitySpec SignedEntity where
     indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) =
-      foldl' (\_ y -> y) False $ mapMaybe shouldIncExc signedEntities
+      last $ mapMaybe shouldIncExc signedEntities
       where
         shouldIncExc :: SignedEntity -> Maybe Bool
         shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
