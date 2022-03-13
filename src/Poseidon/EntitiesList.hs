@@ -14,7 +14,9 @@ import           Poseidon.Utils          (PoseidonException (..))
 import           Control.Applicative     ((<|>))
 import           Control.Exception       (throwIO)
 import           Data.Char               (isSpace)
+import           Data.Function           ((&))
 import           Data.List               (nub, (\\))
+import           Data.Maybe              (mapMaybe)
 import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
 
@@ -48,19 +50,23 @@ class EntitySpec a where
     entitySpecParser :: P.Parser a
 
 instance EntitySpec SignedEntity where
-    indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) = go signedEntities False
+    indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) =
+      case mapMaybe shouldIncExc signedEntities of
+          [] -> False
+          xs -> last xs
       where
-        go [] r = r
-        go (Include (Ind   n):rest) r = if n ==     indName    then go rest True  else go rest r
-        go (Include (Group n):rest) r = if n `elem` groupNames then go rest True  else go rest r
-        go (Include (Pac   n):rest) r = if n ==     pacName    then go rest True  else go rest r
-        go (Exclude (Ind   n):rest) r = if n ==     indName    then go rest False else go rest r
-        go (Exclude (Group n):rest) r = if n `elem` groupNames then go rest False else go rest r
-        go (Exclude (Pac   n):rest) r = if n ==     pacName    then go rest False else go rest r
+        shouldIncExc :: SignedEntity -> Maybe Bool
+        shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
+        shouldIncExc (Exclude entity) = if entity & isIndInfo then Just False else Nothing
+        isIndInfo :: PoseidonEntity -> Bool
+        isIndInfo (Ind   n) = n == indName
+        isIndInfo (Group n) = n `elem` groupNames
+        isIndInfo (Pac   n) = n == pacName
     underlyingEntity = removeEntitySign
     entitySpecParser = parseSign <*> entitySpecParser
       where
         parseSign = (P.char '-' >> return Exclude) <|> (P.optional (P.char '+') >> return Include)
+
 
 instance EntitySpec PoseidonEntity where
     indInfoConformsToEntitySpec entities = indInfoConformsToEntitySpec (map Include entities)
