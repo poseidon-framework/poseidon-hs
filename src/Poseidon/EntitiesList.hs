@@ -51,7 +51,9 @@ class EntitySpec a where
 
 instance EntitySpec SignedEntity where
     indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) =
-      last $ mapMaybe shouldIncExc signedEntities
+      case mapMaybe shouldIncExc signedEntities of
+          [] -> False
+          xs -> last xs
       where
         shouldIncExc :: SignedEntity -> Maybe Bool
         shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
