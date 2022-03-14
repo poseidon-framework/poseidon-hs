@@ -11,8 +11,10 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
                                              newMinimalPackageTemplate,
                                              writePoseidonPackage)
+import           Poseidon.Utils              (PoseidonException (..))
 
-import           Control.Monad              (unless)
+import           Control.Monad              (unless, when)
+import           Control.Monad.Catch        (throwM)
 import           System.Directory           (createDirectoryIfMissing, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
 import           System.IO                  (hPutStrLn, stderr)
@@ -48,6 +50,7 @@ runInit (InitOptions format_ snpSet_ genoFile_ snpFile_ indFile_ outPath maybeOu
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x -> x
             Nothing -> takeBaseName outPath
+    when (outName == "") $ throwM PoseidonEmptyOutPacNameException
     inds <- loadIndividuals outPath genotypeData
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData

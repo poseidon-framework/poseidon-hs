@@ -199,6 +199,7 @@ surveyOptParser = SurveyOptions <$> parseBasePaths
 updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parsePoseidonVersion
+                                <*> parseIgnorePoseidonVersion
                                 <*> parseVersionComponent
                                 <*> parseNoChecksumUpdate
                                 <*> parseIgnoreGeno
@@ -281,6 +282,14 @@ parseForce = OP.switch (
 
 parseForgeEntitySpec :: OP.Parser (Either SignedEntitiesList FilePath)
 parseForgeEntitySpec = (Left <$> parseForgeEntitiesDirect) <|> (Right <$> parseForgeEntitiesFromFile)
+
+parseIgnorePoseidonVersion :: OP.Parser Bool
+parseIgnorePoseidonVersion = OP.switch (
+    OP.long "ignorePoseidonVersion" <>
+    OP.help "Read packages even if their poseidonVersion is not compatible with the trident version. \
+        \The assumption is, that the package is already structurally adjusted to the trident version \
+        \and only the version number is lagging behind."
+    )
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
 parseForgeEntitiesDirect = concat <$> OP.some (OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
