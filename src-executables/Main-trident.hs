@@ -32,7 +32,6 @@ import qualified Options.Applicative    as OP
 import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
 import           System.IO              (hPutStrLn, stderr)
-import Control.Monad (when)
 
 data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
