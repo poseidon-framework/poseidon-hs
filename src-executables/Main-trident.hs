@@ -174,7 +174,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseIntersect
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> parseOutFormat
+                              <*> parseOutGenotypeFormat True
                               <*> parseMakeMinimalPackage
                               <*> parseShowWarnings
                               <*> parseNoExtract
@@ -182,7 +182,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
-                                          <*> parseOutGenotypeFormat
+                                          <*> parseOutGenotypeFormat False
                                           <*> parseRemoveOld
 
 parseRemoveOld :: OP.Parser Bool
@@ -376,11 +376,17 @@ parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (OP.long "snpSet" <
         _              -> Left "Could not read snpSet. Must be \"1240K\", \
                                 \\"HumanOrigins\" or \"Other\""
 
-
-parseOutGenotypeFormat :: OP.Parser GenotypeFormatSpec
-parseOutGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "outFormat" <>
-    OP.help "the format of the output genotype data: EIGENSTRAT or PLINK") 
+parseOutGenotypeFormat :: Bool -> OP.Parser GenotypeFormatSpec
+parseOutGenotypeFormat withDefault =
+  if withDefault
+  then OP.option (OP.eitherReader readGenotypeFormat) settingsWithDefault
+  else OP.option (OP.eitherReader readGenotypeFormat) settingsWithoutDefault
   where
+    settingsWithDefault = OP.long "outFormat" <>
+        OP.help "the format of the output genotype data: EIGENSTRAT or PLINK. Default: PLINK" <>
+        OP.value GenotypeFormatPlink
+    settingsWithoutDefault = OP.long "outFormat" <>
+      OP.help "the format of the output genotype data: EIGENSTRAT or PLINK."
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of
         "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
@@ -417,12 +423,6 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
 parseMakeMinimalPackage :: OP.Parser Bool
 parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
     OP.help "should only a minimal output package be created?")
-
-parseOutFormat :: OP.Parser GenotypeFormatSpec
-parseOutFormat = parseEigenstratFormat <|> pure GenotypeFormatPlink
-  where
-    parseEigenstratFormat = OP.flag' GenotypeFormatEigenstrat (OP.long "eigenstrat" <>
-        OP.help "Choose Eigenstrat instead of PLINK (default) as output format.")
 
 parseShowWarnings :: OP.Parser Bool
 parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
