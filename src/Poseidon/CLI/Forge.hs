@@ -84,7 +84,9 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
         Left e -> return e
         Right fp -> readEntitiesFromFile fp
 
-    hPutStrLn stderr $ "Forging with the following entity-list: " ++ show entitiesInput
+    let printEntityList = (intercalate ", " . map show . take 10) entitiesInput ++
+            if length entitiesInput > 10 then " and " ++ show (length entitiesInput - 10) ++ " more" else ""
+    hPutStrLn stderr $ "Forging with the following entity-list: " ++ printEntityList
     
     -- load packages --
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
