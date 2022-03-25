@@ -463,6 +463,7 @@ joinEntries :: MonadIO m => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEn
 getConsensusSnpEntry :: MonadIO m => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
+selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFormatSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.SNPSetSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeDataSpec
@@ -475,27 +476,6 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.SNPSetSpec
 instance GHC.Show.Show Poseidon.GenotypeData.GenotypeFormatSpec
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.GenotypeData.GenotypeFormatSpec
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.GenotypeFormatSpec
-
-module Poseidon.EntitiesList
-
--- | A datatype to represent a package, a group or an individual
-data PoseidonEntity
-Pac :: String -> PoseidonEntity
-Group :: String -> PoseidonEntity
-Ind :: String -> PoseidonEntity
-data SignedEntity
-Include :: PoseidonEntity -> SignedEntity
-Exclude :: PoseidonEntity -> SignedEntity
-type SignedEntitiesList = [SignedEntity]
-type EntitiesList = [PoseidonEntity]
-readEntitiesFromFile :: FilePath -> IO SignedEntitiesList
-readPoseidonEntitiesString :: String -> Either String SignedEntitiesList
-entityIncludes :: SignedEntitiesList -> EntitiesList
-entityExcludes :: SignedEntitiesList -> EntitiesList
-instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
-instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
-instance GHC.Show.Show Poseidon.EntitiesList.SignedEntity
-instance GHC.Show.Show Poseidon.EntitiesList.PoseidonEntity
 
 module Poseidon.BibFile
 dummyBibEntry :: BibEntry
@@ -694,10 +674,8 @@ getChecksum :: FilePath -> IO String
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m => Bool -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-
--- | A function to return a list of all individuals in the genotype files
---   of a package.
-getIndividuals :: PoseidonPackage -> IO [EigenstratIndEntry]
+getJointJanno :: [PoseidonPackage] -> [JannoRow]
+getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
@@ -724,6 +702,36 @@ instance GHC.Show.Show Poseidon.Package.PoseidonPackage
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Yaml.Pretty.Extras.ToPrettyYaml Poseidon.Package.PoseidonYamlStruct
+
+module Poseidon.EntitiesList
+
+-- | A datatype to represent a package, a group or an individual
+data PoseidonEntity
+Pac :: String -> PoseidonEntity
+Group :: String -> PoseidonEntity
+Ind :: String -> PoseidonEntity
+data SignedEntity
+Include :: PoseidonEntity -> SignedEntity
+Exclude :: PoseidonEntity -> SignedEntity
+type SignedEntitiesList = [SignedEntity]
+type EntitiesList = [PoseidonEntity]
+class EntitySpec a
+indInfoConformsToEntitySpec :: EntitySpec a => [a] -> IndividualInfo -> Bool
+underlyingEntity :: EntitySpec a => a -> PoseidonEntity
+entitySpecParser :: EntitySpec a => Parser a
+readEntitiesFromFile :: EntitySpec a => FilePath -> IO [a]
+readEntitiesFromString :: EntitySpec a => String -> Either PoseidonException [a]
+findNonExistentEntities :: EntitySpec a => [a] -> [IndividualInfo] -> EntitiesList
+indInfoFindRelevantPackageNames :: EntitySpec a => [a] -> [IndividualInfo] -> [String]
+filterRelevantPackages :: EntitySpec a => [a] -> [PoseidonPackage] -> [PoseidonPackage]
+conformingEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> [Int]
+entitiesListP :: EntitySpec a => Parser [a]
+instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
+instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
+instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.SignedEntity
+instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.PoseidonEntity
+instance GHC.Show.Show Poseidon.EntitiesList.SignedEntity
+instance GHC.Show.Show Poseidon.EntitiesList.PoseidonEntity
 
 module Poseidon.CLI.Validate
 
@@ -837,9 +845,9 @@ convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
 
 module Poseidon.CLI.Fetch
 data FetchOptions
-FetchOptions :: [FilePath] -> SignedEntitiesList -> [FilePath] -> String -> Bool -> Bool -> FetchOptions
+FetchOptions :: [FilePath] -> EntitiesList -> [FilePath] -> String -> Bool -> Bool -> FetchOptions
 [_jaBaseDirs] :: FetchOptions -> [FilePath]
-[_entityList] :: FetchOptions -> SignedEntitiesList
+[_entityList] :: FetchOptions -> EntitiesList
 [_entityFiles] :: FetchOptions -> [FilePath]
 [_remoteURL] :: FetchOptions -> String
 [_upgrade] :: FetchOptions -> Bool
@@ -853,8 +861,8 @@ pacReadOpts :: PackageReadOptions
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> IO ()
-entities2PacTitles :: [PoseidonEntity] -> [String]
-readPackageInfo :: ByteString -> IO [PackageInfo]
+readServerIndInfo :: ByteString -> IO [IndividualInfo]
+readServerPackageInfo :: ByteString -> IO [PackageInfo]
 determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
 handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> IO ()
 printV :: Maybe Version -> String
@@ -896,10 +904,9 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> SignedEntitiesList -> [FilePath] -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> Maybe FilePath -> ForgeOptions
+ForgeOptions :: [FilePath] -> Either SignedEntitiesList FilePath -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> Maybe FilePath -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
-[_forgeEntityList] :: ForgeOptions -> SignedEntitiesList
-[_forgeEntityFiles] :: ForgeOptions -> [FilePath]
+[_forgeEntitySpec] :: ForgeOptions -> Either SignedEntitiesList FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
@@ -914,13 +921,5 @@ pacReadOpts :: PackageReadOptions
 runForge :: ForgeOptions -> IO ()
 sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
 checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
-selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
-findNonExistentEntities :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonEntity]
-filterPackages :: EntitiesList -> [PoseidonPackage] -> IO [PoseidonPackage]
-filterJannoRows :: EntitiesList -> [JannoRow] -> [JannoRow]
-filterJannoFiles :: EntitiesList -> [(String, [JannoRow])] -> [JannoRow]
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
-extractEntityIndices :: EntitiesList -> [PoseidonPackage] -> IO [Int]
-extractFirst :: (a, b, c) -> a
-zipGroup :: [a] -> [[b]] -> [(Int, a, b)]
 fillMissingSnpSets :: [PoseidonPackage] -> IO [SNPSetSpec]
