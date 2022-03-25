@@ -737,7 +737,7 @@ readJannoFile verbose jannoPath = do
                 return x
 
 findSimilarNames :: [String] -> [String] -> [String]
-findSimilarNames reference toLookUp = map (findSimilar reference) toLookUp
+findSimilarNames reference = map (findSimilar reference)
     where
         findSimilar ::  [String] -> String -> String
         findSimilar ref x = 

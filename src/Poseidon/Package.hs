@@ -12,7 +12,8 @@ module Poseidon.Package (
     readPoseidonPackageCollection,
     getChecksum,
     getJointGenotypeData,
-    getIndividuals,
+    getJointJanno,
+    getJointIndividualInfo,
     newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
@@ -32,7 +33,7 @@ import           Poseidon.Janno             (JannoList (..), JannoRow (..),
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..))
+import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException)
 
@@ -488,11 +489,6 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                     msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
 
--- | A function to return a list of all individuals in the genotype files of a package.
-getIndividuals :: PoseidonPackage -- ^ the Poseidon package
-               -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-getIndividuals pac = loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac)
-
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
@@ -529,6 +525,15 @@ getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
         (Just _, Just (es, gl)) -> yield (es, gl)
         (Just snp, Nothing) -> unless intersect $ yield (snp, V.replicate n Missing)
         _ ->  return ()
+
+getJointJanno :: [PoseidonPackage] -> [JannoRow]
+getJointJanno = concatMap posPacJanno
+
+getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getJointIndividualInfo packages = do
+    pac <- packages
+    jannoRow <- posPacJanno pac
+    return $ IndividualInfo (jPoseidonID jannoRow) ((getJannoList . jGroupName) jannoRow) (posPacTitle pac)
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.

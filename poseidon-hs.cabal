@@ -54,7 +54,7 @@ Test-Suite poseidon-tools-tests
                        text, QuickCheck, directory, sequence-formats,
                        filepath, pipes, pipes-safe, pipes-ordered-zip
   other-modules:       Poseidon.PackageSpec, Poseidon.JannoSpec,
-                       Poseidon.BibFileSpec, Poseidon.ForgeSpec, Poseidon.MathHelpersSpec,
+                       Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                        Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                        Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
                        Poseidon.EntitiesListSpec
