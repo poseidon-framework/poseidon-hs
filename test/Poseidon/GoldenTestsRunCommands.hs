@@ -15,7 +15,8 @@ import           Poseidon.CLI.List              (ListOptions (..), runList,
 import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData          (GenotypeFormatSpec (..), 
+import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
+                                                 GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..))
 import           Poseidon.Package               (getChecksum)
 import           Poseidon.SecondaryTypes        (ContributorSpec (..),
@@ -99,11 +100,13 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
 testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineInit testDir checkFilePath testPacsDir = do
     let initOpts1 = InitOptions {
-          _initGenoFormat = GenotypeFormatEigenstrat
-        , _initGenoSnpSet = SNPSetOther
-        , _initGenoFile   = testPacsDir </> "Schiffels_2016" </> "geno.txt"
-        , _initSnpFile    = testPacsDir </> "Schiffels_2016" </> "snp.txt"
-        , _initIndFile    = testPacsDir </> "Schiffels_2016" </> "ind.txt"
+          _initGenoData = GenotypeDataSpec {
+              format = GenotypeFormatEigenstrat
+            , genoFile = testPacsDir </> "Schiffels_2016" </> "geno.txt", genoFileChkSum = Nothing
+            , snpFile  = testPacsDir </> "Schiffels_2016" </> "snp.txt",  snpFileChkSum = Nothing
+            , indFile  = testPacsDir </> "Schiffels_2016" </> "ind.txt",  indFileChkSum = Nothing
+            , snpSet = Just SNPSetOther
+            }
         , _initPacPath    = testDir </> "Schiffels"
         , _initPacName    = Just "Schiffels"
         , _initMinimal    = False
@@ -116,11 +119,13 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , "Schiffels" </> "Schiffels.bib"
         ]
     let initOpts2 = InitOptions {
-          _initGenoFormat = GenotypeFormatPlink 
-        , _initGenoSnpSet = SNPSetOther
-        , _initGenoFile   = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
-        , _initSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
-        , _initIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
+          _initGenoData = GenotypeDataSpec {
+              format = GenotypeFormatPlink
+            , genoFile = testPacsDir </>  "Wang_Plink_test_2020" </> "Wang_2020.bed", genoFileChkSum = Nothing
+            , snpFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim",  snpFileChkSum = Nothing
+            , indFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam",  indFileChkSum = Nothing
+            , snpSet = Just SNPSetOther
+            }
         , _initPacPath    = testDir </> "Wang"
         , _initPacName    = Nothing
         , _initMinimal    = True
