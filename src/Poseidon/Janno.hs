@@ -399,14 +399,14 @@ instance Show RelationDegree where
 type JannoAccessionIDList = JannoList AccessionID
 
 data AccessionID =
-      ENAProject String
-    | ENAStudy String
-    | ENABioSample String
-    | ENASample String
-    | ENAExperiment String
-    | ENARun String
-    | ENAAnalysis String
-    | OtherAccessionID String
+      INSDCProject String
+    | INSDCStudy String
+    | INSDCBioSample String
+    | INSDCSample String
+    | INSDCExperiment String
+    | INSDCRun String
+    | INSDCAnalysis String
+    | OtherID String
     deriving (Eq, Ord, Generic)
 
 instance ToJSON AccessionID where
@@ -420,37 +420,37 @@ instance Csv.FromField AccessionID where
         pure $ determineAccessionIDType val
 
 -- the patterns are documented at:
--- ENA: https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
+-- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
 determineAccessionIDType :: String -> AccessionID 
 determineAccessionIDType x
-    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"   :: String) = ENAProject x
-    | x Reg.=~ ("[EDS]RP[0-9]{6,}"      :: String) = ENAStudy x
-    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+"  :: String) = ENABioSample x
-    | x Reg.=~ ("[EDS]RS[0-9]{6,}"      :: String) = ENASample x
-    | x Reg.=~ ("[EDS]RX[0-9]{6,}"      :: String) = ENAExperiment x
-    | x Reg.=~ ("[EDS]RR[0-9]{6,}"      :: String) = ENARun x
-    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"      :: String) = ENAAnalysis x
-    | otherwise = OtherAccessionID x
+    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = INSDCProject x
+    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = INSDCStudy x
+    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = INSDCBioSample x
+    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = INSDCSample x
+    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = INSDCExperiment x
+    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = INSDCRun x
+    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = INSDCAnalysis x
+    | otherwise                                   = OtherID x
 
 instance Csv.ToField AccessionID where
-    toField (ENAProject x)          = Csv.toField x
-    toField (ENAStudy x)            = Csv.toField x
-    toField (ENABioSample x)        = Csv.toField x
-    toField (ENASample x)           = Csv.toField x
-    toField (ENAExperiment x)       = Csv.toField x
-    toField (ENARun x)              = Csv.toField x
-    toField (ENAAnalysis x)         = Csv.toField x
-    toField (OtherAccessionID x)    = Csv.toField x
+    toField (INSDCProject x)    = Csv.toField x
+    toField (INSDCStudy x)      = Csv.toField x
+    toField (INSDCBioSample x)  = Csv.toField x
+    toField (INSDCSample x)     = Csv.toField x
+    toField (INSDCExperiment x) = Csv.toField x
+    toField (INSDCRun x)        = Csv.toField x
+    toField (INSDCAnalysis x)   = Csv.toField x
+    toField (OtherID x)         = Csv.toField x
 
 instance Show AccessionID where
-    show (ENAProject x)         = x
-    show (ENAStudy x)           = x
-    show (ENABioSample x)       = x
-    show (ENASample x)          = x
-    show (ENAExperiment x)      = x
-    show (ENARun x)             = x
-    show (ENAAnalysis x)        = x
-    show (OtherAccessionID x)   = x
+    show (INSDCProject x)       = x
+    show (INSDCStudy x)         = x
+    show (INSDCBioSample x)     = x
+    show (INSDCSample x)        = x
+    show (INSDCExperiment x)    = x
+    show (INSDCRun x)           = x
+    show (INSDCAnalysis x)      = x
+    show (OtherID x)            = x
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
