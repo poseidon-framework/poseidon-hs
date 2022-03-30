@@ -1,15 +1,18 @@
 module Poseidon.CLI.Genoconvert where
 
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+                                             InGenotypeData (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress)
 import           Poseidon.Package           (readPoseidonPackageCollection,
                                              PoseidonPackage (..),
                                              writePoseidonPackage,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
+                                             PackageReadOptions (..),
+                                             defaultPackageReadOptions,
+                                             makePseudoPackageFromInGenotypeData)
 
-import           Control.Monad              (when)
+import           Control.Monad              (when, zipWithM, unless)
 import           Pipes                      (MonadIO (liftIO), 
                                             runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
@@ -21,9 +24,11 @@ import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertBaseDirs :: [FilePath]
-    , _genoConvertOutFormat :: GenotypeFormatSpec
-    , _genoconvertRemoveOld :: Bool
+    { _genoconvertBaseDirs    :: [FilePath]
+    , _genoconvertInGenos     :: [InGenotypeData]
+    , _genoConvertOutFormat   :: GenotypeFormatSpec
+    , _genoConvertOutOnlyGeno :: Bool
+    , _genoconvertRemoveOld   :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -36,14 +41,17 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runGenoconvert :: GenoconvertOptions -> IO ()
-runGenoconvert (GenoconvertOptions baseDirs outFormat removeOld) = do
+runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno removeOld) = do
     -- load packages
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    pseudoPackages <- zipWithM makePseudoPackageFromInGenotypeData inGenos (map (\x -> "PseudoPackage" ++ show x) [(0 :: Integer)..])
+    hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    let allPackages = properPackages ++ pseudoPackages
     -- convert
-    mapM_ (convertGenoTo outFormat removeOld) allPackages
+    mapM_ (convertGenoTo outFormat onlyGeno removeOld) allPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
-convertGenoTo outFormat removeOld pac = do
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
+convertGenoTo outFormat onlyGeno removeOld pac = do
     -- start message
     hPutStrLn stderr $
         "Converting genotype data in package "
@@ -75,12 +83,13 @@ convertGenoTo outFormat removeOld pac = do
                 runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
                 liftIO $ hPutStrLn stderr "Done"
             -- overwrite genotype data field in POSEIDON.yml file
-            let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
-                newPac = pac { posPacGenotypeData = genotypeData }
-            writePoseidonPackage newPac
+            unless onlyGeno $ do
+                let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
+                    newPac = pac { posPacGenotypeData = genotypeData }
+                writePoseidonPackage newPac
             -- delete now replaced input genotype data
             when removeOld $ mapM_ removeFile [
-                posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
+                  posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
                 , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
                 , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
                 ]

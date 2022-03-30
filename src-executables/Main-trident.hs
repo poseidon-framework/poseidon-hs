@@ -181,7 +181,9 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
+                                          <*> parseInGenotypeDatasets
                                           <*> parseOutGenotypeFormat False
+                                          <*> parseOutOnlyGeno
                                           <*> parseRemoveOld
 
 parseRemoveOld :: OP.Parser Bool

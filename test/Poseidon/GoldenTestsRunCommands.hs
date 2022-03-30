@@ -216,7 +216,9 @@ testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
           _genoconvertBaseDirs = [testDir </> "Wang"]
+        , _genoconvertInGenos = []
         , _genoConvertOutFormat = GenotypeFormatEigenstrat
+        , _genoConvertOutOnlyGeno = False
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts1) "genoconvert" [
@@ -226,7 +228,9 @@ testPipelineGenoconvert testDir checkFilePath = do
         ]
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertBaseDirs = [testDir </> "Schiffels"]
+        , _genoconvertInGenos = []
         , _genoConvertOutFormat = GenotypeFormatPlink
+        , _genoConvertOutOnlyGeno = False
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts2) "genoconvert" [
