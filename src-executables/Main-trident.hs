@@ -14,7 +14,7 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..)) 
+import           Poseidon.GenotypeData  (InGenotypeData (..)) 
 import           Poseidon.Janno         (jannoHeaderString)
 import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
@@ -368,15 +368,12 @@ parseOutGenotypeFormat withDefault =
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
-parseInGenotypeData :: OP.Parser GenotypeDataSpec
-parseInGenotypeData = GenotypeDataSpec <$> parseInGenotypeFormat 
-                                       <*> parseInGenoFile
-                                       <*> Nothing
-                                       <*> parseInSnpFile
-                                       <*> Nothing
-                                       <*> parseInIndFile
-                                       <*> Nothing
-                                       <*> parseGenotypeSNPSet
+parseInGenotypeData :: OP.Parser InGenotypeData
+parseInGenotypeData = InGenotypeData <$> parseInGenotypeFormat 
+                                     <*> parseInGenoFile
+                                     <*> parseInSnpFile
+                                     <*> parseInIndFile
+                                     <*> parseGenotypeSNPSet
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>

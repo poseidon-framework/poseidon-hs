@@ -1,7 +1,8 @@
 module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile           (dummyBibEntry, writeBibTeXFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+import           Poseidon.GenotypeData      (InGenotypeData (..),
+                                             GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..), 
                                              loadIndividuals,
                                              SNPSetSpec (..)
@@ -20,14 +21,14 @@ import           System.FilePath            ((<.>), (</>), takeFileName, takeBas
 import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
-    { _initGenoData :: GenotypeDataSpec
+    { _initGenoData :: InGenotypeData
     , _initPacPath :: FilePath
     , _initPacName :: Maybe String
     , _initMinimal :: Bool
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPath maybeOutName minimal) = do
+runInit (InitOptions (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) outPath maybeOutName minimal) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectoryIfMissing True outPath
@@ -35,7 +36,7 @@ runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _
     let outInd = takeFileName indFile_
         outSnp = takeFileName snpFile_
         outGeno = takeFileName genoFile_
-        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
+        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing (Just snpSet_)
     -- genotype data
     hPutStrLn stderr "Copying genotype data"
     copyFile indFile_ $ outPath </> outInd
