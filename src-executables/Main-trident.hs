@@ -169,15 +169,15 @@ forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseInGenotypeDatasets
                               <*> parseForgeEntitySpec
+                              <*> parseMaybeSnpFile
                               <*> parseIntersect
-                              <*> parseOutPackagePath
-                              <*> parseMaybeOutPackageName
                               <*> parseOutGenotypeFormat True
                               <*> parseMakeMinimalPackage
                               <*> parseOutOnlyGeno
+                              <*> parseOutPackagePath
+                              <*> parseMaybeOutPackageName
                               <*> parseShowWarnings
                               <*> parseNoExtract
-                              <*> parseMaybeSnpFile
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseBasePaths

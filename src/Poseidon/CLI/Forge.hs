@@ -52,15 +52,15 @@ data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
     , _forgeInGenos      :: [InGenotypeData]
     , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
+    , _forgeSnpFile      :: Maybe FilePath
     , _forgeIntersect    :: Bool
-    , _forgeOutPacPath   :: FilePath
-    , _forgeOutPacName   :: Maybe String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeOutMinimal   :: Bool
     , _forgeOutOnlyGeno  :: Bool
+    , _forgeOutPacPath   :: FilePath
+    , _forgeOutPacName   :: Maybe String
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
-    , _forgeSnpFile      :: Maybe FilePath
     }
 
 pacReadOpts :: PackageReadOptions
@@ -75,8 +75,10 @@ pacReadOpts = defaultPackageReadOptions {
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
 runForge (
-    ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutName outFormat 
-                 minimal onlyGeno showWarnings noExtract maybeSnpFile
+    ForgeOptions baseDirs inGenos
+                 entitySpec maybeSnpFile intersect_ 
+                 outFormat minimal onlyGeno outPath maybeOutName  
+                 showWarnings noExtract 
     ) = do
     
     -- this message can be removed after a couple of releases
