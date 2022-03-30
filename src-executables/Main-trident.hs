@@ -166,7 +166,7 @@ fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseDownloadAll
 
 forgeOptParser :: OP.Parser ForgeOptions
-forgeOptParser = ForgeOptions <$> parseBasePaths
+forgeOptParser = ForgeOptions <$> parseEitherBasePathsOrInGenotypeData
                               <*> parseForgeEntitySpec
                               <*> parseIntersect
                               <*> parseOutPackagePath
@@ -368,8 +368,11 @@ parseOutGenotypeFormat withDefault =
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
+parseEitherBasePathsOrInGenotypeData :: OP.Parser (Either [FilePath] InGenotypeData)
+parseEitherBasePathsOrInGenotypeData = (Left <$> parseBasePaths) <|> (Right <$> parseInGenotypeData)
+
 parseInGenotypeData :: OP.Parser InGenotypeData
-parseInGenotypeData = InGenotypeData <$> parseInGenotypeFormat 
+parseInGenotypeData = InGenotypeData <$> parseInGenotypeFormat
                                      <*> parseInGenoFile
                                      <*> parseInSnpFile
                                      <*> parseInIndFile

@@ -8,7 +8,8 @@ import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(
                                               findNonExistentEntities,
                                               filterRelevantPackages,
                                               conformingEntityIndices)
-import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
+import           Poseidon.GenotypeData       (InGenotypeData (..),
+                                              GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
@@ -47,7 +48,7 @@ import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeBaseDirs     :: [FilePath]
+    { _forgeInPacs       :: Either [FilePath] InGenotypeData -- [FilePath] means a list of baseDirs to search for packages
     , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
     , _forgeIntersect    :: Bool
     , _forgeOutPacPath   :: FilePath
@@ -70,7 +71,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
+runForge (ForgeOptions inPacs entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
     
     -- this message can be removed after a couple of releases
     hPutStrLn stderr 
@@ -89,8 +90,15 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
     hPutStrLn stderr $ "Forging with the following entity-list: " ++ printEntityList
     
     -- load packages --
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    
+    allPackages <- case inPacs of
+        -- read all packages in case of list of baseDirs
+        Left baseDirs ->
+            readPoseidonPackageCollection pacReadOpts baseDirs
+        -- construct pseudo-package in case of InGenotypeData
+        Right (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) -> do
+            let genotypeData = GenotypeDataSpec format_ genoFile_ Nothing snpFile_ Nothing indFile_ Nothing (Just snpSet_)
+            return $ [newMinimalPackageTemplate "." "IntermediatePseudoPackage" genotypeData]
+
     -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
     let addImplicits = do
             hPutStrLn stderr $ "forge entities begin with exclude or are empty, so implicitly adding all packages as includes before \
