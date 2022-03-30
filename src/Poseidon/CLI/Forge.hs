@@ -26,10 +26,11 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage,
                                               getJointIndividualInfo,
-                                              getJointJanno)
+                                              getJointJanno,
+                                              makePseudoPackageFromInGenotypeData)
 import           Poseidon.Utils              (PoseidonException (..))
 
-import           Control.Monad               (forM, forM_, unless, when)
+import           Control.Monad               (forM, forM_, unless, when, zipWithM)
 import           Data.List                   (intercalate, nub, (\\))
 import           Data.Maybe                  (mapMaybe)
 import qualified Data.Vector                 as V
@@ -48,7 +49,8 @@ import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeInPacs       :: Either [FilePath] InGenotypeData -- [FilePath] means a list of baseDirs to search for packages
+    { _forgeBaseDirs     :: [FilePath]
+    , _forgeInGenos      :: [InGenotypeData]
     , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
     , _forgeIntersect    :: Bool
     , _forgeOutPacPath   :: FilePath
@@ -71,7 +73,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions inPacs entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
+runForge (ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
     
     -- this message can be removed after a couple of releases
     hPutStrLn stderr 
@@ -90,14 +92,10 @@ runForge (ForgeOptions inPacs entitySpec intersect_ outPath maybeOutName outForm
     hPutStrLn stderr $ "Forging with the following entity-list: " ++ printEntityList
     
     -- load packages --
-    allPackages <- case inPacs of
-        -- read all packages in case of list of baseDirs
-        Left baseDirs ->
-            readPoseidonPackageCollection pacReadOpts baseDirs
-        -- construct pseudo-package in case of InGenotypeData
-        Right (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) -> do
-            let genotypeData = GenotypeDataSpec format_ genoFile_ Nothing snpFile_ Nothing indFile_ Nothing (Just snpSet_)
-            return $ [newMinimalPackageTemplate "." "IntermediatePseudoPackage" genotypeData]
+    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    pseudoPackages <- zipWithM makePseudoPackageFromInGenotypeData inGenos (map (\x -> "PseudoPackage" ++ show x) [(0 :: Integer)..])
+    hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    let allPackages = properPackages ++ pseudoPackages
 
     -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
     let addImplicits = do
@@ -108,7 +106,7 @@ runForge (ForgeOptions inPacs entitySpec intersect_ outPath maybeOutName outForm
         (Include _:_) -> return entitiesInput
         (Exclude _:_) -> addImplicits
         []            -> addImplicits
-    
+
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
@@ -195,7 +193,6 @@ runForge (ForgeOptions inPacs entitySpec intersect_ outPath maybeOutName outForm
                                                 relevantJannoRows
                                                 (VU.toList snpList)
         writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
-
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do

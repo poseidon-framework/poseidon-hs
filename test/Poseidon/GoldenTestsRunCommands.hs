@@ -293,7 +293,8 @@ testPipelineForge :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 1
     let forgeOpts1 = ForgeOptions { 
-          _forgeInPacs       = Left [testDir </> "Schiffels", testDir </> "Wang"]
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac1"
@@ -312,7 +313,8 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 2
     let forgeOpts2 = ForgeOptions { 
-          _forgeInPacs       = Left [testDir </> "Schiffels", testDir </> "Wang"]
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac2"
@@ -330,7 +332,8 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 3
     let forgeOpts3 = ForgeOptions { 
-          _forgeInPacs       = Left [testDir </> "Schiffels", testDir </> "Wang"]
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile1.txt")
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac3"
@@ -351,7 +354,8 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 4
     let forgeOpts4 = ForgeOptions { 
-          _forgeInPacs       = Left [testDir </> "Schiffels", testDir </> "Wang"]
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile2.txt")
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac4"
@@ -372,7 +376,8 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 5
     let forgeOpts5 = ForgeOptions { 
-          _forgeInPacs       = Left [testDir </> "Schiffels", testDir </> "Wang"]
+          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Left []
         , _forgeIntersect    = False
         , _forgeOutPacPath   = testDir </> "ForgePac5"

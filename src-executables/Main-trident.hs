@@ -146,7 +146,7 @@ optParser = OP.subparser (
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
 initOptParser :: OP.Parser InitOptions
-initOptParser = InitOptions <$> parseInGenotypeData
+initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
                             <*> parseMakeMinimalPackage
@@ -166,7 +166,8 @@ fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseDownloadAll
 
 forgeOptParser :: OP.Parser ForgeOptions
-forgeOptParser = ForgeOptions <$> parseEitherBasePathsOrInGenotypeData
+forgeOptParser = ForgeOptions <$> parseBasePaths
+                              <*> parseInGenotypeDatasets
                               <*> parseForgeEntitySpec
                               <*> parseIntersect
                               <*> parseOutPackagePath
@@ -343,7 +344,7 @@ parseRepoLocation :: OP.Parser RepoLocationSpec
 parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
 
 parseBasePaths :: OP.Parser [FilePath]
-parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
+parseBasePaths = OP.many (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
@@ -368,11 +369,11 @@ parseOutGenotypeFormat withDefault =
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
-parseEitherBasePathsOrInGenotypeData :: OP.Parser (Either [FilePath] InGenotypeData)
-parseEitherBasePathsOrInGenotypeData = (Left <$> parseBasePaths) <|> (Right <$> parseInGenotypeData)
+parseInGenotypeDatasets :: OP.Parser [InGenotypeData]
+parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
-parseInGenotypeData :: OP.Parser InGenotypeData
-parseInGenotypeData = InGenotypeData <$> parseInGenotypeFormat
+parseInGenotypeDataset :: OP.Parser InGenotypeData
+parseInGenotypeDataset = InGenotypeData <$> parseInGenotypeFormat
                                      <*> parseInGenoFile
                                      <*> parseInSnpFile
                                      <*> parseInIndFile

@@ -3,9 +3,7 @@ module Poseidon.CLI.Init where
 import           Poseidon.BibFile           (dummyBibEntry, writeBibTeXFile)
 import           Poseidon.GenotypeData      (InGenotypeData (..),
                                              GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..), 
                                              loadIndividuals,
-                                             SNPSetSpec (..)
                                              )
 import           Poseidon.Janno             (writeJannoFile)
 import           Poseidon.Package           (PoseidonPackage (..),

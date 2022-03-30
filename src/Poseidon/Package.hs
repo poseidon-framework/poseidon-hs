@@ -20,13 +20,15 @@ module Poseidon.Package (
     zipWithPadding,
     writePoseidonPackage,
     defaultPackageReadOptions,
-    readPoseidonPackage
+    readPoseidonPackage,
+    makePseudoPackageFromInGenotypeData
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
-                                             loadGenotypeData, loadIndividuals)
+                                             loadGenotypeData, loadIndividuals,
+                                             InGenotypeData (..))
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
@@ -575,6 +577,22 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
+
+makePseudoPackageFromInGenotypeData :: InGenotypeData -> String -> IO PoseidonPackage
+makePseudoPackageFromInGenotypeData (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) pacName = do
+    let genotypeData = GenotypeDataSpec format_ genoFile_ Nothing snpFile_ Nothing indFile_ Nothing (Just snpSet_)
+    let baseDir = getBaseDir genoFile_ snpFile_ indFile_
+    inds <- loadIndividuals "." genotypeData
+    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
+    where
+        getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
+        getBaseDir g s i =
+            let baseDirGeno = takeDirectory genoFile_
+                baseDirSnp = takeDirectory snpFile_
+                baseDirInd = takeDirectory indFile_
+            in if baseDirGeno == baseDirSnp && baseDirSnp == baseDirInd
+               then baseDirGeno
+               else throwM $ PoseidonUnequalBaseDirException g s i
 
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
