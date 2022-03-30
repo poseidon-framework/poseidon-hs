@@ -46,9 +46,9 @@ runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno removeOld
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     pseudoPackages <- mapM makePseudoPackageFromInGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
-    let allPackages = properPackages ++ pseudoPackages
     -- convert
-    mapM_ (convertGenoTo outFormat onlyGeno removeOld) allPackages
+    mapM_ (convertGenoTo outFormat onlyGeno removeOld) properPackages
+    mapM_ (convertGenoTo outFormat True removeOld) pseudoPackages
 
 convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
 convertGenoTo outFormat onlyGeno removeOld pac = do
@@ -86,6 +86,7 @@ convertGenoTo outFormat onlyGeno removeOld pac = do
             unless onlyGeno $ do
                 let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
                     newPac = pac { posPacGenotypeData = genotypeData }
+                hPutStrLn stderr "Adjusting POSEIDON.yml..."
                 writePoseidonPackage newPac
             -- delete now replaced input genotype data
             when removeOld $ mapM_ removeFile [
