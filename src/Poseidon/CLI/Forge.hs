@@ -57,6 +57,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutPacName   :: Maybe String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeOutMinimal   :: Bool
+    , _forgeOutOnlyGeno  :: Bool
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
     , _forgeSnpFile      :: Maybe FilePath
@@ -73,7 +74,10 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
+runForge (
+    ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutName outFormat 
+                 minimal onlyGeno showWarnings noExtract maybeSnpFile
+    ) = do
     
     -- this message can be removed after a couple of releases
     hPutStrLn stderr 
@@ -131,13 +135,14 @@ runForge (ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutNa
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
         relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
+
     -- create new package --
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x  -> x
             Nothing -> takeBaseName outPath
     when (outName == "") $ throwM PoseidonEmptyOutPacNameException
     -- create new directory
-    hPutStrLn stderr $ "Creating new package directory: " ++ outPath
+    hPutStrLn stderr $ "Creating new directory: " ++ outPath
     createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let [outInd, outSnp, outGeno] = case outFormat of
@@ -150,16 +155,19 @@ runForge (ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutNa
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
-    -- create new package
+    -- create package
     hPutStrLn stderr "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
            else newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
+    
+    -- write new package to the file system --
     -- POSEIDON.yml
-    hPutStrLn stderr "Creating POSEIDON.yml"
-    writePoseidonPackage pac
+    unless onlyGeno $ do
+        hPutStrLn stderr "Creating POSEIDON.yml"
+        writePoseidonPackage pac
     -- bib
-    unless (minimal || null relevantBibEntries) $ do
+    unless (minimal || onlyGeno || null relevantBibEntries) $ do
         hPutStrLn stderr "Creating .bib file"
         writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
@@ -181,12 +189,11 @@ runForge (ForgeOptions baseDirs inGenos entitySpec intersect_ outPath maybeOutNa
                 printSNPCopyProgress >->
                 extractPipe >->
                 P.tee outConsumer
-
         let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
         P.foldM sumNonMissingSNPs startAcc return forgePipe
-    -- janno (with updated SNP numbers)
     liftIO $ hPutStrLn stderr "Done"
-    unless minimal $ do
+    -- janno (with updated SNP numbers)
+    unless (minimal || onlyGeno) $ do
         hPutStrLn stderr "Creating .janno file"
         snpList <- VU.freeze newNrSNPs
         let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrSNPs = Just y})

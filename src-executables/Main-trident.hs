@@ -174,6 +174,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseMaybeOutPackageName
                               <*> parseOutGenotypeFormat True
                               <*> parseMakeMinimalPackage
+                              <*> parseOutOnlyGeno
                               <*> parseShowWarnings
                               <*> parseNoExtract
                               <*> parseMaybeSnpFile
@@ -374,10 +375,10 @@ parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
 parseInGenotypeDataset :: OP.Parser InGenotypeData
 parseInGenotypeDataset = InGenotypeData <$> parseInGenotypeFormat
-                                     <*> parseInGenoFile
-                                     <*> parseInSnpFile
-                                     <*> parseInIndFile
-                                     <*> parseGenotypeSNPSet
+                                        <*> parseInGenoFile
+                                        <*> parseInSnpFile
+                                        <*> parseInIndFile
+                                        <*> parseGenotypeSNPSet
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
@@ -432,6 +433,10 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
 parseMakeMinimalPackage :: OP.Parser Bool
 parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
     OP.help "should only a minimal output package be created?")
+
+parseOutOnlyGeno :: OP.Parser Bool
+parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
+    OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
 
 parseShowWarnings :: OP.Parser Bool
 parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
