@@ -12,7 +12,7 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromInGenotypeData)
 
-import           Control.Monad              (when, zipWithM, unless)
+import           Control.Monad              (when, unless)
 import           Pipes                      (MonadIO (liftIO), 
                                             runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
@@ -44,7 +44,7 @@ runGenoconvert :: GenoconvertOptions -> IO ()
 runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno removeOld) = do
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pseudoPackages <- zipWithM makePseudoPackageFromInGenotypeData inGenos (map (\x -> "PseudoPackage" ++ show x) [(0 :: Integer)..])
+    pseudoPackages <- mapM makePseudoPackageFromInGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
     -- convert
@@ -54,7 +54,7 @@ convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
 convertGenoTo outFormat onlyGeno removeOld pac = do
     -- start message
     hPutStrLn stderr $
-        "Converting genotype data in package "
+        "Converting genotype data in "
         ++ posPacTitle pac
         ++ " to format "
         ++ show outFormat
@@ -72,7 +72,7 @@ convertGenoTo outFormat onlyGeno removeOld pac = do
         let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then hPutStrLn stderr ("skipping genotype convertion for package " ++ posPacTitle pac)
+        then hPutStrLn stderr ("skipping genotype convertion for " ++ posPacTitle pac)
         else do
             runSafeT $ do            
                 (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)

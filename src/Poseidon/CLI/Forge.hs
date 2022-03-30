@@ -30,7 +30,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               makePseudoPackageFromInGenotypeData)
 import           Poseidon.Utils              (PoseidonException (..))
 
-import           Control.Monad               (forM, forM_, unless, when, zipWithM)
+import           Control.Monad               (forM, forM_, unless, when)
 import           Data.List                   (intercalate, nub, (\\))
 import           Data.Maybe                  (mapMaybe)
 import qualified Data.Vector                 as V
@@ -99,7 +99,7 @@ runForge (
     
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pseudoPackages <- zipWithM makePseudoPackageFromInGenotypeData inGenos (map (\x -> "PseudoPackage" ++ show x) [(0 :: Integer)..])
+    pseudoPackages <- mapM makePseudoPackageFromInGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 

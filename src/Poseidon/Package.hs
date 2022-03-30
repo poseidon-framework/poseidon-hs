@@ -74,7 +74,7 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
 import           System.FilePath            (takeDirectory, takeExtension,
-                                             takeFileName, (</>))
+                                             takeFileName, (</>), takeBaseName)
 import           System.IO                  (IOMode (ReadMode), hFlush,
                                              hGetContents, hPrint, hPutStr,
                                              hPutStrLn, stderr, withFile)
@@ -578,10 +578,11 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacDuplicate = 1
     }
 
-makePseudoPackageFromInGenotypeData :: InGenotypeData -> String -> IO PoseidonPackage
-makePseudoPackageFromInGenotypeData (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) pacName = do
+makePseudoPackageFromInGenotypeData :: InGenotypeData -> IO PoseidonPackage
+makePseudoPackageFromInGenotypeData (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) = do
     let genotypeData = GenotypeDataSpec format_ genoFile_ Nothing snpFile_ Nothing indFile_ Nothing (Just snpSet_)
-    let baseDir = getBaseDir genoFile_ snpFile_ indFile_
+        baseDir = getBaseDir genoFile_ snpFile_ indFile_
+        pacName = takeBaseName genoFile_
     inds <- loadIndividuals "." genotypeData
     newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
     where
