@@ -399,7 +399,8 @@ parseInIndFile = OP.strOption (OP.long "indFile" <>
 
 parseGenotypeSNPSet :: OP.Parser SNPSetSpec
 parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (OP.long "snpSet" <>
-    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other")
+    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other. Default: Other" <>
+    OP.value SNPSetOther)
   where
     readSnpSet :: String -> Either String SNPSetSpec
     readSnpSet s = case s of
