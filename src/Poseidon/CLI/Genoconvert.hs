@@ -72,7 +72,7 @@ convertGenoTo outFormat onlyGeno removeOld pac = do
         let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then hPutStrLn stderr ("skipping genotype convertion for " ++ posPacTitle pac)
+        then hPutStrLn stderr ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             runSafeT $ do            
                 (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
