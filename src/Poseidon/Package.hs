@@ -74,7 +74,7 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
 import           System.FilePath            (takeDirectory, takeExtension,
-                                             takeFileName, (</>), takeBaseName)
+                                             takeFileName, (</>), takeBaseName, isAbsolute)
 import           System.IO                  (IOMode (ReadMode), hFlush,
                                              hGetContents, hPrint, hPutStr,
                                              hPutStrLn, stderr, withFile)
@@ -566,7 +566,7 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
     ,   posPacPackageVersion = Nothing
     ,   posPacLastModified = Nothing
-    ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
+    ,   posPacGenotypeData = GenotypeDataSpec format_ geno Nothing snp Nothing ind Nothing snpSet_
     ,   posPacJannoFile = Nothing
     ,   posPacJanno = []
     ,   posPacJannoFileChkSum = Nothing
@@ -581,19 +581,12 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
 makePseudoPackageFromInGenotypeData :: InGenotypeData -> IO PoseidonPackage
 makePseudoPackageFromInGenotypeData (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) = do
     let genotypeData = GenotypeDataSpec format_ genoFile_ Nothing snpFile_ Nothing indFile_ Nothing (Just snpSet_)
-        baseDir = getBaseDir genoFile_ snpFile_ indFile_
-        pacName = takeBaseName genoFile_
+    checkForAbsolutes [genoFile_, snpFile_, indFile_] -- as we set the basedir to "." below, we have to reject absolute paths
     inds <- loadIndividuals "." genotypeData
-    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
+    newPackageTemplate "." (takeBaseName genoFile_) genotypeData (Just (Left inds)) []
     where
-        getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
-        getBaseDir g s i =
-            let baseDirGeno = takeDirectory genoFile_
-                baseDirSnp = takeDirectory snpFile_
-                baseDirInd = takeDirectory indFile_
-            in if baseDirGeno == baseDirSnp && baseDirSnp == baseDirInd
-               then baseDirGeno
-               else throwM $ PoseidonUnequalBaseDirException g s i
+        checkForAbsolutes :: [FilePath] -> IO ()
+        checkForAbsolutes = mapM_ (\x -> when (isAbsolute x) $ throwM $ PoseidonAbsolutePathException x)
 
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
