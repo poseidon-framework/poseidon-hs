@@ -31,7 +31,7 @@ data PoseidonException =
     | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
     | PoseidonGenericException String -- ^ A catch-all for any other type of exception
     | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
-    | PoseidonAbsolutePathException FilePath -- ^ An exception to throw if a path is absolute where this is not allowed
+    | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
     deriving (Show)
 
 instance Exception PoseidonException
@@ -80,5 +80,8 @@ renderPoseidonException (PoseidonRemoteJSONParsingException s) =
 renderPoseidonException (PoseidonGenericException s) = s
 renderPoseidonException PoseidonEmptyOutPacNameException =
     "Error when preparing the new package: The output package does not have a name. Add one with: -n YourPackageName"
-renderPoseidonException (PoseidonAbsolutePathException f) =
-    "Error in the path: " ++ show f ++ "- Absolute paths are not permitted here." 
+renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
+    "The base directories of these genotype files are not equal."
+    ++ " --genoFile: " ++ g
+    ++ " --snpFile: "  ++ s
+    ++ " --indFile: "  ++ i
