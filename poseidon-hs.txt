@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.27.0
+@version 0.27.1
 
 module Poseidon.MathHelpers
 
@@ -494,7 +494,7 @@ module Poseidon.Package
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct
-PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe String -> Maybe String -> Maybe String -> PoseidonYamlStruct
+PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe FilePath -> PoseidonYamlStruct
 [_posYamlPoseidonVersion] :: PoseidonYamlStruct -> Version
 [_posYamlTitle] :: PoseidonYamlStruct -> String
 [_posYamlDescription] :: PoseidonYamlStruct -> Maybe String
@@ -506,8 +506,8 @@ PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> 
 [_posYamlJannoFileChkSum] :: PoseidonYamlStruct -> Maybe String
 [_posYamlBibFile] :: PoseidonYamlStruct -> Maybe FilePath
 [_posYamlBibFileChkSum] :: PoseidonYamlStruct -> Maybe String
-[_posYamlReadmeFile] :: PoseidonYamlStruct -> Maybe String
-[_posYamlChangelogFile] :: PoseidonYamlStruct -> Maybe String
+[_posYamlReadmeFile] :: PoseidonYamlStruct -> Maybe FilePath
+[_posYamlChangelogFile] :: PoseidonYamlStruct -> Maybe FilePath
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage
