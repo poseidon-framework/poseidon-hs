@@ -1,13 +1,27 @@
-name: Send a Tweet
-on: [push]
+# https://github.com/Eomm/why-don-t-you-tweet
+
+name: tweet-release
+
+# More triggers
+# https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#release
+on:
+  push:
+  branches: [master]
+#  release:
+#    types: [published]
+
 jobs:
   tweet:
     runs-on: ubuntu-latest
     steps:
-      - uses: ethomson/send-tweet-action@v1
+      - uses: Eomm/why-don-t-you-tweet@v1
         with:
-          status: "Hi, this is a test!"
-          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          # GitHub event payload
+          # https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#release
+          tweet-message: "New ${{ github.event.repository.name }} release ${{ github.event.release.tag_name }}! Try it while it is HOT! ${{ github.event.release.html_url }}"
+        env:
+          # Get your tokens from https://developer.twitter.com/apps
+          TWITTER_CONSUMER_API_KEY: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          TWITTER_CONSUMER_API_SECRET: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
