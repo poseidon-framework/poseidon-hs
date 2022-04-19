@@ -1,0 +1,15 @@
+poseidonVersion: 2.5.0
+title: ForgePac7
+description: Empty package template. Please add a description
+contributor:
+- name: John Doe
+  email: john@doe.net
+packageVersion: 0.1.0
+lastModified: 2022-04-19
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: ForgePac7.geno
+  snpFile: ForgePac7.snp
+  indFile: ForgePac7.ind
+  snpSet: Other
+jannoFile: ForgePac7.janno

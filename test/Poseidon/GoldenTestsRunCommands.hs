@@ -493,7 +493,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = True
+        , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac7"
         , _forgeOutPacName   = Just "ForgePac7"
         , _forgeShowWarnings = False
@@ -502,7 +502,8 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     }
     let action7 = runForge forgeOpts7
     runAndChecksumFiles checkFilePath testDir action7 "forge" [
-          "ForgePac7" </> "ForgePac7.geno"
+          "ForgePac7" </> "ForgePac7.janno"
+        , "ForgePac7" </> "ForgePac7.geno"
         , "ForgePac7" </> "ForgePac7.snp"
         , "ForgePac7" </> "ForgePac7.ind"
         ]
