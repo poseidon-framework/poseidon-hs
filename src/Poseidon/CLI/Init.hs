@@ -25,7 +25,7 @@ data InitOptions = InitOptions
     }
 
 runInit :: InitOptions -> IO ()
-runInit (InitOptions genotypeData@(GenotypeDataSpec _ genoFile_ _ snpFile_ _ indFile_ _ _) outPath maybeOutName minimal) = do
+runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPath maybeOutName minimal) = do
     -- create new directory
     hPutStrLn stderr $ "Creating new package directory: " ++ outPath
     createDirectoryIfMissing True outPath
@@ -33,6 +33,7 @@ runInit (InitOptions genotypeData@(GenotypeDataSpec _ genoFile_ _ snpFile_ _ ind
     let outInd = takeFileName indFile_
         outSnp = takeFileName snpFile_
         outGeno = takeFileName genoFile_
+        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
     -- genotype data
     hPutStrLn stderr "Copying genotype data"
     copyFile indFile_ $ outPath </> outInd

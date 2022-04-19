@@ -578,10 +578,14 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     }
 
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
-makePseudoPackageFromGenotypeData genotypeData@(GenotypeDataSpec _ genoFile_ _ snpFile_ _ indFile_ _ _) = do
-    let baseDir = getBaseDir genoFile_ snpFile_ indFile_
-        pacName = takeBaseName genoFile_
-    inds <- loadIndividuals "." genotypeData
+makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = do
+    let baseDir      = getBaseDir genoFile_ snpFile_ indFile_
+        outInd       = takeFileName indFile_
+        outSnp       = takeFileName snpFile_
+        outGeno      = takeFileName genoFile_
+        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
+        pacName      = takeBaseName genoFile_
+    inds <- loadIndividuals baseDir genotypeData
     newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
     where
         getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
