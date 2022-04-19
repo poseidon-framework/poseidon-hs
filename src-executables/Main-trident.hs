@@ -282,7 +282,7 @@ parseForce = OP.switch (
     )
 
 parseForgeEntitySpec :: OP.Parser (Either SignedEntitiesList FilePath)
-parseForgeEntitySpec = (Left <$> parseForgeEntitiesDirect) <|> (Right <$> parseForgeEntitiesFromFile)
+parseForgeEntitySpec = (Right <$> parseForgeEntitiesFromFile) <|> (Left <$> parseForgeEntitiesDirect)
 
 parseIgnorePoseidonVersion :: OP.Parser Bool
 parseIgnorePoseidonVersion = OP.switch (
@@ -293,7 +293,7 @@ parseIgnorePoseidonVersion = OP.switch (
     )
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
-parseForgeEntitiesDirect = concat <$> OP.some (OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
+parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
     OP.short 'f' <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
@@ -304,7 +304,7 @@ parseForgeEntitiesDirect = concat <$> OP.some (OP.option (OP.eitherReader readSi
         \forge will apply excludes and includes in order. If the first entity is negative, then forge \
         \will assume you want to merge all individuals in the \
         \packages found in the baseDirs (except the ones explicitly excluded) before the exclude entities are applied. \
-        \An empty forgeString will therefore merge all available individuals."))
+        \An empty forgeString will therefore merge all available individuals." <> OP.value [])
   where
     readSignedEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)

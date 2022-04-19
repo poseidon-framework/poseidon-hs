@@ -1,4 +1,6 @@
-- V 0.27.0: Improved EntitiesList parsing in Forge and Fetch. 
+- V 0.27.2: Allow forge lists to be empty, thus triggering forging all packages
+- V 0.27.1: Added a file existence check for the README and CHANGELOG files in the package reading process
+- V 0.27.0: Improved EntitiesList parsing in Forge and Fetch 
 - V 0.26.4: Replaced special characters in the validate subcommand report message
 - V 0.26.3: Added an option --ignorePoseidonVersion to the update subcommand to allow updating packages that are outdated by Poseidon version. Poseidon versions are not ignored by default any more, thus reversing a change introduced in 0.26.1.
 - V 0.26.2: Added a check to prevent an empty output package name in the init and forge subcommands

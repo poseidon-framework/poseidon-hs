@@ -91,16 +91,19 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlJannoFileChkSum :: Maybe String
     , _posYamlBibFile         :: Maybe FilePath
     , _posYamlBibFileChkSum   :: Maybe String
-    , _posYamlReadmeFile      :: Maybe String
-    , _posYamlChangelogFile   :: Maybe String
+    , _posYamlReadmeFile      :: Maybe FilePath
+    , _posYamlChangelogFile   :: Maybe FilePath
     }
     deriving (Show, Eq, Generic)
 
 poseidonJannoFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
 poseidonJannoFilePath baseDir yml = (baseDir </>) <$> _posYamlJannoFile yml
-
 poseidonBibFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
 poseidonBibFilePath baseDir yml = (baseDir </>) <$> _posYamlBibFile yml
+poseidonReadmeFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
+poseidonReadmeFilePath baseDir yml = (baseDir </>) <$> _posYamlReadmeFile yml
+poseidonChangelogFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
+poseidonChangelogFilePath baseDir yml = (baseDir </>) <$> _posYamlChangelogFile yml
 
 instance FromJSON PoseidonYamlStruct where
     parseJSON = withObject "PoseidonYamlStruct" $ \v -> PoseidonYamlStruct
@@ -351,21 +354,29 @@ readPoseidonPackage opts ymlPath = do
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
--- throws exception if any checksum isn't correct
+-- throws exception if any file is missing or checksum is incorrect
 checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
 checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
-    -- Check Bib File
-    case poseidonJannoFilePath baseDir yml of
+    -- Check README File
+    case poseidonReadmeFilePath baseDir yml of
         Nothing -> return ()
-        Just fn -> if ignoreChecksums
-                   then checkFile fn Nothing
-                   else checkFile fn $ _posYamlJannoFileChkSum yml
-    -- Check Janno File
+        Just fn -> checkFile fn Nothing
+    -- Check README File
+    case poseidonChangelogFilePath baseDir yml of
+        Nothing -> return ()
+        Just fn -> checkFile fn Nothing
+    -- Check Bib File
     case poseidonBibFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
                    else checkFile fn $ _posYamlBibFileChkSum yml
+    -- Check Janno File
+    case poseidonJannoFilePath baseDir yml of
+        Nothing -> return ()
+        Just fn -> if ignoreChecksums
+                   then checkFile fn Nothing
+                   else checkFile fn $ _posYamlJannoFileChkSum yml
     -- Check Genotype files
     unless ignoreGenotypeFilesMissing $ do
         let gd = _posYamlGenotypeData yml
