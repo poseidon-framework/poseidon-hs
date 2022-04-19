@@ -51,6 +51,12 @@ f348944d864cbaa595f138b11d154248 forge ForgePac4/ForgePac4.bim
 b2b2a3a5fd9e5d0ada2d12ba0f05b387 forge ForgePac5/POSEIDON.yml
 5a3783db28cf9da6356b3c6105564be5 forge ForgePac5/ForgePac5.geno
 a925265414c119343bec1e2f603ba28b forge ForgePac5/ForgePac5.janno
+1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac6/ForgePac6.geno
+6e3ecc6695234ba1e71045278634d06b forge ForgePac6/ForgePac6.snp
+2bd17be137df5cb11830b09b833b937d forge ForgePac6/ForgePac6.ind
+1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac7/ForgePac7.geno
+6e3ecc6695234ba1e71045278634d06b forge ForgePac7/ForgePac7.snp
+2bd17be137df5cb11830b09b833b937d forge ForgePac7/ForgePac7.ind
 e95272d9a7dfd81afb125081479c96e1 fetch 2019_Nikitin_LBK/POSEIDON.yml
 663d9358c94640fd56da3ff9bdf2e207 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam

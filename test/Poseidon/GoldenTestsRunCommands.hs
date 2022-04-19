@@ -432,6 +432,80 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac5" </> "ForgePac5.geno"
         , "ForgePac5" </> "ForgePac5.janno"
         ]
+    -- forge test 6 (direct genotype data input interface)
+    let forgeOpts6 = ForgeOptions {
+          _forgeBaseDirs     = []
+        , _forgeInGenos      = [
+            GenotypeDataSpec {
+                format   = GenotypeFormatEigenstrat
+              , genoFile = testDir </> "Schiffels" </> "geno.txt"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Schiffels" </> "snp.txt"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Schiffels" </> "ind.txt"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            },
+            GenotypeDataSpec {
+                format   = GenotypeFormatPlink
+              , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            }
+          ]
+        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = True
+        , _forgeOutPacPath   = testDir </> "ForgePac6"
+        , _forgeOutPacName   = Just "ForgePac6"
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
+    }
+    let action6 = runForge forgeOpts6
+    runAndChecksumFiles checkFilePath testDir action6 "forge" [
+          "ForgePac6" </> "ForgePac6.geno"
+        , "ForgePac6" </> "ForgePac6.snp"
+        , "ForgePac6" </> "ForgePac6.ind"
+        ]
+    -- forge test 7 (mixed data input interface)
+    let forgeOpts7 = ForgeOptions {
+          _forgeBaseDirs     = [testDir </> "Schiffels"]
+        , _forgeInGenos      = [
+            GenotypeDataSpec {
+                format   = GenotypeFormatPlink
+              , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            }
+          ]
+        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = True
+        , _forgeOutPacPath   = testDir </> "ForgePac7"
+        , _forgeOutPacName   = Just "ForgePac7"
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
+    }
+    let action7 = runForge forgeOpts7
+    runAndChecksumFiles checkFilePath testDir action7 "forge" [
+          "ForgePac7" </> "ForgePac7.geno"
+        , "ForgePac7" </> "ForgePac7.snp"
+        , "ForgePac7" </> "ForgePac7.ind"
+        ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that 
  -- sometimes we would like to implement new features that affect the communication
