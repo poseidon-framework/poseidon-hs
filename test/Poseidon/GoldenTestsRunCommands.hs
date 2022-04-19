@@ -244,6 +244,29 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "Schiffels" </> "Schiffels.bim"
         , "Schiffels" </> "Schiffels.fam"
         ]
+    let genoconvertOpts3 = GenoconvertOptions {
+          _genoconvertBaseDirs = []
+        , _genoconvertInGenos = [
+            GenotypeDataSpec {
+                format   = GenotypeFormatEigenstrat
+              , genoFile = testDir </> "Schiffels" </> "geno.txt"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Schiffels" </> "snp.txt"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Schiffels" </> "ind.txt"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            }
+          ]
+        , _genoConvertOutFormat = GenotypeFormatPlink
+        , _genoConvertOutOnlyGeno = True
+        , _genoconvertRemoveOld = False
+    }
+    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts3) "genoconvert" [
+          "Schiffels" </> "geno.bed"
+        , "Schiffels" </> "geno.bim"
+        , "Schiffels" </> "geno.fam"
+        ]
 
 testPipelineUpdate :: FilePath -> FilePath -> IO ()
 testPipelineUpdate testDir checkFilePath = do

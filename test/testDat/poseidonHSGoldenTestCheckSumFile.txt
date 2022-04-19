@@ -24,6 +24,9 @@ b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
 3c38f40efe215a047c02f4e98e0390da genoconvert Schiffels/Schiffels.bed
 8538ffd971ebb12cf5ef6e338da27970 genoconvert Schiffels/Schiffels.bim
 a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/Schiffels.fam
+3c38f40efe215a047c02f4e98e0390da genoconvert Schiffels/geno.bed
+8538ffd971ebb12cf5ef6e338da27970 genoconvert Schiffels/geno.bim
+a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/geno.fam
 bb787ca37911df81fcbeed91cf2c5ab9 update Schiffels/POSEIDON.yml
 aee009e147a8680bb9a8ec785ae5b664 update Schiffels/CHANGELOG.md
 7e8d6886cbfdaf01c3072da495419459 update Schiffels/POSEIDON.yml
