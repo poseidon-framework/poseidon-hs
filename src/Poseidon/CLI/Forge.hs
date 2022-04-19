@@ -8,8 +8,7 @@ import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(
                                               findNonExistentEntities,
                                               filterRelevantPackages,
                                               conformingEntityIndices)
-import           Poseidon.GenotypeData       (InGenotypeData (..),
-                                              GenotypeDataSpec (..),
+import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
@@ -27,7 +26,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               writePoseidonPackage,
                                               getJointIndividualInfo,
                                               getJointJanno,
-                                              makePseudoPackageFromInGenotypeData)
+                                              makePseudoPackageFromGenotypeData)
 import           Poseidon.Utils              (PoseidonException (..))
 
 import           Control.Monad               (forM, forM_, unless, when)
@@ -50,7 +49,7 @@ import           System.IO                   (hPutStrLn, stderr)
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
-    , _forgeInGenos      :: [InGenotypeData]
+    , _forgeInGenos      :: [GenotypeDataSpec]
     , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
     , _forgeSnpFile      :: Maybe FilePath
     , _forgeIntersect    :: Bool
@@ -99,7 +98,7 @@ runForge (
     
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pseudoPackages <- mapM makePseudoPackageFromInGenotypeData inGenos
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 

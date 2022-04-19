@@ -15,7 +15,7 @@ import           Poseidon.CLI.List              (ListOptions (..), runList,
 import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData          (InGenotypeData (..),
+import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
                                                  GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..))
 import           Poseidon.Package               (getChecksum)
@@ -100,12 +100,15 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
 testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineInit testDir checkFilePath testPacsDir = do
     let initOpts1 = InitOptions {
-          _initGenoData  = InGenotypeData {
-              inFormat   = GenotypeFormatEigenstrat
-            , inGenoFile = testPacsDir </> "Schiffels_2016" </> "geno.txt"
-            , inSnpFile  = testPacsDir </> "Schiffels_2016" </> "snp.txt"
-            , inIndFile  = testPacsDir </> "Schiffels_2016" </> "ind.txt"
-            , inSnpSet   = SNPSetOther
+          _initGenoData  = GenotypeDataSpec {
+              format   = GenotypeFormatEigenstrat
+            , genoFile = testPacsDir </> "Schiffels_2016" </> "geno.txt"
+            , genoFileChkSum = Nothing
+            , snpFile  = testPacsDir </> "Schiffels_2016" </> "snp.txt"
+            , snpFileChkSum = Nothing
+            , indFile  = testPacsDir </> "Schiffels_2016" </> "ind.txt"
+            , indFileChkSum = Nothing
+            , snpSet   = Just SNPSetOther
             }
         , _initPacPath   = testDir </> "Schiffels"
         , _initPacName   = Just "Schiffels"
@@ -119,13 +122,16 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , "Schiffels" </> "Schiffels.bib"
         ]
     let initOpts2 = InitOptions {
-          _initGenoData  = InGenotypeData {
-              inFormat   = GenotypeFormatPlink
-            , inGenoFile = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
-            , inSnpFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
-            , inIndFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
-            , inSnpSet   = SNPSetOther
-            }
+          _initGenoData  = GenotypeDataSpec {
+            format   = GenotypeFormatPlink
+          , genoFile = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
+          , genoFileChkSum = Nothing
+          , snpFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
+          , snpFileChkSum = Nothing
+          , indFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
+          , indFileChkSum = Nothing
+          , snpSet   = Just SNPSetOther
+          }
         , _initPacPath   = testDir </> "Wang"
         , _initPacName   = Nothing
         , _initMinimal   = True

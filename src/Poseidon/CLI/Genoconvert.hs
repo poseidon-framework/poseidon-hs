@@ -1,7 +1,6 @@
 module Poseidon.CLI.Genoconvert where
 
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             InGenotypeData (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress)
@@ -10,7 +9,7 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              writePoseidonPackage,
                                              PackageReadOptions (..),
                                              defaultPackageReadOptions,
-                                             makePseudoPackageFromInGenotypeData)
+                                             makePseudoPackageFromGenotypeData)
 
 import           Control.Monad              (when, unless)
 import           Pipes                      (MonadIO (liftIO), 
@@ -25,7 +24,7 @@ import           System.IO                  (hPutStrLn, stderr)
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
     { _genoconvertBaseDirs    :: [FilePath]
-    , _genoconvertInGenos     :: [InGenotypeData]
+    , _genoconvertInGenos     :: [GenotypeDataSpec]
     , _genoConvertOutFormat   :: GenotypeFormatSpec
     , _genoConvertOutOnlyGeno :: Bool
     , _genoconvertRemoveOld   :: Bool
@@ -44,7 +43,7 @@ runGenoconvert :: GenoconvertOptions -> IO ()
 runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno removeOld) = do
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pseudoPackages <- mapM makePseudoPackageFromInGenotypeData inGenos
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
     mapM_ (convertGenoTo outFormat onlyGeno removeOld) properPackages

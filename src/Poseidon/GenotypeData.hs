@@ -26,15 +26,6 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
 import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
 
--- | A simplified datatype to specify genotype files for ínput purposes
-data InGenotypeData = InGenotypeData
-    { inFormat   :: GenotypeFormatSpec
-    , inGenoFile :: FilePath
-    , inSnpFile  :: FilePath
-    , inIndFile  :: FilePath
-    , inSnpSet   :: SNPSetSpec
-    }
-
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
     { format         :: GenotypeFormatSpec

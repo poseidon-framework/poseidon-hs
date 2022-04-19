@@ -21,14 +21,13 @@ module Poseidon.Package (
     writePoseidonPackage,
     defaultPackageReadOptions,
     readPoseidonPackage,
-    makePseudoPackageFromInGenotypeData
+    makePseudoPackageFromGenotypeData
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
-                                             loadGenotypeData, loadIndividuals,
-                                             InGenotypeData (..))
+                                             loadGenotypeData, loadIndividuals)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), createMinimalJanno,
                                              readJannoFile)
@@ -578,10 +577,9 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacDuplicate = 1
     }
 
-makePseudoPackageFromInGenotypeData :: InGenotypeData -> IO PoseidonPackage
-makePseudoPackageFromInGenotypeData (InGenotypeData format_ genoFile_ snpFile_ indFile_ snpSet_) = do
-    let genotypeData = GenotypeDataSpec format_ genoFile_ Nothing snpFile_ Nothing indFile_ Nothing (Just snpSet_)
-        baseDir = getBaseDir genoFile_ snpFile_ indFile_
+makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
+makePseudoPackageFromGenotypeData genotypeData@(GenotypeDataSpec _ genoFile_ _ snpFile_ _ indFile_ _ _) = do
+    let baseDir = getBaseDir genoFile_ snpFile_ indFile_
         pacName = takeBaseName genoFile_
     inds <- loadIndividuals "." genotypeData
     newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []

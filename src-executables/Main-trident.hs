@@ -14,7 +14,7 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData  (InGenotypeData (..)) 
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..)) 
 import           Poseidon.Janno         (jannoHeaderString)
 import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
@@ -372,15 +372,18 @@ parseOutGenotypeFormat withDefault =
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
-parseInGenotypeDatasets :: OP.Parser [InGenotypeData]
+parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
 parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
-parseInGenotypeDataset :: OP.Parser InGenotypeData
-parseInGenotypeDataset = InGenotypeData <$> parseInGenotypeFormat
-                                        <*> parseInGenoFile
-                                        <*> parseInSnpFile
-                                        <*> parseInIndFile
-                                        <*> parseGenotypeSNPSet
+parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
+parseInGenotypeDataset = GenotypeDataSpec <$> parseInGenotypeFormat
+                                          <*> parseInGenoFile
+                                          <*> pure Nothing
+                                          <*> parseInSnpFile
+                                          <*> pure Nothing
+                                          <*> parseInIndFile
+                                          <*> pure Nothing
+                                          <*> parseGenotypeSNPSet
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
@@ -408,10 +411,10 @@ parseInIndFile = OP.strOption (
     OP.short 'i' <> OP.long "indFile" <>
     OP.help "the input ind file path")
 
-parseGenotypeSNPSet :: OP.Parser SNPSetSpec
-parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (OP.long "snpSet" <>
+parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
+parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>
     OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other. Default: Other" <>
-    OP.value SNPSetOther)
+    OP.value (Just SNPSetOther))
   where
     readSnpSet :: String -> Either String SNPSetSpec
     readSnpSet s = case s of
