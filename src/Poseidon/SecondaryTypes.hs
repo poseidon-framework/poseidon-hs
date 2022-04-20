@@ -28,7 +28,7 @@ data IndividualInfo = IndividualInfo
     { indInfoName    :: String
     , indInfoGroups   :: [String]
     , indInfoPacName :: String
-    }
+    } deriving Show
 
 instance ToJSON IndividualInfo where
     toJSON x = object [

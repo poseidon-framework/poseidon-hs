@@ -7,9 +7,11 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Package           (readPoseidonPackageCollection,
                                              PoseidonPackage (..),
                                              writePoseidonPackage,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
+                                             PackageReadOptions (..),
+                                             defaultPackageReadOptions,
+                                             makePseudoPackageFromGenotypeData)
 
-import           Control.Monad              (when)
+import           Control.Monad              (when, unless)
 import           Pipes                      (MonadIO (liftIO), 
                                             runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
@@ -21,9 +23,11 @@ import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertBaseDirs :: [FilePath]
-    , _genoConvertOutFormat :: GenotypeFormatSpec
-    , _genoconvertRemoveOld :: Bool
+    { _genoconvertBaseDirs    :: [FilePath]
+    , _genoconvertInGenos     :: [GenotypeDataSpec]
+    , _genoConvertOutFormat   :: GenotypeFormatSpec
+    , _genoConvertOutOnlyGeno :: Bool
+    , _genoconvertRemoveOld   :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -36,17 +40,20 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runGenoconvert :: GenoconvertOptions -> IO ()
-runGenoconvert (GenoconvertOptions baseDirs outFormat removeOld) = do
+runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno removeOld) = do
     -- load packages
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
+    hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat removeOld) allPackages
+    mapM_ (convertGenoTo outFormat onlyGeno removeOld) properPackages
+    mapM_ (convertGenoTo outFormat True removeOld) pseudoPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
-convertGenoTo outFormat removeOld pac = do
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
+convertGenoTo outFormat onlyGeno removeOld pac = do
     -- start message
     hPutStrLn stderr $
-        "Converting genotype data in package "
+        "Converting genotype data in "
         ++ posPacTitle pac
         ++ " to format "
         ++ show outFormat
@@ -64,7 +71,7 @@ convertGenoTo outFormat removeOld pac = do
         let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then hPutStrLn stderr ("skipping genotype convertion for package " ++ posPacTitle pac)
+        then hPutStrLn stderr ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             runSafeT $ do            
                 (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
@@ -75,12 +82,14 @@ convertGenoTo outFormat removeOld pac = do
                 runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
                 liftIO $ hPutStrLn stderr "Done"
             -- overwrite genotype data field in POSEIDON.yml file
-            let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
-                newPac = pac { posPacGenotypeData = genotypeData }
-            writePoseidonPackage newPac
+            unless onlyGeno $ do
+                let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
+                    newPac = pac { posPacGenotypeData = genotypeData }
+                hPutStrLn stderr "Adjusting POSEIDON.yml..."
+                writePoseidonPackage newPac
             -- delete now replaced input genotype data
             when removeOld $ mapM_ removeFile [
-                posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
+                  posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
                 , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
                 , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
                 ]

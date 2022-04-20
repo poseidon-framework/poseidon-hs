@@ -14,6 +14,7 @@ import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
 import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..)) 
 import           Poseidon.Janno         (jannoHeaderString)
 import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
@@ -145,11 +146,7 @@ optParser = OP.subparser (
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
 initOptParser :: OP.Parser InitOptions
-initOptParser = InitOptions <$> parseInGenotypeFormat
-                            <*> parseGenotypeSNPSet
-                            <*> parseInGenoFile
-                            <*> parseInSnpFile
-                            <*> parseInIndFile
+initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
                             <*> parseMakeMinimalPackage
@@ -170,19 +167,23 @@ fetchOptParser = FetchOptions <$> parseBasePaths
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
+                              <*> parseInGenotypeDatasets
                               <*> parseForgeEntitySpec
+                              <*> parseMaybeSnpFile
                               <*> parseIntersect
-                              <*> parseOutPackagePath
-                              <*> parseMaybeOutPackageName
                               <*> parseOutGenotypeFormat True
                               <*> parseMakeMinimalPackage
+                              <*> parseOutOnlyGeno
+                              <*> parseOutPackagePath
+                              <*> parseMaybeOutPackageName
                               <*> parseShowWarnings
                               <*> parseNoExtract
-                              <*> parseMaybeSnpFile
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
+                                          <*> parseInGenotypeDatasets
                                           <*> parseOutGenotypeFormat False
+                                          <*> parseOutOnlyGeno
                                           <*> parseRemoveOld
 
 parseRemoveOld :: OP.Parser Bool
@@ -346,35 +347,13 @@ parseRepoLocation :: OP.Parser RepoLocationSpec
 parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
 
 parseBasePaths :: OP.Parser [FilePath]
-parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
+parseBasePaths = OP.many (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
 
 parseRemoteDummy :: OP.Parser ()
 parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from a remote server instead the local file system")
-
-parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
-parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
-    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK") 
-  where
-    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
-    readGenotypeFormat s = case s of
-        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
-        "PLINK"      -> Right GenotypeFormatPlink
-        _            -> Left "must be EIGENSTRAT or PLINK"
-
-parseGenotypeSNPSet :: OP.Parser SNPSetSpec
-parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (OP.long "snpSet" <>
-    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other")
-  where
-    readSnpSet :: String -> Either String SNPSetSpec
-    readSnpSet s = case s of
-        "1240K"        -> Right SNPSet1240K
-        "HumanOrigins" -> Right SNPSetHumanOrigins
-        "Other"        -> Right SNPSetOther
-        _              -> Left "Could not read snpSet. Must be \"1240K\", \
-                                \\"HumanOrigins\" or \"Other\""
 
 parseOutGenotypeFormat :: Bool -> OP.Parser GenotypeFormatSpec
 parseOutGenotypeFormat withDefault =
@@ -393,17 +372,57 @@ parseOutGenotypeFormat withDefault =
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
+parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
+parseInGenotypeDatasets = OP.many parseInGenotypeDataset
+
+parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
+parseInGenotypeDataset = GenotypeDataSpec <$> parseInGenotypeFormat
+                                          <*> parseInGenoFile
+                                          <*> pure Nothing
+                                          <*> parseInSnpFile
+                                          <*> pure Nothing
+                                          <*> parseInIndFile
+                                          <*> pure Nothing
+                                          <*> parseGenotypeSNPSet
+
+parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
+parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
+    OP.short 'r' <> OP.long "inFormat" <>
+    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK")
+  where
+    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
+    readGenotypeFormat s = case s of
+        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
+        "PLINK"      -> Right GenotypeFormatPlink
+        _            -> Left "must be EIGENSTRAT or PLINK"
+
 parseInGenoFile :: OP.Parser FilePath
-parseInGenoFile = OP.strOption (OP.long "genoFile" <>
+parseInGenoFile = OP.strOption (
+    OP.short 'g' <> OP.long "genoFile" <>
     OP.help "the input geno file path")
 
 parseInSnpFile :: OP.Parser FilePath
-parseInSnpFile = OP.strOption (OP.long "snpFile" <>
+parseInSnpFile = OP.strOption (
+    OP.short 's' <> OP.long "snpFile" <>
     OP.help "the input snp file path")
 
 parseInIndFile :: OP.Parser FilePath
-parseInIndFile = OP.strOption (OP.long "indFile" <>
+parseInIndFile = OP.strOption (
+    OP.short 'i' <> OP.long "indFile" <>
     OP.help "the input ind file path")
+
+parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
+parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>
+    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other. Default: Other" <>
+    OP.value (Just SNPSetOther))
+  where
+    readSnpSet :: String -> Either String SNPSetSpec
+    readSnpSet s = case s of
+        "1240K"        -> Right SNPSet1240K
+        "HumanOrigins" -> Right SNPSetHumanOrigins
+        "Other"        -> Right SNPSetOther
+        _              -> Left "Could not read snpSet. Must be \"1240K\", \
+                                \\"HumanOrigins\" or \"Other\""
 
 parseOutPackagePath :: OP.Parser FilePath
 parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
@@ -423,6 +442,10 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
 parseMakeMinimalPackage :: OP.Parser Bool
 parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
     OP.help "should only a minimal output package be created?")
+
+parseOutOnlyGeno :: OP.Parser Bool
+parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
+    OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
 
 parseShowWarnings :: OP.Parser Bool
 parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")

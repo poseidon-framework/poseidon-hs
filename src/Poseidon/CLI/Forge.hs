@@ -25,7 +25,8 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage,
                                               getJointIndividualInfo,
-                                              getJointJanno)
+                                              getJointJanno,
+                                              makePseudoPackageFromGenotypeData)
 import           Poseidon.Utils              (PoseidonException (..))
 
 import           Control.Monad               (forM, forM_, unless, when)
@@ -48,15 +49,17 @@ import           System.IO                   (hPutStrLn, stderr)
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
+    , _forgeInGenos      :: [GenotypeDataSpec]
     , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
+    , _forgeSnpFile      :: Maybe FilePath
     , _forgeIntersect    :: Bool
-    , _forgeOutPacPath   :: FilePath
-    , _forgeOutPacName   :: Maybe String
     , _forgeOutFormat    :: GenotypeFormatSpec
     , _forgeOutMinimal   :: Bool
+    , _forgeOutOnlyGeno  :: Bool
+    , _forgeOutPacPath   :: FilePath
+    , _forgeOutPacName   :: Maybe String
     , _forgeShowWarnings :: Bool
     , _forgeNoExtract    :: Bool
-    , _forgeSnpFile      :: Maybe FilePath
     }
 
 pacReadOpts :: PackageReadOptions
@@ -70,7 +73,12 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> IO ()
-runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFormat minimal showWarnings noExtract maybeSnpFile) = do
+runForge (
+    ForgeOptions baseDirs inGenos
+                 entitySpec maybeSnpFile intersect_ 
+                 outFormat minimal onlyGeno outPath maybeOutName  
+                 showWarnings noExtract 
+    ) = do
     
     -- this message can be removed after a couple of releases
     hPutStrLn stderr 
@@ -89,8 +97,11 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
     hPutStrLn stderr $ "Forging with the following entity-list: " ++ printEntityList
     
     -- load packages --
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    
+    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
+    hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    let allPackages = properPackages ++ pseudoPackages
+
     -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
     let addImplicits = do
             hPutStrLn stderr $ "forge entities begin with exclude or are empty, so implicitly adding all packages as includes before \
@@ -100,7 +111,7 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
         (Include _:_) -> return entitiesInput
         (Exclude _:_) -> addImplicits
         []            -> addImplicits
-    
+
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
@@ -125,13 +136,14 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
         relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
+
     -- create new package --
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x  -> x
             Nothing -> takeBaseName outPath
     when (outName == "") $ throwM PoseidonEmptyOutPacNameException
     -- create new directory
-    hPutStrLn stderr $ "Creating new package directory: " ++ outPath
+    hPutStrLn stderr $ "Creating new directory: " ++ outPath
     createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let [outInd, outSnp, outGeno] = case outFormat of
@@ -144,16 +156,19 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
-    -- create new package
+    -- create package
     hPutStrLn stderr "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
            else newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
+    
+    -- write new package to the file system --
     -- POSEIDON.yml
-    hPutStrLn stderr "Creating POSEIDON.yml"
-    writePoseidonPackage pac
+    unless onlyGeno $ do
+        hPutStrLn stderr "Creating POSEIDON.yml"
+        writePoseidonPackage pac
     -- bib
-    unless (minimal || null relevantBibEntries) $ do
+    unless (minimal || onlyGeno || null relevantBibEntries) $ do
         hPutStrLn stderr "Creating .bib file"
         writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
     -- genotype data
@@ -175,19 +190,17 @@ runForge (ForgeOptions baseDirs entitySpec intersect_ outPath maybeOutName outFo
                 printSNPCopyProgress >->
                 extractPipe >->
                 P.tee outConsumer
-
         let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
         P.foldM sumNonMissingSNPs startAcc return forgePipe
-    -- janno (with updated SNP numbers)
     liftIO $ hPutStrLn stderr "Done"
-    unless minimal $ do
+    -- janno (with updated SNP numbers)
+    unless (minimal || onlyGeno) $ do
         hPutStrLn stderr "Creating .janno file"
         snpList <- VU.freeze newNrSNPs
         let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrSNPs = Just y})
                                                 relevantJannoRows
                                                 (VU.toList snpList)
         writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
-
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do

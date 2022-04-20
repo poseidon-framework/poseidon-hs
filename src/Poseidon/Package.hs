@@ -20,7 +20,8 @@ module Poseidon.Package (
     zipWithPadding,
     writePoseidonPackage,
     defaultPackageReadOptions,
-    readPoseidonPackage
+    readPoseidonPackage,
+    makePseudoPackageFromGenotypeData
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -72,7 +73,7 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
 import           System.FilePath            (takeDirectory, takeExtension,
-                                             takeFileName, (</>))
+                                             takeFileName, (</>), takeBaseName)
 import           System.IO                  (IOMode (ReadMode), hFlush,
                                              hGetContents, hPrint, hPutStr,
                                              hPutStrLn, stderr, withFile)
@@ -586,6 +587,26 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacChangelogFile = Nothing
     ,   posPacDuplicate = 1
     }
+
+makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
+makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = do
+    let baseDir      = getBaseDir genoFile_ snpFile_ indFile_
+        outInd       = takeFileName indFile_
+        outSnp       = takeFileName snpFile_
+        outGeno      = takeFileName genoFile_
+        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
+        pacName      = takeBaseName genoFile_
+    inds <- loadIndividuals baseDir genotypeData
+    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
+    where
+        getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
+        getBaseDir g s i =
+            let baseDirGeno = takeDirectory genoFile_
+                baseDirSnp = takeDirectory snpFile_
+                baseDirInd = takeDirectory indFile_
+            in if baseDirGeno == baseDirSnp && baseDirSnp == baseDirInd
+               then baseDirGeno
+               else throwM $ PoseidonUnequalBaseDirException g s i
 
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into

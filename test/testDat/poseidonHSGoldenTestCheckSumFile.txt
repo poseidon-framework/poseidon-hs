@@ -24,6 +24,9 @@ b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
 3c38f40efe215a047c02f4e98e0390da genoconvert Schiffels/Schiffels.bed
 8538ffd971ebb12cf5ef6e338da27970 genoconvert Schiffels/Schiffels.bim
 a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/Schiffels.fam
+3c38f40efe215a047c02f4e98e0390da genoconvert Schiffels/geno.bed
+8538ffd971ebb12cf5ef6e338da27970 genoconvert Schiffels/geno.bim
+a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/geno.fam
 bb787ca37911df81fcbeed91cf2c5ab9 update Schiffels/POSEIDON.yml
 aee009e147a8680bb9a8ec785ae5b664 update Schiffels/CHANGELOG.md
 7e8d6886cbfdaf01c3072da495419459 update Schiffels/POSEIDON.yml
@@ -48,6 +51,13 @@ f348944d864cbaa595f138b11d154248 forge ForgePac4/ForgePac4.bim
 b2b2a3a5fd9e5d0ada2d12ba0f05b387 forge ForgePac5/POSEIDON.yml
 5a3783db28cf9da6356b3c6105564be5 forge ForgePac5/ForgePac5.geno
 a925265414c119343bec1e2f603ba28b forge ForgePac5/ForgePac5.janno
+1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac6/ForgePac6.geno
+6e3ecc6695234ba1e71045278634d06b forge ForgePac6/ForgePac6.snp
+2bd17be137df5cb11830b09b833b937d forge ForgePac6/ForgePac6.ind
+f6fda72f1eb490b3928c802dc9c9b0ff forge ForgePac7/ForgePac7.janno
+1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac7/ForgePac7.geno
+6e3ecc6695234ba1e71045278634d06b forge ForgePac7/ForgePac7.snp
+2bd17be137df5cb11830b09b833b937d forge ForgePac7/ForgePac7.ind
 e95272d9a7dfd81afb125081479c96e1 fetch 2019_Nikitin_LBK/POSEIDON.yml
 663d9358c94640fd56da3ff9bdf2e207 fetch 2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch 2019_Nikitin_LBK/Nikitin_LBK.fam

@@ -15,7 +15,8 @@ import           Poseidon.CLI.List              (ListOptions (..), runList,
 import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData          (GenotypeFormatSpec (..), 
+import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
+                                                 GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..))
 import           Poseidon.Package               (getChecksum)
 import           Poseidon.SecondaryTypes        (ContributorSpec (..),
@@ -99,14 +100,19 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
 testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineInit testDir checkFilePath testPacsDir = do
     let initOpts1 = InitOptions {
-          _initGenoFormat = GenotypeFormatEigenstrat
-        , _initGenoSnpSet = SNPSetOther
-        , _initGenoFile   = testPacsDir </> "Schiffels_2016" </> "geno.txt"
-        , _initSnpFile    = testPacsDir </> "Schiffels_2016" </> "snp.txt"
-        , _initIndFile    = testPacsDir </> "Schiffels_2016" </> "ind.txt"
-        , _initPacPath    = testDir </> "Schiffels"
-        , _initPacName    = Just "Schiffels"
-        , _initMinimal    = False
+          _initGenoData  = GenotypeDataSpec {
+              format   = GenotypeFormatEigenstrat
+            , genoFile = testPacsDir </> "Schiffels_2016" </> "geno.txt"
+            , genoFileChkSum = Nothing
+            , snpFile  = testPacsDir </> "Schiffels_2016" </> "snp.txt"
+            , snpFileChkSum = Nothing
+            , indFile  = testPacsDir </> "Schiffels_2016" </> "ind.txt"
+            , indFileChkSum = Nothing
+            , snpSet   = Just SNPSetOther
+            }
+        , _initPacPath   = testDir </> "Schiffels"
+        , _initPacName   = Just "Schiffels"
+        , _initMinimal   = False
     }
     let action = runInit initOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action "init" [
@@ -116,14 +122,19 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , "Schiffels" </> "Schiffels.bib"
         ]
     let initOpts2 = InitOptions {
-          _initGenoFormat = GenotypeFormatPlink 
-        , _initGenoSnpSet = SNPSetOther
-        , _initGenoFile   = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
-        , _initSnpFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
-        , _initIndFile    = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
-        , _initPacPath    = testDir </> "Wang"
-        , _initPacName    = Nothing
-        , _initMinimal    = True
+          _initGenoData  = GenotypeDataSpec {
+            format   = GenotypeFormatPlink
+          , genoFile = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bed"
+          , genoFileChkSum = Nothing
+          , snpFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.bim"
+          , snpFileChkSum = Nothing
+          , indFile  = testPacsDir </> "Wang_Plink_test_2020" </> "Wang_2020.fam"
+          , indFileChkSum = Nothing
+          , snpSet   = Just SNPSetOther
+          }
+        , _initPacPath   = testDir </> "Wang"
+        , _initPacName   = Nothing
+        , _initMinimal   = True
     }
     let action2 = runInit initOpts2 >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
@@ -211,7 +222,9 @@ testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
           _genoconvertBaseDirs = [testDir </> "Wang"]
+        , _genoconvertInGenos = []
         , _genoConvertOutFormat = GenotypeFormatEigenstrat
+        , _genoConvertOutOnlyGeno = False
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts1) "genoconvert" [
@@ -221,13 +234,38 @@ testPipelineGenoconvert testDir checkFilePath = do
         ]
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertBaseDirs = [testDir </> "Schiffels"]
+        , _genoconvertInGenos = []
         , _genoConvertOutFormat = GenotypeFormatPlink
+        , _genoConvertOutOnlyGeno = False
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts2) "genoconvert" [
           "Schiffels" </> "Schiffels.bed"
         , "Schiffels" </> "Schiffels.bim"
         , "Schiffels" </> "Schiffels.fam"
+        ]
+    let genoconvertOpts3 = GenoconvertOptions {
+          _genoconvertBaseDirs = []
+        , _genoconvertInGenos = [
+            GenotypeDataSpec {
+                format   = GenotypeFormatEigenstrat
+              , genoFile = testDir </> "Schiffels" </> "geno.txt"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Schiffels" </> "snp.txt"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Schiffels" </> "ind.txt"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            }
+          ]
+        , _genoConvertOutFormat = GenotypeFormatPlink
+        , _genoConvertOutOnlyGeno = True
+        , _genoconvertRemoveOld = False
+    }
+    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts3) "genoconvert" [
+          "Schiffels" </> "geno.bed"
+        , "Schiffels" </> "geno.bim"
+        , "Schiffels" </> "geno.fam"
         ]
 
 testPipelineUpdate :: FilePath -> FilePath -> IO ()
@@ -289,15 +327,17 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 1
     let forgeOpts1 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutPacPath   = testDir </> "ForgePac1"
-        , _forgeOutPacName   = Just "ForgePac1"
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac1"
+        , _forgeOutPacName   = Just "ForgePac1"
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
-        , _forgeSnpFile      = Nothing
     }
     let action1 = runForge forgeOpts1 >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
@@ -308,15 +348,17 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 2
     let forgeOpts2 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")
+        , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutPacPath   = testDir </> "ForgePac2"
-        , _forgeOutPacName   = Nothing
         , _forgeOutFormat    = GenotypeFormatPlink
         , _forgeOutMinimal   = True
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac2"
+        , _forgeOutPacName   = Nothing
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
-        , _forgeSnpFile      = Nothing
     }
     let action2 = runForge forgeOpts2 >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
@@ -326,15 +368,17 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 3
     let forgeOpts3 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile1.txt")
+        , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutPacPath   = testDir </> "ForgePac3"
-        , _forgeOutPacName   = Nothing
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac3"
+        , _forgeOutPacName   = Nothing
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
-        , _forgeSnpFile      = Nothing
     }
     let action3 = runForge forgeOpts3 >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
@@ -347,15 +391,17 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 4
     let forgeOpts4 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile2.txt")
+        , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutPacPath   = testDir </> "ForgePac4"
-        , _forgeOutPacName   = Nothing
         , _forgeOutFormat    = GenotypeFormatPlink
         , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac4"
+        , _forgeOutPacName   = Nothing
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
-        , _forgeSnpFile      = Nothing
     }
     let action4 = runForge forgeOpts4 >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
@@ -368,12 +414,14 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 5
     let forgeOpts5 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
+        , _forgeInGenos      = []
         , _forgeEntitySpec   = Left []
         , _forgeIntersect    = False
-        , _forgeOutPacPath   = testDir </> "ForgePac5"
-        , _forgeOutPacName   = Just "ForgePac5"
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac5"
+        , _forgeOutPacName   = Just "ForgePac5"
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
@@ -383,6 +431,81 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
           "ForgePac5" </> "POSEIDON.yml"
         , "ForgePac5" </> "ForgePac5.geno"
         , "ForgePac5" </> "ForgePac5.janno"
+        ]
+    -- forge test 6 (direct genotype data input interface)
+    let forgeOpts6 = ForgeOptions {
+          _forgeBaseDirs     = []
+        , _forgeInGenos      = [
+            GenotypeDataSpec {
+                format   = GenotypeFormatEigenstrat
+              , genoFile = testDir </> "Schiffels" </> "geno.txt"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Schiffels" </> "snp.txt"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Schiffels" </> "ind.txt"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            },
+            GenotypeDataSpec {
+                format   = GenotypeFormatPlink
+              , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            }
+          ]
+        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = True
+        , _forgeOutPacPath   = testDir </> "ForgePac6"
+        , _forgeOutPacName   = Just "ForgePac6"
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
+    }
+    let action6 = runForge forgeOpts6
+    runAndChecksumFiles checkFilePath testDir action6 "forge" [
+          "ForgePac6" </> "ForgePac6.geno"
+        , "ForgePac6" </> "ForgePac6.snp"
+        , "ForgePac6" </> "ForgePac6.ind"
+        ]
+    -- forge test 7 (mixed data input interface)
+    let forgeOpts7 = ForgeOptions {
+          _forgeBaseDirs     = [testDir </> "Schiffels"]
+        , _forgeInGenos      = [
+            GenotypeDataSpec {
+                format   = GenotypeFormatPlink
+              , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
+              , genoFileChkSum = Nothing
+              , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
+              , snpFileChkSum = Nothing
+              , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
+              , indFileChkSum = Nothing
+              , snpSet   = Just SNPSetOther
+            }
+          ]
+        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac7"
+        , _forgeOutPacName   = Just "ForgePac7"
+        , _forgeShowWarnings = False
+        , _forgeNoExtract    = False
+        , _forgeSnpFile      = Nothing
+    }
+    let action7 = runForge forgeOpts7
+    runAndChecksumFiles checkFilePath testDir action7 "forge" [
+          "ForgePac7" </> "ForgePac7.janno"
+        , "ForgePac7" </> "ForgePac7.geno"
+        , "ForgePac7" </> "ForgePac7.snp"
+        , "ForgePac7" </> "ForgePac7.ind"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that 

@@ -25,6 +25,7 @@ import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
 import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
+
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
     { format         :: GenotypeFormatSpec

@@ -1,3 +1,4 @@
+- V 0.28.0: Added direct interaction with genotype data files (not packaged in a Poseidon package) for genoconvert and forge
 - V 0.27.2: Allow forge lists to be empty, thus triggering forging all packages
 - V 0.27.1: Added a file existence check for the README and CHANGELOG files in the package reading process
 - V 0.27.0: Improved EntitiesList parsing in Forge and Fetch 
