@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.27.2
+@version 0.28.0
 
 module Poseidon.MathHelpers
 
@@ -95,6 +95,7 @@ PackageInfo :: String -> Maybe Version -> Maybe String -> Maybe Day -> Int -> Pa
 --   </pre>
 runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Either ParseError a
 instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
+instance GHC.Show.Show Poseidon.SecondaryTypes.IndividualInfo
 instance GHC.Show.Show Poseidon.SecondaryTypes.PackageInfo
 instance GHC.Classes.Eq Poseidon.SecondaryTypes.ContributorSpec
 instance GHC.Show.Show Poseidon.SecondaryTypes.ContributorSpec
@@ -178,6 +179,10 @@ PoseidonGenericException :: String -> PoseidonException
 
 -- | An exception to throw if the output package lacks a name
 PoseidonEmptyOutPacNameException :: PoseidonException
+
+-- | An exception to throw if genotype data files don't share a common base
+--   directory
+PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
@@ -633,6 +638,10 @@ PoseidonGenericException :: String -> PoseidonException
 
 -- | An exception to throw if the output package lacks a name
 PoseidonEmptyOutPacNameException :: PoseidonException
+
+-- | An exception to throw if genotype data files don't share a common base
+--   directory
+PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
@@ -693,6 +702,7 @@ defaultPackageReadOptions :: PackageReadOptions
 -- | A function to read in a poseidon package from a YAML file. Note that
 --   this function calls the addFullPaths function to make paths absolute.
 readPoseidonPackage :: PackageReadOptions -> FilePath -> IO PoseidonPackage
+makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -835,13 +845,15 @@ module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions
-GenoconvertOptions :: [FilePath] -> GenotypeFormatSpec -> Bool -> GenoconvertOptions
+GenoconvertOptions :: [FilePath] -> [GenotypeDataSpec] -> GenotypeFormatSpec -> Bool -> Bool -> GenoconvertOptions
 [_genoconvertBaseDirs] :: GenoconvertOptions -> [FilePath]
+[_genoconvertInGenos] :: GenoconvertOptions -> [GenotypeDataSpec]
 [_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeFormatSpec
+[_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
 [_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
 pacReadOpts :: PackageReadOptions
 runGenoconvert :: GenoconvertOptions -> IO ()
-convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
 
 module Poseidon.CLI.Fetch
 data FetchOptions
@@ -889,12 +901,8 @@ renderJannoCompleteness :: [JannoRow] -> String
 
 module Poseidon.CLI.Init
 data InitOptions
-InitOptions :: GenotypeFormatSpec -> SNPSetSpec -> FilePath -> FilePath -> FilePath -> FilePath -> Maybe String -> Bool -> InitOptions
-[_initGenoFormat] :: InitOptions -> GenotypeFormatSpec
-[_initGenoSnpSet] :: InitOptions -> SNPSetSpec
-[_initGenoFile] :: InitOptions -> FilePath
-[_initSnpFile] :: InitOptions -> FilePath
-[_initIndFile] :: InitOptions -> FilePath
+InitOptions :: GenotypeDataSpec -> FilePath -> Maybe String -> Bool -> InitOptions
+[_initGenoData] :: InitOptions -> GenotypeDataSpec
 [_initPacPath] :: InitOptions -> FilePath
 [_initPacName] :: InitOptions -> Maybe String
 [_initMinimal] :: InitOptions -> Bool
@@ -904,17 +912,19 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> Either SignedEntitiesList FilePath -> Bool -> FilePath -> Maybe String -> GenotypeFormatSpec -> Bool -> Bool -> Bool -> Maybe FilePath -> ForgeOptions
+ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> Either SignedEntitiesList FilePath -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> Bool -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
+[_forgeInGenos] :: ForgeOptions -> [GenotypeDataSpec]
 [_forgeEntitySpec] :: ForgeOptions -> Either SignedEntitiesList FilePath
+[_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
-[_forgeOutPacPath] :: ForgeOptions -> FilePath
-[_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
 [_forgeOutMinimal] :: ForgeOptions -> Bool
+[_forgeOutOnlyGeno] :: ForgeOptions -> Bool
+[_forgeOutPacPath] :: ForgeOptions -> FilePath
+[_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgeShowWarnings] :: ForgeOptions -> Bool
 [_forgeNoExtract] :: ForgeOptions -> Bool
-[_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
