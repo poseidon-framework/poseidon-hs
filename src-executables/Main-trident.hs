@@ -94,8 +94,14 @@ renderVersion :: String
 renderVersion = 
     "trident v" ++ showVersion version ++ " for poseidon v" ++ 
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
-    "https://poseidon-framework.github.io" -- ++ "\n" ++
-    --")<(({°> ~ ────E ~ <°}))>("
+    "https://poseidon-framework.github.io" ++ "\n" ++
+    ")<(({°> ~ ────E ~ <°}))>(" ++ "\n\n" ++
+    "Recent breaking changes:" ++ "\n" ++
+    "v0.29.0: The loading of genotype data in init, forge and genoconvert now requires the \
+    \-r|--inFormat option to be after -g, -s, -i or -p." ++ "\n" ++
+    "v0.27.0: The semantics of --forgeString and --forgeFile have been changed. \
+    \Removing samples, groups or packages now follows a different logic. Please see the \
+    \documentation in trident forge -h to verify that your selection still behaves as you expect."
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
@@ -380,7 +386,9 @@ parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
 parseInGenotypeDataset = 
     (createGenoPrefix <$> parseInGenoPrefix <*> parseInGenotypeFormat <*> parseGenotypeSNPSet) <|>
-    (createGeno <$> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile <*> parseInGenotypeFormat <*> parseGenotypeSNPSet)
+    (createGeno       <$> parseInGenoFile
+                      <*> parseInSnpFile
+                      <*> parseInIndFile <*> parseInGenotypeFormat <*> parseGenotypeSNPSet)
 
 createGeno :: FilePath -> FilePath -> FilePath -> GenotypeFormatSpec -> Maybe SNPSetSpec -> GenotypeDataSpec
 createGeno a b c d e = GenotypeDataSpec d a Nothing b Nothing c Nothing e
@@ -417,7 +425,10 @@ parseInIndFile = OP.strOption (
 parseInGenoPrefix :: OP.Parser FilePath
 parseInGenoPrefix = OP.strOption (
     OP.short 'p' <> OP.long "genoPrefix" <>
-    OP.help "the input genotype data file path without extensions")
+    OP.help
+        "the input genotype data file path without extensions. Expects\
+        \ .bed/.bim/.fam for --inFormat PLINK and\
+        \ .geno/.snp/.ind for --inFormat EIGENSTRAT")
 
 parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
 parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>

@@ -79,13 +79,6 @@ runForge (
                  outFormat minimal onlyGeno outPath maybeOutName  
                  showWarnings noExtract 
     ) = do
-    
-    -- this message can be removed after a couple of releases
-    hPutStrLn stderr 
-      "The semantics of --forgeString and --forgeFile have been changed in trident v0.27.0. \
-      \Removing samples, groups or packages now follows a different logic. Please see the \
-      \documentation in trident forge -h to verify that your selection still behaves as you expect."
-    hPutStrLn stderr ""
 
     -- compile entities
     entitiesInput <- case entitySpec of
