@@ -32,7 +32,9 @@ import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
+import           System.FilePath        ((<.>))
 import           System.IO              (hPutStrLn, stderr)
+import qualified GHC.Generics as OP
 
 data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
@@ -376,14 +378,15 @@ parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
 parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset = GenotypeDataSpec <$> parseInGenotypeFormat
-                                          <*> parseInGenoFile
-                                          <*> pure Nothing
-                                          <*> parseInSnpFile
-                                          <*> pure Nothing
-                                          <*> parseInIndFile
-                                          <*> pure Nothing
-                                          <*> parseGenotypeSNPSet
+parseInGenotypeDataset = 
+    (createGenoPrefix <$> parseInGenoPrefix <*> parseInGenotypeFormat <*> parseGenotypeSNPSet) <|>
+    (createGeno <$> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile <*> parseInGenotypeFormat <*> parseGenotypeSNPSet)
+
+createGeno :: FilePath -> FilePath -> FilePath -> GenotypeFormatSpec -> Maybe SNPSetSpec -> GenotypeDataSpec
+createGeno a b c d e = GenotypeDataSpec d a Nothing b Nothing c Nothing e
+createGenoPrefix :: FilePath -> GenotypeFormatSpec -> Maybe SNPSetSpec -> GenotypeDataSpec
+createGenoPrefix a GenotypeFormatPlink      c = createGeno (a <.> "bed")  (a <.> "bim") (a <.> "fam") GenotypeFormatPlink c
+createGenoPrefix a GenotypeFormatEigenstrat c = createGeno (a <.> "geno") (a <.> "snp") (a <.> "ind") GenotypeFormatEigenstrat c
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
@@ -410,6 +413,11 @@ parseInIndFile :: OP.Parser FilePath
 parseInIndFile = OP.strOption (
     OP.short 'i' <> OP.long "indFile" <>
     OP.help "the input ind file path")
+
+parseInGenoPrefix :: OP.Parser FilePath
+parseInGenoPrefix = OP.strOption (
+    OP.short 'p' <> OP.long "genoPrefix" <>
+    OP.help "the input genotype data file path without extensions")
 
 parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
 parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>

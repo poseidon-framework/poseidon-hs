@@ -33,7 +33,8 @@ library
 executable trident
     main-is:            Main-trident.hs
     hs-source-dirs:     src-executables
-    build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring
+    build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring,
+                        filepath
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
