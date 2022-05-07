@@ -35,6 +35,7 @@ import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>))
 import           System.IO              (hPutStrLn, stderr)
 import qualified GHC.Generics as OP
+import GHC.IO.Handle.Lock (FileLockingNotSupported(FileLockingNotSupported))
 
 data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
@@ -192,6 +193,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
                                           <*> parseInGenotypeDatasets
                                           <*> parseOutGenotypeFormat False
                                           <*> parseOutOnlyGeno
+                                          <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
 
 parseRemoveOld :: OP.Parser Bool
@@ -447,6 +449,16 @@ parseOutPackagePath :: OP.Parser FilePath
 parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
     OP.short 'o' <>
     OP.help "the output package directory path")
+
+parseMaybeOutPackagePath :: OP.Parser (Maybe FilePath)
+parseMaybeOutPackagePath = OP.option (Just <$> OP.str) (
+    OP.short 'o' <>
+    OP.long "outPackagePath" <>
+    OP.help "the output package directory path - this is optional: If no path is provided, \
+            \then the output is written to the directories where the input files\
+            \are stored" <>
+    OP.value Nothing
+    )
 
 parseMaybeOutPackageName :: OP.Parser (Maybe String)
 parseMaybeOutPackageName = OP.option (Just <$> OP.str) (

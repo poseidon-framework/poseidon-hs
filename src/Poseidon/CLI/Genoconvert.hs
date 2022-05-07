@@ -23,11 +23,12 @@ import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertBaseDirs    :: [FilePath]
-    , _genoconvertInGenos     :: [GenotypeDataSpec]
-    , _genoConvertOutFormat   :: GenotypeFormatSpec
-    , _genoConvertOutOnlyGeno :: Bool
-    , _genoconvertRemoveOld   :: Bool
+    { _genoconvertBaseDirs     :: [FilePath]
+    , _genoconvertInGenos      :: [GenotypeDataSpec]
+    , _genoConvertOutFormat    :: GenotypeFormatSpec
+    , _genoConvertOutOnlyGeno  :: Bool
+    , _genoMaybeOutPackagePath :: Maybe FilePath
+    , _genoconvertRemoveOld    :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -40,7 +41,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runGenoconvert :: GenoconvertOptions -> IO ()
-runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno removeOld) = do
+runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno outPath removeOld) = do
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
