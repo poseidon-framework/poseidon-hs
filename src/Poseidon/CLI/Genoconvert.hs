@@ -17,7 +17,7 @@ import           Pipes                      (MonadIO (liftIO),
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (removeFile, doesFileExist)
+import           System.Directory           (removeFile, doesFileExist, XdgDirectory (XdgCache))
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -47,11 +47,11 @@ runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno outPath r
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat onlyGeno removeOld) properPackages
-    mapM_ (convertGenoTo outFormat True removeOld) pseudoPackages
+    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
+    mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
-convertGenoTo outFormat onlyGeno removeOld pac = do
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> IO ()
+convertGenoTo outFormat onlyGeno outPath removeOld pac = do
     -- start message
     hPutStrLn stderr $
         "Converting genotype data in "
@@ -69,7 +69,10 @@ convertGenoTo outFormat onlyGeno removeOld pac = do
     then hPutStrLn stderr "The genotype data is already in the requested format"
     else do
         -- create new genotype data files
-        let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
+        let newBaseDir = case outPath of
+                Just x -> x
+                Nothing -> posPacBaseDir pac
+        let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
         then hPutStrLn stderr ("skipping genotype conversion for " ++ posPacTitle pac)

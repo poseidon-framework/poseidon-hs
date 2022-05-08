@@ -404,11 +404,11 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         readGenoInput :: FilePath -> Either String GenoInput
         readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
         makeGenoInput path ext
-            | ext `elem` ["geno", "snp", "ind"] =
+            | ext `elem` [".geno", ".snp", ".ind"] =
                 Right (GenotypeFormatEigenstrat,(path <.> "geno"),(path <.> "snp"),(path <.> "ind"))
-            | ext `elem` ["bed", "bim", "fam"]  =
+            | ext `elem` [".bed", ".bim", ".fam"]  =
                 Right (GenotypeFormatPlink,     (path <.> "bed"), (path <.> "bim"),(path <.> "fam"))
-            | otherwise = Left "unknown file extension"
+            | otherwise = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenoInput
 parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile
@@ -462,8 +462,8 @@ parseMaybeOutPackagePath = OP.option (Just <$> OP.str) (
     OP.short 'o' <>
     OP.long "outPackagePath" <>
     OP.help "the output package directory path - this is optional: If no path is provided, \
-            \then the output is written to the directories where the input files\
-            \are stored" <>
+            \then the output is written to the directories where the input genotype data file \
+            \(.bed/.geno) is stored" <>
     OP.value Nothing
     )
 
