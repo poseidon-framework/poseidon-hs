@@ -17,7 +17,7 @@ import           Pipes                      (MonadIO (liftIO),
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (removeFile, doesFileExist, XdgDirectory (XdgCache))
+import           System.Directory           (removeFile, doesFileExist)
 import           System.FilePath            ((<.>), (</>))
 import           System.IO                  (hPutStrLn, stderr)
 

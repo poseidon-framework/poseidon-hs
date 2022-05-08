@@ -225,6 +225,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertInGenos = []
         , _genoConvertOutFormat = GenotypeFormatEigenstrat
         , _genoConvertOutOnlyGeno = False
+        , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts1) "genoconvert" [
@@ -237,6 +238,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertInGenos = []
         , _genoConvertOutFormat = GenotypeFormatPlink
         , _genoConvertOutOnlyGeno = False
+        , _genoMaybeOutPackagePath = Just $ testDir </> "Schiffels"
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts2) "genoconvert" [
@@ -260,6 +262,7 @@ testPipelineGenoconvert testDir checkFilePath = do
           ]
         , _genoConvertOutFormat = GenotypeFormatPlink
         , _genoConvertOutOnlyGeno = True
+        , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
     }
     runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts3) "genoconvert" [

@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ApplicativeDo #-}
 
 import           Paths_poseidon_hs      (version)
 import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..))
@@ -35,9 +34,6 @@ import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
-import qualified GHC.Generics as OP
-import GHC.IO.Handle.Lock (FileLockingNotSupported(FileLockingNotSupported))
-import qualified GHC.Generics as EIGENSTRAT
 
 data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
