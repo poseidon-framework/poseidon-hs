@@ -11,6 +11,7 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromGenotypeData)
 
+import           Data.Maybe                 (isJust)
 import           Control.Monad              (when, unless)
 import           Pipes                      (MonadIO (liftIO), 
                                             runEffect, (>->))
@@ -86,7 +87,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
                 runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
                 liftIO $ hPutStrLn stderr "Done"
             -- overwrite genotype data field in POSEIDON.yml file
-            unless onlyGeno $ do
+            unless (onlyGeno || (isJust outPath)) $ do
                 let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
                     newPac = pac { posPacGenotypeData = genotypeData }
                 hPutStrLn stderr "Adjusting POSEIDON.yml..."
