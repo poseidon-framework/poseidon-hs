@@ -1,5 +1,26 @@
 ### V ...
 
+### V 0.29.0
+
+This release brings two additions to the interface. They should make it more easy to work with unpackaged genotype files.
+
+`trident genoconvert` gets the option `-o/--outPackagePath`, which allows to redirect the conversion output to any directory. If this option is used and if the input data is not read from unpackaged genotype data, then the POSEIDON.yml file of the source package is not updated.
+
+The second, more significant change is an additional interface option to input unpackaged genotype data. This affects the trident subcommands `init`, `genoconvert` and `forge`. Besides the verbose interface with `-r + -g + -s + -i`, it is now also possible to only give `-p/--genoOne` to fully describe one unpackaged genotype data set. `-p` takes one of the genotype data files (so `.bed`, `.bim` or `.fam` for PLINK or `.geno`, `.snp` or `.ind` for EIGENSTRAT) and determines based on its extension the data format (PLINK/EIGENSTRAT) and the paths to the other files forming the dataset (assuming they have the same name and are in the same directory).
+
+Coming back to the `forge` example below for `V 0.28.0`, we can now for example write:
+
+```
+trident forge \
+  -d 2017_GonzalesFortesCurrentBiology \
+  -r PLINK -g 2017_HaberAJHG/2017_HaberAJHG.bed -s 2017_HaberAJHG/2017_HaberAJHG.bim -i 2017_HaberAJHG/2017_HaberAJHG.fam \
+  -p 2018_VeeramahPNAS/2018_VeeramahPNAS.fam \
+  -f "<STR241.SG>,<ERS1790729.SG>,Iberia_HG.SG" \
+  -o testpackage
+```
+
+So we replaced the verbose `-r PLINK -g 2018_VeeramahPNAS/2018_VeeramahPNAS.bed -i 2018_VeeramahPNAS/2018_VeeramahPNAS.fam -s 2018_VeeramahPNAS/2018_VeeramahPNAS.bim` with a much more concise `-p 2018_VeeramahPNAS/2018_VeeramahPNAS.fam` to the same effect. Note that we would have achieved the same by referencing the `.bed` or `.bim` files: e.g. `-p 2018_VeeramahPNAS/2018_VeeramahPNAS.bed`.
+
 ### V 0.28.0
 
 This release introduces direct genotype data interaction for `trident genoconvert` and `trident forge`. Until now these two CLI subcommands could only be applied to valid Poseidon packages (as created e.g. by `trident init`). We now added a feature that renders the following calls possible:
