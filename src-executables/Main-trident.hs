@@ -386,29 +386,31 @@ parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
 parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset =
-    createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
+parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
     where
-        createGeno :: (GenotypeFormatSpec,FilePath, FilePath, FilePath) -> Maybe SNPSetSpec -> GenotypeDataSpec
+        createGeno :: GenoInput -> Maybe SNPSetSpec -> GenotypeDataSpec
         createGeno (a,b,c,d) e = GenotypeDataSpec a b Nothing c Nothing d Nothing e
 
-parseInGenoOne :: OP.Parser (GenotypeFormatSpec, FilePath, FilePath, FilePath)
-parseInGenoOne = OP.option (OP.eitherReader readGenotypeFile) (
-        OP.short 'p' <> OP.long "genoOne" <>
-        OP.help
+type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
+
+parseInGenoOne :: OP.Parser GenoInput
+parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
+        OP.short 'p' <> OP.long "genoOne" <> OP.help
             "one of the input genotype data files. Expects\
             \ .bed  or .bim or .fam for PLINK and\
             \ .geno or .snp or .ind for EIGENSTRAT.\
             \ The other files must be in the same directory and must have the same base name")
     where
-        readGenotypeFile :: FilePath -> Either String (GenotypeFormatSpec, FilePath, FilePath, FilePath)
-        readGenotypeFile p = makePaths (dropExtension p) (takeExtension p)
-        makePaths path ext
-            | ext `elem` ["geno", "snp", "ind"] = Right (GenotypeFormatEigenstrat, (path <.> "geno"),(path <.> "snp"),(path <.> "ind"))
-            | ext `elem` ["bed", "bim", "fam"]  = Right (GenotypeFormatPlink,      (path <.> "bed"), (path <.> "bim"),(path <.> "fam"))
+        readGenoInput :: FilePath -> Either String GenoInput
+        readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
+        makeGenoInput path ext
+            | ext `elem` ["geno", "snp", "ind"] =
+                Right (GenotypeFormatEigenstrat,(path <.> "geno"),(path <.> "snp"),(path <.> "ind"))
+            | ext `elem` ["bed", "bim", "fam"]  =
+                Right (GenotypeFormatPlink,     (path <.> "bed"), (path <.> "bim"),(path <.> "fam"))
             | otherwise = Left "unknown file extension"
 
-parseInGenoSep :: OP.Parser (GenotypeFormatSpec,FilePath, FilePath, FilePath)
+parseInGenoSep :: OP.Parser GenoInput
 parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
