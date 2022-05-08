@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ApplicativeDo #-}
 
 import           Paths_poseidon_hs      (version)
 import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..))
@@ -32,10 +33,11 @@ import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
-import           System.FilePath        ((<.>))
+import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
 import qualified GHC.Generics as OP
 import GHC.IO.Handle.Lock (FileLockingNotSupported(FileLockingNotSupported))
+import qualified GHC.Generics as EIGENSTRAT
 
 data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
@@ -98,8 +100,6 @@ renderVersion =
     "https://poseidon-framework.github.io" ++ "\n" ++
     ")<(({°> ~ ────E ~ <°}))>(" ++ "\n\n" ++
     "Recent breaking changes:" ++ "\n" ++
-    "v0.29.0: The loading of genotype data in init, forge and genoconvert now requires the \
-    \-r|--inFormat option to be after -g, -s, -i or -p." ++ "\n" ++
     "v0.27.0: The semantics of --forgeString and --forgeFile have been changed. \
     \Removing samples, groups or packages now follows a different logic. Please see the \
     \documentation in trident forge -h to verify that your selection still behaves as you expect."
@@ -386,17 +386,30 @@ parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
 parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset = 
-    (createGenoPrefix <$> parseInGenoPrefix <*> parseInGenotypeFormat <*> parseGenotypeSNPSet) <|>
-    (createGeno       <$> parseInGenoFile
-                      <*> parseInSnpFile
-                      <*> parseInIndFile <*> parseInGenotypeFormat <*> parseGenotypeSNPSet)
+parseInGenotypeDataset =
+    createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
+    where
+        createGeno :: (GenotypeFormatSpec,FilePath, FilePath, FilePath) -> Maybe SNPSetSpec -> GenotypeDataSpec
+        createGeno (a,b,c,d) e = GenotypeDataSpec a b Nothing c Nothing d Nothing e
 
-createGeno :: FilePath -> FilePath -> FilePath -> GenotypeFormatSpec -> Maybe SNPSetSpec -> GenotypeDataSpec
-createGeno a b c d e = GenotypeDataSpec d a Nothing b Nothing c Nothing e
-createGenoPrefix :: FilePath -> GenotypeFormatSpec -> Maybe SNPSetSpec -> GenotypeDataSpec
-createGenoPrefix a GenotypeFormatPlink      c = createGeno (a <.> "bed")  (a <.> "bim") (a <.> "fam") GenotypeFormatPlink c
-createGenoPrefix a GenotypeFormatEigenstrat c = createGeno (a <.> "geno") (a <.> "snp") (a <.> "ind") GenotypeFormatEigenstrat c
+parseInGenoOne :: OP.Parser (GenotypeFormatSpec, FilePath, FilePath, FilePath)
+parseInGenoOne = OP.option (OP.eitherReader readGenotypeFile) (
+        OP.short 'p' <> OP.long "genoOne" <>
+        OP.help
+            "one of the input genotype data files. Expects\
+            \ .bed  or .bim or .fam for PLINK and\
+            \ .geno or .snp or .ind for EIGENSTRAT.\
+            \ The other files must be in the same directory and must have the same base name")
+    where
+        readGenotypeFile :: FilePath -> Either String (GenotypeFormatSpec, FilePath, FilePath, FilePath)
+        readGenotypeFile p = makePaths (dropExtension p) (takeExtension p)
+        makePaths path ext
+            | ext `elem` ["geno", "snp", "ind"] = Right (GenotypeFormatEigenstrat, (path <.> "geno"),(path <.> "snp"),(path <.> "ind"))
+            | ext `elem` ["bed", "bim", "fam"]  = Right (GenotypeFormatPlink,      (path <.> "bed"), (path <.> "bim"),(path <.> "fam"))
+            | otherwise = Left "unknown file extension"
+
+parseInGenoSep :: OP.Parser (GenotypeFormatSpec,FilePath, FilePath, FilePath)
+parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
@@ -423,14 +436,6 @@ parseInIndFile :: OP.Parser FilePath
 parseInIndFile = OP.strOption (
     OP.short 'i' <> OP.long "indFile" <>
     OP.help "the input ind file path")
-
-parseInGenoPrefix :: OP.Parser FilePath
-parseInGenoPrefix = OP.strOption (
-    OP.short 'p' <> OP.long "genoPrefix" <>
-    OP.help
-        "the input genotype data file path without extensions. Expects\
-        \ .bed/.bim/.fam for --inFormat PLINK and\
-        \ .geno/.snp/.ind for --inFormat EIGENSTRAT")
 
 parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
 parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>
