@@ -3,19 +3,23 @@
 module Poseidon.Utils (
     PoseidonException (..),
     renderPoseidonException,
-    usePoseidonLogger
+    usePoseidonLogger,
+    PoseidonLogIO
 ) where
 
-import           Colog                  as CL
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction, cmap, 
+                                        logTextStdout, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception)
 import           Data.Yaml              (ParseException)
 import           Data.Text              (Text)
 
-usePoseidonLogger :: LoggerT Message IO a -> IO a
-usePoseidonLogger x = CL.usingLoggerT logAction x
+type PoseidonLogIO = LoggerT Message IO
+
+usePoseidonLogger :: PoseidonLogIO a -> IO a
+usePoseidonLogger = usingLoggerT logAction
     where
         logAction :: LogAction IO Message
-        logAction = CL.cmap formatLogMessage CL.logTextStdout
+        logAction = cmap formatLogMessage logTextStdout
         formatLogMessage :: Message -> Text
         formatLogMessage me = showSeverity (msgSeverity me) <> msgText me
 

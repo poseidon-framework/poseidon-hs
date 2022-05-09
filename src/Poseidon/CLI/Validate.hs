@@ -8,6 +8,7 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    findAllPoseidonYmlFiles,
                                    readPoseidonPackageCollection,
                                    PackageReadOptions (..), defaultPackageReadOptions)
+import           Poseidon.Utils    (PoseidonLogIO)
 
 import           Colog             (WithLog, Message, logInfo, logError)
 import           Control.Monad     (unless)
@@ -32,7 +33,7 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = True
     }
 
-runValidate :: (WithLog env Message m, MonadIO m) => ValidateOptions -> m ()
+runValidate :: ValidateOptions -> PoseidonLogIO ()
 runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
     allPackages <- liftIO $ readPoseidonPackageCollection 
