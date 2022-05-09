@@ -10,7 +10,7 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils    (PoseidonLogIO)
 
-import           Colog             (WithLog, Message, logInfo, logError)
+import           Colog             (logInfo, logError)
 import           Control.Monad     (unless)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List         (foldl')
@@ -36,7 +36,7 @@ pacReadOpts = defaultPackageReadOptions {
 runValidate :: ValidateOptions -> PoseidonLogIO ()
 runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- liftIO $ readPoseidonPackageCollection 
+    allPackages <- readPoseidonPackageCollection 
         pacReadOpts {_readOptVerbose = verbose, _readOptIgnoreGeno = ignoreGeno} 
         baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles

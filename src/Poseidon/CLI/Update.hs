@@ -11,6 +11,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              getChecksum)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                             VersionComponent (..))
+import           Poseidon.Utils             (usePoseidonLogger)
 
 import           Data.Maybe                 (fromMaybe, isNothing, fromJust)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -43,7 +44,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 runUpdate :: UpdateOptions -> IO ()
 runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
-    allPackages <- readPoseidonPackageCollection 
+    allPackages <- usePoseidonLogger $ readPoseidonPackageCollection 
         pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion} 
         baseDirs
     -- updating poseidon version

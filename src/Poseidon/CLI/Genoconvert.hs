@@ -10,6 +10,7 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              PackageReadOptions (..),
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromGenotypeData)
+import           Poseidon.Utils             (usePoseidonLogger)
 
 import           Data.Maybe                 (isJust)
 import           Control.Monad              (when, unless)
@@ -44,7 +45,7 @@ pacReadOpts = defaultPackageReadOptions {
 runGenoconvert :: GenoconvertOptions -> IO ()
 runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno outPath removeOld) = do
     -- load packages
-    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    properPackages <- usePoseidonLogger $ readPoseidonPackageCollection pacReadOpts baseDirs
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert

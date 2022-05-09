@@ -11,7 +11,7 @@ import           Colog                  (LoggerT, Message, usingLoggerT, LogActi
                                         logTextStdout, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception)
 import           Data.Yaml              (ParseException)
-import           Data.Text              (Text)
+import           Data.Text              (Text, unpack)
 
 type PoseidonLogIO = LoggerT Message IO
 

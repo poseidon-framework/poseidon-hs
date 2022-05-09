@@ -27,7 +27,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               getJointIndividualInfo,
                                               getJointJanno,
                                               makePseudoPackageFromGenotypeData)
-import           Poseidon.Utils              (PoseidonException (..))
+import           Poseidon.Utils              (PoseidonException (..), usePoseidonLogger)
 
 import           Control.Monad               (forM, forM_, unless, when)
 import           Data.List                   (intercalate, nub, (\\))
@@ -90,7 +90,7 @@ runForge (
     hPutStrLn stderr $ "Forging with the following entity-list: " ++ printEntityList
     
     -- load packages --
-    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    properPackages <- usePoseidonLogger $ readPoseidonPackageCollection pacReadOpts baseDirs
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData inGenos
     hPutStrLn stderr $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages

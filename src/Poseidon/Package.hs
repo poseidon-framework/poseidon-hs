@@ -36,8 +36,10 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
 import           Poseidon.Utils             (PoseidonException (..),
-                                             renderPoseidonException)
+                                             renderPoseidonException,
+                                             PoseidonLogIO)
 
+import           Colog                      (logInfo, logError, logWarning)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
@@ -53,6 +55,7 @@ import           Data.Either                (lefts, rights)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
 import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
+import qualified Data.Text                  as T
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -240,41 +243,41 @@ defaultPackageReadOptions = PackageReadOptions {
 -- warnings
 readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
-                              -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
+                              -> PoseidonLogIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
-    hPutStr stderr "Searching POSEIDON.yml files... "
-    posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
-    posFiles <- if _readOptIgnorePosVersion opts
+    logInfo "Searching POSEIDON.yml files... "
+    posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles dirs
+    logInfo $ T.pack $ show (length posFilesAllVersions) ++ " found"
+    posFiles <- liftIO $ 
+                if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
-                else do
-                  hPutStrLn stderr "Checking Poseidon versions... "
-                  filterByPoseidonVersion posFilesAllVersions
-    hPutStrLn stderr "Initializing packages... "
-    eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
-    hPutStrLn stderr ""
+                else do 
+                    --logInfo "Checking Poseidon versions... "
+                    liftIO $ filterByPoseidonVersion posFilesAllVersions
+    logInfo "Initializing packages... "
+    eitherPackages <- liftIO $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     -- notifying the users of package problems
     unless (null . lefts $ eitherPackages) $ do
-        hPutStrLn stderr "Some packages were skipped due to issues:"
+        logWarning "Some packages were skipped due to issues:"
         forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
             case epac of
                 Left e -> do
-                    hPutStrLn stderr ("In the package described in " ++ posF ++ ":")
-                    hPutStrLn stderr (renderPoseidonException e)
+                    logWarning $ T.pack ("In the package described in " ++ posF ++ ":")
+                    logWarning $ T.pack (renderPoseidonException e)
                 _ -> return ()
     let loadedPackages = rights eitherPackages
     -- package duplication check
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    finalPackageList <- filterDuplicatePackages loadedPackages
+    finalPackageList <- liftIO $ filterDuplicatePackages loadedPackages
     when (length loadedPackages > length finalPackageList) $ do
-        hPutStrLn stderr "Some packages were skipped as duplicates:"
+        logWarning "Some packages were skipped as duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
-            \x -> hPrint stderr x
+            \x -> logWarning $ T.pack x
     -- individual duplication check
-    individuals <- mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
-    checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
+    individuals <- liftIO $ mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
+    liftIO $ checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
     -- report number of valid packages
-    hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
+    logInfo $ T.pack $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
     return finalPackageList
   where

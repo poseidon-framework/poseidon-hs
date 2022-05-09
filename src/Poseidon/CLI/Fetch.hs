@@ -10,7 +10,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo(..))
-import           Poseidon.Utils          (PoseidonException (..))
+import           Poseidon.Utils          (PoseidonException (..), usePoseidonLogger)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -85,7 +85,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         hPutStr stderr (show nonExistentEntities)
     else do
         -- load local packages
-        allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+        allLocalPackages <- usePoseidonLogger $ readPoseidonPackageCollection pacReadOpts baseDirs
         -- check which remote packages the User wants to have
         hPutStr stderr "Determine requested packages... "
         let remotePacTitles = map pTitle remotePacList
