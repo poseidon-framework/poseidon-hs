@@ -21,6 +21,7 @@ import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
 import           Poseidon.Package               (getChecksum)
 import           Poseidon.SecondaryTypes        (ContributorSpec (..),
                                                  VersionComponent (..))
+import           Poseidon.Utils                 (usePoseidonLogger)
 
 import           Control.Monad                  (when, unless)
 import           Data.Either                    (fromRight)
@@ -160,15 +161,15 @@ testPipelineValidate testDir checkFilePath = do
         , _validateIgnoreGeno   = False
         , _validateNoExitCode   = True
     }
-    runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts1) "validate" 1
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runValidate validateOpts1) "validate" 1
     let validateOpts2 = validateOpts1 {
           _validateVerbose      = True
     }
-    runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts2) "validate" 2
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runValidate validateOpts2) "validate" 2
     let validateOpts3 = validateOpts2 {
           _validateIgnoreGeno   = True
     }
-    runAndChecksumStdOut checkFilePath testDir (runValidate validateOpts3) "validate" 3
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runValidate validateOpts3) "validate" 3
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do

@@ -23,8 +23,10 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         contributorSpecParser,
                                         runParser)
 import           Poseidon.Utils         (PoseidonException (..),
-                                        renderPoseidonException)
+                                        renderPoseidonException,
+                                        usePoseidonLogger)
 
+import           Colog                  as CL
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -70,9 +72,9 @@ runCmd o = case o of
     CmdSummarise opts -> runSummarise opts
     CmdSurvey opts    -> runSurvey opts
     CmdUpdate opts -> runUpdate opts
-    CmdValidate opts  -> runValidate opts
+    CmdValidate opts  -> usePoseidonLogger $ runValidate opts
   where
-    runFstatsDummy = hPutStrLn stderr fstatsErrorMessage 
+    runFstatsDummy = hPutStrLn stderr fstatsErrorMessage
 
 fstatsErrorMessage :: String
 fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \

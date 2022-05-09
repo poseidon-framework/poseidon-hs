@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Poseidon.CLI.Validate where
 
@@ -7,7 +9,9 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    readPoseidonPackageCollection,
                                    PackageReadOptions (..), defaultPackageReadOptions)
 
+import           Colog             (WithLog, Message, logInfo, logError)
 import           Control.Monad     (unless)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List         (foldl')
 import           System.Exit       (exitFailure, exitSuccess)
 import           System.IO         (hPutStrLn, stdout)
@@ -28,18 +32,18 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = True
     }
 
-runValidate :: ValidateOptions -> IO ()
+runValidate :: (WithLog env Message m, MonadIO m) => ValidateOptions -> m ()
 runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
-    posFiles <- concat <$> mapM findAllPoseidonYmlFiles baseDirs
-    allPackages <- readPoseidonPackageCollection 
+    posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
+    allPackages <- liftIO $ readPoseidonPackageCollection 
         pacReadOpts {_readOptVerbose = verbose, _readOptIgnoreGeno = ignoreGeno} 
         baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
     then do
-        hPutStrLn stdout "Validation passed: OK"
-        unless noExitCode exitSuccess
+        logInfo "Validation passed: OK"
+        unless noExitCode $ liftIO exitSuccess
     else do
-        hPutStrLn stdout "Validation failed: ERROR"
-        unless noExitCode exitFailure
+        logError "Validation failed: ERROR"
+        unless noExitCode $ liftIO exitFailure

@@ -2,11 +2,22 @@
 
 module Poseidon.Utils (
     PoseidonException (..),
-    renderPoseidonException
+    renderPoseidonException,
+    usePoseidonLogger
 ) where
 
+import           Colog                  as CL
 import           Control.Exception      (Exception)
 import           Data.Yaml              (ParseException)
+import           Data.Text              (Text)
+
+usePoseidonLogger :: LoggerT Message IO a -> IO a
+usePoseidonLogger x = CL.usingLoggerT logAction x
+    where
+        logAction :: LogAction IO Message
+        logAction = CL.cmap formatLogMessage CL.logTextStdout
+        formatLogMessage :: Message -> Text
+        formatLogMessage me = showSeverity (msgSeverity me) <> msgText me
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
