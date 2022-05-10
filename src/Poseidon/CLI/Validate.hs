@@ -10,6 +10,7 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    PackageReadOptions (..), defaultPackageReadOptions)
 import           Poseidon.Utils    (PoseidonLogIO)
 
+import           Colog             (logInfo, logError)
 import           Control.Monad     (unless)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List         (foldl')
@@ -41,8 +42,8 @@ runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
     then do
-        liftIO $ putStrLn "Validation passed: OK"
+        logInfo "Validation passed"
         unless noExitCode $ liftIO exitSuccess
     else do
-        liftIO $ putStrLn "Validation failed: ERROR"
+        logError "Validation failed"
         unless noExitCode $ liftIO exitFailure
