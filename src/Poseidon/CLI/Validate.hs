@@ -12,10 +12,9 @@ import           Poseidon.Utils    (PoseidonLogIO)
 
 import           Colog             (logInfo, logError)
 import           Control.Monad     (unless)
-import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Control.Monad.IO.Class (liftIO)
 import           Data.List         (foldl')
 import           System.Exit       (exitFailure, exitSuccess)
-import           System.IO         (hPutStrLn, stdout)
 
 
 -- | A datatype representing command line options for the validate command

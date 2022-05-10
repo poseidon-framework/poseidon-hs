@@ -8,10 +8,10 @@ module Poseidon.Utils (
 ) where
 
 import           Colog                  (LoggerT, Message, usingLoggerT, LogAction, cmap, 
-                                        logTextStdout, showSeverity, msgSeverity, msgText)
+                                        logTextStderr, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception)
 import           Data.Yaml              (ParseException)
-import           Data.Text              (Text, unpack)
+import           Data.Text              (Text)
 
 type PoseidonLogIO = LoggerT Message IO
 
@@ -19,7 +19,7 @@ usePoseidonLogger :: PoseidonLogIO a -> IO a
 usePoseidonLogger = usingLoggerT logAction
     where
         logAction :: LogAction IO Message
-        logAction = cmap formatLogMessage logTextStdout
+        logAction = cmap formatLogMessage logTextStderr
         formatLogMessage :: Message -> Text
         formatLogMessage me = showSeverity (msgSeverity me) <> msgText me
 

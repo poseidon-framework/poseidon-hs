@@ -39,7 +39,7 @@ import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException,
                                              PoseidonLogIO)
 
-import           Colog                      (logInfo, logError, logWarning)
+import           Colog                      (logInfo, logWarning)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
@@ -78,7 +78,7 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
 import           System.FilePath            (takeDirectory, takeExtension,
                                              takeFileName, (</>), takeBaseName)
 import           System.IO                  (IOMode (ReadMode), hFlush,
-                                             hGetContents, hPrint, hPutStr,
+                                             hGetContents, hPutStr,
                                              hPutStrLn, stderr, withFile)
 
 -- | Internal structure for YAML loading only
