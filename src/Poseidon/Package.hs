@@ -37,9 +37,9 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException,
-                                             PoseidonLogIO)
+                                             PoseidonLogIO, usePoseidonLogger)
 
-import           Colog                      (logInfo, logWarning)
+import           Colog                      (logInfo, logWarning, logError)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
@@ -248,12 +248,11 @@ readPoseidonPackageCollection opts dirs = do
     logInfo "Searching POSEIDON.yml files... "
     posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles dirs
     logInfo $ T.pack $ show (length posFilesAllVersions) ++ " found"
-    posFiles <- liftIO $ 
-                if _readOptIgnorePosVersion opts
+    posFiles <- if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
                 else do 
-                    --logInfo "Checking Poseidon versions... "
-                    liftIO $ filterByPoseidonVersion posFilesAllVersions
+                    logInfo "Checking Poseidon versions... "
+                    filterByPoseidonVersion posFilesAllVersions
     logInfo "Initializing packages... "
     eitherPackages <- liftIO $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     liftIO $ hPutStrLn stderr ""
@@ -276,16 +275,16 @@ readPoseidonPackageCollection opts dirs = do
             \x -> logWarning $ T.pack x
     -- individual duplication check
     individuals <- liftIO $ mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
-    liftIO $ checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
+    checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
     -- report number of valid packages
     logInfo $ T.pack $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
     return finalPackageList
   where
-    filterByPoseidonVersion :: [FilePath] -> IO [FilePath]
+    filterByPoseidonVersion :: [FilePath] -> PoseidonLogIO [FilePath]
     filterByPoseidonVersion posFiles = do
-        eitherPaths <- mapM isInVersionRange posFiles
-        mapM_ (hPutStrLn stderr . renderPoseidonException) $ lefts eitherPaths
+        eitherPaths <- liftIO $ mapM isInVersionRange posFiles
+        mapM_ (logWarning . T.pack . renderPoseidonException) $ lefts eitherPaths
         return $ rights eitherPaths
         where
             isInVersionRange :: FilePath -> IO (Either PoseidonException FilePath)
@@ -458,19 +457,19 @@ checkJannoBibConsistency pacName janno bibtex = do
         "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
 
-checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
+checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonLogIO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
     let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
     when (length genoIDs /= length (nub genoIDs)) $ do
         if stopOnDuplicates
         then do
-            throwM $ PoseidonCollectionException $
+            liftIO $ throwIO $ PoseidonCollectionException $
                 "Duplicate individuals (" ++
                 intercalate ", " (genoIDs \\ nub genoIDs) ++
                 ")"
         else do
-            hPutStrLn stderr $
-                "Warning: Duplicate individuals (" ++
+            logWarning $ T.pack $
+                "Duplicate individuals (" ++
                 intercalate ", " (take 3 $ genoIDs \\ nub genoIDs) ++
                 if length (genoIDs \\ nub genoIDs) > 3
                 then ", ...)"
