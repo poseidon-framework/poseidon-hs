@@ -14,6 +14,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
+import           Poseidon.Utils             (usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -143,7 +144,7 @@ testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
     let dir = "test/testDat/testPackages/ancient"
     it "should discover packages correctly" $ do
-        pac <- readPoseidonPackageCollection testPacReadOpts [dir]
+        pac <- usePoseidonLogger $ readPoseidonPackageCollection testPacReadOpts [dir]
         sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 5 20),

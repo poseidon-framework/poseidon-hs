@@ -58,7 +58,7 @@ Test-Suite poseidon-tools-tests
                         Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
-                        Poseidon.EntitiesListSpec, Poseidon.Utils
+                        Poseidon.EntitiesListSpec
   default-language:     Haskell2010
 
 executable poseidon-devtools
