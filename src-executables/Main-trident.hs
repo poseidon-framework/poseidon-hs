@@ -26,6 +26,7 @@ import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger)
 
+import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -35,6 +36,7 @@ import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
+import qualified Data.Text              as T
 
 data Options = CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
@@ -57,7 +59,7 @@ main = do
         p = OP.prefs OP.showHelpOnEmpty
         handler :: PoseidonException -> IO ()
         handler e = do
-            hPutStrLn stderr $ renderPoseidonException e
+            usePoseidonLogger $ logError $ T.pack $ renderPoseidonException e
             exitFailure
 
 runCmd :: Options -> IO ()
