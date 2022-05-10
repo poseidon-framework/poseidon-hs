@@ -37,9 +37,9 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException,
-                                             PoseidonLogIO, usePoseidonLogger)
+                                             PoseidonLogIO)
 
-import           Colog                      (logInfo, logWarning, logError)
+import           Colog                      (logInfo, logWarning)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
