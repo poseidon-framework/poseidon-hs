@@ -32,6 +32,7 @@ import           Data.Version           (Version (..), showVersion)
 import qualified Options.Applicative    as OP
 import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
+import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
 
 data Options = CmdFstats -- dummy option to provide help message to user
@@ -92,8 +93,12 @@ renderVersion :: String
 renderVersion = 
     "trident v" ++ showVersion version ++ " for poseidon v" ++ 
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
-    "https://poseidon-framework.github.io" -- ++ "\n" ++
-    --")<(({°> ~ ────E ~ <°}))>("
+    "https://poseidon-framework.github.io" ++ "\n" ++
+    ")<(({°> ~ ────E ~ <°}))>(" ++ "\n\n" ++
+    "Recent breaking changes:" ++ "\n" ++
+    "v0.27.0: The semantics of --forgeString and --forgeFile have been changed. \
+    \Removing samples, groups or packages now follows a different logic. Please see the \
+    \documentation in trident forge -h to verify that your selection still behaves as you expect."
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
@@ -184,6 +189,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
                                           <*> parseInGenotypeDatasets
                                           <*> parseOutGenotypeFormat False
                                           <*> parseOutOnlyGeno
+                                          <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
 
 parseRemoveOld :: OP.Parser Bool
@@ -376,14 +382,32 @@ parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
 parseInGenotypeDatasets = OP.many parseInGenotypeDataset
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset = GenotypeDataSpec <$> parseInGenotypeFormat
-                                          <*> parseInGenoFile
-                                          <*> pure Nothing
-                                          <*> parseInSnpFile
-                                          <*> pure Nothing
-                                          <*> parseInIndFile
-                                          <*> pure Nothing
-                                          <*> parseGenotypeSNPSet
+parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
+    where
+        createGeno :: GenoInput -> Maybe SNPSetSpec -> GenotypeDataSpec
+        createGeno (a,b,c,d) e = GenotypeDataSpec a b Nothing c Nothing d Nothing e
+
+type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
+
+parseInGenoOne :: OP.Parser GenoInput
+parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
+        OP.short 'p' <> OP.long "genoOne" <> OP.help
+            "one of the input genotype data files. Expects\
+            \ .bed  or .bim or .fam for PLINK and\
+            \ .geno or .snp or .ind for EIGENSTRAT.\
+            \ The other files must be in the same directory and must have the same base name")
+    where
+        readGenoInput :: FilePath -> Either String GenoInput
+        readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
+        makeGenoInput path ext
+            | ext `elem` [".geno", ".snp", ".ind"] =
+                Right (GenotypeFormatEigenstrat,(path <.> "geno"),(path <.> "snp"),(path <.> "ind"))
+            | ext `elem` [".bed", ".bim", ".fam"]  =
+                Right (GenotypeFormatPlink,     (path <.> "bed"), (path <.> "bim"),(path <.> "fam"))
+            | otherwise = Left $ "unknown file extension: " ++ ext
+
+parseInGenoSep :: OP.Parser GenoInput
+parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
@@ -428,6 +452,16 @@ parseOutPackagePath :: OP.Parser FilePath
 parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
     OP.short 'o' <>
     OP.help "the output package directory path")
+
+parseMaybeOutPackagePath :: OP.Parser (Maybe FilePath)
+parseMaybeOutPackagePath = OP.option (Just <$> OP.str) (
+    OP.short 'o' <>
+    OP.long "outPackagePath" <>
+    OP.help "the output package directory path - this is optional: If no path is provided, \
+            \then the output is written to the directories where the input genotype data file \
+            \(.bed/.geno) is stored" <>
+    OP.value Nothing
+    )
 
 parseMaybeOutPackageName :: OP.Parser (Maybe String)
 parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
