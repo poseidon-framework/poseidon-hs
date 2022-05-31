@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.28.0
+@version 0.29.0
 
 module Poseidon.MathHelpers
 
@@ -845,15 +845,16 @@ module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions
-GenoconvertOptions :: [FilePath] -> [GenotypeDataSpec] -> GenotypeFormatSpec -> Bool -> Bool -> GenoconvertOptions
+GenoconvertOptions :: [FilePath] -> [GenotypeDataSpec] -> GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> GenoconvertOptions
 [_genoconvertBaseDirs] :: GenoconvertOptions -> [FilePath]
 [_genoconvertInGenos] :: GenoconvertOptions -> [GenotypeDataSpec]
 [_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeFormatSpec
 [_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
+[_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
 [_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
 pacReadOpts :: PackageReadOptions
 runGenoconvert :: GenoconvertOptions -> IO ()
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Bool -> PoseidonPackage -> IO ()
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> IO ()
 
 module Poseidon.CLI.Fetch
 data FetchOptions
