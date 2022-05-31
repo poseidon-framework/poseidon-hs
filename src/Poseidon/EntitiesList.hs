@@ -81,14 +81,18 @@ instance EntitySpec PoseidonEntity where
         parseInd   = Ind   <$> P.between (P.char '<') (P.char '>') parseName
         parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
-instance FromJSON PoseidonEntity where
-    parseJSON = withText "PoseidonEntity" $ \t -> 
-        case P.runParser entitySpecParser () "" (unpack t) of
-            Left err -> fail (show err)
-            Right p' -> return p'
+-- turns out that we cannot easily write instances for classes, so need to be explicit for both types
+instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
+instance FromJSON SignedEntity   where parseJSON = withText "SignedEntity" aesonParseEntitySpec
+instance ToJSON   PoseidonEntity where toJSON e = String (pack $ show e)
+instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
 
-instance ToJSON PoseidonEntity where
-    toJSON e = String (pack $ show e)
+aesonParseEntitySpec :: (EntitySpec e) => Text -> Parser e
+aesonParseEntitySpec t = case P.runParser entitySpecParser () "" (unpack t) of
+    Left err -> fail (show err)
+    Right p' -> return p'
+
+
 
 removeEntitySign :: SignedEntity -> PoseidonEntity
 removeEntitySign (Include e) = e
