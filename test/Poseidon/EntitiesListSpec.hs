@@ -1,16 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.EntitiesListSpec (spec) where
 
 import           Poseidon.EntitiesList
-import           Poseidon.Package      (PackageReadOptions (..),
-                                        PoseidonPackage (..),
-                                        defaultPackageReadOptions,
-                                        readPoseidonPackageCollection, 
-                                        getJointIndividualInfo)
-import Poseidon.SecondaryTypes (IndividualInfo(..))
-import           Poseidon.Utils        (PoseidonException)
+import           Poseidon.Package        (PackageReadOptions (..),
+                                          PoseidonPackage (..),
+                                          defaultPackageReadOptions,
+                                          getJointIndividualInfo,
+                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes (IndividualInfo (..))
+import           Poseidon.Utils          (PoseidonException)
 
-
-import           Data.Either           (fromRight, isLeft)
+import           Data.Aeson              (encode)
+import           Data.Either             (fromRight, isLeft)
 import           Test.Hspec
 
 spec :: Spec
@@ -168,4 +170,13 @@ testExtractEntityIndices =
         conformingEntityIndices [Include (Pac "Pac1"), Exclude (Group "Pop2"), Include (Ind "Ind3")] indInfo `shouldBe` [0, 1, 2]
         conformingEntityIndices [Include (Pac "Pac1")] indInfo `shouldBe` [0, 1, 2, 3]
 
-
+testToJSON :: Spec
+testToJSON =
+    describe "Poseidon.EntitiesList.ToJSON" $ do
+        it "should encode entities correctly to JSON" $ do
+            encode (Ind "Ind1") `shouldBe` "<Ind1>"
+            encode (Group "Group1") `shouldBe` "Gr1"
+            encode (Pac "Pac1") `shouldBe` "*Pac1*"
+            -- encode (Exclude (Ind "Ind1")) `shouldBe` "-<Ind1>"
+            -- encode (Exclude (Group "Group1")) `shouldBe` "-Gr1"
+            -- encode (Exclude (Pac "Pac1")) `shouldBe` "-*Pac1*"
