@@ -186,7 +186,7 @@ downloadPackage pathToRepo remote pacName = do
         sealConduitT (responseBody response) $$+-
             printDownloadProgress fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
-    putStrLn ""
+    hPutStrLn stderr "" -- linebreak after progress counter
     return ()
 
 padString :: Int -> String -> String
@@ -217,7 +217,7 @@ printDownloadProgress fileSizeMB = loop 0 0
                         let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
                         liftIO $ hClearLine stderr
                         liftIO $ hSetCursorColumn stderr 0
-                        liftIO $ hPutStr stderr (show fileSizeMB ++ "MB > " ++ roundToStr 1 leadedPercent ++ "% ")
+                        liftIO $ hPutStr stderr ("> " ++ show fileSizeMB ++ "MB > " ++ roundToStr 1 leadedPercent ++ "% ")
                         liftIO $ hFlush stderr
                     yield x
                     loop newLoadedB newLoadedMB
