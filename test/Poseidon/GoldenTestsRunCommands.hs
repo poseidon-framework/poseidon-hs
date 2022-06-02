@@ -527,7 +527,7 @@ testPipelineFetch testDir checkFilePath = do
         , _upgrade          = True
         , _downloadAllPacs  = False 
         }
-    runAndChecksumFiles checkFilePath testDir (runFetch fetchOpts1) "fetch" [
+    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger $ runFetch fetchOpts1) "fetch" [
           "2019_Nikitin_LBK" </> "POSEIDON.yml"
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"

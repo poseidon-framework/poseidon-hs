@@ -10,10 +10,11 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo(..))
-import           Poseidon.Utils          (PoseidonException (..), usePoseidonLogger)
+import           Poseidon.Utils          (PoseidonException (..), usePoseidonLogger, PoseidonLogIO)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
+import           Colog                   (logInfo, logError, logWarning)
 import           Conduit                 (ResourceT, await, runResourceT,
                                           sinkFile, yield)
 import           Control.Exception       (throwIO)
@@ -25,6 +26,7 @@ import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
 import           Data.List               (nub)
+import           Data.Text               (pack)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
@@ -60,7 +62,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the Fetch command
-runFetch :: FetchOptions -> IO ()
+runFetch :: FetchOptions -> PoseidonLogIO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
     
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
@@ -68,26 +70,26 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         tempDir = downloadDir </> ".trident_download_folder"
     
     -- compile entities
-    entitiesFromFile <- mapM readEntitiesFromFile entitiesFile
+    entitiesFromFile <- liftIO $ mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
     
     -- load remote package list
-    hPutStrLn stderr "Downloading individual list from remote"
-    remoteIndList <- simpleHttp (remote ++ "/individuals_all") >>= readServerIndInfo
+    logInfo "Downloading individual list from remote"
+    remoteIndList <- liftIO $ simpleHttp (remote ++ "/individuals_all") >>= readServerIndInfo
 
-    hPutStrLn stderr "Downloading package list from remote"
-    remotePacList <- simpleHttp (remote ++ "/packages") >>= readServerPackageInfo
+    logInfo "Downloading package list from remote"
+    remotePacList <- liftIO $ simpleHttp (remote ++ "/packages") >>= readServerPackageInfo
     
     let nonExistentEntities = findNonExistentEntities entities remoteIndList
 
     if (not . null) nonExistentEntities then do
-        hPutStr stderr "Cannot find the following requested entities:"
-        hPutStr stderr (show nonExistentEntities)
+        logWarning "Cannot find the following requested entities:"
+        logWarning $ pack $ show nonExistentEntities
     else do
         -- load local packages
-        allLocalPackages <- usePoseidonLogger $ readPoseidonPackageCollection pacReadOpts baseDirs
+        allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
         -- check which remote packages the User wants to have
-        hPutStr stderr "Determine requested packages... "
+        logInfo "Determine requested packages... "
         let remotePacTitles = map pTitle remotePacList
         let desiredPacTitles =
                 if downloadAllPacs then
@@ -97,15 +99,15 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         
         let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacTitles) remotePacList
 
-        hPutStrLn stderr $ show (length desiredPacTitles) ++ " requested"
+        logInfo $ pack $ show (length desiredPacTitles) ++ " requested"
         unless (null desiredRemotePackages) $ do
-            createDirectoryIfMissing False tempDir
+            liftIO $ createDirectoryIfMissing False tempDir
             forM_ desiredRemotePackages $ \pac -> do
                 -- perform package download depending on local-remote state
-                hPutStrLn stderr $ "Comparing local and remote package " ++ pTitle pac
+                logInfo $ pack $ "Comparing local and remote package " ++ pTitle pac
                 let packageState = determinePackageState allLocalPackages pac
                 handlePackageByState downloadDir tempDir remote upgrade packageState            
-            removeDirectory tempDir
+            liftIO $ removeDirectory tempDir
 
 readServerIndInfo :: LB.ByteString -> IO [IndividualInfo]
 readServerIndInfo bs = do
@@ -139,20 +141,20 @@ determinePackageState localPacs desiredRemotePac
         localPacsSimple = zip localPacsTitles localPacsVersion
         localVersionOfDesired = snd $ head $ filter (\x -> fst x == desiredRemotePacTitle) localPacsSimple
 
-handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> IO ()
+handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonLogIO ()
 handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
-    downloadAndUnzipPackage downloadDir tempDir remote pac
+    liftIO $ downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
-    hPutStrLn stderr $ padString 40 pac ++
+    logInfo $ pack $ padString 40 pac ++
         "local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
-    then downloadAndUnzipPackage downloadDir tempDir remote pac
-    else hPutStrLn stderr $ padString 40 pac ++
+    then liftIO $ downloadAndUnzipPackage downloadDir tempDir remote pac
+    else logInfo $ pack $ padString 40 pac ++
         "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
 handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
-    hPutStrLn stderr $ padString 40 pac ++
+    logInfo $ pack $ padString 40 pac ++
         "local " ++ printV localV ++ " > remote " ++ printV remoteV
 
 printV :: Maybe Version -> String

@@ -64,16 +64,16 @@ main = do
 
 runCmd :: Options -> IO ()
 runCmd o = case o of
-    CmdFstats    -> runFstatsDummy
-    CmdInit opts      -> runInit opts
-    CmdList opts      -> runList opts
-    CmdFetch opts     -> runFetch opts
-    CmdForge opts     -> runForge opts
+    CmdFstats           -> runFstatsDummy
+    CmdInit opts        -> runInit opts
+    CmdList opts        -> runList opts
+    CmdFetch opts       -> usePoseidonLogger $ runFetch opts
+    CmdForge opts       -> runForge opts
     CmdGenoconvert opts -> runGenoconvert opts
-    CmdSummarise opts -> runSummarise opts
-    CmdSurvey opts    -> runSurvey opts
-    CmdUpdate opts -> runUpdate opts
-    CmdValidate opts  -> usePoseidonLogger $ runValidate opts
+    CmdSummarise opts   -> runSummarise opts
+    CmdSurvey opts      -> runSurvey opts
+    CmdUpdate opts      -> runUpdate opts
+    CmdValidate opts    -> usePoseidonLogger $ runValidate opts
   where
     runFstatsDummy = hPutStrLn stderr fstatsErrorMessage
 
