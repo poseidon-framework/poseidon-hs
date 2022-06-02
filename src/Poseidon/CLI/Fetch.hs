@@ -143,13 +143,13 @@ determinePackageState localPacs desiredRemotePac
 
 handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonLogIO ()
 handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
-    liftIO $ downloadAndUnzipPackage downloadDir tempDir remote pac
+    downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
     logInfo $ pack $ padString 40 pac ++
         "local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
-    then liftIO $ downloadAndUnzipPackage downloadDir tempDir remote pac
+    then downloadAndUnzipPackage downloadDir tempDir remote pac
     else logInfo $ pack $ padString 40 pac ++
         "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
@@ -161,11 +161,12 @@ printV :: Maybe Version -> String
 printV Nothing  = "?.?.?"
 printV (Just x) = showVersion x
 
-downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
+downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
-    downloadPackage tempDir remote pacName
-    unzipPackage (tempDir </> pacName) (baseDir </> pacName)
-    removeFile (tempDir </> pacName)
+    logInfo $ pack $  padString 40 pacName
+    liftIO $ downloadPackage tempDir remote pacName
+    liftIO $ unzipPackage (tempDir </> pacName) (baseDir </> pacName)
+    liftIO $ removeFile (tempDir </> pacName)
 
 unzipPackage :: FilePath -> FilePath -> IO ()
 unzipPackage zip_ outDir = do
@@ -175,7 +176,6 @@ unzipPackage zip_ outDir = do
 
 downloadPackage :: FilePath -> String -> String -> IO ()
 downloadPackage pathToRepo remote pacName = do
-    let paddedPacName = padString 40 pacName
     downloadManager <- newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     runResourceT $ do
@@ -183,7 +183,6 @@ downloadPackage pathToRepo remote pacName = do
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
-        liftIO $ hPutStrLn stderr (paddedPacName ++ "> " ++ show fileSizeMB ++ "MB to download")
         sealConduitT (responseBody response) $$+-
             printDownloadProgress fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
@@ -218,7 +217,7 @@ printDownloadProgress fileSizeMB = loop 0 0
                         let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
                         liftIO $ hClearLine stderr
                         liftIO $ hSetCursorColumn stderr 0
-                        liftIO $ hPutStr stderr ("> " ++ roundToStr 1 leadedPercent ++ "% ")
+                        liftIO $ hPutStr stderr (show fileSizeMB ++ "MB > " ++ roundToStr 1 leadedPercent ++ "% ")
                         liftIO $ hFlush stderr
                     yield x
                     loop newLoadedB newLoadedMB
