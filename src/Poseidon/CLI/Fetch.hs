@@ -10,11 +10,11 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo(..))
-import           Poseidon.Utils          (PoseidonException (..), usePoseidonLogger, PoseidonLogIO)
+import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
-import           Colog                   (logInfo, logError, logWarning)
+import           Colog                   (logInfo, logWarning)
 import           Conduit                 (ResourceT, await, runResourceT,
                                           sinkFile, yield)
 import           Control.Exception       (throwIO)
