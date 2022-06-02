@@ -70,7 +70,7 @@ runCmd o = case o of
     CmdFetch opts       -> usePoseidonLogger $ runFetch opts
     CmdForge opts       -> runForge opts
     CmdGenoconvert opts -> runGenoconvert opts
-    CmdSummarise opts   -> runSummarise opts
+    CmdSummarise opts   -> usePoseidonLogger $ runSummarise opts
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> usePoseidonLogger $ runValidate opts

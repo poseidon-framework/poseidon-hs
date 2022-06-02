@@ -199,12 +199,12 @@ testPipelineSummarise testDir checkFilePath = do
           _summariseBaseDirs = [testDir]
         , _summariseRawOutput = False
     }
-    runAndChecksumStdOut checkFilePath testDir (runSummarise summariseOpts1) "summarise" 1
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runSummarise summariseOpts1) "summarise" 1
     let summariseOpts2 = SummariseOptions { 
           _summariseBaseDirs = [testDir]
         , _summariseRawOutput = True
     }
-    runAndChecksumStdOut checkFilePath testDir (runSummarise summariseOpts2) "summarise" 2
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runSummarise summariseOpts2) "summarise" 2
 
 testPipelineSurvey :: FilePath -> FilePath -> IO ()
 testPipelineSurvey testDir checkFilePath = do
