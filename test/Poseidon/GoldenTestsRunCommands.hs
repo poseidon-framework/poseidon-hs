@@ -212,12 +212,12 @@ testPipelineSurvey testDir checkFilePath = do
           _surveyBaseDirs = [testDir]
         , _surveyRawOutput = False
     }
-    runAndChecksumStdOut checkFilePath testDir (runSurvey surveyOpts1) "survey" 1
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runSurvey surveyOpts1) "survey" 1
     let surveyOpts2 = SurveyOptions { 
           _surveyBaseDirs = [testDir]
         , _surveyRawOutput = True
     }
-    runAndChecksumStdOut checkFilePath testDir (runSurvey surveyOpts2) "survey" 2
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runSurvey surveyOpts2) "survey" 2
 
 testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
