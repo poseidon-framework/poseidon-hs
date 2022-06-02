@@ -66,7 +66,7 @@ runCmd :: Options -> IO ()
 runCmd o = case o of
     CmdFstats           -> runFstatsDummy
     CmdInit opts        -> runInit opts
-    CmdList opts        -> runList opts
+    CmdList opts        -> usePoseidonLogger $ runList opts
     CmdFetch opts       -> usePoseidonLogger $ runFetch opts
     CmdForge opts       -> runForge opts
     CmdGenoconvert opts -> runGenoconvert opts

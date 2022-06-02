@@ -179,19 +179,19 @@ testPipelineList testDir checkFilePath = do
         , _listRawOutput     = False
         , _listIgnoreGeno   = False
         }
-    runAndChecksumStdOut checkFilePath testDir (runList listOpts1) "list" 1
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
           _listListEntity    = ListGroups
         }
-    runAndChecksumStdOut checkFilePath testDir (runList listOpts2) "list" 2
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
           _listListEntity    = ListIndividuals ["Country", "Nr_SNPs"]
         }
-    runAndChecksumStdOut checkFilePath testDir (runList listOpts3) "list" 3
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {
           _listRawOutput     = True
         }
-    runAndChecksumStdOut checkFilePath testDir (runList listOpts4) "list" 4
+    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger $ runList listOpts4) "list" 4
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
