@@ -64,7 +64,8 @@ runFetch :: FetchOptions -> IO ()
 runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
     
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
-        downloadDir = head baseDirs
+        searchDirs = if null baseDirs then ["."] else baseDirs
+        downloadDir = head searchDirs
         tempDir = downloadDir </> ".trident_download_folder"
     
     -- compile entities
@@ -85,7 +86,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         hPutStr stderr (show nonExistentEntities)
     else do
         -- load local packages
-        allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+        allLocalPackages <- readPoseidonPackageCollection pacReadOpts searchDirs
         -- check which remote packages the User wants to have
         hPutStr stderr "Determine requested packages... "
         let remotePacTitles = map pTitle remotePacList
