@@ -7,23 +7,30 @@ module Poseidon.Utils (
     PoseidonLogIO
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction, cmapM,
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM,
                                          logTextStderr, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception)
+import           Control.Monad          (when)
 import           Data.Yaml              (ParseException)
 import           Data.Text              (Text, pack)
 import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
                                          utcToLocalZonedTime)
+import           System.Console.ANSI    (getCursorPosition)
+import           System.IO              (hPutStrLn, stderr)
 
 
 type PoseidonLogIO = LoggerT Message IO
 
--- Idea: by redefining logTextStderr (https://hackage.haskell.org/package/co-log-0.4.0.1/docs/src/Colog.Actions.html#logTextStderr)
--- we could implement a message printer that checks the cursor position before printing to avoid issues with the progress counter
--- https://hackage.haskell.org/package/ansi-terminal-0.11.3/docs/System-Console-ANSI.html#g:13
-
 usePoseidonLogger :: PoseidonLogIO a -> IO a
-usePoseidonLogger = usingLoggerT logAction
+usePoseidonLogger p = do
+    -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
+    cursorPos <- getCursorPosition
+    --hPutStrLn stderr $ show cursorPos
+    let col = maybe 0 snd cursorPos
+        isNotAtStartOfLine = col /= 0
+    when isNotAtStartOfLine $ do hPutStrLn stderr ""
+    -- write log message
+    usingLoggerT logAction p
     where
         logAction :: LogAction IO Message
         logAction = cmapM messageToText logTextStderr
@@ -34,6 +41,7 @@ usePoseidonLogger = usingLoggerT logAction
                 textTime = pack $ formatTime defaultTimeLocale "%T" zonedTime
                 textMessage = msgText msg
             return $ textSeverity <> "[" <> textTime <> "] " <> textMessage
+
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 

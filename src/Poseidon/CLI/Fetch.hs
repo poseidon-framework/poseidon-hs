@@ -109,6 +109,8 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
                 handlePackageByState downloadDir tempDir remote upgrade packageState            
             liftIO $ removeDirectory tempDir
 
+    logInfo "Done"
+
 readServerIndInfo :: LB.ByteString -> IO [IndividualInfo]
 readServerIndInfo bs = do
     case eitherDecode' bs of
