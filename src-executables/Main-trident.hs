@@ -26,7 +26,7 @@ import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger)
 
-import           Colog                  (logError)
+import           Colog                  (logError, logWarning)
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -64,7 +64,7 @@ main = do
 
 runCmd :: Options -> IO ()
 runCmd o = case o of
-    CmdFstats           -> runFstatsDummy
+    CmdFstats           -> usePoseidonLogger $ runFstatsDummy
     CmdInit opts        -> usePoseidonLogger $ runInit opts
     CmdList opts        -> usePoseidonLogger $ runList opts
     CmdFetch opts       -> usePoseidonLogger $ runFetch opts
@@ -75,7 +75,7 @@ runCmd o = case o of
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> usePoseidonLogger $ runValidate opts
   where
-    runFstatsDummy = hPutStrLn stderr fstatsErrorMessage
+    runFstatsDummy = logError $ T.pack $ fstatsErrorMessage
 
 fstatsErrorMessage :: String
 fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
