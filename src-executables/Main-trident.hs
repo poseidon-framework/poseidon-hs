@@ -26,7 +26,7 @@ import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger)
 
-import           Colog                  (logError, logWarning)
+import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -68,7 +68,7 @@ runCmd o = case o of
     CmdInit opts        -> usePoseidonLogger $ runInit opts
     CmdList opts        -> usePoseidonLogger $ runList opts
     CmdFetch opts       -> usePoseidonLogger $ runFetch opts
-    CmdForge opts       -> runForge opts
+    CmdForge opts       -> usePoseidonLogger $ runForge opts
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts   -> usePoseidonLogger $ runSummarise opts
     CmdSurvey opts      -> usePoseidonLogger $ runSurvey opts

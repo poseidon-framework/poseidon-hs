@@ -343,7 +343,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
-    let action1 = runForge forgeOpts1 >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
+    let action1 = usePoseidonLogger (runForge forgeOpts1) >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
           "ForgePac1" </> "POSEIDON.yml"
         , "ForgePac1" </> "ForgePac1.geno"
@@ -364,7 +364,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
-    let action2 = runForge forgeOpts2 >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
+    let action2 = usePoseidonLogger (runForge forgeOpts2) >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
           "ForgePac2" </> "POSEIDON.yml"
         , "ForgePac2" </> "ForgePac2.bed"
@@ -384,7 +384,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
-    let action3 = runForge forgeOpts3 >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
+    let action3 = usePoseidonLogger (runForge forgeOpts3) >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
           "ForgePac3" </> "POSEIDON.yml"
         , "ForgePac3" </> "ForgePac3.geno"
@@ -407,7 +407,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeShowWarnings = False
         , _forgeNoExtract    = False
     }
-    let action4 = runForge forgeOpts4 >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
+    let action4 = usePoseidonLogger (runForge forgeOpts4) >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
           "ForgePac4" </> "POSEIDON.yml"
         , "ForgePac4" </> "ForgePac4.bim"
@@ -430,7 +430,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
-    let action5 = runForge forgeOpts5 >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
+    let action5 = usePoseidonLogger (runForge forgeOpts5) >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action5 "forge" [
           "ForgePac5" </> "POSEIDON.yml"
         , "ForgePac5" </> "ForgePac5.geno"
@@ -472,7 +472,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
-    let action6 = runForge forgeOpts6
+    let action6 = usePoseidonLogger (runForge forgeOpts6)
     runAndChecksumFiles checkFilePath testDir action6 "forge" [
           "ForgePac6" </> "ForgePac6.geno"
         , "ForgePac6" </> "ForgePac6.snp"
@@ -504,7 +504,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
-    let action7 = runForge forgeOpts7
+    let action7 = usePoseidonLogger (runForge forgeOpts7)
     runAndChecksumFiles checkFilePath testDir action7 "forge" [
           "ForgePac7" </> "ForgePac7.janno"
         , "ForgePac7" </> "ForgePac7.geno"

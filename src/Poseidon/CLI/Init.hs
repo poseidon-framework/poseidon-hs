@@ -13,15 +13,13 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              writePoseidonPackage)
 import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO)
 
-import           Colog                      (logInfo, logWarning)
+import           Colog                      (logInfo)
+import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
-import           Control.Monad.Catch        (throwM)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Text                  (pack)
 import           System.Directory           (createDirectoryIfMissing, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
-import           System.IO                  (hPutStrLn, stderr)
-import Control.Exception (throwIO)
 
 data InitOptions = InitOptions
     { _initGenoData :: GenotypeDataSpec
