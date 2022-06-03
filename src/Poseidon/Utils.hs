@@ -18,6 +18,10 @@ import           Data.Time              (getCurrentTime, formatTime, defaultTime
 
 type PoseidonLogIO = LoggerT Message IO
 
+-- Idea: by redefining logTextStderr (https://hackage.haskell.org/package/co-log-0.4.0.1/docs/src/Colog.Actions.html#logTextStderr)
+-- we could implement a message printer that checks the cursor position before printing to avoid issues with the progress counter
+-- https://hackage.haskell.org/package/ansi-terminal-0.11.3/docs/System-Console-ANSI.html#g:13
+
 usePoseidonLogger :: PoseidonLogIO a -> IO a
 usePoseidonLogger = usingLoggerT logAction
     where
