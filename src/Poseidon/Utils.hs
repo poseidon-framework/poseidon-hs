@@ -7,11 +7,14 @@ module Poseidon.Utils (
     PoseidonLogIO
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction, cmap, 
-                                        logTextStderr, showSeverity, msgSeverity, msgText)
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction, cmapM,
+                                         logTextStderr, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception)
 import           Data.Yaml              (ParseException)
-import           Data.Text              (Text)
+import           Data.Text              (Text, pack)
+import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
+                                         utcToLocalZonedTime)
+
 
 type PoseidonLogIO = LoggerT Message IO
 
@@ -19,9 +22,14 @@ usePoseidonLogger :: PoseidonLogIO a -> IO a
 usePoseidonLogger = usingLoggerT logAction
     where
         logAction :: LogAction IO Message
-        logAction = cmap formatLogMessage logTextStderr
-        formatLogMessage :: Message -> Text
-        formatLogMessage me = showSeverity (msgSeverity me) <> msgText me
+        logAction = cmapM messageToText logTextStderr
+        messageToText :: Message -> IO Text
+        messageToText msg = do
+            zonedTime <- getCurrentTime >>= utcToLocalZonedTime
+            let textSeverity = showSeverity (msgSeverity msg)
+                textTime = pack $ formatTime defaultTimeLocale "%T" zonedTime
+                textMessage = msgText msg
+            return $ textSeverity <> "[" <> textTime <> "] " <> textMessage
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
