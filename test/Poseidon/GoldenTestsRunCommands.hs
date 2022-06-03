@@ -229,7 +229,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
     }
-    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts1) "genoconvert" [
+    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger $ runGenoconvert genoconvertOpts1) "genoconvert" [
           "Wang" </> "Wang.geno"
         , "Wang" </> "Wang.snp"
         , "Wang" </> "Wang.ind"
@@ -242,7 +242,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Just $ testDir </> "Schiffels"
         , _genoconvertRemoveOld = False
     }
-    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts2) "genoconvert" [
+    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger $ runGenoconvert genoconvertOpts2) "genoconvert" [
           "Schiffels" </> "Schiffels.bed"
         , "Schiffels" </> "Schiffels.bim"
         , "Schiffels" </> "Schiffels.fam"
@@ -266,7 +266,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
     }
-    runAndChecksumFiles checkFilePath testDir (runGenoconvert genoconvertOpts3) "genoconvert" [
+    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger $ runGenoconvert genoconvertOpts3) "genoconvert" [
           "Schiffels" </> "geno.bed"
         , "Schiffels" </> "geno.bim"
         , "Schiffels" </> "geno.fam"
