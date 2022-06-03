@@ -72,7 +72,7 @@ runCmd o = case o of
     CmdGenoconvert opts -> usePoseidonLogger $ runGenoconvert opts
     CmdSummarise opts   -> usePoseidonLogger $ runSummarise opts
     CmdSurvey opts      -> usePoseidonLogger $ runSurvey opts
-    CmdUpdate opts      -> runUpdate opts
+    CmdUpdate opts      -> usePoseidonLogger $ runUpdate opts
     CmdValidate opts    -> usePoseidonLogger $ runValidate opts
   where
     runFstatsDummy = logError $ T.pack $ fstatsErrorMessage

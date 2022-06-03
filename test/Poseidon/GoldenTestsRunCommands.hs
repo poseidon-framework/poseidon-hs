@@ -285,7 +285,7 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test1"
         , _updateForce = True
         }
-    let action1 = runUpdate updateOpts1 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action1 = usePoseidonLogger (runUpdate updateOpts1) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
@@ -301,7 +301,7 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test2"
         , _updateForce = False
         }
-    let action2 = runUpdate updateOpts2 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action2 = usePoseidonLogger (runUpdate updateOpts2) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
@@ -320,7 +320,7 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test3"
         , _updateForce = True
         }
-    let action3 = runUpdate updateOpts3 >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action3 = usePoseidonLogger (runUpdate updateOpts3) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
