@@ -9,7 +9,7 @@ module Poseidon.Utils (
 
 import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM,
                                          logTextStderr, showSeverity, msgSeverity, msgText)
-import           Control.Exception      (Exception)
+import           Control.Exception      (Exception, try, IOException)
 import           Control.Monad          (when)
 import           Data.Yaml              (ParseException)
 import           Data.Text              (Text, pack)
@@ -29,10 +29,13 @@ usePoseidonLogger = usingLoggerT logAction
         prepareMessage :: Message -> IO Text
         prepareMessage msg = do
             -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
-            cursorPos <- getCursorPosition
-            let col = maybe 0 snd cursorPos
-                isNotAtStartOfLine = col /= 0
-            when isNotAtStartOfLine $ do hPutStrLn stderr ""
+            eitherCurserPos <- try getCursorPosition :: IO (Either IOException (Maybe (Int, Int)))
+            case eitherCurserPos of
+                Left _ -> return ()
+                Right cursorPos -> do
+                    let col = maybe 0 snd cursorPos
+                        isNotAtStartOfLine = col /= 0
+                    when isNotAtStartOfLine $ do hPutStrLn stderr ""
             -- prepare message
             zonedTime <- getCurrentTime >>= utcToLocalZonedTime
             let textSeverity = showSeverity (msgSeverity msg)
