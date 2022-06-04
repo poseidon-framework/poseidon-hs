@@ -36,7 +36,7 @@ import           System.Console.ANSI     (hClearLine, hSetCursorColumn)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
-import           System.IO               (hFlush, hPutStr, hPutStrLn, stderr)
+import           System.IO               (hFlush, hPutStr, stderr)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs      :: [FilePath]
@@ -188,7 +188,6 @@ downloadPackage pathToRepo remote pacName = do
         sealConduitT (responseBody response) $$+-
             printDownloadProgress fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
-    hPutStrLn stderr "" -- linebreak after progress counter
     return ()
 
 padString :: Int -> String -> String

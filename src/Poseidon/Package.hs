@@ -255,7 +255,6 @@ readPoseidonPackageCollection opts dirs = do
                     filterByPoseidonVersion posFilesAllVersions
     logInfo "Initializing packages... "
     eitherPackages <- liftIO $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
-    liftIO $ hPutStrLn stderr ""
     -- notifying the users of package problems
     unless (null . lefts $ eitherPackages) $ do
         logWarning "Some packages were skipped due to issues:"

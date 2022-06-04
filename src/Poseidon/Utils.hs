@@ -22,20 +22,18 @@ import           System.IO              (hPutStrLn, stderr)
 type PoseidonLogIO = LoggerT Message IO
 
 usePoseidonLogger :: PoseidonLogIO a -> IO a
-usePoseidonLogger p = do
-    -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
-    cursorPos <- getCursorPosition
-    --hPutStrLn stderr $ show cursorPos
-    let col = maybe 0 snd cursorPos
-        isNotAtStartOfLine = col /= 0
-    when isNotAtStartOfLine $ do hPutStrLn stderr ""
-    -- write log message
-    usingLoggerT logAction p
+usePoseidonLogger = usingLoggerT logAction
     where
         logAction :: LogAction IO Message
-        logAction = cmapM messageToText logTextStderr
-        messageToText :: Message -> IO Text
-        messageToText msg = do
+        logAction = cmapM prepareMessage logTextStderr
+        prepareMessage :: Message -> IO Text
+        prepareMessage msg = do
+            -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
+            cursorPos <- getCursorPosition
+            let col = maybe 0 snd cursorPos
+                isNotAtStartOfLine = col /= 0
+            when isNotAtStartOfLine $ do hPutStrLn stderr ""
+            -- prepare message
             zonedTime <- getCurrentTime >>= utcToLocalZonedTime
             let textSeverity = showSeverity (msgSeverity msg)
                 textTime = pack $ formatTime defaultTimeLocale "%T" zonedTime

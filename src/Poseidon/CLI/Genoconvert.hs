@@ -25,7 +25,6 @@ import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (removeFile, doesFileExist)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
@@ -90,7 +89,6 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
                         GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                         GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
                 runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
-            liftIO $ hPutStrLn stderr "" -- linebreak after progress counter
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || (isJust outPath)) $ do

@@ -49,7 +49,6 @@ import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
 import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (takeBaseName, (<.>), (</>))
-import           System.IO                   (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -190,7 +189,6 @@ runForge (
                 P.tee outConsumer
         let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
         P.foldM sumNonMissingSNPs startAcc return forgePipe
-    liftIO $ hPutStrLn stderr "" -- linebreak after progress counter
     logInfo "Done"
     -- janno (with updated SNP numbers)
     unless (minimal || onlyGeno) $ do
