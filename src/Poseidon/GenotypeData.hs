@@ -1,11 +1,13 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (PoseidonException (..), usePoseidonLogger,
                                              LogModus (..))
 
-import           Colog                      (logWarning)
+import           Colog                      (logWarning, WithLog, Message)
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM, when)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -152,7 +154,7 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
 
-joinEntries :: (MonadIO m) => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries :: (WithLog env Message m, MonadIO m) => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries showAllWarnings nrInds pacNames maybeTupleList = do
     let allSnpEntries = map fst . catMaybes $ maybeTupleList
     consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
@@ -166,7 +168,7 @@ joinEntries showAllWarnings nrInds pacNames maybeTupleList = do
                 Right x -> return x
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadIO m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+getConsensusSnpEntry :: (WithLog env Message m, MonadIO m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 getConsensusSnpEntry showAllWarnings snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
@@ -183,7 +185,8 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
                     (i:_) -> i
                     _     -> head uniqueIds
             when showAllWarnings $
-                liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $ 
+                --liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $ 
+                logWarning . T.pack $ 
                     "Found inconsistent SNP IDs: " ++ show uniqueIds ++ ". Choosing " ++ show selectedId
             return selectedId
     genPos <- case uniqueGenPos of
@@ -193,7 +196,7 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
             -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
             when showAllWarnings $
-                liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $
+                logWarning . T.pack $
                     "Found inconsistent genetic positions in SNP " ++ show id_ ++
                     ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
@@ -201,13 +204,13 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         [] -> do
             -- no non-missing alleles found
             when showAllWarnings $
-                liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $
+                logWarning . T.pack $
                     "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> do
             -- only one non-missing allele found
             when showAllWarnings $
-                liftIO . usePoseidonLogger TridentDefault. logWarning . T.pack $
+                logWarning . T.pack $
                     "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
