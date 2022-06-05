@@ -2,7 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import           Poseidon.Utils             (PoseidonException (..), usePoseidonLogger)
+import           Poseidon.Utils             (PoseidonException (..), usePoseidonLogger,
+                                             LogModus (..))
 
 import           Colog                      (logWarning)
 import           Control.Exception          (throwIO)
@@ -182,8 +183,8 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
                     (i:_) -> i
                     _     -> head uniqueIds
             when showAllWarnings $
-                liftIO . usePoseidonLogger . logWarning . T.pack $ "Found inconsistent SNP IDs: " ++ show uniqueIds ++
-                    ". Choosing " ++ show selectedId
+                liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $ 
+                    "Found inconsistent SNP IDs: " ++ show uniqueIds ++ ". Choosing " ++ show selectedId
             return selectedId
     genPos <- case uniqueGenPos of
         [p] -> return p
@@ -192,19 +193,22 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
             -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
             when showAllWarnings $
-                liftIO . usePoseidonLogger . logWarning . T.pack $ "Found inconsistent genetic positions in SNP " ++ show id_ ++
+                liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $
+                    "Found inconsistent genetic positions in SNP " ++ show id_ ++
                     ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
     case uniqueAlleles of
         [] -> do
             -- no non-missing alleles found
             when showAllWarnings $
-                liftIO . usePoseidonLogger . logWarning . T.pack $ "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+                liftIO . usePoseidonLogger TridentDefault . logWarning . T.pack $
+                    "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> do
             -- only one non-missing allele found
             when showAllWarnings $
-                liftIO . usePoseidonLogger . logWarning . T.pack $ "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+                liftIO . usePoseidonLogger TridentDefault. logWarning . T.pack $
+                    "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)

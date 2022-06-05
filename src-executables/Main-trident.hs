@@ -24,7 +24,8 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         runParser)
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
-                                        usePoseidonLogger)
+                                        usePoseidonLogger,
+                                        LogModus (..))
 
 import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
@@ -54,26 +55,27 @@ main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
     cmdOpts <- OP.customExecParser p optParserInfo
-    catch (runCmd cmdOpts) handler
+    catch (runCmd logModus cmdOpts) handler
     where
+        logModus = SimpleLog
         p = OP.prefs OP.showHelpOnEmpty
         handler :: PoseidonException -> IO ()
         handler e = do
-            usePoseidonLogger $ logError $ T.pack $ renderPoseidonException e
+            usePoseidonLogger logModus $ logError $ T.pack $ renderPoseidonException e
             exitFailure
 
-runCmd :: Options -> IO ()
-runCmd o = case o of
-    CmdFstats           -> usePoseidonLogger $ runFstatsDummy
-    CmdInit opts        -> usePoseidonLogger $ runInit opts
-    CmdList opts        -> usePoseidonLogger $ runList opts
-    CmdFetch opts       -> usePoseidonLogger $ runFetch opts
-    CmdForge opts       -> usePoseidonLogger $ runForge opts
-    CmdGenoconvert opts -> usePoseidonLogger $ runGenoconvert opts
-    CmdSummarise opts   -> usePoseidonLogger $ runSummarise opts
-    CmdSurvey opts      -> usePoseidonLogger $ runSurvey opts
-    CmdUpdate opts      -> usePoseidonLogger $ runUpdate opts
-    CmdValidate opts    -> usePoseidonLogger $ runValidate opts
+runCmd :: LogModus -> Options -> IO ()
+runCmd l o = case o of
+    CmdFstats           -> usePoseidonLogger l $ runFstatsDummy
+    CmdInit opts        -> usePoseidonLogger l $ runInit opts
+    CmdList opts        -> usePoseidonLogger l $ runList opts
+    CmdFetch opts       -> usePoseidonLogger l $ runFetch opts
+    CmdForge opts       -> usePoseidonLogger l $ runForge opts
+    CmdGenoconvert opts -> usePoseidonLogger l $ runGenoconvert opts
+    CmdSummarise opts   -> usePoseidonLogger l $ runSummarise opts
+    CmdSurvey opts      -> usePoseidonLogger l $ runSurvey opts
+    CmdUpdate opts      -> usePoseidonLogger l $ runUpdate opts
+    CmdValidate opts    -> usePoseidonLogger l $ runValidate opts
   where
     runFstatsDummy = logError $ T.pack $ fstatsErrorMessage
 

@@ -1,13 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Poseidon.Utils (
     PoseidonException (..),
     renderPoseidonException,
     usePoseidonLogger,
-    PoseidonLogIO
+    PoseidonLogIO,
+    LogModus (..)
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM,
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cmap,
                                          logTextStderr, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception, try, IOException)
 import           Control.Monad          (when)
@@ -18,14 +20,20 @@ import           Data.Time              (getCurrentTime, formatTime, defaultTime
 import           System.Console.ANSI    (getCursorPosition)
 import           System.IO              (hPutStrLn, stderr)
 
-
 type PoseidonLogIO = LoggerT Message IO
 
-usePoseidonLogger :: PoseidonLogIO a -> IO a
-usePoseidonLogger = usingLoggerT logAction
+data LogModus = TridentDefault | SimpleLog
+
+usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
+usePoseidonLogger TridentDefault = usingLoggerT tridentDefaultLog
+usePoseidonLogger SimpleLog      = usingLoggerT simpleLog
+
+simpleLog :: LogAction IO Message
+simpleLog = cmap msgText logTextStderr
+
+tridentDefaultLog :: LogAction IO Message
+tridentDefaultLog = cmapM prepareMessage logTextStderr
     where
-        logAction :: LogAction IO Message
-        logAction = cmapM prepareMessage logTextStderr
         prepareMessage :: Message -> IO Text
         prepareMessage msg = do
             -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
@@ -42,7 +50,6 @@ usePoseidonLogger = usingLoggerT logAction
                 textTime = pack $ formatTime defaultTimeLocale "%T" zonedTime
                 textMessage = msgText msg
             return $ textSeverity <> "[" <> textTime <> "] " <> textMessage
-
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
