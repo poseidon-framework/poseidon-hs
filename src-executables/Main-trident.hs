@@ -57,7 +57,7 @@ main = do
     cmdOpts <- OP.customExecParser p optParserInfo
     catch (runCmd logModus cmdOpts) handler
     where
-        logModus = SimpleLog
+        logModus = TridentDefault
         p = OP.prefs OP.showHelpOnEmpty
         handler :: PoseidonException -> IO ()
         handler e = do
