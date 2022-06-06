@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Poseidon.Package (
     PoseidonYamlStruct (..),
@@ -42,6 +43,7 @@ import           Poseidon.Utils             (PoseidonException (..),
 
 import           Colog                      (logInfo, logWarning, WithLog, Message)
 import           Control.Exception          (throwIO, try)
+import           Control.Exception.Lifted   (catch)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -314,10 +316,16 @@ readPoseidonPackageCollection opts dirs = do
         liftIO $ hSetCursorColumn stderr 0
         liftIO $ hPutStr stderr $ "> " ++ show numberPackage ++ " "
         liftIO $ hFlush stderr
-        try . readPoseidonPackage opts $ path
+        res <- readPoseidonPackage opts path
+        return $ Right res
+        `catch` (\(e :: PoseidonException) -> do 
+                return $ Left e)
     tryDecodePoseidonPackage True (numberPackage, path) = do
         liftIO $ hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
-        try . readPoseidonPackage opts $ path
+        res <- readPoseidonPackage opts path
+        return $ Right res
+        `catch` (\(e :: PoseidonException) -> do 
+                return $ Left e)
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
