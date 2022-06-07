@@ -9,7 +9,7 @@ module Poseidon.Utils (
     LogModus (..)
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cmap,
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cmap, cfilter,
                                          logTextStderr, showSeverity, msgSeverity, msgText)
 import           Control.Exception      (Exception, try, IOException)
 import           Control.Monad          (when)
@@ -22,11 +22,15 @@ import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
-data LogModus = TridentDefault | SimpleLog
+data LogModus = NoLog | SimpleLog | TridentDefault
 
 usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
-usePoseidonLogger TridentDefault = usingLoggerT tridentDefaultLog
+usePoseidonLogger NoLog          = usingLoggerT noLog
 usePoseidonLogger SimpleLog      = usingLoggerT simpleLog
+usePoseidonLogger TridentDefault = usingLoggerT tridentDefaultLog
+
+noLog :: LogAction IO Message
+noLog = cfilter (const False) simpleLog 
 
 simpleLog :: LogAction IO Message
 simpleLog = cmap msgText logTextStderr

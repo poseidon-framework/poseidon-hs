@@ -37,7 +37,7 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
 import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException,
-                                             PoseidonLogIO)
+                                             PoseidonLogIO, LogModus (..), usePoseidonLogger)
 
 import           Colog                      (logInfo, logWarning)
 import           Control.Exception          (throwIO, try)
@@ -352,7 +352,7 @@ readPoseidonPackage opts ymlPath = do
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
         -- we're using getJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- getJointGenotypeData False False [pac] Nothing
+        (_, eigenstratProd) <- getJointGenotypeData NoLog False [pac] Nothing
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
@@ -504,20 +504,21 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 in  throwM $ PoseidonPackageException msg
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+getJointGenotypeData :: (MonadSafe m) => 
+                        LogModus -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
+getJointGenotypeData logModus intersect pacs maybeSnpFile = do
     genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
         pacNames        = map posPacTitle pacs
         prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe showAllWarnings nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe logModus nrInds pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -551,15 +552,16 @@ getJointIndividualInfo packages = do
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
--- If showAllWarnings == True, then a warning is printed,
-joinEntryPipe :: (MonadIO m) => Bool -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe showAllWarnings nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries showAllWarnings nrInds pacNames maybeEntries
+joinEntryPipe :: (MonadIO m) => LogModus -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe logModus nrInds pacNames = for cat $ \maybeEntries -> do
+    eitherJE <- liftIO . try $ joinEntries nrInds pacNames maybeEntries
     case eitherJE of
         Left (PoseidonGenotypeException err) ->
-            when showAllWarnings . liftIO . hPutStrLn stderr $ "Skipping SNP due to " ++ err
+            (liftIO . usePoseidonLogger logModus . logWarning . T.pack) $ "Skipping SNP due to " ++ err
         Left e -> liftIO . throwIO $ e
-        Right jE -> yield jE
+        Right (consensusSnpEntryWarnings, eigenstratSnpEntry, genoLine) -> do
+            mapM_ (liftIO . usePoseidonLogger logModus . logWarning . T.pack) consensusSnpEntryWarnings
+            yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
