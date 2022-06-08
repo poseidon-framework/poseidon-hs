@@ -35,7 +35,7 @@ noLog :: LogAction IO Message
 noLog = cfilter (const False) simpleLog 
 
 simpleLog :: LogAction IO Message
-simpleLog = cmap msgText logTextStderr
+simpleLog = cfilter (\msg -> msgSeverity msg /= Debug) $ cmap msgText logTextStderr
 
 tridentDefaultLog :: LogAction IO Message
 tridentDefaultLog = cfilter (\msg -> msgSeverity msg /= Debug) verboseLog
