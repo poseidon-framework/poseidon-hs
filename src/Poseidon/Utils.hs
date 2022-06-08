@@ -10,7 +10,7 @@ module Poseidon.Utils (
 ) where
 
 import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cmap, cfilter,
-                                         logTextStderr, showSeverity, msgSeverity, msgText)
+                                         logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
 import           Control.Exception      (Exception, try, IOException)
 import           Control.Monad          (when)
 import           Data.Yaml              (ParseException)
@@ -22,13 +22,14 @@ import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
-data LogModus = NoLog | SimpleLog | TridentDefaultLog
+data LogModus = NoLog | SimpleLog | TridentDefaultLog | VerboseLog
     deriving Show
 
 usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
 usePoseidonLogger NoLog             = usingLoggerT noLog
 usePoseidonLogger SimpleLog         = usingLoggerT simpleLog
 usePoseidonLogger TridentDefaultLog = usingLoggerT tridentDefaultLog
+usePoseidonLogger VerboseLog        = usingLoggerT verboseLog
 
 noLog :: LogAction IO Message
 noLog = cfilter (const False) simpleLog 
@@ -37,7 +38,10 @@ simpleLog :: LogAction IO Message
 simpleLog = cmap msgText logTextStderr
 
 tridentDefaultLog :: LogAction IO Message
-tridentDefaultLog = cmapM prepareMessage logTextStderr
+tridentDefaultLog = cfilter (\msg -> msgSeverity msg /= Debug) verboseLog
+
+verboseLog :: LogAction IO Message
+verboseLog = cmapM prepareMessage logTextStderr
     where
         prepareMessage :: Message -> IO Text
         prepareMessage msg = do

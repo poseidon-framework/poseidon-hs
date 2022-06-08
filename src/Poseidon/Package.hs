@@ -39,7 +39,7 @@ import           Poseidon.Utils             (PoseidonException (..),
                                              renderPoseidonException,
                                              PoseidonLogIO, LogModus (..), usePoseidonLogger)
 
-import           Colog                      (logInfo, logWarning)
+import           Colog                      (logInfo, logWarning, logDebug)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
@@ -557,10 +557,10 @@ joinEntryPipe logModus nrInds pacNames = for cat $ \maybeEntries -> do
     eitherJE <- liftIO . try $ joinEntries nrInds pacNames maybeEntries
     case eitherJE of
         Left (PoseidonGenotypeException err) ->
-            (liftIO . usePoseidonLogger logModus . logWarning . T.pack) $ "Skipping SNP due to " ++ err
+            (liftIO . usePoseidonLogger logModus . logDebug . T.pack) $ "Skipping SNP due to " ++ err
         Left e -> liftIO . throwIO $ e
         Right (consensusSnpEntryWarnings, eigenstratSnpEntry, genoLine) -> do
-            mapM_ (liftIO . usePoseidonLogger logModus . logWarning . T.pack) consensusSnpEntryWarnings
+            mapM_ (liftIO . usePoseidonLogger logModus . logDebug . T.pack) consensusSnpEntryWarnings
             yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
