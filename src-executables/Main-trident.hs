@@ -61,20 +61,20 @@ main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
     (Options logModus subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logModus $ runCmd subcommand) (handler logModus)
+    catch (usePoseidonLogger logModus $ runCmd logModus subcommand) (handler logModus)
     where
         handler :: LogModus -> PoseidonException -> IO ()
         handler l e = do
             usePoseidonLogger l $ logError $ T.pack $ renderPoseidonException e
             exitFailure
 
-runCmd :: Subcommand -> PoseidonLogIO ()
-runCmd o = case o of
+runCmd :: LogModus -> Subcommand -> PoseidonLogIO ()
+runCmd l o = case o of
     CmdFstats           -> runFstatsDummy
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
     CmdFetch opts       -> runFetch opts
-    CmdForge opts       -> runForge opts
+    CmdForge opts       -> runForge $ opts {_forgeLogModus = l}
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts   -> runSummarise opts
     CmdSurvey opts      -> runSurvey opts
@@ -206,7 +206,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> parseShowWarnings
+                              <*> pure NoLog
                               <*> parseNoExtract
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
@@ -505,9 +505,6 @@ parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
 parseOutOnlyGeno :: OP.Parser Bool
 parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
     OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
-
-parseShowWarnings :: OP.Parser Bool
-parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
 
 parseNoExtract :: OP.Parser Bool
 parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection step in forge. This will result in \

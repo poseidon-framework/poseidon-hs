@@ -29,7 +29,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               getJointIndividualInfo,
                                               getJointJanno,
                                               makePseudoPackageFromGenotypeData)
-import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO, LogModus (TridentDefaultLog))
+import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO, LogModus)
 
 import           Colog                       (logInfo, logWarning)
 import           Control.Exception           (throwIO)
@@ -62,7 +62,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutOnlyGeno  :: Bool
     , _forgeOutPacPath   :: FilePath
     , _forgeOutPacName   :: Maybe String
-    , _forgeShowWarnings :: Bool
+    , _forgeLogModus     :: LogModus
     , _forgeNoExtract    :: Bool
     }
 
@@ -81,7 +81,7 @@ runForge (
     ForgeOptions baseDirs inGenos
                  entitySpec maybeSnpFile intersect_ 
                  outFormat minimal onlyGeno outPath maybeOutName  
-                 _ noExtract 
+                 logModus noExtract 
     ) = do
 
     -- compile entities
@@ -172,7 +172,7 @@ runForge (
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
     newNrSNPs <- liftIO $ runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData TridentDefaultLog intersect_ relevantPackages maybeSnpFile
+        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logModus intersect_ relevantPackages maybeSnpFile
         let eigenstratIndEntriesV = eigenstratIndEntries
         let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
 

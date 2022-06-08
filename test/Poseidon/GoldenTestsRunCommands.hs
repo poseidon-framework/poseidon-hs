@@ -340,7 +340,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
     }
     let action1 = usePoseidonLogger SimpleLog (runForge forgeOpts1) >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
@@ -361,7 +361,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac2"
         , _forgeOutPacName   = Nothing
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
     }
     let action2 = usePoseidonLogger SimpleLog (runForge forgeOpts2) >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
@@ -381,7 +381,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac3"
         , _forgeOutPacName   = Nothing
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
     }
     let action3 = usePoseidonLogger SimpleLog (runForge forgeOpts3) >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
@@ -404,7 +404,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac4"
         , _forgeOutPacName   = Nothing
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
     }
     let action4 = usePoseidonLogger SimpleLog (runForge forgeOpts4) >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
@@ -426,7 +426,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac5"
         , _forgeOutPacName   = Just "ForgePac5"
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
@@ -468,7 +468,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = True
         , _forgeOutPacPath   = testDir </> "ForgePac6"
         , _forgeOutPacName   = Just "ForgePac6"
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
@@ -500,7 +500,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac7"
         , _forgeOutPacName   = Just "ForgePac7"
-        , _forgeShowWarnings = False
+        , _forgeLogModus     = SimpleLog
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
