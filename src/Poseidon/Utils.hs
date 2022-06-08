@@ -22,12 +22,13 @@ import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
-data LogModus = NoLog | SimpleLog | TridentDefault
+data LogModus = NoLog | SimpleLog | TridentDefaultLog
+    deriving Show
 
 usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
-usePoseidonLogger NoLog          = usingLoggerT noLog
-usePoseidonLogger SimpleLog      = usingLoggerT simpleLog
-usePoseidonLogger TridentDefault = usingLoggerT tridentDefaultLog
+usePoseidonLogger NoLog             = usingLoggerT noLog
+usePoseidonLogger SimpleLog         = usingLoggerT simpleLog
+usePoseidonLogger TridentDefaultLog = usingLoggerT tridentDefaultLog
 
 noLog :: LogAction IO Message
 noLog = cfilter (const False) simpleLog 

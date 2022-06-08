@@ -25,7 +25,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger,
-                                        LogModus (..))
+                                        LogModus (..), PoseidonLogIO)
 
 import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
@@ -39,7 +39,13 @@ import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
 import qualified Data.Text              as T
 
-data Options = CmdFstats -- dummy option to provide help message to user
+data Options = Options { 
+    _logModus :: LogModus
+  , _subcommand :: Subcommand 
+  }
+
+data Subcommand = 
+      CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
     | CmdList ListOptions
     | CmdFetch FetchOptions
@@ -54,28 +60,26 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    cmdOpts <- OP.customExecParser p optParserInfo
-    catch (runCmd logModus cmdOpts) handler
+    (Options logModus subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logModus $ runCmd subcommand) (handler logModus)
     where
-        logModus = NoLog
-        p = OP.prefs OP.showHelpOnEmpty
-        handler :: PoseidonException -> IO ()
-        handler e = do
-            usePoseidonLogger logModus $ logError $ T.pack $ renderPoseidonException e
+        handler :: LogModus -> PoseidonException -> IO ()
+        handler l e = do
+            usePoseidonLogger l $ logError $ T.pack $ renderPoseidonException e
             exitFailure
 
-runCmd :: LogModus -> Options -> IO ()
-runCmd l o = case o of
-    CmdFstats           -> usePoseidonLogger l $ runFstatsDummy
-    CmdInit opts        -> usePoseidonLogger l $ runInit opts
-    CmdList opts        -> usePoseidonLogger l $ runList opts
-    CmdFetch opts       -> usePoseidonLogger l $ runFetch opts
-    CmdForge opts       -> usePoseidonLogger l $ runForge opts
-    CmdGenoconvert opts -> usePoseidonLogger l $ runGenoconvert opts
-    CmdSummarise opts   -> usePoseidonLogger l $ runSummarise opts
-    CmdSurvey opts      -> usePoseidonLogger l $ runSurvey opts
-    CmdUpdate opts      -> usePoseidonLogger l $ runUpdate opts
-    CmdValidate opts    -> usePoseidonLogger l $ runValidate opts
+runCmd :: Subcommand -> PoseidonLogIO ()
+runCmd o = case o of
+    CmdFstats           -> runFstatsDummy
+    CmdInit opts        -> runInit opts
+    CmdList opts        -> runList opts
+    CmdFetch opts       -> runFetch opts
+    CmdForge opts       -> runForge opts
+    CmdGenoconvert opts -> runGenoconvert opts
+    CmdSummarise opts   -> runSummarise opts
+    CmdSurvey opts      -> runSurvey opts
+    CmdUpdate opts      -> runUpdate opts
+    CmdValidate opts    -> runValidate opts
   where
     runFstatsDummy = logError $ T.pack $ fstatsErrorMessage
 
@@ -84,7 +88,7 @@ fstatsErrorMessage = "The fstats command has been moved from trident to the anal
     \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogModus <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -93,6 +97,22 @@ optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
 
 versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version number")
+
+parseLogModus :: OP.Parser LogModus
+parseLogModus = OP.option (OP.eitherReader readLogModus) (
+    OP.long "logModus" <> 
+    OP.help "How information should be reported: \
+            \NoLog, SimpleLog or TridentDefaultLog" <>
+    OP.value TridentDefaultLog <>
+    OP.showDefault
+    )
+    where
+        readLogModus :: String -> Either String LogModus
+        readLogModus s = case s of
+            "NoLog"             -> Right NoLog
+            "SimpleLog"         -> Right SimpleLog
+            "TridentDefaultLog" -> Right TridentDefaultLog
+            _                   -> Left "must be NoLog, SimpleLog or TridentDefaultLog"
 
 renderVersion :: String
 renderVersion = 
@@ -105,8 +125,8 @@ renderVersion =
     \Removing samples, groups or packages now follows a different logic. Please see the \
     \documentation in trident forge -h to verify that your selection still behaves as you expect."
 
-optParser :: OP.Parser Options
-optParser = OP.subparser (
+subcommandParser :: OP.Parser Subcommand
+subcommandParser = OP.subparser (
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
