@@ -1,4 +1,63 @@
-### V ...
+### V 1.0.0.0
+
+With this release we change to [PVP versioning](https://pvp.haskell.org). It introduces logging with the [co-log](https://hackage.haskell.org/package/co-log) library.
+
+`trident` now supports different log modes, which can be set with the general argument `--logMode`. This change helps us as developers to structure the information shown on the command line, and thus improves the readability of the output messages. It also gives the user some control over which information they want to see. Consider the following example output for `trident validate -d . --logMode X`:
+
+**NoLog** (hides all messages, only the progress indicator is shown)
+
+```
+> 151
+```
+ 
+**SimpleLog** (simple output to stderr, similar to the output before the log modes were introduced)
+
+```
+Searching POSEIDON.yml files... 
+1 found
+Checking Poseidon versions... 
+Initializing packages... 
+> 1 
+Some packages were skipped due to issues:
+In the package described in ./POSEIDON.yml:
+File ./CHANGELOG.md does not exist
+Packages loaded: 0
+Validation failed
+```
+
+**DefaultLog** (default setting, adds severity indicators before each message)
+
+```
+[Info]    Searching POSEIDON.yml files... 
+[Info]    1 found
+[Info]    Checking Poseidon versions... 
+[Info]    Initializing packages... 
+> 1 
+[Warning] Some packages were skipped due to issues:
+[Warning] In the package described in ./POSEIDON.yml:
+[Warning] File ./CHANGELOG.md does not exist
+[Info]    Packages loaded: 0
+[Error]   Validation failed
+```
+
+**ServerLog** (adds severity indicators and time stamps before each message)
+
+```
+[Info]    [21:53:28] Searching POSEIDON.yml files... 
+[Info]    [21:53:28] 1 found
+[Info]    [21:53:28] Checking Poseidon versions... 
+[Info]    [21:53:28] Initializing packages... 
+> 1 
+[Warning] [21:53:28] Some packages were skipped due to issues:
+[Warning] [21:53:28] In the package described in ./POSEIDON.yml:
+[Warning] [21:53:28] File ./CHANGELOG.md does not exist
+[Info]    [21:53:28] Packages loaded: 0
+[Error]   [21:53:28] Validation failed
+```
+
+**VerboseLog**, finally, renders the messages just as `ServerLog`, but also shows messages with the severity level `Debug`. The other modes hide these.
+
+This change deprecates the flag `-w/--warnings`, which turned on some more verbose warnings for `trident forge`. To see this information now, you have to set `--logMode VerboseLog`.
 
 ### V 0.29.0
 
