@@ -25,7 +25,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger,
-                                        LogModus (..), PoseidonLogIO)
+                                        LogMode (..), PoseidonLogIO)
 
 import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
@@ -40,7 +40,7 @@ import           System.IO              (hPutStrLn, stderr)
 import qualified Data.Text              as T
 
 data Options = Options { 
-    _logModus :: LogModus
+    _logMode    :: LogMode
   , _subcommand :: Subcommand 
   }
 
@@ -60,21 +60,21 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    (Options logModus subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logModus $ runCmd logModus subcommand) (handler logModus)
+    (Options logMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode)
     where
-        handler :: LogModus -> PoseidonException -> IO ()
+        handler :: LogMode -> PoseidonException -> IO ()
         handler l e = do
             usePoseidonLogger l $ logError $ T.pack $ renderPoseidonException e
             exitFailure
 
-runCmd :: LogModus -> Subcommand -> PoseidonLogIO ()
+runCmd :: LogMode -> Subcommand -> PoseidonLogIO ()
 runCmd l o = case o of
     CmdFstats           -> runFstatsDummy
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
     CmdFetch opts       -> runFetch opts
-    CmdForge opts       -> runForge $ opts {_forgeLogModus = l}
+    CmdForge opts       -> runForge $ opts {_forgeLogMode = l}
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts   -> runSummarise opts
     CmdSurvey opts      -> runSurvey opts
@@ -88,7 +88,7 @@ fstatsErrorMessage = "The fstats command has been moved from trident to the anal
     \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogModus <*> subcommandParser)) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -98,17 +98,17 @@ optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMo
 versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version number")
 
-parseLogModus :: OP.Parser LogModus
-parseLogModus = OP.option (OP.eitherReader readLogModus) (
-    OP.long "logModus" <> 
+parseLogMode :: OP.Parser LogMode
+parseLogMode = OP.option (OP.eitherReader readLogMode) (
+    OP.long "logMode" <> 
     OP.help "How information should be reported: \
             \NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog" <>
     OP.value DefaultLog <>
     OP.showDefault
     )
     where
-        readLogModus :: String -> Either String LogModus
-        readLogModus s = case s of
+        readLogMode :: String -> Either String LogMode
+        readLogMode s = case s of
             "NoLog"      -> Right NoLog
             "SimpleLog"  -> Right SimpleLog
             "DefaultLog" -> Right DefaultLog

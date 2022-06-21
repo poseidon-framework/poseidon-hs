@@ -6,7 +6,7 @@ module Poseidon.Utils (
     renderPoseidonException,
     usePoseidonLogger,
     PoseidonLogIO,
-    LogModus (..)
+    LogMode (..)
 ) where
 
 import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
@@ -22,10 +22,10 @@ import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
-data LogModus = NoLog | SimpleLog | DefaultLog | ServerLog | VerboseLog
+data LogMode = NoLog | SimpleLog | DefaultLog | ServerLog | VerboseLog
     deriving Show
 
-usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
+usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
 usePoseidonLogger NoLog      = usingLoggerT noLog
 usePoseidonLogger SimpleLog  = usingLoggerT simpleLog
 usePoseidonLogger DefaultLog = usingLoggerT defaultLog

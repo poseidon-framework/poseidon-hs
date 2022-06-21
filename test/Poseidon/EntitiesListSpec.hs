@@ -10,7 +10,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..))
 import           Poseidon.Utils          (PoseidonException, usePoseidonLogger,
-                                          LogModus (..))
+                                          LogMode (..))
 
 import           Data.Aeson              (encode, decode)
 import           Data.Either             (fromRight, isLeft)

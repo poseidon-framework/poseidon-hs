@@ -9,7 +9,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes     (GroupInfo (..),
                                               IndividualInfo (..),
                                               PackageInfo (..))
-import           Poseidon.Utils              (usePoseidonLogger, LogModus (..))
+import           Poseidon.Utils              (usePoseidonLogger, LogMode (..))
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
