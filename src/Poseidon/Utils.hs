@@ -22,29 +22,29 @@ import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
-data LogModus = NoLog | SimpleLog | TridentDefaultLog | ServerLog
+data LogModus = NoLog | SimpleLog | DefaultLog | ServerLog | VerboseLog
     deriving Show
 
 usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
-usePoseidonLogger NoLog             = usingLoggerT noLog
-usePoseidonLogger SimpleLog         = usingLoggerT simpleLog
-usePoseidonLogger TridentDefaultLog = usingLoggerT tridentDefaultLog
-usePoseidonLogger ServerLog         = usingLoggerT serverLog
+usePoseidonLogger NoLog      = usingLoggerT noLog
+usePoseidonLogger SimpleLog  = usingLoggerT simpleLog
+usePoseidonLogger DefaultLog = usingLoggerT defaultLog
+usePoseidonLogger ServerLog  = usingLoggerT serverLog
+usePoseidonLogger VerboseLog = usingLoggerT verboseLog
 
-noLog :: LogAction IO Message
-noLog = cfilter (const False) simpleLog 
+noLog      :: LogAction IO Message
+noLog      = cfilter (const False) simpleLog
+simpleLog  :: LogAction IO Message
+simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False True
+defaultLog :: LogAction IO Message
+defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False True
+serverLog  :: LogAction IO Message
+serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True True
+verboseLog :: LogAction IO Message
+verboseLog = compileLogMsg True True True
 
-simpleLog :: LogAction IO Message
-simpleLog = cfilter (\msg -> msgSeverity msg /= Debug) $ verboseLog False False True
-
-tridentDefaultLog :: LogAction IO Message
-tridentDefaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ verboseLog True False True
-
-serverLog :: LogAction IO Message
-serverLog = verboseLog True True True
-
-verboseLog :: Bool -> Bool -> Bool -> LogAction IO Message
-verboseLog severity time cursorCheck = cmapM prepareMessage logTextStderr
+compileLogMsg :: Bool -> Bool -> Bool -> LogAction IO Message
+compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
     where
         prepareMessage :: Message -> IO Text
         prepareMessage msg = do

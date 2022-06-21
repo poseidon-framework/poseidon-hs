@@ -102,18 +102,19 @@ parseLogModus :: OP.Parser LogModus
 parseLogModus = OP.option (OP.eitherReader readLogModus) (
     OP.long "logModus" <> 
     OP.help "How information should be reported: \
-            \NoLog, SimpleLog, TridentDefaultLog or ServerLog" <>
-    OP.value TridentDefaultLog <>
+            \NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog" <>
+    OP.value DefaultLog <>
     OP.showDefault
     )
     where
         readLogModus :: String -> Either String LogModus
         readLogModus s = case s of
-            "NoLog"             -> Right NoLog
-            "SimpleLog"         -> Right SimpleLog
-            "TridentDefaultLog" -> Right TridentDefaultLog
-            "ServerLog"         -> Right ServerLog
-            _                   -> Left "must be NoLog, SimpleLog, TridentDefaultLog or ServerLog"
+            "NoLog"      -> Right NoLog
+            "SimpleLog"  -> Right SimpleLog
+            "DefaultLog" -> Right DefaultLog
+            "ServerLog"  -> Right ServerLog
+            "VerboseLog" -> Right VerboseLog
+            _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
 
 renderVersion :: String
 renderVersion = 
