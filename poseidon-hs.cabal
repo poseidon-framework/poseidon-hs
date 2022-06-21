@@ -53,7 +53,7 @@ Test-Suite poseidon-tools-tests
   build-depends:       base, hspec, poseidon-hs, bytestring,
                        raw-strings-qq, yaml, time, vector,
                        text, QuickCheck, directory, sequence-formats,
-                       filepath, pipes, pipes-safe, pipes-ordered-zip
+                       filepath, pipes, pipes-safe, pipes-ordered-zip, aeson
   other-modules:       Poseidon.PackageSpec, Poseidon.JannoSpec,
                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                        Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,

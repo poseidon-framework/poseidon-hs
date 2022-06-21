@@ -13,10 +13,14 @@ import           Poseidon.Utils          (PoseidonException (..))
 
 import           Control.Applicative     ((<|>))
 import           Control.Exception       (throwIO)
+import           Data.Aeson              (FromJSON (..), ToJSON (..),
+                                          Value (..), withText)
+import           Data.Aeson.Types        (Parser)
 import           Data.Char               (isSpace)
 import           Data.Function           ((&))
 import           Data.List               (nub, (\\))
 import           Data.Maybe              (mapMaybe)
+import           Data.Text               (Text, pack, unpack)
 import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
 
@@ -78,6 +82,19 @@ instance EntitySpec PoseidonEntity where
         parseInd   = Ind   <$> P.between (P.char '<') (P.char '>') parseName
         parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
 
+-- turns out that we cannot easily write instances for classes, so need to be explicit for both types
+instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
+instance FromJSON SignedEntity   where parseJSON = withText "SignedEntity" aesonParseEntitySpec
+instance ToJSON   PoseidonEntity where toJSON e = String (pack $ show e)
+instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
+
+aesonParseEntitySpec :: (EntitySpec e) => Text -> Parser e
+aesonParseEntitySpec t = case P.runParser entitySpecParser () "" (unpack t) of
+    Left err -> fail (show err)
+    Right p' -> return p'
+
+
+
 removeEntitySign :: SignedEntity -> PoseidonEntity
 removeEntitySign (Include e) = e
 removeEntitySign (Exclude e) = e
@@ -111,7 +128,7 @@ readEntitiesFromFile entitiesFile = do
     eitherParseResult <- P.parseFromFile (entitiesListMultilineP <* P.eof) entitiesFile
     case eitherParseResult of
         Left err -> throwIO (PoseidonPoseidonEntityParsingException (show err))
-        Right r -> return r
+        Right r  -> return r
 
 readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]
 readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
