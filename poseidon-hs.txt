@@ -741,7 +741,11 @@ instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.SignedEntity
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Show.Show Poseidon.EntitiesList.SignedEntity
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntitiesList.SignedEntity
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.SignedEntity
 instance GHC.Show.Show Poseidon.EntitiesList.PoseidonEntity
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntitiesList.PoseidonEntity
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.PoseidonEntity
 
 module Poseidon.CLI.Validate
 
