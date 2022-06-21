@@ -1,17 +1,19 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.EntitiesListSpec (spec) where
 
 import           Poseidon.EntitiesList
-import           Poseidon.Package      (PackageReadOptions (..),
-                                        PoseidonPackage (..),
-                                        defaultPackageReadOptions,
-                                        readPoseidonPackageCollection, 
-                                        getJointIndividualInfo)
-import Poseidon.SecondaryTypes         (IndividualInfo(..))
-import           Poseidon.Utils        (PoseidonException, usePoseidonLogger,
-                                        LogModus (..))
+import           Poseidon.Package        (PackageReadOptions (..),
+                                          PoseidonPackage (..),
+                                          defaultPackageReadOptions,
+                                          getJointIndividualInfo,
+                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes (IndividualInfo (..))
+import           Poseidon.Utils          (PoseidonException, usePoseidonLogger,
+                                          LogModus (..)))
 
-
-import           Data.Either           (fromRight, isLeft)
+import           Data.Aeson              (encode, decode)
+import           Data.Either             (fromRight, isLeft)
 import           Test.Hspec
 
 spec :: Spec
@@ -21,6 +23,7 @@ spec = do
     testFindNonExistentEntities
     testFilterPackages
     testExtractEntityIndices
+    testJSON
 
 
 testReadPoseidonEntitiesString :: Spec
@@ -169,4 +172,20 @@ testExtractEntityIndices =
         conformingEntityIndices [Include (Pac "Pac1"), Exclude (Group "Pop2"), Include (Ind "Ind3")] indInfo `shouldBe` [0, 1, 2]
         conformingEntityIndices [Include (Pac "Pac1")] indInfo `shouldBe` [0, 1, 2, 3]
 
-
+testJSON :: Spec
+testJSON =
+    describe "Poseidon.EntitiesList.ToJSON" $ do
+        it "should encode entities correctly to JSON" $ do
+            encode (Ind "Ind1")                `shouldBe` "\"<Ind1>\""
+            encode (Group "Group1")            `shouldBe` "\"Group1\""
+            encode (Pac "Pac1")                `shouldBe` "\"*Pac1*\""
+            encode (Exclude (Ind "Ind1"))      `shouldBe` "\"-<Ind1>\""
+            encode (Exclude (Group "Group1"))  `shouldBe` "\"-Group1\""
+            encode (Exclude (Pac "Pac1"))      `shouldBe` "\"-*Pac1*\""
+        it "should decode entities correctly from JSON" $ do
+            decode "\"<Ind1>\""  `shouldBe` Just (Ind "Ind1")
+            decode "\"Group1\""  `shouldBe` Just (Group "Group1")
+            decode "\"*Pac1*\""  `shouldBe` Just (Pac "Pac1")
+            decode "\"-<Ind1>\"" `shouldBe` Just (Exclude (Ind "Ind1"))
+            decode "\"-Group1\"" `shouldBe` Just (Exclude (Group "Group1"))
+            decode "\"-*Pac1*\"" `shouldBe` Just (Exclude (Pac "Pac1"))
