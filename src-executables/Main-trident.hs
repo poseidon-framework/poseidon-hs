@@ -102,7 +102,7 @@ parseLogModus :: OP.Parser LogModus
 parseLogModus = OP.option (OP.eitherReader readLogModus) (
     OP.long "logModus" <> 
     OP.help "How information should be reported: \
-            \NoLog, SimpleLog, TridentDefaultLog or VerboseLog" <>
+            \NoLog, SimpleLog, TridentDefaultLog or ServerLog" <>
     OP.value TridentDefaultLog <>
     OP.showDefault
     )
@@ -112,8 +112,8 @@ parseLogModus = OP.option (OP.eitherReader readLogModus) (
             "NoLog"             -> Right NoLog
             "SimpleLog"         -> Right SimpleLog
             "TridentDefaultLog" -> Right TridentDefaultLog
-            "VerboseLog"        -> Right VerboseLog
-            _                   -> Left "must be NoLog, SimpleLog, TridentDefaultLog or VerboseLog"
+            "ServerLog"         -> Right ServerLog
+            _                   -> Left "must be NoLog, SimpleLog, TridentDefaultLog or ServerLog"
 
 renderVersion :: String
 renderVersion = 

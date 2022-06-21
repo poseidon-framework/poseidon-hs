@@ -22,43 +22,52 @@ import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
-data LogModus = NoLog | SimpleLog | TridentDefaultLog | VerboseLog
+data LogModus = NoLog | SimpleLog | TridentDefaultLog | ServerLog
     deriving Show
 
 usePoseidonLogger :: LogModus -> PoseidonLogIO a -> IO a
 usePoseidonLogger NoLog             = usingLoggerT noLog
 usePoseidonLogger SimpleLog         = usingLoggerT simpleLog
 usePoseidonLogger TridentDefaultLog = usingLoggerT tridentDefaultLog
-usePoseidonLogger VerboseLog        = usingLoggerT verboseLog
+usePoseidonLogger ServerLog         = usingLoggerT serverLog
 
 noLog :: LogAction IO Message
 noLog = cfilter (const False) simpleLog 
 
 simpleLog :: LogAction IO Message
-simpleLog = cfilter (\msg -> msgSeverity msg /= Debug) $ cmap msgText logTextStderr
+simpleLog = cfilter (\msg -> msgSeverity msg /= Debug) $ verboseLog False False True
 
 tridentDefaultLog :: LogAction IO Message
-tridentDefaultLog = cfilter (\msg -> msgSeverity msg /= Debug) verboseLog
+tridentDefaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ verboseLog True False True
 
-verboseLog :: LogAction IO Message
-verboseLog = cmapM prepareMessage logTextStderr
+serverLog :: LogAction IO Message
+serverLog = verboseLog True True True
+
+verboseLog :: Bool -> Bool -> Bool -> LogAction IO Message
+verboseLog severity time cursorCheck = cmapM prepareMessage logTextStderr
     where
         prepareMessage :: Message -> IO Text
         prepareMessage msg = do
             -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
-            eitherCurserPos <- try getCursorPosition :: IO (Either IOException (Maybe (Int, Int)))
-            case eitherCurserPos of
-                Left _ -> return ()
-                Right cursorPos -> do
-                    let col = maybe 0 snd cursorPos
-                        isNotAtStartOfLine = col /= 0
-                    when isNotAtStartOfLine $ do hPutStrLn stderr ""
+            when cursorCheck $ do
+                eitherCurserPos <- try getCursorPosition :: IO (Either IOException (Maybe (Int, Int)))
+                case eitherCurserPos of
+                    Left _ -> return ()
+                    Right cursorPos -> do
+                        let col = maybe 0 snd cursorPos
+                            isNotAtStartOfLine = col /= 0
+                        when isNotAtStartOfLine $ do hPutStrLn stderr ""
             -- prepare message
-            zonedTime <- getCurrentTime >>= utcToLocalZonedTime
-            let textSeverity = showSeverity (msgSeverity msg)
-                textTime = pack $ formatTime defaultTimeLocale "%T" zonedTime
-                textMessage = msgText msg
-            return $ textSeverity <> "[" <> textTime <> "] " <> textMessage
+            let textMessage = msgText msg
+                textSeverity = if severity 
+                    then showSeverity (msgSeverity msg) 
+                    else mempty
+            textTime <- if time
+                    then do 
+                        zonedTime <- getCurrentTime >>= utcToLocalZonedTime
+                        return $ pack $ "[" ++ formatTime defaultTimeLocale "%T" zonedTime ++ "] "
+                    else mempty
+            return $ textSeverity <> textTime <> textMessage
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 
