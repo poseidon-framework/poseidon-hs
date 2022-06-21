@@ -13,13 +13,14 @@ import           Poseidon.Utils          (PoseidonException (..))
 
 import           Control.Applicative     ((<|>))
 import           Control.Exception       (throwIO)
-import           Data.Aeson              (FromJSON(..), ToJSON(..), withText, Value(..))
-import Data.Aeson.Types (Parser)
+import           Data.Aeson              (FromJSON (..), ToJSON (..),
+                                          Value (..), withText)
+import           Data.Aeson.Types        (Parser)
 import           Data.Char               (isSpace)
 import           Data.Function           ((&))
 import           Data.List               (nub, (\\))
 import           Data.Maybe              (mapMaybe)
-import Data.Text (Text, unpack, pack)
+import           Data.Text               (Text, pack, unpack)
 import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
 
