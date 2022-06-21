@@ -1,3 +1,4 @@
+- V 0.29.1: JSON support for entities
 - V 0.29.0: Added a simpler input interface for unpackaged genotype data and an option to set the output path of genoconvert explicitly
 - V 0.28.0: Added direct interaction with genotype data files (not packaged in a Poseidon package) for genoconvert and forge
 - V 0.27.2: Allow forge lists to be empty, thus triggering forging all packages
