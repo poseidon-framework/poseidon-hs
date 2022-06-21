@@ -9,7 +9,7 @@ module Poseidon.Utils (
     LogModus (..)
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cmap, cfilter,
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
                                          logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
 import           Control.Exception      (Exception, try, IOException)
 import           Control.Monad          (when)

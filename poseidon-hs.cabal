@@ -50,7 +50,7 @@ Test-Suite poseidon-tools-tests
     type:               exitcode-stdio-1.0
     main-is:            Spec.hs
     hs-source-dirs:     test
-    build-depends:      base, hspec, poseidon-hs, bytestring,
+    build-depends:      base, hspec, poseidon-hs, bytestring, aeson,
                         raw-strings-qq, yaml, time, vector,
                         text, QuickCheck, directory, sequence-formats,
                         filepath, pipes, pipes-safe, pipes-ordered-zip
