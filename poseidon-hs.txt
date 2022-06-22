@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 0.29.1
+@version 1.0.0.0
 
 module Poseidon.MathHelpers
 
@@ -184,6 +184,15 @@ PoseidonEmptyOutPacNameException :: PoseidonException
 --   directory
 PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
+usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
+type PoseidonLogIO = LoggerT Message IO
+data LogMode
+NoLog :: LogMode
+SimpleLog :: LogMode
+DefaultLog :: LogMode
+ServerLog :: LogMode
+VerboseLog :: LogMode
+instance GHC.Show.Show Poseidon.Utils.LogMode
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
 
@@ -464,8 +473,8 @@ loadIndividuals :: FilePath -> GenotypeDataSpec -> IO [EigenstratIndEntry]
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-joinEntries :: MonadIO m => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-getConsensusSnpEntry :: MonadIO m => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+joinEntries :: MonadIO m => [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m ([String], EigenstratSnpEntry, GenoLine)
+getConsensusSnpEntry :: MonadIO m => [EigenstratSnpEntry] -> m ([String], EigenstratSnpEntry)
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
 printSNPCopyProgress :: Pipe a a (SafeT IO) ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
@@ -678,11 +687,11 @@ findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 --   multiple base directories. This also takes care of smart filtering and
 --   duplication checks. Exceptions lead to skipping packages and
 --   outputting warnings
-readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> IO [PoseidonPackage]
+readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonLogIO [PoseidonPackage]
 getChecksum :: FilePath -> IO String
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: MonadSafe m => Bool -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+getJointGenotypeData :: MonadSafe m => LogMode -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> [JannoRow]
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 
@@ -757,10 +766,10 @@ ValidateOptions :: [FilePath] -> Bool -> Bool -> Bool -> ValidateOptions
 [_validateIgnoreGeno] :: ValidateOptions -> Bool
 [_validateNoExitCode] :: ValidateOptions -> Bool
 pacReadOpts :: PackageReadOptions
-runValidate :: ValidateOptions -> IO ()
+runValidate :: ValidateOptions -> PoseidonLogIO ()
 
 module Poseidon.CLI.Update
-runUpdate :: UpdateOptions -> IO ()
+runUpdate :: UpdateOptions -> PoseidonLogIO ()
 data UpdateOptions
 UpdateOptions :: [FilePath] -> Maybe Version -> Bool -> VersionComponent -> Bool -> Bool -> [ContributorSpec] -> String -> Bool -> UpdateOptions
 [_updateBaseDirs] :: UpdateOptions -> [FilePath]
@@ -783,7 +792,7 @@ SummariseOptions :: [FilePath] -> Bool -> SummariseOptions
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the janno command
-runSummarise :: SummariseOptions -> IO ()
+runSummarise :: SummariseOptions -> PoseidonLogIO ()
 
 -- | A function to print meaningful summary information for a list of
 --   poseidon samples
@@ -820,7 +829,7 @@ maybeShowString :: Maybe String -> String
 module Poseidon.CLI.List
 
 -- | The main function running the list command
-runList :: ListOptions -> IO ()
+runList :: ListOptions -> PoseidonLogIO ()
 
 -- | A datatype representing command line options for the list command
 data ListOptions
@@ -857,8 +866,8 @@ GenoconvertOptions :: [FilePath] -> [GenotypeDataSpec] -> GenotypeFormatSpec -> 
 [_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
 [_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
 pacReadOpts :: PackageReadOptions
-runGenoconvert :: GenoconvertOptions -> IO ()
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> IO ()
+runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> PoseidonLogIO ()
 
 module Poseidon.CLI.Fetch
 data FetchOptions
@@ -877,13 +886,13 @@ LaterLocal :: PackageState
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the Fetch command
-runFetch :: FetchOptions -> IO ()
+runFetch :: FetchOptions -> PoseidonLogIO ()
 readServerIndInfo :: ByteString -> IO [IndividualInfo]
 readServerPackageInfo :: ByteString -> IO [PackageInfo]
 determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
-handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> IO ()
+handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonLogIO ()
 printV :: Maybe Version -> String
-downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> IO ()
+downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 unzipPackage :: FilePath -> FilePath -> IO ()
 downloadPackage :: FilePath -> String -> String -> IO ()
 padString :: Int -> String -> String
@@ -899,7 +908,7 @@ SurveyOptions :: [FilePath] -> Bool -> SurveyOptions
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the janno command
-runSurvey :: SurveyOptions -> IO ()
+runSurvey :: SurveyOptions -> PoseidonLogIO ()
 extractFirst :: (a, b, c, d) -> a
 renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
 renderJannoCompleteness :: [JannoRow] -> String
@@ -911,13 +920,13 @@ InitOptions :: GenotypeDataSpec -> FilePath -> Maybe String -> Bool -> InitOptio
 [_initPacPath] :: InitOptions -> FilePath
 [_initPacName] :: InitOptions -> Maybe String
 [_initMinimal] :: InitOptions -> Bool
-runInit :: InitOptions -> IO ()
+runInit :: InitOptions -> PoseidonLogIO ()
 
 module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> Either SignedEntitiesList FilePath -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> Bool -> ForgeOptions
+ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> Either SignedEntitiesList FilePath -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> LogMode -> Bool -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
 [_forgeInGenos] :: ForgeOptions -> [GenotypeDataSpec]
 [_forgeEntitySpec] :: ForgeOptions -> Either SignedEntitiesList FilePath
@@ -928,13 +937,13 @@ ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> Either SignedEntitiesList Fi
 [_forgeOutOnlyGeno] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
-[_forgeShowWarnings] :: ForgeOptions -> Bool
+[_forgeLogMode] :: ForgeOptions -> LogMode
 [_forgeNoExtract] :: ForgeOptions -> Bool
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
-runForge :: ForgeOptions -> IO ()
+runForge :: ForgeOptions -> PoseidonLogIO ()
 sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
-checkIndividualsUniqueJanno :: [JannoRow] -> IO ()
+checkIndividualsUniqueJanno :: [JannoRow] -> PoseidonLogIO ()
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
-fillMissingSnpSets :: [PoseidonPackage] -> IO [SNPSetSpec]
+fillMissingSnpSets :: [PoseidonPackage] -> PoseidonLogIO [SNPSetSpec]
