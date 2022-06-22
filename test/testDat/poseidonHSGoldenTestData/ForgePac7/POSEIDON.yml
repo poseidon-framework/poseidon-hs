@@ -5,7 +5,7 @@ contributor:
 - name: John Doe
   email: john@doe.net
 packageVersion: 0.1.0
-lastModified: 2022-05-09
+lastModified: 2022-06-05
 genotypeData:
   format: EIGENSTRAT
   genoFile: ForgePac7.geno

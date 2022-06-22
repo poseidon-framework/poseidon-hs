@@ -23,8 +23,11 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         contributorSpecParser,
                                         runParser)
 import           Poseidon.Utils         (PoseidonException (..),
-                                        renderPoseidonException)
+                                        renderPoseidonException,
+                                        usePoseidonLogger,
+                                        LogMode (..), PoseidonLogIO)
 
+import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -34,8 +37,15 @@ import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
+import qualified Data.Text              as T
 
-data Options = CmdFstats -- dummy option to provide help message to user
+data Options = Options { 
+    _logMode    :: LogMode
+  , _subcommand :: Subcommand 
+  }
+
+data Subcommand = 
+      CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
     | CmdList ListOptions
     | CmdFetch FetchOptions
@@ -50,36 +60,35 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    cmdOpts <- OP.customExecParser p optParserInfo
-    catch (runCmd cmdOpts) handler
+    (Options logMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode)
     where
-        p = OP.prefs OP.showHelpOnEmpty
-        handler :: PoseidonException -> IO ()
-        handler e = do
-            hPutStrLn stderr $ renderPoseidonException e
+        handler :: LogMode -> PoseidonException -> IO ()
+        handler l e = do
+            usePoseidonLogger l $ logError $ T.pack $ renderPoseidonException e
             exitFailure
 
-runCmd :: Options -> IO ()
-runCmd o = case o of
-    CmdFstats    -> runFstatsDummy
-    CmdInit opts      -> runInit opts
-    CmdList opts      -> runList opts
-    CmdFetch opts     -> runFetch opts
-    CmdForge opts     -> runForge opts
+runCmd :: LogMode -> Subcommand -> PoseidonLogIO ()
+runCmd l o = case o of
+    CmdFstats           -> runFstatsDummy
+    CmdInit opts        -> runInit opts
+    CmdList opts        -> runList opts
+    CmdFetch opts       -> runFetch opts
+    CmdForge opts       -> runForge $ opts {_forgeLogMode = l}
     CmdGenoconvert opts -> runGenoconvert opts
-    CmdSummarise opts -> runSummarise opts
-    CmdSurvey opts    -> runSurvey opts
-    CmdUpdate opts -> runUpdate opts
-    CmdValidate opts  -> runValidate opts
+    CmdSummarise opts   -> runSummarise opts
+    CmdSurvey opts      -> runSurvey opts
+    CmdUpdate opts      -> runUpdate opts
+    CmdValidate opts    -> runValidate opts
   where
-    runFstatsDummy = hPutStrLn stderr fstatsErrorMessage 
+    runFstatsDummy = logError $ T.pack $ fstatsErrorMessage
 
 fstatsErrorMessage :: String
 fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
     \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -88,6 +97,24 @@ optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
 
 versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version number")
+
+parseLogMode :: OP.Parser LogMode
+parseLogMode = OP.option (OP.eitherReader readLogMode) (
+    OP.long "logMode" <> 
+    OP.help "How information should be reported: \
+            \NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog" <>
+    OP.value DefaultLog <>
+    OP.showDefault
+    )
+    where
+        readLogMode :: String -> Either String LogMode
+        readLogMode s = case s of
+            "NoLog"      -> Right NoLog
+            "SimpleLog"  -> Right SimpleLog
+            "DefaultLog" -> Right DefaultLog
+            "ServerLog"  -> Right ServerLog
+            "VerboseLog" -> Right VerboseLog
+            _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
 
 renderVersion :: String
 renderVersion = 
@@ -100,8 +127,8 @@ renderVersion =
     \Removing samples, groups or packages now follows a different logic. Please see the \
     \documentation in trident forge -h to verify that your selection still behaves as you expect."
 
-optParser :: OP.Parser Options
-optParser = OP.subparser (
+subcommandParser :: OP.Parser Subcommand
+subcommandParser = OP.subparser (
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
@@ -181,7 +208,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> parseShowWarnings
+                              <*> pure NoLog
                               <*> parseNoExtract
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
@@ -480,9 +507,6 @@ parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
 parseOutOnlyGeno :: OP.Parser Bool
 parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
     OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
-
-parseShowWarnings :: OP.Parser Bool
-parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
 
 parseNoExtract :: OP.Parser Bool
 parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection step in forge. This will result in \

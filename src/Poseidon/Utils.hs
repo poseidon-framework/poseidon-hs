@@ -1,12 +1,73 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Poseidon.Utils (
     PoseidonException (..),
-    renderPoseidonException
+    renderPoseidonException,
+    usePoseidonLogger,
+    PoseidonLogIO,
+    LogMode (..)
 ) where
 
-import           Control.Exception      (Exception)
+import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
+                                         logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
+import           Control.Exception      (Exception, try, IOException)
+import           Control.Monad          (when)
 import           Data.Yaml              (ParseException)
+import           Data.Text              (Text, pack)
+import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
+                                         utcToLocalZonedTime)
+import           System.Console.ANSI    (getCursorPosition)
+import           System.IO              (hPutStrLn, stderr)
+
+type PoseidonLogIO = LoggerT Message IO
+
+data LogMode = NoLog | SimpleLog | DefaultLog | ServerLog | VerboseLog
+    deriving Show
+
+usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
+usePoseidonLogger NoLog      = usingLoggerT noLog
+usePoseidonLogger SimpleLog  = usingLoggerT simpleLog
+usePoseidonLogger DefaultLog = usingLoggerT defaultLog
+usePoseidonLogger ServerLog  = usingLoggerT serverLog
+usePoseidonLogger VerboseLog = usingLoggerT verboseLog
+
+noLog      :: LogAction IO Message
+noLog      = cfilter (const False) simpleLog
+simpleLog  :: LogAction IO Message
+simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False True
+defaultLog :: LogAction IO Message
+defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False True
+serverLog  :: LogAction IO Message
+serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True True
+verboseLog :: LogAction IO Message
+verboseLog = compileLogMsg True True True
+
+compileLogMsg :: Bool -> Bool -> Bool -> LogAction IO Message
+compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
+    where
+        prepareMessage :: Message -> IO Text
+        prepareMessage msg = do
+            -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
+            when cursorCheck $ do
+                eitherCurserPos <- try getCursorPosition :: IO (Either IOException (Maybe (Int, Int)))
+                case eitherCurserPos of
+                    Left _ -> return ()
+                    Right cursorPos -> do
+                        let col = maybe 0 snd cursorPos
+                            isNotAtStartOfLine = col /= 0
+                        when isNotAtStartOfLine $ do hPutStrLn stderr ""
+            -- prepare message
+            let textMessage = msgText msg
+                textSeverity = if severity 
+                    then showSeverity (msgSeverity msg) 
+                    else mempty
+            textTime <- if time
+                    then do 
+                        zonedTime <- getCurrentTime >>= utcToLocalZonedTime
+                        return $ pack $ "[" ++ formatTime defaultTimeLocale "%T" zonedTime ++ "] "
+                    else mempty
+            return $ textSeverity <> textTime <> textMessage
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = 

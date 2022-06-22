@@ -6,7 +6,9 @@ import           Poseidon.Janno         (Percent (..), JannoRow (..), JannoList(
 import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
 import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection,
                                          PackageReadOptions (..), defaultPackageReadOptions)
+import           Poseidon.Utils         (PoseidonLogIO)
 
+import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (sortBy, nub, group, sort, intercalate)
 import           Data.Maybe             (mapMaybe)
 import           Text.Layout.Table      (asciiRoundS, column, def,
@@ -28,11 +30,11 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runSummarise :: SummariseOptions -> IO ()
+runSummarise :: SummariseOptions -> PoseidonLogIO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
-    summariseJannoRows (concat jannos) rawOutput
+    liftIO $ summariseJannoRows (concat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summariseJannoRows :: [JannoRow] -> Bool -> IO ()

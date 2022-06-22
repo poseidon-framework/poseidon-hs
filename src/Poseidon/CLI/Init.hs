@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile           (dummyBibEntry, writeBibTeXFile)
@@ -9,13 +11,15 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
                                              newMinimalPackageTemplate,
                                              writePoseidonPackage)
-import           Poseidon.Utils              (PoseidonException (..))
+import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO)
 
+import           Colog                      (logInfo)
+import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
-import           Control.Monad.Catch        (throwM)
+import           Control.Monad.IO.Class     (liftIO)
+import           Data.Text                  (pack)
 import           System.Directory           (createDirectoryIfMissing, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
-import           System.IO                  (hPutStrLn, stderr)
 
 data InitOptions = InitOptions
     { _initGenoData :: GenotypeDataSpec
@@ -24,38 +28,38 @@ data InitOptions = InitOptions
     , _initMinimal :: Bool
     }
 
-runInit :: InitOptions -> IO ()
+runInit :: InitOptions -> PoseidonLogIO ()
 runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPath maybeOutName minimal) = do
     -- create new directory
-    hPutStrLn stderr $ "Creating new package directory: " ++ outPath
-    createDirectoryIfMissing True outPath
+    logInfo $ pack $ "Creating new package directory: " ++ outPath
+    liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let outInd = takeFileName indFile_
         outSnp = takeFileName snpFile_
         outGeno = takeFileName genoFile_
         genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
     -- genotype data
-    hPutStrLn stderr "Copying genotype data"
-    copyFile indFile_ $ outPath </> outInd
-    copyFile snpFile_ $ outPath </> outSnp
-    copyFile genoFile_ $ outPath </> outGeno
+    logInfo "Copying genotype data"
+    liftIO $ copyFile indFile_ $ outPath </> outInd
+    liftIO $ copyFile snpFile_ $ outPath </> outSnp
+    liftIO $ copyFile genoFile_ $ outPath </> outGeno
     -- create new package
-    hPutStrLn stderr "Creating new package entity"
+    logInfo "Creating new package entity"
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
             Just x -> x
             Nothing -> takeBaseName outPath
-    when (outName == "") $ throwM PoseidonEmptyOutPacNameException
-    inds <- loadIndividuals outPath genotypeData
+    when (outName == "") $ liftIO $ throwIO PoseidonEmptyOutPacNameException
+    inds <- liftIO $ loadIndividuals outPath genotypeData
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
+           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
     -- POSEIDON.yml
-    hPutStrLn stderr "Creating POSEIDON.yml"
-    writePoseidonPackage pac
+    logInfo "Creating POSEIDON.yml"
+    liftIO $ writePoseidonPackage pac
     unless minimal $ do
         -- janno
-        hPutStrLn stderr "Creating minimal .janno file"
-        writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
+        logInfo "Creating minimal .janno file"
+        liftIO $ writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
         -- bib
-        hPutStrLn stderr "Creating dummy .bib file"
-        writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac
+        logInfo "Creating dummy .bib file"
+        liftIO $ writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac

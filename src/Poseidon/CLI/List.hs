@@ -6,15 +6,17 @@ import           Poseidon.Janno             (JannoRow (..), JannoList(..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
                                              PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (PoseidonException (..), PoseidonLogIO)
 
+import           Colog                      (logInfo)
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
+import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (eitherDecode')
 import qualified Data.ByteString.Lazy       as LB
 import           Data.List                  (group, intercalate, sortOn)
+import           Data.Text                  (pack)
 import           Network.HTTP.Conduit       (simpleHttp)
-import           System.IO                  (hPutStrLn, stderr)
 import           Text.Layout.Table          (asciiRoundS, column, def,
                                              expandUntil, rowsG, tableString,
                                              titlesH)
@@ -43,24 +45,24 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the list command
-runList :: ListOptions -> IO ()
+runList :: ListOptions -> PoseidonLogIO ()
 runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
     allSampleInfo <- case repoLocation of
         RepoRemote remoteURL -> do
             -- load remote samples list
-            hPutStrLn stderr "Downloading sample list from remote"
+            logInfo "Downloading sample list from remote"
             remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/janno_all")
-            readSampleInfo remoteOverviewJSONByteString
+            liftIO $ readSampleInfo remoteOverviewJSONByteString
         RepoLocal baseDirs -> do
             allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGeno} baseDirs
             return [(posPacTitle pac, posPacJanno pac) | pac <- allPackages]
     -- construct output
-    hPutStrLn stderr "Preparing output table"
+    logInfo "Preparing output table"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
                 tableB = [[name, show (length rows)] | (name, rows) <- sortOn fst allSampleInfo]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " packages")
+            logInfo $ pack ("found " ++ show (length tableB) ++ " packages")
             return (tableH, tableB)
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
@@ -75,21 +77,21 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                         groupPacs = head $ map fst oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
+            logInfo $ pack ("found " ++ show (length tableB) ++ " groups/populations")
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
                 forM rows (\row -> do
-                    moreFields <- extractAdditionalFields row moreJannoColumns
+                    moreFields <- liftIO $ extractAdditionalFields row moreJannoColumns
                     return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
+            logInfo $ pack ("found " ++ show (length tableB) ++ " individuals/samples")
             return (tableH, tableB)
     if rawOutput then
-        putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+        liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
         let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
-        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+        liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 unnestGroupNames :: [(String, JannoRow)] -> [(String, String)]
 unnestGroupNames = concatMap unnestOne

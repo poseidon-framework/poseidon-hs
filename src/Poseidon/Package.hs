@@ -36,8 +36,10 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
 import           Poseidon.Utils             (PoseidonException (..),
-                                             renderPoseidonException)
+                                             renderPoseidonException,
+                                             PoseidonLogIO, LogMode (..), usePoseidonLogger)
 
+import           Colog                      (logInfo, logWarning, logDebug)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
@@ -53,6 +55,7 @@ import           Data.Either                (lefts, rights)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
 import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
+import qualified Data.Text                  as T
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -75,7 +78,7 @@ import           System.Directory           (doesDirectoryExist, doesFileExist,
 import           System.FilePath            (takeDirectory, takeExtension,
                                              takeFileName, (</>), takeBaseName)
 import           System.IO                  (IOMode (ReadMode), hFlush,
-                                             hGetContents, hPrint, hPutStr,
+                                             hGetContents, hPutStr,
                                              hPutStrLn, stderr, withFile)
 
 -- | Internal structure for YAML loading only
@@ -240,48 +243,47 @@ defaultPackageReadOptions = PackageReadOptions {
 -- warnings
 readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
-                              -> IO [PoseidonPackage] -- ^ A list of returned poseidon packages.
+                              -> PoseidonLogIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
-    hPutStr stderr "Searching POSEIDON.yml files... "
-    posFilesAllVersions <- concat <$> mapM findAllPoseidonYmlFiles dirs
-    hPutStrLn stderr $ show (length posFilesAllVersions) ++ " found"
+    logInfo "Searching POSEIDON.yml files... "
+    posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles dirs
+    logInfo $ T.pack $ show (length posFilesAllVersions) ++ " found"
     posFiles <- if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
-                else do
-                  hPutStrLn stderr "Checking Poseidon versions... "
-                  filterByPoseidonVersion posFilesAllVersions
-    hPutStrLn stderr "Initializing packages... "
-    eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
-    hPutStrLn stderr ""
+                else do 
+                    logInfo "Checking Poseidon versions... "
+                    filterByPoseidonVersion posFilesAllVersions
+    logInfo "Initializing packages... "
+    eitherPackages <- liftIO $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     -- notifying the users of package problems
     unless (null . lefts $ eitherPackages) $ do
-        hPutStrLn stderr "Some packages were skipped due to issues:"
+        logWarning "Some packages were skipped due to issues:"
         forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
             case epac of
                 Left e -> do
-                    hPutStrLn stderr ("In the package described in " ++ posF ++ ":")
-                    hPutStrLn stderr (renderPoseidonException e)
+                    logWarning $ T.pack ("In the package described in " ++ posF ++ ":")
+                    logWarning $ T.pack (renderPoseidonException e)
                 _ -> return ()
     let loadedPackages = rights eitherPackages
     -- package duplication check
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    finalPackageList <- filterDuplicatePackages loadedPackages
+    finalPackageList <- liftIO $ filterDuplicatePackages loadedPackages
     when (length loadedPackages > length finalPackageList) $ do
-        hPutStrLn stderr "Some packages were skipped as duplicates:"
+        logWarning "Some packages were skipped as duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
-            \x -> hPrint stderr x
+            \x -> logWarning $ T.pack x
     -- individual duplication check
-    individuals <- mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
+    individuals <- liftIO $ mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
     checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
     -- report number of valid packages
-    hPutStrLn stderr $ "Packages loaded: " ++ (show . length $ finalPackageList)
+    logInfo $ T.pack $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
     return finalPackageList
   where
-    filterByPoseidonVersion :: [FilePath] -> IO [FilePath]
+    filterByPoseidonVersion :: [FilePath] -> PoseidonLogIO [FilePath]
     filterByPoseidonVersion posFiles = do
-        eitherPaths <- mapM isInVersionRange posFiles
-        mapM_ (hPutStrLn stderr . renderPoseidonException) $ lefts eitherPaths
+        eitherPaths <- liftIO $ mapM isInVersionRange posFiles
+        mapM_ (logWarning . T.pack . renderPoseidonException) $ lefts eitherPaths
         return $ rights eitherPaths
         where
             isInVersionRange :: FilePath -> IO (Either PoseidonException FilePath)
@@ -350,7 +352,7 @@ readPoseidonPackage opts ymlPath = do
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
         -- we're using getJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- getJointGenotypeData False False [pac] Nothing
+        (_, eigenstratProd) <- getJointGenotypeData NoLog False [pac] Nothing
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
@@ -454,19 +456,19 @@ checkJannoBibConsistency pacName janno bibtex = do
         "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
 
-checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> IO ()
+checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonLogIO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
     let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
     when (length genoIDs /= length (nub genoIDs)) $ do
         if stopOnDuplicates
         then do
-            throwM $ PoseidonCollectionException $
+            liftIO $ throwIO $ PoseidonCollectionException $
                 "Duplicate individuals (" ++
                 intercalate ", " (genoIDs \\ nub genoIDs) ++
                 ")"
         else do
-            hPutStrLn stderr $
-                "Warning: Duplicate individuals (" ++
+            logWarning $ T.pack $
+                "Duplicate individuals (" ++
                 intercalate ", " (take 3 $ genoIDs \\ nub genoIDs) ++
                 if length (genoIDs \\ nub genoIDs) > 3
                 then ", ...)"
@@ -502,20 +504,21 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 in  throwM $ PoseidonPackageException msg
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to show all warnings
+getJointGenotypeData :: (MonadSafe m) => 
+                        LogMode -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData showAllWarnings intersect pacs maybeSnpFile = do
+getJointGenotypeData logMode intersect pacs maybeSnpFile = do
     genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
         pacNames        = map posPacTitle pacs
         prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe showAllWarnings nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe logMode nrInds pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -549,15 +552,16 @@ getJointIndividualInfo packages = do
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
--- If showAllWarnings == True, then a warning is printed,
-joinEntryPipe :: (MonadIO m) => Bool -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe showAllWarnings nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries showAllWarnings nrInds pacNames maybeEntries
+joinEntryPipe :: (MonadIO m) => LogMode -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe logMode nrInds pacNames = for cat $ \maybeEntries -> do
+    eitherJE <- liftIO . try $ joinEntries nrInds pacNames maybeEntries
     case eitherJE of
         Left (PoseidonGenotypeException err) ->
-            when showAllWarnings . liftIO . hPutStrLn stderr $ "Skipping SNP due to " ++ err
+            (liftIO . usePoseidonLogger logMode . logDebug . T.pack) $ "Skipping SNP due to " ++ err
         Left e -> liftIO . throwIO $ e
-        Right jE -> yield jE
+        Right (consensusSnpEntryWarnings, eigenstratSnpEntry, genoLine) -> do
+            mapM_ (liftIO . usePoseidonLogger logMode . logDebug . T.pack) consensusSnpEntryWarnings
+            yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn

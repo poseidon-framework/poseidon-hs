@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             0.29.1
+version:             1.0.0.0
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -27,14 +27,14 @@ library
                         vector, pipes-ordered-zip, table-layout,
                         cassava, ansi-terminal, pureMD5, transformers,
                         yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
-                        unordered-containers, network-uri, optparse-applicative
+                        unordered-containers, network-uri, optparse-applicative, co-log
     default-language:   Haskell2010
 
 executable trident
     main-is:            Main-trident.hs
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring,
-                        filepath
+                        filepath, co-log, text
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
@@ -47,19 +47,19 @@ executable poseidon-http-server
     default-language:   Haskell2010
 
 Test-Suite poseidon-tools-tests
-  type:                exitcode-stdio-1.0
-  main-is:             Spec.hs
-  hs-source-dirs:      test
-  build-depends:       base, hspec, poseidon-hs, bytestring,
-                       raw-strings-qq, yaml, time, vector,
-                       text, QuickCheck, directory, sequence-formats,
-                       filepath, pipes, pipes-safe, pipes-ordered-zip, aeson
-  other-modules:       Poseidon.PackageSpec, Poseidon.JannoSpec,
-                       Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
-                       Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
-                       Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
-                       Poseidon.EntitiesListSpec
-  default-language:    Haskell2010
+    type:               exitcode-stdio-1.0
+    main-is:            Spec.hs
+    hs-source-dirs:     test
+    build-depends:      base, hspec, poseidon-hs, bytestring, aeson,
+                        raw-strings-qq, yaml, time, vector,
+                        text, QuickCheck, directory, sequence-formats,
+                        filepath, pipes, pipes-safe, pipes-ordered-zip
+    other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
+                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
+                        Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
+                        Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
+                        Poseidon.EntitiesListSpec
+  default-language:     Haskell2010
 
 executable poseidon-devtools
     main-is:            Main-devtools.hs
