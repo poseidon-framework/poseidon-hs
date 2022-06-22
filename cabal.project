@@ -1,5 +1,5 @@
 packages: ./*.cabal
-with-compiler: ghc-8.10.3
+with-compiler: ghc-8.10.7
 
 package pandoc-citeproc
     flags: +embed_data_files
