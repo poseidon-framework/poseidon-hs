@@ -9,7 +9,8 @@ import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(
                                               readEntitiesFromFile,
                                               findNonExistentEntities,
                                               filterRelevantPackages,
-                                              conformingEntityIndices)
+                                              conformingEntityIndices, 
+                                              EntityInput, readEntityInputs)
 import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
@@ -54,7 +55,7 @@ import           System.FilePath             (takeBaseName, (<.>), (</>))
 data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
     , _forgeInGenos      :: [GenotypeDataSpec]
-    , _forgeEntitySpec   :: Either SignedEntitiesList FilePath
+    , _forgeEntityInput  :: [EntityInput]
     , _forgeSnpFile      :: Maybe FilePath
     , _forgeIntersect    :: Bool
     , _forgeOutFormat    :: GenotypeFormatSpec
@@ -79,15 +80,13 @@ pacReadOpts = defaultPackageReadOptions {
 runForge :: ForgeOptions -> PoseidonLogIO ()
 runForge (
     ForgeOptions baseDirs inGenos
-                 entitySpec maybeSnpFile intersect_ 
+                 entityInputs maybeSnpFile intersect_ 
                  outFormat minimal onlyGeno outPath maybeOutName  
                  logMode noExtract 
     ) = do
 
     -- compile entities
-    entitiesInput <- case entitySpec of
-        Left e -> return e
-        Right fp -> liftIO $ readEntitiesFromFile fp
+    entitiesInput <- readEntityInputs entityInputs 
 
     let printEntityList = (intercalate ", " . map show . take 10) entitiesInput ++
             if length entitiesInput > 10 then " and " ++ show (length entitiesInput - 10) ++ " more" else ""

@@ -2,8 +2,9 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList   (EntitiesList,
-                                          readEntitiesFromFile, findNonExistentEntities, indInfoFindRelevantPackageNames)
+import           Poseidon.EntitiesList   (findNonExistentEntities,
+                                          indInfoFindRelevantPackageNames,
+                                          EntityInput, readEntityInputs)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -25,7 +26,6 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
-import           Data.List               (nub)
 import           Data.Text               (pack)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
@@ -40,8 +40,7 @@ import           System.IO               (hFlush, hPutStr, stderr)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs      :: [FilePath]
-    , _entityList      :: EntitiesList
-    , _entityFiles     :: [FilePath]
+    , _entityInput     :: [EntityInput]
     , _remoteURL       :: String
     , _upgrade         :: Bool
     , _downloadAllPacs :: Bool
@@ -63,15 +62,14 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> PoseidonLogIO ()
-runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade downloadAllPacs) = do
+runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade downloadAllPacs) = do
     
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     
     -- compile entities
-    entitiesFromFile <- liftIO $ mapM readEntitiesFromFile entitiesFile
-    let entities = nub $ entitiesDirect ++ concat entitiesFromFile
+    entities <- readEntityInputs entityInputs
     
     -- load remote package list
     logInfo "Downloading individual list from remote"
