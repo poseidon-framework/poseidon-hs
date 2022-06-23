@@ -17,7 +17,7 @@ import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
 import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
 import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
                                                  GenotypeFormatSpec (..), 
-                                                 SNPSetSpec (..))
+                                                 SNPSetSpec (..), GenoDataSource (..))
 import           Poseidon.Package               (getChecksum)
 import           Poseidon.SecondaryTypes        (ContributorSpec (..),
                                                  VersionComponent (..))
@@ -222,8 +222,7 @@ testPipelineSurvey testDir checkFilePath = do
 testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
-          _genoconvertBaseDirs = [testDir </> "Wang"]
-        , _genoconvertInGenos = []
+          _genoconvertGenoSources = [PacBaseDir $ testDir </> "Wang"]
         , _genoConvertOutFormat = GenotypeFormatEigenstrat
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Nothing
@@ -235,8 +234,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "Wang" </> "Wang.ind"
         ]
     let genoconvertOpts2 = GenoconvertOptions {
-          _genoconvertBaseDirs = [testDir </> "Schiffels"]
-        , _genoconvertInGenos = []
+          _genoconvertGenoSources = [PacBaseDir $ testDir </> "Schiffels"]
         , _genoConvertOutFormat = GenotypeFormatPlink
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "Schiffels"
@@ -248,18 +246,18 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "Schiffels" </> "Schiffels.fam"
         ]
     let genoconvertOpts3 = GenoconvertOptions {
-          _genoconvertBaseDirs = []
-        , _genoconvertInGenos = [
-            GenotypeDataSpec {
-                format   = GenotypeFormatEigenstrat
-              , genoFile = testDir </> "Schiffels" </> "geno.txt"
-              , genoFileChkSum = Nothing
-              , snpFile  = testDir </> "Schiffels" </> "snp.txt"
-              , snpFileChkSum = Nothing
-              , indFile  = testDir </> "Schiffels" </> "ind.txt"
-              , indFileChkSum = Nothing
-              , snpSet   = Just SNPSetOther
-            }
+          _genoconvertGenoSources = [
+            GenoDirect $
+              GenotypeDataSpec {
+                  format   = GenotypeFormatEigenstrat
+                , genoFile = testDir </> "Schiffels" </> "geno.txt"
+                , genoFileChkSum = Nothing
+                , snpFile  = testDir </> "Schiffels" </> "snp.txt"
+                , snpFileChkSum = Nothing
+                , indFile  = testDir </> "Schiffels" </> "ind.txt"
+                , indFileChkSum = Nothing
+                , snpSet   = Just SNPSetOther
+              }
           ]
         , _genoConvertOutFormat = GenotypeFormatPlink
         , _genoConvertOutOnlyGeno = True
@@ -330,8 +328,7 @@ testPipelineForge :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 1
     let forgeOpts1 = ForgeOptions { 
-          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeInGenos      = []
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
@@ -351,8 +348,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 2
     let forgeOpts2 = ForgeOptions { 
-          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeInGenos      = []
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
@@ -371,8 +367,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 3
     let forgeOpts3 = ForgeOptions { 
-          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeInGenos      = []
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile1.txt")
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
@@ -394,8 +389,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 4
     let forgeOpts4 = ForgeOptions { 
-          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeInGenos      = []
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile2.txt")
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
@@ -417,8 +411,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 5
     let forgeOpts5 = ForgeOptions { 
-          _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
-        , _forgeInGenos      = []
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntitySpec   = Left []
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -438,28 +431,29 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 6 (direct genotype data input interface)
     let forgeOpts6 = ForgeOptions {
-          _forgeBaseDirs     = []
-        , _forgeInGenos      = [
-            GenotypeDataSpec {
-                format   = GenotypeFormatEigenstrat
-              , genoFile = testDir </> "Schiffels" </> "geno.txt"
-              , genoFileChkSum = Nothing
-              , snpFile  = testDir </> "Schiffels" </> "snp.txt"
-              , snpFileChkSum = Nothing
-              , indFile  = testDir </> "Schiffels" </> "ind.txt"
-              , indFileChkSum = Nothing
-              , snpSet   = Just SNPSetOther
-            },
-            GenotypeDataSpec {
-                format   = GenotypeFormatPlink
-              , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
-              , genoFileChkSum = Nothing
-              , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
-              , snpFileChkSum = Nothing
-              , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
-              , indFileChkSum = Nothing
-              , snpSet   = Just SNPSetOther
-            }
+          _forgeGenoSources = [
+            GenoDirect $
+              GenotypeDataSpec {
+                  format   = GenotypeFormatEigenstrat
+                , genoFile = testDir </> "Schiffels" </> "geno.txt"
+                , genoFileChkSum = Nothing
+                , snpFile  = testDir </> "Schiffels" </> "snp.txt"
+                , snpFileChkSum = Nothing
+                , indFile  = testDir </> "Schiffels" </> "ind.txt"
+                , indFileChkSum = Nothing
+                , snpSet   = Just SNPSetOther
+              },
+            GenoDirect $
+              GenotypeDataSpec {
+                  format   = GenotypeFormatPlink
+                , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
+                , genoFileChkSum = Nothing
+                , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
+                , snpFileChkSum = Nothing
+                , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
+                , indFileChkSum = Nothing
+                , snpSet   = Just SNPSetOther
+              }
           ]
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
         , _forgeIntersect    = False
@@ -480,19 +474,20 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         ]
     -- forge test 7 (mixed data input interface)
     let forgeOpts7 = ForgeOptions {
-          _forgeBaseDirs     = [testDir </> "Schiffels"]
-        , _forgeInGenos      = [
-            GenotypeDataSpec {
-                format   = GenotypeFormatPlink
-              , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
-              , genoFileChkSum = Nothing
-              , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
-              , snpFileChkSum = Nothing
-              , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
-              , indFileChkSum = Nothing
-              , snpSet   = Just SNPSetOther
-            }
-          ]
+          _forgeGenoSources  = [
+            PacBaseDir $ testDir </> "Schiffels",
+            GenoDirect $
+              GenotypeDataSpec {
+                  format   = GenotypeFormatPlink
+                , genoFile = testDir </> "Wang" </> "Wang_2020.bed"
+                , genoFileChkSum = Nothing
+                , snpFile  = testDir </> "Wang" </> "Wang_2020.bim"
+                , snpFileChkSum = Nothing
+                , indFile  = testDir </> "Wang" </> "Wang_2020.fam"
+                , indFileChkSum = Nothing
+                , snpSet   = Just SNPSetOther
+              }
+            ]
         , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat

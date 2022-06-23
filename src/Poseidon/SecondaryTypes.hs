@@ -18,7 +18,6 @@ import           Data.Version       (Version (..), makeVersion)
 import qualified Text.Parsec        as P
 import qualified Text.Parsec.String as P
 
-
 data VersionComponent = Major
     | Minor
     | Patch
