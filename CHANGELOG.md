@@ -1,3 +1,4 @@
+- V 1.0.0.1: Fixed memory leak in genoconvert
 - V 1.0.0.0: Enabled logging with the co-log library
 - V 0.29.1: JSON support for entities
 - V 0.29.0: Added a simpler input interface for unpackaged genotype data and an option to set the output path of genoconvert explicitly
