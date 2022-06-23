@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Paths_poseidon_hs      (version)
-import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..))
+import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..), 
+                                         GenoDataSource (..))
 import           Poseidon.CLI.Init      (InitOptions (..), runInit)
 import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
                                         runList, RepoLocationSpec(..))
@@ -21,7 +22,8 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
                                         poseidonVersionParser, 
                                         contributorSpecParser,
-                                        runParser)
+                                        runParser
+                                        )
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger,
@@ -198,8 +200,7 @@ fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseDownloadAll
 
 forgeOptParser :: OP.Parser ForgeOptions
-forgeOptParser = ForgeOptions <$> parseBasePaths
-                              <*> parseInGenotypeDatasets
+forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseForgeEntitySpec
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
@@ -212,8 +213,7 @@ forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseNoExtract
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
-genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
-                                          <*> parseInGenotypeDatasets
+genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseOutGenotypeFormat False
                                           <*> parseOutOnlyGeno
                                           <*> parseMaybeOutPackagePath
@@ -376,15 +376,6 @@ parseIntersect = OP.switch (OP.long "intersect" <>
         \defined as missing in those packages which do not have a SNP that is present in another package. \
         \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
 
-parseRepoLocation :: OP.Parser RepoLocationSpec
-parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
-
-parseBasePaths :: OP.Parser [FilePath]
-parseBasePaths = OP.many (OP.strOption (OP.long "baseDir" <>
-    OP.short 'd' <>
-    OP.metavar "DIR" <>
-    OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
-
 parseRemoteDummy :: OP.Parser ()
 parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from a remote server instead the local file system")
 
@@ -405,8 +396,23 @@ parseOutGenotypeFormat withDefault =
         "PLINK"      -> Right GenotypeFormatPlink
         _            -> Left "must be EIGENSTRAT or PLINK"
 
-parseInGenotypeDatasets :: OP.Parser [GenotypeDataSpec]
-parseInGenotypeDatasets = OP.many parseInGenotypeDataset
+parseGenoDataSources :: OP.Parser [GenoDataSource]
+parseGenoDataSources = OP.some parseGenoDataSource
+
+parseGenoDataSource :: OP.Parser GenoDataSource
+parseGenoDataSource = (PacBaseDir <$> parseBasePath) <|> (GenoDirect <$> parseInGenotypeDataset)
+
+parseRepoLocation :: OP.Parser RepoLocationSpec
+parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
+
+parseBasePaths :: OP.Parser [FilePath]
+parseBasePaths = OP.some parseBasePath
+
+parseBasePath :: OP.Parser FilePath
+parseBasePath = OP.strOption (OP.long "baseDir" <>
+    OP.short 'd' <>
+    OP.metavar "DIR" <>
+    OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)")
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
 parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet

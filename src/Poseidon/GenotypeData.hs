@@ -26,6 +26,11 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
 import           System.IO                  (hFlush, hPutStr, stderr)
 
+data GenoDataSource =
+      PacBaseDir {getPacBaseDirs :: FilePath}
+    | GenoDirect {getGenoDirect :: GenotypeDataSpec}
+    deriving Show 
+
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
     { format         :: GenotypeFormatSpec
