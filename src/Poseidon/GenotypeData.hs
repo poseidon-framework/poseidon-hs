@@ -11,11 +11,13 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
+import Data.IORef (IORef, newIORef, readIORef, modifyIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, await, yield)
+import           Pipes                      (Pipe, Producer, await, yield, cat)
+import qualified Pipes.Prelude as P
 import           Pipes.Safe                 (MonadSafe, SafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -251,18 +253,34 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: Pipe a a (SafeT IO) ()
-printSNPCopyProgress = loop (0 :: Int)
+-- printSNPCopyProgress :: Pipe a a (SafeT IO) ()
+-- printSNPCopyProgress = loop (0 :: Int)
+--   where
+--     loop n = do
+--         when (n `rem` 1000 == 0) $ do
+--             liftIO $ hClearLine stderr
+--             liftIO $ hSetCursorColumn stderr 0
+--             liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
+--             liftIO $ hFlush stderr
+--         x <- await
+--         yield x
+--         loop (n+1)
+
+printSNPCopyProgress :: (MonadIO m) => Pipe a a m ()
+printSNPCopyProgress = do
+    counterRef <- liftIO $ newIORef 0
+    P.mapM (withCounter counterRef)
   where
-    loop n = do
+    withCounter :: (MonadIO m) => IORef Int -> a -> m a
+    withCounter counterRef val = do
+        n <- liftIO $ readIORef counterRef
         when (n `rem` 1000 == 0) $ do
             liftIO $ hClearLine stderr
             liftIO $ hSetCursorColumn stderr 0
             liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
             liftIO $ hFlush stderr
-        x <- await
-        yield x
-        loop (n+1)
+        liftIO $ modifyIORef counterRef (+1)
+        return val
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
