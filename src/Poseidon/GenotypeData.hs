@@ -16,9 +16,9 @@ import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, await, yield, cat)
+import           Pipes                      (Pipe, Producer)
 import qualified Pipes.Prelude as P
-import           Pipes.Safe                 (MonadSafe, SafeT)
+import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
@@ -252,19 +252,6 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomRef = HomAlt
     flipGeno HomAlt = HomRef
     flipGeno g      = g
-
--- printSNPCopyProgress :: Pipe a a (SafeT IO) ()
--- printSNPCopyProgress = loop (0 :: Int)
---   where
---     loop n = do
---         when (n `rem` 1000 == 0) $ do
---             liftIO $ hClearLine stderr
---             liftIO $ hSetCursorColumn stderr 0
---             liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
---             liftIO $ hFlush stderr
---         x <- await
---         yield x
---         loop (n+1)
 
 printSNPCopyProgress :: (MonadIO m) => Pipe a a m ()
 printSNPCopyProgress = do
