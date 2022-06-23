@@ -107,7 +107,7 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
                 logInfo $ pack $ "Comparing local and remote package " ++ pTitle pac
                 let packageState = determinePackageState allLocalPackages pac
                 -- create new directory
-                logInfo $ pack $ "Downloading to directory (will be created if needed): " ++ downloadDir
+                logInfo $ pack $ "Downloading to directory (will be created if missing): " ++ downloadDir
                 liftIO $ createDirectoryIfMissing True downloadDir
                 handlePackageByState downloadDir tempDir remote upgrade packageState            
             liftIO $ removeDirectory tempDir

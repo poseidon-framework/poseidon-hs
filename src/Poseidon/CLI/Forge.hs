@@ -140,7 +140,7 @@ runForge (
             Nothing -> takeBaseName outPath
     when (outName == "") $ liftIO $ throwIO PoseidonEmptyOutPacNameException
     -- create new directory
-    logInfo $ pack $ "Writing to directory (will be created if needed): " ++ outPath
+    logInfo $ pack $ "Writing to directory (will be created if missing): " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let [outInd, outSnp, outGeno] = case outFormat of
