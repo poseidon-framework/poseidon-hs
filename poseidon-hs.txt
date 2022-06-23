@@ -476,7 +476,7 @@ loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m ([Eigenstra
 joinEntries :: MonadIO m => [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m ([String], EigenstratSnpEntry, GenoLine)
 getConsensusSnpEntry :: MonadIO m => [EigenstratSnpEntry] -> m ([String], EigenstratSnpEntry)
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
-printSNPCopyProgress :: Pipe a a (SafeT IO) ()
+printSNPCopyProgress :: MonadIO m => Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFormatSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.SNPSetSpec
