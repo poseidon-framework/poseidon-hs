@@ -11,13 +11,12 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
-import Data.IORef (IORef, newIORef, readIORef, modifyIORef)
+import           Data.IORef (newIORef, readIORef, modifyIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer)
-import qualified Pipes.Prelude as P
+import           Pipes                      (Pipe, Producer, for, yield, cat)
 import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -255,11 +254,8 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
 
 printSNPCopyProgress :: (MonadIO m) => Pipe a a m ()
 printSNPCopyProgress = do
-    counterRef <- liftIO $ newIORef 0
-    P.mapM (withCounter counterRef)
-  where
-    withCounter :: (MonadIO m) => IORef Int -> a -> m a
-    withCounter counterRef val = do
+    counterRef <- liftIO $ newIORef (0 :: Int)
+    for cat $ \val -> do
         n <- liftIO $ readIORef counterRef
         when (n `rem` 1000 == 0) $ do
             liftIO $ hClearLine stderr
@@ -267,7 +263,7 @@ printSNPCopyProgress = do
             liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
             liftIO $ hFlush stderr
         liftIO $ modifyIORef counterRef (+1)
-        return val
+        yield val
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
