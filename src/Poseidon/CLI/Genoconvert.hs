@@ -51,6 +51,9 @@ runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno outPath r
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData inGenos
     logInfo $ pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    -- create new directory
+    logInfo $ pack $ "Writing to directory (will be created if needed): " ++ outPath
+    liftIO $ createDirectoryIfMissing True outPath
     -- convert
     mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
     mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
