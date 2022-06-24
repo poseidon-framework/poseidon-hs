@@ -22,7 +22,8 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                         VersionComponent (..),
                                         poseidonVersionParser, 
                                         contributorSpecParser,
-                                        runParser)
+                                        runParser
+                                        )
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger,
