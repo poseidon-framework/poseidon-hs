@@ -50,7 +50,7 @@ instance Show SignedEntity where
 type SignedEntitiesList = [SignedEntity]
 
 -- A class to generalise signed and unsigned Entity Lists. Both have the feature that they can be used to filter individuals.
-class EntitySpec a where
+class Eq a => EntitySpec a where
     indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> Bool
     underlyingEntity :: a -> PoseidonEntity
     entitySpecParser :: P.Parser a
@@ -90,14 +90,12 @@ instance FromJSON SignedEntity   where parseJSON = withText "SignedEntity" aeson
 instance ToJSON   PoseidonEntity where toJSON e = String (pack $ show e)
 instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
 
-data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath
+data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
 
 aesonParseEntitySpec :: (EntitySpec e) => Text -> Parser e
 aesonParseEntitySpec t = case P.runParser entitySpecParser () "" (unpack t) of
     Left err -> fail (show err)
     Right p' -> return p'
-
-
 
 removeEntitySign :: SignedEntity -> PoseidonEntity
 removeEntitySign (Include e) = e
@@ -164,7 +162,7 @@ findNonExistentEntities entities individuals =
 conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
 conformingEntityIndices entities = map fst . filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..]
 
-readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput] -> m [a]
+readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =
     fmap nub . fmap concat . forM entityInputs $ \entityInput -> case entityInput of
         EntitiesDirect   e  -> return e

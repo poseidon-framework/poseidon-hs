@@ -5,8 +5,6 @@ module Poseidon.CLI.Forge where
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
 import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(..),
-                                              SignedEntitiesList,
-                                              readEntitiesFromFile,
                                               findNonExistentEntities,
                                               filterRelevantPackages,
                                               conformingEntityIndices, 
@@ -55,7 +53,7 @@ import           System.FilePath             (takeBaseName, (<.>), (</>))
 data ForgeOptions = ForgeOptions
     { _forgeBaseDirs     :: [FilePath]
     , _forgeInGenos      :: [GenotypeDataSpec]
-    , _forgeEntityInput  :: [EntityInput]
+    , _forgeEntityInput  :: [EntityInput SignedEntity] -- Empty list = forge all packages
     , _forgeSnpFile      :: Maybe FilePath
     , _forgeIntersect    :: Bool
     , _forgeOutFormat    :: GenotypeFormatSpec
@@ -63,7 +61,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutOnlyGeno  :: Bool
     , _forgeOutPacPath   :: FilePath
     , _forgeOutPacName   :: Maybe String
-    , _forgeLogMode     :: LogMode
+    , _forgeLogMode      :: LogMode
     , _forgeNoExtract    :: Bool
     }
 
@@ -84,13 +82,6 @@ runForge (
                  outFormat minimal onlyGeno outPath maybeOutName  
                  logMode noExtract 
     ) = do
-
-    -- compile entities
-    entitiesInput <- readEntityInputs entityInputs 
-
-    let printEntityList = (intercalate ", " . map show . take 10) entitiesInput ++
-            if length entitiesInput > 10 then " and " ++ show (length entitiesInput - 10) ++ " more" else ""
-    logInfo $ pack $ "Forging with the following entity-list: " ++ printEntityList
     
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
@@ -98,15 +89,22 @@ runForge (
     logInfo $ pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 
-    -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
-    let addImplicits = do
-            logInfo "forge entities begin with exclude or are empty, so implicitly adding all packages as includes before \
-            \applying excludes."
-            return $ map (Include . Pac . posPacTitle) allPackages ++ entitiesInput -- add all Packages to the front of the list
-    entities <- case entitiesInput of
-        (Include _:_) -> return entitiesInput
-        (Exclude _:_) -> addImplicits
-        []            -> addImplicits
+    -- compile entities
+    entitiesUser <- readEntityInputs entityInputs 
+
+    entities <- case entitiesUser of
+        [] -> do
+            logInfo $ "No requested entities. Implicitly forging all packages."
+            return $ map (Include . Pac . posPacTitle) allPackages
+        (Include _:_) -> do
+            return entitiesUser
+        (Exclude _:_) -> do
+            -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
+            logInfo "forge entities begin with exclude, so implicitly adding all packages as includes before \
+                \applying excludes."
+            return $ map (Include . Pac . posPacTitle) allPackages ++ entitiesUser -- add all Packages to the front of the list
+    logInfo . pack $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
+        if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages

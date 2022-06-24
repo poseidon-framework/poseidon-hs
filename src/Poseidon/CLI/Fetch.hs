@@ -4,7 +4,7 @@ module Poseidon.CLI.Fetch where
 
 import           Poseidon.EntitiesList   (findNonExistentEntities,
                                           indInfoFindRelevantPackageNames,
-                                          EntityInput, readEntityInputs)
+                                          EntityInput, readEntityInputs, PoseidonEntity)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -40,10 +40,9 @@ import           System.IO               (hFlush, hPutStr, stderr)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs      :: [FilePath]
-    , _entityInput     :: [EntityInput]
+    , _entityInput     :: [EntityInput PoseidonEntity] -- Empty list = All packages
     , _remoteURL       :: String
     , _upgrade         :: Bool
-    , _downloadAllPacs :: Bool
     }
 
 data PackageState = NotLocal
@@ -62,7 +61,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> PoseidonLogIO ()
-runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade downloadAllPacs) = do
+runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
     
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
@@ -90,10 +89,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade downloadAllPacs) 
         logInfo "Determine requested packages... "
         let remotePacTitles = map pTitle remotePacList
         let desiredPacTitles =
-                if downloadAllPacs then
-                    remotePacTitles
-                else
-                    indInfoFindRelevantPackageNames entities remoteIndList
+                if null entities then remotePacTitles else indInfoFindRelevantPackageNames entities remoteIndList
         
         let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacTitles) remotePacList
 
