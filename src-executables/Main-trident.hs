@@ -444,7 +444,7 @@ parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseIn
 
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
-    OP.short 'r' <> OP.long "inFormat" <>
+    OP.long "inFormat" <>
     OP.help "the format of the input genotype data: EIGENSTRAT or PLINK")
   where
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
@@ -455,17 +455,17 @@ parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
 
 parseInGenoFile :: OP.Parser FilePath
 parseInGenoFile = OP.strOption (
-    OP.short 'g' <> OP.long "genoFile" <>
+    OP.long "genoFile" <>
     OP.help "the input geno file path")
 
 parseInSnpFile :: OP.Parser FilePath
 parseInSnpFile = OP.strOption (
-    OP.short 's' <> OP.long "snpFile" <>
+    OP.long "snpFile" <>
     OP.help "the input snp file path")
 
 parseInIndFile :: OP.Parser FilePath
 parseInIndFile = OP.strOption (
-    OP.short 'i' <> OP.long "indFile" <>
+    OP.long "indFile" <>
     OP.help "the input ind file path")
 
 parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
