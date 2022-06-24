@@ -445,7 +445,8 @@ parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseIn
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
     OP.long "inFormat" <>
-    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK")
+    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK\
+            \ (only necessary for data input with --genoFile + --snpFile + --indFile)")
   where
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of
