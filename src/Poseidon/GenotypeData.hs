@@ -11,12 +11,13 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
+import           Data.IORef (newIORef, readIORef, modifyIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, await, yield)
-import           Pipes.Safe                 (MonadSafe, SafeT)
+import           Pipes                      (Pipe, Producer, for, yield, cat)
+import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
@@ -256,18 +257,18 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: Pipe a a (SafeT IO) ()
-printSNPCopyProgress = loop (0 :: Int)
-  where
-    loop n = do
+printSNPCopyProgress :: (MonadIO m) => Pipe a a m ()
+printSNPCopyProgress = do
+    counterRef <- liftIO $ newIORef (0 :: Int)
+    for cat $ \val -> do
+        n <- liftIO $ readIORef counterRef
         when (n `rem` 1000 == 0) $ do
             liftIO $ hClearLine stderr
             liftIO $ hSetCursorColumn stderr 0
             liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
             liftIO $ hFlush stderr
-        x <- await
-        yield x
-        loop (n+1)
+        liftIO $ modifyIORef counterRef (+1)
+        yield val
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])

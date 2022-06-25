@@ -1,3 +1,7 @@
+- V 1.0.1.1: Output directories in fetch and genoconvert are now created if they don't exist.
+- V 1.0.1.0: Allowing flexible input of entity lists in fetch and forge.
+- V 1.0.0.2: Switched to GHC 8.10.7 and Stackage lts-18.28
+- V 1.0.0.1: Fixed memory leak in genoconvert
 - V 1.0.0.0: Enabled logging with the co-log library
 - V 0.29.1: JSON support for entities
 - V 0.29.0: Added a simpler input interface for unpackaged genotype data and an option to set the output path of genoconvert explicitly
