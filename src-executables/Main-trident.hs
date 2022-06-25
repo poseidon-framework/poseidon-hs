@@ -349,9 +349,9 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.lo
         \Negative selection is possible by prepending \"-\" to the entity you want to exclude \
         \(e.g. \"*package_1*, -<individual_1>, -group_1\"). \
         \forge will apply excludes and includes in order. If the first entity is negative, then forge \
-        \will assume you want to merge all individuals in the \
-        \packages found in the baseDirs (except the ones explicitly excluded) before the exclude entities are applied. \
-        \An empty forgeString, with no --forgeFile given, will therefore merge all available individuals.")
+        \will assume you want to merge all individuals in the packages found in the baseDirs (except the \
+        \ones explicitly excluded) before the exclude entities are applied. \
+        \An empty forgeString (and no --forgeFile) will therefore merge all available individuals.")
   where
     readSignedEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)
@@ -375,7 +375,9 @@ parseForgeEntitiesFromFile = OP.strOption (OP.long "forgeFile" <>
     OP.help "A file with a list of packages, groups or individual samples. \
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
         \Empty lines are ignored and comments start with \"#\", so everything after \"#\" is ignored \
-        \in one line.")
+        \in one line. \
+        \Multiple instances of -f and --forgeFile can be given. They will be evaluated according to their \
+        \input order on the command line.")
 
 parseFetchEntitiesFromFile :: OP.Parser FilePath
 parseFetchEntitiesFromFile = OP.strOption (OP.long "fetchFile" <>
