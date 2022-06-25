@@ -61,26 +61,26 @@
 </span><span id="line-47"></span><span class="hs-comment">-- | The main function running the list command</span><span>
 </span><span id="line-48"></span><span class="annot"><a href="Poseidon.CLI.List.html#runList"><span class="hs-identifier hs-type">runList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.List.html#ListOptions"><span class="hs-identifier hs-type">ListOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonLogIO"><span class="hs-identifier hs-type">PoseidonLogIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-49"></span><span id="runList"><span class="annot"><span class="annottext">runList :: ListOptions -&gt; PoseidonLogIO ()
-</span><a href="Poseidon.CLI.List.html#runList"><span class="hs-identifier hs-var hs-var">runList</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.List.html#ListOptions"><span class="hs-identifier hs-type">ListOptions</span></a></span><span> </span><span id="local-6989586621679154012"><span class="annot"><span class="annottext">RepoLocationSpec
-</span><a href="#local-6989586621679154012"><span class="hs-identifier hs-var">repoLocation</span></a></span></span><span> </span><span id="local-6989586621679154011"><span class="annot"><span class="annottext">ListEntity
-</span><a href="#local-6989586621679154011"><span class="hs-identifier hs-var">listEntity</span></a></span></span><span> </span><span id="local-6989586621679154010"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679154010"><span class="hs-identifier hs-var">rawOutput</span></a></span></span><span> </span><span id="local-6989586621679154009"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679154009"><span class="hs-identifier hs-var">ignoreGeno</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-50"></span><span>    </span><span id="local-6989586621679154008"><span class="annot"><span class="annottext">[(String, [JannoRow])]
-</span><a href="#local-6989586621679154008"><span class="hs-identifier hs-var">allSampleInfo</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">RepoLocationSpec
-</span><a href="#local-6989586621679154012"><span class="hs-identifier hs-var">repoLocation</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-51"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.List.html#RepoRemote"><span class="hs-identifier hs-type">RepoRemote</span></a></span><span> </span><span id="local-6989586621679154007"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679154007"><span class="hs-identifier hs-var">remoteURL</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.CLI.List.html#runList"><span class="hs-identifier hs-var hs-var">runList</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.List.html#ListOptions"><span class="hs-identifier hs-type">ListOptions</span></a></span><span> </span><span id="local-6989586621679154123"><span class="annot"><span class="annottext">RepoLocationSpec
+</span><a href="#local-6989586621679154123"><span class="hs-identifier hs-var">repoLocation</span></a></span></span><span> </span><span id="local-6989586621679154122"><span class="annot"><span class="annottext">ListEntity
+</span><a href="#local-6989586621679154122"><span class="hs-identifier hs-var">listEntity</span></a></span></span><span> </span><span id="local-6989586621679154121"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679154121"><span class="hs-identifier hs-var">rawOutput</span></a></span></span><span> </span><span id="local-6989586621679154120"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679154120"><span class="hs-identifier hs-var">ignoreGeno</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-50"></span><span>    </span><span id="local-6989586621679154119"><span class="annot"><span class="annottext">[(String, [JannoRow])]
+</span><a href="#local-6989586621679154119"><span class="hs-identifier hs-var">allSampleInfo</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">RepoLocationSpec
+</span><a href="#local-6989586621679154123"><span class="hs-identifier hs-var">repoLocation</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-51"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.List.html#RepoRemote"><span class="hs-identifier hs-type">RepoRemote</span></a></span><span> </span><span id="local-6989586621679154118"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154118"><span class="hs-identifier hs-var">remoteURL</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-52"></span><span>            </span><span class="hs-comment">-- load remote samples list</span><span>
 </span><span id="line-53"></span><span>            </span><span class="annot"><span class="annottext">Text -&gt; PoseidonLogIO ()
 forall env (m :: * -&gt; *). WithLog env Message m =&gt; Text -&gt; m ()
 </span><span class="hs-identifier hs-var">logInfo</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;Downloading sample list from remote&quot;</span></span><span>
-</span><span id="line-54"></span><span>            </span><span id="local-6989586621679154006"><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679154006"><span class="hs-identifier hs-var">remoteOverviewJSONByteString</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; LoggerT Message IO ByteString
+</span><span id="line-54"></span><span>            </span><span id="local-6989586621679154117"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679154117"><span class="hs-identifier hs-var">remoteOverviewJSONByteString</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; LoggerT Message IO ByteString
 forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; m ByteString
 </span><span class="hs-identifier hs-var">simpleHttp</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679154007"><span class="hs-identifier hs-var">remoteURL</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679154118"><span class="hs-identifier hs-var">remoteURL</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;/janno_all&quot;</span></span><span class="hs-special">)</span><span>
@@ -94,56 +94,56 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; IO [(String, [JannoRow])]
 </span><a href="Poseidon.CLI.List.html#readSampleInfo"><span class="hs-identifier hs-var">readSampleInfo</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679154006"><span class="hs-identifier hs-var">remoteOverviewJSONByteString</span></a></span><span>
-</span><span id="line-56"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.List.html#RepoLocal"><span class="hs-identifier hs-type">RepoLocal</span></a></span><span> </span><span id="local-6989586621679154004"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679154004"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-57"></span><span>            </span><span id="local-6989586621679154003"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679154003"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [String] -&gt; PoseidonLogIO [PoseidonPackage]
+</span><a href="#local-6989586621679154117"><span class="hs-identifier hs-var">remoteOverviewJSONByteString</span></a></span><span>
+</span><span id="line-56"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.List.html#RepoLocal"><span class="hs-identifier hs-type">RepoLocal</span></a></span><span> </span><span id="local-6989586621679154115"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154115"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-57"></span><span>            </span><span id="local-6989586621679154114"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679154114"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [String] -&gt; PoseidonLogIO [PoseidonPackage]
 </span><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier hs-var">readPoseidonPackageCollection</span></a></span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.CLI.List.html#pacReadOpts"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="hs-special">{</span><span class="annot"><span class="annottext">_readOptIgnoreGeno :: Bool
 </span><a href="Poseidon.Package.html#_readOptIgnoreGeno"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679154009"><span class="hs-identifier hs-var">ignoreGeno</span></a></span><span class="hs-special">}</span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679154004"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><a href="#local-6989586621679154120"><span class="hs-identifier hs-var">ignoreGeno</span></a></span><span class="hs-special">}</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154115"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
 </span><span id="line-58"></span><span>            </span><span class="annot"><span class="annottext">[(String, [JannoRow])] -&gt; LoggerT Message IO [(String, [JannoRow])]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 </span><a href="Poseidon.Package.html#posPacTitle"><span class="hs-identifier hs-var hs-var">posPacTitle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679154000"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; [JannoRow]
+</span><a href="#local-6989586621679154111"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; [JannoRow]
 </span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679154000"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679154000"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679154000"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679154003"><span class="hs-identifier hs-var">allPackages</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679154111"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679154111"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679154111"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679154114"><span class="hs-identifier hs-var">allPackages</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-59"></span><span>    </span><span class="hs-comment">-- construct output</span><span>
 </span><span id="line-60"></span><span>    </span><span class="annot"><span class="annottext">Text -&gt; PoseidonLogIO ()
 forall env (m :: * -&gt; *). WithLog env Message m =&gt; Text -&gt; m ()
 </span><span class="hs-identifier hs-var">logInfo</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;Preparing output table&quot;</span></span><span>
-</span><span id="line-61"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679153998"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153998"><span class="hs-identifier hs-var">tableH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679153997"><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153997"><span class="hs-identifier hs-var">tableB</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ListEntity
-</span><a href="#local-6989586621679154011"><span class="hs-identifier hs-var">listEntity</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679154109"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154109"><span class="hs-identifier hs-var">tableH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679154108"><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679154108"><span class="hs-identifier hs-var">tableB</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ListEntity
+</span><a href="#local-6989586621679154122"><span class="hs-identifier hs-var">listEntity</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-62"></span><span>        </span><span class="annot"><span class="annottext">ListEntity
 </span><a href="Poseidon.CLI.List.html#ListPackages"><span class="hs-identifier hs-var">ListPackages</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-63"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153996"><span class="annot"><span class="annottext">tableH :: [String]
-</span><a href="#local-6989586621679153996"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span id="line-63"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154107"><span class="annot"><span class="annottext">tableH :: [String]
+</span><a href="#local-6989586621679154107"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Title&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Nr Individuals&quot;</span></span><span class="hs-special">]</span><span>
-</span><span id="line-64"></span><span>                </span><span id="local-6989586621679153995"><span class="annot"><span class="annottext">tableB :: [[String]]
-</span><a href="#local-6989586621679153995"><span class="hs-identifier hs-var hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153994"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+</span><span id="line-64"></span><span>                </span><span id="local-6989586621679154106"><span class="annot"><span class="annottext">tableB :: [[String]]
+</span><a href="#local-6989586621679154106"><span class="hs-identifier hs-var hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154105"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[JannoRow] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679153991"><span class="hs-identifier hs-var">rows</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679153994"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153994"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679153991"><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679153991"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">((String, [JannoRow]) -&gt; String)
+</span><a href="#local-6989586621679154102"><span class="hs-identifier hs-var">rows</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679154105"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154105"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679154102"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679154102"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">((String, [JannoRow]) -&gt; String)
 -&gt; [(String, [JannoRow])] -&gt; [(String, [JannoRow])]
 forall b a. Ord b =&gt; (a -&gt; b) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">sortOn</span></span><span> </span><span class="annot"><span class="annottext">(String, [JannoRow]) -&gt; String
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])]
-</span><a href="#local-6989586621679154008"><span class="hs-identifier hs-var">allSampleInfo</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679154119"><span class="hs-identifier hs-var">allSampleInfo</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-65"></span><span>            </span><span class="annot"><span class="annottext">Text -&gt; PoseidonLogIO ()
 forall env (m :: * -&gt; *). WithLog env Message m =&gt; Text -&gt; m ()
 </span><span class="hs-identifier hs-var">logInfo</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; PoseidonLogIO ()) -&gt; Text -&gt; PoseidonLogIO ()
@@ -157,44 +157,44 @@ forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[String]] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153995"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679154106"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; packages&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-66"></span><span>            </span><span class="annot"><span class="annottext">([String], [[String]]) -&gt; LoggerT Message IO ([String], [[String]])
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153996"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153995"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679154107"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679154106"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-67"></span><span>        </span><span class="annot"><span class="annottext">ListEntity
 </span><a href="Poseidon.CLI.List.html#ListGroups"><span class="hs-identifier hs-var">ListGroups</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-68"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153990"><span class="annot"><span class="annottext">tableH :: [String]
-</span><a href="#local-6989586621679153990"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span id="line-68"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154101"><span class="annot"><span class="annottext">tableH :: [String]
+</span><a href="#local-6989586621679154101"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Group&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Packages&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Nr Individuals&quot;</span></span><span class="hs-special">]</span><span>
-</span><span id="line-69"></span><span>                </span><span id="local-6989586621679153989"><span class="annot"><span class="annottext">pacJannoPairs :: [(String, JannoRow)]
-</span><a href="#local-6989586621679153989"><span class="hs-identifier hs-var hs-var">pacJannoPairs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-70"></span><span>                    </span><span class="hs-special">(</span><span id="local-6989586621679153988"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153988"><span class="hs-identifier hs-var">pacName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679153987"><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679153987"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])]
-</span><a href="#local-6989586621679154008"><span class="hs-identifier hs-var">allSampleInfo</span></a></span><span>
-</span><span id="line-71"></span><span>                    </span><span id="local-6989586621679153986"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153986"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679153987"><span class="hs-identifier hs-var">rows</span></a></span><span>
+</span><span id="line-69"></span><span>                </span><span id="local-6989586621679154100"><span class="annot"><span class="annottext">pacJannoPairs :: [(String, JannoRow)]
+</span><a href="#local-6989586621679154100"><span class="hs-identifier hs-var hs-var">pacJannoPairs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-70"></span><span>                    </span><span class="hs-special">(</span><span id="local-6989586621679154099"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154099"><span class="hs-identifier hs-var">pacName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679154098"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679154098"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])]
+</span><a href="#local-6989586621679154119"><span class="hs-identifier hs-var">allSampleInfo</span></a></span><span>
+</span><span id="line-71"></span><span>                    </span><span id="local-6989586621679154097"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154097"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679154098"><span class="hs-identifier hs-var">rows</span></a></span><span>
 </span><span id="line-72"></span><span>                    </span><span class="annot"><span class="annottext">(String, JannoRow) -&gt; [(String, JannoRow)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153988"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153986"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-73"></span><span>                </span><span id="local-6989586621679153985"><span class="annot"><span class="annottext">tableB :: [[String]]
-</span><a href="#local-6989586621679153985"><span class="hs-identifier hs-var hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-74"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153984"><span class="annot"><span class="annottext">pacGroupPairsForIndividuals :: [(String, String)]
-</span><a href="#local-6989586621679153984"><span class="hs-identifier hs-var hs-var">pacGroupPairsForIndividuals</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, JannoRow)] -&gt; [(String, String)]
+</span><a href="#local-6989586621679154099"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154097"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>                </span><span id="local-6989586621679154096"><span class="annot"><span class="annottext">tableB :: [[String]]
+</span><a href="#local-6989586621679154096"><span class="hs-identifier hs-var hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-74"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154095"><span class="annot"><span class="annottext">pacGroupPairsForIndividuals :: [(String, String)]
+</span><a href="#local-6989586621679154095"><span class="hs-identifier hs-var hs-var">pacGroupPairsForIndividuals</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, JannoRow)] -&gt; [(String, String)]
 </span><a href="Poseidon.CLI.List.html#unnestGroupNames"><span class="hs-identifier hs-var">unnestGroupNames</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, JannoRow)]
-</span><a href="#local-6989586621679153989"><span class="hs-identifier hs-var">pacJannoPairs</span></a></span><span>
-</span><span id="line-75"></span><span>                    </span><span id="local-6989586621679153982"><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679153982"><span class="hs-identifier hs-var">oneGroup</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, String)] -&gt; [[(String, String)]]
+</span><a href="#local-6989586621679154100"><span class="hs-identifier hs-var">pacJannoPairs</span></a></span><span>
+</span><span id="line-75"></span><span>                    </span><span id="local-6989586621679154093"><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679154093"><span class="hs-identifier hs-var">oneGroup</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, String)] -&gt; [[(String, String)]]
 forall a. Eq a =&gt; [a] -&gt; [[a]]
 </span><span class="hs-identifier hs-var">group</span></span><span> </span><span class="annot"><span class="annottext">([(String, String)] -&gt; [[(String, String)]])
 -&gt; [(String, String)] -&gt; [[(String, String)]]
@@ -205,9 +205,9 @@ forall b a. Ord b =&gt; (a -&gt; b) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">sortOn</span></span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; String
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679153984"><span class="hs-identifier hs-var">pacGroupPairsForIndividuals</span></a></span><span>
-</span><span id="line-76"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153981"><span class="annot"><span class="annottext">groupName :: String
-</span><a href="#local-6989586621679153981"><span class="hs-identifier hs-var hs-var">groupName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="#local-6989586621679154095"><span class="hs-identifier hs-var">pacGroupPairsForIndividuals</span></a></span><span>
+</span><span id="line-76"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154092"><span class="annot"><span class="annottext">groupName :: String
+</span><a href="#local-6989586621679154092"><span class="hs-identifier hs-var hs-var">groupName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
 forall a. [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; [String] -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -216,9 +216,9 @@ forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; String
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679153982"><span class="hs-identifier hs-var">oneGroup</span></a></span><span>
-</span><span id="line-77"></span><span>                        </span><span id="local-6989586621679153979"><span class="annot"><span class="annottext">groupPacs :: String
-</span><a href="#local-6989586621679153979"><span class="hs-identifier hs-var hs-var">groupPacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="#local-6989586621679154093"><span class="hs-identifier hs-var">oneGroup</span></a></span><span>
+</span><span id="line-77"></span><span>                        </span><span id="local-6989586621679154090"><span class="annot"><span class="annottext">groupPacs :: String
+</span><a href="#local-6989586621679154090"><span class="hs-identifier hs-var hs-var">groupPacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
 forall a. [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; [String] -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -227,20 +227,20 @@ forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; String
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679153982"><span class="hs-identifier hs-var">oneGroup</span></a></span><span>
-</span><span id="line-78"></span><span>                        </span><span id="local-6989586621679153978"><span class="annot"><span class="annottext">groupNrInds :: String
-</span><a href="#local-6989586621679153978"><span class="hs-identifier hs-var hs-var">groupNrInds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+</span><a href="#local-6989586621679154093"><span class="hs-identifier hs-var">oneGroup</span></a></span><span>
+</span><span id="line-78"></span><span>                        </span><span id="local-6989586621679154089"><span class="annot"><span class="annottext">groupNrInds :: String
+</span><a href="#local-6989586621679154089"><span class="hs-identifier hs-var hs-var">groupNrInds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, String)] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679153982"><span class="hs-identifier hs-var">oneGroup</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679154093"><span class="hs-identifier hs-var">oneGroup</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-79"></span><span>                    </span><span class="annot"><span class="annottext">[String] -&gt; [[String]]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153981"><span class="hs-identifier hs-var">groupName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153979"><span class="hs-identifier hs-var">groupPacs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153978"><span class="hs-identifier hs-var">groupNrInds</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679154092"><span class="hs-identifier hs-var">groupName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154090"><span class="hs-identifier hs-var">groupPacs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154089"><span class="hs-identifier hs-var">groupNrInds</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-80"></span><span>            </span><span class="annot"><span class="annottext">Text -&gt; PoseidonLogIO ()
 forall env (m :: * -&gt; *). WithLog env Message m =&gt; Text -&gt; m ()
 </span><span class="hs-identifier hs-var">logInfo</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; PoseidonLogIO ()) -&gt; Text -&gt; PoseidonLogIO ()
@@ -254,27 +254,27 @@ forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[String]] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153985"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679154096"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; groups/populations&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-81"></span><span>            </span><span class="annot"><span class="annottext">([String], [[String]]) -&gt; LoggerT Message IO ([String], [[String]])
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153990"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153985"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-82"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.List.html#ListIndividuals"><span class="hs-identifier hs-type">ListIndividuals</span></a></span><span> </span><span id="local-6989586621679153977"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153977"><span class="hs-identifier hs-var">moreJannoColumns</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-83"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153976"><span class="annot"><span class="annottext">tableH :: [String]
-</span><a href="#local-6989586621679153976"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154101"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679154096"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.List.html#ListIndividuals"><span class="hs-identifier hs-type">ListIndividuals</span></a></span><span> </span><span id="local-6989586621679154088"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154088"><span class="hs-identifier hs-var">moreJannoColumns</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-83"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154087"><span class="annot"><span class="annottext">tableH :: [String]
+</span><a href="#local-6989586621679154087"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Package&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Individual&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Group&quot;</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153977"><span class="hs-identifier hs-var">moreJannoColumns</span></a></span><span>
-</span><span id="line-84"></span><span>            </span><span id="local-6989586621679153975"><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153975"><span class="hs-identifier hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">([[[String]]] -&gt; [[String]])
+</span><a href="#local-6989586621679154088"><span class="hs-identifier hs-var">moreJannoColumns</span></a></span><span>
+</span><span id="line-84"></span><span>            </span><span id="local-6989586621679154086"><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679154086"><span class="hs-identifier hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">([[[String]]] -&gt; [[String]])
 -&gt; LoggerT Message IO [[[String]]] -&gt; LoggerT Message IO [[String]]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">[[[String]]] -&gt; [[String]]
@@ -292,14 +292,14 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m (t b)
 </span><span class="hs-identifier hs-var">forM</span></span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])]
-</span><a href="#local-6989586621679154008"><span class="hs-identifier hs-var">allSampleInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(((String, [JannoRow]) -&gt; LoggerT Message IO [[String]])
+</span><a href="#local-6989586621679154119"><span class="hs-identifier hs-var">allSampleInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(((String, [JannoRow]) -&gt; LoggerT Message IO [[String]])
  -&gt; LoggerT Message IO [[String]])
 -&gt; ((String, [JannoRow]) -&gt; LoggerT Message IO [[String]])
 -&gt; LoggerT Message IO [[String]]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679153972"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153972"><span class="hs-identifier hs-var">pacName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679153971"><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679153971"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679154083"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154083"><span class="hs-identifier hs-var">pacName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679154082"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679154082"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-85"></span><span>                </span><span class="annot"><span class="annottext">[JannoRow]
 -&gt; (JannoRow -&gt; LoggerT Message IO [String])
 -&gt; LoggerT Message IO [[String]]
@@ -307,24 +307,24 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m (t b)
 </span><span class="hs-identifier hs-var">forM</span></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679153971"><span class="hs-identifier hs-var">rows</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679153970"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153970"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-86"></span><span>                    </span><span id="local-6989586621679153969"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153969"><span class="hs-identifier hs-var">moreFields</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [String] -&gt; LoggerT Message IO [String]
+</span><a href="#local-6989586621679154082"><span class="hs-identifier hs-var">rows</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679154081"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154081"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-86"></span><span>                    </span><span id="local-6989586621679154080"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154080"><span class="hs-identifier hs-var">moreFields</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [String] -&gt; LoggerT Message IO [String]
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [String] -&gt; LoggerT Message IO [String])
 -&gt; IO [String] -&gt; LoggerT Message IO [String]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; [String] -&gt; IO [String]
 </span><a href="Poseidon.CLI.List.html#extractAdditionalFields"><span class="hs-identifier hs-var">extractAdditionalFields</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153970"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153977"><span class="hs-identifier hs-var">moreJannoColumns</span></a></span><span>
+</span><a href="#local-6989586621679154081"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154088"><span class="hs-identifier hs-var">moreJannoColumns</span></a></span><span>
 </span><span id="line-87"></span><span>                    </span><span class="annot"><span class="annottext">[String] -&gt; LoggerT Message IO [String]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153972"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; String
+</span><a href="#local-6989586621679154083"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; String
 </span><a href="Poseidon.Janno.html#jPoseidonID"><span class="hs-identifier hs-var hs-var">jPoseidonID</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153970"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="#local-6989586621679154081"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
 forall a. [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String)
 -&gt; (JannoRow -&gt; [String]) -&gt; JannoRow -&gt; String
@@ -338,10 +338,10 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><a href="Poseidon.Janno.html#jGroupName"><span class="hs-identifier hs-var hs-var">jGroupName</span></a></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; String) -&gt; JannoRow -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153970"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+</span><a href="#local-6989586621679154081"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153969"><span class="hs-identifier hs-var">moreFields</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679154080"><span class="hs-identifier hs-var">moreFields</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-88"></span><span>            </span><span class="annot"><span class="annottext">Text -&gt; PoseidonLogIO ()
 forall env (m :: * -&gt; *). WithLog env Message m =&gt; Text -&gt; m ()
 </span><span class="hs-identifier hs-var">logInfo</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; PoseidonLogIO ()) -&gt; Text -&gt; PoseidonLogIO ()
@@ -355,17 +355,17 @@ forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[String]] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153975"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679154086"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; individuals/samples&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-89"></span><span>            </span><span class="annot"><span class="annottext">([String], [[String]]) -&gt; LoggerT Message IO ([String], [[String]])
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153976"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153975"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679154087"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679154086"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-90"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679154010"><span class="hs-identifier hs-var">rawOutput</span></a></span><span> </span><span class="hs-keyword">then</span><span>
+</span><a href="#local-6989586621679154121"><span class="hs-identifier hs-var">rawOutput</span></a></span><span> </span><span class="hs-keyword">then</span><span>
 </span><span id="line-91"></span><span>        </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonLogIO ()
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; PoseidonLogIO ()) -&gt; IO () -&gt; PoseidonLogIO ()
@@ -380,17 +380,17 @@ forall a. [a] -&gt; [[a]] -&gt; [a]
 forall a. [a] -&gt; [[a]] -&gt; [a]
 </span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;\t&quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153963"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679153963"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153963"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153997"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679154074"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679154074"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154074"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679154108"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-92"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-93"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153962"><span class="annot"><span class="annottext">colSpecs :: [ColSpec]
-</span><a href="#local-6989586621679153962"><span class="hs-identifier hs-var hs-var">colSpecs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ColSpec -&gt; [ColSpec]
+</span><span id="line-93"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154073"><span class="annot"><span class="annottext">colSpecs :: [ColSpec]
+</span><a href="#local-6989586621679154073"><span class="hs-identifier hs-var hs-var">colSpecs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ColSpec -&gt; [ColSpec]
 forall a. Int -&gt; a -&gt; [a]
 </span><span class="hs-identifier hs-var">replicate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153998"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LenSpec -&gt; Position H -&gt; AlignSpec -&gt; CutMark -&gt; ColSpec
+</span><a href="#local-6989586621679154109"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LenSpec -&gt; Position H -&gt; AlignSpec -&gt; CutMark -&gt; ColSpec
 </span><span class="hs-identifier hs-var">column</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; LenSpec
 </span><span class="hs-identifier hs-var">expandUntil</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">60</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Position H
@@ -413,13 +413,13 @@ forall a.
 Cell a =&gt;
 [ColSpec] -&gt; TableStyle -&gt; HeaderSpec -&gt; [RowGroup a] -&gt; String
 </span><span class="hs-identifier hs-var">tableString</span></span><span> </span><span class="annot"><span class="annottext">[ColSpec]
-</span><a href="#local-6989586621679153962"><span class="hs-identifier hs-var">colSpecs</span></a></span><span> </span><span class="annot"><span class="annottext">TableStyle
+</span><a href="#local-6989586621679154073"><span class="hs-identifier hs-var">colSpecs</span></a></span><span> </span><span class="annot"><span class="annottext">TableStyle
 </span><span class="hs-identifier hs-var">asciiRoundS</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; HeaderSpec
 </span><span class="hs-identifier hs-var">titlesH</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153998"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[[String]] -&gt; RowGroup String
+</span><a href="#local-6989586621679154109"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[[String]] -&gt; RowGroup String
 forall a. [Row a] -&gt; RowGroup a
 </span><span class="hs-identifier hs-var">rowsG</span></span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679153997"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679154108"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-95"></span><span>
 </span><span id="line-96"></span><span class="annot"><a href="Poseidon.CLI.List.html#unnestGroupNames"><span class="hs-identifier hs-type">unnestGroupNames</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
 </span><span id="line-97"></span><span id="unnestGroupNames"><span class="annot"><span class="annottext">unnestGroupNames :: [(String, JannoRow)] -&gt; [(String, String)]
@@ -427,15 +427,15 @@ forall a. [Row a] -&gt; RowGroup a
 -&gt; [(String, JannoRow)] -&gt; [(String, String)]
 forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
 </span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="annot"><span class="annottext">(String, JannoRow) -&gt; [(String, String)]
-</span><a href="#local-6989586621679153959"><span class="hs-identifier hs-var">unnestOne</span></a></span><span>
+</span><a href="#local-6989586621679154070"><span class="hs-identifier hs-var">unnestOne</span></a></span><span>
 </span><span id="line-98"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span>
-</span><span id="line-99"></span><span>        </span><span class="annot"><a href="#local-6989586621679153959"><span class="hs-identifier hs-type">unnestOne</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-100"></span><span>        </span><span id="local-6989586621679153959"><span class="annot"><span class="annottext">unnestOne :: (String, JannoRow) -&gt; [(String, String)]
-</span><a href="#local-6989586621679153959"><span class="hs-identifier hs-var hs-var">unnestOne</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679153958"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153958"><span class="hs-identifier hs-var">pac</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679153957"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153957"><span class="hs-identifier hs-var">jR</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span>
-</span><span id="line-101"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679153956"><span class="annot"><span class="annottext">groups :: [String]
-</span><a href="#local-6989586621679153956"><span class="hs-identifier hs-var hs-var">groups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">JannoList String -&gt; [String]
+</span><span id="line-99"></span><span>        </span><span class="annot"><a href="#local-6989586621679154070"><span class="hs-identifier hs-type">unnestOne</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-100"></span><span>        </span><span id="local-6989586621679154070"><span class="annot"><span class="annottext">unnestOne :: (String, JannoRow) -&gt; [(String, String)]
+</span><a href="#local-6989586621679154070"><span class="hs-identifier hs-var hs-var">unnestOne</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679154069"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154069"><span class="hs-identifier hs-var">pac</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679154068"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154068"><span class="hs-identifier hs-var">jR</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span>
+</span><span id="line-101"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679154067"><span class="annot"><span class="annottext">groups :: [String]
+</span><a href="#local-6989586621679154067"><span class="hs-identifier hs-var hs-var">groups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">JannoList String -&gt; [String]
 forall a. JannoList a -&gt; [a]
 </span><a href="Poseidon.Janno.html#getJannoList"><span class="hs-identifier hs-var hs-var">getJannoList</span></a></span><span> </span><span class="annot"><span class="annottext">(JannoList String -&gt; [String])
 -&gt; (JannoRow -&gt; JannoList String) -&gt; JannoRow -&gt; [String]
@@ -444,50 +444,50 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><a href="Poseidon.Janno.html#jGroupName"><span class="hs-identifier hs-var hs-var">jGroupName</span></a></span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; [String]) -&gt; JannoRow -&gt; [String]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153957"><span class="hs-identifier hs-var">jR</span></a></span><span>
+</span><a href="#local-6989586621679154068"><span class="hs-identifier hs-var">jR</span></a></span><span>
 </span><span id="line-102"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [(String, String)]
 forall a b. [a] -&gt; [b] -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String]
 forall a. a -&gt; [a]
 </span><span class="hs-identifier hs-var">repeat</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153958"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679153956"><span class="hs-identifier hs-var">groups</span></a></span><span>
+</span><a href="#local-6989586621679154069"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679154067"><span class="hs-identifier hs-var">groups</span></a></span><span>
 </span><span id="line-103"></span><span>
 </span><span id="line-104"></span><span class="annot"><a href="Poseidon.CLI.List.html#readSampleInfo"><span class="hs-identifier hs-type">readSampleInfo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LB.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span>
 </span><span id="line-105"></span><span id="readSampleInfo"><span class="annot"><span class="annottext">readSampleInfo :: ByteString -&gt; IO [(String, [JannoRow])]
-</span><a href="Poseidon.CLI.List.html#readSampleInfo"><span class="hs-identifier hs-var hs-var">readSampleInfo</span></a></span></span><span> </span><span id="local-6989586621679153954"><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679153954"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.CLI.List.html#readSampleInfo"><span class="hs-identifier hs-var hs-var">readSampleInfo</span></a></span></span><span> </span><span id="local-6989586621679154065"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679154065"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-106"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either String [(String, [JannoRow])]
 forall a. FromJSON a =&gt; ByteString -&gt; Either String a
 </span><span class="hs-identifier hs-var">eitherDecode'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679153954"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-107"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679153953"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153953"><span class="hs-identifier hs-var">err</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; IO [(String, [JannoRow])]
+</span><a href="#local-6989586621679154065"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-107"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679154064"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154064"><span class="hs-identifier hs-var">err</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; IO [(String, [JannoRow])]
 forall e a. Exception e =&gt; e -&gt; IO a
 </span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">(PoseidonException -&gt; IO [(String, [JannoRow])])
 -&gt; PoseidonException -&gt; IO [(String, [JannoRow])]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonRemoteJSONParsingException"><span class="hs-identifier hs-var">PoseidonRemoteJSONParsingException</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153953"><span class="hs-identifier hs-var">err</span></a></span><span>
-</span><span id="line-108"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679153951"><span class="annot"><span class="annottext">[(String, [JannoRow])]
-</span><a href="#local-6989586621679153951"><span class="hs-identifier hs-var">sam</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])] -&gt; IO [(String, [JannoRow])]
+</span><a href="#local-6989586621679154064"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-108"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679154062"><span class="annot"><span class="annottext">[(String, [JannoRow])]
+</span><a href="#local-6989586621679154062"><span class="hs-identifier hs-var">sam</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])] -&gt; IO [(String, [JannoRow])]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">[(String, [JannoRow])]
-</span><a href="#local-6989586621679153951"><span class="hs-identifier hs-var">sam</span></a></span><span>
+</span><a href="#local-6989586621679154062"><span class="hs-identifier hs-var">sam</span></a></span><span>
 </span><span id="line-109"></span><span>
 </span><span id="line-110"></span><span class="annot"><a href="Poseidon.CLI.List.html#extractAdditionalFields"><span class="hs-identifier hs-type">extractAdditionalFields</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
 </span><span id="line-111"></span><span id="extractAdditionalFields"><span class="annot"><span class="annottext">extractAdditionalFields :: JannoRow -&gt; [String] -&gt; IO [String]
-</span><a href="Poseidon.CLI.List.html#extractAdditionalFields"><span class="hs-identifier hs-var hs-var">extractAdditionalFields</span></a></span></span><span> </span><span id="local-6989586621679153950"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153950"><span class="hs-identifier hs-var">jannoRow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String) -&gt; [String] -&gt; IO [String]
+</span><a href="Poseidon.CLI.List.html#extractAdditionalFields"><span class="hs-identifier hs-var hs-var">extractAdditionalFields</span></a></span></span><span> </span><span id="local-6989586621679154061"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154061"><span class="hs-identifier hs-var">jannoRow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String) -&gt; [String] -&gt; IO [String]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 (a -&gt; m b) -&gt; t a -&gt; m (t b)
-</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679153948"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153948"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; JannoRow -&gt; IO String
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679154059"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154059"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; JannoRow -&gt; IO String
 </span><a href="Poseidon.CLI.List.html#extractAdditionalField"><span class="hs-identifier hs-var">extractAdditionalField</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153948"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153950"><span class="hs-identifier hs-var">jannoRow</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679154059"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154061"><span class="hs-identifier hs-var">jannoRow</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-112"></span><span>
 </span><span id="line-113"></span><span class="annot"><a href="Poseidon.CLI.List.html#extractAdditionalField"><span class="hs-identifier hs-type">extractAdditionalField</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-114"></span><span id="extractAdditionalField"><span class="annot"><span class="annottext">extractAdditionalField :: String -&gt; JannoRow -&gt; IO String
@@ -727,8 +727,8 @@ forall a. Show a =&gt; (JannoRow -&gt; Maybe a) -&gt; JannoRow -&gt; IO String
 </span><span class="hs-string">&quot;Keywords&quot;</span></span><span>                       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(JannoRow -&gt; Maybe (JannoList String)) -&gt; JannoRow -&gt; IO String
 </span><a href="Poseidon.CLI.List.html#handleMaybeList"><span class="hs-identifier hs-var">handleMaybeList</span></a></span><span>            </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList String)
 </span><a href="Poseidon.Janno.html#jKeywords"><span class="hs-identifier hs-var hs-var">jKeywords</span></a></span><span>
-</span><span id="line-158"></span><span class="annot"><a href="Poseidon.CLI.List.html#extractAdditionalField"><span class="hs-identifier hs-var">extractAdditionalField</span></a></span><span> </span><span id="local-6989586621679153900"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153900"><span class="hs-identifier hs-var">f</span></a></span></span><span>                                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String -&gt; JannoRow -&gt; IO String
+</span><span id="line-158"></span><span class="annot"><a href="Poseidon.CLI.List.html#extractAdditionalField"><span class="hs-identifier hs-var">extractAdditionalField</span></a></span><span> </span><span id="local-6989586621679154011"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154011"><span class="hs-identifier hs-var">f</span></a></span></span><span>                                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String -&gt; JannoRow -&gt; IO String
 forall a b. a -&gt; b -&gt; a
 </span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonException -&gt; IO String
 forall e a. Exception e =&gt; e -&gt; IO a
@@ -736,47 +736,47 @@ forall e a. Exception e =&gt; e -&gt; IO a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonGenericException"><span class="hs-identifier hs-var">PoseidonGenericException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153900"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679154011"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; is not a standard Janno column name&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-159"></span><span>
 </span><span id="line-160"></span><span class="annot"><a href="Poseidon.CLI.List.html#handleMaybe"><span class="hs-identifier hs-type">handleMaybe</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-161"></span><span id="handleMaybe"><span class="annot"><span class="annottext">handleMaybe :: (JannoRow -&gt; Maybe String) -&gt; JannoRow -&gt; IO String
-</span><a href="Poseidon.CLI.List.html#handleMaybe"><span class="hs-identifier hs-var hs-var">handleMaybe</span></a></span></span><span> </span><span id="local-6989586621679153897"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe String
-</span><a href="#local-6989586621679153897"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679153896"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153896"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.CLI.List.html#handleMaybe"><span class="hs-identifier hs-var hs-var">handleMaybe</span></a></span></span><span> </span><span id="local-6989586621679154008"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe String
+</span><a href="#local-6989586621679154008"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679154007"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154007"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-162"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe String
-</span><a href="#local-6989586621679153897"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153896"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-163"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679153895"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153895"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679154008"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154007"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-163"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679154006"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679154006"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679153895"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><a href="#local-6989586621679154006"><span class="hs-identifier hs-var">val</span></a></span><span>
 </span><span id="line-164"></span><span>        </span><span class="annot"><span class="annottext">Maybe String
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;n/a&quot;</span></span><span>
 </span><span id="line-165"></span><span>
-</span><span id="line-166"></span><span id="local-6989586621679154062"><span class="annot"><a href="Poseidon.CLI.List.html#handleMaybeShow"><span class="hs-identifier hs-type">handleMaybeShow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679154062"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679154062"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-166"></span><span id="local-6989586621679154173"><span class="annot"><a href="Poseidon.CLI.List.html#handleMaybeShow"><span class="hs-identifier hs-type">handleMaybeShow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679154173"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679154173"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
 </span><span id="line-167"></span><span id="handleMaybeShow"><span class="annot"><span class="annottext">handleMaybeShow :: (JannoRow -&gt; Maybe a) -&gt; JannoRow -&gt; IO String
-</span><a href="Poseidon.CLI.List.html#handleMaybeShow"><span class="hs-identifier hs-var hs-var">handleMaybeShow</span></a></span></span><span> </span><span id="local-6989586621679153894"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe a
-</span><a href="#local-6989586621679153894"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679153893"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153893"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.CLI.List.html#handleMaybeShow"><span class="hs-identifier hs-var hs-var">handleMaybeShow</span></a></span></span><span> </span><span id="local-6989586621679154005"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe a
+</span><a href="#local-6989586621679154005"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679154004"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154004"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-168"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe a
-</span><a href="#local-6989586621679153894"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153893"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-169"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679153892"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679153892"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679154005"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154004"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-169"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679154003"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679154003"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String) -&gt; String -&gt; IO String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679153892"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><a href="#local-6989586621679154003"><span class="hs-identifier hs-var">val</span></a></span><span>
 </span><span id="line-170"></span><span>        </span><span class="annot"><span class="annottext">Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -785,14 +785,14 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span id="line-171"></span><span>
 </span><span id="line-172"></span><span class="annot"><a href="Poseidon.CLI.List.html#handleMaybeList"><span class="hs-identifier hs-type">handleMaybeList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoList"><span class="hs-identifier hs-type">JannoList</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-173"></span><span id="handleMaybeList"><span class="annot"><span class="annottext">handleMaybeList :: (JannoRow -&gt; Maybe (JannoList String)) -&gt; JannoRow -&gt; IO String
-</span><a href="Poseidon.CLI.List.html#handleMaybeList"><span class="hs-identifier hs-var hs-var">handleMaybeList</span></a></span></span><span> </span><span id="local-6989586621679153891"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList String)
-</span><a href="#local-6989586621679153891"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679153890"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153890"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.CLI.List.html#handleMaybeList"><span class="hs-identifier hs-var hs-var">handleMaybeList</span></a></span></span><span> </span><span id="local-6989586621679154002"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList String)
+</span><a href="#local-6989586621679154002"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679154001"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154001"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-174"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList String)
-</span><a href="#local-6989586621679153891"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153890"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-175"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679153889"><span class="annot"><span class="annottext">JannoList String
-</span><a href="#local-6989586621679153889"><span class="hs-identifier hs-var">vals</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679154002"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679154001"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-175"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679154000"><span class="annot"><span class="annottext">JannoList String
+</span><a href="#local-6989586621679154000"><span class="hs-identifier hs-var">vals</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String)
 -&gt; (JannoList String -&gt; String) -&gt; JannoList String -&gt; IO String
@@ -808,23 +808,23 @@ forall a. JannoList a -&gt; [a]
 </span><a href="Poseidon.Janno.html#getJannoList"><span class="hs-identifier hs-var hs-var">getJannoList</span></a></span><span> </span><span class="annot"><span class="annottext">(JannoList String -&gt; IO String) -&gt; JannoList String -&gt; IO String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoList String
-</span><a href="#local-6989586621679153889"><span class="hs-identifier hs-var">vals</span></a></span><span>
+</span><a href="#local-6989586621679154000"><span class="hs-identifier hs-var">vals</span></a></span><span>
 </span><span id="line-176"></span><span>        </span><span class="annot"><span class="annottext">Maybe (JannoList String)
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;n/a&quot;</span></span><span>
 </span><span id="line-177"></span><span>
-</span><span id="line-178"></span><span id="local-6989586621679154064"><span class="annot"><a href="Poseidon.CLI.List.html#handleMaybeShowList"><span class="hs-identifier hs-type">handleMaybeShowList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679154064"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoList"><span class="hs-identifier hs-type">JannoList</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679154064"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-178"></span><span id="local-6989586621679154175"><span class="annot"><a href="Poseidon.CLI.List.html#handleMaybeShowList"><span class="hs-identifier hs-type">handleMaybeShowList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679154175"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoList"><span class="hs-identifier hs-type">JannoList</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679154175"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
 </span><span id="line-179"></span><span id="handleMaybeShowList"><span class="annot"><span class="annottext">handleMaybeShowList :: (JannoRow -&gt; Maybe (JannoList a)) -&gt; JannoRow -&gt; IO String
-</span><a href="Poseidon.CLI.List.html#handleMaybeShowList"><span class="hs-identifier hs-var hs-var">handleMaybeShowList</span></a></span></span><span> </span><span id="local-6989586621679153888"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList a)
-</span><a href="#local-6989586621679153888"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679153887"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153887"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.CLI.List.html#handleMaybeShowList"><span class="hs-identifier hs-var hs-var">handleMaybeShowList</span></a></span></span><span> </span><span id="local-6989586621679153999"><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList a)
+</span><a href="#local-6989586621679153999"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679153998"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679153998"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-180"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; Maybe (JannoList a)
-</span><a href="#local-6989586621679153888"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679153887"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-181"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679153886"><span class="annot"><span class="annottext">JannoList a
-</span><a href="#local-6989586621679153886"><span class="hs-identifier hs-var">vals</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679153999"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679153998"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-181"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679153997"><span class="annot"><span class="annottext">JannoList a
+</span><a href="#local-6989586621679153997"><span class="hs-identifier hs-var">vals</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String)
 -&gt; (JannoList a -&gt; String) -&gt; JannoList a -&gt; IO String
@@ -847,7 +847,7 @@ forall a. JannoList a -&gt; [a]
 </span><a href="Poseidon.Janno.html#getJannoList"><span class="hs-identifier hs-var hs-var">getJannoList</span></a></span><span> </span><span class="annot"><span class="annottext">(JannoList a -&gt; IO String) -&gt; JannoList a -&gt; IO String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoList a
-</span><a href="#local-6989586621679153886"><span class="hs-identifier hs-var">vals</span></a></span><span>
+</span><a href="#local-6989586621679153997"><span class="hs-identifier hs-var">vals</span></a></span><span>
 </span><span id="line-182"></span><span>        </span><span class="annot"><span class="annottext">Maybe (JannoList a)
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a

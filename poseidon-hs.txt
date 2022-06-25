@@ -734,7 +734,7 @@ Include :: PoseidonEntity -> SignedEntity
 Exclude :: PoseidonEntity -> SignedEntity
 type SignedEntitiesList = [SignedEntity]
 type EntitiesList = [PoseidonEntity]
-class EntitySpec a
+class Eq a => EntitySpec a
 indInfoConformsToEntitySpec :: EntitySpec a => [a] -> IndividualInfo -> Bool
 underlyingEntity :: EntitySpec a => a -> PoseidonEntity
 entitySpecParser :: EntitySpec a => Parser a
@@ -745,6 +745,10 @@ indInfoFindRelevantPackageNames :: EntitySpec a => [a] -> [IndividualInfo] -> [S
 filterRelevantPackages :: EntitySpec a => [a] -> [PoseidonPackage] -> [PoseidonPackage]
 conformingEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> [Int]
 entitiesListP :: EntitySpec a => Parser [a]
+data EntityInput a
+EntitiesDirect :: [a] -> EntityInput a
+EntitiesFromFile :: FilePath -> EntityInput a
+readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a]
 instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.SignedEntity
@@ -871,13 +875,11 @@ convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> Poseido
 
 module Poseidon.CLI.Fetch
 data FetchOptions
-FetchOptions :: [FilePath] -> EntitiesList -> [FilePath] -> String -> Bool -> Bool -> FetchOptions
+FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> String -> Bool -> FetchOptions
 [_jaBaseDirs] :: FetchOptions -> [FilePath]
-[_entityList] :: FetchOptions -> EntitiesList
-[_entityFiles] :: FetchOptions -> [FilePath]
+[_entityInput] :: FetchOptions -> [EntityInput PoseidonEntity]
 [_remoteURL] :: FetchOptions -> String
 [_upgrade] :: FetchOptions -> Bool
-[_downloadAllPacs] :: FetchOptions -> Bool
 data PackageState
 NotLocal :: PackageState
 EqualLocalRemote :: PackageState
@@ -926,10 +928,10 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> Either SignedEntitiesList FilePath -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> LogMode -> Bool -> ForgeOptions
+ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> LogMode -> Bool -> ForgeOptions
 [_forgeBaseDirs] :: ForgeOptions -> [FilePath]
 [_forgeInGenos] :: ForgeOptions -> [GenotypeDataSpec]
-[_forgeEntitySpec] :: ForgeOptions -> Either SignedEntitiesList FilePath
+[_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
 [_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
