@@ -351,20 +351,20 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.lo
         \forge will apply excludes and includes in order. If the first entity is negative, then forge \
         \will assume you want to merge all individuals in the \
         \packages found in the baseDirs (except the ones explicitly excluded) before the exclude entities are applied. \
-        \An empty forgeString, with no --forgeFile given, will therefore merge all available individuals." <> OP.value [])
+        \An empty forgeString, with no --forgeFile given, will therefore merge all available individuals.")
   where
     readSignedEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)
         Right e -> Right e
 
 parseFetchEntitiesDirect :: OP.Parser EntitiesList
-parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readEntities) (OP.long "fetchString" <>
+parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (OP.long "fetchString" <>
     OP.short 'f' <>
     OP.help "List of packages to be downloaded from the remote server. \
         \Package names should be wrapped in asterisks: *package_title*. \
         \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
         \fetchString uses the same parser as forgeString, but does not allow excludes. If groups or individuals are \
-        \specified, then packages which include these groups or individuals are included in the download."))
+        \specified, then packages which include these groups or individuals are included in the download.")
   where
     readEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)
