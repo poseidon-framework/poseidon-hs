@@ -1,3 +1,4 @@
+- V 1.0.1.0: Allowing flexible input of entity lists in fetch and forge.
 - V 1.0.0.2: Switched to GHC 8.10.7 and Stackage lts-18.28
 - V 1.0.0.1: Fixed memory leak in genoconvert
 - V 1.0.0.0: Enabled logging with the co-log library
