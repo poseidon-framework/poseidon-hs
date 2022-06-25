@@ -69,6 +69,9 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     
+    logInfo $ pack $ "Download directory (will be created if missing): " ++ downloadDir
+    liftIO $ createDirectoryIfMissing True downloadDir
+
     -- compile entities
     entitiesFromFile <- liftIO $ mapM readEntitiesFromFile entitiesFile
     let entities = nub $ entitiesDirect ++ concat entitiesFromFile
@@ -106,9 +109,6 @@ runFetch (FetchOptions baseDirs entitiesDirect entitiesFile remoteURL upgrade do
                 -- perform package download depending on local-remote state
                 logInfo $ pack $ "Comparing local and remote package " ++ pTitle pac
                 let packageState = determinePackageState allLocalPackages pac
-                -- create new directory
-                logInfo $ pack $ "Downloading to directory (will be created if missing): " ++ downloadDir
-                liftIO $ createDirectoryIfMissing True downloadDir
                 handlePackageByState downloadDir tempDir remote upgrade packageState            
             liftIO $ removeDirectory tempDir
 
