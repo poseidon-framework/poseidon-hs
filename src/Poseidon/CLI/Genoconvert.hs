@@ -23,7 +23,7 @@ import           Pipes                      (MonadIO (liftIO),
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (removeFile, doesFileExist)
+import           System.Directory           (removeFile, doesFileExist, createDirectoryIfMissing)
 import           System.FilePath            ((<.>), (</>))
 
 -- | A datatype representing command line options for the validate command
@@ -50,7 +50,7 @@ runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno outPath r
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData inGenos
-    logInfo $ pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    logInfo . pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
     mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
     mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
@@ -74,9 +74,13 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
     then logWarning "The genotype data is already in the requested format"
     else do
         -- create new genotype data files
-        let newBaseDir = case outPath of
-                Just x -> x
-                Nothing -> posPacBaseDir pac
+        newBaseDir <- case outPath of
+            Just x -> do
+                -- create new directory
+                logInfo . pack $ "Writing to directory (will be created if missing): " ++ x
+                liftIO $ createDirectoryIfMissing True x
+                return x
+            Nothing -> return $ posPacBaseDir pac
         let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists

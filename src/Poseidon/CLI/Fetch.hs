@@ -67,6 +67,9 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     
+    logInfo $ pack $ "Download directory (will be created if missing): " ++ downloadDir
+    liftIO $ createDirectoryIfMissing True downloadDir
+
     -- compile entities
     entities <- readEntityInputs entityInputs
     
