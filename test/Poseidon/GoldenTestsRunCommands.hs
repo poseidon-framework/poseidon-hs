@@ -4,7 +4,7 @@ module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.EntitiesList          (readEntitiesFromString, PoseidonEntity(..))
+import           Poseidon.EntitiesList          (readEntitiesFromString, PoseidonEntity(..), EntityInput(..))
 import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
 import           Poseidon.CLI.Init              (InitOptions (..), runInit)
@@ -332,7 +332,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     let forgeOpts1 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
         , _forgeInGenos      = []
-        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -353,7 +353,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     let forgeOpts2 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
         , _forgeInGenos      = []
-        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatPlink
@@ -373,7 +373,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     let forgeOpts3 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
         , _forgeInGenos      = []
-        , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile1.txt")
+        , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile1.txt")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -396,7 +396,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     let forgeOpts4 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
         , _forgeInGenos      = []
-        , _forgeEntitySpec   = Right (testEntityFiles </> "goldenTestForgeFile2.txt")
+        , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile2.txt")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatPlink
@@ -419,7 +419,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     let forgeOpts5 = ForgeOptions { 
           _forgeBaseDirs     = [testDir </> "Schiffels", testDir </> "Wang"]
         , _forgeInGenos      = []
-        , _forgeEntitySpec   = Left []
+        , _forgeEntityInput  = []
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
@@ -461,7 +461,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
               , snpSet   = Just SNPSetOther
             }
           ]
-        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
@@ -493,7 +493,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
               , snpSet   = Just SNPSetOther
             }
           ]
-        , _forgeEntitySpec   = Left (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
         , _forgeOutMinimal   = False
@@ -521,11 +521,9 @@ testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions { 
           _jaBaseDirs       = [testDir]
-        , _entityList       = [Pac "2019_Nikitin_LBK"]
-        , _entityFiles      = []
+        , _entityInput      = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
         , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
         , _upgrade          = True
-        , _downloadAllPacs  = False 
         }
     runAndChecksumFiles checkFilePath testDir (usePoseidonLogger NoLog $ runFetch fetchOpts1) "fetch" [
           "2019_Nikitin_LBK" </> "POSEIDON.yml"

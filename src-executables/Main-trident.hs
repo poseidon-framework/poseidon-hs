@@ -8,7 +8,8 @@ import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.EntitiesList  (SignedEntitiesList, EntitiesList,
+import           Poseidon.EntitiesList  (SignedEntitiesList, EntitiesList, EntityInput(..), SignedEntity,
+                                         PoseidonEntity,
                                         readEntitiesFromString)
 import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
 import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
@@ -191,16 +192,14 @@ listOptParser = ListOptions <$> parseRepoLocation
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
-                              <*> parseFetchEntitiesDirect
-                              <*> parseFetchEntitiesFromFile
+                              <*> parseFetchEntityInputs
                               <*> parseRemoteURL
                               <*> parseUpgrade
-                              <*> parseDownloadAll
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseBasePaths
                               <*> parseInGenotypeDatasets
-                              <*> parseForgeEntitySpec
+                              <*> parseForgeEntityInputs
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
@@ -314,8 +313,23 @@ parseForce = OP.switch (
             \if this is not the case."
     )
 
-parseForgeEntitySpec :: OP.Parser (Either SignedEntitiesList FilePath)
-parseForgeEntitySpec = (Right <$> parseForgeEntitiesFromFile) <|> (Left <$> parseForgeEntitiesDirect)
+-- this will also parse an empty list, which means "forge everything".
+parseForgeEntityInputs :: OP.Parser [EntityInput SignedEntity]
+parseForgeEntityInputs = OP.many parseSignedEntityInput
+  where
+    parseSignedEntityInput = (EntitiesFromFile <$> parseForgeEntitiesFromFile) <|> (EntitiesDirect <$> parseForgeEntitiesDirect)
+
+--this will not parse an empty list, but requires the user to specify `downloadAll`. I made this decision to not change the API
+-- for the user, even though internally "downloadAll" is represented as an empty list.
+parseFetchEntityInputs :: OP.Parser [EntityInput PoseidonEntity]
+parseFetchEntityInputs = parseDownloadAll <|> OP.some parseEntityInput
+  where
+    parseDownloadAll = OP.flag' [] (
+        OP.long "downloadAll" <>
+        OP.help "download all packages the server is offering"
+        )
+    parseEntityInput = (EntitiesFromFile <$> parseFetchEntitiesFromFile) <|> (EntitiesDirect <$> parseFetchEntitiesDirect)
+    
 
 parseIgnorePoseidonVersion :: OP.Parser Bool
 parseIgnorePoseidonVersion = OP.switch (
@@ -335,22 +349,22 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.lo
         \Negative selection is possible by prepending \"-\" to the entity you want to exclude \
         \(e.g. \"*package_1*, -<individual_1>, -group_1\"). \
         \forge will apply excludes and includes in order. If the first entity is negative, then forge \
-        \will assume you want to merge all individuals in the \
-        \packages found in the baseDirs (except the ones explicitly excluded) before the exclude entities are applied. \
-        \An empty forgeString will therefore merge all available individuals." <> OP.value [])
+        \will assume you want to merge all individuals in the packages found in the baseDirs (except the \
+        \ones explicitly excluded) before the exclude entities are applied. \
+        \An empty forgeString (and no --forgeFile) will therefore merge all available individuals.")
   where
     readSignedEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)
         Right e -> Right e
 
 parseFetchEntitiesDirect :: OP.Parser EntitiesList
-parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readEntities) (OP.long "fetchString" <>
+parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (OP.long "fetchString" <>
     OP.short 'f' <>
     OP.help "List of packages to be downloaded from the remote server. \
         \Package names should be wrapped in asterisks: *package_title*. \
         \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
         \fetchString uses the same parser as forgeString, but does not allow excludes. If groups or individuals are \
-        \specified, then packages which include these groups or individuals are included in the download."))
+        \specified, then packages which include these groups or individuals are included in the download.")
   where
     readEntities s = case readEntitiesFromString s of
         Left e -> Left (show e)
@@ -361,13 +375,15 @@ parseForgeEntitiesFromFile = OP.strOption (OP.long "forgeFile" <>
     OP.help "A file with a list of packages, groups or individual samples. \
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
         \Empty lines are ignored and comments start with \"#\", so everything after \"#\" is ignored \
-        \in one line.")
+        \in one line. \
+        \Multiple instances of -f and --forgeFile can be given. They will be evaluated according to their \
+        \input order on the command line.")
 
-parseFetchEntitiesFromFile :: OP.Parser [FilePath]
-parseFetchEntitiesFromFile = OP.many (OP.strOption (OP.long "fetchFile" <>
+parseFetchEntitiesFromFile :: OP.Parser FilePath
+parseFetchEntitiesFromFile = OP.strOption (OP.long "fetchFile" <>
     OP.help "A file with a list of packages. \
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-        \-f and --fetchFile can be combined."))
+        \-f and --fetchFile can be combined.")
 
 parseIntersect :: OP.Parser (Bool)
 parseIntersect = OP.switch (OP.long "intersect" <>
@@ -573,10 +589,4 @@ parseUpgrade :: OP.Parser Bool
 parseUpgrade = OP.switch (
     OP.long "upgrade" <>  OP.short 'u' <> 
     OP.help "overwrite outdated local package versions"
-    )
-
-parseDownloadAll :: OP.Parser Bool
-parseDownloadAll = OP.switch (
-    OP.long "downloadAll" <>
-    OP.help "download all packages the server is offering"
     )
