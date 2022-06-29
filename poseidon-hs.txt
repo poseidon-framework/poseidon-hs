@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.0.1.1
+@version 1.1.0.0
 
 module Poseidon.MathHelpers
 
@@ -427,6 +427,11 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoSex
 instance GHC.Show.Show Poseidon.Janno.JannoSex
 
 module Poseidon.GenotypeData
+data GenoDataSource
+PacBaseDir :: FilePath -> GenoDataSource
+[getPacBaseDirs] :: GenoDataSource -> FilePath
+GenoDirect :: GenotypeDataSpec -> GenoDataSource
+[getGenoDirect] :: GenoDataSource -> GenotypeDataSpec
 
 -- | A datatype to specify genotype files
 data GenotypeDataSpec
@@ -482,6 +487,7 @@ instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFormatSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.SNPSetSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeDataSpec
 instance GHC.Show.Show Poseidon.GenotypeData.GenotypeDataSpec
+instance GHC.Show.Show Poseidon.GenotypeData.GenoDataSource
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.GenotypeData.GenotypeDataSpec
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.GenotypeDataSpec
 instance GHC.Show.Show Poseidon.GenotypeData.SNPSetSpec
@@ -862,9 +868,8 @@ module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions
-GenoconvertOptions :: [FilePath] -> [GenotypeDataSpec] -> GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> GenoconvertOptions
-[_genoconvertBaseDirs] :: GenoconvertOptions -> [FilePath]
-[_genoconvertInGenos] :: GenoconvertOptions -> [GenotypeDataSpec]
+GenoconvertOptions :: [GenoDataSource] -> GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> GenoconvertOptions
+[_genoconvertGenoSources] :: GenoconvertOptions -> [GenoDataSource]
 [_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeFormatSpec
 [_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
 [_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
@@ -928,9 +933,8 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [FilePath] -> [GenotypeDataSpec] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> LogMode -> Bool -> ForgeOptions
-[_forgeBaseDirs] :: ForgeOptions -> [FilePath]
-[_forgeInGenos] :: ForgeOptions -> [GenotypeDataSpec]
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> LogMode -> Bool -> ForgeOptions
+[_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
