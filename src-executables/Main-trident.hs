@@ -124,11 +124,7 @@ renderVersion =
     "trident v" ++ showVersion version ++ " for poseidon v" ++ 
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
     "https://poseidon-framework.github.io" ++ "\n" ++
-    ")<(({°> ~ ────E ~ <°}))>(" ++ "\n\n" ++
-    "Recent breaking changes:" ++ "\n" ++
-    "v0.27.0: The semantics of --forgeString and --forgeFile have been changed. \
-    \Removing samples, groups or packages now follows a different logic. Please see the \
-    \documentation in trident forge -h to verify that your selection still behaves as you expect."
+    ")<(({°> ~ ────E ~ <°}))>("
 
 subcommandParser :: OP.Parser Subcommand
 subcommandParser = OP.subparser (
