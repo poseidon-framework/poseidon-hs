@@ -14,7 +14,7 @@ import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList,
-                                              selectIndices)
+                                              selectIndices, GenoDataSource (..))
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
@@ -51,8 +51,7 @@ import           System.FilePath             (takeBaseName, (<.>), (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeBaseDirs     :: [FilePath]
-    , _forgeInGenos      :: [GenotypeDataSpec]
+    { _forgeGenoSources  :: [GenoDataSource]
     , _forgeEntityInput  :: [EntityInput SignedEntity] -- Empty list = forge all packages
     , _forgeSnpFile      :: Maybe FilePath
     , _forgeIntersect    :: Bool
@@ -77,15 +76,15 @@ pacReadOpts = defaultPackageReadOptions {
 -- | The main function running the forge command
 runForge :: ForgeOptions -> PoseidonLogIO ()
 runForge (
-    ForgeOptions baseDirs inGenos
+    ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_ 
                  outFormat minimal onlyGeno outPath maybeOutName  
                  logMode noExtract 
     ) = do
     
     -- load packages --
-    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData inGenos
+    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
+    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
     logInfo $ pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 

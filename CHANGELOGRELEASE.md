@@ -1,3 +1,13 @@
+### V 1.1.0.0
+
+This release summarises a number of smaller bugfixes and interface changes, but also introduces one minor breaking interface change, which makes it necessary to iterate the second major version number component.
+
+- *V 1.0.0.1* fixed a memory leak in `trident genoconvert`.
+- *V 1.0.0.2* brought the switch to a new compiler and dependency network version (GHC 8.10.7 and Stackage lts-18.28). This should not have any noticeable consequences for trident.
+- *V 1.0.1.0* reintroduced a feature lost in *V 0.27.0*: You can now again list multiple `-f/--forgeString`s and `--forgeFile`s in `trident forge` to structure your input. `trident fetch` now also supports multiple `-f/--fetchString`s and `--fetchFile`s.
+- *V 1.0.1.1* allowed `fetch` and `genoconvert` to create missing output directories automatically.
+- *V 1.1.0.0* is a breaking change, because it deprecates the short genotype data input options (`-r` + `-g` + `-s` + `-i`) in `init`, `forge` and `genoconvert`. It also improved the input of package and genotype data in `forge` and `genoconvert` by making pointless no-input situations impossible.
+
 ### V 1.0.0.0
 
 With this release we change to [PVP versioning](https://pvp.haskell.org). It introduces logging with the [co-log](https://hackage.haskell.org/package/co-log) library.

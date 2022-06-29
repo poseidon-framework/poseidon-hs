@@ -5,7 +5,7 @@ module Poseidon.CLI.Genoconvert where
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
-                                             printSNPCopyProgress)
+                                             printSNPCopyProgress, GenoDataSource (..))
 import           Poseidon.Package           (readPoseidonPackageCollection,
                                              PoseidonPackage (..),
                                              writePoseidonPackage,
@@ -28,8 +28,7 @@ import           System.FilePath            ((<.>), (</>))
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertBaseDirs     :: [FilePath]
-    , _genoconvertInGenos      :: [GenotypeDataSpec]
+    { _genoconvertGenoSources  :: [GenoDataSource]
     , _genoConvertOutFormat    :: GenotypeFormatSpec
     , _genoConvertOutOnlyGeno  :: Bool
     , _genoMaybeOutPackagePath :: Maybe FilePath
@@ -46,11 +45,11 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
-runGenoconvert (GenoconvertOptions baseDirs inGenos outFormat onlyGeno outPath removeOld) = do
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld) = do
     -- load packages
-    properPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData inGenos
-    logInfo . pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
+    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
+    logInfo $ pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
     mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
     mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
