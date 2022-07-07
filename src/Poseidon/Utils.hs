@@ -11,7 +11,7 @@ module Poseidon.Utils (
 
 import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
                                          logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
-import           Control.Exception      (Exception, try, IOException)
+import           Control.Exception      (Exception, try, IOException, SomeException)
 import           Control.Monad          (when)
 import           Data.Yaml              (ParseException)
 import           Data.Text              (Text, pack)
@@ -76,7 +76,8 @@ data PoseidonException =
     | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
-    | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
+    | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
+    | PoseidonGenotypeExceptionForward SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
     | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
     | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
     | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
@@ -111,7 +112,9 @@ renderPoseidonException (PoseidonPackageMissingVersionException p) =
 renderPoseidonException (PoseidonIndSearchException s) =
     show s
 renderPoseidonException (PoseidonGenotypeException s) =
-    "Error in the genotype data: " ++ show s
+    "Genotype data structurally inconsistent: " ++ show s
+renderPoseidonException (PoseidonGenotypeExceptionForward e) =
+    "Issues in genotype data parsing: " ++ show e
 renderPoseidonException (PoseidonJannoRowException f i s) =
     "Can't read sample in " ++ f ++ " in line " ++ show i ++ ": " ++ s
 renderPoseidonException (PoseidonJannoConsistencyException f s) =

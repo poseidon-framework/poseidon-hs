@@ -11,11 +11,11 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              writePoseidonPackage,
                                              PackageReadOptions (..),
                                              defaultPackageReadOptions,
-                                             makePseudoPackageFromGenotypeData, PoseidonException (PoseidonGenotypeException))
+                                             makePseudoPackageFromGenotypeData, PoseidonException (PoseidonGenotypeExceptionForward))
 import           Poseidon.Utils             (PoseidonLogIO)
 
 import           Colog                      (logInfo, logWarning)
-import           Control.Exception          (catch, throwIO, SomeException)
+import           Control.Exception          (catch, throwIO)
 import           Data.Maybe                 (isJust)
 import           Data.Text                  (pack)
 import           Control.Monad              (when, unless)
@@ -94,7 +94,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                             GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
                     runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
-                ) (\e -> throwIO $ PoseidonGenotypeException (show (e :: SomeException)))
+                ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || (isJust outPath)) $ do
