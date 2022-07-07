@@ -40,7 +40,7 @@ import           Poseidon.Utils             (PoseidonException (..),
                                              PoseidonLogIO, LogMode (..), usePoseidonLogger)
 
 import           Colog                      (logInfo, logWarning, logDebug)
-import           Control.Exception          (throwIO, try)
+import           Control.Exception          (throwIO, try, catch)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -349,11 +349,13 @@ readPoseidonPackage opts ymlPath = do
             return loadedBib
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
-    when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
-        -- we're using getJointGenotypeData here on a single package to check for SNP consistency
-        -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- getJointGenotypeData NoLog False [pac] Nothing
-        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+    liftIO $ catch (
+        when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
+            -- we're using getJointGenotypeData here on a single package to check for SNP consistency
+            -- since that check is only implemented in the jointLoading function, not in the per-package loading
+            (_, eigenstratProd) <- getJointGenotypeData NoLog False [pac] Nothing
+            runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+        ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
     return pac
 
 -- throws exception if any file is missing or checksum is incorrect
