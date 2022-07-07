@@ -11,10 +11,11 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              writePoseidonPackage,
                                              PackageReadOptions (..),
                                              defaultPackageReadOptions,
-                                             makePseudoPackageFromGenotypeData)
+                                             makePseudoPackageFromGenotypeData, PoseidonException (PoseidonGenotypeException))
 import           Poseidon.Utils             (PoseidonLogIO)
 
 import           Colog                      (logInfo, logWarning)
+import           Control.Exception          (catch, throwIO, SomeException)
 import           Data.Maybe                 (isJust)
 import           Data.Text                  (pack)
 import           Control.Monad              (when, unless)
@@ -86,12 +87,14 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         then logWarning $ pack $ ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
-            liftIO $ runSafeT $ do            
-                (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
-                let outConsumer = case outFormat of
-                        GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                        GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-                runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
+            liftIO $ catch (
+                runSafeT $ do            
+                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
+                    let outConsumer = case outFormat of
+                            GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
+                            GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
+                    runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
+                ) (\e -> throwIO $ PoseidonGenotypeException (show (e :: SomeException)))
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || (isJust outPath)) $ do

@@ -44,6 +44,7 @@ import qualified Data.Text              as T
 
 data Options = Options { 
     _logMode    :: LogMode
+  , _errLength  :: Int
   , _subcommand :: Subcommand 
   }
 
@@ -63,13 +64,17 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    (Options logMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode)
+    (Options logMode errLength subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode errLength)
     where
-        handler :: LogMode -> PoseidonException -> IO ()
-        handler l e = do
-            usePoseidonLogger l $ logError $ T.pack $ renderPoseidonException e
+        handler :: LogMode -> Int -> PoseidonException -> IO ()
+        handler l len e = do
+            usePoseidonLogger l $ logError $ T.pack $ truncateErr len $ renderPoseidonException e
             exitFailure
+        truncateErr :: Int -> String -> String
+        truncateErr len s
+            | length s > len = take len s ++ "... (see more with --errLength)"
+            | otherwise      = s
 
 runCmd :: LogMode -> Subcommand -> PoseidonLogIO ()
 runCmd l o = case o of
@@ -91,7 +96,7 @@ fstatsErrorMessage = "The fstats command has been moved from trident to the anal
     \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> subcommandParser)) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> parseErrorLength <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -118,6 +123,14 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
             "ServerLog"  -> Right ServerLog
             "VerboseLog" -> Right VerboseLog
             _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
+
+parseErrorLength :: OP.Parser Int
+parseErrorLength = OP.option OP.auto (
+    OP.long "errLength" <>
+    OP.help "After how many characters should a potential error message be truncated" <>
+    OP.value 1500 <>
+    OP.showDefault
+    )
 
 renderVersion :: String
 renderVersion = 
