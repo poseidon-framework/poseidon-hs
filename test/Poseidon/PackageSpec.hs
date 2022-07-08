@@ -9,12 +9,12 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
                                              defaultPackageReadOptions,
-                                             getChecksum, getJointGenotypeData,
+                                             getJointGenotypeData,
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
-import           Poseidon.Utils             (usePoseidonLogger, LogMode (..))
+import           Poseidon.Utils             (usePoseidonLogger, LogMode (..), getChecksum)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
