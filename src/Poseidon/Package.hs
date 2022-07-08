@@ -575,9 +575,6 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
 
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
 makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = do
-    checkFile indFile_ Nothing
-    checkFile snpFile_ Nothing
-    checkFile genoFile_ Nothing
     let baseDir      = getBaseDir genoFile_ snpFile_ indFile_
         outInd       = takeFileName indFile_
         outSnp       = takeFileName snpFile_

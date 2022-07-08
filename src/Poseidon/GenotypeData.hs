@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (PoseidonException (..), checkFile)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM, when)
@@ -140,7 +140,8 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d gd =
+loadIndividuals d gd = do
+    checkFile (d </> indFile gd) Nothing
     case format gd of
         GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
         GenotypeFormatPlink      -> readFamFile (d </> indFile gd)
