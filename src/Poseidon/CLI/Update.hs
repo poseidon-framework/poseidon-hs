@@ -9,11 +9,10 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage, 
                                              PackageReadOptions (..), 
-                                             defaultPackageReadOptions,
-                                             getChecksum)
+                                             defaultPackageReadOptions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                             VersionComponent (..))
-import           Poseidon.Utils             (PoseidonLogIO)
+import           Poseidon.Utils             (PoseidonLogIO, getChecksum)
 
 import           Colog                      (logInfo, logWarning)
 import           Control.Monad.IO.Class     (liftIO)

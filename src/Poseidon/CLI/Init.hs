@@ -11,7 +11,7 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
                                              newMinimalPackageTemplate,
                                              writePoseidonPackage)
-import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO)
+import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO, checkFile)
 
 import           Colog                      (logInfo)
 import           Control.Exception          (throwIO)
@@ -40,6 +40,9 @@ runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _
         genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
     -- genotype data
     logInfo "Copying genotype data"
+    liftIO $ checkFile indFile_ Nothing
+    liftIO $ checkFile snpFile_ Nothing
+    liftIO $ checkFile genoFile_ Nothing
     liftIO $ copyFile indFile_ $ outPath </> outInd
     liftIO $ copyFile snpFile_ $ outPath </> outSnp
     liftIO $ copyFile genoFile_ $ outPath </> outGeno

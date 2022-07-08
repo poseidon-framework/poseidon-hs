@@ -6,18 +6,24 @@ module Poseidon.Utils (
     renderPoseidonException,
     usePoseidonLogger,
     PoseidonLogIO,
-    LogMode (..)
+    LogMode (..),
+    checkFile,
+    getChecksum
 ) where
 
 import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
                                          logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
 import           Control.Exception      (Exception, try, IOException, SomeException)
 import           Control.Monad          (when)
+import           Control.Monad.Catch    (throwM)
+import qualified Data.ByteString.Lazy   as LB
+import           Data.Digest.Pure.MD5   (md5)
 import           Data.Yaml              (ParseException)
 import           Data.Text              (Text, pack)
 import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
                                          utcToLocalZonedTime)
 import           System.Console.ANSI    (getCursorPosition)
+import           System.Directory       (doesFileExist)
 import           System.IO              (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
@@ -149,3 +155,23 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
     ++ " --genoFile: " ++ g
     ++ " --snpFile: "  ++ s
     ++ " --indFile: "  ++ i
+
+-- helper function to check if a file exists
+checkFile :: FilePath -> Maybe String -> IO ()
+checkFile fn maybeChkSum = do
+    fe <- doesFileExist fn
+    if not fe
+    then throwM (PoseidonFileExistenceException fn)
+    else
+        case maybeChkSum of
+            Nothing -> return ()
+            Just chkSum -> do
+                fnChkSum <- getChecksum fn
+                when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
+
+-- helper functions to get the checksum of a file
+getChecksum :: FilePath -> IO String
+getChecksum f = do
+    fileContent <- LB.readFile f
+    let md5Digest = md5 fileContent
+    return $ show md5Digest

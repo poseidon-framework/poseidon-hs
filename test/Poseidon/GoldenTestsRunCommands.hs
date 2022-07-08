@@ -18,10 +18,9 @@ import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidat
 import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
                                                  GenotypeFormatSpec (..), 
                                                  SNPSetSpec (..), GenoDataSource (..))
-import           Poseidon.Package               (getChecksum)
 import           Poseidon.SecondaryTypes        (ContributorSpec (..),
                                                  VersionComponent (..))
-import           Poseidon.Utils                 (usePoseidonLogger, LogMode (..))
+import           Poseidon.Utils                 (usePoseidonLogger, LogMode (..), getChecksum)
 
 import           Control.Monad                  (when, unless)
 import           Data.Either                    (fromRight)
