@@ -40,11 +40,12 @@ import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
+import           Text.Read              (readMaybe)
 import qualified Data.Text              as T
 
 data Options = Options { 
     _logMode    :: LogMode
-  , _errLength  :: Int
+  , _errLength  :: ErrorLength
   , _subcommand :: Subcommand 
   }
 
@@ -67,14 +68,15 @@ main = do
     (Options logMode errLength subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
     catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode errLength)
     where
-        handler :: LogMode -> Int -> PoseidonException -> IO ()
+        handler :: LogMode -> ErrorLength -> PoseidonException -> IO ()
         handler l len e = do
             usePoseidonLogger l $ logError $ T.pack $ truncateErr len $ renderPoseidonException e
             exitFailure
-        truncateErr :: Int -> String -> String
-        truncateErr len s
-            | length s > len = take len s ++ "... (see more with --errLength)"
-            | otherwise      = s
+        truncateErr :: ErrorLength -> String -> String
+        truncateErr CharInf         s = s
+        truncateErr (CharCount len) s
+            | length s > len          = take len s ++ "... (see more with --errLength)"
+            | otherwise               = s
 
 runCmd :: LogMode -> Subcommand -> PoseidonLogIO ()
 runCmd l o = case o of
@@ -124,13 +126,22 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
             "VerboseLog" -> Right VerboseLog
             _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
 
-parseErrorLength :: OP.Parser Int
-parseErrorLength = OP.option OP.auto (
+data ErrorLength = CharInf | CharCount Int deriving Show
+
+parseErrorLength :: OP.Parser ErrorLength
+parseErrorLength = OP.option (OP.eitherReader readErrorLengthString) (
     OP.long "errLength" <>
-    OP.help "After how many characters should a potential error message be truncated" <>
-    OP.value 1500 <>
+    OP.help "After how many characters should a potential error message be truncated. \"Inf\" for no truncation." <>
+    OP.value (CharCount 1500) <>
     OP.showDefault
-    )
+    ) where
+        readErrorLengthString :: String -> Either String ErrorLength
+        readErrorLengthString s = do
+            if s == "Inf"
+            then Right CharInf
+            else case readMaybe s of
+                Just n -> Right $ CharCount n
+                Nothing -> Left "must be either \"Inf\" or an integer number"
 
 renderVersion :: String
 renderVersion = 
