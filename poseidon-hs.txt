@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.0.0
+@version 1.1.0.1
 
 module Poseidon.MathHelpers
 
@@ -755,7 +755,9 @@ data EntityInput a
 EntitiesDirect :: [a] -> EntityInput a
 EntitiesFromFile :: FilePath -> EntityInput a
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a]
+instance GHC.Classes.Ord Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
+instance GHC.Classes.Ord Poseidon.EntitiesList.SignedEntity
 instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.SignedEntity
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.PoseidonEntity

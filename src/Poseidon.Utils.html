@@ -23,7 +23,7 @@
 </span><span id="line-23"></span><span class="hs-keyword">type</span><span> </span><span id="PoseidonLogIO"><span class="annot"><a href="Poseidon.Utils.html#PoseidonLogIO"><span class="hs-identifier hs-var">PoseidonLogIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LoggerT</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Message</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span>
 </span><span id="line-24"></span><span>
 </span><span id="line-25"></span><span class="hs-keyword">data</span><span> </span><span id="LogMode"><span class="annot"><a href="Poseidon.Utils.html#LogMode"><span class="hs-identifier hs-var">LogMode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="NoLog"><span class="annot"><a href="Poseidon.Utils.html#NoLog"><span class="hs-identifier hs-var">NoLog</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="SimpleLog"><span class="annot"><a href="Poseidon.Utils.html#SimpleLog"><span class="hs-identifier hs-var">SimpleLog</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="DefaultLog"><span class="annot"><a href="Poseidon.Utils.html#DefaultLog"><span class="hs-identifier hs-var">DefaultLog</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="ServerLog"><span class="annot"><a href="Poseidon.Utils.html#ServerLog"><span class="hs-identifier hs-var">ServerLog</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="VerboseLog"><span class="annot"><a href="Poseidon.Utils.html#VerboseLog"><span class="hs-identifier hs-var">VerboseLog</span></a></span></span><span>
-</span><span id="line-26"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679150823"><span id="local-6989586621679150825"><span id="local-6989586621679150827"><span class="annot"><span class="annottext">Int -&gt; LogMode -&gt; ShowS
+</span><span id="line-26"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679151078"><span id="local-6989586621679151080"><span id="local-6989586621679151082"><span class="annot"><span class="annottext">Int -&gt; LogMode -&gt; ShowS
 [LogMode] -&gt; ShowS
 LogMode -&gt; String
 (Int -&gt; LogMode -&gt; ShowS)
@@ -38,7 +38,7 @@ showsPrec :: Int -&gt; LogMode -&gt; ShowS
 $cshowsPrec :: Int -&gt; LogMode -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
 </span><span id="line-27"></span><span>
-</span><span id="line-28"></span><span id="local-6989586621679150821"><span class="annot"><a href="Poseidon.Utils.html#usePoseidonLogger"><span class="hs-identifier hs-type">usePoseidonLogger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogMode"><span class="hs-identifier hs-type">LogMode</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonLogIO"><span class="hs-identifier hs-type">PoseidonLogIO</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679150821"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679150821"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621679151076"><span class="annot"><a href="Poseidon.Utils.html#usePoseidonLogger"><span class="hs-identifier hs-type">usePoseidonLogger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogMode"><span class="hs-identifier hs-type">LogMode</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonLogIO"><span class="hs-identifier hs-type">PoseidonLogIO</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679151076"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679151076"><span class="hs-identifier hs-type">a</span></a></span></span><span>
 </span><span id="line-29"></span><span id="usePoseidonLogger"><span class="annot"><span class="annottext">usePoseidonLogger :: LogMode -&gt; PoseidonLogIO a -&gt; IO a
 </span><a href="Poseidon.Utils.html#usePoseidonLogger"><span class="hs-identifier hs-var hs-var">usePoseidonLogger</span></a></span></span><span> </span><span class="annot"><span class="annottext">LogMode
 </span><a href="Poseidon.Utils.html#NoLog"><span class="hs-identifier hs-var">NoLog</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogAction IO Message -&gt; PoseidonLogIO a -&gt; IO a
@@ -93,11 +93,11 @@ forall a b. a -&gt; b -&gt; a
 forall (m :: * -&gt; *) msg.
 Applicative m =&gt;
 (msg -&gt; Bool) -&gt; LogAction m msg -&gt; LogAction m msg
-</span><span class="hs-identifier hs-var">cfilter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679150814"><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150814"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Severity
+</span><span class="hs-identifier hs-var">cfilter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679151069"><span class="annot"><span class="annottext">Message
+</span><a href="#local-6989586621679151069"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Severity
 forall sev. Msg sev -&gt; sev
 </span><span class="hs-identifier hs-var hs-var">msgSeverity</span></span><span> </span><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150814"><span class="hs-identifier hs-var">msg</span></a></span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Severity -&gt; Bool
+</span><a href="#local-6989586621679151069"><span class="hs-identifier hs-var">msg</span></a></span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Severity -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Severity
 </span><span class="hs-identifier hs-var">Debug</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(LogAction IO Message -&gt; LogAction IO Message)
@@ -114,11 +114,11 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall (m :: * -&gt; *) msg.
 Applicative m =&gt;
 (msg -&gt; Bool) -&gt; LogAction m msg -&gt; LogAction m msg
-</span><span class="hs-identifier hs-var">cfilter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679150810"><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150810"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Severity
+</span><span class="hs-identifier hs-var">cfilter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679151065"><span class="annot"><span class="annottext">Message
+</span><a href="#local-6989586621679151065"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Severity
 forall sev. Msg sev -&gt; sev
 </span><span class="hs-identifier hs-var hs-var">msgSeverity</span></span><span> </span><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150810"><span class="hs-identifier hs-var">msg</span></a></span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Severity -&gt; Bool
+</span><a href="#local-6989586621679151065"><span class="hs-identifier hs-var">msg</span></a></span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Severity -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Severity
 </span><span class="hs-identifier hs-var">Debug</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(LogAction IO Message -&gt; LogAction IO Message)
@@ -135,11 +135,11 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall (m :: * -&gt; *) msg.
 Applicative m =&gt;
 (msg -&gt; Bool) -&gt; LogAction m msg -&gt; LogAction m msg
-</span><span class="hs-identifier hs-var">cfilter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679150809"><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150809"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Severity
+</span><span class="hs-identifier hs-var">cfilter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679151064"><span class="annot"><span class="annottext">Message
+</span><a href="#local-6989586621679151064"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Severity
 forall sev. Msg sev -&gt; sev
 </span><span class="hs-identifier hs-var hs-var">msgSeverity</span></span><span> </span><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150809"><span class="hs-identifier hs-var">msg</span></a></span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Severity -&gt; Bool
+</span><a href="#local-6989586621679151064"><span class="hs-identifier hs-var">msg</span></a></span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Severity -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Severity
 </span><span class="hs-identifier hs-var">Debug</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(LogAction IO Message -&gt; LogAction IO Message)
@@ -160,88 +160,88 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-45"></span><span>
 </span><span id="line-46"></span><span class="annot"><a href="Poseidon.Utils.html#compileLogMsg"><span class="hs-identifier hs-type">compileLogMsg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LogAction</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Message</span></span><span>
 </span><span id="line-47"></span><span id="compileLogMsg"><span class="annot"><span class="annottext">compileLogMsg :: Bool -&gt; Bool -&gt; Bool -&gt; LogAction IO Message
-</span><a href="Poseidon.Utils.html#compileLogMsg"><span class="hs-identifier hs-var hs-var">compileLogMsg</span></a></span></span><span> </span><span id="local-6989586621679150808"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150808"><span class="hs-identifier hs-var">severity</span></a></span></span><span> </span><span id="local-6989586621679150807"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150807"><span class="hs-identifier hs-var">time</span></a></span></span><span> </span><span id="local-6989586621679150806"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150806"><span class="hs-identifier hs-var">cursorCheck</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Message -&gt; IO Text) -&gt; LogAction IO Text -&gt; LogAction IO Message
+</span><a href="Poseidon.Utils.html#compileLogMsg"><span class="hs-identifier hs-var hs-var">compileLogMsg</span></a></span></span><span> </span><span id="local-6989586621679151063"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679151063"><span class="hs-identifier hs-var">severity</span></a></span></span><span> </span><span id="local-6989586621679151062"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679151062"><span class="hs-identifier hs-var">time</span></a></span></span><span> </span><span id="local-6989586621679151061"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679151061"><span class="hs-identifier hs-var">cursorCheck</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Message -&gt; IO Text) -&gt; LogAction IO Text -&gt; LogAction IO Message
 forall (m :: * -&gt; *) a b.
 Monad m =&gt;
 (a -&gt; m b) -&gt; LogAction m b -&gt; LogAction m a
 </span><span class="hs-identifier hs-var">cmapM</span></span><span> </span><span class="annot"><span class="annottext">Message -&gt; IO Text
-</span><a href="#local-6989586621679150805"><span class="hs-identifier hs-var">prepareMessage</span></a></span><span> </span><span class="annot"><span class="annottext">LogAction IO Text
+</span><a href="#local-6989586621679151060"><span class="hs-identifier hs-var">prepareMessage</span></a></span><span> </span><span class="annot"><span class="annottext">LogAction IO Text
 forall (m :: * -&gt; *). MonadIO m =&gt; LogAction m Text
 </span><span class="hs-identifier hs-var">logTextStderr</span></span><span>
 </span><span id="line-48"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-49"></span><span>        </span><span class="annot"><a href="#local-6989586621679150805"><span class="hs-identifier hs-type">prepareMessage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Message</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
-</span><span id="line-50"></span><span>        </span><span id="local-6989586621679150805"><span class="annot"><span class="annottext">prepareMessage :: Message -&gt; IO Text
-</span><a href="#local-6989586621679150805"><span class="hs-identifier hs-var hs-var">prepareMessage</span></a></span></span><span> </span><span id="local-6989586621679150804"><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150804"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-49"></span><span>        </span><span class="annot"><a href="#local-6989586621679151060"><span class="hs-identifier hs-type">prepareMessage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Message</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-50"></span><span>        </span><span id="local-6989586621679151060"><span class="annot"><span class="annottext">prepareMessage :: Message -&gt; IO Text
+</span><a href="#local-6989586621679151060"><span class="hs-identifier hs-var hs-var">prepareMessage</span></a></span></span><span> </span><span id="local-6989586621679151059"><span class="annot"><span class="annottext">Message
+</span><a href="#local-6989586621679151059"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-51"></span><span>            </span><span class="hs-comment">-- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)</span><span>
 </span><span id="line-52"></span><span>            </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150806"><span class="hs-identifier hs-var">cursorCheck</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+</span><a href="#local-6989586621679151061"><span class="hs-identifier hs-var">cursorCheck</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-53"></span><span>                </span><span id="local-6989586621679150803"><span class="annot"><span class="annottext">Either IOException (Maybe (Int, Int))
-</span><a href="#local-6989586621679150803"><span class="hs-identifier hs-var">eitherCurserPos</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Maybe (Int, Int)) -&gt; IO (Either IOException (Maybe (Int, Int)))
+</span><span id="line-53"></span><span>                </span><span id="local-6989586621679151058"><span class="annot"><span class="annottext">Either IOException (Maybe (Int, Int))
+</span><a href="#local-6989586621679151058"><span class="hs-identifier hs-var">eitherCurserPos</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Maybe (Int, Int)) -&gt; IO (Either IOException (Maybe (Int, Int)))
 forall e a. Exception e =&gt; IO a -&gt; IO (Either e a)
 </span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="annot"><span class="annottext">IO (Maybe (Int, Int))
 </span><span class="hs-identifier hs-var">getCursorPosition</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IOException</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-54"></span><span>                </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either IOException (Maybe (Int, Int))
-</span><a href="#local-6989586621679150803"><span class="hs-identifier hs-var">eitherCurserPos</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679151058"><span class="hs-identifier hs-var">eitherCurserPos</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-55"></span><span>                    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">IOException
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; IO ()
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><span id="line-56"></span><span>                    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679150802"><span class="annot"><span class="annottext">Maybe (Int, Int)
-</span><a href="#local-6989586621679150802"><span class="hs-identifier hs-var">cursorPos</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-57"></span><span>                        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679150801"><span class="annot"><span class="annottext">col :: Int
-</span><a href="#local-6989586621679150801"><span class="hs-identifier hs-var hs-var">col</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ((Int, Int) -&gt; Int) -&gt; Maybe (Int, Int) -&gt; Int
+</span><span id="line-56"></span><span>                    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679151057"><span class="annot"><span class="annottext">Maybe (Int, Int)
+</span><a href="#local-6989586621679151057"><span class="hs-identifier hs-var">cursorPos</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-57"></span><span>                        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679151056"><span class="annot"><span class="annottext">col :: Int
+</span><a href="#local-6989586621679151056"><span class="hs-identifier hs-var hs-var">col</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ((Int, Int) -&gt; Int) -&gt; Maybe (Int, Int) -&gt; Int
 forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
 </span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">Maybe (Int, Int)
-</span><a href="#local-6989586621679150802"><span class="hs-identifier hs-var">cursorPos</span></a></span><span>
-</span><span id="line-58"></span><span>                            </span><span id="local-6989586621679150799"><span class="annot"><span class="annottext">isNotAtStartOfLine :: Bool
-</span><a href="#local-6989586621679150799"><span class="hs-identifier hs-var hs-var">isNotAtStartOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679150801"><span class="hs-identifier hs-var">col</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679151057"><span class="hs-identifier hs-var">cursorPos</span></a></span><span>
+</span><span id="line-58"></span><span>                            </span><span id="local-6989586621679151054"><span class="annot"><span class="annottext">isNotAtStartOfLine :: Bool
+</span><a href="#local-6989586621679151054"><span class="hs-identifier hs-var hs-var">isNotAtStartOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679151056"><span class="hs-identifier hs-var">col</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span>
 </span><span id="line-59"></span><span>                        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150799"><span class="hs-identifier hs-var">isNotAtStartOfLine</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+</span><a href="#local-6989586621679151054"><span class="hs-identifier hs-var">isNotAtStartOfLine</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; String -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
 </span><span class="hs-identifier hs-var">stderr</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span>
 </span><span id="line-60"></span><span>            </span><span class="hs-comment">-- prepare message</span><span>
-</span><span id="line-61"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679150798"><span class="annot"><span class="annottext">textMessage :: Text
-</span><a href="#local-6989586621679150798"><span class="hs-identifier hs-var hs-var">textMessage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Text
+</span><span id="line-61"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679151053"><span class="annot"><span class="annottext">textMessage :: Text
+</span><a href="#local-6989586621679151053"><span class="hs-identifier hs-var hs-var">textMessage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Message -&gt; Text
 forall sev. Msg sev -&gt; Text
 </span><span class="hs-identifier hs-var hs-var">msgText</span></span><span> </span><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150804"><span class="hs-identifier hs-var">msg</span></a></span><span>
-</span><span id="line-62"></span><span>                </span><span id="local-6989586621679150797"><span class="annot"><span class="annottext">textSeverity :: Text
-</span><a href="#local-6989586621679150797"><span class="hs-identifier hs-var hs-var">textSeverity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150808"><span class="hs-identifier hs-var">severity</span></a></span><span> </span><span>
+</span><a href="#local-6989586621679151059"><span class="hs-identifier hs-var">msg</span></a></span><span>
+</span><span id="line-62"></span><span>                </span><span id="local-6989586621679151052"><span class="annot"><span class="annottext">textSeverity :: Text
+</span><a href="#local-6989586621679151052"><span class="hs-identifier hs-var hs-var">textSeverity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679151063"><span class="hs-identifier hs-var">severity</span></a></span><span> </span><span>
 </span><span id="line-63"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Severity -&gt; Text
 </span><span class="hs-identifier hs-var">showSeverity</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Message -&gt; Severity
 forall sev. Msg sev -&gt; sev
 </span><span class="hs-identifier hs-var hs-var">msgSeverity</span></span><span> </span><span class="annot"><span class="annottext">Message
-</span><a href="#local-6989586621679150804"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span> </span><span>
+</span><a href="#local-6989586621679151059"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span> </span><span>
 </span><span id="line-64"></span><span>                    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Text
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-65"></span><span>            </span><span id="local-6989586621679150796"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679150796"><span class="hs-identifier hs-var">textTime</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679150807"><span class="hs-identifier hs-var">time</span></a></span><span>
+</span><span id="line-65"></span><span>            </span><span id="local-6989586621679151051"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679151051"><span class="hs-identifier hs-var">textTime</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679151062"><span class="hs-identifier hs-var">time</span></a></span><span>
 </span><span id="line-66"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span> </span><span>
-</span><span id="line-67"></span><span>                        </span><span id="local-6989586621679150795"><span class="annot"><span class="annottext">ZonedTime
-</span><a href="#local-6989586621679150795"><span class="hs-identifier hs-var">zonedTime</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
+</span><span id="line-67"></span><span>                        </span><span id="local-6989586621679151050"><span class="annot"><span class="annottext">ZonedTime
+</span><a href="#local-6989586621679151050"><span class="hs-identifier hs-var">zonedTime</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
 </span><span class="hs-identifier hs-var">getCurrentTime</span></span><span> </span><span class="annot"><span class="annottext">IO UTCTime -&gt; (UTCTime -&gt; IO ZonedTime) -&gt; IO ZonedTime
 forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
 </span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">UTCTime -&gt; IO ZonedTime
@@ -261,7 +261,7 @@ forall t. FormatTime t =&gt; TimeLocale -&gt; String -&gt; t -&gt; String
 </span><span class="hs-identifier hs-var">formatTime</span></span><span> </span><span class="annot"><span class="annottext">TimeLocale
 </span><span class="hs-identifier hs-var">defaultTimeLocale</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;%T&quot;</span></span><span> </span><span class="annot"><span class="annottext">ZonedTime
-</span><a href="#local-6989586621679150795"><span class="hs-identifier hs-var">zonedTime</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151050"><span class="hs-identifier hs-var">zonedTime</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;] &quot;</span></span><span>
@@ -273,13 +273,13 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; IO Text) -&gt; Text -&gt; IO Text
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679150797"><span class="hs-identifier hs-var">textSeverity</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+</span><a href="#local-6989586621679151052"><span class="hs-identifier hs-var">textSeverity</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679150796"><span class="hs-identifier hs-var">textTime</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+</span><a href="#local-6989586621679151051"><span class="hs-identifier hs-var">textTime</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679150798"><span class="hs-identifier hs-var">textMessage</span></a></span><span>
+</span><a href="#local-6989586621679151053"><span class="hs-identifier hs-var">textMessage</span></a></span><span>
 </span><span id="line-71"></span><span>
 </span><span id="line-72"></span><span class="hs-comment">-- | A Poseidon Exception data type with several concrete constructors</span><span>
 </span><span id="line-73"></span><span class="hs-keyword">data</span><span> </span><span id="PoseidonException"><span class="annot"><a href="Poseidon.Utils.html#PoseidonException"><span class="hs-identifier hs-var">PoseidonException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
@@ -305,7 +305,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span id="line-93"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="PoseidonGenericException"><span class="annot"><a href="Poseidon.Utils.html#PoseidonGenericException"><span class="hs-identifier hs-var">PoseidonGenericException</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-comment">-- ^ A catch-all for any other type of exception</span><span>
 </span><span id="line-94"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="PoseidonEmptyOutPacNameException"><span class="annot"><a href="Poseidon.Utils.html#PoseidonEmptyOutPacNameException"><span class="hs-identifier hs-var">PoseidonEmptyOutPacNameException</span></a></span></span><span> </span><span class="hs-comment">-- ^ An exception to throw if the output package lacks a name</span><span>
 </span><span id="line-95"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="PoseidonUnequalBaseDirException"><span class="annot"><a href="Poseidon.Utils.html#PoseidonUnequalBaseDirException"><span class="hs-identifier hs-var">PoseidonUnequalBaseDirException</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-comment">-- ^ An exception to throw if genotype data files don't share a common base directory</span><span>
-</span><span id="line-96"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679150766"><span id="local-6989586621679150768"><span id="local-6989586621679150770"><span class="annot"><span class="annottext">Int -&gt; PoseidonException -&gt; ShowS
+</span><span id="line-96"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679151021"><span id="local-6989586621679151023"><span id="local-6989586621679151025"><span class="annot"><span class="annottext">Int -&gt; PoseidonException -&gt; ShowS
 [PoseidonException] -&gt; ShowS
 PoseidonException -&gt; String
 (Int -&gt; PoseidonException -&gt; ShowS)
@@ -322,18 +322,18 @@ showsPrec :: Int -&gt; PoseidonException -&gt; ShowS
 $cshowsPrec :: Int -&gt; PoseidonException -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-97"></span><span>
-</span><span id="line-98"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679150758"><span id="local-6989586621679150760"><span id="local-6989586621679150762"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonException"><span class="hs-identifier hs-type">PoseidonException</span></a></span></span></span></span><span>
+</span><span id="line-98"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679151013"><span id="local-6989586621679151015"><span id="local-6989586621679151017"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonException"><span class="hs-identifier hs-type">PoseidonException</span></a></span></span></span></span><span>
 </span><span id="line-99"></span><span>
 </span><span id="line-100"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-type">renderPoseidonException</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonException"><span class="hs-identifier hs-type">PoseidonException</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-101"></span><span id="renderPoseidonException"><span class="annot"><span class="annottext">renderPoseidonException :: PoseidonException -&gt; String
-</span><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var hs-var">renderPoseidonException</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonYamlParseException"><span class="hs-identifier hs-type">PoseidonYamlParseException</span></a></span><span> </span><span id="local-6989586621679150756"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150756"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span id="local-6989586621679150755"><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679150755"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var hs-var">renderPoseidonException</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonYamlParseException"><span class="hs-identifier hs-type">PoseidonYamlParseException</span></a></span><span> </span><span id="local-6989586621679151011"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151011"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span id="local-6989586621679151010"><span class="annot"><span class="annottext">ParseException
+</span><a href="#local-6989586621679151010"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Could not parse YAML file &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150756"><span class="hs-identifier hs-var">fn</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151011"><span class="hs-identifier hs-var">fn</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -341,43 +341,43 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ParseException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679150755"><span class="hs-identifier hs-var">e</span></a></span><span>
-</span><span id="line-103"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPackageException"><span class="hs-identifier hs-type">PoseidonPackageException</span></a></span><span> </span><span id="local-6989586621679150753"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150753"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679151010"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-103"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPackageException"><span class="hs-identifier hs-type">PoseidonPackageException</span></a></span><span> </span><span id="local-6989586621679151008"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151008"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Encountered a logical error with a poseidon package: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150753"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-105"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPackageVersionException"><span class="hs-identifier hs-type">PoseidonPackageVersionException</span></a></span><span> </span><span id="local-6989586621679150752"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150752"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679150751"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150751"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679151008"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-105"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPackageVersionException"><span class="hs-identifier hs-type">PoseidonPackageVersionException</span></a></span><span> </span><span id="local-6989586621679151007"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151007"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679151006"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151006"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-106"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Poseidon version mismatch in &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ShowS
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150752"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151007"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span>
 </span><span id="line-107"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;. It has version \&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150751"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151006"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;\&quot;, which is not supported by this trident version.&quot;</span></span><span>
-</span><span id="line-108"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPackageMissingVersionException"><span class="hs-identifier hs-type">PoseidonPackageMissingVersionException</span></a></span><span> </span><span id="local-6989586621679150750"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150750"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-108"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPackageMissingVersionException"><span class="hs-identifier hs-type">PoseidonPackageMissingVersionException</span></a></span><span> </span><span id="local-6989586621679151005"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151005"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-109"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;The POSEIDON.yml file &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ShowS
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150750"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151005"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; has no poseidonVersion field. &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -385,30 +385,30 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span>
 </span><span id="line-110"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;This is mandatory.&quot;</span></span><span>
-</span><span id="line-111"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIndSearchException"><span class="hs-identifier hs-type">PoseidonIndSearchException</span></a></span><span> </span><span id="local-6989586621679150749"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150749"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-111"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIndSearchException"><span class="hs-identifier hs-type">PoseidonIndSearchException</span></a></span><span> </span><span id="local-6989586621679151004"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151004"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-112"></span><span>    </span><span class="annot"><span class="annottext">ShowS
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150749"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-113"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonGenotypeException"><span class="hs-identifier hs-type">PoseidonGenotypeException</span></a></span><span> </span><span id="local-6989586621679150748"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150748"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679151004"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-113"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonGenotypeException"><span class="hs-identifier hs-type">PoseidonGenotypeException</span></a></span><span> </span><span id="local-6989586621679151003"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151003"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-114"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Error in the genotype data: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ShowS
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150748"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-115"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonJannoRowException"><span class="hs-identifier hs-type">PoseidonJannoRowException</span></a></span><span> </span><span id="local-6989586621679150747"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150747"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679150746"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679150746"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span id="local-6989586621679150745"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150745"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679151003"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-115"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonJannoRowException"><span class="hs-identifier hs-type">PoseidonJannoRowException</span></a></span><span> </span><span id="local-6989586621679151002"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151002"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679151001"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679151001"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span id="local-6989586621679151000"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679151000"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-116"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Can't read sample in &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150747"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151002"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; in line &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -416,130 +416,130 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679150746"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679151001"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150745"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-117"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonJannoConsistencyException"><span class="hs-identifier hs-type">PoseidonJannoConsistencyException</span></a></span><span> </span><span id="local-6989586621679150744"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150744"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679150743"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150743"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679151000"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-117"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonJannoConsistencyException"><span class="hs-identifier hs-type">PoseidonJannoConsistencyException</span></a></span><span> </span><span id="local-6989586621679150999"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150999"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679150998"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150998"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-118"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Consistency issues in .janno file &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150744"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679150999"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150743"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-119"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonCrossFileConsistencyException"><span class="hs-identifier hs-type">PoseidonCrossFileConsistencyException</span></a></span><span> </span><span id="local-6989586621679150742"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150742"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679150741"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150741"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150998"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-119"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonCrossFileConsistencyException"><span class="hs-identifier hs-type">PoseidonCrossFileConsistencyException</span></a></span><span> </span><span id="local-6989586621679150997"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150997"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679150996"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150996"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-120"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Cross-file consistency issue in package &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150742"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679150997"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150741"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-121"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonCollectionException"><span class="hs-identifier hs-type">PoseidonCollectionException</span></a></span><span> </span><span id="local-6989586621679150740"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150740"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150996"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-121"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonCollectionException"><span class="hs-identifier hs-type">PoseidonCollectionException</span></a></span><span> </span><span id="local-6989586621679150995"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150995"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;The package collection is broken: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150740"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-123"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonFileExistenceException"><span class="hs-identifier hs-type">PoseidonFileExistenceException</span></a></span><span> </span><span id="local-6989586621679150739"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150739"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150995"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-123"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonFileExistenceException"><span class="hs-identifier hs-type">PoseidonFileExistenceException</span></a></span><span> </span><span id="local-6989586621679150994"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150994"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-124"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;File &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150739"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679150994"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; does not exist&quot;</span></span><span>
-</span><span id="line-125"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonFileChecksumException"><span class="hs-identifier hs-type">PoseidonFileChecksumException</span></a></span><span> </span><span id="local-6989586621679150738"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150738"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-125"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonFileChecksumException"><span class="hs-identifier hs-type">PoseidonFileChecksumException</span></a></span><span> </span><span id="local-6989586621679150993"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150993"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-126"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;File checksum test failed: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150738"><span class="hs-identifier hs-var">f</span></a></span><span>
-</span><span id="line-127"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonFStatsFormatException"><span class="hs-identifier hs-type">PoseidonFStatsFormatException</span></a></span><span> </span><span id="local-6989586621679150737"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150737"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150993"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-127"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonFStatsFormatException"><span class="hs-identifier hs-type">PoseidonFStatsFormatException</span></a></span><span> </span><span id="local-6989586621679150992"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150992"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Fstat specification error: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150737"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-129"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonBibTeXException"><span class="hs-identifier hs-type">PoseidonBibTeXException</span></a></span><span> </span><span id="local-6989586621679150736"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150736"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679150735"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150735"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150992"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-129"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonBibTeXException"><span class="hs-identifier hs-type">PoseidonBibTeXException</span></a></span><span> </span><span id="local-6989586621679150991"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150991"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679150990"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150990"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-130"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;BibTex problem in file &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150736"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679150991"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150735"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-131"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPoseidonEntityParsingException"><span class="hs-identifier hs-type">PoseidonPoseidonEntityParsingException</span></a></span><span> </span><span id="local-6989586621679150734"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150734"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150990"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-131"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonPoseidonEntityParsingException"><span class="hs-identifier hs-type">PoseidonPoseidonEntityParsingException</span></a></span><span> </span><span id="local-6989586621679150989"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150989"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-132"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Error when parsing the forge selection: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150734"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-133"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonForgeEntitiesException"><span class="hs-identifier hs-type">PoseidonForgeEntitiesException</span></a></span><span> </span><span id="local-6989586621679150733"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150733"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150989"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-133"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonForgeEntitiesException"><span class="hs-identifier hs-type">PoseidonForgeEntitiesException</span></a></span><span> </span><span id="local-6989586621679150988"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150988"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-134"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Error in the forge selection: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150733"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><a href="#local-6989586621679150988"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-135"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonEmptyForgeException"><span class="hs-identifier hs-var">PoseidonEmptyForgeException</span></a></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-136"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Nothing to be forged&quot;</span></span><span>
-</span><span id="line-137"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonNewPackageConstructionException"><span class="hs-identifier hs-type">PoseidonNewPackageConstructionException</span></a></span><span> </span><span id="local-6989586621679150732"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150732"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-137"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonNewPackageConstructionException"><span class="hs-identifier hs-type">PoseidonNewPackageConstructionException</span></a></span><span> </span><span id="local-6989586621679150987"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150987"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-138"></span><span>    </span><span class="annot"><span class="annottext">ShowS
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150732"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-139"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonRemoteJSONParsingException"><span class="hs-identifier hs-type">PoseidonRemoteJSONParsingException</span></a></span><span> </span><span id="local-6989586621679150731"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150731"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679150987"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-139"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonRemoteJSONParsingException"><span class="hs-identifier hs-type">PoseidonRemoteJSONParsingException</span></a></span><span> </span><span id="local-6989586621679150986"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150986"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-140"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Error in parsing JSON: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ShowS
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150731"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-141"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonGenericException"><span class="hs-identifier hs-type">PoseidonGenericException</span></a></span><span> </span><span id="local-6989586621679150730"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150730"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150730"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><a href="#local-6989586621679150986"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-141"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonGenericException"><span class="hs-identifier hs-type">PoseidonGenericException</span></a></span><span> </span><span id="local-6989586621679150985"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150985"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150985"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-142"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonEmptyOutPacNameException"><span class="hs-identifier hs-var">PoseidonEmptyOutPacNameException</span></a></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-143"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Error when preparing the new package: The output package does not have a name. Add one with: -n YourPackageName&quot;</span></span><span>
-</span><span id="line-144"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonUnequalBaseDirException"><span class="hs-identifier hs-type">PoseidonUnequalBaseDirException</span></a></span><span> </span><span id="local-6989586621679150729"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150729"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679150728"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150728"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679150727"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150727"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-144"></span><span class="annot"><a href="Poseidon.Utils.html#renderPoseidonException"><span class="hs-identifier hs-var">renderPoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonUnequalBaseDirException"><span class="hs-identifier hs-type">PoseidonUnequalBaseDirException</span></a></span><span> </span><span id="local-6989586621679150984"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150984"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679150983"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150983"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679150982"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679150982"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-145"></span><span>    </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;The base directories of these genotype files are not equal.&quot;</span></span><span>
 </span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -548,18 +548,18 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-string">&quot; --genoFile: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150729"><span class="hs-identifier hs-var">g</span></a></span><span>
+</span><a href="#local-6989586621679150984"><span class="hs-identifier hs-var">g</span></a></span><span>
 </span><span id="line-147"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; --snpFile: &quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150728"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><a href="#local-6989586621679150983"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-148"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; --indFile: &quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679150727"><span class="hs-identifier hs-var">i</span></a></span></pre></body></html>
+</span><a href="#local-6989586621679150982"><span class="hs-identifier hs-var">i</span></a></span></pre></body></html>
