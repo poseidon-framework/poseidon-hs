@@ -16,10 +16,14 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install stylish-haskell
-      run: sudo apt-get install -y stylish-haskell
+      run: |
+        wget https://github.com/haskell/stylish-haskell/releases/download/v0.13.0.0/stylish-haskell-v0.13.0.0-linux-x86_64.tar.gz
+        tar -xvzf stylish-haskell-v0.13.0.0-linux-x86_64.tar.gz
+        cp stylish-haskell-v0.13.0.0-linux-x86_64/stylish-haskell stylish-haskell
+        chmod +x stylish-haskell
 
     - name: Run stylish-haskell
-      run: stylish-haskell -r -v -i .
+      run: ./stylish-haskell -r -v -i .
 
     - name: What files have changed from HEAD, and in what ways have they changed?
       run: |
