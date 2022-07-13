@@ -18,7 +18,7 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
-import           Poseidon.Package            (PackageReadOptions (..), 
+import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               getJointGenotypeData,
