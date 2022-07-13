@@ -4,33 +4,39 @@ module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.EntitiesList          (readEntitiesFromString, PoseidonEntity(..), EntityInput(..))
-import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
-import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.CLI.Init              (InitOptions (..), runInit)
-import           Poseidon.CLI.Fetch             (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge             (ForgeOptions (..), runForge)
-import           Poseidon.CLI.List              (ListOptions (..), runList, 
-                                                 RepoLocationSpec (..), ListEntity (..))
-import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
-import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
-                                                 GenotypeFormatSpec (..), 
-                                                 SNPSetSpec (..), GenoDataSource (..))
-import           Poseidon.Package               (getChecksum)
-import           Poseidon.SecondaryTypes        (ContributorSpec (..),
-                                                 VersionComponent (..))
-import           Poseidon.Utils                 (usePoseidonLogger, LogMode (..))
+import           Poseidon.CLI.Fetch       (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Forge       (ForgeOptions (..), runForge)
+import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
+                                           runGenoconvert)
+import           Poseidon.CLI.Init        (InitOptions (..), runInit)
+import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
+                                           RepoLocationSpec (..), runList)
+import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
+import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
+import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
+import           Poseidon.CLI.Validate    (ValidateOptions (..), runValidate)
+import           Poseidon.EntitiesList    (EntityInput (..),
+                                           PoseidonEntity (..),
+                                           readEntitiesFromString)
+import           Poseidon.GenotypeData    (GenoDataSource (..),
+                                           GenotypeDataSpec (..),
+                                           GenotypeFormatSpec (..),
+                                           SNPSetSpec (..))
+import           Poseidon.Package         (getChecksum)
+import           Poseidon.SecondaryTypes  (ContributorSpec (..),
+                                           VersionComponent (..))
+import           Poseidon.Utils           (LogMode (..), usePoseidonLogger)
 
-import           Control.Monad                  (when, unless)
-import           Data.Either                    (fromRight)
-import qualified Data.Text.IO                   as T
-import qualified Data.Text                      as T
-import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
-import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
-import           System.FilePath.Posix          ((</>))
-import           System.IO                      (stdout, IOMode(WriteMode), withFile, openFile, stderr, hPutStrLn)
+import           Control.Monad            (unless, when)
+import           Data.Either              (fromRight)
+import qualified Data.Text                as T
+import qualified Data.Text.IO             as T
+import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
+import           System.Directory         (createDirectory, doesDirectoryExist,
+                                           removeDirectoryRecursive)
+import           System.FilePath.Posix    ((</>))
+import           System.IO                (IOMode (WriteMode), hPutStrLn,
+                                           openFile, stderr, stdout, withFile)
 
 tempTestDir :: FilePath
 tempTestDir = "/tmp/poseidonHSGoldenTestData"
@@ -46,17 +52,17 @@ smallTestEntityFiles :: FilePath
 smallTestEntityFiles = "test/testDat/testEntityFiles"
 
 createStaticCheckSumFile :: FilePath -> IO ()
-createStaticCheckSumFile poseidonHSDir = runCLICommands 
+createStaticCheckSumFile poseidonHSDir = runCLICommands
     True
-    (poseidonHSDir </> staticTestDir) 
+    (poseidonHSDir </> staticTestDir)
     (poseidonHSDir </> staticCheckSumFile)
     (poseidonHSDir </> smallTestPacsDir)
     (poseidonHSDir </> smallTestEntityFiles)
 
 createDynamicCheckSumFile :: IO ()
-createDynamicCheckSumFile = runCLICommands 
-    False 
-    tempTestDir 
+createDynamicCheckSumFile = runCLICommands
+    False
+    tempTestDir
     dynamicCheckSumFile
     smallTestPacsDir
     smallTestEntityFiles
@@ -68,7 +74,7 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
     when tmpTestDirExists $ removeDirectoryRecursive testDir
     createDirectory testDir
     -- create/overwrite checksum file
-    writeFile checkFilePath "Checksums for trident CLI output\n\ 
+    writeFile checkFilePath "Checksums for trident CLI output\n\
         \Automatically generated with: poseidon-devtools updateGoldenTests\n\
         \"
     -- create error sink
@@ -195,12 +201,12 @@ testPipelineList testDir checkFilePath = do
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
-    let summariseOpts1 = SummariseOptions { 
+    let summariseOpts1 = SummariseOptions {
           _summariseBaseDirs = [testDir]
         , _summariseRawOutput = False
     }
     runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runSummarise summariseOpts1) "summarise" 1
-    let summariseOpts2 = SummariseOptions { 
+    let summariseOpts2 = SummariseOptions {
           _summariseBaseDirs = [testDir]
         , _summariseRawOutput = True
     }
@@ -208,12 +214,12 @@ testPipelineSummarise testDir checkFilePath = do
 
 testPipelineSurvey :: FilePath -> FilePath -> IO ()
 testPipelineSurvey testDir checkFilePath = do
-    let surveyOpts1 = SurveyOptions { 
+    let surveyOpts1 = SurveyOptions {
           _surveyBaseDirs = [testDir]
         , _surveyRawOutput = False
     }
     runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runSurvey surveyOpts1) "survey" 1
-    let surveyOpts2 = SurveyOptions { 
+    let surveyOpts2 = SurveyOptions {
           _surveyBaseDirs = [testDir]
         , _surveyRawOutput = True
     }
@@ -327,7 +333,7 @@ testPipelineUpdate testDir checkFilePath = do
 testPipelineForge :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 1
-    let forgeOpts1 = ForgeOptions { 
+    let forgeOpts1 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
@@ -347,7 +353,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac1" </> "ForgePac1.janno"
         ]
     -- forge test 2
-    let forgeOpts2 = ForgeOptions { 
+    let forgeOpts2 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")]
         , _forgeSnpFile      = Nothing
@@ -366,7 +372,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac2" </> "ForgePac2.bed"
         ]
     -- forge test 3
-    let forgeOpts3 = ForgeOptions { 
+    let forgeOpts3 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile1.txt")]
         , _forgeSnpFile      = Nothing
@@ -388,7 +394,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac3" </> "ForgePac3.janno"
         ]
     -- forge test 4
-    let forgeOpts4 = ForgeOptions { 
+    let forgeOpts4 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile2.txt")]
         , _forgeSnpFile      = Nothing
@@ -410,7 +416,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac4" </> "ForgePac4.janno"
         ]
     -- forge test 5
-    let forgeOpts5 = ForgeOptions { 
+    let forgeOpts5 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = []
         , _forgeIntersect    = False
@@ -507,14 +513,14 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac7" </> "ForgePac7.ind"
         ]
 
- -- Note: We here use our test server (no SSL and different port). The reason is that 
+ -- Note: We here use our test server (no SSL and different port). The reason is that
  -- sometimes we would like to implement new features that affect the communication
  -- between server and client, and we need tests succeeding before Pull Requests are merged, so
  -- we adopt the policy to run experimental builds on the test server in order to test features
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-    let fetchOpts1 = FetchOptions { 
+    let fetchOpts1 = FetchOptions {
           _jaBaseDirs       = [testDir]
         , _entityInput      = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
         , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"

@@ -2,30 +2,29 @@
 
 module Poseidon.CLI.Init where
 
-import           Poseidon.BibFile           (dummyBibEntry, writeBibTeXFile)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             loadIndividuals,
-                                             )
-import           Poseidon.Janno             (writeJannoFile)
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             newPackageTemplate,
-                                             newMinimalPackageTemplate,
-                                             writePoseidonPackage)
-import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO)
+import           Poseidon.BibFile       (dummyBibEntry, writeBibTeXFile)
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..), loadIndividuals)
+import           Poseidon.Janno         (writeJannoFile)
+import           Poseidon.Package       (PoseidonPackage (..),
+                                         newMinimalPackageTemplate,
+                                         newPackageTemplate,
+                                         writePoseidonPackage)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO)
 
-import           Colog                      (logInfo)
-import           Control.Exception          (throwIO)
-import           Control.Monad              (unless, when)
-import           Control.Monad.IO.Class     (liftIO)
-import           Data.Text                  (pack)
-import           System.Directory           (createDirectoryIfMissing, copyFile)
-import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
+import           Colog                  (logInfo)
+import           Control.Exception      (throwIO)
+import           Control.Monad          (unless, when)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Text              (pack)
+import           System.Directory       (copyFile, createDirectoryIfMissing)
+import           System.FilePath        (takeBaseName, takeFileName, (<.>),
+                                         (</>))
 
 data InitOptions = InitOptions
     { _initGenoData :: GenotypeDataSpec
-    , _initPacPath :: FilePath
-    , _initPacName :: Maybe String
-    , _initMinimal :: Bool
+    , _initPacPath  :: FilePath
+    , _initPacName  :: Maybe String
+    , _initMinimal  :: Bool
     }
 
 runInit :: InitOptions -> PoseidonLogIO ()
@@ -46,7 +45,7 @@ runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _
     -- create new package
     logInfo "Creating new package entity"
     let outName = case maybeOutName of -- take basename of outPath, if name is not provided
-            Just x -> x
+            Just x  -> x
             Nothing -> takeBaseName outPath
     when (outName == "") $ liftIO $ throwIO PoseidonEmptyOutPacNameException
     inds <- liftIO $ loadIndividuals outPath genotypeData

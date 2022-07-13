@@ -1,17 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
 
-import           Poseidon.Utils       (PoseidonException (..))
+import           Poseidon.Utils                     (PoseidonException (..))
 
-import           Control.Exception    (throwIO)
-import           Control.Monad        (forM_, liftM, liftM2, liftM3)
-import           System.IO            (IOMode (..), hPutStrLn, withFile)
-import           Text.Parsec          (sepEndBy, try, many, noneOf, char, (<|>), oneOf, many1, between)
-import           Text.Parsec.Char     (digit, letter, alphaNum)
-import           Text.Parsec.Language (emptyDef)
-import           Text.Parsec.String   (Parser, parseFromFile)
-import qualified Text.Parsec.Token    as T
-import Text.ParserCombinators.Parsec.Char (CharParser)
+import           Control.Exception                  (throwIO)
+import           Control.Monad                      (forM_, liftM, liftM2,
+                                                     liftM3)
+import           System.IO                          (IOMode (..), hPutStrLn,
+                                                     withFile)
+import           Text.Parsec                        (between, char, many, many1,
+                                                     noneOf, oneOf, sepEndBy,
+                                                     try, (<|>))
+import           Text.Parsec.Char                   (alphaNum, digit, letter)
+import           Text.Parsec.Language               (emptyDef)
+import           Text.Parsec.String                 (Parser, parseFromFile)
+import qualified Text.Parsec.Token                  as T
+import           Text.ParserCombinators.Parsec.Char (CharParser)
 
 data BibEntry = BibEntry
     { bibEntryType   :: String

@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module Poseidon.Utils (
     PoseidonException (..),
@@ -9,16 +8,18 @@ module Poseidon.Utils (
     LogMode (..)
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
-                                         logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
-import           Control.Exception      (Exception, try, IOException)
-import           Control.Monad          (when)
-import           Data.Yaml              (ParseException)
-import           Data.Text              (Text, pack)
-import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
-                                         utcToLocalZonedTime)
-import           System.Console.ANSI    (getCursorPosition)
-import           System.IO              (hPutStrLn, stderr)
+import           Colog               (LogAction (..), LoggerT, Message,
+                                      Severity (..), cfilter, cmapM,
+                                      logTextStderr, msgSeverity, msgText,
+                                      showSeverity, usingLoggerT)
+import           Control.Exception   (Exception, IOException, try)
+import           Control.Monad       (when)
+import           Data.Text           (Text, pack)
+import           Data.Time           (defaultTimeLocale, formatTime,
+                                      getCurrentTime, utcToLocalZonedTime)
+import           Data.Yaml           (ParseException)
+import           System.Console.ANSI (getCursorPosition)
+import           System.IO           (hPutStrLn, stderr)
 
 type PoseidonLogIO = LoggerT Message IO
 
@@ -59,21 +60,21 @@ compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
                         when isNotAtStartOfLine $ do hPutStrLn stderr ""
             -- prepare message
             let textMessage = msgText msg
-                textSeverity = if severity 
-                    then showSeverity (msgSeverity msg) 
+                textSeverity = if severity
+                    then showSeverity (msgSeverity msg)
                     else mempty
             textTime <- if time
-                    then do 
+                    then do
                         zonedTime <- getCurrentTime >>= utcToLocalZonedTime
                         return $ pack $ "[" ++ formatTime defaultTimeLocale "%T" zonedTime ++ "] "
                     else mempty
             return $ textSeverity <> textTime <> textMessage
 
 -- | A Poseidon Exception data type with several concrete constructors
-data PoseidonException = 
+data PoseidonException =
     PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
-    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
+    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
@@ -103,7 +104,7 @@ renderPoseidonException (PoseidonYamlParseException fn e) =
 renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
-    "Poseidon version mismatch in " ++ show p ++ 
+    "Poseidon version mismatch in " ++ show p ++
     ". It has version \"" ++ s ++ "\", which is not supported by this trident version."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
     "The POSEIDON.yml file " ++ show p ++ " has no poseidonVersion field. " ++

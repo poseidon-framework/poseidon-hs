@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Poseidon.Package (
     PoseidonYamlStruct (..),
@@ -34,12 +34,15 @@ import           Poseidon.Janno             (JannoList (..), JannoRow (..),
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
-import           Poseidon.Utils             (PoseidonException (..),
+import           Poseidon.SecondaryTypes    (ContributorSpec (..),
+                                             IndividualInfo (..))
+import           Poseidon.Utils             (LogMode (..),
+                                             PoseidonException (..),
+                                             PoseidonLogIO,
                                              renderPoseidonException,
-                                             PoseidonLogIO, LogMode (..), usePoseidonLogger)
+                                             usePoseidonLogger)
 
-import           Colog                      (logInfo, logWarning, logDebug)
+import           Colog                      (logDebug, logInfo, logWarning)
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
@@ -63,23 +66,25 @@ import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import           GHC.Generics               (Generic)
-import           Pipes                      (Pipe, Producer, for, runEffect,
-                                             (>->), yield, cat)
-import           Pipes.OrderedZip           (orderedZip, orderedZipAll, orderCheckPipe)
+import           Pipes                      (Pipe, Producer, cat, for,
+                                             runEffect, yield, (>->))
+import           Pipes.OrderedZip           (orderCheckPipe, orderedZip,
+                                             orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), GenoEntry(..),
-                                             EigenstratSnpEntry (..), GenoLine,
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
+                                             EigenstratSnpEntry (..),
+                                             GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
-import           System.FilePath            (takeDirectory, takeExtension,
-                                             takeFileName, (</>), takeBaseName)
+import           System.FilePath            (takeBaseName, takeDirectory,
+                                             takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hFlush,
-                                             hGetContents, hPutStr,
-                                             hPutStrLn, stderr, withFile)
+                                             hGetContents, hPutStr, hPutStrLn,
+                                             stderr, withFile)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -250,7 +255,7 @@ readPoseidonPackageCollection opts dirs = do
     logInfo $ T.pack $ show (length posFilesAllVersions) ++ " found"
     posFiles <- if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
-                else do 
+                else do
                     logInfo "Checking Poseidon versions... "
                     filterByPoseidonVersion posFilesAllVersions
     logInfo "Initializing packages... "
@@ -504,7 +509,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 in  throwM $ PoseidonPackageException msg
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: (MonadSafe m) => 
+getJointGenotypeData :: (MonadSafe m) =>
                         LogMode -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.

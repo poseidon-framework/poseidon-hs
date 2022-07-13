@@ -1,7 +1,7 @@
 module Poseidon.MathHelpers where
 
-import          Data.List        (foldl')
-import          Text.Printf      (PrintfArg, printf)
+import           Data.List   (foldl')
+import           Text.Printf (PrintfArg, printf)
 
 -- | A helper function to calculate the mean of a list of doubles
 avg :: [Double] -> Double

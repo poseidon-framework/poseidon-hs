@@ -1,8 +1,8 @@
 module Poseidon.GoldenTestsValidateChecksumsSpec (spec) where
 
-import           Poseidon.GoldenTestsRunCommands    (createDynamicCheckSumFile, 
-                                                     staticCheckSumFile, 
-                                                     dynamicCheckSumFile)
+import           Poseidon.GoldenTestsRunCommands (createDynamicCheckSumFile,
+                                                  dynamicCheckSumFile,
+                                                  staticCheckSumFile)
 
 import           Test.Hspec
 
@@ -11,7 +11,7 @@ spec = do
     testCommandsAndValidateChecksums
 
 testCommandsAndValidateChecksums :: Spec
-testCommandsAndValidateChecksums = describe 
+testCommandsAndValidateChecksums = describe
     "running a CLI pipeline for a frontend test" $ do
         it "should produce the expected output files" $ do
             -- perform actions

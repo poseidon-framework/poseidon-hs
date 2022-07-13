@@ -1,6 +1,7 @@
 module Poseidon.BibFileSpec (spec) where
 
-import           Poseidon.BibFile        (readBibTeXFile, writeBibTeXFile, BibEntry(..))
+import           Poseidon.BibFile (BibEntry (..), readBibTeXFile,
+                                   writeBibTeXFile)
 
 import           Test.Hspec
 
@@ -9,7 +10,7 @@ spec = do
     testBibReadWriteReadCycle
 
 testBibReadWriteReadCycle :: Spec
-testBibReadWriteReadCycle = describe 
+testBibReadWriteReadCycle = describe
     "Poseidon.BibFile.readBibTeXFile and Poseidon.BibFile.writeBibTeXFile" $ do
         let testBibFileIn = "test/testDat/testBibFiles/test.bib"
         let testBibFileOut = "/tmp/poseidonBibFileTest.bib"

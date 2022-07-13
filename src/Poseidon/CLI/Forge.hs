@@ -4,31 +4,33 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(..),
-                                              findNonExistentEntities,
+import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
+                                              SignedEntity (..),
+                                              conformingEntityIndices,
                                               filterRelevantPackages,
-                                              conformingEntityIndices, 
-                                              EntityInput, readEntityInputs)
-import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
+                                              findNonExistentEntities,
+                                              readEntityInputs)
+import           Poseidon.GenotypeData       (GenoDataSource (..),
+                                              GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              selectIndices, snpSetMergeList,
-                                              selectIndices, GenoDataSource (..))
+                                              selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               getJointGenotypeData,
+                                              getJointIndividualInfo,
+                                              getJointJanno,
+                                              makePseudoPackageFromGenotypeData,
                                               newMinimalPackageTemplate,
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
-                                              writePoseidonPackage,
-                                              getJointIndividualInfo,
-                                              getJointJanno,
-                                              makePseudoPackageFromGenotypeData)
-import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO, LogMode)
+                                              writePoseidonPackage)
+import           Poseidon.Utils              (LogMode, PoseidonException (..),
+                                              PoseidonLogIO)
 
 import           Colog                       (logInfo, logWarning)
 import           Control.Exception           (throwIO)
@@ -51,17 +53,17 @@ import           System.FilePath             (takeBaseName, (<.>), (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeGenoSources  :: [GenoDataSource]
-    , _forgeEntityInput  :: [EntityInput SignedEntity] -- Empty list = forge all packages
-    , _forgeSnpFile      :: Maybe FilePath
-    , _forgeIntersect    :: Bool
-    , _forgeOutFormat    :: GenotypeFormatSpec
-    , _forgeOutMinimal   :: Bool
-    , _forgeOutOnlyGeno  :: Bool
-    , _forgeOutPacPath   :: FilePath
-    , _forgeOutPacName   :: Maybe String
-    , _forgeLogMode      :: LogMode
-    , _forgeNoExtract    :: Bool
+    { _forgeGenoSources :: [GenoDataSource]
+    , _forgeEntityInput :: [EntityInput SignedEntity] -- Empty list = forge all packages
+    , _forgeSnpFile     :: Maybe FilePath
+    , _forgeIntersect   :: Bool
+    , _forgeOutFormat   :: GenotypeFormatSpec
+    , _forgeOutMinimal  :: Bool
+    , _forgeOutOnlyGeno :: Bool
+    , _forgeOutPacPath  :: FilePath
+    , _forgeOutPacName  :: Maybe String
+    , _forgeLogMode     :: LogMode
+    , _forgeNoExtract   :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -77,11 +79,11 @@ pacReadOpts = defaultPackageReadOptions {
 runForge :: ForgeOptions -> PoseidonLogIO ()
 runForge (
     ForgeOptions genoSources
-                 entityInputs maybeSnpFile intersect_ 
-                 outFormat minimal onlyGeno outPath maybeOutName  
-                 logMode noExtract 
+                 entityInputs maybeSnpFile intersect_
+                 outFormat minimal onlyGeno outPath maybeOutName
+                 logMode noExtract
     ) = do
-    
+
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
@@ -89,7 +91,7 @@ runForge (
     let allPackages = properPackages ++ pseudoPackages
 
     -- compile entities
-    entitiesUser <- readEntityInputs entityInputs 
+    entitiesUser <- readEntityInputs entityInputs
 
     entities <- case entitiesUser of
         [] -> do
@@ -110,7 +112,7 @@ runForge (
     unless (null nonExistentEntities) $
         logWarning $ pack $ "The following entities do not exist in this dataset and will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
-    
+
     -- determine relevant packages
     let relevantPackages = filterRelevantPackages entities allPackages
     logInfo $ pack $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
@@ -123,7 +125,7 @@ runForge (
     -- janno
     let jannoRows = getJointJanno relevantPackages
         relevantJannoRows = map (jannoRows !!) relevantIndices
-    
+
     -- check for duplicates among the individuals selected for merging
     checkIndividualsUniqueJanno relevantJannoRows
     -- bib
@@ -154,7 +156,7 @@ runForge (
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
            else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
-    
+
     -- write new package to the file system --
     -- POSEIDON.yml
     unless onlyGeno $ do

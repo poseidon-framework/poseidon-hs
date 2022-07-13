@@ -25,7 +25,7 @@ data VersionComponent = Major
 
 data IndividualInfo = IndividualInfo
     { indInfoName    :: String
-    , indInfoGroups   :: [String]
+    , indInfoGroups  :: [String]
     , indInfoPacName :: String
     } deriving Show
 

@@ -1,53 +1,64 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Paths_poseidon_hs      (version)
-import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..), 
-                                         GenoDataSource (..))
-import           Poseidon.CLI.Init      (InitOptions (..), runInit)
-import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
-                                        runList, RepoLocationSpec(..))
-import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
-import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.EntitiesList  (SignedEntitiesList, EntitiesList, EntityInput(..), SignedEntity,
-                                         PoseidonEntity,
-                                        readEntitiesFromString)
-import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
-import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
-import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..)) 
-import           Poseidon.Janno         (jannoHeaderString)
-import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
-import           Poseidon.SecondaryTypes (ContributorSpec (..),
-                                        VersionComponent (..),
-                                        poseidonVersionParser, 
-                                        contributorSpecParser,
-                                        runParser
-                                        )
-import           Poseidon.Utils         (PoseidonException (..),
-                                        renderPoseidonException,
-                                        usePoseidonLogger,
-                                        LogMode (..), PoseidonLogIO)
+import           Paths_poseidon_hs               (version)
+import           Poseidon.CLI.Fetch              (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Forge              (ForgeOptions (..), runForge)
+import           Poseidon.CLI.Genoconvert        (GenoconvertOptions (..),
+                                                  runGenoconvert)
+import           Poseidon.CLI.Init               (InitOptions (..), runInit)
+import           Poseidon.CLI.List               (ListEntity (..),
+                                                  ListOptions (..),
+                                                  RepoLocationSpec (..),
+                                                  runList)
+import           Poseidon.CLI.Summarise          (SummariseOptions (..),
+                                                  runSummarise)
+import           Poseidon.CLI.Survey             (SurveyOptions (..), runSurvey)
+import           Poseidon.CLI.Update             (UpdateOptions (..), runUpdate)
+import           Poseidon.CLI.Validate           (ValidateOptions (..),
+                                                  runValidate)
+import           Poseidon.EntitiesList           (EntitiesList,
+                                                  EntityInput (..),
+                                                  PoseidonEntity,
+                                                  SignedEntitiesList,
+                                                  SignedEntity,
+                                                  readEntitiesFromString)
+import           Poseidon.GenotypeData           (GenoDataSource (..),
+                                                  GenotypeDataSpec (..),
+                                                  GenotypeFormatSpec (..),
+                                                  SNPSetSpec (..))
+import           Poseidon.Janno                  (jannoHeaderString)
+import           Poseidon.PoseidonVersion        (showPoseidonVersion,
+                                                  validPoseidonVersions)
+import           Poseidon.SecondaryTypes         (ContributorSpec (..),
+                                                  VersionComponent (..),
+                                                  contributorSpecParser,
+                                                  poseidonVersionParser,
+                                                  runParser)
+import           Poseidon.Utils                  (LogMode (..),
+                                                  PoseidonException (..),
+                                                  PoseidonLogIO,
+                                                  renderPoseidonException,
+                                                  usePoseidonLogger)
 
-import           Colog                  (logError)
-import           Control.Applicative    ((<|>))
-import           Control.Exception      (catch)
-import           Data.List              (intercalate)
-import           Data.Version           (Version (..), showVersion)
-import qualified Options.Applicative    as OP
+import           Colog                           (logError)
+import           Control.Applicative             ((<|>))
+import           Control.Exception               (catch)
+import           Data.List                       (intercalate)
+import qualified Data.Text                       as T
+import           Data.Version                    (Version (..), showVersion)
+import qualified Options.Applicative             as OP
 import           Options.Applicative.Help.Pretty (string)
-import           System.Exit            (exitFailure)
-import           System.FilePath        ((<.>), dropExtension, takeExtension)
-import           System.IO              (hPutStrLn, stderr)
-import qualified Data.Text              as T
+import           System.Exit                     (exitFailure)
+import           System.FilePath                 (dropExtension, takeExtension,
+                                                  (<.>))
+import           System.IO                       (hPutStrLn, stderr)
 
-data Options = Options { 
+data Options = Options {
     _logMode    :: LogMode
-  , _subcommand :: Subcommand 
+  , _subcommand :: Subcommand
   }
 
-data Subcommand = 
+data Subcommand =
       CmdFstats -- dummy option to provide help message to user
     | CmdInit InitOptions
     | CmdList ListOptions
@@ -103,7 +114,7 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 parseLogMode :: OP.Parser LogMode
 parseLogMode = OP.option (OP.eitherReader readLogMode) (
-    OP.long "logMode" <> 
+    OP.long "logMode" <>
     OP.help "How information should be reported: \
             \NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog" <>
     OP.value DefaultLog <>
@@ -120,8 +131,8 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
             _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
 
 renderVersion :: String
-renderVersion = 
-    "trident v" ++ showVersion version ++ " for poseidon v" ++ 
+renderVersion =
+    "trident v" ++ showVersion version ++ " for poseidon v" ++
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
     "https://poseidon-framework.github.io" ++ "\n" ++
     ")<(({°> ~ ────E ~ <°}))>("
@@ -244,13 +255,13 @@ validateOptParser = ValidateOptions <$> parseBasePaths
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
-    OP.long "poseidonVersion" <> 
+    OP.long "poseidonVersion" <>
     OP.help "Poseidon version the packages should be updated to: \
             \e.g. \"2.5.3\"" <>
     OP.value Nothing <>
     OP.showDefault
     )
-    where 
+    where
         readPoseidonVersionString :: String -> Either String Version
         readPoseidonVersionString s = case runParser poseidonVersionParser () "" s of
             Left p  -> Left (show p)
@@ -258,7 +269,7 @@ parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionSt
 
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
-    OP.long "versionComponent" <> 
+    OP.long "versionComponent" <>
     OP.help "Part of the package version number in the POSEIDON.yml file \
             \that should be updated: \
             \Major, Minor or Patch (see https://semver.org)" <>
@@ -294,7 +305,7 @@ parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContribut
 
 parseLog :: OP.Parser String
 parseLog = OP.strOption (
-    OP.long "logText" <> 
+    OP.long "logText" <>
     OP.help "Log text for this version jump in the CHANGELOG file" <>
     OP.value "not specified" <>
     OP.showDefault
@@ -325,7 +336,7 @@ parseFetchEntityInputs = parseDownloadAll <|> OP.some parseEntityInput
         OP.help "download all packages the server is offering"
         )
     parseEntityInput = (EntitiesFromFile <$> parseFetchEntitiesFromFile) <|> (EntitiesDirect <$> parseFetchEntitiesDirect)
-    
+
 
 parseIgnorePoseidonVersion :: OP.Parser Bool
 parseIgnorePoseidonVersion = OP.switch (
@@ -350,7 +361,7 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.lo
         \An empty forgeString (and no --forgeFile) will therefore merge all available individuals.")
   where
     readSignedEntities s = case readEntitiesFromString s of
-        Left e -> Left (show e)
+        Left e  -> Left (show e)
         Right e -> Right e
 
 parseFetchEntitiesDirect :: OP.Parser EntitiesList
@@ -363,7 +374,7 @@ parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (OP.long "fe
         \specified, then packages which include these groups or individuals are included in the download.")
   where
     readEntities s = case readEntitiesFromString s of
-        Left e -> Left (show e)
+        Left e  -> Left (show e)
         Right e -> Right e
 
 parseForgeEntitiesFromFile :: OP.Parser FilePath
@@ -515,7 +526,7 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.long "outPackageName" <>
     OP.help "the output package name - this is optional: If no name is provided, \
             \then the package name defaults to the basename of the (mandatory) \
-            \--outPackagePath argument" <> 
+            \--outPackagePath argument" <>
     OP.value Nothing
     )
 
@@ -556,7 +567,7 @@ parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividual
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
-    OP.long "raw" <> 
+    OP.long "raw" <>
     OP.help "output table as tsv without header. Useful for piping into grep or awk"
     )
 
@@ -568,21 +579,21 @@ parseVerbose = OP.switch (
 
 parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
-    OP.long "ignoreGeno" <> 
+    OP.long "ignoreGeno" <>
     OP.help "ignore SNP and GenoFile" <>
     OP.hidden
     )
 
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
-    OP.long "noExitCode" <> 
+    OP.long "noExitCode" <>
     OP.help "do not produce an explicit exit code" <>
     OP.hidden
     )
 
-parseRemoteURL :: OP.Parser String 
+parseRemoteURL :: OP.Parser String
 parseRemoteURL = OP.strOption (
-    OP.long "remoteURL" <> 
+    OP.long "remoteURL" <>
     OP.help "URL of the remote Poseidon server" <>
     OP.value "https://c107-224.cloud.gwdg.de" <>
     OP.showDefault
@@ -590,6 +601,6 @@ parseRemoteURL = OP.strOption (
 
 parseUpgrade :: OP.Parser Bool
 parseUpgrade = OP.switch (
-    OP.long "upgrade" <>  OP.short 'u' <> 
+    OP.long "upgrade" <>  OP.short 'u' <>
     OP.help "overwrite outdated local package versions"
     )

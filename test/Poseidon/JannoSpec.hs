@@ -1,23 +1,14 @@
 module Poseidon.JannoSpec (spec) where
 
-import           Poseidon.Janno            (JannoRow (..),
-                                            JannoSex (..),
-                                            JannoList (..),
-                                            Sex (..),
-                                            Latitude (..),
-                                            Longitude (..),
-                                            JannoDateType (..),
-                                            JannoCaptureType (..),
-                                            JannoGenotypePloidy (..),
-                                            Percent (..),
-                                            JannoUDG (..),
-                                            JURI (..),
-                                            RelationDegree (..),
-                                            JannoLibraryBuilt (..),
-                                            readJannoFile)
+import           Poseidon.Janno (JURI (..), JannoCaptureType (..),
+                                 JannoDateType (..), JannoGenotypePloidy (..),
+                                 JannoLibraryBuilt (..), JannoList (..),
+                                 JannoRow (..), JannoSex (..), JannoUDG (..),
+                                 Latitude (..), Longitude (..), Percent (..),
+                                 RelationDegree (..), Sex (..), readJannoFile)
 
-import Test.Hspec
-    ( anyException, shouldThrow, shouldBe, it, describe, Spec )
+import           Test.Hspec     (Spec, anyException, describe, it, shouldBe,
+                                 shouldThrow)
 
 spec :: Spec
 spec = do
@@ -78,9 +69,9 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDamage janno                       `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
         map jContamination janno                `shouldBe` [Just (JannoList ["10"]), Just (JannoList ["20", "50", "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
-                                                          Just (JURI "https://www.google.de"), 
+                                                          Just (JURI "https://www.google.de"),
                                                           Just (JURI "http://huhu.org/23&test")]
-    -- the following tests should be more precise and comprehensive; we should consider refactoring 
+    -- the following tests should be more precise and comprehensive; we should consider refactoring
     -- (maybe when we eventually switch to a different error logging strategy)
     it "should fail to read somehow borked janno files" $ do
         readJannoFile False borkedFullJannoPath `shouldThrow` anyException

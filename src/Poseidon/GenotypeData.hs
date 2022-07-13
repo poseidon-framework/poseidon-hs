@@ -11,12 +11,12 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
-import           Data.IORef (newIORef, readIORef, modifyIORef)
+import           Data.IORef                 (modifyIORef, newIORef, readIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, for, yield, cat)
+import           Pipes                      (Pipe, Producer, cat, for, yield)
 import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -209,7 +209,7 @@ getConsensusSnpEntry snpEntries = do
                 catMaybes [fst id_, fst genPos, Just $ "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"],
                 EigenstratSnpEntry chrom pos (snd genPos) (snd id_) 'N' r
                 )
-        [ref, alt] -> 
+        [ref, alt] ->
             return (
                 catMaybes [fst id_, fst genPos],
                 EigenstratSnpEntry chrom pos (snd genPos) (snd id_) ref alt

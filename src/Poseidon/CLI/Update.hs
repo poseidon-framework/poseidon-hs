@@ -4,36 +4,37 @@ module Poseidon.CLI.Update (
     runUpdate, UpdateOptions (..)
     ) where
 
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..))
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             readPoseidonPackageCollection,
-                                             writePoseidonPackage, 
-                                             PackageReadOptions (..), 
-                                             defaultPackageReadOptions,
-                                             getChecksum)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..),
-                                            VersionComponent (..))
-import           Poseidon.Utils             (PoseidonLogIO)
+import           Poseidon.GenotypeData   (GenotypeDataSpec (..))
+import           Poseidon.Package        (PackageReadOptions (..),
+                                          PoseidonPackage (..),
+                                          defaultPackageReadOptions,
+                                          getChecksum,
+                                          readPoseidonPackageCollection,
+                                          writePoseidonPackage)
+import           Poseidon.SecondaryTypes (ContributorSpec (..),
+                                          VersionComponent (..))
+import           Poseidon.Utils          (PoseidonLogIO)
 
-import           Colog                      (logInfo, logWarning)
-import           Control.Monad.IO.Class     (liftIO)
-import           Data.List                  (nub)
-import           Data.Maybe                 (fromMaybe, isNothing, fromJust)
-import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import           Data.Version               (Version (..), makeVersion, showVersion)
-import           System.Directory           (doesFileExist, removeFile)
-import           System.FilePath            ((</>))
+import           Colog                   (logInfo, logWarning)
+import           Control.Monad.IO.Class  (liftIO)
+import           Data.List               (nub)
+import           Data.Maybe              (fromJust, fromMaybe, isNothing)
+import           Data.Time               (Day, UTCTime (..), getCurrentTime)
+import           Data.Version            (Version (..), makeVersion,
+                                          showVersion)
+import           System.Directory        (doesFileExist, removeFile)
+import           System.FilePath         ((</>))
 
 data UpdateOptions = UpdateOptions
-    { _updateBaseDirs :: [FilePath]
-    , _updatePoseidonVersion :: Maybe Version
+    { _updateBaseDirs              :: [FilePath]
+    , _updatePoseidonVersion       :: Maybe Version
     , _updateIgnorePoseidonVersion :: Bool
-    , _updateVersionUpdate :: VersionComponent
-    , _updateNoChecksumUpdate :: Bool
-    , _updateIgnoreGeno :: Bool
-    , _updateNewContributors :: [ContributorSpec]
-    , _updateLog :: String
-    , _updateForce :: Bool
+    , _updateVersionUpdate         :: VersionComponent
+    , _updateNoChecksumUpdate      :: Bool
+    , _updateIgnoreGeno            :: Bool
+    , _updateNewContributors       :: [ContributorSpec]
+    , _updateLog                   :: String
+    , _updateForce                 :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -47,8 +48,8 @@ pacReadOpts = defaultPackageReadOptions {
 
 runUpdate :: UpdateOptions -> PoseidonLogIO ()
 runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
-    allPackages <- readPoseidonPackageCollection 
-        pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion} 
+    allPackages <- readPoseidonPackageCollection
+        pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
         baseDirs
     -- updating poseidon version
     let updatedPacsPoseidonVersion = if isNothing poseidonVersion
@@ -81,7 +82,7 @@ writeOrUpdateChangelogFile :: String -> PoseidonPackage -> IO PoseidonPackage
 writeOrUpdateChangelogFile logText pac = do
     case posPacChangelogFile pac of
         Nothing -> do
-            writeFile (posPacBaseDir pac </> "CHANGELOG.md") $ 
+            writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
                 "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
             return pac {
                 posPacChangelogFile = Just "CHANGELOG.md"
@@ -89,22 +90,22 @@ writeOrUpdateChangelogFile logText pac = do
         Just x -> do
             changelogFile <- readFile (posPacBaseDir pac </> x)
             removeFile (posPacBaseDir pac </> x)
-            writeFile (posPacBaseDir pac </> x) $ 
+            writeFile (posPacBaseDir pac </> x) $
                 "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
             return pac
 
 updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
-updateMeta versionComponent date newContributors pac = 
+updateMeta versionComponent date newContributors pac =
     pac { posPacPackageVersion =
         maybe (Just $ makeVersion [0, 1, 0])
-            (Just . makeVersion . updateVersionInt versionComponent . versionBranch) 
+            (Just . makeVersion . updateVersionInt versionComponent . versionBranch)
             (posPacPackageVersion pac)
         , posPacLastModified = Just date
         , posPacContributor = nub $ posPacContributor pac ++ newContributors
     }
     where
-        updateVersionInt :: VersionComponent -> [Int] -> [Int] 
-        updateVersionInt component v = 
+        updateVersionInt :: VersionComponent -> [Int] -> [Int]
+        updateVersionInt component v =
             case component of
                 Patch -> [v !! 0, v !! 1, (v !! 2) + 1]
                 Minor -> [v !! 0, (v !! 1) + 1, 0]
