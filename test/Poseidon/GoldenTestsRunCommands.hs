@@ -4,33 +4,40 @@ module Poseidon.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.EntitiesList          (readEntitiesFromString, PoseidonEntity(..), EntityInput(..))
-import           Poseidon.CLI.Update            (UpdateOptions (..), runUpdate)
-import           Poseidon.CLI.Genoconvert       (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.CLI.Init              (InitOptions (..), runInit)
-import           Poseidon.CLI.Fetch             (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge             (ForgeOptions (..), runForge)
-import           Poseidon.CLI.List              (ListOptions (..), runList, 
-                                                 RepoLocationSpec (..), ListEntity (..))
-import           Poseidon.CLI.Summarise         (SummariseOptions (..), runSummarise)
-import           Poseidon.CLI.Survey            (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Validate          (ValidateOptions(..), runValidate)
-import           Poseidon.GenotypeData          (GenotypeDataSpec (..),
-                                                 GenotypeFormatSpec (..), 
-                                                 SNPSetSpec (..), GenoDataSource (..))
-import           Poseidon.Package               (getChecksum)
-import           Poseidon.SecondaryTypes        (ContributorSpec (..),
-                                                 VersionComponent (..))
-import           Poseidon.Utils                 (usePoseidonLogger, LogMode (..))
+import           Poseidon.CLI.Fetch       (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Forge       (ForgeOptions (..), runForge)
+import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
+                                           runGenoconvert)
+import           Poseidon.CLI.Init        (InitOptions (..), runInit)
+import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
+                                           RepoLocationSpec (..), runList)
+import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
+import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
+import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
+import           Poseidon.CLI.Validate    (ValidateOptions (..), runValidate)
+import           Poseidon.EntitiesList    (EntityInput (..),
+                                           PoseidonEntity (..),
+                                           readEntitiesFromString)
+import           Poseidon.GenotypeData    (GenoDataSource (..),
+                                           GenotypeDataSpec (..),
+                                           GenotypeFormatSpec (..),
+                                           SNPSetSpec (..))
+import           Poseidon.Package         (getChecksum)
+import           Poseidon.SecondaryTypes  (ContributorSpec (..),
+                                           VersionComponent (..))
+import           Poseidon.Utils           (LogMode (..), usePoseidonLogger)
 
-import           Control.Monad                  (when, unless)
-import           Data.Either                    (fromRight)
-import qualified Data.Text.IO                   as T
-import qualified Data.Text                      as T
-import           GHC.IO.Handle                  (hDuplicateTo, hDuplicate, hClose)
-import           System.Directory               (createDirectory, removeDirectoryRecursive, doesDirectoryExist)
-import           System.FilePath.Posix          ((</>))
-import           System.IO                      (stdout, IOMode(WriteMode), withFile, openFile, stderr, hPutStrLn)
+import           Control.Monad            (unless, when)
+import           Data.Either              (fromRight)
+import qualified Data.Text                as T
+import qualified Data.Text.IO             as T
+import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
+import           Pipes.Safe               (runSafeT)
+import           System.Directory         (createDirectory, doesDirectoryExist,
+                                           removeDirectoryRecursive)
+import           System.FilePath.Posix    ((</>))
+import           System.IO                (IOMode (WriteMode), hPutStrLn,
+                                           openFile, stderr, stdout, withFile)
 
 tempTestDir :: FilePath
 tempTestDir = "/tmp/poseidonHSGoldenTestData"
@@ -46,17 +53,17 @@ smallTestEntityFiles :: FilePath
 smallTestEntityFiles = "test/testDat/testEntityFiles"
 
 createStaticCheckSumFile :: FilePath -> IO ()
-createStaticCheckSumFile poseidonHSDir = runCLICommands 
+createStaticCheckSumFile poseidonHSDir = runCLICommands
     True
-    (poseidonHSDir </> staticTestDir) 
+    (poseidonHSDir </> staticTestDir)
     (poseidonHSDir </> staticCheckSumFile)
     (poseidonHSDir </> smallTestPacsDir)
     (poseidonHSDir </> smallTestEntityFiles)
 
 createDynamicCheckSumFile :: IO ()
-createDynamicCheckSumFile = runCLICommands 
-    False 
-    tempTestDir 
+createDynamicCheckSumFile = runCLICommands
+    False
+    tempTestDir
     dynamicCheckSumFile
     smallTestPacsDir
     smallTestEntityFiles
@@ -68,7 +75,7 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
     when tmpTestDirExists $ removeDirectoryRecursive testDir
     createDirectory testDir
     -- create/overwrite checksum file
-    writeFile checkFilePath "Checksums for trident CLI output\n\ 
+    writeFile checkFilePath "Checksums for trident CLI output\n\
         \Automatically generated with: poseidon-devtools updateGoldenTests\n\
         \"
     -- create error sink
@@ -115,7 +122,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacName   = Just "Schiffels"
         , _initMinimal   = False
     }
-    let action = usePoseidonLogger NoLog (runInit initOpts1) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action = runSafeT (usePoseidonLogger NoLog (runInit initOpts1)) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action "init" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
@@ -137,7 +144,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacName   = Nothing
         , _initMinimal   = True
     }
-    let action2 = usePoseidonLogger NoLog (runInit initOpts2) >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
+    let action2 = runSafeT (usePoseidonLogger NoLog (runInit initOpts2)) >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
         , "Wang" </> "Wang_2020.bed"
@@ -161,15 +168,15 @@ testPipelineValidate testDir checkFilePath = do
         , _validateIgnoreGeno   = False
         , _validateNoExitCode   = True
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runValidate validateOpts1) "validate" 1
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runValidate validateOpts1) "validate" 1
     let validateOpts2 = validateOpts1 {
           _validateVerbose      = True
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runValidate validateOpts2) "validate" 2
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runValidate validateOpts2) "validate" 2
     let validateOpts3 = validateOpts2 {
           _validateIgnoreGeno   = True
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runValidate validateOpts3) "validate" 3
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runValidate validateOpts3) "validate" 3
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
@@ -179,45 +186,45 @@ testPipelineList testDir checkFilePath = do
         , _listRawOutput     = False
         , _listIgnoreGeno   = False
         }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runList listOpts1) "list" 1
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
           _listListEntity    = ListGroups
         }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runList listOpts2) "list" 2
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
           _listListEntity    = ListIndividuals ["Country", "Nr_SNPs"]
         }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runList listOpts3) "list" 3
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {
           _listRawOutput     = True
         }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runList listOpts4) "list" 4
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runList listOpts4) "list" 4
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
-    let summariseOpts1 = SummariseOptions { 
+    let summariseOpts1 = SummariseOptions {
           _summariseBaseDirs = [testDir]
         , _summariseRawOutput = False
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runSummarise summariseOpts1) "summarise" 1
-    let summariseOpts2 = SummariseOptions { 
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runSummarise summariseOpts1) "summarise" 1
+    let summariseOpts2 = SummariseOptions {
           _summariseBaseDirs = [testDir]
         , _summariseRawOutput = True
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runSummarise summariseOpts2) "summarise" 2
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runSummarise summariseOpts2) "summarise" 2
 
 testPipelineSurvey :: FilePath -> FilePath -> IO ()
 testPipelineSurvey testDir checkFilePath = do
-    let surveyOpts1 = SurveyOptions { 
+    let surveyOpts1 = SurveyOptions {
           _surveyBaseDirs = [testDir]
         , _surveyRawOutput = False
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runSurvey surveyOpts1) "survey" 1
-    let surveyOpts2 = SurveyOptions { 
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runSurvey surveyOpts1) "survey" 1
+    let surveyOpts2 = SurveyOptions {
           _surveyBaseDirs = [testDir]
         , _surveyRawOutput = True
     }
-    runAndChecksumStdOut checkFilePath testDir (usePoseidonLogger NoLog $ runSurvey surveyOpts2) "survey" 2
+    runAndChecksumStdOut checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runSurvey surveyOpts2) "survey" 2
 
 testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
@@ -228,7 +235,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
     }
-    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger NoLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
+    runAndChecksumFiles checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
           "Wang" </> "Wang.geno"
         , "Wang" </> "Wang.snp"
         , "Wang" </> "Wang.ind"
@@ -240,7 +247,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Just $ testDir </> "Schiffels"
         , _genoconvertRemoveOld = False
     }
-    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger NoLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
+    runAndChecksumFiles checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
           "Schiffels" </> "Schiffels.bed"
         , "Schiffels" </> "Schiffels.bim"
         , "Schiffels" </> "Schiffels.fam"
@@ -264,7 +271,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
     }
-    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger NoLog $ runGenoconvert genoconvertOpts3) "genoconvert" [
+    runAndChecksumFiles checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runGenoconvert genoconvertOpts3) "genoconvert" [
           "Schiffels" </> "geno.bed"
         , "Schiffels" </> "geno.bim"
         , "Schiffels" </> "geno.fam"
@@ -283,7 +290,7 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test1"
         , _updateForce = True
         }
-    let action1 = usePoseidonLogger NoLog (runUpdate updateOpts1) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action1 = runSafeT (usePoseidonLogger NoLog (runUpdate updateOpts1)) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
@@ -299,7 +306,7 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test2"
         , _updateForce = False
         }
-    let action2 = usePoseidonLogger NoLog (runUpdate updateOpts2) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action2 = runSafeT (usePoseidonLogger NoLog (runUpdate updateOpts2)) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
@@ -318,7 +325,7 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateLog = "test3"
         , _updateForce = True
         }
-    let action3 = usePoseidonLogger NoLog (runUpdate updateOpts3) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action3 = runSafeT (usePoseidonLogger NoLog (runUpdate updateOpts3)) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "update" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "CHANGELOG.md"
@@ -327,7 +334,7 @@ testPipelineUpdate testDir checkFilePath = do
 testPipelineForge :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath testEntityFiles = do
     -- forge test 1
-    let forgeOpts1 = ForgeOptions { 
+    let forgeOpts1 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
@@ -340,14 +347,14 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeLogMode     = NoLog
         , _forgeNoExtract    = False
     }
-    let action1 = usePoseidonLogger NoLog (runForge forgeOpts1) >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
+    let action1 = runSafeT (usePoseidonLogger NoLog (runForge forgeOpts1)) >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
           "ForgePac1" </> "POSEIDON.yml"
         , "ForgePac1" </> "ForgePac1.geno"
         , "ForgePac1" </> "ForgePac1.janno"
         ]
     -- forge test 2
-    let forgeOpts2 = ForgeOptions { 
+    let forgeOpts2 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")]
         , _forgeSnpFile      = Nothing
@@ -360,13 +367,13 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeLogMode     = NoLog
         , _forgeNoExtract    = False
     }
-    let action2 = usePoseidonLogger NoLog (runForge forgeOpts2) >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
+    let action2 = runSafeT (usePoseidonLogger NoLog (runForge forgeOpts2)) >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
           "ForgePac2" </> "POSEIDON.yml"
         , "ForgePac2" </> "ForgePac2.bed"
         ]
     -- forge test 3
-    let forgeOpts3 = ForgeOptions { 
+    let forgeOpts3 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile1.txt")]
         , _forgeSnpFile      = Nothing
@@ -379,7 +386,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeLogMode     = NoLog
         , _forgeNoExtract    = False
     }
-    let action3 = usePoseidonLogger NoLog (runForge forgeOpts3) >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
+    let action3 = runSafeT (usePoseidonLogger NoLog (runForge forgeOpts3)) >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
           "ForgePac3" </> "POSEIDON.yml"
         , "ForgePac3" </> "ForgePac3.geno"
@@ -388,7 +395,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac3" </> "ForgePac3.janno"
         ]
     -- forge test 4
-    let forgeOpts4 = ForgeOptions { 
+    let forgeOpts4 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile2.txt")]
         , _forgeSnpFile      = Nothing
@@ -401,7 +408,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeLogMode     = NoLog
         , _forgeNoExtract    = False
     }
-    let action4 = usePoseidonLogger NoLog (runForge forgeOpts4) >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
+    let action4 = runSafeT (usePoseidonLogger NoLog (runForge forgeOpts4)) >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
           "ForgePac4" </> "POSEIDON.yml"
         , "ForgePac4" </> "ForgePac4.bim"
@@ -410,7 +417,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac4" </> "ForgePac4.janno"
         ]
     -- forge test 5
-    let forgeOpts5 = ForgeOptions { 
+    let forgeOpts5 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Wang"]
         , _forgeEntityInput  = []
         , _forgeIntersect    = False
@@ -423,7 +430,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
-    let action5 = usePoseidonLogger NoLog (runForge forgeOpts5) >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
+    let action5 = runSafeT (usePoseidonLogger NoLog (runForge forgeOpts5)) >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action5 "forge" [
           "ForgePac5" </> "POSEIDON.yml"
         , "ForgePac5" </> "ForgePac5.geno"
@@ -466,7 +473,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
-    let action6 = usePoseidonLogger NoLog (runForge forgeOpts6)
+    let action6 = runSafeT $ usePoseidonLogger NoLog (runForge forgeOpts6)
     runAndChecksumFiles checkFilePath testDir action6 "forge" [
           "ForgePac6" </> "ForgePac6.geno"
         , "ForgePac6" </> "ForgePac6.snp"
@@ -499,7 +506,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
     }
-    let action7 = usePoseidonLogger NoLog (runForge forgeOpts7)
+    let action7 = runSafeT $ usePoseidonLogger NoLog (runForge forgeOpts7)
     runAndChecksumFiles checkFilePath testDir action7 "forge" [
           "ForgePac7" </> "ForgePac7.janno"
         , "ForgePac7" </> "ForgePac7.geno"
@@ -507,20 +514,20 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac7" </> "ForgePac7.ind"
         ]
 
- -- Note: We here use our test server (no SSL and different port). The reason is that 
+ -- Note: We here use our test server (no SSL and different port). The reason is that
  -- sometimes we would like to implement new features that affect the communication
  -- between server and client, and we need tests succeeding before Pull Requests are merged, so
  -- we adopt the policy to run experimental builds on the test server in order to test features
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-    let fetchOpts1 = FetchOptions { 
+    let fetchOpts1 = FetchOptions {
           _jaBaseDirs       = [testDir]
         , _entityInput      = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
         , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
         , _upgrade          = True
         }
-    runAndChecksumFiles checkFilePath testDir (usePoseidonLogger NoLog $ runFetch fetchOpts1) "fetch" [
+    runAndChecksumFiles checkFilePath testDir (runSafeT . usePoseidonLogger NoLog $ runFetch fetchOpts1) "fetch" [
           "2019_Nikitin_LBK" </> "POSEIDON.yml"
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"

@@ -9,11 +9,12 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           getJointIndividualInfo,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..))
-import           Poseidon.Utils          (PoseidonException, usePoseidonLogger,
-                                          LogMode (..))
+import           Poseidon.Utils          (LogMode (..), PoseidonException,
+                                          usePoseidonLogger)
 
-import           Data.Aeson              (encode, decode)
+import           Data.Aeson              (decode, encode)
 import           Data.Either             (fromRight, isLeft)
+import           Pipes.Safe              (runSafeT)
 import           Test.Hspec
 
 spec :: Spec
@@ -128,11 +129,11 @@ testFindNonExistentEntities :: Spec
 testFindNonExistentEntities =
     describe "Poseidon.EntitiesList.findNonExistentEntities" $ do
     it "should ignore good entities" $ do
-        ps <- usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
+        ps <- runSafeT . usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let ents = findNonExistentEntities goodEntities (getJointIndividualInfo ps)
         ents `shouldBe` []
     it "should find bad entities" $ do
-        ps <- usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
+        ps <- runSafeT . usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let ents = findNonExistentEntities badEntities (getJointIndividualInfo ps)
         ents `shouldMatchList` badEntities
 
@@ -140,11 +141,11 @@ testFilterPackages :: Spec
 testFilterPackages =
     describe "Poseidon.EntitiesList.filterPackages" $ do
     it "should select all relevant packages" $ do
-        ps <- usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
+        ps <- runSafeT . usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages goodEntities ps
         map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_Plink_test_2020", "Lamnidis_2018"]
     it "should drop all irrelevant packages" $ do
-        ps <- usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
+        ps <- runSafeT . usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages badEntities ps
         pacs `shouldBe` []
 
@@ -152,11 +153,11 @@ testExtractEntityIndices :: Spec
 testExtractEntityIndices =
     describe "Poseidon.EntitiesList.extractEntityIndices" $ do
     it "should select all relevant individuals" $ do
-        ps <- usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
+        ps <- runSafeT . usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = conformingEntityIndices goodEntities (getJointIndividualInfo ps)
         indInts `shouldMatchList` [0, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23]
     it "should drop all irrelevant individuals" $ do
-        ps <- usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
+        ps <- runSafeT . usePoseidonLogger NoLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = conformingEntityIndices badEntities (getJointIndividualInfo ps)
         indInts `shouldBe` []
     it "should correctly extract indices with ordered signed entities" $ do
