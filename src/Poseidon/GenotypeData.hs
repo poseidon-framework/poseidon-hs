@@ -2,8 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (PoseidonException (..),
+                                             PoseidonLogM)
 
+import           Colog                      (logDebug)
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM, when)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -11,12 +13,12 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
-import           Data.IORef (newIORef, readIORef, modifyIORef)
+import           Data.IORef                 (modifyIORef, newIORef, readIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, for, yield, cat)
+import           Pipes                      (Pipe, Producer, cat, for, yield)
 import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -27,9 +29,12 @@ import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
 import           System.IO                  (hFlush, hPutStr, stderr)
 
-data GenoDataSource =
-      PacBaseDir {getPacBaseDirs :: FilePath}
-    | GenoDirect {getGenoDirect :: GenotypeDataSpec}
+data GenoDataSource = PacBaseDir
+    { getPacBaseDirs :: FilePath
+    }
+    | GenoDirect
+    { getGenoDirect :: GenotypeDataSpec
+    }
     deriving Show
 
 -- | A datatype to specify genotype files
@@ -156,10 +161,10 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
 
-joinEntries :: (MonadIO m) => [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m ([String], EigenstratSnpEntry, GenoLine)
+joinEntries :: (MonadIO m) => [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> PoseidonLogM m (EigenstratSnpEntry, GenoLine)
 joinEntries nrInds pacNames maybeTupleList = do
     let allSnpEntries = map fst . catMaybes $ maybeTupleList
-    (consensusSnpEntryWarnings, consensusSnpEntry) <- getConsensusSnpEntry allSnpEntries
+    consensusSnpEntry <- getConsensusSnpEntry allSnpEntries
     recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) ->
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
@@ -168,9 +173,9 @@ joinEntries nrInds pacNames maybeTupleList = do
                     let msg = "Error in genotype data of package " ++ name ++ ": " ++ err
                     liftIO . throwIO $ PoseidonGenotypeException msg
                 Right x -> return x
-    return (consensusSnpEntryWarnings, consensusSnpEntry, V.concat recodedGenotypes)
+    return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadIO m) => [EigenstratSnpEntry] -> m ([String], EigenstratSnpEntry)
+getConsensusSnpEntry :: (MonadIO m) => [EigenstratSnpEntry] -> PoseidonLogM m (EigenstratSnpEntry)
 getConsensusSnpEntry snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
@@ -179,41 +184,29 @@ getConsensusSnpEntry snpEntries = do
         allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
         uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0' && a /= 'X') $ allAlleles
     id_ <- case uniqueIds of
-        [i] -> return (Nothing, i)
+        [i] -> return i
         _ -> do -- multiple Ids: Picking the first rs-number if possible, otherwise the first one.
             let rsIds = filter (isPrefixOf "rs") uniqueIds
                 selectedId = case rsIds of
                     (i:_) -> i
                     _     -> head uniqueIds
-            return (
-                Just $ "Found inconsistent SNP IDs: " ++ show uniqueIds ++ ". Choosing " ++ show selectedId,
-                selectedId
-                )
+            logDebug . T.pack $ "Found inconsistent SNP IDs: " ++ show uniqueIds ++ ". Choosing " ++ show selectedId
+            return selectedId
     genPos <- case uniqueGenPos of
-        [p] -> return (Nothing, p)
-        [0.0, p] -> return (Nothing, p) -- 0.0 is considered "no data" in genetic position column
+        [p] -> return p
+        [0.0, p] -> return p -- 0.0 is considered "no data" in genetic position column
         _ -> do -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
-            return (
-                Just $ "Found inconsistent genetic positions in SNP " ++ show (snd id_) ++ ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos,
-                selectedGenPos
-                )
+            logDebug . T.pack $ "Found inconsistent genetic positions in SNP " ++ show id_ ++ ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
+            return selectedGenPos
     case uniqueAlleles of
         [] -> do -- no non-missing alleles found
-            return (
-                catMaybes [fst id_, fst genPos, Just $ "SNP " ++ show (snd id_) ++ " appears to have no data (both ref and alt allele are blank"],
-                EigenstratSnpEntry chrom pos (snd genPos) (snd id_) 'N' 'N'
-                )
+            logDebug . T.pack $ "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+            return $ EigenstratSnpEntry chrom pos genPos id_ 'N' 'N'
         [r] -> do -- only one non-missing allele found
-            return (
-                catMaybes [fst id_, fst genPos, Just $ "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"],
-                EigenstratSnpEntry chrom pos (snd genPos) (snd id_) 'N' r
-                )
-        [ref, alt] -> 
-            return (
-                catMaybes [fst id_, fst genPos],
-                EigenstratSnpEntry chrom pos (snd genPos) (snd id_) ref alt
-            )
+            logDebug . T.pack $ "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+            return $ EigenstratSnpEntry chrom pos genPos id_ 'N' r
+        [ref, alt] -> return $ EigenstratSnpEntry chrom pos genPos id_ ref alt
         _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine

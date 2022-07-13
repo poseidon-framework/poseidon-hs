@@ -254,7 +254,7 @@ readPoseidonPackageCollection opts dirs = do
                     logInfo "Checking Poseidon versions... "
                     filterByPoseidonVersion posFilesAllVersions
     logInfo "Initializing packages... "
-    eitherPackages <- lift $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
+    eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     -- notifying the users of package problems
     unless (null . lefts $ eitherPackages) $ do
         logWarning "Some packages were skipped due to issues:"
@@ -306,7 +306,7 @@ readPoseidonPackageCollection opts dirs = do
             readFile' filename = withFile filename ReadMode $ \handle -> do
                 theContent <- hGetContents handle
                 mapM return theContent
-    tryDecodePoseidonPackage :: (MonadSafe m) => Bool -> (Integer, FilePath) -> m (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage :: (MonadSafe m) => Bool -> (Integer, FilePath) -> PoseidonLogM m (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage False (numberPackage, path) = do
         liftIO $ do
             hClearLine stderr
@@ -322,7 +322,7 @@ readPoseidonPackageCollection opts dirs = do
 -- make paths absolute.
 readPoseidonPackage :: (MonadSafe m) => PackageReadOptions
                     -> FilePath -- ^ the file path to the yaml file
-                    -> m PoseidonPackage -- ^ the returning package returned in the IO monad.
+                    -> PoseidonLogM m PoseidonPackage -- ^ the returning package returned in the IO monad.
 readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- liftIO $ B.readFile ymlPath
@@ -353,7 +353,7 @@ readPoseidonPackage opts ymlPath = do
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $ do
         -- we're using getJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- getJointGenotypeData NoLog False [pac] Nothing
+        (_, eigenstratProd) <- lift $ getJointGenotypeData False [pac] Nothing
         runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
     return pac
 
@@ -505,21 +505,19 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 in  throwM $ PoseidonPackageException msg
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: (MonadSafe m) =>
-                        LogMode -- ^ how messages should be logged
-                     -> Bool -- ^ whether to generate an intersection instead of union of input sites
+getJointGenotypeData :: (MonadSafe m) => Bool -- ^ whether to generate an intersection instead of union of input sites
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
-                     -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+                     -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) (PoseidonLogM m) ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logMode intersect pacs maybeSnpFile = do
+getJointGenotypeData intersect pacs maybeSnpFile = do
     genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
         pacNames        = map posPacTitle pacs
         prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe logMode nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe nrInds pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -553,16 +551,13 @@ getJointIndividualInfo packages = do
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
-joinEntryPipe :: (MonadIO m) => LogMode -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe logMode nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries nrInds pacNames maybeEntries
+joinEntryPipe :: (MonadIO m) => [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) (PoseidonLogM m) r
+joinEntryPipe nrInds pacNames = for cat $ \maybeEntries -> do
+    eitherJE <- lift . try $ joinEntries nrInds pacNames maybeEntries
     case eitherJE of
-        Left (PoseidonGenotypeException err) ->
-            (liftIO . usePoseidonLogger logMode . logDebug . T.pack) $ "Skipping SNP due to " ++ err
+        Left (PoseidonGenotypeException err) -> lift . logDebug . T.pack $ "Skipping SNP due to " ++ err
         Left e -> liftIO . throwIO $ e
-        Right (consensusSnpEntryWarnings, eigenstratSnpEntry, genoLine) -> do
-            mapM_ (liftIO . usePoseidonLogger logMode . logDebug . T.pack) consensusSnpEntryWarnings
-            yield (eigenstratSnpEntry, genoLine)
+        Right (eigenstratSnpEntry, genoLine) -> yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
