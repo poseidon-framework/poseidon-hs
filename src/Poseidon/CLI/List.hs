@@ -2,34 +2,38 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno             (JannoRow (..), JannoList(..))
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             readPoseidonPackageCollection,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..), PoseidonLogIO)
+import           Poseidon.Janno         (JannoList (..), JannoRow (..))
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonLogM)
 
-import           Colog                      (logInfo)
-import           Control.Exception          (throwIO)
-import           Control.Monad              (forM)
-import           Control.Monad.IO.Class     (liftIO)
-import           Data.Aeson                 (eitherDecode')
-import qualified Data.ByteString.Lazy       as LB
-import           Data.List                  (group, intercalate, sortOn)
-import           Data.Text                  (pack)
-import           Network.HTTP.Conduit       (simpleHttp)
-import           Text.Layout.Table          (asciiRoundS, column, def,
-                                             expandUntil, rowsG, tableString,
-                                             titlesH)
+import           Colog                  (logInfo)
+import           Control.Exception      (throwIO)
+import           Control.Monad          (forM)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Aeson             (eitherDecode')
+import qualified Data.ByteString.Lazy   as LB
+import           Data.List              (group, intercalate, sortOn)
+import           Data.Text              (pack)
+import           Network.HTTP.Conduit   (simpleHttp)
+import           Pipes.Safe             (MonadSafe)
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _listRepoLocation  :: RepoLocationSpec -- ^ the list of base directories to search for packages
-    , _listListEntity    :: ListEntity -- ^ what to list
-    , _listRawOutput     :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    { _listRepoLocation :: RepoLocationSpec -- ^ the list of base directories to search for packages
+    -- ^ what to list
+    , _listListEntity   :: ListEntity -- ^ what to list
+    -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     , _listIgnoreGeno   :: Bool
     }
 
-data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
+data RepoLocationSpec = RepoLocal [FilePath]
+    | RepoRemote String
 
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
@@ -45,7 +49,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the list command
-runList :: ListOptions -> PoseidonLogIO ()
+runList :: (MonadSafe m) => ListOptions -> PoseidonLogM m ()
 runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
     allSampleInfo <- case repoLocation of
         RepoRemote remoteURL -> do
@@ -95,9 +99,9 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
 
 unnestGroupNames :: [(String, JannoRow)] -> [(String, String)]
 unnestGroupNames = concatMap unnestOne
-    where 
+    where
         unnestOne :: (String, JannoRow) -> [(String, String)]
-        unnestOne (pac, jR) = 
+        unnestOne (pac, jR) =
             let groups = getJannoList . jGroupName $ jR
             in zip (repeat pac) groups
 
@@ -117,7 +121,7 @@ extractAdditionalField "Relation_To"                    = handleMaybeList       
 extractAdditionalField "Relation_Degree"                = handleMaybeShowList        jRelationDegree
 extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
 extractAdditionalField "Relation_Note"                  = handleMaybe                jRelationNote
-extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID 
+extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID
 extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue
 extractAdditionalField "Country"                        = handleMaybe                jCountry
 extractAdditionalField "Location"                       = handleMaybe                jLocation
@@ -161,19 +165,19 @@ handleMaybe :: (JannoRow -> Maybe String) -> JannoRow -> IO String
 handleMaybe func row =
     case func row of
         Just val -> return val
-        Nothing -> return "n/a"
+        Nothing  -> return "n/a"
 
 handleMaybeShow :: Show a => (JannoRow -> Maybe a) -> JannoRow -> IO String
 handleMaybeShow func row =
     case func row of
         Just val -> return $ show val
-        Nothing -> return "n/a"
+        Nothing  -> return "n/a"
 
 handleMaybeList :: (JannoRow -> Maybe (JannoList String)) -> JannoRow -> IO String
 handleMaybeList func row =
     case func row of
         Just vals -> return . intercalate ";" . getJannoList $ vals
-        Nothing -> return "n/a"
+        Nothing   -> return "n/a"
 
 handleMaybeShowList :: Show a => (JannoRow -> Maybe (JannoList a)) -> JannoRow -> IO String
 handleMaybeShowList func row =

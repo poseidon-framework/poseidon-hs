@@ -2,28 +2,30 @@
 
 module Poseidon.CLI.Genoconvert where
 
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+import           Poseidon.GenotypeData      (GenoDataSource (..),
+                                             GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
-                                             printSNPCopyProgress, GenoDataSource (..))
-import           Poseidon.Package           (readPoseidonPackageCollection,
+                                             printSNPCopyProgress)
+import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
-                                             writePoseidonPackage,
-                                             PackageReadOptions (..),
                                              defaultPackageReadOptions,
-                                             makePseudoPackageFromGenotypeData)
-import           Poseidon.Utils             (PoseidonLogIO)
+                                             makePseudoPackageFromGenotypeData,
+                                             readPoseidonPackageCollection,
+                                             writePoseidonPackage)
+import           Poseidon.Utils             (PoseidonLogM)
 
 import           Colog                      (logInfo, logWarning)
+import           Control.Monad              (unless, when)
+import           Control.Monad.Trans.Class  (lift)
 import           Data.Maybe                 (isJust)
 import           Data.Text                  (pack)
-import           Control.Monad              (when, unless)
-import           Pipes                      (MonadIO (liftIO), 
-                                            runEffect, (>->))
-import           Pipes.Safe                 (runSafeT)
+import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
+import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (removeFile, doesFileExist, createDirectoryIfMissing)
+import           System.Directory           (createDirectoryIfMissing,
+                                             doesFileExist, removeFile)
 import           System.FilePath            ((<.>), (</>))
 
 -- | A datatype representing command line options for the validate command
@@ -44,7 +46,7 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = True
     }
 
-runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
+runGenoconvert :: (MonadSafe m) => GenoconvertOptions -> PoseidonLogM m ()
 runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld) = do
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
@@ -54,7 +56,7 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
     mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
     mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> PoseidonLogIO ()
+convertGenoTo :: (MonadSafe m) => GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> PoseidonLogM m ()
 convertGenoTo outFormat onlyGeno outPath removeOld pac = do
     -- start message
     logInfo $ pack $
@@ -65,7 +67,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         ++ ":"
     -- compile file names paths
     let outName = posPacTitle pac
-    let [outInd, outSnp, outGeno] = case outFormat of 
+    let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- check if genotype data needs conversion
@@ -86,12 +88,11 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         then logWarning $ pack $ ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
-            liftIO $ runSafeT $ do            
-                (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
-                let outConsumer = case outFormat of
-                        GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                        GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-                runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
+            (eigenstratIndEntries, eigenstratProd) <- lift $ loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
+            let outConsumer = case outFormat of
+                    GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
+                    GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
+            lift . runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || (isJust outPath)) $ do
@@ -106,7 +107,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
                 , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
                 ]
   where
-    checkFile :: FilePath -> PoseidonLogIO Bool
+    checkFile :: (MonadIO m) => FilePath -> PoseidonLogM m Bool
     checkFile fn = do
         fe <- liftIO $ doesFileExist fn
         when fe $ logWarning $ pack $ ("File " ++ fn ++ " exists")

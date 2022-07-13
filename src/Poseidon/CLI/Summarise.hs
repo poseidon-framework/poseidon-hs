@@ -2,21 +2,25 @@
 
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (Percent (..), JannoRow (..), JannoList(..))
-import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
-import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection,
-                                         PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils         (PoseidonLogIO)
+import           Poseidon.Janno         (JannoList (..), JannoRow (..),
+                                         Percent (..))
+import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonLogM)
 
 import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (sortBy, nub, group, sort, intercalate)
+import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
-import           Text.Layout.Table      (asciiRoundS, column, def,
-                                         rowsG, tableString, titlesH, expandUntil)
+import           Pipes.Safe             (MonadSafe)
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _summariseBaseDirs :: [FilePath]
+    { _summariseBaseDirs  :: [FilePath]
     , _summariseRawOutput :: Bool
     }
 
@@ -30,7 +34,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runSummarise :: SummariseOptions -> PoseidonLogIO ()
+runSummarise :: (MonadSafe m) => SummariseOptions -> PoseidonLogM m ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages

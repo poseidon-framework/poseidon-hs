@@ -4,44 +4,48 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (PoseidonEntity (..), SignedEntity(..),
-                                              findNonExistentEntities,
+import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
+                                              SignedEntity (..),
+                                              conformingEntityIndices,
                                               filterRelevantPackages,
-                                              conformingEntityIndices, 
-                                              EntityInput, readEntityInputs)
-import           Poseidon.GenotypeData       (GenotypeDataSpec (..),
+                                              findNonExistentEntities,
+                                              readEntityInputs)
+import           Poseidon.GenotypeData       (GenoDataSource (..),
+                                              GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              selectIndices, snpSetMergeList,
-                                              selectIndices, GenoDataSource (..))
+                                              selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               getJointGenotypeData,
+                                              getJointIndividualInfo,
+                                              getJointJanno,
+                                              makePseudoPackageFromGenotypeData,
                                               newMinimalPackageTemplate,
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
-                                              writePoseidonPackage,
-                                              getJointIndividualInfo,
-                                              getJointJanno,
-                                              makePseudoPackageFromGenotypeData)
-import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO, LogMode)
+                                              writePoseidonPackage)
+import           Poseidon.Utils              (LogMode, PoseidonException (..),
+                                              PoseidonLogM)
 
 import           Colog                       (logInfo, logWarning)
 import           Control.Exception           (throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
+import           Control.Monad.IO.Class      (MonadIO, liftIO)
+import           Control.Monad.Trans.Class   (lift)
 import           Data.List                   (intercalate, nub, (\\))
 import           Data.Maybe                  (mapMaybe)
 import           Data.Text                   (pack)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           Pipes                       (MonadIO (liftIO), cat, (>->))
+import           Pipes                       (cat, (>->))
 import qualified Pipes.Prelude               as P
-import           Pipes.Safe                  (SafeT, runSafeT)
+import           Pipes.Safe                  (MonadSafe)
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
@@ -51,17 +55,18 @@ import           System.FilePath             (takeBaseName, (<.>), (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeGenoSources  :: [GenoDataSource]
-    , _forgeEntityInput  :: [EntityInput SignedEntity] -- Empty list = forge all packages
-    , _forgeSnpFile      :: Maybe FilePath
-    , _forgeIntersect    :: Bool
-    , _forgeOutFormat    :: GenotypeFormatSpec
-    , _forgeOutMinimal   :: Bool
-    , _forgeOutOnlyGeno  :: Bool
-    , _forgeOutPacPath   :: FilePath
-    , _forgeOutPacName   :: Maybe String
-    , _forgeLogMode      :: LogMode
-    , _forgeNoExtract    :: Bool
+    { _forgeGenoSources :: [GenoDataSource]
+    -- Empty list = forge all packages
+    , _forgeEntityInput :: [EntityInput SignedEntity] -- Empty list = forge all packages
+    , _forgeSnpFile     :: Maybe FilePath
+    , _forgeIntersect   :: Bool
+    , _forgeOutFormat   :: GenotypeFormatSpec
+    , _forgeOutMinimal  :: Bool
+    , _forgeOutOnlyGeno :: Bool
+    , _forgeOutPacPath  :: FilePath
+    , _forgeOutPacName  :: Maybe String
+    , _forgeLogMode     :: LogMode
+    , _forgeNoExtract   :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -74,14 +79,14 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the forge command
-runForge :: ForgeOptions -> PoseidonLogIO ()
+runForge :: (MonadSafe m) => ForgeOptions -> PoseidonLogM m ()
 runForge (
     ForgeOptions genoSources
-                 entityInputs maybeSnpFile intersect_ 
-                 outFormat minimal onlyGeno outPath maybeOutName  
-                 logMode noExtract 
+                 entityInputs maybeSnpFile intersect_
+                 outFormat minimal onlyGeno outPath maybeOutName
+                 logMode noExtract
     ) = do
-    
+
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
@@ -89,7 +94,7 @@ runForge (
     let allPackages = properPackages ++ pseudoPackages
 
     -- compile entities
-    entitiesUser <- readEntityInputs entityInputs 
+    entitiesUser <- readEntityInputs entityInputs
 
     entities <- case entitiesUser of
         [] -> do
@@ -110,7 +115,7 @@ runForge (
     unless (null nonExistentEntities) $
         logWarning $ pack $ "The following entities do not exist in this dataset and will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
-    
+
     -- determine relevant packages
     let relevantPackages = filterRelevantPackages entities allPackages
     logInfo $ pack $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
@@ -123,7 +128,7 @@ runForge (
     -- janno
     let jannoRows = getJointJanno relevantPackages
         relevantJannoRows = map (jannoRows !!) relevantIndices
-    
+
     -- check for duplicates among the individuals selected for merging
     checkIndividualsUniqueJanno relevantJannoRows
     -- bib
@@ -154,7 +159,7 @@ runForge (
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
            else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
-    
+
     -- write new package to the file system --
     -- POSEIDON.yml
     unless onlyGeno $ do
@@ -167,8 +172,8 @@ runForge (
     -- genotype data
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
-    newNrSNPs <- liftIO $ runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logMode intersect_ relevantPackages maybeSnpFile
+    newNrSNPs <- do
+        (eigenstratIndEntries, eigenstratProd) <- lift $ getJointGenotypeData logMode intersect_ relevantPackages maybeSnpFile
         let eigenstratIndEntriesV = eigenstratIndEntries
         let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
 
@@ -184,7 +189,7 @@ runForge (
                 extractPipe >->
                 P.tee outConsumer
         let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
-        P.foldM sumNonMissingSNPs startAcc return forgePipe
+        lift $ P.foldM sumNonMissingSNPs startAcc return forgePipe
     logInfo "Done"
     -- janno (with updated SNP numbers)
     unless (minimal || onlyGeno) $ do
@@ -195,11 +200,11 @@ runForge (
                                                 (VU.toList snpList)
         liftIO $ writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
 
-sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
+sumNonMissingSNPs :: (MonadIO m) => VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> m (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do
     forM_ (zip (V.toList geno) [0..]) $ \(g, i) -> do
         let x = nonMissingToInt g
-        VUM.modify accumulator (+x) i
+        liftIO $ VUM.modify accumulator (+x) i
     return accumulator
   where
     nonMissingToInt :: GenoEntry -> Int
@@ -207,7 +212,7 @@ sumNonMissingSNPs accumulator (_, geno) = do
         | x == Missing = 0
         | otherwise = 1
 
-checkIndividualsUniqueJanno :: [JannoRow] -> PoseidonLogIO ()
+checkIndividualsUniqueJanno :: (MonadIO m) => [JannoRow] -> PoseidonLogM m ()
 checkIndividualsUniqueJanno rows = do
     let indIDs = map jPoseidonID rows
     when (length indIDs /= length (nub indIDs)) $ do
@@ -221,7 +226,7 @@ filterBibEntries samples references_ =
     let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
-fillMissingSnpSets :: [PoseidonPackage] -> PoseidonLogIO [SNPSetSpec]
+fillMissingSnpSets :: (MonadIO m) => [PoseidonPackage] -> PoseidonLogM m [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do
     let title_ = posPacTitle pac
         maybeSnpSet = snpSet . posPacGenotypeData $ pac

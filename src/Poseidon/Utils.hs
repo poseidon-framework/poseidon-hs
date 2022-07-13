@@ -5,7 +5,7 @@ module Poseidon.Utils (
     PoseidonException (..),
     renderPoseidonException,
     usePoseidonLogger,
-    PoseidonLogIO,
+    PoseidonLogM,
     LogMode (..)
 ) where
 
@@ -13,6 +13,7 @@ import           Colog                  (LoggerT, Message, usingLoggerT, LogActi
                                          logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
 import           Control.Exception      (Exception, try, IOException)
 import           Control.Monad          (when)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Yaml              (ParseException)
 import           Data.Text              (Text, pack)
 import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
@@ -20,36 +21,36 @@ import           Data.Time              (getCurrentTime, formatTime, defaultTime
 import           System.Console.ANSI    (getCursorPosition)
 import           System.IO              (hPutStrLn, stderr)
 
-type PoseidonLogIO = LoggerT Message IO
+type PoseidonLogM m = LoggerT Message m
 
 data LogMode = NoLog | SimpleLog | DefaultLog | ServerLog | VerboseLog
     deriving Show
 
-usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
+usePoseidonLogger :: (MonadIO m) => LogMode -> PoseidonLogM m a -> m a
 usePoseidonLogger NoLog      = usingLoggerT noLog
 usePoseidonLogger SimpleLog  = usingLoggerT simpleLog
 usePoseidonLogger DefaultLog = usingLoggerT defaultLog
 usePoseidonLogger ServerLog  = usingLoggerT serverLog
 usePoseidonLogger VerboseLog = usingLoggerT verboseLog
 
-noLog      :: LogAction IO Message
+noLog      :: (MonadIO m) => LogAction m Message
 noLog      = cfilter (const False) simpleLog
-simpleLog  :: LogAction IO Message
+simpleLog  :: (MonadIO m) => LogAction m Message
 simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False True
-defaultLog :: LogAction IO Message
+defaultLog :: (MonadIO m) => LogAction m Message
 defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False True
-serverLog  :: LogAction IO Message
+serverLog  :: (MonadIO m) => LogAction m Message
 serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True True
-verboseLog :: LogAction IO Message
+verboseLog :: (MonadIO m) => LogAction m Message
 verboseLog = compileLogMsg True True True
 
-compileLogMsg :: Bool -> Bool -> Bool -> LogAction IO Message
+compileLogMsg :: (MonadIO m) => Bool -> Bool -> Bool -> LogAction m Message
 compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
     where
-        prepareMessage :: Message -> IO Text
+        prepareMessage :: (MonadIO m) => Message -> m Text
         prepareMessage msg = do
             -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
-            when cursorCheck $ do
+            liftIO . when cursorCheck $ do
                 eitherCurserPos <- try getCursorPosition :: IO (Either IOException (Maybe (Int, Int)))
                 case eitherCurserPos of
                     Left _ -> return ()
@@ -64,9 +65,9 @@ compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
                     else mempty
             textTime <- if time
                     then do 
-                        zonedTime <- getCurrentTime >>= utcToLocalZonedTime
+                        zonedTime <- liftIO (getCurrentTime >>= utcToLocalZonedTime)
                         return $ pack $ "[" ++ formatTime defaultTimeLocale "%T" zonedTime ++ "] "
-                    else mempty
+                    else return ""
             return $ textSeverity <> textTime <> textMessage
 
 -- | A Poseidon Exception data type with several concrete constructors

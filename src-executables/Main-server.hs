@@ -9,7 +9,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes     (GroupInfo (..),
                                               IndividualInfo (..),
                                               PackageInfo (..))
-import           Poseidon.Utils              (usePoseidonLogger, LogMode (..))
+import           Poseidon.Utils              (LogMode (..), usePoseidonLogger)
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -17,7 +17,7 @@ import           Codec.Archive.Zip           (Archive, addEntryToArchive,
 import           Control.Applicative         ((<|>))
 import           Control.Monad               (forM, when)
 import qualified Data.ByteString.Lazy        as B
-import           Data.List                   (group, sortOn, nub)
+import           Data.List                   (group, nub, sortOn)
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (showVersion)
@@ -27,6 +27,7 @@ import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
+import           Pipes.Safe                  (runSafeT)
 import           System.Directory            (doesFileExist,
                                               getModificationTime)
 import           System.FilePath             ((<.>), (</>))
@@ -56,7 +57,7 @@ main = do
     updateGlobalLogger logger (setHandlers [fh] . setLevel INFO)
     infoM logger "Server starting up. Loading packages..."
     CommandLineOptions baseDirs port ignoreGenoFiles certFiles <- OP.customExecParser p optParserInfo
-    allPackages <- usePoseidonLogger ServerLog $ readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGenoFiles} baseDirs
+    allPackages <- runSafeT . usePoseidonLogger ServerLog $ readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGenoFiles} baseDirs
     infoM logger "Checking whether zip files are missing or outdated"
     zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"

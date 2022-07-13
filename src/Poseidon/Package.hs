@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Poseidon.Package (
     PoseidonYamlStruct (..),
@@ -34,16 +34,20 @@ import           Poseidon.Janno             (JannoList (..), JannoRow (..),
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..), IndividualInfo(..))
-import           Poseidon.Utils             (PoseidonException (..),
+import           Poseidon.SecondaryTypes    (ContributorSpec (..),
+                                             IndividualInfo (..))
+import           Poseidon.Utils             (LogMode (..),
+                                             PoseidonException (..),
+                                             PoseidonLogM,
                                              renderPoseidonException,
-                                             PoseidonLogIO, LogMode (..), usePoseidonLogger)
+                                             usePoseidonLogger)
 
-import           Colog                      (logInfo, logWarning, logDebug)
-import           Control.Exception          (throwIO, try)
+import           Colog                      (logDebug, logInfo, logWarning)
+import           Control.Exception          (throwIO)
 import           Control.Monad              (filterM, forM_, unless, void, when)
-import           Control.Monad.Catch        (MonadThrow, throwM)
+import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
+import           Control.Monad.Trans.Class  (lift)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
@@ -63,23 +67,25 @@ import           Data.Yaml                  (decodeEither')
 import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import           GHC.Generics               (Generic)
-import           Pipes                      (Pipe, Producer, for, runEffect,
-                                             (>->), yield, cat)
-import           Pipes.OrderedZip           (orderedZip, orderedZipAll, orderCheckPipe)
+import           Pipes                      (Pipe, Producer, cat, for,
+                                             runEffect, yield, (>->))
+import           Pipes.OrderedZip           (orderCheckPipe, orderedZip,
+                                             orderedZipAll)
 import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (MonadSafe, runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), GenoEntry(..),
-                                             EigenstratSnpEntry (..), GenoLine,
+import           Pipes.Safe                 (MonadSafe)
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
+                                             EigenstratSnpEntry (..),
+                                             GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, doesFileExist,
                                              listDirectory)
-import           System.FilePath            (takeDirectory, takeExtension,
-                                             takeFileName, (</>), takeBaseName)
+import           System.FilePath            (takeBaseName, takeDirectory,
+                                             takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hFlush,
-                                             hGetContents, hPutStr,
-                                             hPutStrLn, stderr, withFile)
+                                             hGetContents, hPutStr, hPutStrLn,
+                                             stderr, withFile)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -220,12 +226,6 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to check the first 100 SNPs of the genotypes
     , _readOptIgnorePosVersion :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    -- This can cause runtime errors, if the structural difference
-    -- between versions is too big.
-    -- The option was added to allow trident update to load and update
-    -- packages with older version numbers. In a typical update workflow
-    -- one would adjust the package to the new Poseidon version and then
-    -- run update on the structurally already correct package.
     }
 
 defaultPackageReadOptions :: PackageReadOptions
@@ -241,20 +241,20 @@ defaultPackageReadOptions = PackageReadOptions {
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
 -- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
 -- warnings
-readPoseidonPackageCollection :: PackageReadOptions
+readPoseidonPackageCollection :: (MonadSafe m) => PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
-                              -> PoseidonLogIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
+                              -> PoseidonLogM m [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts dirs = do
     logInfo "Searching POSEIDON.yml files... "
     posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles dirs
     logInfo $ T.pack $ show (length posFilesAllVersions) ++ " found"
     posFiles <- if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
-                else do 
+                else do
                     logInfo "Checking Poseidon versions... "
                     filterByPoseidonVersion posFilesAllVersions
     logInfo "Initializing packages... "
-    eitherPackages <- liftIO $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
+    eitherPackages <- lift $ mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
     -- notifying the users of package problems
     unless (null . lefts $ eitherPackages) $ do
         logWarning "Some packages were skipped due to issues:"
@@ -280,7 +280,7 @@ readPoseidonPackageCollection opts dirs = do
     -- return package list
     return finalPackageList
   where
-    filterByPoseidonVersion :: [FilePath] -> PoseidonLogIO [FilePath]
+    filterByPoseidonVersion :: (MonadIO m) => [FilePath] -> PoseidonLogM m [FilePath]
     filterByPoseidonVersion posFiles = do
         eitherPaths <- liftIO $ mapM isInVersionRange posFiles
         mapM_ (logWarning . T.pack . renderPoseidonException) $ lefts eitherPaths
@@ -306,50 +306,51 @@ readPoseidonPackageCollection opts dirs = do
             readFile' filename = withFile filename ReadMode $ \handle -> do
                 theContent <- hGetContents handle
                 mapM return theContent
-    tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> IO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage :: (MonadSafe m) => Bool -> (Integer, FilePath) -> m (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage False (numberPackage, path) = do
-        hClearLine stderr
-        hSetCursorColumn stderr 0
-        hPutStr stderr $ "> " ++ show numberPackage ++ " "
-        hFlush stderr
+        liftIO $ do
+            hClearLine stderr
+            hSetCursorColumn stderr 0
+            hPutStr stderr $ "> " ++ show numberPackage ++ " "
+            hFlush stderr
         try . readPoseidonPackage opts $ path
     tryDecodePoseidonPackage True (numberPackage, path) = do
-        hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
+        liftIO . hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
-readPoseidonPackage :: PackageReadOptions
+readPoseidonPackage :: (MonadSafe m) => PackageReadOptions
                     -> FilePath -- ^ the file path to the yaml file
-                    -> IO PoseidonPackage -- ^ the returning package returned in the IO monad.
+                    -> m PoseidonPackage -- ^ the returning package returned in the IO monad.
 readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
-    bs <- B.readFile ymlPath
+    bs <- liftIO $ B.readFile ymlPath
     -- read yml files
     yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
-        Left err  -> throwIO $ PoseidonYamlParseException ymlPath err
+        Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
     -- file existence and checksum test
-    checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
+    liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
         Just p -> do
-            loadedJanno <- readJannoFile (_readOptVerbose opts) p
+            loadedJanno <- liftIO $ readJannoFile (_readOptVerbose opts) p
             checkJannoIndConsistency tit loadedJanno indEntries
             return loadedJanno
     -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
         Just p -> do
-            loadedBib <- readBibTeXFile p
-            checkJannoBibConsistency tit janno loadedBib
+            loadedBib <- liftIO $ readBibTeXFile p
+            liftIO $ checkJannoBibConsistency tit janno loadedBib
             return loadedBib
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
-    when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
+    when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $ do
         -- we're using getJointGenotypeData here on a single package to check for SNP consistency
         -- since that check is only implemented in the jointLoading function, not in the per-package loading
         (_, eigenstratProd) <- getJointGenotypeData NoLog False [pac] Nothing
@@ -357,7 +358,7 @@ readPoseidonPackage opts ymlPath = do
     return pac
 
 -- throws exception if any file is missing or checksum is incorrect
-checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
+checkFiles :: (MonadIO m) => FilePath -> Bool -> Bool -> PoseidonYamlStruct -> m ()
 checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
     -- Check README File
     case poseidonReadmeFilePath baseDir yml of
@@ -393,25 +394,25 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
             checkFile (d </> snpFile gd) $ snpFileChkSum gd
             checkFile (d </> indFile gd) $ indFileChkSum gd
 
-checkFile :: FilePath -> Maybe String -> IO ()
+checkFile :: (MonadIO m) => FilePath -> Maybe String -> m ()
 checkFile fn maybeChkSum = do
-    fe <- doesFileExist fn
+    fe <- liftIO $ doesFileExist fn
     if not fe
-    then throwM (PoseidonFileExistenceException fn)
+    then liftIO $ throwIO (PoseidonFileExistenceException fn)
     else
         case maybeChkSum of
             Nothing -> return ()
             Just chkSum -> do
                 fnChkSum <- getChecksum fn
-                when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
+                when (fnChkSum /= chkSum) . liftIO . throwIO $ (PoseidonFileChecksumException fn)
 
-getChecksum :: FilePath -> IO String
+getChecksum :: (MonadIO m) => FilePath -> m String
 getChecksum f = do
-    fileContent <- LB.readFile f
+    fileContent <- liftIO $ LB.readFile f
     let md5Digest = md5 fileContent
     return $ show md5Digest
 
-checkJannoIndConsistency :: String -> [JannoRow] -> [EigenstratIndEntry] -> IO ()
+checkJannoIndConsistency :: (MonadThrow m) => String -> [JannoRow] -> [EigenstratIndEntry] -> m ()
 checkJannoIndConsistency pacName janno indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
@@ -422,13 +423,13 @@ checkJannoIndConsistency pacName janno indEntries = do
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
-    when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when idMis . throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch genoIDs jannoIDs
-    when sexMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when sexMis . throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
-    when groupMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when groupMis . throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual GroupID mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch genoGroups jannoGroups
 
@@ -456,13 +457,13 @@ checkJannoBibConsistency pacName janno bibtex = do
         "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
 
-checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonLogIO ()
+checkIndividualsUnique :: (MonadIO m) => Bool -> [EigenstratIndEntry] -> PoseidonLogM m ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
     let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
     when (length genoIDs /= length (nub genoIDs)) $ do
         if stopOnDuplicates
         then do
-            liftIO $ throwIO $ PoseidonCollectionException $
+            liftIO . throwIO $ PoseidonCollectionException $
                 "Duplicate individuals (" ++
                 intercalate ", " (genoIDs \\ nub genoIDs) ++
                 ")"
@@ -504,7 +505,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
                 in  throwM $ PoseidonPackageException msg
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: (MonadSafe m) => 
+getJointGenotypeData :: (MonadSafe m) =>
                         LogMode -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.

@@ -137,9 +137,9 @@ snpSetMerge SNPSet1240K         SNPSetHumanOrigins  False = SNPSet1240K
 snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 
 -- | A function to return a list of all individuals in the genotype files of a package.
-loadIndividuals :: FilePath -- ^ the base directory
+loadIndividuals :: (MonadIO m) => FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
-               -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
+               -> m [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
 loadIndividuals d gd =
     case format gd of
         GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)

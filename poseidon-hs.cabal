@@ -34,7 +34,7 @@ executable trident
     main-is:            Main-trident.hs
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring,
-                        filepath, co-log, text
+                        filepath, co-log, text, pipes-safe
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
@@ -42,7 +42,7 @@ executable poseidon-http-server
     main-is:            Main-server.hs
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, scotty, text, aeson, time, zip-archive,
-                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls, hslogger
+                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls, hslogger, pipes-safe
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
