@@ -1,49 +1,65 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, FlexibleInstances, MultiParamTypeClasses #-}
 
 module Poseidon.Utils (
     PoseidonException (..),
     renderPoseidonException,
     usePoseidonLogger,
     PoseidonLogIO,
-    LogMode (..)
+    LogMode (..),
+    logWarning,
+    logInfo,
+    logDebug,
+    logError,
+    LogEnv,
+    noLog
 ) where
 
-import           Colog                  (LoggerT, Message, usingLoggerT, LogAction (..), cmapM, cfilter,
-                                         logTextStderr, showSeverity, msgSeverity, msgText, Severity (..))
-import           Control.Exception      (Exception, try, IOException)
+import           Colog                  (LogAction (..), Message,
+                                         Severity (..), cfilter, cmapM,
+                                         logTextStderr, msgSeverity, msgText,
+                                         showSeverity, Msg(..), HasLog(..))
+import           Control.Exception      (Exception, IOException, try)
 import           Control.Monad          (when)
-import           Data.Yaml              (ParseException)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (ReaderT, runReaderT, asks)
 import           Data.Text              (Text, pack)
-import           Data.Time              (getCurrentTime, formatTime, defaultTimeLocale,
-                                         utcToLocalZonedTime)
+import           Data.Time              (defaultTimeLocale, formatTime,
+                                         getCurrentTime, utcToLocalZonedTime)
+import           Data.Yaml              (ParseException)
+import           GHC.Stack              (callStack, withFrozenCallStack)
 import           System.Console.ANSI    (getCursorPosition)
 import           System.IO              (hPutStrLn, stderr)
 
-type PoseidonLogIO = LoggerT Message IO
+type LogEnv = LogAction IO Message
 
-data LogMode = NoLog | SimpleLog | DefaultLog | ServerLog | VerboseLog
+type PoseidonLogIO = ReaderT LogEnv IO
+
+data LogMode = NoLog
+    | SimpleLog
+    | DefaultLog
+    | ServerLog
+    | VerboseLog
     deriving Show
 
 usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
-usePoseidonLogger NoLog      = usingLoggerT noLog
-usePoseidonLogger SimpleLog  = usingLoggerT simpleLog
-usePoseidonLogger DefaultLog = usingLoggerT defaultLog
-usePoseidonLogger ServerLog  = usingLoggerT serverLog
-usePoseidonLogger VerboseLog = usingLoggerT verboseLog
+usePoseidonLogger NoLog      = flip runReaderT noLog
+usePoseidonLogger SimpleLog  = flip runReaderT simpleLog
+usePoseidonLogger DefaultLog = flip runReaderT defaultLog
+usePoseidonLogger ServerLog  = flip runReaderT serverLog
+usePoseidonLogger VerboseLog = flip runReaderT verboseLog
 
-noLog      :: LogAction IO Message
+noLog      :: LogEnv
 noLog      = cfilter (const False) simpleLog
-simpleLog  :: LogAction IO Message
+simpleLog  :: LogEnv
 simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False True
-defaultLog :: LogAction IO Message
+defaultLog :: LogEnv
 defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False True
-serverLog  :: LogAction IO Message
+serverLog  :: LogEnv
 serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True True
-verboseLog :: LogAction IO Message
+verboseLog :: LogEnv
 verboseLog = compileLogMsg True True True
 
-compileLogMsg :: Bool -> Bool -> Bool -> LogAction IO Message
+compileLogMsg :: Bool -> Bool -> Bool -> LogEnv
 compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
     where
         prepareMessage :: Message -> IO Text
@@ -59,40 +75,62 @@ compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
                         when isNotAtStartOfLine $ do hPutStrLn stderr ""
             -- prepare message
             let textMessage = msgText msg
-                textSeverity = if severity 
-                    then showSeverity (msgSeverity msg) 
+                textSeverity = if severity
+                    then showSeverity (msgSeverity msg)
                     else mempty
             textTime <- if time
-                    then do 
+                    then do
                         zonedTime <- getCurrentTime >>= utcToLocalZonedTime
                         return $ pack $ "[" ++ formatTime defaultTimeLocale "%T" zonedTime ++ "] "
                     else mempty
             return $ textSeverity <> textTime <> textMessage
 
+logMsg :: Severity -> String -> PoseidonLogIO ()
+logMsg sev msg = do
+    {- 
+    Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the 
+    ReaderT environment by adding more options or parameters to LogEnv, perhaps even the command line options,
+    we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the 
+    environment.
+    -}
+    LogAction logF <- asks getLogAction
+    liftIO . withFrozenCallStack . logF $ Msg sev callStack (pack msg)
+
+logWarning :: String -> PoseidonLogIO ()
+logWarning = logMsg Warning
+
+logInfo :: String -> PoseidonLogIO ()
+logInfo = logMsg Info
+
+logDebug :: String -> PoseidonLogIO ()
+logDebug = logMsg Debug
+
+logError :: String -> PoseidonLogIO ()
+logError = logMsg Error
+
 -- | A Poseidon Exception data type with several concrete constructors
-data PoseidonException = 
-    PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
-    | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
-    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
-    | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
-    | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
-    | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
-    | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
-    | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
-    | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
-    | PoseidonCollectionException String -- ^ An exception to represent logical issues in a poseidon package Collection
-    | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
-    | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
-    | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
-    | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
-    | PoseidonPoseidonEntityParsingException String -- ^ An exception to indicate failed entity parsing
-    | PoseidonForgeEntitiesException String -- ^ An exception to indicate issues in the forge selection
-    | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
-    | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
-    | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
-    | PoseidonGenericException String -- ^ A catch-all for any other type of exception
-    | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
-    | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
+data PoseidonException = PoseidonYamlParseException FilePath ParseException
+    | PoseidonPackageException String
+    | PoseidonPackageVersionException FilePath String
+    | PoseidonPackageMissingVersionException FilePath
+    | PoseidonIndSearchException String
+    | PoseidonGenotypeException String
+    | PoseidonJannoRowException FilePath Int String
+    | PoseidonJannoConsistencyException FilePath String
+    | PoseidonCrossFileConsistencyException String String
+    | PoseidonCollectionException String
+    | PoseidonFileExistenceException FilePath
+    | PoseidonFileChecksumException FilePath
+    | PoseidonFStatsFormatException String
+    | PoseidonBibTeXException FilePath String
+    | PoseidonPoseidonEntityParsingException String
+    | PoseidonForgeEntitiesException String
+    | PoseidonEmptyForgeException
+    | PoseidonNewPackageConstructionException String
+    | PoseidonRemoteJSONParsingException String
+    | PoseidonGenericException String
+    | PoseidonEmptyOutPacNameException
+    | PoseidonUnequalBaseDirException FilePath FilePath FilePath
     deriving (Show)
 
 instance Exception PoseidonException
@@ -103,7 +141,7 @@ renderPoseidonException (PoseidonYamlParseException fn e) =
 renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
-    "Poseidon version mismatch in " ++ show p ++ 
+    "Poseidon version mismatch in " ++ show p ++
     ". It has version \"" ++ s ++ "\", which is not supported by this trident version."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
     "The POSEIDON.yml file " ++ show p ++ " has no poseidonVersion field. " ++

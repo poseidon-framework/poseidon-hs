@@ -10,9 +10,8 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils          (PoseidonLogIO)
+import           Poseidon.Utils          (PoseidonLogIO, logInfo)
 
-import           Colog                  (logInfo)
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (intercalate, zip4, unfoldr)

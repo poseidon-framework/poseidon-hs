@@ -12,11 +12,9 @@ import           Poseidon.Package           (readPoseidonPackageCollection,
                                              PackageReadOptions (..),
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromGenotypeData)
-import           Poseidon.Utils             (PoseidonLogIO)
+import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
 
-import           Colog                      (logInfo, logWarning)
 import           Data.Maybe                 (isJust)
-import           Data.Text                  (pack)
 import           Control.Monad              (when, unless)
 import           Pipes                      (MonadIO (liftIO), 
                                             runEffect, (>->))
@@ -49,7 +47,7 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
-    logInfo $ pack $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
+    logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
     mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
     mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
@@ -57,7 +55,7 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
 convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> PoseidonLogIO ()
 convertGenoTo outFormat onlyGeno outPath removeOld pac = do
     -- start message
-    logInfo $ pack $
+    logInfo $
         "Converting genotype data in "
         ++ posPacTitle pac
         ++ " to format "
@@ -76,14 +74,14 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         newBaseDir <- case outPath of
             Just x -> do
                 -- create new directory
-                logInfo . pack $ "Writing to directory (will be created if missing): " ++ x
+                logInfo $ "Writing to directory (will be created if missing): " ++ x
                 liftIO $ createDirectoryIfMissing True x
                 return x
             Nothing -> return $ posPacBaseDir pac
         let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then logWarning $ pack $ ("skipping genotype conversion for " ++ posPacTitle pac)
+        then logWarning $ ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
             liftIO $ runSafeT $ do            
@@ -109,5 +107,5 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
     checkFile :: FilePath -> PoseidonLogIO Bool
     checkFile fn = do
         fe <- liftIO $ doesFileExist fn
-        when fe $ logWarning $ pack $ ("File " ++ fn ++ " exists")
+        when fe $ logWarning $ "File " ++ fn ++ " exists"
         return fe

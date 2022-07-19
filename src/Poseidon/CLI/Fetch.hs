@@ -11,11 +11,10 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo(..))
-import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO)
+import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO, logInfo, logWarning)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
-import           Colog                   (logInfo, logWarning)
 import           Conduit                 (ResourceT, await, runResourceT,
                                           sinkFile, yield)
 import           Control.Exception       (throwIO)
@@ -26,7 +25,6 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
-import           Data.Text               (pack)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
@@ -67,7 +65,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
     
-    logInfo $ pack $ "Download directory (will be created if missing): " ++ downloadDir
+    logInfo $ "Download directory (will be created if missing): " ++ downloadDir
     liftIO $ createDirectoryIfMissing True downloadDir
 
     -- compile entities
@@ -84,7 +82,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
 
     if (not . null) nonExistentEntities then do
         logWarning "Cannot find the following requested entities:"
-        logWarning $ pack $ show nonExistentEntities
+        logWarning $ show nonExistentEntities
     else do
         -- load local packages
         allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
@@ -96,12 +94,12 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
         
         let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacTitles) remotePacList
 
-        logInfo $ pack $ show (length desiredPacTitles) ++ " requested"
+        logInfo $ show (length desiredPacTitles) ++ " requested"
         unless (null desiredRemotePackages) $ do
             liftIO $ createDirectoryIfMissing False tempDir
             forM_ desiredRemotePackages $ \pac -> do
                 -- perform package download depending on local-remote state
-                logInfo $ pack $ "Comparing local and remote package " ++ pTitle pac
+                logInfo $ "Comparing local and remote package " ++ pTitle pac
                 let packageState = determinePackageState allLocalPackages pac
                 handlePackageByState downloadDir tempDir remote upgrade packageState            
             liftIO $ removeDirectory tempDir
@@ -144,16 +142,16 @@ handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState,
 handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
     downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
-    logInfo $ pack $ padString 40 pac ++
+    logInfo $ padString 40 pac ++
         "local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
     then downloadAndUnzipPackage downloadDir tempDir remote pac
-    else logInfo $ pack $ padString 40 pac ++
+    else logInfo $ padString 40 pac ++
         "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
 handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
-    logInfo $ pack $ padString 40 pac ++
+    logInfo $ padString 40 pac ++
         "local " ++ printV localV ++ " > remote " ++ printV remoteV
 
 printV :: Maybe Version -> String
@@ -162,10 +160,11 @@ printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
-    logInfo $ pack $  padString 40 pacName
-    liftIO $ downloadPackage tempDir remote pacName
-    liftIO $ unzipPackage (tempDir </> pacName) (baseDir </> pacName)
-    liftIO $ removeFile (tempDir </> pacName)
+    logInfo $ padString 40 pacName
+    liftIO $ do
+        downloadPackage tempDir remote pacName
+        unzipPackage (tempDir </> pacName) (baseDir </> pacName)
+        removeFile (tempDir </> pacName)
 
 unzipPackage :: FilePath -> FilePath -> IO ()
 unzipPackage zip_ outDir = do

@@ -28,9 +28,8 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger,
-                                        LogMode (..), PoseidonLogIO)
+                                        LogMode (..), PoseidonLogIO, logError)
 
-import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -40,7 +39,6 @@ import           Options.Applicative.Help.Pretty (string)
 import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
-import qualified Data.Text              as T
 
 data Options = Options { 
     _logMode    :: LogMode
@@ -64,27 +62,27 @@ main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
     (Options logMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode)
+    catch (usePoseidonLogger logMode $ runCmd subcommand) (handler logMode)
     where
         handler :: LogMode -> PoseidonException -> IO ()
         handler l e = do
-            usePoseidonLogger l $ logError $ T.pack $ renderPoseidonException e
+            usePoseidonLogger l . logError $ renderPoseidonException e
             exitFailure
 
-runCmd :: LogMode -> Subcommand -> PoseidonLogIO ()
-runCmd l o = case o of
+runCmd :: Subcommand -> PoseidonLogIO ()
+runCmd o = case o of
     CmdFstats           -> runFstatsDummy
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
     CmdFetch opts       -> runFetch opts
-    CmdForge opts       -> runForge $ opts {_forgeLogMode = l}
+    CmdForge opts       -> runForge opts
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts   -> runSummarise opts
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
   where
-    runFstatsDummy = logError $ T.pack $ fstatsErrorMessage
+    runFstatsDummy = logError fstatsErrorMessage
 
 fstatsErrorMessage :: String
 fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
@@ -204,7 +202,6 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> pure NoLog
                               <*> parseNoExtract
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
