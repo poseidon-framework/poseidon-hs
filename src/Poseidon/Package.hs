@@ -39,13 +39,14 @@ import           Poseidon.SecondaryTypes    (ContributorSpec (..),
 import           Poseidon.Utils             (PoseidonException (..),
                                              PoseidonLogIO, logDebug, logInfo,
                                              logWarning,
-                                             renderPoseidonException, LogEnv)
+                                             renderPoseidonException, LogEnv,
+                                             logWithEnv)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Control.Monad.Reader       (ask, runReaderT)
+import           Control.Monad.Reader       (ask)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
@@ -553,14 +554,12 @@ getJointIndividualInfo packages = do
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
 joinEntryPipe :: (MonadIO m) => LogEnv -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
 joinEntryPipe logEnv nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries nrInds pacNames maybeEntries
+    eitherJE <- liftIO . try $ joinEntries logEnv nrInds pacNames maybeEntries
     case eitherJE of
         Left (PoseidonGenotypeException err) ->
-            liftIO . flip runReaderT logEnv . logDebug $ "Skipping SNP due to " ++ err
+            logWithEnv logEnv . logDebug $ "Skipping SNP due to " ++ err
         Left e -> liftIO . throwIO $ e
-        Right (consensusSnpEntryWarnings, eigenstratSnpEntry, genoLine) -> do
-            liftIO $ mapM_ (flip runReaderT logEnv . logDebug) consensusSnpEntryWarnings
-            yield (eigenstratSnpEntry, genoLine)
+        Right (eigenstratSnpEntry, genoLine) -> yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn

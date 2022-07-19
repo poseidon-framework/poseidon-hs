@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.Utils (
     PoseidonException (..),
@@ -11,7 +11,8 @@ module Poseidon.Utils (
     logDebug,
     logError,
     LogEnv,
-    noLog
+    noLog,
+    logWithEnv
 ) where
 
 import           Colog                  (LogAction (..), Message,
@@ -20,7 +21,7 @@ import           Colog                  (LogAction (..), Message,
                                          showSeverity, Msg(..), HasLog(..))
 import           Control.Exception      (Exception, IOException, try)
 import           Control.Monad          (when)
-import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.IO.Class (liftIO, MonadIO)
 import           Control.Monad.Reader   (ReaderT, runReaderT, asks)
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
@@ -107,6 +108,9 @@ logDebug = logMsg Debug
 
 logError :: String -> PoseidonLogIO ()
 logError = logMsg Error
+
+logWithEnv :: (MonadIO m) => LogEnv -> PoseidonLogIO () -> m ()
+logWithEnv logEnv = liftIO . flip runReaderT logEnv
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException = PoseidonYamlParseException FilePath ParseException
