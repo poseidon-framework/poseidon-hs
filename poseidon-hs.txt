@@ -185,13 +185,20 @@ PoseidonEmptyOutPacNameException :: PoseidonException
 PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
-type PoseidonLogIO = LoggerT Message IO
+type PoseidonLogIO = ReaderT LogEnv IO
 data LogMode
 NoLog :: LogMode
 SimpleLog :: LogMode
 DefaultLog :: LogMode
 ServerLog :: LogMode
 VerboseLog :: LogMode
+logWarning :: String -> PoseidonLogIO ()
+logInfo :: String -> PoseidonLogIO ()
+logDebug :: String -> PoseidonLogIO ()
+logError :: String -> PoseidonLogIO ()
+type LogEnv = LogAction IO Message
+noLog :: LogEnv
+logWithEnv :: MonadIO m => LogEnv -> PoseidonLogIO () -> m ()
 instance GHC.Show.Show Poseidon.Utils.LogMode
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
@@ -478,8 +485,8 @@ loadIndividuals :: FilePath -> GenotypeDataSpec -> IO [EigenstratIndEntry]
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-joinEntries :: MonadIO m => [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m ([String], EigenstratSnpEntry, GenoLine)
-getConsensusSnpEntry :: MonadIO m => [EigenstratSnpEntry] -> m ([String], EigenstratSnpEntry)
+joinEntries :: MonadIO m => LogEnv -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+getConsensusSnpEntry :: MonadIO m => LogEnv -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
 printSNPCopyProgress :: MonadIO m => Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
@@ -676,12 +683,7 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageRea
 -- | whether to check the first 100 SNPs of the genotypes
 [_readOptGenoCheck] :: PackageReadOptions -> Bool
 
--- | whether to ignore the Poseidon version of an input package. This can
---   cause runtime errors, if the structural difference between versions is
---   too big. The option was added to allow trident update to load and
---   update packages with older version numbers. In a typical update
---   workflow one would adjust the package to the new Poseidon version and
---   then run update on the structurally already correct package.
+-- | whether to ignore the Poseidon version of an input package.
 [_readOptIgnorePosVersion] :: PackageReadOptions -> Bool
 
 -- | A helper function to detect packages with duplicate names and select
@@ -697,7 +699,7 @@ readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonLog
 getChecksum :: FilePath -> IO String
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: MonadSafe m => LogMode -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+getJointGenotypeData :: MonadSafe m => LogEnv -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> [JannoRow]
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 
@@ -716,7 +718,7 @@ defaultPackageReadOptions :: PackageReadOptions
 
 -- | A function to read in a poseidon package from a YAML file. Note that
 --   this function calls the addFullPaths function to make paths absolute.
-readPoseidonPackage :: PackageReadOptions -> FilePath -> IO PoseidonPackage
+readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonLogIO PoseidonPackage
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
@@ -935,7 +937,7 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> LogMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
@@ -945,7 +947,6 @@ ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath
 [_forgeOutOnlyGeno] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
-[_forgeLogMode] :: ForgeOptions -> LogMode
 [_forgeNoExtract] :: ForgeOptions -> Bool
 pacReadOpts :: PackageReadOptions
 
