@@ -8,9 +8,8 @@ import           Poseidon.Package  (PoseidonPackage (..),
                                    findAllPoseidonYmlFiles,
                                    readPoseidonPackageCollection,
                                    PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils    (PoseidonLogIO)
+import           Poseidon.Utils    (PoseidonLogIO, logInfo, logError)
 
-import           Colog             (logInfo, logError)
 import           Control.Monad     (unless)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List         (foldl')
