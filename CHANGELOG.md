@@ -1,3 +1,4 @@
+- V 1.1.0.2: Internal change of the Logging Monad, should not change anything on the user-end.
 - V 1.1.0.1: Added Ord instance to PoseidonEntity and SignedEntity
 - V 1.1.0.0: Removed the short options (-r + -g + -s + -i) for the direct genotype data input. Also improved the trident input package and genotype data parsing by making pointless no-input situations impossible.
 - V 1.0.1.1: Output directories in fetch and genoconvert are now created if they don't exist.
