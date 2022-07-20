@@ -113,28 +113,29 @@ logWithEnv :: (MonadIO m) => LogEnv -> PoseidonLogIO () -> m ()
 logWithEnv logEnv = liftIO . flip runReaderT logEnv
 
 -- | A Poseidon Exception data type with several concrete constructors
-data PoseidonException = PoseidonYamlParseException FilePath ParseException
-    | PoseidonPackageException String
-    | PoseidonPackageVersionException FilePath String
-    | PoseidonPackageMissingVersionException FilePath
-    | PoseidonIndSearchException String
-    | PoseidonGenotypeException String
-    | PoseidonJannoRowException FilePath Int String
-    | PoseidonJannoConsistencyException FilePath String
-    | PoseidonCrossFileConsistencyException String String
-    | PoseidonCollectionException String
-    | PoseidonFileExistenceException FilePath
-    | PoseidonFileChecksumException FilePath
-    | PoseidonFStatsFormatException String
-    | PoseidonBibTeXException FilePath String
-    | PoseidonPoseidonEntityParsingException String
-    | PoseidonForgeEntitiesException String
-    | PoseidonEmptyForgeException
-    | PoseidonNewPackageConstructionException String
-    | PoseidonRemoteJSONParsingException String
-    | PoseidonGenericException String
-    | PoseidonEmptyOutPacNameException
-    | PoseidonUnequalBaseDirException FilePath FilePath FilePath
+data PoseidonException = 
+    PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
+    | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
+    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
+    | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
+    | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
+    | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
+    | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
+    | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
+    | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
+    | PoseidonCollectionException String -- ^ An exception to represent logical issues in a poseidon package Collection
+    | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
+    | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
+    | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
+    | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
+    | PoseidonPoseidonEntityParsingException String -- ^ An exception to indicate failed entity parsing
+    | PoseidonForgeEntitiesException String -- ^ An exception to indicate issues in the forge selection
+    | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
+    | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
+    | PoseidonRemoteJSONParsingException String -- ^ An exception to indicate failed remote info JSON parsing
+    | PoseidonGenericException String -- ^ A catch-all for any other type of exception
+    | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
+    | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
     deriving (Show)
 
 instance Exception PoseidonException
