@@ -11,13 +11,11 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              newPackageTemplate,
                                              newMinimalPackageTemplate,
                                              writePoseidonPackage)
-import           Poseidon.Utils              (PoseidonException (..), PoseidonLogIO, checkFile)
+import           Poseidon.Utils             (PoseidonException (..), PoseidonLogIO, checkFile, logInfo)
 
-import           Colog                      (logInfo)
 import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.Text                  (pack)
 import           System.Directory           (createDirectoryIfMissing, copyFile)
 import           System.FilePath            ((<.>), (</>), takeFileName, takeBaseName)
 
@@ -31,7 +29,7 @@ data InitOptions = InitOptions
 runInit :: InitOptions -> PoseidonLogIO ()
 runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPath maybeOutName minimal) = do
     -- create new directory
-    logInfo $ pack $ "Creating new package directory: " ++ outPath
+    logInfo $ "Creating new package directory: " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let outInd = takeFileName indFile_

@@ -2,6 +2,7 @@
 module Poseidon.GenotypeDataSpec (spec) where
 
 import           Poseidon.GenotypeData
+import           Poseidon.Utils             (noLog)
 
 
 import qualified Data.Vector                as V
@@ -37,9 +38,8 @@ testEntriesTuplesList1 = [
     Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'C' 'N', V.fromList [HomRef, Missing, HomRef]),
     Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'N' 'A', V.fromList [HomAlt, HomAlt, HomAlt])]
 
-mergedTestEntries1 :: ([String], EigenstratSnpEntry, GenoLine)
+mergedTestEntries1 :: (EigenstratSnpEntry, GenoLine)
 mergedTestEntries1 = (
-    [],
     EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'A' 'C',
     V.fromList [HomRef, Het, HomAlt,
                 Missing, Missing, Missing,
@@ -53,4 +53,4 @@ testJoinGenoEntries =
         it "should just work" $ do
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
-            joinEntries nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
+            joinEntries noLog nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1

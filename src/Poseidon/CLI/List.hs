@@ -6,16 +6,14 @@ import           Poseidon.Janno             (JannoRow (..), JannoList(..))
 import           Poseidon.Package           (PoseidonPackage (..),
                                              readPoseidonPackageCollection,
                                              PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..), PoseidonLogIO)
+import           Poseidon.Utils             (PoseidonException (..), PoseidonLogIO, logInfo)
 
-import           Colog                      (logInfo)
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (eitherDecode')
 import qualified Data.ByteString.Lazy       as LB
 import           Data.List                  (group, intercalate, sortOn)
-import           Data.Text                  (pack)
 import           Network.HTTP.Conduit       (simpleHttp)
 import           Text.Layout.Table          (asciiRoundS, column, def,
                                              expandUntil, rowsG, tableString,
@@ -62,7 +60,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
                 tableB = [[name, show (length rows)] | (name, rows) <- sortOn fst allSampleInfo]
-            logInfo $ pack ("found " ++ show (length tableB) ++ " packages")
+            logInfo $ "found " ++ show (length tableB) ++ " packages"
             return (tableH, tableB)
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
@@ -77,7 +75,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                         groupPacs = head $ map fst oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
-            logInfo $ pack ("found " ++ show (length tableB) ++ " groups/populations")
+            logInfo $ "found " ++ show (length tableB) ++ " groups/populations"
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
@@ -85,7 +83,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                 forM rows (\row -> do
                     moreFields <- liftIO $ extractAdditionalFields row moreJannoColumns
                     return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
-            logInfo $ pack ("found " ++ show (length tableB) ++ " individuals/samples")
+            logInfo $ "found " ++ show (length tableB) ++ " individuals/samples"
             return (tableH, tableB)
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]

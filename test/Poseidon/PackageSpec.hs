@@ -14,7 +14,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
-import           Poseidon.Utils             (usePoseidonLogger, LogMode (..), getChecksum)
+import           Poseidon.Utils             (usePoseidonLogger, noLog, LogMode(..), getChecksum)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -214,9 +214,9 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                     "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load genotype data without intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData NoLog False pacs Nothing
+            (_, jointProd) <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
@@ -224,9 +224,9 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
         jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.026288 "2_1018704" 'A' 'G',
                                   V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
     it "should correctly load genotype data with intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData NoLog True pacs Nothing
+            (_, jointProd) <- getJointGenotypeData noLog True pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
@@ -234,29 +234,29 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                                                 HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
         jointDat !! 4 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1045331 0.026665 "2_1045331" 'G' 'A', V.fromList $ replicate 20 HomRef)
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData NoLog False pacs (Just "test/testDat/snpFile.snp")
+            (_, jointProd) <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 6
     it "should correctly load the right nr of SNPs with snpFile and intersect" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData NoLog True pacs (Just "test/testDat/snpFile.snp")
+            (_, jointProd) <- getJointGenotypeData noLog True pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 4
     it "should fail with unordered SNP input file" $ do
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         let makeJointDat = runSafeT $ do
-                (_, jointProd) <- getJointGenotypeData NoLog False pacs (Just "test/testDat/snpFile_unordered.snp")
+                (_, jointProd) <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile_unordered.snp")
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
     it "should skip incongruent alleles" $ do
         let pacFiles2 = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                          "test/testDat/testPackages/test_incongruent_snps/POSEIDON.yml"]
-        pacs <- mapM (readPoseidonPackage testPacReadOpts) pacFiles2
+        pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData NoLog False pacs Nothing
+            (_, jointProd) <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 7
 

@@ -28,9 +28,8 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
 import           Poseidon.Utils         (PoseidonException (..),
                                         renderPoseidonException,
                                         usePoseidonLogger,
-                                        LogMode (..), PoseidonLogIO)
+                                        LogMode (..), PoseidonLogIO, logError)
 
-import           Colog                  (logError)
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (catch)
 import           Data.List              (intercalate)
@@ -66,7 +65,7 @@ main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
     (Options logMode errLength subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode $ runCmd logMode subcommand) (handler logMode errLength)
+    catch (usePoseidonLogger logMode $ runCmd subcommand) (handler logMode errLength)
     where
         handler :: LogMode -> ErrorLength -> PoseidonException -> IO ()
         handler l len e = do
@@ -78,20 +77,20 @@ main = do
             | length s > len          = take len s ++ "... (see more with --errLength)"
             | otherwise               = s
 
-runCmd :: LogMode -> Subcommand -> PoseidonLogIO ()
-runCmd l o = case o of
+runCmd :: Subcommand -> PoseidonLogIO ()
+runCmd o = case o of
     CmdFstats           -> runFstatsDummy
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
     CmdFetch opts       -> runFetch opts
-    CmdForge opts       -> runForge $ opts {_forgeLogMode = l}
+    CmdForge opts       -> runForge opts
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts   -> runSummarise opts
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
   where
-    runFstatsDummy = logError $ T.pack $ fstatsErrorMessage
+    runFstatsDummy = logError fstatsErrorMessage
 
 fstatsErrorMessage :: String
 fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
@@ -228,7 +227,6 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> pure NoLog
                               <*> parseNoExtract
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions

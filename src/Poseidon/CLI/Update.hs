@@ -12,9 +12,8 @@ import           Poseidon.Package           (PoseidonPackage (..),
                                              defaultPackageReadOptions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                             VersionComponent (..))
-import           Poseidon.Utils             (PoseidonLogIO, getChecksum)
+import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning, getChecksum)
 
-import           Colog                      (logInfo, logWarning)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.List                  (nub)
 import           Data.Maybe                 (fromMaybe, isNothing, fromJust)

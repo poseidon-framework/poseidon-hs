@@ -30,7 +30,7 @@ import qualified Text.Parsec.String      as P
 data PoseidonEntity = Pac String
     | Group String
     | Ind String
-    deriving (Eq)
+    deriving (Eq, Ord)
 
 instance Show PoseidonEntity where
     show (Pac   n) = "*" ++ n ++ "*"
@@ -41,7 +41,7 @@ type EntitiesList = [PoseidonEntity]
 
 data SignedEntity = Include PoseidonEntity
     | Exclude PoseidonEntity
-    deriving (Eq)
+    deriving (Eq, Ord)
 
 instance Show SignedEntity where
     show (Include a) = show a
