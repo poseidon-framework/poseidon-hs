@@ -15,8 +15,7 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              selectIndices, selectIndices,
-                                              snpSetMergeList)
+                                              selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
@@ -31,9 +30,10 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.Utils              (PoseidonException (..),
-                                              PoseidonLogIO, logInfo, logWarning)
+                                              PoseidonLogIO, logInfo,
+                                              logWarning)
 
-import           Control.Exception           (throwIO, catch)
+import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.List                   (intercalate, nub, (\\))

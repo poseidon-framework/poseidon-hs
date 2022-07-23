@@ -9,7 +9,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes     (GroupInfo (..),
                                               IndividualInfo (..),
                                               PackageInfo (..))
-import           Poseidon.Utils              (usePoseidonLogger, LogMode (..))
+import           Poseidon.Utils              (LogMode (..), usePoseidonLogger)
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -17,7 +17,7 @@ import           Codec.Archive.Zip           (Archive, addEntryToArchive,
 import           Control.Applicative         ((<|>))
 import           Control.Monad               (forM, when)
 import qualified Data.ByteString.Lazy        as B
-import           Data.List                   (group, sortOn, nub)
+import           Data.List                   (group, nub, sortOn)
 import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
 import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
 import           Data.Version                (showVersion)

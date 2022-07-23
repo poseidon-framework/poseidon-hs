@@ -35,14 +35,12 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..))
-import           Poseidon.Utils             (PoseidonException (..),
-                                             renderPoseidonException,
-                                             PoseidonLogIO,
-                                             checkFile, logDebug, logInfo,
-                                             logWarning, renderPoseidonException,
-                                             LogEnv, logWithEnv)
+import           Poseidon.Utils             (LogEnv, PoseidonException (..),
+                                             PoseidonLogIO, checkFile, logDebug,
+                                             logInfo, logWarning, logWithEnv,
+                                             renderPoseidonException)
 
-import           Control.Exception          (throwIO, catch)
+import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -76,8 +74,8 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, listDirectory)
-import           System.FilePath            (takeDirectory, takeExtension,
-                                             takeFileName, (</>), takeBaseName)
+import           System.FilePath            (takeBaseName, takeDirectory,
+                                             takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hFlush,
                                              hGetContents, hPutStr, hPutStrLn,
                                              stderr, withFile)

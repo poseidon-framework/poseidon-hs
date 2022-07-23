@@ -14,7 +14,8 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
-import           Poseidon.Utils             (usePoseidonLogger, noLog, LogMode(..), getChecksum)
+import           Poseidon.Utils             (LogMode (..), getChecksum, noLog,
+                                             usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -22,7 +23,7 @@ import           Data.Time                  (fromGregorian)
 import qualified Data.Vector                as V
 import           Data.Version               (makeVersion)
 import           Data.Yaml                  (ParseException, decodeEither')
-import           Pipes.OrderedZip           (WrongInputOrderException(..))
+import           Pipes.OrderedZip           (WrongInputOrderException (..))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),

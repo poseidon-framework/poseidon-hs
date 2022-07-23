@@ -2,27 +2,29 @@
 
 module Poseidon.CLI.Genoconvert where
 
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+import           Poseidon.GenotypeData      (GenoDataSource (..),
+                                             GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
-                                             printSNPCopyProgress, GenoDataSource (..))
-import           Poseidon.Package           (readPoseidonPackageCollection,
+                                             printSNPCopyProgress)
+import           Poseidon.Package           (PackageReadOptions (..),
+                                             PoseidonException (PoseidonGenotypeExceptionForward),
                                              PoseidonPackage (..),
-                                             writePoseidonPackage,
-                                             PackageReadOptions (..),
                                              defaultPackageReadOptions,
-                                             makePseudoPackageFromGenotypeData, PoseidonException (PoseidonGenotypeExceptionForward))
+                                             makePseudoPackageFromGenotypeData,
+                                             readPoseidonPackageCollection,
+                                             writePoseidonPackage)
 import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
+import           Control.Monad              (unless, when)
 import           Data.Maybe                 (isJust)
-import           Control.Monad              (when, unless)
-import           Pipes                      (MonadIO (liftIO), 
-                                            runEffect, (>->))
+import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (removeFile, doesFileExist, createDirectoryIfMissing)
+import           System.Directory           (createDirectoryIfMissing,
+                                             doesFileExist, removeFile)
 import           System.FilePath            ((<.>), (</>))
 
 -- | A datatype representing command line options for the validate command
@@ -64,7 +66,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         ++ ":"
     -- compile file names paths
     let outName = posPacTitle pac
-    let [outInd, outSnp, outGeno] = case outFormat of 
+    let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- check if genotype data needs conversion
@@ -86,7 +88,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         else do
             logInfo "Processing SNPs..."
             liftIO $ catch (
-                runSafeT $ do            
+                runSafeT $ do
                     (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
                     let outConsumer = case outFormat of
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries

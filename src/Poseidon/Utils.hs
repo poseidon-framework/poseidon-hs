@@ -17,16 +17,16 @@ module Poseidon.Utils (
     logWithEnv
 ) where
 
-import           Colog                  (LogAction (..), Message,
-                                         Severity (..), cfilter, cmapM,
-                                         logTextStderr, msgSeverity, msgText,
-                                         showSeverity, Msg(..), HasLog(..))
+import           Colog                  (HasLog (..), LogAction (..), Message,
+                                         Msg (..), Severity (..), cfilter,
+                                         cmapM, logTextStderr, msgSeverity,
+                                         msgText, showSeverity)
 import           Control.Exception      (Exception, IOException, try)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (when)
 import           Control.Monad.Catch    (throwM)
-import           Control.Monad.IO.Class (liftIO, MonadIO)
-import           Control.Monad.Reader   (ReaderT, runReaderT, asks)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
 import qualified Data.ByteString.Lazy   as LB
 import           Data.Digest.Pure.MD5   (md5)
 import           Data.Text              (Text, pack)
@@ -95,10 +95,10 @@ compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
 
 logMsg :: Severity -> String -> PoseidonLogIO ()
 logMsg sev msg = do
-    {- 
-    Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the 
+    {-
+    Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the
     ReaderT environment by adding more options or parameters to LogEnv, perhaps even the command line options,
-    we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the 
+    we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the
     environment.
     -}
     LogAction logF <- asks getLogAction
@@ -120,10 +120,10 @@ logWithEnv :: (MonadIO m) => LogEnv -> PoseidonLogIO () -> m ()
 logWithEnv logEnv = liftIO . flip runReaderT logEnv
 
 -- | A Poseidon Exception data type with several concrete constructors
-data PoseidonException = 
+data PoseidonException =
     PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
-    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
+    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
