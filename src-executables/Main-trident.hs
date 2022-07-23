@@ -40,7 +40,6 @@ import           System.Exit            (exitFailure)
 import           System.FilePath        ((<.>), dropExtension, takeExtension)
 import           System.IO              (hPutStrLn, stderr)
 import           Text.Read              (readMaybe)
-import qualified Data.Text              as T
 
 data Options = Options { 
     _logMode    :: LogMode
@@ -69,7 +68,7 @@ main = do
     where
         handler :: LogMode -> ErrorLength -> PoseidonException -> IO ()
         handler l len e = do
-            usePoseidonLogger l $ logError $ T.pack $ truncateErr len $ renderPoseidonException e
+            usePoseidonLogger l $ logError $ truncateErr len $ renderPoseidonException e
             exitFailure
         truncateErr :: ErrorLength -> String -> String
         truncateErr CharInf         s = s

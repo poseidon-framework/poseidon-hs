@@ -7,6 +7,7 @@ module Poseidon.Utils (
     PoseidonLogIO,
     LogMode (..),
     checkFile,
+    getChecksum,
     logWarning,
     logInfo,
     logDebug,
@@ -21,9 +22,13 @@ import           Colog                  (LogAction (..), Message,
                                          logTextStderr, msgSeverity, msgText,
                                          showSeverity, Msg(..), HasLog(..))
 import           Control.Exception      (Exception, IOException, try)
+import           Control.Exception.Base (SomeException)
 import           Control.Monad          (when)
+import           Control.Monad.Catch    (throwM)
 import           Control.Monad.IO.Class (liftIO, MonadIO)
 import           Control.Monad.Reader   (ReaderT, runReaderT, asks)
+import qualified Data.ByteString.Lazy   as LB
+import           Data.Digest.Pure.MD5   (md5)
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)

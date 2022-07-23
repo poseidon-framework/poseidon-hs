@@ -42,7 +42,7 @@ import           Poseidon.Utils             (PoseidonException (..),
                                              logWarning, renderPoseidonException,
                                              LogEnv, logWithEnv)
 
-import           Control.Exception          (throwIO, try, catch)
+import           Control.Exception          (throwIO, catch)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -75,7 +75,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (doesDirectoryExist, doesFileExist, listDirectory)
+import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeDirectory, takeExtension,
                                              takeFileName, (</>), takeBaseName)
 import           System.IO                  (IOMode (ReadMode), hFlush,
