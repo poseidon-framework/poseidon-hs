@@ -24,32 +24,37 @@ module Poseidon.Janno (
     jannoHeaderString
 ) where
 
-import           Poseidon.Utils             (PoseidonException (..),
-                                             renderPoseidonException)
+import           Poseidon.Utils                       (PoseidonException (..),
+                                                       renderPoseidonException)
 
 
-import           Control.Applicative        (empty)
-import           Control.Exception          (throwIO)
-import           Control.Monad              (unless, when)
-import           Data.Aeson                 (FromJSON, Options (..), ToJSON, Value(..),
-                                             defaultOptions, genericToEncoding, toJSON, parseJSON,
-                                             toEncoding)
-import           Data.Bifunctor             (second)
-import qualified Data.ByteString.Char8      as Bchs
-import qualified Data.ByteString.Lazy.Char8 as Bch
-import           Data.Char                  (ord)
-import qualified Data.Csv                   as Csv
-import           Data.Either                (lefts, rights)
-import qualified Data.HashMap.Lazy          as HM
-import           Data.List                  (intercalate, nub, (\\), elemIndex)
-import           Data.Maybe                 (fromJust, isNothing)
-import           Data.Text                  (pack, unpack, replace)
-import qualified Data.Vector                as V
-import           GHC.Generics               (Generic)
-import           Network.URI                (isURI)
+import           Control.Applicative                  (empty)
+import           Control.Exception                    (throwIO)
+import           Control.Monad                        (unless, when)
+import           Data.Aeson                           (FromJSON, Options (..),
+                                                       ToJSON, Value (..),
+                                                       defaultOptions,
+                                                       genericToEncoding,
+                                                       parseJSON, toEncoding,
+                                                       toJSON)
+import           Data.Bifunctor                       (second)
+import qualified Data.ByteString.Char8                as Bchs
+import qualified Data.ByteString.Lazy.Char8           as Bch
+import           Data.Char                            (ord)
+import qualified Data.Csv                             as Csv
+import           Data.Either                          (lefts, rights)
+import qualified Data.HashMap.Lazy                    as HM
+import           Data.List                            (elemIndex, intercalate,
+                                                       nub, (\\))
+import           Data.Maybe                           (fromJust, isNothing)
+import           Data.Text                            (pack, replace, unpack)
+import qualified Data.Vector                          as V
+import           GHC.Generics                         (Generic)
+import           Network.URI                          (isURI)
 import           Options.Applicative.Help.Levenshtein (editDistance)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
-import           System.IO                  (hPutStrLn, stderr)
+import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
+                                                       Sex (..))
+import           System.IO                            (hPutStrLn, stderr)
 
 newtype JannoSex = JannoSex { sfSex :: Sex }
     deriving (Eq)
@@ -61,7 +66,7 @@ instance Ord JannoSex where
     compare (JannoSex Unknown) (JannoSex Male)   = LT
     compare (JannoSex Female) (JannoSex Unknown) = GT
     compare (JannoSex Unknown) (JannoSex Female) = LT
-    compare _ _            = EQ
+    compare _ _                                  = EQ
 
 instance Csv.FromField JannoSex where
     parseField x
@@ -69,7 +74,7 @@ instance Csv.FromField JannoSex where
         | x == "M"             = pure (JannoSex Male)
         | x == "U"             = pure (JannoSex Unknown)
         | otherwise            = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
- 
+
 instance Csv.ToField JannoSex where
     toField (JannoSex Female)  = "F"
     toField (JannoSex Male)    = "M"
@@ -83,14 +88,14 @@ instance FromJSON JannoSex where
 
 instance ToJSON JannoSex where
     -- this encodes directly to a bytestring Builder
-    toJSON (JannoSex Female)   = String "F"
-    toJSON (JannoSex Male)     = String "M"
-    toJSON (JannoSex Unknown)  = String "U"
+    toJSON (JannoSex Female)  = String "F"
+    toJSON (JannoSex Male)    = String "M"
+    toJSON (JannoSex Unknown) = String "U"
 
 instance Show JannoSex where
-    show (JannoSex Female)     = "F"
-    show (JannoSex Male)       = "M"
-    show (JannoSex Unknown)    = "U"
+    show (JannoSex Female)  = "F"
+    show (JannoSex Male)    = "M"
+    show (JannoSex Unknown) = "U"
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -111,14 +116,14 @@ instance Csv.FromField JannoDateType where
         | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
 
 instance Csv.ToField JannoDateType where
-    toField C14             = "C14"
-    toField Contextual      = "contextual"
-    toField Modern          = "modern"
+    toField C14        = "C14"
+    toField Contextual = "contextual"
+    toField Modern     = "modern"
 
 instance Show JannoDateType where
-    show C14                = "C14"
-    show Contextual         = "contextual"
-    show Modern             = "modern"
+    show C14        = "C14"
+    show Contextual = "contextual"
+    show Modern     = "modern"
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType = Shotgun
@@ -138,20 +143,20 @@ instance Csv.FromField JannoCaptureType where
         | x == "1240K"           = pure A1240K
         | x == "OtherCapture"    = pure OtherCapture
         | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise              = fail $ "Capture_Type " ++ show x ++ 
+        | otherwise              = fail $ "Capture_Type " ++ show x ++
                                           " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
 
 instance Csv.ToField JannoCaptureType where
-    toField Shotgun              = "Shotgun"
-    toField A1240K               = "1240K"
-    toField OtherCapture         = "OtherCapture"
-    toField ReferenceGenome      = "ReferenceGenome"
+    toField Shotgun         = "Shotgun"
+    toField A1240K          = "1240K"
+    toField OtherCapture    = "OtherCapture"
+    toField ReferenceGenome = "ReferenceGenome"
 
 instance Show JannoCaptureType where
-    show Shotgun                 = "Shotgun"
-    show A1240K                  = "1240K"
-    show OtherCapture            = "OtherCapture"
-    show ReferenceGenome         = "ReferenceGenome"
+    show Shotgun         = "Shotgun"
+    show A1240K          = "1240K"
+    show OtherCapture    = "OtherCapture"
+    show ReferenceGenome = "ReferenceGenome"
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = Diploid
@@ -170,12 +175,12 @@ instance Csv.FromField JannoGenotypePloidy where
         | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
 
 instance Csv.ToField JannoGenotypePloidy where
-    toField Diploid      = "diploid"
-    toField Haploid      = "haploid"
+    toField Diploid = "diploid"
+    toField Haploid = "haploid"
 
 instance Show JannoGenotypePloidy where
-    show Diploid         = "diploid"
-    show Haploid         = "haploid"
+    show Diploid = "diploid"
+    show Haploid = "haploid"
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
@@ -198,16 +203,16 @@ instance Csv.FromField JannoUDG where
         | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
 
 instance Csv.ToField JannoUDG where
-    toField Minus      = "minus"
-    toField Half       = "half"
-    toField Plus       = "plus"
-    toField Mixed      = "mixed"
+    toField Minus = "minus"
+    toField Half  = "half"
+    toField Plus  = "plus"
+    toField Mixed = "mixed"
 
 instance Show JannoUDG where
-    show Minus         = "minus"
-    show Half          = "half"
-    show Plus          = "plus"
-    show Mixed         = "mixed"
+    show Minus = "minus"
+    show Half  = "half"
+    show Plus  = "plus"
+    show Mixed = "mixed"
 
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = DS
@@ -223,14 +228,14 @@ instance Csv.FromField JannoLibraryBuilt where
         | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
 
 instance Csv.ToField JannoLibraryBuilt where
-    toField DS         = "ds"
-    toField SS         = "ss"
-    toField Other      = "other"
+    toField DS    = "ds"
+    toField SS    = "ss"
+    toField Other = "other"
 
 instance Show JannoLibraryBuilt where
-    show DS            = "ds"
-    show SS            = "ss"
-    show Other         = "other"
+    show DS    = "ds"
+    show SS    = "ss"
+    show Other = "other"
 
 instance ToJSON JannoLibraryBuilt where
     toEncoding = genericToEncoding defaultOptions
@@ -329,14 +334,14 @@ instance Show JURI where
     show (JURI x) = x
 
 -- | A general datatype for janno list columns
-newtype JannoList a = JannoList {getJannoList :: [a]} 
+newtype JannoList a = JannoList {getJannoList :: [a]}
     deriving (Eq, Ord, Generic, Show)
 
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int
 
 instance (Csv.ToField a) => Csv.ToField (JannoList a) where
-    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList 
+    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList
 
 instance (Csv.FromField a) => Csv.FromField (JannoList a) where
     parseField x = do
@@ -372,75 +377,75 @@ instance Csv.FromField RelationDegree where
                                                -- relations of type "unrelated" don't have to be
                                                -- listed explicitly
         | x == "other"        = pure OtherDegree
-        | otherwise           = fail $ "Relation degree " ++ show x ++ 
+        | otherwise           = fail $ "Relation degree " ++ show x ++
                                        " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
 
 instance Csv.ToField RelationDegree where
-    toField Identical         = "identical"
-    toField First             = "first"
-    toField Second            = "second"
-    toField ThirdToFifth      = "thirdToFifth"
-    toField SixthToTenth      = "sixthToTenth"
-    toField Unrelated         = "unrelated"
-    toField OtherDegree       = "other"
+    toField Identical    = "identical"
+    toField First        = "first"
+    toField Second       = "second"
+    toField ThirdToFifth = "thirdToFifth"
+    toField SixthToTenth = "sixthToTenth"
+    toField Unrelated    = "unrelated"
+    toField OtherDegree  = "other"
 
 instance Show RelationDegree where
-    show Identical            = "identical"
-    show First                = "first"
-    show Second               = "second"
-    show ThirdToFifth         = "thirdToFifth"
-    show SixthToTenth         = "sixthToTenth"
-    show Unrelated            = "unrelated"
-    show OtherDegree          = "other"
+    show Identical    = "identical"
+    show First        = "first"
+    show Second       = "second"
+    show ThirdToFifth = "thirdToFifth"
+    show SixthToTenth = "sixthToTenth"
+    show Unrelated    = "unrelated"
+    show OtherDegree  = "other"
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
-    { jPoseidonID                   :: String
-    , jAlternativeIDs               :: Maybe JannoStringList
-    , jRelationTo                   :: Maybe JannoStringList
-    , jRelationDegree               :: Maybe JannoRelationDegreeList
-    , jRelationType                 :: Maybe JannoStringList
-    , jRelationNote                 :: Maybe String
-    , jCollectionID                 :: Maybe String
-    , jSourceTissue                 :: Maybe JannoStringList
-    , jCountry                      :: Maybe String
-    , jLocation                     :: Maybe String
-    , jSite                         :: Maybe String
-    , jLatitude                     :: Maybe Latitude
-    , jLongitude                    :: Maybe Longitude
-    , jDateC14Labnr                 :: Maybe JannoStringList
-    , jDateC14UncalBP               :: Maybe JannoIntList
-    , jDateC14UncalBPErr            :: Maybe JannoIntList
-    , jDateBCADMedian               :: Maybe Int
-    , jDateBCADStart                :: Maybe Int
-    , jDateBCADStop                 :: Maybe Int
-    , jDateType                     :: Maybe JannoDateType
-    , jDateNote                     :: Maybe String
-    , jNrLibraries                  :: Maybe Int
-    , jCaptureType                  :: Maybe (JannoList JannoCaptureType)
-    , jGenotypePloidy               :: Maybe JannoGenotypePloidy
-    , jGroupName                    :: JannoStringList
-    , jGeneticSex                   :: JannoSex
-    , jNrSNPs                       :: Maybe Int
-    , jCoverageOnTargets            :: Maybe Double
-    , jMTHaplogroup                 :: Maybe String
-    , jYHaplogroup                  :: Maybe String
-    , jEndogenous                   :: Maybe Percent
-    , jUDG                          :: Maybe JannoUDG
-    , jLibraryBuilt                 :: Maybe JannoLibraryBuilt
-    , jDamage                       :: Maybe Percent
-    , jContamination                :: Maybe JannoStringList
-    , jContaminationErr             :: Maybe JannoStringList
-    , jContaminationMeas            :: Maybe JannoStringList
-    , jContaminationNote            :: Maybe String
-    , jGeneticSourceAccessionIDs    :: Maybe JannoStringList
-    , jDataPreparationPipelineURL   :: Maybe JURI
-    , jPrimaryContact               :: Maybe String
-    , jPublication                  :: Maybe JannoStringList
-    , jComments                     :: Maybe String
-    , jKeywords                     :: Maybe JannoStringList
+    { jPoseidonID                 :: String
+    , jAlternativeIDs             :: Maybe JannoStringList
+    , jRelationTo                 :: Maybe JannoStringList
+    , jRelationDegree             :: Maybe JannoRelationDegreeList
+    , jRelationType               :: Maybe JannoStringList
+    , jRelationNote               :: Maybe String
+    , jCollectionID               :: Maybe String
+    , jSourceTissue               :: Maybe JannoStringList
+    , jCountry                    :: Maybe String
+    , jLocation                   :: Maybe String
+    , jSite                       :: Maybe String
+    , jLatitude                   :: Maybe Latitude
+    , jLongitude                  :: Maybe Longitude
+    , jDateC14Labnr               :: Maybe JannoStringList
+    , jDateC14UncalBP             :: Maybe JannoIntList
+    , jDateC14UncalBPErr          :: Maybe JannoIntList
+    , jDateBCADMedian             :: Maybe Int
+    , jDateBCADStart              :: Maybe Int
+    , jDateBCADStop               :: Maybe Int
+    , jDateType                   :: Maybe JannoDateType
+    , jDateNote                   :: Maybe String
+    , jNrLibraries                :: Maybe Int
+    , jCaptureType                :: Maybe (JannoList JannoCaptureType)
+    , jGenotypePloidy             :: Maybe JannoGenotypePloidy
+    , jGroupName                  :: JannoStringList
+    , jGeneticSex                 :: JannoSex
+    , jNrSNPs                     :: Maybe Int
+    , jCoverageOnTargets          :: Maybe Double
+    , jMTHaplogroup               :: Maybe String
+    , jYHaplogroup                :: Maybe String
+    , jEndogenous                 :: Maybe Percent
+    , jUDG                        :: Maybe JannoUDG
+    , jLibraryBuilt               :: Maybe JannoLibraryBuilt
+    , jDamage                     :: Maybe Percent
+    , jContamination              :: Maybe JannoStringList
+    , jContaminationErr           :: Maybe JannoStringList
+    , jContaminationMeas          :: Maybe JannoStringList
+    , jContaminationNote          :: Maybe String
+    , jGeneticSourceAccessionIDs  :: Maybe JannoStringList
+    , jDataPreparationPipelineURL :: Maybe JURI
+    , jPrimaryContact             :: Maybe String
+    , jPublication                :: Maybe JannoStringList
+    , jComments                   :: Maybe String
+    , jKeywords                   :: Maybe JannoStringList
     }
     deriving (Show, Eq, Generic)
 
@@ -450,7 +455,7 @@ instance ToJSON JannoRow where
 instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
-    parseNamedRecord m = JannoRow 
+    parseNamedRecord m = JannoRow
         <$> filterLookup         m "Poseidon_ID"
         <*> filterLookupOptional m "Alternative_IDs"
         <*> filterLookupOptional m "Relation_To"
@@ -624,7 +629,7 @@ createMinimalJanno xs = map createMinimalSample xs
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id_ sex pop) =
-    JannoRow { 
+    JannoRow {
           jPoseidonID                   = id_
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
@@ -689,7 +694,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 
 -- | A function to load one janno file
 readJannoFile :: Bool -- whether to print verbose output
-              -> FilePath 
+              -> FilePath
               -> IO [JannoRow]
 readJannoFile verbose jannoPath = do
     when verbose $ do
@@ -714,9 +719,9 @@ readJannoFile verbose jannoPath = do
         unless (null missing_columns) $ do
             hPutStrLn stderr $ "Missing standard columns: " ++ intercalate ", " missing_columns
         unless (null additional_columns) $ do
-            hPutStrLn stderr $ "Additional columns: " ++ 
+            hPutStrLn stderr $ "Additional columns: " ++
                 -- for each additional column a standard column is suggested: "Countro (Country?)"
-                intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)") 
+                intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
                     additional_columns (findSimilarNames missing_columns additional_columns))
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
@@ -740,7 +745,7 @@ findSimilarNames :: [String] -> [String] -> [String]
 findSimilarNames reference = map (findSimilar reference)
     where
         findSimilar ::  [String] -> String -> String
-        findSimilar ref x = 
+        findSimilar ref x =
             let dists = map (\y -> x `editDistance` y) ref
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
@@ -806,7 +811,7 @@ checkMandatoryStringNotEmpty x =
     && (not . null . getJannoList . jGroupName $ x)
     && (not . null . head . getJannoList . jGroupName $ x)
 
-getCellLength :: Maybe (JannoList a) -> Int 
+getCellLength :: Maybe (JannoList a) -> Int
 getCellLength = maybe 0 (length . getJannoList)
 
 allEqual :: Eq a => [a] -> Bool
@@ -831,7 +836,7 @@ checkContamColsConsistent x =
       lContaminationErr   = getCellLength $ jContaminationErr x
       lContaminationMeas  = getCellLength $ jContaminationMeas x
   in allEqual [lContamination, lContaminationErr, lContaminationMeas]
-  
+
 checkRelationColsConsistent :: JannoRow -> Bool
 checkRelationColsConsistent x =
   let lRelationTo = getCellLength $ jRelationTo x

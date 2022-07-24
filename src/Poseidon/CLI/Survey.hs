@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Survey where
@@ -10,13 +10,13 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils          (PoseidonLogIO, logInfo)
+import           Poseidon.Utils         (PoseidonLogIO, logInfo)
 
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (intercalate, zip4, unfoldr)
-import           Data.Ratio             (Ratio, (%))
+import           Data.List              (intercalate, unfoldr, zip4)
 import           Data.Maybe             (isJust)
+import           Data.Ratio             (Ratio, (%))
 import           System.Directory       (doesFileExist)
 import           System.FilePath        ((</>))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
@@ -24,7 +24,7 @@ import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _surveyBaseDirs :: [FilePath]
+    { _surveyBaseDirs  :: [FilePath]
     , _surveyRawOutput :: Bool
     }
 
@@ -64,7 +64,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     then liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
     -- print help
-    logInfo "see trident survey -h for a list of column names" 
+    logInfo "see trident survey -h for a list of column names"
 
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
@@ -111,7 +111,7 @@ renderJannoCompleteness jS =
     : getColChar jS jSourceTissue
     : getColChar jS jNrLibraries
     : getColChar jS jCaptureType
-    : getColChar jS jUDG 
+    : getColChar jS jUDG
     : getColChar jS jLibraryBuilt
     : getColChar jS jGenotypePloidy
     : getColChar jS jDataPreparationPipelineURL

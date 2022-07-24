@@ -15,8 +15,7 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              selectIndices, selectIndices,
-                                              snpSetMergeList)
+                                              selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
@@ -31,9 +30,10 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.Utils              (PoseidonException (..),
-                                              PoseidonLogIO, logInfo, logWarning)
+                                              PoseidonLogIO, logInfo,
+                                              logWarning)
 
-import           Control.Exception           (throwIO)
+import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.List                   (intercalate, nub, (\\))
@@ -170,24 +170,26 @@ runForge (
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
     logEnv <- ask
-    newNrSNPs <- liftIO $ runSafeT $ do
-        (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
-        let eigenstratIndEntriesV = eigenstratIndEntries
-        let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
+    newNrSNPs <- liftIO $ catch (
+        runSafeT $ do
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
+            let eigenstratIndEntriesV = eigenstratIndEntries
+            let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
 
-        let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
-        let outConsumer = case outFormat of
-                GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
-        let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
-        -- define main forge pipe including file output.
-        -- The final tee forwards the results to be used in the snpCounting-fold
-        let forgePipe = eigenstratProd >->
-                printSNPCopyProgress >->
-                extractPipe >->
-                P.tee outConsumer
-        let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
-        P.foldM sumNonMissingSNPs startAcc return forgePipe
+            let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
+            let outConsumer = case outFormat of
+                    GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
+                    GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
+            let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
+            -- define main forge pipe including file output.
+            -- The final tee forwards the results to be used in the snpCounting-fold
+            let forgePipe = eigenstratProd >->
+                    printSNPCopyProgress >->
+                    extractPipe >->
+                    P.tee outConsumer
+            let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
+            P.foldM sumNonMissingSNPs startAcc return forgePipe
+        ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
     logInfo "Done"
     -- janno (with updated SNP numbers)
     unless (minimal || onlyGeno) $ do

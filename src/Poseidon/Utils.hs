@@ -6,6 +6,8 @@ module Poseidon.Utils (
     usePoseidonLogger,
     PoseidonLogIO,
     LogMode (..),
+    checkFile,
+    getChecksum,
     logWarning,
     logInfo,
     logDebug,
@@ -15,20 +17,25 @@ module Poseidon.Utils (
     logWithEnv
 ) where
 
-import           Colog                  (LogAction (..), Message,
-                                         Severity (..), cfilter, cmapM,
-                                         logTextStderr, msgSeverity, msgText,
-                                         showSeverity, Msg(..), HasLog(..))
+import           Colog                  (HasLog (..), LogAction (..), Message,
+                                         Msg (..), Severity (..), cfilter,
+                                         cmapM, logTextStderr, msgSeverity,
+                                         msgText, showSeverity)
 import           Control.Exception      (Exception, IOException, try)
+import           Control.Exception.Base (SomeException)
 import           Control.Monad          (when)
-import           Control.Monad.IO.Class (liftIO, MonadIO)
-import           Control.Monad.Reader   (ReaderT, runReaderT, asks)
+import           Control.Monad.Catch    (throwM)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
+import qualified Data.ByteString.Lazy   as LB
+import           Data.Digest.Pure.MD5   (md5)
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           System.Console.ANSI    (getCursorPosition)
+import           System.Directory       (doesFileExist)
 import           System.IO              (hPutStrLn, stderr)
 
 type LogEnv = LogAction IO Message
@@ -88,10 +95,10 @@ compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
 
 logMsg :: Severity -> String -> PoseidonLogIO ()
 logMsg sev msg = do
-    {- 
-    Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the 
+    {-
+    Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the
     ReaderT environment by adding more options or parameters to LogEnv, perhaps even the command line options,
-    we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the 
+    we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the
     environment.
     -}
     LogAction logF <- asks getLogAction
@@ -113,13 +120,14 @@ logWithEnv :: (MonadIO m) => LogEnv -> PoseidonLogIO () -> m ()
 logWithEnv logEnv = liftIO . flip runReaderT logEnv
 
 -- | A Poseidon Exception data type with several concrete constructors
-data PoseidonException = 
+data PoseidonException =
     PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
-    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version 
+    | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
-    | PoseidonGenotypeException String -- ^ An exception to represent errors when trying to parse the genotype data
+    | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
+    | PoseidonGenotypeExceptionForward SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
     | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
     | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
     | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
@@ -154,7 +162,9 @@ renderPoseidonException (PoseidonPackageMissingVersionException p) =
 renderPoseidonException (PoseidonIndSearchException s) =
     show s
 renderPoseidonException (PoseidonGenotypeException s) =
-    "Error in the genotype data: " ++ show s
+    "Genotype data structurally inconsistent: " ++ show s
+renderPoseidonException (PoseidonGenotypeExceptionForward e) =
+    "Issues in genotype data parsing: " ++ show e
 renderPoseidonException (PoseidonJannoRowException f i s) =
     "Can't read sample in " ++ f ++ " in line " ++ show i ++ ": " ++ s
 renderPoseidonException (PoseidonJannoConsistencyException f s) =
@@ -189,3 +199,23 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
     ++ " --genoFile: " ++ g
     ++ " --snpFile: "  ++ s
     ++ " --indFile: "  ++ i
+
+-- helper function to check if a file exists
+checkFile :: FilePath -> Maybe String -> IO ()
+checkFile fn maybeChkSum = do
+    fe <- doesFileExist fn
+    if not fe
+    then throwM (PoseidonFileExistenceException fn)
+    else
+        case maybeChkSum of
+            Nothing -> return ()
+            Just chkSum -> do
+                fnChkSum <- getChecksum fn
+                when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
+
+-- helper functions to get the checksum of a file
+getChecksum :: FilePath -> IO String
+getChecksum f = do
+    fileContent <- LB.readFile f
+    let md5Digest = md5 fileContent
+    return $ show md5Digest

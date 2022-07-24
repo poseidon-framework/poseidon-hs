@@ -2,23 +2,25 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList   (findNonExistentEntities,
+import           Poseidon.EntitiesList   (EntityInput, PoseidonEntity,
+                                          findNonExistentEntities,
                                           indInfoFindRelevantPackageNames,
-                                          EntityInput, readEntityInputs, PoseidonEntity)
+                                          readEntityInputs)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (PackageInfo (..), IndividualInfo(..))
-import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO, logInfo, logWarning)
+import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..))
+import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO,
+                                          logInfo, logWarning)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
 import           Conduit                 (ResourceT, await, runResourceT,
                                           sinkFile, yield)
 import           Control.Exception       (throwIO)
-import           Control.Monad           (unless, when, forM_)
+import           Control.Monad           (forM_, unless, when)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (eitherDecode')
 import qualified Data.ByteString         as B
@@ -37,10 +39,10 @@ import           System.FilePath         ((</>))
 import           System.IO               (hFlush, hPutStr, stderr)
 
 data FetchOptions = FetchOptions
-    { _jaBaseDirs      :: [FilePath]
-    , _entityInput     :: [EntityInput PoseidonEntity] -- Empty list = All packages
-    , _remoteURL       :: String
-    , _upgrade         :: Bool
+    { _jaBaseDirs  :: [FilePath]
+    , _entityInput :: [EntityInput PoseidonEntity] -- Empty list = All packages
+    , _remoteURL   :: String
+    , _upgrade     :: Bool
     }
 
 data PackageState = NotLocal
@@ -60,24 +62,24 @@ pacReadOpts = defaultPackageReadOptions {
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> PoseidonLogIO ()
 runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
-    
+
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
-    
+
     logInfo $ "Download directory (will be created if missing): " ++ downloadDir
     liftIO $ createDirectoryIfMissing True downloadDir
 
     -- compile entities
     entities <- readEntityInputs entityInputs
-    
+
     -- load remote package list
     logInfo "Downloading individual list from remote"
     remoteIndList <- liftIO $ simpleHttp (remote ++ "/individuals_all") >>= readServerIndInfo
 
     logInfo "Downloading package list from remote"
     remotePacList <- liftIO $ simpleHttp (remote ++ "/packages") >>= readServerPackageInfo
-    
+
     let nonExistentEntities = findNonExistentEntities entities remoteIndList
 
     if (not . null) nonExistentEntities then do
@@ -91,7 +93,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
         let remotePacTitles = map pTitle remotePacList
         let desiredPacTitles =
                 if null entities then remotePacTitles else indInfoFindRelevantPackageNames entities remoteIndList
-        
+
         let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacTitles) remotePacList
 
         logInfo $ show (length desiredPacTitles) ++ " requested"
@@ -101,7 +103,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
                 -- perform package download depending on local-remote state
                 logInfo $ "Comparing local and remote package " ++ pTitle pac
                 let packageState = determinePackageState allLocalPackages pac
-                handlePackageByState downloadDir tempDir remote upgrade packageState            
+                handlePackageByState downloadDir tempDir remote upgrade packageState
             liftIO $ removeDirectory tempDir
 
     logInfo "Done"

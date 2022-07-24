@@ -2,21 +2,24 @@
 
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (Percent (..), JannoRow (..), JannoList(..))
-import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
-import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection,
-                                         PackageReadOptions (..), defaultPackageReadOptions)
+import           Poseidon.Janno         (JannoList (..), JannoRow (..),
+                                         Percent (..))
+import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonLogIO)
 
 import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (sortBy, nub, group, sort, intercalate)
+import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
-import           Text.Layout.Table      (asciiRoundS, column, def,
-                                         rowsG, tableString, titlesH, expandUntil)
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _summariseBaseDirs :: [FilePath]
+    { _summariseBaseDirs  :: [FilePath]
     , _summariseRawOutput :: Bool
     }
 

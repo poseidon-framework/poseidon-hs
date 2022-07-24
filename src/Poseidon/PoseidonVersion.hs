@@ -1,11 +1,11 @@
 module Poseidon.PoseidonVersion (
-    validPoseidonVersions, 
+    validPoseidonVersions,
     showPoseidonVersion,
     latestPoseidonVersion,
     asVersion
 ) where
 
-import           Data.Version               (Version (..), makeVersion, showVersion)
+import           Data.Version (Version (..), makeVersion, showVersion)
 
 newtype PoseidonVersion = PoseidonVersion Version
     deriving (Show, Eq, Ord)

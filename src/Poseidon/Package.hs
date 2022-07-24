@@ -10,7 +10,6 @@ module Poseidon.Package (
     filterDuplicatePackages,
     findAllPoseidonYmlFiles,
     readPoseidonPackageCollection,
-    getChecksum,
     getJointGenotypeData,
     getJointJanno,
     getJointIndividualInfo,
@@ -36,13 +35,12 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..))
-import           Poseidon.Utils             (PoseidonException (..),
-                                             PoseidonLogIO, logDebug, logInfo,
-                                             logWarning,
-                                             renderPoseidonException, LogEnv,
-                                             logWithEnv)
+import           Poseidon.Utils             (LogEnv, PoseidonException (..),
+                                             PoseidonLogIO, checkFile, logDebug,
+                                             logInfo, logWarning, logWithEnv,
+                                             renderPoseidonException)
 
-import           Control.Exception          (throwIO)
+import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM_, unless, void, when)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -51,9 +49,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
-import qualified Data.ByteString.Lazy       as LB
 import           Data.Char                  (isSpace)
-import           Data.Digest.Pure.MD5       (md5)
 import           Data.Either                (lefts, rights)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
@@ -77,8 +73,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
-import           System.Directory           (doesDirectoryExist, doesFileExist,
-                                             listDirectory)
+import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hFlush,
@@ -349,11 +344,13 @@ readPoseidonPackage opts ymlPath = do
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
     logEnv <- ask
-    when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
-        -- we're using getJointGenotypeData here on a single package to check for SNP consistency
-        -- since that check is only implemented in the jointLoading function, not in the per-package loading
-        (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
-        runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+    liftIO $ catch (
+        when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
+            -- we're using getJointGenotypeData here on a single package to check for SNP consistency
+            -- since that check is only implemented in the jointLoading function, not in the per-package loading
+            (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
+            runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+        ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
     return pac
 
 -- throws exception if any file is missing or checksum is incorrect
@@ -392,24 +389,6 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
             checkFile (d </> genoFile gd) $ genoFileChkSum gd
             checkFile (d </> snpFile gd) $ snpFileChkSum gd
             checkFile (d </> indFile gd) $ indFileChkSum gd
-
-checkFile :: FilePath -> Maybe String -> IO ()
-checkFile fn maybeChkSum = do
-    fe <- doesFileExist fn
-    if not fe
-    then throwM (PoseidonFileExistenceException fn)
-    else
-        case maybeChkSum of
-            Nothing -> return ()
-            Just chkSum -> do
-                fnChkSum <- getChecksum fn
-                when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
-
-getChecksum :: FilePath -> IO String
-getChecksum f = do
-    fileContent <- LB.readFile f
-    let md5Digest = md5 fileContent
-    return $ show md5Digest
 
 checkJannoIndConsistency :: String -> [JannoRow] -> [EigenstratIndEntry] -> IO ()
 checkJannoIndConsistency pacName janno indEntries = do

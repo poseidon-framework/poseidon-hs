@@ -1,8 +1,9 @@
-- V 1.1.0.2: Internal change of the Logging Monad, should not change anything on the user-end.
+- V 1.1.1.0: More complete genotype data error handling to log them properly. Added an option --errLength to truncate overly long error messages
+- V 1.1.0.2: Internal change of the Logging Monad, should not change anything on the user-end
 - V 1.1.0.1: Added Ord instance to PoseidonEntity and SignedEntity
-- V 1.1.0.0: Removed the short options (-r + -g + -s + -i) for the direct genotype data input. Also improved the trident input package and genotype data parsing by making pointless no-input situations impossible.
-- V 1.0.1.1: Output directories in fetch and genoconvert are now created if they don't exist.
-- V 1.0.1.0: Allowing flexible input of entity lists in fetch and forge.
+- V 1.1.0.0: Removed the short options (-r + -g + -s + -i) for the direct genotype data input. Also improved the trident input package and genotype data parsing by making pointless no-input situations impossible
+- V 1.0.1.1: Output directories in fetch and genoconvert are now created if they don't exist
+- V 1.0.1.0: Allowing flexible input of entity lists in fetch and forge
 - V 1.0.0.2: Switched to GHC 8.10.7 and Stackage lts-18.28
 - V 1.0.0.1: Fixed memory leak in genoconvert
 - V 1.0.0.0: Enabled logging with the co-log library
