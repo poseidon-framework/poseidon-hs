@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.0.2
+@version 1.1.1.0
 
 module Poseidon.MathHelpers
 
@@ -129,9 +129,12 @@ PoseidonPackageMissingVersionException :: FilePath -> PoseidonException
 --   populations
 PoseidonIndSearchException :: String -> PoseidonException
 
--- | An exception to represent errors when trying to parse the genotype
---   data
+-- | An exception to represent errors in the genotype data
 PoseidonGenotypeException :: String -> PoseidonException
+
+-- | An exception to represent errors in the genotype data forwarded from
+--   the sequence-formats library
+PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the .janno file
 PoseidonJannoRowException :: FilePath -> Int -> String -> PoseidonException
@@ -192,6 +195,8 @@ SimpleLog :: LogMode
 DefaultLog :: LogMode
 ServerLog :: LogMode
 VerboseLog :: LogMode
+checkFile :: FilePath -> Maybe String -> IO ()
+getChecksum :: FilePath -> IO String
 logWarning :: String -> PoseidonLogIO ()
 logInfo :: String -> PoseidonLogIO ()
 logDebug :: String -> PoseidonLogIO ()
@@ -610,9 +615,12 @@ PoseidonPackageMissingVersionException :: FilePath -> PoseidonException
 --   populations
 PoseidonIndSearchException :: String -> PoseidonException
 
--- | An exception to represent errors when trying to parse the genotype
---   data
+-- | An exception to represent errors in the genotype data
 PoseidonGenotypeException :: String -> PoseidonException
+
+-- | An exception to represent errors in the genotype data forwarded from
+--   the sequence-formats library
+PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the .janno file
 PoseidonJannoRowException :: FilePath -> Int -> String -> PoseidonException
@@ -696,7 +704,6 @@ findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 --   duplication checks. Exceptions lead to skipping packages and
 --   outputting warnings
 readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonLogIO [PoseidonPackage]
-getChecksum :: FilePath -> IO String
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m => LogEnv -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
