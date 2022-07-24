@@ -1,3 +1,11 @@
+### V 1.1.1.0
+
+This is a minor release to improve (internal) error handling.
+
+Errors emerging from parsing genotype data are now properly caught and handled, which should improve the output of `trident` in these cases.
+
+We also added a general option `--errLength` to give you more control over very long error messages. These can emerge with broken/unsuitable genotype data and can even exceed a terminal's scrollback buffer size. `--errLength` sets the default error output to 1500 characters, and allows to increase or decrease that number. `--errLength Inf` removes any constraints on error output length.
+
 ### V 1.1.0.0
 
 This release summarises a number of smaller bugfixes and interface changes, but also introduces one minor breaking interface change, which makes it necessary to iterate the second major version number component.
