@@ -1,3 +1,4 @@
+- V 1.1.1.2: Outsourced optparse-applicative parsers to an own library module. This is helpful for xerxes and other derived tools/libraries
 - V 1.1.1.1: Finally removed the fstats dummy subcommand from trident. It lives in xerxes for a long time already
 - V 1.1.1.0: More complete genotype data error handling to log them properly. Added an option --errLength to truncate overly long error messages
 - V 1.1.0.2: Internal change of the Logging Monad, should not change anything on the user-end
