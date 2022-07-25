@@ -59,8 +59,7 @@ data Options = Options {
   }
 
 data Subcommand =
-      CmdFstats -- dummy option to provide help message to user
-    | CmdInit InitOptions
+      CmdInit InitOptions
     | CmdList ListOptions
     | CmdFetch FetchOptions
     | CmdForge ForgeOptions
@@ -89,7 +88,6 @@ main = do
 
 runCmd :: Subcommand -> PoseidonLogIO ()
 runCmd o = case o of
-    CmdFstats           -> runFstatsDummy
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
     CmdFetch opts       -> runFetch opts
@@ -99,12 +97,6 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
-  where
-    runFstatsDummy = logError fstatsErrorMessage
-
-fstatsErrorMessage :: String
-fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
-    \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> parseErrorLength <*> subcommandParser)) (
@@ -175,13 +167,8 @@ subcommandParser = OP.subparser (
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
-    ) <|>
-    OP.subparser (
-        OP.command "fstats" fstatsOptInfo <>
-        OP.commandGroup "Former analysis command:"
     )
   where
-    fstatsOptInfo = OP.info (pure CmdFstats) (OP.progDesc fstatsErrorMessage) -- dummy for now
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))

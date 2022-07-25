@@ -1,4 +1,4 @@
-### V 1.1.1.0
+### V 1.1.1.1
 
 This is a minor release to improve (internal) error handling.
 
