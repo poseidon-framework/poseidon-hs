@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.1.1
+@version 1.1.1.2
 
 module Poseidon.MathHelpers
 
@@ -874,6 +874,59 @@ ListIndividuals :: [String] -> ListEntity
 data RepoLocationSpec
 RepoLocal :: [FilePath] -> RepoLocationSpec
 RepoRemote :: String -> RepoLocationSpec
+
+module Poseidon.CLI.OptparseApplicativeParsers
+parsePoseidonVersion :: Parser (Maybe Version)
+parseLogMode :: Parser LogMode
+data ErrorLength
+CharInf :: ErrorLength
+CharCount :: Int -> ErrorLength
+parseErrorLength :: Parser ErrorLength
+parseRemoveOld :: Parser Bool
+parseVersionComponent :: Parser VersionComponent
+parseNoChecksumUpdate :: Parser Bool
+parseContributors :: Parser [ContributorSpec]
+parseLog :: Parser String
+parseForce :: Parser Bool
+parseForgeEntityInputs :: Parser [EntityInput SignedEntity]
+parseFetchEntityInputs :: Parser [EntityInput PoseidonEntity]
+parseIgnorePoseidonVersion :: Parser Bool
+parseForgeEntitiesDirect :: Parser SignedEntitiesList
+parseFetchEntitiesDirect :: Parser EntitiesList
+parseForgeEntitiesFromFile :: Parser FilePath
+parseFetchEntitiesFromFile :: Parser FilePath
+parseIntersect :: Parser Bool
+parseRemoteDummy :: Parser ()
+parseOutGenotypeFormat :: Bool -> Parser GenotypeFormatSpec
+parseGenoDataSources :: Parser [GenoDataSource]
+parseGenoDataSource :: Parser GenoDataSource
+parseRepoLocation :: Parser RepoLocationSpec
+parseBasePaths :: Parser [FilePath]
+parseBasePath :: Parser FilePath
+parseInGenotypeDataset :: Parser GenotypeDataSpec
+type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
+parseInGenoOne :: Parser GenoInput
+parseInGenoSep :: Parser GenoInput
+parseInGenotypeFormat :: Parser GenotypeFormatSpec
+parseInGenoFile :: Parser FilePath
+parseInSnpFile :: Parser FilePath
+parseInIndFile :: Parser FilePath
+parseGenotypeSNPSet :: Parser (Maybe SNPSetSpec)
+parseOutPackagePath :: Parser FilePath
+parseMaybeOutPackagePath :: Parser (Maybe FilePath)
+parseMaybeOutPackageName :: Parser (Maybe String)
+parseMakeMinimalPackage :: Parser Bool
+parseOutOnlyGeno :: Parser Bool
+parseNoExtract :: Parser Bool
+parseMaybeSnpFile :: Parser (Maybe FilePath)
+parseListEntity :: Parser ListEntity
+parseRawOutput :: Parser Bool
+parseVerbose :: Parser Bool
+parseIgnoreGeno :: Parser Bool
+parseNoExitCode :: Parser Bool
+parseRemoteURL :: Parser String
+parseUpgrade :: Parser Bool
+instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
 
 module Poseidon.CLI.Genoconvert
 
