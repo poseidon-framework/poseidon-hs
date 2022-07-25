@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.1.1.1
+version:             1.1.1.2
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -19,7 +19,8 @@ library
                         Poseidon.CLI.List, 
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
-                        Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert
+                        Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
+                        Poseidon.CLI.OptparseApplicativeParsers
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
