@@ -72,13 +72,11 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
-import           System.IO                  (IOMode (ReadMode), hFlush,
-                                             hGetContents, hPutStr, hPutStrLn,
-                                             stderr, withFile)
+import           System.IO                  (IOMode (ReadMode), hGetContents,
+                                             withFile)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -247,7 +245,7 @@ readPoseidonPackageCollection opts dirs = do
                     logInfo "Checking Poseidon versions... "
                     filterByPoseidonVersion posFilesAllVersions
     logInfo "Initializing packages... "
-    eitherPackages <- mapM (tryDecodePoseidonPackage (_readOptVerbose opts)) $ zip [1..] posFiles
+    eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
     -- notifying the users of package problems
     unless (null . lefts $ eitherPackages) $ do
         logWarning "Some packages were skipped due to issues:"
@@ -299,16 +297,9 @@ readPoseidonPackageCollection opts dirs = do
             readFile' filename = withFile filename ReadMode $ \handle -> do
                 theContent <- hGetContents handle
                 mapM return theContent
-    tryDecodePoseidonPackage :: Bool -> (Integer, FilePath) -> PoseidonLogIO (Either PoseidonException PoseidonPackage)
-    tryDecodePoseidonPackage False (numberPackage, path) = do
-        liftIO $ do
-            hClearLine stderr
-            hSetCursorColumn stderr 0
-            hPutStr stderr $ "> " ++ show numberPackage ++ " "
-            hFlush stderr
-        try . readPoseidonPackage opts $ path
-    tryDecodePoseidonPackage True (numberPackage, path) = do
-        liftIO $ hPutStrLn stderr $ "> " ++ show numberPackage ++ ": " ++ path
+    tryDecodePoseidonPackage :: (Integer, FilePath) -> PoseidonLogIO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage (numberPackage, path) = do
+        logInfo $ "Package " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
