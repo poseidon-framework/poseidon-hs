@@ -266,12 +266,14 @@ printSNPCopyProgress logEnv = do
     where
         logProgress :: Int -> PoseidonLogIO ()
         logProgress c
-            | c >= 1000000 &&                c `rem` 1000000 == 0 = logCommand c
-            | c >= 100000  && c < 1000000 && c `rem` 100000  == 0 = logCommand c
-            | c >= 10000   && c < 100000  && c `rem` 10000   == 0 = logCommand c
-            |                 c < 10000   && c `rem` 1000    == 0 = logCommand c
+            | c >  1000000 &&                c `rem` 1000000 == 0 = logInfo $ "SNPs: " ++ show c
+            | c == 1000000                                        = logInfo $ "SNPs: " ++ show c ++ "+"
+            | c >  100000  && c < 1000000 && c `rem` 100000  == 0 = logInfo $ "SNPs: " ++ show c
+            | c == 100000                                         = logInfo $ "SNPs: " ++ show c ++ "+"
+            | c >  10000   && c < 100000  && c `rem` 10000   == 0 = logInfo $ "SNPs: " ++ show c
+            | c == 10000                                          = logInfo $ "SNPs: " ++ show c ++ "+"
+            |                 c < 10000   && c `rem` 1000    == 0 = logInfo $ "SNPs: " ++ show c
             | otherwise = return ()
-        logCommand c = logInfo $ "SNPs: " ++ show c
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
