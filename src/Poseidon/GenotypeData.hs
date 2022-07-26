@@ -3,10 +3,10 @@
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (LogEnv, PoseidonException (..),
-                                             checkFile, logDebug, logWithEnv)
+                                             checkFile, logDebug, logWithEnv, logInfo, PoseidonLogIO)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, when)
+import           Control.Monad              (forM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -24,9 +24,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
-import           System.IO                  (hFlush, hPutStr, stderr)
 
 data GenoDataSource = PacBaseDir
     { getPacBaseDirs :: FilePath
@@ -256,18 +254,23 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: (MonadIO m) => Pipe a a m ()
-printSNPCopyProgress = do
+printSNPCopyProgress :: (MonadIO m) => LogEnv -> Pipe a a m ()
+printSNPCopyProgress logEnv = do
     counterRef <- liftIO $ newIORef (0 :: Int)
     for cat $ \val -> do
         n <- liftIO $ readIORef counterRef
-        when (n `rem` 1000 == 0) $ do
-            liftIO $ hClearLine stderr
-            liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
-            liftIO $ hFlush stderr
+        logWithEnv logEnv $ logProgress n
         liftIO $ modifyIORef counterRef (+1)
         yield val
+    where
+        logProgress :: Int -> PoseidonLogIO ()
+        logProgress c
+            | c >= 1000000 &&                c `rem` 1000000 == 0 = logCommand c
+            | c >= 100000  && c < 1000000 && c `rem` 100000  == 0 = logCommand c
+            | c >= 10000   && c < 100000  && c `rem` 10000   == 0 = logCommand c
+            |                 c < 10000   && c `rem` 1000    == 0 = logCommand c
+            | otherwise = return ()
+        logCommand c = logInfo $ "SNPs: " ++ show c
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])

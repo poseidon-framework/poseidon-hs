@@ -184,7 +184,7 @@ runForge (
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->
-                    printSNPCopyProgress >->
+                    printSNPCopyProgress logEnv >->
                     extractPipe >->
                     P.tee outConsumer
             let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
