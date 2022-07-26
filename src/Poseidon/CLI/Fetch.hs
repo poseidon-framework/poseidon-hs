@@ -13,7 +13,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..))
 import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO,
-                                          logInfo, logWarning)
+                                          logInfo, logWarning, LogEnv, logWithEnv)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -22,6 +22,7 @@ import           Conduit                 (ResourceT, await, runResourceT,
 import           Control.Exception       (throwIO)
 import           Control.Monad           (forM_, unless, when)
 import           Control.Monad.IO.Class  (liftIO)
+import           Control.Monad.Reader    (ask)
 import           Data.Aeson              (eitherDecode')
 import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
@@ -32,11 +33,9 @@ import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
                                           simpleHttp, tlsManagerSettings)
 import           Network.HTTP.Types      (hContentLength)
-import           System.Console.ANSI     (hClearLine, hSetCursorColumn)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
-import           System.IO               (hFlush, hPutStr, stderr)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]
@@ -162,9 +161,10 @@ printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
-    logInfo $ padString 40 pacName
+    logInfo $ padString 40 pacName ++ "now downloading"
+    logEnv <- ask
     liftIO $ do
-        downloadPackage tempDir remote pacName
+        downloadPackage logEnv tempDir remote pacName
         unzipPackage (tempDir </> pacName) (baseDir </> pacName)
         removeFile (tempDir </> pacName)
 
@@ -174,8 +174,8 @@ unzipPackage zip_ outDir = do
     let archive = toArchive archiveBS
     extractFilesFromArchive [OptRecursive, OptDestination outDir] archive
 
-downloadPackage :: FilePath -> String -> String -> IO ()
-downloadPackage pathToRepo remote pacName = do
+downloadPackage :: LogEnv -> FilePath -> String -> String -> IO ()
+downloadPackage logEnv pathToRepo remote pacName = do
     downloadManager <- newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     runResourceT $ do
@@ -183,8 +183,9 @@ downloadPackage pathToRepo remote pacName = do
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
+        logWithEnv logEnv $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"
         sealConduitT (responseBody response) $$+-
-            printDownloadProgress fileSizeMB .|
+            printDownloadProgress logEnv fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
     return ()
 
@@ -194,8 +195,8 @@ padString n s
     | length s < n  = s ++ replicate (n - length s) ' '
     | otherwise     = s
 
-printDownloadProgress :: Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printDownloadProgress fileSizeMB = loop 0 0
+printDownloadProgress :: LogEnv -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printDownloadProgress logEnv fileSizeMB = loop 0 0
     where
         loop loadedB loadedMB = do
             x <- await
@@ -214,9 +215,6 @@ printDownloadProgress fileSizeMB = loop 0 0
                                       else loadedMB
                     when (loadedMB /= newLoadedMB) $ do
                         let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
-                        liftIO $ hClearLine stderr
-                        liftIO $ hSetCursorColumn stderr 0
-                        liftIO $ hPutStr stderr ("> " ++ show fileSizeMB ++ "MB > " ++ roundToStr 1 leadedPercent ++ "% ")
-                        liftIO $ hFlush stderr
+                        logWithEnv logEnv $ logInfo (show curLoadedMB ++ "MB - " ++ roundToStr 1 leadedPercent ++ "% ")
                     yield x
                     loop newLoadedB newLoadedMB
