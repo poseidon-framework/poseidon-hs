@@ -12,8 +12,9 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..))
-import           Poseidon.Utils          (PoseidonException (..), PoseidonLogIO,
-                                          logInfo, logWarning, LogEnv, logWithEnv)
+import           Poseidon.Utils          (LogEnv, PoseidonException (..),
+                                          PoseidonLogIO, logInfo, logWarning,
+                                          logWithEnv)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
