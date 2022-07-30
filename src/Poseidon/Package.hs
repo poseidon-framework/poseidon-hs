@@ -299,7 +299,7 @@ readPoseidonPackageCollection opts dirs = do
                 mapM return theContent
     tryDecodePoseidonPackage :: (Integer, FilePath) -> PoseidonLogIO (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage (numberPackage, path) = do
-        logInfo $ "Package " ++ show numberPackage ++ ": " ++ path
+        logDebug $ "Package " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
