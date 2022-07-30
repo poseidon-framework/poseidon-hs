@@ -38,6 +38,7 @@ import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.List                   (intercalate, nub, (\\))
 import           Data.Maybe                  (mapMaybe)
+import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
@@ -50,7 +51,6 @@ import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
 import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (takeBaseName, (<.>), (</>))
-import Data.Time (getCurrentTime)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions

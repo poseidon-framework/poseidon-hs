@@ -20,6 +20,7 @@ import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
 import           Control.Monad.Reader       (ask)
 import           Data.Maybe                 (isJust)
+import           Data.Time                  (getCurrentTime)
 import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
@@ -27,7 +28,6 @@ import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile)
 import           System.FilePath            ((<.>), (</>))
-import Data.Time (getCurrentTime)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions

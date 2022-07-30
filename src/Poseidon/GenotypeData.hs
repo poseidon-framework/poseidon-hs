@@ -17,6 +17,10 @@ import           Data.IORef                 (modifyIORef, newIORef, readIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
+import           Data.Time                  (NominalDiffTime, UTCTime,
+                                             defaultTimeLocale, diffUTCTime,
+                                             formatTime, getCurrentTime)
+import           Data.Time.Clock.POSIX      (posixSecondsToUTCTime)
 import qualified Data.Vector                as V
 import           Pipes                      (Pipe, Producer, cat, for, yield)
 import           Pipes.Safe                 (MonadSafe)
@@ -26,8 +30,6 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.FilePath            ((</>))
-import Data.Time (getCurrentTime, UTCTime, NominalDiffTime, diffUTCTime, defaultTimeLocale, formatTime)
-import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 
 data GenoDataSource = PacBaseDir
     { getPacBaseDirs :: FilePath
