@@ -1174,47 +1174,50 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span id="line-306"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe SNPSetSpec)
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-string">&quot;the snpSet of the new package: 1240K, HumanOrigins or Other. Default: Other&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe SNPSetSpec)
+</span><span class="hs-string">&quot;the snpSet of the package: 1240K, HumanOrigins or Other. \
+            \(only relevant for data input with -p|--genoOne or --genoFile + --snpFile + --indFile, \
+            \because the packages in a -d|--baseDir already have this information in their respective \
+            \POSEIDON.yml files) Default: Other&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe SNPSetSpec)
 -&gt; Mod OptionFields (Maybe SNPSetSpec)
 -&gt; Mod OptionFields (Maybe SNPSetSpec)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-307"></span><span>    </span><span class="annot"><span class="annottext">Maybe SNPSetSpec -&gt; Mod OptionFields (Maybe SNPSetSpec)
+</span><span id="line-310"></span><span>    </span><span class="annot"><span class="annottext">Maybe SNPSetSpec -&gt; Mod OptionFields (Maybe SNPSetSpec)
 forall (f :: * -&gt; *) a. HasValue f =&gt; a -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.value</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SNPSetSpec -&gt; Maybe SNPSetSpec
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">SNPSetSpec
 </span><a href="Poseidon.GenotypeData.html#SNPSetOther"><span class="hs-identifier hs-var">SNPSetOther</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-308"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-309"></span><span>    </span><span class="annot"><a href="#local-6989586621679157227"><span class="hs-identifier hs-type">readSnpSet</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#SNPSetSpec"><span class="hs-identifier hs-type">SNPSetSpec</span></a></span><span>
-</span><span id="line-310"></span><span>    </span><span id="local-6989586621679157227"><span class="annot"><span class="annottext">readSnpSet :: String -&gt; Either String SNPSetSpec
+</span><span id="line-311"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-312"></span><span>    </span><span class="annot"><a href="#local-6989586621679157227"><span class="hs-identifier hs-type">readSnpSet</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#SNPSetSpec"><span class="hs-identifier hs-type">SNPSetSpec</span></a></span><span>
+</span><span id="line-313"></span><span>    </span><span id="local-6989586621679157227"><span class="annot"><span class="annottext">readSnpSet :: String -&gt; Either String SNPSetSpec
 </span><a href="#local-6989586621679157227"><span class="hs-identifier hs-var hs-var">readSnpSet</span></a></span></span><span> </span><span id="local-6989586621679157225"><span class="annot"><span class="annottext">String
 </span><a href="#local-6989586621679157225"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
 </span><a href="#local-6989586621679157225"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-311"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span id="line-314"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;1240K&quot;</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SNPSetSpec -&gt; Either String SNPSetSpec
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">SNPSetSpec
 </span><a href="Poseidon.GenotypeData.html#SNPSet1240K"><span class="hs-identifier hs-var">SNPSet1240K</span></a></span><span>
-</span><span id="line-312"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span id="line-315"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;HumanOrigins&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SNPSetSpec -&gt; Either String SNPSetSpec
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">SNPSetSpec
 </span><a href="Poseidon.GenotypeData.html#SNPSetHumanOrigins"><span class="hs-identifier hs-var">SNPSetHumanOrigins</span></a></span><span>
-</span><span id="line-313"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span id="line-316"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Other&quot;</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SNPSetSpec -&gt; Either String SNPSetSpec
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">SNPSetSpec
 </span><a href="Poseidon.GenotypeData.html#SNPSetOther"><span class="hs-identifier hs-var">SNPSetOther</span></a></span><span>
-</span><span id="line-314"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span id="line-317"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String SNPSetSpec
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Could not read snpSet. Must be \&quot;1240K\&quot;, \
                                 \\&quot;HumanOrigins\&quot; or \&quot;Other\&quot;&quot;</span></span><span>
-</span><span id="line-316"></span><span>
-</span><span id="line-317"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutPackagePath"><span class="hs-identifier hs-type">parseOutPackagePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
-</span><span id="line-318"></span><span id="parseOutPackagePath"><span class="annot"><span class="annottext">parseOutPackagePath :: Parser String
+</span><span id="line-319"></span><span>
+</span><span id="line-320"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutPackagePath"><span class="hs-identifier hs-type">parseOutPackagePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-321"></span><span id="parseOutPackagePath"><span class="annot"><span class="annottext">parseOutPackagePath :: Parser String
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutPackagePath"><span class="hs-identifier hs-var hs-var">parseOutPackagePath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String -&gt; Parser String
 forall s. IsString s =&gt; Mod OptionFields s -&gt; Parser s
 </span><span class="hs-identifier hs-var">OP.strOption</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
@@ -1224,20 +1227,20 @@ forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 -&gt; Mod OptionFields String -&gt; Mod OptionFields String
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-319"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields String
+</span><span id="line-322"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.short</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'o'</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String
 -&gt; Mod OptionFields String -&gt; Mod OptionFields String
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-320"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
+</span><span id="line-323"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;the output package directory path&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-321"></span><span>
-</span><span id="line-322"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeOutPackagePath"><span class="hs-identifier hs-type">parseMaybeOutPackagePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">)</span><span>
-</span><span id="line-323"></span><span id="parseMaybeOutPackagePath"><span class="annot"><span class="annottext">parseMaybeOutPackagePath :: Parser (Maybe String)
+</span><span id="line-324"></span><span>
+</span><span id="line-325"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeOutPackagePath"><span class="hs-identifier hs-type">parseMaybeOutPackagePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-326"></span><span id="parseMaybeOutPackagePath"><span class="annot"><span class="annottext">parseMaybeOutPackagePath :: Parser (Maybe String)
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeOutPackagePath"><span class="hs-identifier hs-var hs-var">parseMaybeOutPackagePath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReadM (Maybe String)
 -&gt; Mod OptionFields (Maybe String) -&gt; Parser (Maybe String)
 forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
@@ -1248,7 +1251,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ReadM String
 forall s. IsString s =&gt; ReadM s
 </span><span class="hs-identifier hs-var">OP.str</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-324"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-327"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.short</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'o'</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe String)
@@ -1256,7 +1259,7 @@ forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-325"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-328"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;outPackagePath&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe String)
@@ -1264,7 +1267,7 @@ forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-326"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-329"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;the output package directory path - this is optional: If no path is provided, \
@@ -1274,15 +1277,15 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-329"></span><span>    </span><span class="annot"><span class="annottext">Maybe String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-332"></span><span>    </span><span class="annot"><span class="annottext">Maybe String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. HasValue f =&gt; a -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.value</span></span><span> </span><span class="annot"><span class="annottext">Maybe String
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-330"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-331"></span><span>
-</span><span id="line-332"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeOutPackageName"><span class="hs-identifier hs-type">parseMaybeOutPackageName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
-</span><span id="line-333"></span><span id="parseMaybeOutPackageName"><span class="annot"><span class="annottext">parseMaybeOutPackageName :: Parser (Maybe String)
+</span><span id="line-333"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-334"></span><span>
+</span><span id="line-335"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeOutPackageName"><span class="hs-identifier hs-type">parseMaybeOutPackageName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-336"></span><span id="parseMaybeOutPackageName"><span class="annot"><span class="annottext">parseMaybeOutPackageName :: Parser (Maybe String)
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeOutPackageName"><span class="hs-identifier hs-var hs-var">parseMaybeOutPackageName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReadM (Maybe String)
 -&gt; Mod OptionFields (Maybe String) -&gt; Parser (Maybe String)
 forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
@@ -1293,7 +1296,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ReadM String
 forall s. IsString s =&gt; ReadM s
 </span><span class="hs-identifier hs-var">OP.str</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-334"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-337"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.short</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'n'</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe String)
@@ -1301,7 +1304,7 @@ forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-335"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-338"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;outPackageName&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe String)
@@ -1309,7 +1312,7 @@ forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-336"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-339"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;the output package name - this is optional: If no name is provided, \
@@ -1319,15 +1322,15 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-339"></span><span>    </span><span class="annot"><span class="annottext">Maybe String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-342"></span><span>    </span><span class="annot"><span class="annottext">Maybe String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. HasValue f =&gt; a -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.value</span></span><span> </span><span class="annot"><span class="annottext">Maybe String
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-340"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-341"></span><span>
-</span><span id="line-342"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMakeMinimalPackage"><span class="hs-identifier hs-type">parseMakeMinimalPackage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-343"></span><span id="parseMakeMinimalPackage"><span class="annot"><span class="annottext">parseMakeMinimalPackage :: Parser Bool
+</span><span id="line-343"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-344"></span><span>
+</span><span id="line-345"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMakeMinimalPackage"><span class="hs-identifier hs-type">parseMakeMinimalPackage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-346"></span><span id="parseMakeMinimalPackage"><span class="annot"><span class="annottext">parseMakeMinimalPackage :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMakeMinimalPackage"><span class="hs-identifier hs-var hs-var">parseMakeMinimalPackage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
@@ -1335,13 +1338,13 @@ forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-string">&quot;minimal&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-344"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-347"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;should only a minimal output package be created?&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-345"></span><span>
-</span><span id="line-346"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutOnlyGeno"><span class="hs-identifier hs-type">parseOutOnlyGeno</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-347"></span><span id="parseOutOnlyGeno"><span class="annot"><span class="annottext">parseOutOnlyGeno :: Parser Bool
+</span><span id="line-348"></span><span>
+</span><span id="line-349"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutOnlyGeno"><span class="hs-identifier hs-type">parseOutOnlyGeno</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-350"></span><span id="parseOutOnlyGeno"><span class="annot"><span class="annottext">parseOutOnlyGeno :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutOnlyGeno"><span class="hs-identifier hs-var hs-var">parseOutOnlyGeno</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
@@ -1349,13 +1352,13 @@ forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-string">&quot;onlyGeno&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-348"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-351"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;should only the resulting genotype data be returned? This means the output will not be a Poseidon package&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-349"></span><span>
-</span><span id="line-350"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseNoExtract"><span class="hs-identifier hs-type">parseNoExtract</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-351"></span><span id="parseNoExtract"><span class="annot"><span class="annottext">parseNoExtract :: Parser Bool
+</span><span id="line-352"></span><span>
+</span><span id="line-353"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseNoExtract"><span class="hs-identifier hs-type">parseNoExtract</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-354"></span><span id="parseNoExtract"><span class="annot"><span class="annottext">parseNoExtract :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseNoExtract"><span class="hs-identifier hs-var hs-var">parseNoExtract</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
@@ -1371,9 +1374,9 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
     \almost entire packages. \
     \Note that this will also ignore any ordering in the output groups/individuals. With this option active, \
     \individuals from the relevant packages will just be written in the order that they appear in the original packages.&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-357"></span><span>
-</span><span id="line-358"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeSnpFile"><span class="hs-identifier hs-type">parseMaybeSnpFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">)</span><span>
-</span><span id="line-359"></span><span id="parseMaybeSnpFile"><span class="annot"><span class="annottext">parseMaybeSnpFile :: Parser (Maybe String)
+</span><span id="line-360"></span><span>
+</span><span id="line-361"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeSnpFile"><span class="hs-identifier hs-type">parseMaybeSnpFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-362"></span><span id="parseMaybeSnpFile"><span class="annot"><span class="annottext">parseMaybeSnpFile :: Parser (Maybe String)
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseMaybeSnpFile"><span class="hs-identifier hs-var hs-var">parseMaybeSnpFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReadM (Maybe String)
 -&gt; Mod OptionFields (Maybe String) -&gt; Parser (Maybe String)
 forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
@@ -1399,7 +1402,7 @@ forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 -&gt; Mod OptionFields (Maybe String)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-360"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
+</span><span id="line-363"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe String)
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;To extract specific SNPs during this forge operation, provide a Snp file. \
@@ -1407,9 +1410,9 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
     \When this option is set, the output package will have exactly the SNPs listed in this file. Any SNP not \
     \listed in the file will be excluded. If option '--intersect' is also set, only the SNPs overlapping between the SNP file \
     \and the forged packages are output.&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-365"></span><span>
-</span><span id="line-366"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseListEntity"><span class="hs-identifier hs-type">parseListEntity</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.List.html#ListEntity"><span class="hs-identifier hs-type">ListEntity</span></a></span><span>
-</span><span id="line-367"></span><span id="parseListEntity"><span class="annot"><span class="annottext">parseListEntity :: Parser ListEntity
+</span><span id="line-368"></span><span>
+</span><span id="line-369"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseListEntity"><span class="hs-identifier hs-type">parseListEntity</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.List.html#ListEntity"><span class="hs-identifier hs-type">ListEntity</span></a></span><span>
+</span><span id="line-370"></span><span id="parseListEntity"><span class="annot"><span class="annottext">parseListEntity :: Parser ListEntity
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseListEntity"><span class="hs-identifier hs-var hs-var">parseListEntity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser ListEntity
 </span><a href="#local-6989586621679157213"><span class="hs-identifier hs-var">parseListPackages</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity -&gt; Parser ListEntity -&gt; Parser ListEntity
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
@@ -1421,8 +1424,8 @@ forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
 </span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity
 </span><a href="#local-6989586621679157210"><span class="hs-identifier hs-var">parseListIndividualsExtraCols</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-368"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-369"></span><span>    </span><span id="local-6989586621679157213"><span class="annot"><span class="annottext">parseListPackages :: Parser ListEntity
+</span><span id="line-371"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-372"></span><span>    </span><span id="local-6989586621679157213"><span class="annot"><span class="annottext">parseListPackages :: Parser ListEntity
 </span><a href="#local-6989586621679157213"><span class="hs-identifier hs-var hs-var">parseListPackages</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListEntity -&gt; Mod FlagFields ListEntity -&gt; Parser ListEntity
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="annot"><span class="annottext">ListEntity
@@ -1436,7 +1439,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list all packages&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-370"></span><span>    </span><span id="local-6989586621679157212"><span class="annot"><span class="annottext">parseListGroups :: Parser ListEntity
+</span><span id="line-373"></span><span>    </span><span id="local-6989586621679157212"><span class="annot"><span class="annottext">parseListGroups :: Parser ListEntity
 </span><a href="#local-6989586621679157212"><span class="hs-identifier hs-var hs-var">parseListGroups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListEntity -&gt; Mod FlagFields ListEntity -&gt; Parser ListEntity
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="annot"><span class="annottext">ListEntity
@@ -1450,7 +1453,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list all groups, ignoring any group names after the first as specified in the Janno-file&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-371"></span><span>    </span><span id="local-6989586621679157211"><span class="annot"><span class="annottext">parseListIndividualsDummy :: Parser ()
+</span><span id="line-374"></span><span>    </span><span id="local-6989586621679157211"><span class="annot"><span class="annottext">parseListIndividualsDummy :: Parser ()
 </span><a href="#local-6989586621679157211"><span class="hs-identifier hs-var hs-var">parseListIndividualsDummy</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; Mod FlagFields () -&gt; Parser ()
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields ()
@@ -1462,7 +1465,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list individuals&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-372"></span><span>    </span><span id="local-6989586621679157210"><span class="annot"><span class="annottext">parseListIndividualsExtraCols :: Parser ListEntity
+</span><span id="line-375"></span><span>    </span><span id="local-6989586621679157210"><span class="annot"><span class="annottext">parseListIndividualsExtraCols :: Parser ListEntity
 </span><a href="#local-6989586621679157210"><span class="hs-identifier hs-var hs-var">parseListIndividualsExtraCols</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; ListEntity
 </span><a href="Poseidon.CLI.List.html#ListIndividuals"><span class="hs-identifier hs-var">ListIndividuals</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; ListEntity) -&gt; Parser [String] -&gt; Parser ListEntity
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
@@ -1470,7 +1473,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
 </span><span class="hs-identifier hs-var">OP.many</span></span><span> </span><span class="annot"><span class="annottext">Parser String
 </span><a href="#local-6989586621679157206"><span class="hs-identifier hs-var">parseExtraCol</span></a></span><span>
-</span><span id="line-373"></span><span>    </span><span id="local-6989586621679157206"><span class="annot"><span class="annottext">parseExtraCol :: Parser String
+</span><span id="line-376"></span><span>    </span><span id="local-6989586621679157206"><span class="annot"><span class="annottext">parseExtraCol :: Parser String
 </span><a href="#local-6989586621679157206"><span class="hs-identifier hs-var hs-var">parseExtraCol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String -&gt; Parser String
 forall s. IsString s =&gt; Mod OptionFields s -&gt; Parser s
 </span><span class="hs-identifier hs-var">OP.strOption</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields String
@@ -1492,122 +1495,122 @@ forall (f :: * -&gt; *) a. HasMetavar f =&gt; String -&gt; Mod f a
 -&gt; Mod OptionFields String -&gt; Mod OptionFields String
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-374"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
+</span><span id="line-377"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list additional fields from the janno files, using the Janno column heading name, such as \
         \Country, Site, Date_C14_Uncal_BP, Endogenous, ...&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-376"></span><span>
-</span><span id="line-377"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseRawOutput"><span class="hs-identifier hs-type">parseRawOutput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-378"></span><span id="parseRawOutput"><span class="annot"><span class="annottext">parseRawOutput :: Parser Bool
+</span><span id="line-379"></span><span>
+</span><span id="line-380"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseRawOutput"><span class="hs-identifier hs-type">parseRawOutput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-381"></span><span id="parseRawOutput"><span class="annot"><span class="annottext">parseRawOutput :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseRawOutput"><span class="hs-identifier hs-var hs-var">parseRawOutput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-379"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-382"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;raw&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-380"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-383"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;output table as tsv without header. Useful for piping into grep or awk&quot;</span></span><span>
-</span><span id="line-381"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-382"></span><span>
-</span><span id="line-383"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseVerbose"><span class="hs-identifier hs-type">parseVerbose</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-384"></span><span id="parseVerbose"><span class="annot"><span class="annottext">parseVerbose :: Parser Bool
+</span><span id="line-384"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-385"></span><span>
+</span><span id="line-386"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseVerbose"><span class="hs-identifier hs-type">parseVerbose</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-387"></span><span id="parseVerbose"><span class="annot"><span class="annottext">parseVerbose :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseVerbose"><span class="hs-identifier hs-var hs-var">parseVerbose</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-385"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-388"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;verbose&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-386"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-389"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;print more output to the command line&quot;</span></span><span>
-</span><span id="line-387"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-388"></span><span>
-</span><span id="line-389"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseIgnoreGeno"><span class="hs-identifier hs-type">parseIgnoreGeno</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-390"></span><span id="parseIgnoreGeno"><span class="annot"><span class="annottext">parseIgnoreGeno :: Parser Bool
+</span><span id="line-390"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-391"></span><span>
+</span><span id="line-392"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseIgnoreGeno"><span class="hs-identifier hs-type">parseIgnoreGeno</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-393"></span><span id="parseIgnoreGeno"><span class="annot"><span class="annottext">parseIgnoreGeno :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseIgnoreGeno"><span class="hs-identifier hs-var hs-var">parseIgnoreGeno</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-391"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-394"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;ignoreGeno&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-392"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-395"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;ignore SNP and GenoFile&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-393"></span><span>    </span><span class="annot"><span class="annottext">Mod FlagFields Bool
+</span><span id="line-396"></span><span>    </span><span class="annot"><span class="annottext">Mod FlagFields Bool
 forall (f :: * -&gt; *) a. Mod f a
 </span><span class="hs-identifier hs-var">OP.hidden</span></span><span>
-</span><span id="line-394"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-395"></span><span>
-</span><span id="line-396"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseNoExitCode"><span class="hs-identifier hs-type">parseNoExitCode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-397"></span><span id="parseNoExitCode"><span class="annot"><span class="annottext">parseNoExitCode :: Parser Bool
+</span><span id="line-397"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-398"></span><span>
+</span><span id="line-399"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseNoExitCode"><span class="hs-identifier hs-type">parseNoExitCode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-400"></span><span id="parseNoExitCode"><span class="annot"><span class="annottext">parseNoExitCode :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseNoExitCode"><span class="hs-identifier hs-var hs-var">parseNoExitCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-398"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-401"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;noExitCode&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-399"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-402"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;do not produce an explicit exit code&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-400"></span><span>    </span><span class="annot"><span class="annottext">Mod FlagFields Bool
+</span><span id="line-403"></span><span>    </span><span class="annot"><span class="annottext">Mod FlagFields Bool
 forall (f :: * -&gt; *) a. Mod f a
 </span><span class="hs-identifier hs-var">OP.hidden</span></span><span>
-</span><span id="line-401"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-402"></span><span>
-</span><span id="line-403"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseRemoteURL"><span class="hs-identifier hs-type">parseRemoteURL</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
-</span><span id="line-404"></span><span id="parseRemoteURL"><span class="annot"><span class="annottext">parseRemoteURL :: Parser String
+</span><span id="line-404"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-405"></span><span>
+</span><span id="line-406"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseRemoteURL"><span class="hs-identifier hs-type">parseRemoteURL</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-407"></span><span id="parseRemoteURL"><span class="annot"><span class="annottext">parseRemoteURL :: Parser String
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseRemoteURL"><span class="hs-identifier hs-var hs-var">parseRemoteURL</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String -&gt; Parser String
 forall s. IsString s =&gt; Mod OptionFields s -&gt; Parser s
 </span><span class="hs-identifier hs-var">OP.strOption</span></span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-405"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
+</span><span id="line-408"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;remoteURL&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String
 -&gt; Mod OptionFields String -&gt; Mod OptionFields String
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-406"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
+</span><span id="line-409"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;URL of the remote Poseidon server&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String
 -&gt; Mod OptionFields String -&gt; Mod OptionFields String
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-407"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
+</span><span id="line-410"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. HasValue f =&gt; a -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.value</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;https://c107-224.cloud.gwdg.de&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String
 -&gt; Mod OptionFields String -&gt; Mod OptionFields String
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-408"></span><span>    </span><span class="annot"><span class="annottext">Mod OptionFields String
+</span><span id="line-411"></span><span>    </span><span class="annot"><span class="annottext">Mod OptionFields String
 forall a (f :: * -&gt; *). Show a =&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.showDefault</span></span><span>
-</span><span id="line-409"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-410"></span><span>
-</span><span id="line-411"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseUpgrade"><span class="hs-identifier hs-type">parseUpgrade</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-412"></span><span id="parseUpgrade"><span class="annot"><span class="annottext">parseUpgrade :: Parser Bool
+</span><span id="line-412"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-413"></span><span>
+</span><span id="line-414"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseUpgrade"><span class="hs-identifier hs-type">parseUpgrade</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-415"></span><span id="parseUpgrade"><span class="annot"><span class="annottext">parseUpgrade :: Parser Bool
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseUpgrade"><span class="hs-identifier hs-var hs-var">parseUpgrade</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Parser Bool
 </span><span class="hs-identifier hs-var">OP.switch</span></span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-413"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-416"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;upgrade&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
@@ -1618,9 +1621,9 @@ forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 </span><span class="hs-char">'u'</span></span><span> </span><span class="annot"><span class="annottext">Mod FlagFields Bool -&gt; Mod FlagFields Bool -&gt; Mod FlagFields Bool
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>
-</span><span id="line-414"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
+</span><span id="line-417"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields Bool
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;overwrite outdated local package versions&quot;</span></span><span>
-</span><span id="line-415"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-416"></span></pre></body></html>
+</span><span id="line-418"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-419"></span></pre></body></html>
