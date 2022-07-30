@@ -50,6 +50,7 @@ import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
 import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (takeBaseName, (<.>), (</>))
+import Data.Time (getCurrentTime)
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -170,6 +171,7 @@ runForge (
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
     logEnv <- ask
+    currentTime <- liftIO getCurrentTime
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
@@ -184,7 +186,7 @@ runForge (
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->
-                    printSNPCopyProgress logEnv >->
+                    printSNPCopyProgress logEnv currentTime >->
                     extractPipe >->
                     P.tee outConsumer
             let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0

@@ -27,6 +27,7 @@ import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile)
 import           System.FilePath            ((<.>), (</>))
+import Data.Time (getCurrentTime)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
@@ -89,13 +90,14 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         else do
             logInfo "Processing SNPs..."
             logEnv <- ask
+            currentTime <- liftIO getCurrentTime
             liftIO $ catch (
                 runSafeT $ do
                     (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
                     let outConsumer = case outFormat of
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                             GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-                    runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv >-> outConsumer
+                    runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
                 ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file

@@ -26,6 +26,8 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
 import           System.FilePath            ((</>))
+import Data.Time (getCurrentTime, UTCTime, NominalDiffTime, diffUTCTime, defaultTimeLocale, formatTime)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 
 data GenoDataSource = PacBaseDir
     { getPacBaseDirs :: FilePath
@@ -255,26 +257,30 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: (MonadIO m) => LogEnv -> Pipe a a m ()
-printSNPCopyProgress logEnv = do
+printSNPCopyProgress :: (MonadIO m) => LogEnv -> UTCTime -> Pipe a a m ()
+printSNPCopyProgress logEnv startTime = do
     counterRef <- liftIO $ newIORef (0 :: Int)
     for cat $ \val -> do
         n <- liftIO $ readIORef counterRef
-        logWithEnv logEnv $ logProgress n
+        currentTime <- liftIO getCurrentTime
+        logWithEnv logEnv $ logProgress n (diffUTCTime currentTime startTime)
         liftIO $ modifyIORef counterRef (+1)
         yield val
     where
-        logProgress :: Int -> PoseidonLogIO ()
-        logProgress c
-            | c >=  1000000 &&                c `rem` 1000000 == 0 = logInfo $ "SNPs: " ++ pad (show c)
-            | c >=  100000  && c <= 500000 && c `rem` 100000  == 0 = logInfo $ "SNPs: " ++ pad (show c)
-            | c >=  10000   && c <= 50000  && c `rem` 10000   == 0 = logInfo $ "SNPs: " ++ pad (show c)
-            |                  c <= 5000   && c `rem` 1000    == 0 = logInfo $ "SNPs: " ++ pad (show c)
+        logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
+        logProgress c t
+            | c >=  1000000 &&                c `rem` 1000000 == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
+            | c >=  100000  && c <= 500000 && c `rem` 100000  == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
+            | c >=  10000   && c <= 50000  && c `rem` 10000   == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
+            |                  c <= 5000   && c `rem` 1000    == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
             | otherwise = return ()
         pad :: String -> String
         pad s
             | length s < 9  = replicate (9 - length s) ' ' ++ s
             | otherwise     = s
+        prettyTime :: NominalDiffTime -> String
+        prettyTime = formatTime defaultTimeLocale "%H:%M:%S" . posixSecondsToUTCTime
+
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
