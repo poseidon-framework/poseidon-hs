@@ -303,7 +303,10 @@ parseInIndFile = OP.strOption (
 
 parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
 parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>
-    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other. Default: Other" <>
+    OP.help "the snpSet of the package: 1240K, HumanOrigins or Other. \
+            \(only relevant for data input with -p|--genoOne or --genoFile + --snpFile + --indFile, \
+            \because the packages in a -d|--baseDir already have this information in their respective \
+            \POSEIDON.yml files) Default: Other" <>
     OP.value (Just SNPSetOther))
   where
     readSnpSet :: String -> Either String SNPSetSpec
