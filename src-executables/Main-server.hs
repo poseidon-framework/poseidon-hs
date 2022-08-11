@@ -49,7 +49,7 @@ data CommandLineOptions = CommandLineOptions
     deriving (Show)
 
 main :: IO ()
-main = usePoseidonLogger ServerLog $ do
+main = usePoseidonLogger VerboseLog $ do
     logInfo "Server starting up. Loading packages..."
     CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
