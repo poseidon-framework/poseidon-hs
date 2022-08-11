@@ -71,7 +71,7 @@ main = usePoseidonLogger ServerLog $ do
             liftIO $ B.writeFile fn zip_raw
         return (posPacTitle pac, fn))
     let runScotty = case certFiles of
-            Nothing                  -> scottyHTTP port
+            Nothing                              -> scottyHTTP  port
             Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
     runScotty $ do
         middleware simpleCors
