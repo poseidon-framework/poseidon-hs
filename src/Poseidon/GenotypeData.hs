@@ -18,9 +18,7 @@ import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import           Data.Time                  (NominalDiffTime, UTCTime,
-                                             defaultTimeLocale, diffUTCTime,
-                                             formatTime, getCurrentTime)
-import           Data.Time.Clock.POSIX      (posixSecondsToUTCTime)
+                                             diffUTCTime, getCurrentTime)
 import qualified Data.Vector                as V
 import           Pipes                      (Pipe, Producer, cat, for, yield)
 import           Pipes.Safe                 (MonadSafe)
@@ -271,17 +269,22 @@ printSNPCopyProgress logEnv startTime = do
     where
         logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
         logProgress c t
-            | c >=  1000000 &&                c `rem` 1000000 == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
-            | c >=  100000  && c <= 500000 && c `rem` 100000  == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
-            | c >=  10000   && c <= 50000  && c `rem` 10000   == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
-            |                  c <= 5000   && c `rem` 1000    == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ " - " ++ prettyTime t
+            |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ "    " ++ prettyTime (floor t)
+            |  c == 1000          = logInfo $ "Probing of the first 1000 SNPs successful. Continue forging now..."
             | otherwise = return ()
         pad :: String -> String
         pad s
             | length s < 9  = replicate (9 - length s) ' ' ++ s
             | otherwise     = s
-        prettyTime :: NominalDiffTime -> String
-        prettyTime = formatTime defaultTimeLocale "%H:%M:%S" . posixSecondsToUTCTime
+        prettyTime :: Int -> String
+        prettyTime t
+            | t < 60 = show t ++ "s"
+            | t >= 60 && t < 3600 = do
+                let (minutes, rest) = t `quotRem` 60
+                show minutes ++ "m " ++ prettyTime rest
+            | otherwise = do
+                let (hours, rest) = t `quotRem` 3600
+                show hours   ++ "h " ++ prettyTime rest
 
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
