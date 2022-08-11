@@ -145,16 +145,16 @@ handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
     downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
     logInfo $ padRight 40 pac ++
-        "local " ++ printV localV ++ " = remote " ++ printV remoteV
+        " local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
     then downloadAndUnzipPackage downloadDir tempDir remote pac
     else logInfo $ padRight 40 pac ++
-        "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
+        " local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
 handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
     logInfo $ padRight 40 pac ++
-        "local " ++ printV localV ++ " > remote " ++ printV remoteV
+        " local " ++ printV localV ++ " > remote " ++ printV remoteV
 
 printV :: Maybe Version -> String
 printV Nothing  = "?.?.?"
@@ -162,7 +162,7 @@ printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
-    logInfo $ padRight 40 pacName ++ "now downloading"
+    logInfo $ padRight 40 pacName ++ " now downloading"
     downloadPackage tempDir remote pacName
     liftIO $ do
         unzipPackage (tempDir </> pacName) (baseDir </> pacName)
