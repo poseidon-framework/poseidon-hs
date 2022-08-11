@@ -40,6 +40,7 @@ data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
     , cliPort            :: Int
     , cliIgnoreGenoFiles :: Bool
+    , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
     }
     deriving (Show)
@@ -47,8 +48,15 @@ data CommandLineOptions = CommandLineOptions
 main :: IO ()
 main = usePoseidonLogger ServerLog $ do
     logInfo "Server starting up. Loading packages..."
-    CommandLineOptions baseDirs port ignoreGenoFiles certFiles <- liftIO $ OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGenoFiles} baseDirs
+    CommandLineOptions baseDirs port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
+        OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    let pacReadOpts = defaultPackageReadOptions {
+              _readOptVerbose          = False
+            , _readOptStopOnDuplicates = True
+            , _readOptIgnoreChecksums  = ignoreChecksums
+            , _readOptGenoCheck        = ignoreGenoFiles
+        }
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     logInfo "Checking whether zip files are missing or outdated"
     zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
         let fn = posPacBaseDir pac <.> "zip"
@@ -115,7 +123,7 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles <*> parseMaybeCertFiles
+optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -131,6 +139,10 @@ parsePort = OP.option OP.auto (OP.long "port" <> OP.short 'p' <> OP.metavar "POR
 parseIgnoreGenoFiles :: OP.Parser Bool
 parseIgnoreGenoFiles = OP.switch (OP.long "ignoreGenoFiles" <> OP.short 'i' <>
     OP.help "whether to ignore the bed and SNP files. Useful for debugging")
+
+parseIgnoreChecksums :: OP.Parser Bool
+parseIgnoreChecksums = OP.switch (OP.long "ignoreChecksums" <> OP.short 'c' <>
+    OP.help "whether to ignore checksums. Useful for speedup in debugging")
 
 parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, [FilePath], FilePath))
 parseMaybeCertFiles = (Just <$> parseFiles) <|> pure Nothing
@@ -148,14 +160,6 @@ parseChainFile = OP.strOption (OP.long "chainFile" <> OP.metavar "CHAINFILE" <>
 parseCertFile :: OP.Parser FilePath
 parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
                               OP.help "The cert file of the TLS Certificate used for HTTPS")
-
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptVerbose          = False
-    , _readOptStopOnDuplicates = True
-    , _readOptIgnoreChecksums  = True
-    , _readOptGenoCheck        = False
-    }
 
 checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
 checkZipFileOutdated pac fn ignoreGenoFiles = do
