@@ -204,12 +204,12 @@ getConsensusSnpEntry logEnv snpEntries = do
             return selectedGenPos
     case uniqueAlleles of
         [] -> do -- no non-missing alleles found
-            logWithEnv logEnv . logDebug $
-                "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+            -- logWithEnv logEnv . logDebug $
+            --     "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> do -- only one non-missing allele found
-            logWithEnv logEnv . logDebug $
-                "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+            -- logWithEnv logEnv . logDebug $
+            --     "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] ->
             return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
