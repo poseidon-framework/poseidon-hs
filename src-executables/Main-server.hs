@@ -1,41 +1,42 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.GenotypeData       (GenotypeDataSpec (..))
-import           Poseidon.Janno              (JannoList (..), JannoRow (..))
-import           Poseidon.Package            (PackageReadOptions (..),
-                                              PoseidonPackage (..),
-                                              defaultPackageReadOptions,
-                                              readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes     (GroupInfo (..),
-                                              IndividualInfo (..),
-                                              PackageInfo (..))
-import           Poseidon.Utils              (LogMode (..), PoseidonLogIO,
-                                              logInfo, usePoseidonLogger)
+import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
+import           Poseidon.Janno               (JannoList (..), JannoRow (..))
+import           Poseidon.Package             (PackageReadOptions (..),
+                                               PoseidonPackage (..),
+                                               defaultPackageReadOptions,
+                                               readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes      (GroupInfo (..),
+                                               IndividualInfo (..),
+                                               PackageInfo (..))
+import           Poseidon.Utils               (LogMode (..), PoseidonLogIO,
+                                               logInfo, usePoseidonLogger)
 
-import           Codec.Archive.Zip           (Archive, addEntryToArchive,
-                                              emptyArchive, fromArchive,
-                                              toEntry)
-import           Control.Applicative         ((<|>))
-import           Control.Monad               (forM, when)
-import           Control.Monad.IO.Class      (liftIO)
-import qualified Data.ByteString.Lazy        as B
-import           Data.List                   (group, nub, sortOn)
-import           Data.Text.Lazy              (Text, intercalate, pack, unpack)
-import           Data.Time.Clock.POSIX       (utcTimeToPOSIXSeconds)
-import           Data.Version                (showVersion)
-import           Network.Wai.Handler.Warp    (defaultSettings, run, setPort)
-import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
-                                              tlsSettingsChain)
-import           Network.Wai.Middleware.Cors (simpleCors)
-import qualified Options.Applicative         as OP
-import           Paths_poseidon_hs           (version)
-import           System.Directory            (createDirectoryIfMissing,
-                                              doesFileExist,
-                                              getModificationTime)
-import           System.FilePath             ((<.>), (</>))
-import           Web.Scotty                  (ScottyM, file, get, html, json,
-                                              middleware, notFound, param,
-                                              raise, scottyApp, text)
+import           Codec.Archive.Zip            (Archive, addEntryToArchive,
+                                               emptyArchive, fromArchive,
+                                               toEntry)
+import           Control.Applicative          ((<|>))
+import           Control.Monad                (forM, when)
+import           Control.Monad.IO.Class       (liftIO)
+import qualified Data.ByteString.Lazy         as B
+import           Data.List                    (group, nub, sortOn)
+import           Data.Text.Lazy               (Text, intercalate, pack, unpack)
+import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
+import           Data.Version                 (parseVersion, showVersion)
+import           Network.Wai.Handler.Warp     (defaultSettings, run, setPort)
+import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
+                                               tlsSettingsChain)
+import           Network.Wai.Middleware.Cors  (simpleCors)
+import qualified Options.Applicative          as OP
+import           Paths_poseidon_hs            (version)
+import           System.Directory             (createDirectoryIfMissing,
+                                               doesFileExist,
+                                               getModificationTime)
+import           System.FilePath              ((<.>), (</>))
+import           Text.ParserCombinators.ReadP (readP_to_S)
+import           Web.Scotty                   (ScottyM, file, get, html, json,
+                                               middleware, notFound, param,
+                                               raise, scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -75,6 +76,16 @@ main = usePoseidonLogger ServerLog $ do
             Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
     runScotty $ do
         middleware simpleCors
+
+        -- API to check for compatibility between client and server. Currently a dummy, since all previous trident version should be happy with the API
+        -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
+        get "/compatibility/:client_version" $ do
+            vStr <- param "client_version"
+            let compat = (True, Nothing) :: (Bool, Maybe String)
+            v <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
+                [(v, "")] -> return v
+                _         -> raise . pack $ "cannot parse Version nr " ++ vStr
+            json compat
 
         -- basic APIs for retreiving metadata
         get "/janno_all" $
