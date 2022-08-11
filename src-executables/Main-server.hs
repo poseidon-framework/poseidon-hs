@@ -30,7 +30,8 @@ import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
 import           System.Directory            (doesFileExist,
-                                              getModificationTime)
+                                              getModificationTime,
+                                              createDirectoryIfMissing)
 import           System.FilePath             ((<.>), (</>))
 import           Web.Scotty                  (ScottyM, file, get, html, json,
                                               middleware, notFound, param,
@@ -38,6 +39,7 @@ import           Web.Scotty                  (ScottyM, file, get, html, json,
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
+    , cliZipDir          :: FilePath
     , cliPort            :: Int
     , cliIgnoreGenoFiles :: Bool
     , cliIgnoreChecksums :: Bool
@@ -48,7 +50,7 @@ data CommandLineOptions = CommandLineOptions
 main :: IO ()
 main = usePoseidonLogger ServerLog $ do
     logInfo "Server starting up. Loading packages..."
-    CommandLineOptions baseDirs port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
+    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
     let pacReadOpts = defaultPackageReadOptions {
               _readOptVerbose          = False
@@ -58,8 +60,9 @@ main = usePoseidonLogger ServerLog $ do
         }
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     logInfo "Checking whether zip files are missing or outdated"
+    liftIO $ createDirectoryIfMissing True zipPath
     zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
-        let fn = posPacBaseDir pac <.> "zip"
+        let fn = zipPath </> posPacTitle pac <.> "zip"
         zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn ignoreGenoFiles
         when zipFileOutdated $ do
             logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
@@ -123,13 +126,19 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parsePort <*> parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles
+optParser = CommandLineOptions <$> parseBasePaths <*> parseZipDir <*> parsePort <*> parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
-    OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
+    OP.help "a base directory to search for Poseidon Packages"))
+
+parseZipDir :: OP.Parser FilePath
+parseZipDir = OP.strOption (OP.long "zipDir" <>
+    OP.short 'z' <>
+    OP.metavar "DIR" <>
+    OP.help "a directory to store Zip files in")
 
 parsePort :: OP.Parser Int
 parsePort = OP.option OP.auto (OP.long "port" <> OP.short 'p' <> OP.metavar "PORT" <>
