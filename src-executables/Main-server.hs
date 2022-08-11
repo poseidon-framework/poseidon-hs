@@ -9,8 +9,8 @@ import           Poseidon.Package            (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes     (GroupInfo (..),
                                               IndividualInfo (..),
                                               PackageInfo (..))
-import           Poseidon.Utils              (LogMode (..), logInfo,
-                                              usePoseidonLogger, PoseidonLogIO)
+import           Poseidon.Utils              (LogMode (..), PoseidonLogIO,
+                                              logInfo, usePoseidonLogger)
 
 import           Codec.Archive.Zip           (Archive, addEntryToArchive,
                                               emptyArchive, fromArchive,
@@ -29,9 +29,9 @@ import           Network.Wai.Handler.WarpTLS (runTLS, tlsSettings,
 import           Network.Wai.Middleware.Cors (simpleCors)
 import qualified Options.Applicative         as OP
 import           Paths_poseidon_hs           (version)
-import           System.Directory            (doesFileExist,
-                                              getModificationTime,
-                                              createDirectoryIfMissing)
+import           System.Directory            (createDirectoryIfMissing,
+                                              doesFileExist,
+                                              getModificationTime)
 import           System.FilePath             ((<.>), (</>))
 import           Web.Scotty                  (ScottyM, file, get, html, json,
                                               middleware, notFound, param,
