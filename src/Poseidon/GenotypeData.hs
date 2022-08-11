@@ -4,7 +4,7 @@ module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (LogEnv, PoseidonException (..),
                                              PoseidonLogIO, checkFile, logDebug,
-                                             logInfo, logWithEnv)
+                                             logInfo, logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
@@ -269,13 +269,9 @@ printSNPCopyProgress logEnv startTime = do
     where
         logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
         logProgress c t
-            |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ pad (show c) ++ "    " ++ prettyTime (floor t)
+            |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ padLeft 9 (show c) ++ "    " ++ prettyTime (floor t)
             |  c == 1000          = logInfo $ "Probing of the first 1000 SNPs successful. Continue forging now..."
             | otherwise = return ()
-        pad :: String -> String
-        pad s
-            | length s < 9  = replicate (9 - length s) ' ' ++ s
-            | otherwise     = s
         prettyTime :: Int -> String
         prettyTime t
             | t < 60 = show t ++ "s"

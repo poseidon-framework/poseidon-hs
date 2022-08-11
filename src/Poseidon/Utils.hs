@@ -14,7 +14,8 @@ module Poseidon.Utils (
     logError,
     LogEnv,
     noLog,
-    logWithEnv
+    logWithEnv,
+    padRight, padLeft
 ) where
 
 import           Colog                  (HasLog (..), LogAction (..), Message,
@@ -207,3 +208,16 @@ getChecksum f = do
     fileContent <- LB.readFile f
     let md5Digest = md5 fileContent
     return $ show md5Digest
+
+-- helper functions to pad and cut strings
+padRight :: Int -> String -> String
+padRight n s
+    | length s >= n = take n s
+    | length s < n = s ++ replicate (n - length s) ' '
+    | otherwise    = s
+
+padLeft :: Int -> String -> String
+padLeft n s
+    | length s >= n = reverse (take n (reverse s))
+    | length s < n = replicate (n - length s) ' ' ++ s
+    | otherwise    = s

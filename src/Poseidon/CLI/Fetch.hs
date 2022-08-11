@@ -14,7 +14,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..))
 import           Poseidon.Utils          (LogEnv, PoseidonException (..),
                                           PoseidonLogIO, logInfo, logWarning,
-                                          logWithEnv)
+                                          logWithEnv, padLeft, padRight)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -144,16 +144,16 @@ handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState,
 handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
     downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
-    logInfo $ padString 40 pac ++
+    logInfo $ padRight 40 pac ++
         "local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
     then downloadAndUnzipPackage downloadDir tempDir remote pac
-    else logInfo $ padString 40 pac ++
+    else logInfo $ padRight 40 pac ++
         "local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
 handlePackageByState _ _ _ _ (LaterLocal, pac, remoteV, localV) = do
-    logInfo $ padString 40 pac ++
+    logInfo $ padRight 40 pac ++
         "local " ++ printV localV ++ " > remote " ++ printV remoteV
 
 printV :: Maybe Version -> String
@@ -162,10 +162,9 @@ printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
-    logInfo $ padString 40 pacName ++ "now downloading"
-    logEnv <- ask
+    logInfo $ padRight 40 pacName ++ "now downloading"
+    downloadPackage tempDir remote pacName
     liftIO $ do
-        downloadPackage logEnv tempDir remote pacName
         unzipPackage (tempDir </> pacName) (baseDir </> pacName)
         removeFile (tempDir </> pacName)
 
@@ -175,11 +174,12 @@ unzipPackage zip_ outDir = do
     let archive = toArchive archiveBS
     extractFilesFromArchive [OptRecursive, OptDestination outDir] archive
 
-downloadPackage :: LogEnv -> FilePath -> String -> String -> IO ()
-downloadPackage logEnv pathToRepo remote pacName = do
-    downloadManager <- newManager tlsManagerSettings
+downloadPackage :: FilePath -> String -> String -> PoseidonLogIO ()
+downloadPackage pathToRepo remote pacName = do
+    logEnv <- ask
+    downloadManager <- liftIO $ newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
-    runResourceT $ do
+    liftIO $ runResourceT $ do
         response <- http packageRequest downloadManager
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
@@ -189,12 +189,6 @@ downloadPackage logEnv pathToRepo remote pacName = do
             printDownloadProgress logEnv fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
     return ()
-
-padString :: Int -> String -> String
-padString n s
-    | length s > n  = take (n-1) s ++ " "
-    | length s < n  = s ++ replicate (n - length s) ' '
-    | otherwise     = s
 
 printDownloadProgress :: LogEnv -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
 printDownloadProgress logEnv fileSizeMB = loop 0 0
@@ -216,6 +210,6 @@ printDownloadProgress logEnv fileSizeMB = loop 0 0
                                       else loadedMB
                     when (loadedMB /= newLoadedMB) $ do
                         let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
-                        logWithEnv logEnv $ logInfo (show curLoadedMB ++ "MB - " ++ roundToStr 1 leadedPercent ++ "% ")
+                        logWithEnv logEnv $ logInfo ("MB:" ++ padLeft 9 (show curLoadedMB) ++ "    " ++ padLeft 5 (roundToStr 1 leadedPercent) ++ "% ")
                     yield x
                     loop newLoadedB newLoadedMB
