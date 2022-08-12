@@ -82,8 +82,8 @@ main = usePoseidonLogger VerboseLog $ do
         get "/compatibility/:client_version" $ do
             vStr <- param "client_version"
             let compat = (True, Nothing) :: (Bool, Maybe String)
-            v <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
-                [(v, "")] -> return v
+            _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
+                [(v', "")] -> return v'
                 _         -> raise . pack $ "cannot parse Version nr " ++ vStr
             json compat
 
