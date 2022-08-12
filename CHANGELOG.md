@@ -1,3 +1,4 @@
+- V 1.1.3.0: Added new features to the server, updated logging, and new API for compatibility checks
 - V 1.1.2.0: Replaced progress indicators with simple, sequential log messages for the download in fetch and the SNP-wise operations in forge and genoconvert
 - V 1.1.1.3: Tiny change to make the documentation of --snpSet more clear
 - V 1.1.1.2: Outsourced optparse-applicative parsers to an own library module. This is helpful for xerxes and other derived tools/libraries
