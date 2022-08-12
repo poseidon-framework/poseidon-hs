@@ -3,10 +3,11 @@
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (LogEnv, PoseidonException (..),
-                                             checkFile, logDebug, logWithEnv)
+                                             PoseidonLogIO, checkFile, logDebug,
+                                             logInfo, logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, when)
+import           Control.Monad              (forM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -16,6 +17,8 @@ import           Data.IORef                 (modifyIORef, newIORef, readIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
+import           Data.Time                  (NominalDiffTime, UTCTime,
+                                             diffUTCTime, getCurrentTime)
 import qualified Data.Vector                as V
 import           Pipes                      (Pipe, Producer, cat, for, yield)
 import           Pipes.Safe                 (MonadSafe)
@@ -24,9 +27,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
-import           System.IO                  (hFlush, hPutStr, stderr)
 
 data GenoDataSource = PacBaseDir
     { getPacBaseDirs :: FilePath
@@ -256,18 +257,31 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: (MonadIO m) => Pipe a a m ()
-printSNPCopyProgress = do
+printSNPCopyProgress :: (MonadIO m) => LogEnv -> UTCTime -> Pipe a a m ()
+printSNPCopyProgress logEnv startTime = do
     counterRef <- liftIO $ newIORef (0 :: Int)
     for cat $ \val -> do
         n <- liftIO $ readIORef counterRef
-        when (n `rem` 1000 == 0) $ do
-            liftIO $ hClearLine stderr
-            liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
-            liftIO $ hFlush stderr
+        currentTime <- liftIO getCurrentTime
+        logWithEnv logEnv $ logProgress n (diffUTCTime currentTime startTime)
         liftIO $ modifyIORef counterRef (+1)
         yield val
+    where
+        logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
+        logProgress c t
+            |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ padLeft 9 (show c) ++ "    " ++ prettyTime (floor t)
+            |  c == 1000          = logInfo $ "Probing of the first 1000 SNPs successful. Continue forging now..."
+            | otherwise = return ()
+        prettyTime :: Int -> String
+        prettyTime t
+            | t < 60 = show t ++ "s"
+            | t >= 60 && t < 3600 = do
+                let (minutes, rest) = t `quotRem` 60
+                show minutes ++ "m " ++ prettyTime rest
+            | otherwise = do
+                let (hours, rest) = t `quotRem` 3600
+                show hours   ++ "h " ++ prettyTime rest
+
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])

@@ -1,3 +1,42 @@
+### V 1.1.3.0
+
+This release introduces a major change to the progress indicators in package downloading, reading, forging and converting. It also includes some minor code changes in the poseidon-hs library and the poseidon server executable.
+
+From a trident user perspective only the change in the progress indicators is relevant. So far we used updating (self-overwriting) counters, which were great for interactive use of trident in modern terminal emulators. They are not suitable for use in scripts, though, because the command line output does not yield well structured log files. We therefore decided to integrate the progress indicators with our general logging infrastructure.
+
+- Loading packages (so the `Initializing packages...` phase) now stays silent by default. With `--logMode VerboseLog` you can list the packages that are currently loading:
+
+```
+[Debug]   [10:56:05] Package 20: ./2015_LlorenteScience/POSEIDON.yml
+[Debug]   [10:56:05] Package 21: ./2017_KennettNatureCommunications/POSEIDON.yml
+[Debug]   [10:56:06] Package 22: ./2016_MartinianoNatureCommunications/POSEIDON.yml
+[Debug]   [10:56:06] Package 23: ./2016_BroushakiScience/POSEIDON.yml
+[Debug]   [10:56:06] Package 24: ./2017_LindoPNAS/POSEIDON.yml
+[Debug]   [10:56:06] Package 25: ./2021_Zegarac_SoutheasternEurope/POSEIDON.yml
+```
+
+- `forge` and `genoconvert` now print a log message every 10k SNPs:
+
+```
+[Info]    SNPs:    220000    5s
+[Info]    SNPs:    230000    5s
+[Info]    SNPs:    240000    5s
+[Info]    SNPs:    250000    5s
+[Info]    SNPs:    260000    6s
+[Info]    SNPs:    270000    6s
+```
+
+- `fetch` now prints a log message whenever a +5% threshold is reached.
+
+```
+[Info]    Package size: 15.3MB
+[Info]    MB:      0.8      5.2%
+[Info]    MB:      1.6     10.5%
+[Info]    MB:      2.4     15.7%
+[Info]    MB:      3.2     20.9%
+[Info]    MB:      4.0     26.1%
+```
+
 ### V 1.1.1.1
 
 This is a minor release to improve (internal) error handling.

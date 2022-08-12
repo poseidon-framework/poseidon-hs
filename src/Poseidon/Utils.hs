@@ -14,14 +14,15 @@ module Poseidon.Utils (
     logError,
     LogEnv,
     noLog,
-    logWithEnv
+    logWithEnv,
+    padRight, padLeft
 ) where
 
 import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
                                          msgText, showSeverity)
-import           Control.Exception      (Exception, IOException, try)
+import           Control.Exception      (Exception)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (when)
 import           Control.Monad.Catch    (throwM)
@@ -34,9 +35,7 @@ import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
-import           System.Console.ANSI    (getCursorPosition)
 import           System.Directory       (doesFileExist)
-import           System.IO              (hPutStrLn, stderr)
 
 type LogEnv = LogAction IO Message
 
@@ -59,29 +58,19 @@ usePoseidonLogger VerboseLog = flip runReaderT verboseLog
 noLog      :: LogEnv
 noLog      = cfilter (const False) simpleLog
 simpleLog  :: LogEnv
-simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False True
+simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False
 defaultLog :: LogEnv
-defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False True
+defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False
 serverLog  :: LogEnv
-serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True True
+serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True
 verboseLog :: LogEnv
-verboseLog = compileLogMsg True True True
+verboseLog = compileLogMsg True True
 
-compileLogMsg :: Bool -> Bool -> Bool -> LogEnv
-compileLogMsg severity time cursorCheck = cmapM prepareMessage logTextStderr
+compileLogMsg :: Bool -> Bool -> LogEnv
+compileLogMsg severity time = cmapM prepareMessage logTextStderr
     where
         prepareMessage :: Message -> IO Text
         prepareMessage msg = do
-            -- add a newline, if the current line is not empty (to handle e.g. the SNP or Pac progress counter)
-            when cursorCheck $ do
-                eitherCurserPos <- try getCursorPosition :: IO (Either IOException (Maybe (Int, Int)))
-                case eitherCurserPos of
-                    Left _ -> return ()
-                    Right cursorPos -> do
-                        let col = maybe 0 snd cursorPos
-                            isNotAtStartOfLine = col /= 0
-                        when isNotAtStartOfLine $ do hPutStrLn stderr ""
-            -- prepare message
             let textMessage = msgText msg
                 textSeverity = if severity
                     then showSeverity (msgSeverity msg)
@@ -219,3 +208,16 @@ getChecksum f = do
     fileContent <- LB.readFile f
     let md5Digest = md5 fileContent
     return $ show md5Digest
+
+-- helper functions to pad and cut strings
+padRight :: Int -> String -> String
+padRight n s
+    | length s >= n = take n s
+    | length s < n = s ++ replicate (n - length s) ' '
+    | otherwise    = s
+
+padLeft :: Int -> String -> String
+padLeft n s
+    | length s >= n = reverse (take n (reverse s))
+    | length s < n = replicate (n - length s) ' ' ++ s
+    | otherwise    = s
