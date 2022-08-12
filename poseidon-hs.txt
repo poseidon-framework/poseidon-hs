@@ -204,6 +204,8 @@ logError :: String -> PoseidonLogIO ()
 type LogEnv = LogAction IO Message
 noLog :: LogEnv
 logWithEnv :: MonadIO m => LogEnv -> PoseidonLogIO () -> m ()
+padRight :: Int -> String -> String
+padLeft :: Int -> String -> String
 instance GHC.Show.Show Poseidon.Utils.LogMode
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
@@ -493,7 +495,7 @@ loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m ([Eigenstra
 joinEntries :: MonadIO m => LogEnv -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 getConsensusSnpEntry :: MonadIO m => LogEnv -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
-printSNPCopyProgress :: MonadIO m => Pipe a a m ()
+printSNPCopyProgress :: MonadIO m => LogEnv -> UTCTime -> Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFormatSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.SNPSetSpec
@@ -965,9 +967,8 @@ handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState,
 printV :: Maybe Version -> String
 downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
 unzipPackage :: FilePath -> FilePath -> IO ()
-downloadPackage :: FilePath -> String -> String -> IO ()
-padString :: Int -> String -> String
-printDownloadProgress :: Double -> ConduitT ByteString ByteString (ResourceT IO) ()
+downloadPackage :: FilePath -> String -> String -> PoseidonLogIO ()
+printDownloadProgress :: LogEnv -> Double -> ConduitT ByteString ByteString (ResourceT IO) ()
 
 module Poseidon.CLI.Survey
 
