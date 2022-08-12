@@ -100,8 +100,7 @@ renderVersion :: String
 renderVersion =
     "trident v" ++ showVersion version ++ " for poseidon v" ++
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
-    "https://poseidon-framework.github.io" ++ "\n" ++
-    ")<(({°> ~ ────E ~ <°}))>("
+    "https://poseidon-framework.github.io"
 
 subcommandParser :: OP.Parser Subcommand
 subcommandParser = OP.subparser (

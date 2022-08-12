@@ -18,7 +18,9 @@ import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
+import           Control.Monad.Reader       (ask)
 import           Data.Maybe                 (isJust)
+import           Data.Time                  (getCurrentTime)
 import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
@@ -87,13 +89,15 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         then logWarning $ ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
+            logEnv <- ask
+            currentTime <- liftIO getCurrentTime
             liftIO $ catch (
                 runSafeT $ do
                     (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
                     let outConsumer = case outFormat of
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                             GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-                    runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
+                    runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
                 ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file

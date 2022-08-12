@@ -38,6 +38,7 @@ import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.List                   (intercalate, nub, (\\))
 import           Data.Maybe                  (mapMaybe)
+import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
@@ -170,6 +171,7 @@ runForge (
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
     logEnv <- ask
+    currentTime <- liftIO getCurrentTime
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
@@ -184,7 +186,7 @@ runForge (
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->
-                    printSNPCopyProgress >->
+                    printSNPCopyProgress logEnv currentTime >->
                     extractPipe >->
                     P.tee outConsumer
             let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
