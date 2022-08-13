@@ -84,7 +84,7 @@ main = usePoseidonLogger VerboseLog $ do
             let compat = (True, Nothing) :: (Bool, Maybe String)
             _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
                 [(v', "")] -> return v'
-                _         -> raise . pack $ "cannot parse Version nr " ++ vStr
+                _          -> raise . pack $ "cannot parse Version nr " ++ vStr
             json compat
 
         -- basic APIs for retreiving metadata
