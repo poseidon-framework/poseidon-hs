@@ -2,6 +2,8 @@
 
 This release introduces a major change to the progress indicators in package downloading, reading, forging and converting. It also includes some minor code changes in the poseidon-hs library and the poseidon server executable.
 
+#### Trident 
+
 From a trident user perspective only the change in the progress indicators is relevant. So far we used updating (self-overwriting) counters, which were great for interactive use of trident in modern terminal emulators. They are not suitable for use in scripts, though, because the command line output does not yield well structured log files. We therefore decided to integrate the progress indicators with our general logging infrastructure.
 
 - Loading packages (so the `Initializing packages...` phase) now stays silent by default. With `--logMode VerboseLog` you can list the packages that are currently loading:
@@ -36,6 +38,14 @@ From a trident user perspective only the change in the progress indicators is re
 [Info]    MB:      3.2     20.9%
 [Info]    MB:      4.0     26.1%
 ```
+
+#### Server
+The server has been updated in the following ways:
+
+* It now uses Co-Log for logging
+* A new option -c now makes it ignore checksums, which is useful for a fast start of the server if need be
+* Zip files are now stored in a separate folder, to keep the (git-backed) repository itself clean
+* There is a new API named /compatibility/<version> which accepts a client version (from trident) and returns a JSON tuple of Haskell-type (Bool, Maybe String). The first element is simply a Boolean saying if the client version is compatible with the server or not, the second is an optional Warning message the server can return to the client. This will become important in the future.
 
 ### V 1.1.1.1
 
