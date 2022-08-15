@@ -43,9 +43,9 @@ From a trident user perspective only the change in the progress indicators is re
 The server has been updated in the following ways:
 
 * It now uses Co-Log for logging
-* A new option -c now makes it ignore checksums, which is useful for a fast start of the server if need be
+* A new option `-c` now makes it ignore checksums, which is useful for a fast start of the server if need be
 * Zip files are now stored in a separate folder, to keep the (git-backed) repository itself clean
-* There is a new API named /compatibility/<version> which accepts a client version (from trident) and returns a JSON tuple of Haskell-type (Bool, Maybe String). The first element is simply a Boolean saying if the client version is compatible with the server or not, the second is an optional Warning message the server can return to the client. This will become important in the future.
+* There is a new API named `/compatibility/<version>` which accepts a client version (from trident) and returns a JSON tuple of Haskell-type (Bool, Maybe String). The first element is simply a Boolean saying if the client version is compatible with the server or not, the second is an optional Warning message the server can return to the client. This will become important in the future.
 
 ### V 1.1.1.1
 
