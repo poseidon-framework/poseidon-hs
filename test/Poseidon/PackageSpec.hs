@@ -15,7 +15,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
 import           Poseidon.Utils             (LogMode (..), getChecksum, noLog,
-                                             usePoseidonLogger)
+                                             usePoseidonLogger, PoseidonException(..))
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -40,6 +40,7 @@ spec = do
     testRenderMismatch
     testZipWithPadding
     testGetJoinGenotypeData
+    testThrowOnMissingBibEntries
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
@@ -260,8 +261,17 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
             (_, jointProd) <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 7
-
-
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
+
+testThrowOnMissingBibEntries :: Spec
+testThrowOnMissingBibEntries = describe "Poseidon.Package.readPoseidonPackage" $ do
+    let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
+    let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
+    it "should throw if bibentries aren't found" $
+        usePoseidonLogger NoLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
+  where
+    isPoseidonCrossFileConsistencyException :: Selector PoseidonException
+    isPoseidonCrossFileConsistencyException (PoseidonCrossFileConsistencyException _ _) = True
+    isPoseidonCrossFileConsistencyException _ = error "should never happen" -- just to make the linter happy
