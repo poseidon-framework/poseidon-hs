@@ -15,7 +15,7 @@ import           Poseidon.Utils               (LogMode (..), PoseidonLogIO,
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
-import           Control.Applicative          (optional, (<|>))
+import           Control.Applicative          (optional)
 import           Control.Monad                (forM, unless, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B

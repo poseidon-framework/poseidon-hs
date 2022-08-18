@@ -4,8 +4,7 @@ module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX,
 import           Poseidon.Utils                     (PoseidonException (..))
 
 import           Control.Exception                  (throwIO)
-import           Control.Monad                      (forM_, liftM, liftM2,
-                                                     liftM3)
+import           Control.Monad                      (forM_, liftM2, liftM3)
 import           System.IO                          (IOMode (..), hPutStrLn,
                                                      withFile)
 import           Text.Parsec                        (between, char, many, many1,
