@@ -341,7 +341,7 @@ readPoseidonPackage opts ymlPath = do
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
             (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
             runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
-        ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
+        ) (throwIO . PoseidonGenotypeExceptionForward)
     return pac
 
 -- throws exception if any file is missing or checksum is incorrect
