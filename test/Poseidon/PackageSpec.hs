@@ -14,7 +14,9 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
-import           Poseidon.Utils             (LogMode (..), getChecksum, noLog,
+import           Poseidon.Utils             (LogMode (..),
+                                             PoseidonException (..),
+                                             getChecksum, noLog,
                                              usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
@@ -40,6 +42,7 @@ spec = do
     testRenderMismatch
     testZipWithPadding
     testGetJoinGenotypeData
+    testThrowOnMissingBibEntries
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
@@ -231,8 +234,8 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
             P.toListM jointProd
         length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
-                                  V.fromList $ [HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt,
-                                                HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
+                                  V.fromList [HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt,
+                                              HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
         jointDat !! 4 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1045331 0.026665 "2_1045331" 'G' 'A', V.fromList $ replicate 20 HomRef)
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
         pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
@@ -260,8 +263,17 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
             (_, jointProd) <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 7
-
-
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
+
+testThrowOnMissingBibEntries :: Spec
+testThrowOnMissingBibEntries = describe "Poseidon.Package.readPoseidonPackage" $ do
+    let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
+    let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
+    it "should throw if bibentries aren't found" $
+        usePoseidonLogger NoLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
+  where
+    isPoseidonCrossFileConsistencyException :: Selector PoseidonException
+    isPoseidonCrossFileConsistencyException (PoseidonCrossFileConsistencyException _ _) = True
+    isPoseidonCrossFileConsistencyException _ = error "should never happen" -- just to make the linter happy

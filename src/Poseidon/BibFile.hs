@@ -4,8 +4,7 @@ module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX,
 import           Poseidon.Utils                     (PoseidonException (..))
 
 import           Control.Exception                  (throwIO)
-import           Control.Monad                      (forM_, liftM, liftM2,
-                                                     liftM3)
+import           Control.Monad                      (forM_, liftM2, liftM3)
 import           System.IO                          (IOMode (..), hPutStrLn,
                                                      withFile)
 import           Text.Parsec                        (between, char, many, many1,
@@ -123,11 +122,11 @@ value =
 
 texSequence :: Char -> Parser String
 texSequence closeChar =
-   liftM concat (many (texBlock closeChar))
+   concat <$> many (texBlock closeChar)
 
 texBlock :: Char -> Parser String
 texBlock closeChar =
-   liftM3 (\open body close -> open : body ++ close : [])
+   liftM3 (\open body close -> open : body ++ [close])
       (char '{') (texSequence '}') (char '}') <|>
    sequence
       [char '\\',

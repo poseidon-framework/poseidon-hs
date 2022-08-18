@@ -310,12 +310,15 @@ readPoseidonPackage :: PackageReadOptions
 readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- liftIO $ B.readFile ymlPath
+
     -- read yml files
     yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
+
     -- file existence and checksum test
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
+
     -- read janno (or fill with empty dummy object)
     indEntries <- liftIO $ loadIndividuals baseDir geno
     janno <- case poseidonJannoFilePath baseDir yml of
@@ -325,13 +328,13 @@ readPoseidonPackage opts ymlPath = do
             loadedJanno <- readJannoFile (_readOptVerbose opts) p
             checkJannoIndConsistency tit loadedJanno indEntries
             return loadedJanno
+
     -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
-        Just p -> liftIO $ do
-            loadedBib <- readBibTeXFile p
-            checkJannoBibConsistency tit janno loadedBib
-            return loadedBib
+        Just p  -> liftIO $ readBibTeXFile p
+    liftIO $ checkJannoBibConsistency tit janno bib
+
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
     logEnv <- ask
@@ -341,7 +344,7 @@ readPoseidonPackage opts ymlPath = do
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
             (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
             runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
-        ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
+        ) (throwIO . PoseidonGenotypeExceptionForward)
     return pac
 
 -- throws exception if any file is missing or checksum is incorrect

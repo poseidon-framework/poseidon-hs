@@ -15,8 +15,8 @@ import           Poseidon.Utils               (LogMode (..), PoseidonLogIO,
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
-import           Control.Applicative          ((<|>))
-import           Control.Monad                (forM, when)
+import           Control.Applicative          (optional)
+import           Control.Monad                (forM, unless, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (group, nub, sortOn)
@@ -98,7 +98,7 @@ main = usePoseidonLogger VerboseLog $ do
             (json . map packageToPackageInfo) allPackages
 
         -- API for retreiving package zip files
-        when (not ignoreGenoFiles) . get "/zip_file/:package_name" $ do
+        unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
             p_ <- param "package_name"
             let zipFN = lookup (unpack p_) zipDict
             case zipFN of
@@ -165,7 +165,7 @@ parseIgnoreChecksums = OP.switch (OP.long "ignoreChecksums" <> OP.short 'c' <>
     OP.help "whether to ignore checksums. Useful for speedup in debugging")
 
 parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, [FilePath], FilePath))
-parseMaybeCertFiles = (Just <$> parseFiles) <|> pure Nothing
+parseMaybeCertFiles = optional parseFiles
   where
     parseFiles = (,,) <$> parseCertFile <*> OP.many parseChainFile <*> parseKeyFile
 
@@ -212,7 +212,7 @@ checkZipFileOutdated pac fn ignoreGenoFiles = do
 
 makeZipArchive :: PoseidonPackage -> Bool -> IO Archive
 makeZipArchive pac ignoreGenoFiles =
-    return emptyArchive >>= addYaml >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno
+    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno
   where
     addYaml = addFN "POSEIDON.yml" (posPacBaseDir pac)
     addJanno = case posPacJannoFile pac of
@@ -238,7 +238,7 @@ makeZipArchive pac ignoreGenoFiles =
     addFN fn baseDir a = do
         let fullFN = baseDir </> fn
         raw <- B.readFile fullFN
-        modTime <- (round . utcTimeToPOSIXSeconds) <$> getModificationTime fullFN
+        modTime <- round . utcTimeToPOSIXSeconds <$> getModificationTime fullFN
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
