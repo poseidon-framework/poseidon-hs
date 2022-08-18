@@ -201,7 +201,7 @@ parseFetchEntitiesFromFile = OP.strOption (OP.long "fetchFile" <>
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
         \-f and --fetchFile can be combined.")
 
-parseIntersect :: OP.Parser (Bool)
+parseIntersect :: OP.Parser Bool
 parseIntersect = OP.switch (OP.long "intersect" <>
     OP.help "Whether to output the intersection of the genotype files to be forged. \
         \The default (if this option is not set) is to output the union of all SNPs, with genotypes \
@@ -266,9 +266,9 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
         makeGenoInput path ext
             | ext `elem` [".geno", ".snp", ".ind"] =
-                Right (GenotypeFormatEigenstrat,(path <.> "geno"),(path <.> "snp"),(path <.> "ind"))
+                Right (GenotypeFormatEigenstrat, path <.> "geno", path <.> "snp", path <.> "ind")
             | ext `elem` [".bed", ".bim", ".fam"]  =
-                Right (GenotypeFormatPlink,     (path <.> "bed"), (path <.> "bim"),(path <.> "fam"))
+                Right (GenotypeFormatPlink,      path <.> "bed",  path <.> "bim", path <.> "fam")
             | otherwise = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenoInput

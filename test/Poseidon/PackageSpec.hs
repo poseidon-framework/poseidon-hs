@@ -14,8 +14,10 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..))
-import           Poseidon.Utils             (LogMode (..), getChecksum, noLog,
-                                             usePoseidonLogger, PoseidonException(..))
+import           Poseidon.Utils             (LogMode (..),
+                                             PoseidonException (..),
+                                             getChecksum, noLog,
+                                             usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -232,8 +234,8 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
             P.toListM jointProd
         length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
-                                  V.fromList $ [HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt,
-                                                HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
+                                  V.fromList [HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt,
+                                              HomAlt, Het, Het, HomAlt, Het, HomAlt, HomAlt, HomAlt, HomAlt, HomAlt])
         jointDat !! 4 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1045331 0.026665 "2_1045331" 'G' 'A', V.fromList $ replicate 20 HomRef)
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
         pacs <- usePoseidonLogger NoLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles

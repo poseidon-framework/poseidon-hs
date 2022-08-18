@@ -68,7 +68,7 @@ runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionC
     then logWarning "No packages changed"
     else do
         -- update yml files
-        (UTCTime today _) <- liftIO $ getCurrentTime
+        (UTCTime today _) <- liftIO getCurrentTime
         let updatedPacsMeta = map (updateMeta versionComponent today newContributors) updatedPacsChanged
         -- write/update CHANGELOG files
         logInfo "Updating CHANGELOG files"

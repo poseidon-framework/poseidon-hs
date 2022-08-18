@@ -86,7 +86,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then logWarning $ ("skipping genotype conversion for " ++ posPacTitle pac)
+        then logWarning ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
             logEnv <- ask
@@ -98,10 +98,10 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                             GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
                     runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
-                ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
+                ) (throwIO . PoseidonGenotypeExceptionForward)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
-            unless (onlyGeno || (isJust outPath)) $ do
+            unless (onlyGeno || isJust outPath) $ do
                 let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
                     newPac = pac { posPacGenotypeData = genotypeData }
                 logInfo "Adjusting POSEIDON.yml..."

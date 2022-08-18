@@ -96,7 +96,7 @@ runForge (
 
     entities <- case entitiesUser of
         [] -> do
-            logInfo $ "No requested entities. Implicitly forging all packages."
+            logInfo "No requested entities. Implicitly forging all packages."
             return $ map (Include . Pac . posPacTitle) allPackages
         (Include _:_) -> do
             return entitiesUser
@@ -191,7 +191,7 @@ runForge (
                     P.tee outConsumer
             let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
             P.foldM sumNonMissingSNPs startAcc return forgePipe
-        ) (\e -> throwIO $ PoseidonGenotypeExceptionForward e)
+        ) (throwIO . PoseidonGenotypeExceptionForward)
     logInfo "Done"
     -- janno (with updated SNP numbers)
     unless (minimal || onlyGeno) $ do

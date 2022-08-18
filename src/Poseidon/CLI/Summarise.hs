@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (JannoList (..), JannoRow (..),
@@ -50,7 +48,7 @@ summariseJannoRows xs rawOutput = do
                 ["Nr Groups", show $ length $ nub $ map jGroupName xs],
                 ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map jPublication xs],
-                ["Publications", paste . nub . concat . map getJannoList . mapMaybe jPublication $ xs],
+                ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ xs],
                 ["Nr Countries", show $ length $ nub $ map jCountry xs],
                 ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
                 ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe jDateBCADMedian xs],

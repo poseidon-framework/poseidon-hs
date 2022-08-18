@@ -123,11 +123,11 @@ value =
 
 texSequence :: Char -> Parser String
 texSequence closeChar =
-   liftM concat (many (texBlock closeChar))
+   concat <$> many (texBlock closeChar)
 
 texBlock :: Char -> Parser String
 texBlock closeChar =
-   liftM3 (\open body close -> open : body ++ close : [])
+   liftM3 (\open body close -> open : body ++ [close])
       (char '{') (texSequence '}') (char '}') <|>
    sequence
       [char '\\',
