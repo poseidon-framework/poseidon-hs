@@ -14,10 +14,9 @@ module Poseidon.SecondaryTypes (
 
 import           Control.Monad      (mzero)
 import           Data.Aeson         (FromJSON, ToJSON, Value (String), object,
-                                     pairs, parseJSON, toJSON, withObject, (.:),
-                                     (.:?), (.=))
-import           Data.Char          (digitToInt)
-import           Data.List          (intercalate, splitAt)
+                                     parseJSON, toJSON, withObject, (.:), (.:?),
+                                     (.=))
+import           Data.List          (intercalate)
 import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
 import           Data.Version       (Version (..), makeVersion)
@@ -175,15 +174,15 @@ renderORCID (ORCID nums check) =
             let (ys, zs) = splitAt n xs
             in  ys : chunks n zs
 
-validateORCID :: ORCID -> Bool
-validateORCID (ORCID nums check) =
-    let numsInt = map digitToInt nums
-        total = makeTotal 0 numsInt
-        remainder = total `mod` 11
-        result = (12 - remainder) `mod` 11
-        checkInt = if check == 'X' then 10 else digitToInt check
-    in result == checkInt
-    where
-        makeTotal :: Int -> [Int] -> Int
-        makeTotal a []     = a
-        makeTotal a (x:xs) = makeTotal ((a + x) * 2) xs
+--validateORCID :: ORCID -> Bool
+--validateORCID (ORCID nums check) =
+--    let numsInt = map digitToInt nums
+--        total = makeTotal 0 numsInt
+--        remainder = total `mod` 11
+--        result = (12 - remainder) `mod` 11
+--        checkInt = if check == 'X' then 10 else digitToInt check
+--    in result == checkInt
+--    where
+--        makeTotal :: Int -> [Int] -> Int
+--        makeTotal a []     = a
+--        makeTotal a (x:xs) = makeTotal ((a + x) * 2) xs
