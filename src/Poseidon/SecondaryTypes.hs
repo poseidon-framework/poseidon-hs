@@ -13,11 +13,11 @@ module Poseidon.SecondaryTypes (
 ) where
 
 import           Control.Monad      (mzero)
-import           Data.Aeson         (FromJSON, ToJSON, object, parseJSON,
-                                     toJSON, withObject, (.:), (.:?), (.=),
-                                     Value (String), pairs)
+import           Data.Aeson         (FromJSON, ToJSON, Value (String), object,
+                                     pairs, parseJSON, toJSON, withObject, (.:),
+                                     (.:?), (.=))
 import           Data.List          (intercalate, splitAt)
-import           Data.Text          (unpack, pack)
+import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
 import           Data.Version       (Version (..), makeVersion)
 import qualified Text.Parsec        as P
@@ -125,7 +125,7 @@ instance ToJSON ContributorSpec where
 
 -- | A data type to represent an ORCID
 data ORCID = ORCID
-    { _orcidNums :: [Char]
+    { _orcidNums     :: [Char]
     , _orcidChecksum :: Char
     }
     deriving (Show, Eq)
@@ -155,7 +155,7 @@ parseORCID = do
 
 renderORCID :: ORCID -> String
 renderORCID (ORCID nums check) =
-    intercalate "-" (chunks 4 nums) ++ [check] 
+    intercalate "-" (chunks 4 nums) ++ [check]
     where
         chunks :: Int -> [a] -> [[a]]
         chunks _ [] = []
