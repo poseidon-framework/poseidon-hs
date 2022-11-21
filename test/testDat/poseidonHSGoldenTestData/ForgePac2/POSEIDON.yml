@@ -1,8 +1,5 @@
 poseidonVersion: 2.5.0
 title: ForgePac2
-contributor:
-- name: John Doe
-  email: john@doe.net
 genotypeData:
   format: PLINK
   genoFile: ForgePac2.bed

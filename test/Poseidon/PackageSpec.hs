@@ -83,7 +83,7 @@ truePackageRelPaths = PoseidonYamlStruct {
     _posYamlPoseidonVersion = makeVersion [2, 0, 1],
     _posYamlTitle           = "Schiffels_2016",
     _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
-    _posYamlContributor     = [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
+    _posYamlContributor     = Just [ContributorSpec "Stephan Schiffels" "schiffels@institute.org"],
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
     _posYamlGenotypeData    = GenotypeDataSpec {
@@ -143,6 +143,11 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             gd = _posYamlGenotypeData p_
             gdTrue = _posYamlGenotypeData truePackageRelPaths
         gd `shouldBe` gdTrue {snpSet = Nothing}
+    it "should parse missing contributor field as Nothing" $ do
+        let yamlPackageNoContributor = replace "contributor:\n  - name: Stephan Schiffels\n    email: schiffels@institute.org" "" yamlPackage
+            (Right p_) = decodeEither' yamlPackageNoContributor :: Either ParseException PoseidonYamlStruct
+            contri = _posYamlContributor p_
+        contri `shouldBe` Nothing
 
 testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do

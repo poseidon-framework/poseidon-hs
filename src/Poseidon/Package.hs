@@ -83,7 +83,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     { _posYamlPoseidonVersion :: Version
     , _posYamlTitle           :: String
     , _posYamlDescription     :: Maybe String
-    , _posYamlContributor     :: [ContributorSpec]
+    , _posYamlContributor     :: Maybe [ContributorSpec]
     , _posYamlPackageVersion  :: Maybe Version
     , _posYamlLastModified    :: Maybe Day
     , _posYamlGenotypeData    :: GenotypeDataSpec
@@ -110,7 +110,7 @@ instance FromJSON PoseidonYamlStruct where
         <$> v .:   "poseidonVersion"
         <*> v .:   "title"
         <*> v .:?  "description"
-        <*> v .:   "contributor"
+        <*> v .:?  "contributor"
         <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
         <*> v .:   "genotypeData"
@@ -312,9 +312,14 @@ readPoseidonPackage opts ymlPath = do
     bs <- liftIO $ B.readFile ymlPath
 
     -- read yml files
-    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
+    yml@(PoseidonYamlStruct ver tit des maybeCon pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
+
+    -- handling contributors field
+    let con = case maybeCon of
+            Nothing -> []
+            Just xs -> xs
 
     -- file existence and checksum test
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
@@ -548,7 +553,7 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
     ,   posPacTitle = name
     ,   posPacDescription = Nothing
-    ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
+    ,   posPacContributor = []
     ,   posPacPackageVersion = Nothing
     ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
@@ -592,6 +597,7 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
+        ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
@@ -619,6 +625,9 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
-    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibFC readF changeF
+    let maybeCon = case con of
+            [] -> Nothing
+            xs -> Just xs
+    let yamlPac = PoseidonYamlStruct ver tit des maybeCon pacVer mod_ geno jannoF jannoC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac
