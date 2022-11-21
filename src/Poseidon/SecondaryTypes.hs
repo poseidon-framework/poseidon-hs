@@ -16,6 +16,7 @@ import           Control.Monad      (mzero)
 import           Data.Aeson         (FromJSON, ToJSON, Value (String), object,
                                      pairs, parseJSON, toJSON, withObject, (.:),
                                      (.:?), (.=))
+import           Data.Char          (digitToInt)
 import           Data.List          (intercalate, splitAt)
 import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
@@ -123,7 +124,18 @@ instance ToJSON ContributorSpec where
         , "orcid" .= contributorORCID x
         ]
 
+contributorSpecParser :: P.Parser [ContributorSpec]
+contributorSpecParser = P.try (P.sepBy oneContributorSpecParser (P.char ';' <* P.spaces))
+
+oneContributorSpecParser :: P.Parser ContributorSpec
+oneContributorSpecParser = do
+    name <- P.between (P.char '[') (P.char ']') (P.manyTill P.anyChar (P.lookAhead (P.char ']')))
+    email <- P.between (P.char '(') (P.char ')') (P.manyTill P.anyChar (P.lookAhead (P.char ')')))
+    -- TODO: add option to add ORCID here
+    return (ContributorSpec name email Nothing)
+
 -- | A data type to represent an ORCID
+-- see https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
 data ORCID = ORCID
     { _orcidNums     :: [Char]
     , _orcidChecksum :: Char
@@ -163,12 +175,15 @@ renderORCID (ORCID nums check) =
             let (ys, zs) = splitAt n xs
             in  ys : chunks n zs
 
-contributorSpecParser :: P.Parser [ContributorSpec]
-contributorSpecParser = P.try (P.sepBy oneContributorSpecParser (P.char ';' <* P.spaces))
-
-oneContributorSpecParser :: P.Parser ContributorSpec
-oneContributorSpecParser = do
-    name <- P.between (P.char '[') (P.char ']') (P.manyTill P.anyChar (P.lookAhead (P.char ']')))
-    email <- P.between (P.char '(') (P.char ')') (P.manyTill P.anyChar (P.lookAhead (P.char ')')))
-    -- TODO: add option to add ORCID here
-    return (ContributorSpec name email Nothing)
+validateORCID :: ORCID -> Bool
+validateORCID (ORCID nums check) =
+    let numsInt = map digitToInt nums
+        total = makeTotal 0 numsInt
+        remainder = total `mod` 11
+        result = (12 - remainder) `mod` 11
+        checkInt = if check == 'X' then 10 else digitToInt check
+    in result == checkInt
+    where
+        makeTotal :: Int -> [Int] -> Int
+        makeTotal a []     = a
+        makeTotal a (x:xs) = makeTotal ((a + x) * 2) xs
