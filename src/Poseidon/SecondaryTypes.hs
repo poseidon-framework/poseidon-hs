@@ -8,11 +8,16 @@ module Poseidon.SecondaryTypes (
     GroupInfo(..),
     VersionComponent (..),
     PackageInfo(..),
-    P.runParser
+    P.runParser,
+    ORCID (..)
 ) where
 
+import           Control.Monad      (mzero)
 import           Data.Aeson         (FromJSON, ToJSON, object, parseJSON,
-                                     toJSON, withObject, (.:), (.:?), (.=))
+                                     toJSON, withObject, (.:), (.:?), (.=),
+                                     Value (String), pairs)
+import           Data.List          (intercalate, splitAt)
+import           Data.Text          (unpack, pack)
 import           Data.Time          (Day)
 import           Data.Version       (Version (..), makeVersion)
 import qualified Text.Parsec        as P
@@ -98,23 +103,65 @@ poseidonVersionParser = do
 -- | A data type to represent a contributor
 data ContributorSpec = ContributorSpec
     { contributorName  :: String -- ^ the name of a contributor
-    -- ^ the email address of a contributor
     , contributorEmail :: String -- ^ the email address of a contributor
+    , contributorORCID :: Maybe ORCID -- ^ the ORCID of a contributor
     }
     deriving (Show, Eq)
 
 -- | To facilitate automatic parsing of ContributorSpec from JSON files
 instance FromJSON ContributorSpec where
     parseJSON = withObject "contributor" $ \v -> ContributorSpec
-        <$> v .: "name"
-        <*> v .: "email"
+        <$> v .:  "name"
+        <*> v .:  "email"
+        <*> v .:? "orcid"
 
 instance ToJSON ContributorSpec where
     -- this encodes directly to a bytestring Builder
     toJSON x = object [
-        "name" .= contributorName x,
-        "email" .= contributorEmail x
+          "name"  .= contributorName x
+        , "email" .= contributorEmail x
+        , "orcid" .= contributorORCID x
         ]
+
+-- | A data type to represent an ORCID
+data ORCID = ORCID
+    { _orcidNums :: [Char]
+    , _orcidChecksum :: Char
+    }
+    deriving (Show, Eq)
+
+instance FromJSON ORCID where
+    parseJSON (String s) = case P.runParser parseORCID () "" (unpack s) of
+        Left err -> fail $ show err
+        Right x  -> pure x
+    parseJSON _          = mzero
+
+instance ToJSON ORCID where
+    toJSON x = String $ pack $ renderORCID x
+
+-- TODO: implemented not just ORCID parsing, but also validation
+parseORCID :: P.Parser ORCID
+parseORCID = do
+  (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
+        fourBlock <* m
+    <*> fourBlock <* m
+    <*> fourBlock <* m
+    <*> threeBlock <*> checksumDigit <* P.eof
+  where
+      fourBlock = P.count 4 P.digit
+      m = P.oneOf "-"
+      threeBlock = P.count 3 P.digit
+      checksumDigit = P.digit P.<|> P.char 'X'
+
+renderORCID :: ORCID -> String
+renderORCID (ORCID nums check) =
+    intercalate "-" (chunks 4 nums) ++ [check] 
+    where
+        chunks :: Int -> [a] -> [[a]]
+        chunks _ [] = []
+        chunks n xs =
+            let (ys, zs) = splitAt n xs
+            in  ys : chunks n zs
 
 contributorSpecParser :: P.Parser [ContributorSpec]
 contributorSpecParser = P.try (P.sepBy oneContributorSpecParser (P.char ';' <* P.spaces))
@@ -123,4 +170,5 @@ oneContributorSpecParser :: P.Parser ContributorSpec
 oneContributorSpecParser = do
     name <- P.between (P.char '[') (P.char ']') (P.manyTill P.anyChar (P.lookAhead (P.char ']')))
     email <- P.between (P.char '(') (P.char ')') (P.manyTill P.anyChar (P.lookAhead (P.char ')')))
-    return (ContributorSpec name email)
+    -- TODO: add option to add ORCID here
+    return (ContributorSpec name email Nothing)

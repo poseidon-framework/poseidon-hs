@@ -34,7 +34,7 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
-                                             IndividualInfo (..))
+                                             IndividualInfo (..), ORCID (..))
 import           Poseidon.Utils             (LogEnv, PoseidonException (..),
                                              PoseidonLogIO, checkFile, logDebug,
                                              logInfo, logWarning, logWithEnv,
@@ -146,6 +146,7 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "contributor",
         "name",
         "email",
+        "orcid",
         "packageVersion",
         "lastModified",
         "genotypeData",
@@ -597,7 +598,7 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
-        ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
+        ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net" (Just $ ORCID {_orcidNums = "123412341234123", _orcidChecksum = 'X'})]
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }

@@ -318,8 +318,8 @@ testPipelineUpdate testDir checkFilePath = do
         , _updateNoChecksumUpdate = False
         , _updateIgnoreGeno = False
         , _updateNewContributors = [
-            ContributorSpec "Berta Testfrau" "berta@testfrau.org",
-            ContributorSpec "Herbert Testmann" "herbert@testmann.tw"
+            ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing,
+            ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
         , _updateLog = "test3"
         , _updateForce = True
