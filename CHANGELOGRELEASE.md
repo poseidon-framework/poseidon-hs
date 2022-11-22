@@ -1,3 +1,13 @@
+### V 1.1.4.0
+
+With this release trident becomes able to handle the changes introduced for Poseidon v2.6.0.
+
+- The *contributor* field in the POSEIDON.yml file is optional now and can be left blank.
+- The *contributor* field now also can hold an ORCID in a subfield *orcid*. `trident` checks the [structural correctness](https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier) of this identifier.
+- `trident` now recognizes the new available entires for the `Capture_Type` variable in the .janno file.
+
+Beyond that already V 1.1.3.1 closed a loophole in .bib file validation, where .janno files could have arbitrary references if the .bib file was not correctly referenced in the POSEIDON.yml file.
+
 ### V 1.1.3.0
 
 This release introduces a major change to the progress indicators in package downloading, reading, forging and converting. It also includes some minor code changes in the poseidon-hs library and the poseidon server executable.
@@ -40,6 +50,7 @@ From a trident user perspective only the change in the progress indicators is re
 ```
 
 #### Server
+
 The server has been updated in the following ways:
 
 * It now uses Co-Log for logging
