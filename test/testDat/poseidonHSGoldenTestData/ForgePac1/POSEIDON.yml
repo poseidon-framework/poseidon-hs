@@ -2,9 +2,9 @@ poseidonVersion: 2.5.0
 title: ForgePac1
 description: Empty package template. Please add a description
 contributor:
-- name: John Doe
-  email: john@doe.net
-  orcid: 1234-1234-1234-123X
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
 packageVersion: 0.1.0
 lastModified: 1970-01-01
 genotypeData:

@@ -598,7 +598,12 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
-        ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net" (Just $ ORCID {_orcidNums = "123412341234123", _orcidChecksum = 'X'})]
+        ,   posPacContributor = [
+                ContributorSpec
+                    "Josiah Carberry"
+                    "carberry@brown.edu"
+                    (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
+                ]
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }

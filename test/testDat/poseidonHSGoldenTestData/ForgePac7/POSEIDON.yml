@@ -2,11 +2,11 @@ poseidonVersion: 2.5.0
 title: ForgePac7
 description: Empty package template. Please add a description
 contributor:
-- name: John Doe
-  email: john@doe.net
-  orcid: 1234-1234-1234-123X
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
 packageVersion: 0.1.0
-lastModified: 2022-11-21
+lastModified: 2022-11-22
 genotypeData:
   format: EIGENSTRAT
   genoFile: ForgePac7.geno
