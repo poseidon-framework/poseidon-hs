@@ -12,10 +12,11 @@ module Poseidon.SecondaryTypes (
     ORCID (..)
 ) where
 
-import           Control.Monad      (mzero)
+import           Control.Monad      (guard, mzero)
 import           Data.Aeson         (FromJSON, ToJSON, Value (String), object,
                                      parseJSON, toJSON, withObject, (.:), (.:?),
                                      (.=))
+import           Data.Char          (digitToInt)
 import           Data.List          (intercalate)
 import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
@@ -150,19 +151,33 @@ instance FromJSON ORCID where
 instance ToJSON ORCID where
     toJSON x = String $ pack $ renderORCID x
 
--- TODO: implemented not just ORCID parsing, but also validation
 parseORCID :: P.Parser ORCID
 parseORCID = do
-  (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
-        fourBlock <* m
-    <*> fourBlock <* m
-    <*> fourBlock <* m
-    <*> threeBlock <*> checksumDigit <* P.eof
+    orcid <- (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
+            fourBlock <* m
+        <*> fourBlock <* m
+        <*> fourBlock <* m
+        <*> threeBlock <*> checksumDigit <* P.eof
+    guard (validateORCID orcid) P.<?> "ORCID is not valid"
+    return orcid
   where
       fourBlock = P.count 4 P.digit
       m = P.oneOf "-"
       threeBlock = P.count 3 P.digit
       checksumDigit = P.digit P.<|> P.char 'X'
+
+validateORCID :: ORCID -> Bool
+validateORCID (ORCID nums check) =
+    let numsInt = map digitToInt nums
+        total = makeTotal 0 numsInt
+        remainder = total `mod` 11
+        result = (12 - remainder) `mod` 11
+        checkInt = if check == 'X' then 10 else digitToInt check
+    in result == checkInt
+    where
+        makeTotal :: Int -> [Int] -> Int
+        makeTotal a []     = a
+        makeTotal a (x:xs) = makeTotal ((a + x) * 2) xs
 
 renderORCID :: ORCID -> String
 renderORCID (ORCID nums check) =
@@ -173,16 +188,3 @@ renderORCID (ORCID nums check) =
         chunks n xs =
             let (ys, zs) = splitAt n xs
             in  ys : chunks n zs
-
---validateORCID :: ORCID -> Bool
---validateORCID (ORCID nums check) =
---    let numsInt = map digitToInt nums
---        total = makeTotal 0 numsInt
---        remainder = total `mod` 11
---        result = (12 - remainder) `mod` 11
---        checkInt = if check == 'X' then 10 else digitToInt check
---    in result == checkInt
---    where
---        makeTotal :: Int -> [Int] -> Int
---        makeTotal a []     = a
---        makeTotal a (x:xs) = makeTotal ((a + x) * 2) xs
