@@ -13,7 +13,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..))
+import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
 import           Poseidon.Utils             (LogMode (..),
                                              PoseidonException (..),
                                              getChecksum, noLog,
@@ -61,6 +61,7 @@ description: Genetic data published in Schiffels et al. 2016
 contributor:
   - name: Stephan Schiffels
     email: schiffels@institute.org
+    orcid: 0000-0002-1017-9150
 packageVersion: 1.0.0
 lastModified: 2020-02-28
 bibFile: sources.bib
@@ -83,7 +84,12 @@ truePackageRelPaths = PoseidonYamlStruct {
     _posYamlPoseidonVersion = makeVersion [2, 0, 1],
     _posYamlTitle           = "Schiffels_2016",
     _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
-    _posYamlContributor     = Just [ContributorSpec "Stephan Schiffels" "schiffels@institute.org" Nothing],
+    _posYamlContributor     = Just [
+        ContributorSpec
+            "Stephan Schiffels"
+            "schiffels@institute.org"
+            (Just $ ORCID {_orcidNums = "000000021017915", _orcidChecksum = '0'})
+        ],
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
     _posYamlGenotypeData    = GenotypeDataSpec {
@@ -138,16 +144,21 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
         p_ `shouldBe` truePackageRelPaths {_posYamlLastModified = Nothing}
     it "should parse missing snpSet field as Nothing" $ do
-        let yamlPackageNoSnpSet = replace "  snpSet: 1240K\n" "" yamlPackage
-            (Right p_) = decodeEither' yamlPackageNoSnpSet :: Either ParseException PoseidonYamlStruct
+        let yamlPackage2 = replace "  snpSet: 1240K\n" "" yamlPackage
+            (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
             gd = _posYamlGenotypeData p_
             gdTrue = _posYamlGenotypeData truePackageRelPaths
         gd `shouldBe` gdTrue {snpSet = Nothing}
     it "should parse missing contributor field as Nothing" $ do
-        let yamlPackageNoContributor = replace "contributor:\n  - name: Stephan Schiffels\n    email: schiffels@institute.org" "" yamlPackage
-            (Right p_) = decodeEither' yamlPackageNoContributor :: Either ParseException PoseidonYamlStruct
+        let yamlPackage2 = replace 
+                "contributor:\n  - name: Stephan Schiffels\n    email: schiffels@institute.org\n    orcid: 0000-0002-1017-9150" "" yamlPackage
+            (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
             contri = _posYamlContributor p_
         contri `shouldBe` Nothing
+    it "should fail for a wrong ORCID" $ do
+        let yamlPackage2 = replace "0000-0002-1017-9150" "0000-0002-1017-9151" yamlPackage
+            (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
+        show err `shouldContain` "ORCID is not valid"
 
 testreadPoseidonPackageCollection :: Spec
 testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackages" $ do
