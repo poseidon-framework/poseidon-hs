@@ -84,7 +84,7 @@ truePackageRelPaths = PoseidonYamlStruct {
     _posYamlPoseidonVersion = makeVersion [2, 0, 1],
     _posYamlTitle           = "Schiffels_2016",
     _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
-    _posYamlContributor     = Just [
+    _posYamlContributor     = [
         ContributorSpec
             "Stephan Schiffels"
             "schiffels@institute.org"
@@ -154,7 +154,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
                 "contributor:\n  - name: Stephan Schiffels\n    email: schiffels@institute.org\n    orcid: 0000-0002-1017-9150" "" yamlPackage
             (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
             contri = _posYamlContributor p_
-        contri `shouldBe` Nothing
+        contri `shouldBe` []
     it "should fail for a wrong ORCID" $ do
         let yamlPackage2 = replace "0000-0002-1017-9150" "0000-0002-1017-9151" yamlPackage
             (Left err) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct

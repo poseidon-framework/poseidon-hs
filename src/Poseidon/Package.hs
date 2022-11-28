@@ -47,7 +47,7 @@ import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Reader       (ask)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
-                                             (.:), (.:?), (.=))
+                                             (.:), (.:?), (.=), (.!=))
 import qualified Data.ByteString            as B
 import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
@@ -83,7 +83,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     { _posYamlPoseidonVersion :: Version
     , _posYamlTitle           :: String
     , _posYamlDescription     :: Maybe String
-    , _posYamlContributor     :: Maybe [ContributorSpec]
+    , _posYamlContributor     :: [ContributorSpec]
     , _posYamlPackageVersion  :: Maybe Version
     , _posYamlLastModified    :: Maybe Day
     , _posYamlGenotypeData    :: GenotypeDataSpec
@@ -110,7 +110,7 @@ instance FromJSON PoseidonYamlStruct where
         <$> v .:   "poseidonVersion"
         <*> v .:   "title"
         <*> v .:?  "description"
-        <*> v .:?  "contributor"
+        <*> v .:?  "contributor" .!= []
         <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
         <*> v .:   "genotypeData"
@@ -313,14 +313,9 @@ readPoseidonPackage opts ymlPath = do
     bs <- liftIO $ B.readFile ymlPath
 
     -- read yml files
-    yml@(PoseidonYamlStruct ver tit des maybeCon pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
-
-    -- handling contributors field
-    let con = case maybeCon of
-            Nothing -> []
-            Just xs -> xs
 
     -- file existence and checksum test
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
@@ -631,9 +626,6 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
-    let maybeCon = case con of
-            [] -> Nothing
-            xs -> Just xs
-    let yamlPac = PoseidonYamlStruct ver tit des maybeCon pacVer mod_ geno jannoF jannoC bibF bibFC readF changeF
+    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     encodeFilePretty outF yamlPac
