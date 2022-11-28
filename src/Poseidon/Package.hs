@@ -47,7 +47,7 @@ import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Reader       (ask)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
-                                             (.:), (.:?), (.=), (.!=))
+                                             (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
 import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
