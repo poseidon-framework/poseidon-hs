@@ -1,6 +1,6 @@
 module Poseidon.JannoSpec (spec) where
 
-import           Poseidon.Janno (JURI (..), BCADAge (..), JannoCaptureType (..),
+import           Poseidon.Janno (BCADAge (..), JURI (..), JannoCaptureType (..),
                                  JannoDateType (..), JannoGenotypePloidy (..),
                                  JannoLibraryBuilt (..), JannoList (..),
                                  JannoRow (..), JannoSex (..), JannoUDG (..),

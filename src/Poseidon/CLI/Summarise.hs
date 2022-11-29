@@ -1,7 +1,7 @@
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (JannoList (..), JannoRow (..),
-                                         Percent (..), BCADAge (..))
+import           Poseidon.Janno         (BCADAge (..), JannoList (..),
+                                         JannoRow (..), Percent (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
