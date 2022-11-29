@@ -1,6 +1,6 @@
 module Poseidon.JannoSpec (spec) where
 
-import           Poseidon.Janno (JURI (..), JannoCaptureType (..),
+import           Poseidon.Janno (JURI (..), BCADAge (..), JannoCaptureType (..),
                                  JannoDateType (..), JannoGenotypePloidy (..),
                                  JannoLibraryBuilt (..), JannoList (..),
                                  JannoRow (..), JannoSex (..), JannoUDG (..),
@@ -57,7 +57,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLongitude janno                    `shouldBe` [Just (Longitude 0), Just (Longitude (-180)), Just (Longitude 180)]
         map jDateC14Labnr janno                 `shouldBe` [Just (JannoList ["A-1", "A-2", "A-3"]), Nothing, Nothing]
         map jDateC14UncalBP janno               `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
-        map jDateBCADMedian janno               `shouldBe` [Just (-1000), Just (-5000), Just 2000]
+        map jDateBCADMedian janno               `shouldBe` [Just (BCADAge (-1000)), Just (BCADAge (-5000)), Just (BCADAge 2000)]
         map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
         map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]

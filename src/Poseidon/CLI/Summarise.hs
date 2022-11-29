@@ -1,7 +1,7 @@
 module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (JannoList (..), JannoRow (..),
-                                         Percent (..))
+                                         Percent (..), BCADAge (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -51,7 +51,7 @@ summariseJannoRows xs rawOutput = do
                 ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ xs],
                 ["Nr Countries", show $ length $ nub $ map jCountry xs],
                 ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
-                ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe jDateBCADMedian xs],
+                ["Mean age BC/AD", meanAndSdInteger $ map (\(BCADAge x) -> fromIntegral x) $ mapMaybe jDateBCADMedian xs],
                 ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType xs],
                 ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex xs],
                 ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup xs],

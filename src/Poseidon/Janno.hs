@@ -8,6 +8,7 @@ module Poseidon.Janno (
     JannoSex (..),
     JannoList (..),
     Sex (..),
+    BCADAge (..),
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
@@ -96,6 +97,30 @@ instance Show JannoSex where
     show (JannoSex Female)  = "F"
     show (JannoSex Male)    = "M"
     show (JannoSex Unknown) = "U"
+
+-- | A datatype for BC-AD ages
+newtype BCADAge =
+        BCADAge Int
+    deriving (Eq, Ord, Generic)
+
+instance ToJSON BCADAge where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON BCADAge
+
+instance Csv.FromField BCADAge where
+    parseField x = do
+        val <- Csv.parseField x
+        if val >= 2022 -- the current year
+        then fail $ "Age " ++ show x ++ " later than 2022, which is impossible. " ++
+                    "Did you accidentally enter a BP date?"
+        else pure (BCADAge val)
+
+instance Csv.ToField BCADAge where
+    toField (BCADAge x) = Csv.toField x
+
+instance Show BCADAge where
+    show (BCADAge x) = show x
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -418,9 +443,9 @@ data JannoRow = JannoRow
     , jDateC14Labnr               :: Maybe JannoStringList
     , jDateC14UncalBP             :: Maybe JannoIntList
     , jDateC14UncalBPErr          :: Maybe JannoIntList
-    , jDateBCADMedian             :: Maybe Int
-    , jDateBCADStart              :: Maybe Int
-    , jDateBCADStop               :: Maybe Int
+    , jDateBCADMedian             :: Maybe BCADAge
+    , jDateBCADStart              :: Maybe BCADAge
+    , jDateBCADStop               :: Maybe BCADAge
     , jDateType                   :: Maybe JannoDateType
     , jDateNote                   :: Maybe String
     , jNrLibraries                :: Maybe Int
