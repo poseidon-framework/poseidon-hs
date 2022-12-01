@@ -73,7 +73,7 @@ jobs:
         echo $docpathgeneral
         docpath=`find $docpathgeneral -type d -name "poseidon-hs*" -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2`
         echo $docpath
-        echo "::set-output name=DOCPATH::$docpath"
+        echo "{DOCPATH}={$docpath}" >> $GITHUB_OUTPUT
     
     - name: Deploy haddock documentation
       uses: peaceiris/actions-gh-pages@v3
