@@ -1,4 +1,4 @@
-### V 1.1.4.0
+### V 1.1.4.1
 
 With this release trident becomes able to handle the changes introduced for Poseidon v2.6.0.
 
@@ -6,7 +6,10 @@ With this release trident becomes able to handle the changes introduced for Pose
 - The *contributor* field now also can hold an ORCID in a subfield *orcid*. `trident` checks the [structural correctness](https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier) of this identifier.
 - `trident` now recognizes the new available entires for the `Capture_Type` variable in the .janno file.
 
-Beyond that already V 1.1.3.1 closed a loophole in .bib file validation, where .janno files could have arbitrary references if the .bib file was not correctly referenced in the POSEIDON.yml file.
+Beyond that:
+
+- Already V 1.1.3.1 closed a loophole in .bib file validation, where .janno files could have arbitrary references if the .bib file was not correctly referenced in the POSEIDON.yml file.
+- V 1.1.4.1 added a small validation check for the janno columns *Date_BC_AD_Start*, *Date_BC_AD_Median* and *Date_BC_AD_Stop*: Ages bigger than 2022 trigger an error now, because they are factually impossible and indicate that somebody accidentally entered a BP age.
 
 ### V 1.1.3.0
 
