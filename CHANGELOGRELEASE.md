@@ -4,12 +4,12 @@ With this release trident becomes able to handle the changes introduced for Pose
 
 - The *contributor* field in the POSEIDON.yml file is optional now and can be left blank.
 - The *contributor* field now also can hold an ORCID in a subfield *orcid*. `trident` checks the [structural correctness](https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier) of this identifier.
-- `trident` now recognizes the new available entires for the `Capture_Type` variable in the .janno file.
+- `trident` now recognizes the new available entries for the `Capture_Type` variable in the .janno file.
 
 Beyond that:
 
 - Already V 1.1.3.1 closed a loophole in .bib file validation, where .janno files could have arbitrary references if the .bib file was not correctly referenced in the POSEIDON.yml file.
-- V 1.1.4.1 added a small validation check for the janno columns *Date_BC_AD_Start*, *Date_BC_AD_Median* and *Date_BC_AD_Stop*: Ages bigger than 2022 trigger an error now, because they are factually impossible and indicate that somebody accidentally entered a BP age.
+- V 1.1.4.1 added a small validation check for the janno columns *Date_BC_AD_Start*, *Date_BC_AD_Median* and *Date_BC_AD_Stop*: Ages bigger than 2022 now trigger an error, because they are factually impossible and indicate that somebody accidentally entered a BP age.
 - V 1.1.4.2 added parsing for Accession IDs. Wrong IDs are ignored (for now), so this is a non-breaking change.
 
 ### V 1.1.3.0
