@@ -1,0 +1,8 @@
+poseidonVersion: 2.6.0
+title: Wang
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: Wang.geno
+  snpFile: Wang.snp
+  indFile: Wang.ind
+  snpSet: Other

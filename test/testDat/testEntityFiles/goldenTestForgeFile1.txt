@@ -1,0 +1,4 @@
+# adding populations
+POP2, POP3
+# removing individuals
+-<XXX002>,-<XXX004>, -<XXX008>
