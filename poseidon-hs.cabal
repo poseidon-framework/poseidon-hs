@@ -28,7 +28,7 @@ library
                         vector, pipes-ordered-zip, table-layout, mtl,
                         cassava, pureMD5, transformers,
                         yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
-                        unordered-containers, network-uri, optparse-applicative, co-log
+                        unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa
     default-language:   Haskell2010
 
 executable trident
