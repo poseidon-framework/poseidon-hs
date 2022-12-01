@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Paths_poseidon_hs                  (version)
-import           Poseidon.GoldenTestsRunCommands    (createStaticCheckSumFile)
+import           Paths_poseidon_hs               (version)
+import           Poseidon.GoldenTestsRunCommands (createStaticCheckSumFile)
 
-import           Data.Version                       (showVersion)
-import qualified Options.Applicative                as OP
-import           System.IO                          (hPutStrLn, stderr)
+import           Data.Version                    (showVersion)
+import qualified Options.Applicative             as OP
+import           System.IO                       (hPutStrLn, stderr)
 
 data UpdateGoldenTestsOptions = UpdateGoldenTestsOptions
     { _optPoseidonHSDir :: FilePath

@@ -1,40 +1,52 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Paths_poseidon_hs      (version)
-import           Poseidon.GenotypeData  (GenotypeFormatSpec (..), SNPSetSpec(..))
-import           Poseidon.CLI.Init      (InitOptions (..), runInit)
-import           Poseidon.CLI.List      (ListEntity (..), ListOptions (..),
-                                        runList, RepoLocationSpec(..))
-import           Poseidon.CLI.Fetch     (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge     (ForgeOptions (..), runForge)
-import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..), runGenoconvert)
-import           Poseidon.EntitiesList  (SignedEntitiesList,
-                                        readPoseidonEntitiesString)
-import           Poseidon.CLI.Summarise (SummariseOptions(..), runSummarise)
-import           Poseidon.CLI.Survey    (SurveyOptions(..), runSurvey)
-import           Poseidon.CLI.Update    (runUpdate, UpdateOptions (..))
-import           Poseidon.CLI.Validate  (ValidateOptions(..), runValidate)
-import           Poseidon.Janno         (jannoHeaderString)
-import           Poseidon.PoseidonVersion (validPoseidonVersions, showPoseidonVersion)
-import           Poseidon.SecondaryTypes (ContributorSpec (..),
-                                        VersionComponent (..),
-                                        poseidonVersionParser, 
-                                        contributorSpecParser,
-                                        runParser)
-import           Poseidon.Utils         (PoseidonException (..),
-                                        renderPoseidonException)
+import           Paths_poseidon_hs                       (version)
+import           Poseidon.CLI.Fetch                      (FetchOptions (..),
+                                                          runFetch)
+import           Poseidon.CLI.Forge                      (ForgeOptions (..),
+                                                          runForge)
+import           Poseidon.CLI.Genoconvert                (GenoconvertOptions (..),
+                                                          runGenoconvert)
+import           Poseidon.CLI.Init                       (InitOptions (..),
+                                                          runInit)
+import           Poseidon.CLI.List                       (ListOptions (..),
+                                                          runList)
+import           Poseidon.CLI.OptparseApplicativeParsers
+import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
+                                                          runSummarise)
+import           Poseidon.CLI.Survey                     (SurveyOptions (..),
+                                                          runSurvey)
+import           Poseidon.CLI.Update                     (UpdateOptions (..),
+                                                          runUpdate)
+import           Poseidon.CLI.Validate                   (ValidateOptions (..),
+                                                          runValidate)
+import           Poseidon.Janno                          (jannoHeaderString)
+import           Poseidon.PoseidonVersion                (showPoseidonVersion,
+                                                          validPoseidonVersions)
+import           Poseidon.Utils                          (LogMode (..),
+                                                          PoseidonException (..),
+                                                          PoseidonLogIO,
+                                                          logError,
+                                                          renderPoseidonException,
+                                                          usePoseidonLogger)
 
-import           Control.Applicative    ((<|>))
-import           Control.Exception      (catch)
-import           Data.List              (intercalate)
-import           Data.Version           (Version (..), showVersion)
-import qualified Options.Applicative    as OP
-import           Options.Applicative.Help.Pretty (string)
-import           System.Exit            (exitFailure)
-import           System.IO              (hPutStrLn, stderr)
+import           Control.Applicative                     ((<|>))
+import           Control.Exception                       (catch)
+import           Data.List                               (intercalate)
+import           Data.Version                            (showVersion)
+import qualified Options.Applicative                     as OP
+import           Options.Applicative.Help.Pretty         (string)
+import           System.Exit                             (exitFailure)
+import           System.IO                               (hPutStrLn, stderr)
 
-data Options = CmdFstats -- dummy option to provide help message to user
-    | CmdInit InitOptions
+data Options = Options {
+    _logMode    :: LogMode
+  , _errLength  :: ErrorLength
+  , _subcommand :: Subcommand
+  }
+
+data Subcommand =
+      CmdInit InitOptions
     | CmdList ListOptions
     | CmdFetch FetchOptions
     | CmdForge ForgeOptions
@@ -48,36 +60,33 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    cmdOpts <- OP.customExecParser p optParserInfo
-    catch (runCmd cmdOpts) handler
+    (Options logMode errLength subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode $ runCmd subcommand) (handler logMode errLength)
     where
-        p = OP.prefs OP.showHelpOnEmpty
-        handler :: PoseidonException -> IO ()
-        handler e = do
-            hPutStrLn stderr $ renderPoseidonException e
+        handler :: LogMode -> ErrorLength -> PoseidonException -> IO ()
+        handler l len e = do
+            usePoseidonLogger l $ logError $ truncateErr len $ renderPoseidonException e
             exitFailure
+        truncateErr :: ErrorLength -> String -> String
+        truncateErr CharInf         s = s
+        truncateErr (CharCount len) s
+            | length s > len          = take len s ++ "... (see more with --errLength)"
+            | otherwise               = s
 
-runCmd :: Options -> IO ()
+runCmd :: Subcommand -> PoseidonLogIO ()
 runCmd o = case o of
-    CmdFstats    -> runFstatsDummy
-    CmdInit opts      -> runInit opts
-    CmdList opts      -> runList opts
-    CmdFetch opts     -> runFetch opts
-    CmdForge opts     -> runForge opts
+    CmdInit opts        -> runInit opts
+    CmdList opts        -> runList opts
+    CmdFetch opts       -> runFetch opts
+    CmdForge opts       -> runForge opts
     CmdGenoconvert opts -> runGenoconvert opts
-    CmdSummarise opts -> runSummarise opts
-    CmdSurvey opts    -> runSurvey opts
-    CmdUpdate opts -> runUpdate opts
-    CmdValidate opts  -> runValidate opts
-  where
-    runFstatsDummy = hPutStrLn stderr fstatsErrorMessage 
-
-fstatsErrorMessage :: String
-fstatsErrorMessage = "The fstats command has been moved from trident to the analysis tool \
-    \xerxes from https://github.com/poseidon-framework/poseidon-analysis-hs"
+    CmdSummarise opts   -> runSummarise opts
+    CmdSurvey opts      -> runSurvey opts
+    CmdUpdate opts      -> runUpdate opts
+    CmdValidate opts    -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> parseErrorLength <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -88,14 +97,13 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version number")
 
 renderVersion :: String
-renderVersion = 
-    "trident v" ++ showVersion version ++ " for poseidon v" ++ 
+renderVersion =
+    "trident v" ++ showVersion version ++ " for poseidon v" ++
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
-    "https://poseidon-framework.github.io" -- ++ "\n" ++
-    --")<(({°> ~ ────E ~ <°}))>("
+    "https://poseidon-framework.github.io"
 
-optParser :: OP.Parser Options
-optParser = OP.subparser (
+subcommandParser :: OP.Parser Subcommand
+subcommandParser = OP.subparser (
         OP.command "init" initOptInfo <>
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
@@ -110,13 +118,8 @@ optParser = OP.subparser (
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
-    ) <|>
-    OP.subparser (
-        OP.command "fstats" fstatsOptInfo <>
-        OP.commandGroup "Former analysis command:"
     )
   where
-    fstatsOptInfo = OP.info (pure CmdFstats) (OP.progDesc fstatsErrorMessage) -- dummy for now
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
         (OP.progDesc "Create a new Poseidon package from genotype data")
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
@@ -145,11 +148,7 @@ optParser = OP.subparser (
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
 
 initOptParser :: OP.Parser InitOptions
-initOptParser = InitOptions <$> parseInGenotypeFormat
-                            <*> parseGenotypeSNPSet
-                            <*> parseInGenoFile
-                            <*> parseInSnpFile
-                            <*> parseInIndFile
+initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
                             <*> parseMakeMinimalPackage
@@ -162,32 +161,28 @@ listOptParser = ListOptions <$> parseRepoLocation
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
-                              <*> parseFetchEntitiesDirect
-                              <*> parseFetchEntitiesFromFile
+                              <*> parseFetchEntityInputs
                               <*> parseRemoteURL
                               <*> parseUpgrade
-                              <*> parseDownloadAll
 
 forgeOptParser :: OP.Parser ForgeOptions
-forgeOptParser = ForgeOptions <$> parseBasePaths
-                              <*> parseForgeEntitiesDirect
-                              <*> parseForgeEntitiesFromFile
+forgeOptParser = ForgeOptions <$> parseGenoDataSources
+                              <*> parseForgeEntityInputs
+                              <*> parseMaybeSnpFile
                               <*> parseIntersect
+                              <*> parseOutGenotypeFormat True
+                              <*> parseMakeMinimalPackage
+                              <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> parseOutFormat
-                              <*> parseMakeMinimalPackage
-                              <*> parseShowWarnings
                               <*> parseNoExtract
-                              <*> parseMaybeSnpFile
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
-genoconvertOptParser = GenoconvertOptions <$> parseBasePaths
-                                          <*> parseOutGenotypeFormat
+genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
+                                          <*> parseOutGenotypeFormat False
+                                          <*> parseOutOnlyGeno
+                                          <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
-
-parseRemoveOld :: OP.Parser Bool
-parseRemoveOld = OP.switch (OP.long "removeOld" <> OP.help "Remove the old genotype files when creating the new ones")
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -213,280 +208,3 @@ validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseVerbose
                                     <*> parseIgnoreGeno
                                     <*> parseNoExitCode
-
-parsePoseidonVersion :: OP.Parser (Maybe Version)
-parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
-    OP.long "poseidonVersion" <> 
-    OP.help "Poseidon version the packages should be updated to: \
-            \e.g. \"2.5.3\"" <>
-    OP.value Nothing <>
-    OP.showDefault
-    )
-    where 
-        readPoseidonVersionString :: String -> Either String Version
-        readPoseidonVersionString s = case runParser poseidonVersionParser () "" s of
-            Left p  -> Left (show p)
-            Right x -> Right x
-
-parseVersionComponent :: OP.Parser VersionComponent
-parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
-    OP.long "versionComponent" <> 
-    OP.help "Part of the package version number in the POSEIDON.yml file \
-            \that should be updated: \
-            \Major, Minor or Patch (see https://semver.org)" <>
-    OP.value Patch <>
-    OP.showDefault
-    )
-    where
-        readVersionComponent :: String -> Either String VersionComponent
-        readVersionComponent s = case s of
-            "Major" -> Right Major
-            "Minor" -> Right Minor
-            "Patch" -> Right Patch
-            _       -> Left "must be Major, Minor or Patch"
-
-parseNoChecksumUpdate :: OP.Parser Bool
-parseNoChecksumUpdate = OP.switch (
-    OP.long "noChecksumUpdate" <>
-    OP.help "Should update of checksums in the POSEIDON.yml file be skipped"
-    )
-
-parseContributors :: OP.Parser [ContributorSpec]
-parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (
-    OP.long "newContributors" <>
-    OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\""
-    ))
-    where
-        readContributorString :: String -> Either String [ContributorSpec]
-        readContributorString s = case runParser contributorSpecParser () "" s of
-            Left p  -> Left (show p)
-            Right x -> Right x
-
-
-parseLog :: OP.Parser String
-parseLog = OP.strOption (
-    OP.long "logText" <> 
-    OP.help "Log text for this version jump in the CHANGELOG file" <>
-    OP.value "not specified" <>
-    OP.showDefault
-    )
-
-parseForce :: OP.Parser Bool
-parseForce = OP.switch (
-    OP.long "force" <>
-    OP.help "Normally the POSEIDON.yml files are only changed if the \
-            \poseidonVersion is adjusted or any of the checksums change. \
-            \With --force a package version update can be triggered even \
-            \if this is not the case."
-    )
-
-parseIgnorePoseidonVersion :: OP.Parser Bool
-parseIgnorePoseidonVersion = OP.switch (
-    OP.long "ignorePoseidonVersion" <>
-    OP.help "Read packages even if their poseidonVersion is not compatible with the trident version. \
-        \The assumption is, that the package is already structurally adjusted to the trident version \
-        \and only the version number is lagging behind."
-    )
-
-parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
-parseForgeEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "forgeString" <>
-    OP.short 'f' <>
-    OP.help "List of packages, groups or individual samples to be combined in the output package. \
-        \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
-        \<individual_id>. You can combine multiple values with comma, so for example: \
-        \\"*package_1*, <individual_1>, <individual_2>, group_1\". Duplicates are treated as one entry. \
-        \Negative selection is possible by prepending \"-\" to the entity you want to exclude \
-        \(e.g. \"*package_1*, -<individual_1>, -group_1\"). \
-        \forge will first of all collect all entities to include (so the ones without \"-\") \
-        \and then subtract the ones to exclude. If only a negative selection, so only entities for exclusion, \
-        \are listed in the forgeString, then forge will assume you want to merge all individuals in the \
-        \packages found in the baseDirs (except the ones explicitly excluded). \
-        \An empty forgeString will therefore merge all available individuals."))
-
-parseFetchEntitiesDirect :: OP.Parser SignedEntitiesList
-parseFetchEntitiesDirect = concat <$> OP.many (OP.option (OP.eitherReader readPoseidonEntitiesString) (OP.long "fetchString" <>
-    OP.short 'f' <>
-    OP.help "List of packages to be downloaded from the remote server. \
-        \Package names should be wrapped in asterisks: *package_title*. \
-        \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
-        \fetchString uses the same parser as forgeString, but discards everything but packages."))
-
-parseForgeEntitiesFromFile :: OP.Parser [FilePath]
-parseForgeEntitiesFromFile = OP.many (OP.strOption (OP.long "forgeFile" <>
-    OP.help "A file with a list of packages, groups or individual samples. \
-        \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-        \Empty lines are ignored and comments start with \"#\", so everything after \"#\" is ignored \
-        \in one line. \
-        \-f and --forgeFile can be combined."))
-
-parseFetchEntitiesFromFile :: OP.Parser [FilePath]
-parseFetchEntitiesFromFile = OP.many (OP.strOption (OP.long "fetchFile" <>
-    OP.help "A file with a list of packages. \
-        \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
-        \-f and --fetchFile can be combined."))
-
-parseIntersect :: OP.Parser (Bool)
-parseIntersect = OP.switch (OP.long "intersect" <>
-    OP.help "Whether to output the intersection of the genotype files to be forged. \
-        \The default (if this option is not set) is to output the union of all SNPs, with genotypes \
-        \defined as missing in those packages which do not have a SNP that is present in another package. \
-        \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
-
-parseRepoLocation :: OP.Parser RepoLocationSpec
-parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
-
-parseBasePaths :: OP.Parser [FilePath]
-parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
-    OP.short 'd' <>
-    OP.metavar "DIR" <>
-    OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)"))
-
-parseRemoteDummy :: OP.Parser ()
-parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from a remote server instead the local file system")
-
-parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
-parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "inFormat" <>
-    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK") 
-  where
-    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
-    readGenotypeFormat s = case s of
-        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
-        "PLINK"      -> Right GenotypeFormatPlink
-        _            -> Left "must be EIGENSTRAT or PLINK"
-
-parseGenotypeSNPSet :: OP.Parser SNPSetSpec
-parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (OP.long "snpSet" <>
-    OP.help "the snpSet of the new package: 1240K, HumanOrigins or Other")
-  where
-    readSnpSet :: String -> Either String SNPSetSpec
-    readSnpSet s = case s of
-        "1240K"        -> Right SNPSet1240K
-        "HumanOrigins" -> Right SNPSetHumanOrigins
-        "Other"        -> Right SNPSetOther
-        _              -> Left "Could not read snpSet. Must be \"1240K\", \
-                                \\"HumanOrigins\" or \"Other\""
-
-
-parseOutGenotypeFormat :: OP.Parser GenotypeFormatSpec
-parseOutGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (OP.long "outFormat" <>
-    OP.help "the format of the output genotype data: EIGENSTRAT or PLINK") 
-  where
-    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
-    readGenotypeFormat s = case s of
-        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
-        "PLINK"      -> Right GenotypeFormatPlink
-        _            -> Left "must be EIGENSTRAT or PLINK"
-
-parseInGenoFile :: OP.Parser FilePath
-parseInGenoFile = OP.strOption (OP.long "genoFile" <>
-    OP.help "the input geno file path")
-
-parseInSnpFile :: OP.Parser FilePath
-parseInSnpFile = OP.strOption (OP.long "snpFile" <>
-    OP.help "the input snp file path")
-
-parseInIndFile :: OP.Parser FilePath
-parseInIndFile = OP.strOption (OP.long "indFile" <>
-    OP.help "the input ind file path")
-
-parseOutPackagePath :: OP.Parser FilePath
-parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
-    OP.short 'o' <>
-    OP.help "the output package directory path")
-
-parseMaybeOutPackageName :: OP.Parser (Maybe String)
-parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
-    OP.short 'n' <>
-    OP.long "outPackageName" <>
-    OP.help "the output package name - this is optional: If no name is provided, \
-            \then the package name defaults to the basename of the (mandatory) \
-            \--outPackagePath argument" <> 
-    OP.value Nothing
-    )
-
-parseMakeMinimalPackage :: OP.Parser Bool
-parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
-    OP.help "should only a minimal output package be created?")
-
-parseOutFormat :: OP.Parser GenotypeFormatSpec
-parseOutFormat = parseEigenstratFormat <|> pure GenotypeFormatPlink
-  where
-    parseEigenstratFormat = OP.flag' GenotypeFormatEigenstrat (OP.long "eigenstrat" <>
-        OP.help "Choose Eigenstrat instead of PLINK (default) as output format.")
-
-parseShowWarnings :: OP.Parser Bool
-parseShowWarnings = OP.switch (OP.long "warnings" <> OP.short 'w' <> OP.help "Show all warnings for merging genotype data")
-
-parseNoExtract :: OP.Parser Bool
-parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection step in forge. This will result in \
-    \outputting all individuals in the relevant packages, and hence a superset of the requested \
-    \individuals/groups. It may result in better performance in cases where one wants to forge entire packages or \
-    \almost entire packages. \
-    \Note that this will also ignore any ordering in the output groups/individuals. With this option active, \
-    \individuals from the relevant packages will just be written in the order that they appear in the original packages.")
-
-parseMaybeSnpFile :: OP.Parser (Maybe FilePath)
-parseMaybeSnpFile = OP.option (Just <$> OP.str) (OP.value Nothing <> OP.long "selectSnps" <>
-    OP.help "To extract specific SNPs during this forge operation, provide a Snp file. \
-    \Can be either Eigenstrat (file ending must be '.snp') or Plink (file ending must be '.bim'). \
-    \When this option is set, the output package will have exactly the SNPs listed in this file. Any SNP not \
-    \listed in the file will be excluded. If option '--intersect' is also set, only the SNPs overlapping between the SNP file \
-    \and the forged packages are output.")
-
-parseListEntity :: OP.Parser ListEntity
-parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividualsDummy *> parseListIndividualsExtraCols)
-  where
-    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list all packages")
-    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list all groups, ignoring any group names after the first as specified in the Janno-file")
-    parseListIndividualsDummy = OP.flag' () (OP.long "individuals" <> OP.help "list individuals")
-    parseListIndividualsExtraCols = ListIndividuals <$> OP.many parseExtraCol
-    parseExtraCol = OP.strOption (OP.short 'j' <> OP.long "jannoColumn" <> OP.metavar "JANNO_HEADER" <>
-        OP.help "list additional fields from the janno files, using the Janno column heading name, such as \
-        \Country, Site, Date_C14_Uncal_BP, Endogenous, ...")
-
-parseRawOutput :: OP.Parser Bool
-parseRawOutput = OP.switch (
-    OP.long "raw" <> 
-    OP.help "output table as tsv without header. Useful for piping into grep or awk"
-    )
-
-parseVerbose :: OP.Parser Bool
-parseVerbose = OP.switch (
-    OP.long "verbose" <>
-    OP.help "print more output to the command line"
-    )
-
-parseIgnoreGeno :: OP.Parser Bool
-parseIgnoreGeno = OP.switch (
-    OP.long "ignoreGeno" <> 
-    OP.help "ignore SNP and GenoFile" <>
-    OP.hidden
-    )
-
-parseNoExitCode :: OP.Parser Bool
-parseNoExitCode = OP.switch (
-    OP.long "noExitCode" <> 
-    OP.help "do not produce an explicit exit code" <>
-    OP.hidden
-    )
-
-parseRemoteURL :: OP.Parser String 
-parseRemoteURL = OP.strOption (
-    OP.long "remoteURL" <> 
-    OP.help "URL of the remote Poseidon server" <>
-    OP.value "https://c107-224.cloud.gwdg.de" <>
-    OP.showDefault
-    )
-
-parseUpgrade :: OP.Parser Bool
-parseUpgrade = OP.switch (
-    OP.long "upgrade" <>  OP.short 'u' <> 
-    OP.help "overwrite outdated local package versions"
-    )
-
-parseDownloadAll :: OP.Parser Bool
-parseDownloadAll = OP.switch (
-    OP.long "downloadAll" <>
-    OP.help "download all packages the server is offering"
-    )

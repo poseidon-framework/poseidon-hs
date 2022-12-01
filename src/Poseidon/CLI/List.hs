@@ -2,28 +2,29 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno             (JannoRow (..), JannoList(..))
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             readPoseidonPackageCollection,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Janno         (JannoList (..), JannoRow (..))
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
+                                         logInfo)
 
-import           Control.Exception          (throwIO)
-import           Control.Monad              (forM)
-import           Data.Aeson                 (eitherDecode')
-import qualified Data.ByteString.Lazy       as LB
-import           Data.List                  (group, intercalate, sortOn)
-import           Network.HTTP.Conduit       (simpleHttp)
-import           System.IO                  (hPutStrLn, stderr)
-import           Text.Layout.Table          (asciiRoundS, column, def,
-                                             expandUntil, rowsG, tableString,
-                                             titlesH)
+import           Control.Exception      (throwIO)
+import           Control.Monad          (forM)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Aeson             (eitherDecode')
+import qualified Data.ByteString.Lazy   as LB
+import           Data.List              (group, intercalate, sortOn)
+import           Network.HTTP.Conduit   (simpleHttp)
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
-    { _listRepoLocation  :: RepoLocationSpec -- ^ the list of base directories to search for packages
-    , _listListEntity    :: ListEntity -- ^ what to list
-    , _listRawOutput     :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    { _listRepoLocation :: RepoLocationSpec -- ^ the list of base directories to search for packages
+    , _listListEntity   :: ListEntity -- ^ what to list
+    , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     , _listIgnoreGeno   :: Bool
     }
 
@@ -43,24 +44,24 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the list command
-runList :: ListOptions -> IO ()
+runList :: ListOptions -> PoseidonLogIO ()
 runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
     allSampleInfo <- case repoLocation of
         RepoRemote remoteURL -> do
             -- load remote samples list
-            hPutStrLn stderr "Downloading sample list from remote"
+            logInfo "Downloading sample list from remote"
             remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/janno_all")
-            readSampleInfo remoteOverviewJSONByteString
+            liftIO $ readSampleInfo remoteOverviewJSONByteString
         RepoLocal baseDirs -> do
             allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGeno} baseDirs
             return [(posPacTitle pac, posPacJanno pac) | pac <- allPackages]
     -- construct output
-    hPutStrLn stderr "Preparing output table"
+    logInfo "Preparing output table"
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
                 tableB = [[name, show (length rows)] | (name, rows) <- sortOn fst allSampleInfo]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " packages")
+            logInfo $ "found " ++ show (length tableB) ++ " packages"
             return (tableH, tableB)
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
@@ -75,27 +76,27 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                         groupPacs = head $ map fst oneGroup
                         groupNrInds = show (length oneGroup)
                     return [groupName, groupPacs, groupNrInds]
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " groups/populations")
+            logInfo $ "found " ++ show (length tableB) ++ " groups/populations"
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
                 forM rows (\row -> do
-                    moreFields <- extractAdditionalFields row moreJannoColumns
+                    moreFields <- liftIO $ extractAdditionalFields row moreJannoColumns
                     return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
-            hPutStrLn stderr ("found " ++ show (length tableB) ++ " individuals/samples")
+            logInfo $ "found " ++ show (length tableB) ++ " individuals/samples"
             return (tableH, tableB)
     if rawOutput then
-        putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+        liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
         let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
-        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+        liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
 
 unnestGroupNames :: [(String, JannoRow)] -> [(String, String)]
 unnestGroupNames = concatMap unnestOne
-    where 
+    where
         unnestOne :: (String, JannoRow) -> [(String, String)]
-        unnestOne (pac, jR) = 
+        unnestOne (pac, jR) =
             let groups = getJannoList . jGroupName $ jR
             in zip (repeat pac) groups
 
@@ -115,7 +116,7 @@ extractAdditionalField "Relation_To"                    = handleMaybeList       
 extractAdditionalField "Relation_Degree"                = handleMaybeShowList        jRelationDegree
 extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
 extractAdditionalField "Relation_Note"                  = handleMaybe                jRelationNote
-extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID 
+extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID
 extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue
 extractAdditionalField "Country"                        = handleMaybe                jCountry
 extractAdditionalField "Location"                       = handleMaybe                jLocation
@@ -159,22 +160,22 @@ handleMaybe :: (JannoRow -> Maybe String) -> JannoRow -> IO String
 handleMaybe func row =
     case func row of
         Just val -> return val
-        Nothing -> return "n/a"
+        Nothing  -> return "n/a"
 
 handleMaybeShow :: Show a => (JannoRow -> Maybe a) -> JannoRow -> IO String
 handleMaybeShow func row =
     case func row of
         Just val -> return $ show val
-        Nothing -> return "n/a"
+        Nothing  -> return "n/a"
 
 handleMaybeList :: (JannoRow -> Maybe (JannoList String)) -> JannoRow -> IO String
 handleMaybeList func row =
     case func row of
         Just vals -> return . intercalate ";" . getJannoList $ vals
-        Nothing -> return "n/a"
+        Nothing   -> return "n/a"
 
 handleMaybeShowList :: Show a => (JannoRow -> Maybe (JannoList a)) -> JannoRow -> IO String
 handleMaybeShowList func row =
     case func row of
         Just vals -> return . intercalate ";" . map show . getJannoList $ vals
-        Nothing -> return "n/a"
+        Nothing   -> return "n/a"

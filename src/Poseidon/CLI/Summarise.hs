@@ -1,20 +1,23 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (Percent (..), JannoRow (..), JannoList(..))
-import           Poseidon.MathHelpers   (meanAndSdRoundTo, meanAndSdInteger)
-import           Poseidon.Package       (PoseidonPackage(..), readPoseidonPackageCollection,
-                                         PackageReadOptions (..), defaultPackageReadOptions)
+import           Poseidon.Janno         (BCADAge (..), JannoList (..),
+                                         JannoRow (..), Percent (..))
+import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonLogIO)
 
-import           Data.List              (sortBy, nub, group, sort, intercalate)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
-import           Text.Layout.Table      (asciiRoundS, column, def,
-                                         rowsG, tableString, titlesH, expandUntil)
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _summariseBaseDirs :: [FilePath]
+    { _summariseBaseDirs  :: [FilePath]
     , _summariseRawOutput :: Bool
     }
 
@@ -28,11 +31,11 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runSummarise :: SummariseOptions -> IO ()
+runSummarise :: SummariseOptions -> PoseidonLogIO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
-    summariseJannoRows (concat jannos) rawOutput
+    liftIO $ summariseJannoRows (concat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summariseJannoRows :: [JannoRow] -> Bool -> IO ()
@@ -45,10 +48,10 @@ summariseJannoRows xs rawOutput = do
                 ["Nr Groups", show $ length $ nub $ map jGroupName xs],
                 ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map jPublication xs],
-                ["Publications", paste . nub . concat . map getJannoList . mapMaybe jPublication $ xs],
+                ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ xs],
                 ["Nr Countries", show $ length $ nub $ map jCountry xs],
                 ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
-                ["Mean age BC/AD", meanAndSdInteger $ map fromIntegral $ mapMaybe jDateBCADMedian xs],
+                ["Mean age BC/AD", meanAndSdInteger $ map (\(BCADAge x) -> fromIntegral x) $ mapMaybe jDateBCADMedian xs],
                 ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType xs],
                 ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex xs],
                 ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup xs],

@@ -1,8 +1,5 @@
-poseidonVersion: 2.5.0
+poseidonVersion: 2.6.0
 title: Wang
-contributor:
-- name: John Doe
-  email: john@doe.net
 genotypeData:
   format: EIGENSTRAT
   genoFile: Wang.geno

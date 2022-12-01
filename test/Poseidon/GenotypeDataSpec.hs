@@ -2,6 +2,7 @@
 module Poseidon.GenotypeDataSpec (spec) where
 
 import           Poseidon.GenotypeData
+import           Poseidon.Utils             (noLog)
 
 
 import qualified Data.Vector                as V
@@ -52,4 +53,4 @@ testJoinGenoEntries =
         it "should just work" $ do
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
-            joinEntries True nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
+            joinEntries noLog nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1

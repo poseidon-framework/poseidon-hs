@@ -2,29 +2,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import           Poseidon.Utils             (PoseidonException (..))
+import           Poseidon.Utils             (LogEnv, PoseidonException (..),
+                                             PoseidonLogIO, checkFile, logDebug,
+                                             logInfo, logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, when)
+import           Control.Monad              (forM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
+import           Data.IORef                 (modifyIORef, newIORef, readIORef)
 import           Data.List                  (nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
+import           Data.Time                  (NominalDiffTime, UTCTime,
+                                             diffUTCTime, getCurrentTime)
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, await, yield)
-import           Pipes.Safe                 (MonadSafe, SafeT)
+import           Pipes                      (Pipe, Producer, cat, for, yield)
+import           Pipes.Safe                 (MonadSafe)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
 import           SequenceFormats.Plink      (readFamFile, readPlink)
-import           System.Console.ANSI        (hClearLine, hSetCursorColumn)
 import           System.FilePath            ((</>))
-import           System.IO                  (hFlush, hPutStr, hPutStrLn, stderr)
+
+data GenoDataSource = PacBaseDir
+    { getPacBaseDirs :: FilePath
+    }
+    | GenoDirect
+    { getGenoDirect :: GenotypeDataSpec
+    }
+    deriving Show
+
 -- | A datatype to specify genotype files
 data GenotypeDataSpec = GenotypeDataSpec
     { format         :: GenotypeFormatSpec
@@ -133,7 +145,8 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d gd =
+loadIndividuals d gd = do
+    checkFile (d </> indFile gd) Nothing
     case format gd of
         GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
         GenotypeFormatPlink      -> readFamFile (d </> indFile gd)
@@ -149,10 +162,10 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
 
-joinEntries :: (MonadIO m) => Bool -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-joinEntries showAllWarnings nrInds pacNames maybeTupleList = do
+joinEntries :: (MonadIO m) => LogEnv -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries logEnv nrInds pacNames maybeTupleList = do
     let allSnpEntries = map fst . catMaybes $ maybeTupleList
-    consensusSnpEntry <- getConsensusSnpEntry showAllWarnings allSnpEntries
+    consensusSnpEntry <- getConsensusSnpEntry logEnv allSnpEntries
     recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) ->
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
@@ -163,8 +176,8 @@ joinEntries showAllWarnings nrInds pacNames maybeTupleList = do
                 Right x -> return x
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadIO m) => Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
-getConsensusSnpEntry showAllWarnings snpEntries = do
+getConsensusSnpEntry :: (MonadIO m) => LogEnv -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+getConsensusSnpEntry logEnv snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
         uniqueIds = nub . map snpId $ snpEntries
@@ -173,38 +186,34 @@ getConsensusSnpEntry showAllWarnings snpEntries = do
         uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0' && a /= 'X') $ allAlleles
     id_ <- case uniqueIds of
         [i] -> return i
-        _ -> do
-            -- multiple Ids: Picking the first rs-number if possible, otherwise the first one.
+        _ -> do -- multiple Ids: Picking the first rs-number if possible, otherwise the first one.
             let rsIds = filter (isPrefixOf "rs") uniqueIds
                 selectedId = case rsIds of
                     (i:_) -> i
                     _     -> head uniqueIds
-            when showAllWarnings $
-                liftIO . hPutStrLn stderr $ "Warning: Found inconsistent SNP IDs: " ++ show uniqueIds ++
-                    ". Choosing " ++ show selectedId
+            logWithEnv logEnv . logDebug $
+                "Found inconsistent SNP IDs: " ++ show uniqueIds ++ ". Choosing " ++ show selectedId
             return selectedId
     genPos <- case uniqueGenPos of
         [p] -> return p
         [0.0, p] -> return p -- 0.0 is considered "no data" in genetic position column
-        _ -> do
-            -- multiple non-zero genetic positions. Choosing the largest one.
+        _ -> do -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
-            when showAllWarnings $
-                liftIO . hPutStrLn stderr $ "Warning: Found inconsistent genetic positions in SNP " ++ show id_ ++
-                    ": " ++ show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
+            logWithEnv logEnv . logDebug $
+                "Found inconsistent genetic positions in SNP " ++ show id_ ++ ": " ++
+                show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
     case uniqueAlleles of
-        [] -> do
-            -- no non-missing alleles found
-            when showAllWarnings $
-                liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
+        [] -> do -- no non-missing alleles found
+            -- logWithEnv logEnv . logDebug $
+            --     "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
-        [r] -> do
-            -- only one non-missing allele found
-            when showAllWarnings $
-                liftIO . hPutStrLn stderr $ "Warning: SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
+        [r] -> do -- only one non-missing allele found
+            -- logWithEnv logEnv . logDebug $
+            --     "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
-        [ref, alt] -> return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
+        [ref, alt] ->
+            return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
@@ -248,15 +257,31 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: Pipe a a (SafeT IO) ()
-printSNPCopyProgress = loop (0 :: Int)
-  where
-    loop n = do
-        when (n `rem` 1000 == 0) $ do
-            liftIO $ hClearLine stderr
-            liftIO $ hSetCursorColumn stderr 0
-            liftIO $ hPutStr stderr ("> " ++ show n ++ " ")
-            liftIO $ hFlush stderr
-        x <- await
-        yield x
-        loop (n+1)
+printSNPCopyProgress :: (MonadIO m) => LogEnv -> UTCTime -> Pipe a a m ()
+printSNPCopyProgress logEnv startTime = do
+    counterRef <- liftIO $ newIORef (0 :: Int)
+    for cat $ \val -> do
+        n <- liftIO $ readIORef counterRef
+        currentTime <- liftIO getCurrentTime
+        logWithEnv logEnv $ logProgress n (diffUTCTime currentTime startTime)
+        liftIO $ modifyIORef counterRef (+1)
+        yield val
+    where
+        logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
+        logProgress c t
+            |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ padLeft 9 (show c) ++ "    " ++ prettyTime (floor t)
+            |  c == 1000          = logInfo $ "Probing of the first 1000 SNPs successful. Continue forging now..."
+            | otherwise = return ()
+        prettyTime :: Int -> String
+        prettyTime t
+            | t < 60 = show t ++ "s"
+            | t >= 60 && t < 3600 = do
+                let (minutes, rest) = t `quotRem` 60
+                show minutes ++ "m " ++ prettyTime rest
+            | otherwise = do
+                let (hours, rest) = t `quotRem` 3600
+                show hours   ++ "h " ++ prettyTime rest
+
+
+selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
+selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])

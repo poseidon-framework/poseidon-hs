@@ -1,23 +1,14 @@
 module Poseidon.JannoSpec (spec) where
 
-import           Poseidon.Janno            (JannoRow (..),
-                                            JannoSex (..),
-                                            JannoList (..),
-                                            Sex (..),
-                                            Latitude (..),
-                                            Longitude (..),
-                                            JannoDateType (..),
-                                            JannoCaptureType (..),
-                                            JannoGenotypePloidy (..),
-                                            Percent (..),
-                                            JannoUDG (..),
-                                            JURI (..),
-                                            RelationDegree (..),
-                                            JannoLibraryBuilt (..),
-                                            readJannoFile)
+import           Poseidon.Janno (BCADAge (..), JURI (..), JannoCaptureType (..),
+                                 JannoDateType (..), JannoGenotypePloidy (..),
+                                 JannoLibraryBuilt (..), JannoList (..),
+                                 JannoRow (..), JannoSex (..), JannoUDG (..),
+                                 Latitude (..), Longitude (..), Percent (..),
+                                 RelationDegree (..), Sex (..), readJannoFile)
 
-import Test.Hspec
-    ( anyException, shouldThrow, shouldBe, it, describe, Spec )
+import           Test.Hspec     (Spec, anyException, describe, it, shouldBe,
+                                 shouldThrow)
 
 spec :: Spec
 spec = do
@@ -66,7 +57,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLongitude janno                    `shouldBe` [Just (Longitude 0), Just (Longitude (-180)), Just (Longitude 180)]
         map jDateC14Labnr janno                 `shouldBe` [Just (JannoList ["A-1", "A-2", "A-3"]), Nothing, Nothing]
         map jDateC14UncalBP janno               `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
-        map jDateBCADMedian janno               `shouldBe` [Just (-1000), Just (-5000), Just 2000]
+        map jDateBCADMedian janno               `shouldBe` [Just (BCADAge (-1000)), Just (BCADAge (-5000)), Just (BCADAge 2000)]
         map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
         map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
@@ -78,9 +69,9 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDamage janno                       `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
         map jContamination janno                `shouldBe` [Just (JannoList ["10"]), Just (JannoList ["20", "50", "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
-                                                          Just (JURI "https://www.google.de"), 
+                                                          Just (JURI "https://www.google.de"),
                                                           Just (JURI "http://huhu.org/23&test")]
-    -- the following tests should be more precise and comprehensive; we should consider refactoring 
+    -- the following tests should be more precise and comprehensive; we should consider refactoring
     -- (maybe when we eventually switch to a different error logging strategy)
     it "should fail to read somehow borked janno files" $ do
         readJannoFile False borkedFullJannoPath `shouldThrow` anyException

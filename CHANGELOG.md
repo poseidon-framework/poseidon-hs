@@ -1,3 +1,26 @@
+- V 1.1.4.1: Added a small validation check for calibrated ages in the .janno file
+- V 1.1.4.0: Changes to make poseidon-hs compatible with Poseidon v2.6.0 (backwards compatible with v2.5.0): contributor field optional, added orcid field for contributors, added more capture type options in janno files 
+- V 1.1.3.1: Package reading will now fail if bib-entries are not found due to missing bibtex files
+- V 1.1.3.0: Added new features to the server, updated logging, and new API for compatibility checks
+- V 1.1.2.0: Replaced progress indicators with simple, sequential log messages for the download in fetch and the SNP-wise operations in forge and genoconvert
+- V 1.1.1.3: Tiny change to make the documentation of --snpSet more clear
+- V 1.1.1.2: Outsourced optparse-applicative parsers to an own library module. This is helpful for xerxes and other derived tools/libraries
+- V 1.1.1.1: Finally removed the fstats dummy subcommand from trident. It lives in xerxes for a long time already
+- V 1.1.1.0: More complete genotype data error handling to log them properly. Added an option --errLength to truncate overly long error messages
+- V 1.1.0.2: Internal change of the Logging Monad, should not change anything on the user-end
+- V 1.1.0.1: Added Ord instance to PoseidonEntity and SignedEntity
+- V 1.1.0.0: Removed the short options (-r + -g + -s + -i) for the direct genotype data input. Also improved the trident input package and genotype data parsing by making pointless no-input situations impossible
+- V 1.0.1.1: Output directories in fetch and genoconvert are now created if they don't exist
+- V 1.0.1.0: Allowing flexible input of entity lists in fetch and forge
+- V 1.0.0.2: Switched to GHC 8.10.7 and Stackage lts-18.28
+- V 1.0.0.1: Fixed memory leak in genoconvert
+- V 1.0.0.0: Enabled logging with the co-log library
+- V 0.29.1: JSON support for entities
+- V 0.29.0: Added a simpler input interface for unpackaged genotype data and an option to set the output path of genoconvert explicitly
+- V 0.28.0: Added direct interaction with genotype data files (not packaged in a Poseidon package) for genoconvert and forge
+- V 0.27.2: Allow forge lists to be empty, thus triggering forging all packages
+- V 0.27.1: Added a file existence check for the README and CHANGELOG files in the package reading process
+- V 0.27.0: Improved EntitiesList parsing in Forge and Fetch 
 - V 0.26.4: Replaced special characters in the validate subcommand report message
 - V 0.26.3: Added an option --ignorePoseidonVersion to the update subcommand to allow updating packages that are outdated by Poseidon version. Poseidon versions are not ignored by default any more, thus reversing a change introduced in 0.26.1.
 - V 0.26.2: Added a check to prevent an empty output package name in the init and forge subcommands

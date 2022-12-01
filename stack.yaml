@@ -1,4 +1,4 @@
-resolver: lts-17.1
+resolver: lts-18.28
 
 packages:
 - .
@@ -8,3 +8,5 @@ extra-deps:
 - sequence-formats-1.6.1
 - yaml-pretty-extras-0.0.2.2
 - pipes-ordered-zip-1.2.1
+- co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
+- ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226

@@ -1,0 +1,34 @@
+name: stylish-haskell
+
+# Trigger the workflow on push or pull request, but only for the master branch
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  stylishHaskell:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Install stylish-haskell
+      run: |
+        wget https://github.com/haskell/stylish-haskell/releases/download/v0.13.0.0/stylish-haskell-v0.13.0.0-linux-x86_64.tar.gz
+        tar -xvzf stylish-haskell-v0.13.0.0-linux-x86_64.tar.gz
+        cp stylish-haskell-v0.13.0.0-linux-x86_64/stylish-haskell stylish-haskell
+        chmod +x stylish-haskell
+
+    - name: Run stylish-haskell
+      run: ./stylish-haskell -r -v -i .
+
+    - name: What files have changed from HEAD, and in what ways have they changed?
+      run: |
+        git diff-index --name-status HEAD
+        git diff
+
+    - name: Fail, if any files have changed from HEAD
+      run: git diff-index --quiet HEAD

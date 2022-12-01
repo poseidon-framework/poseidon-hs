@@ -1,29 +1,41 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.CLI.Genoconvert where
 
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+import           Poseidon.GenotypeData      (GenoDataSource (..),
+                                             GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress)
-import           Poseidon.Package           (readPoseidonPackageCollection,
+import           Poseidon.Package           (PackageReadOptions (..),
+                                             PoseidonException (PoseidonGenotypeExceptionForward),
                                              PoseidonPackage (..),
-                                             writePoseidonPackage,
-                                             PackageReadOptions (..), defaultPackageReadOptions)
+                                             defaultPackageReadOptions,
+                                             makePseudoPackageFromGenotypeData,
+                                             readPoseidonPackageCollection,
+                                             writePoseidonPackage)
+import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
 
-import           Control.Monad              (when)
-import           Pipes                      (MonadIO (liftIO), 
-                                            runEffect, (>->))
+import           Control.Exception          (catch, throwIO)
+import           Control.Monad              (unless, when)
+import           Control.Monad.Reader       (ask)
+import           Data.Maybe                 (isJust)
+import           Data.Time                  (getCurrentTime)
+import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
-import           System.Directory           (removeFile, doesFileExist)
+import           System.Directory           (createDirectoryIfMissing,
+                                             doesFileExist, removeFile)
 import           System.FilePath            ((<.>), (</>))
-import           System.IO                  (hPutStrLn, stderr)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertBaseDirs :: [FilePath]
-    , _genoConvertOutFormat :: GenotypeFormatSpec
-    , _genoconvertRemoveOld :: Bool
+    { _genoconvertGenoSources  :: [GenoDataSource]
+    , _genoConvertOutFormat    :: GenotypeFormatSpec
+    , _genoConvertOutOnlyGeno  :: Bool
+    , _genoMaybeOutPackagePath :: Maybe FilePath
+    , _genoconvertRemoveOld    :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -35,58 +47,74 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = True
     }
 
-runGenoconvert :: GenoconvertOptions -> IO ()
-runGenoconvert (GenoconvertOptions baseDirs outFormat removeOld) = do
+runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld) = do
     -- load packages
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
+    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
+    logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat removeOld) allPackages
+    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
+    mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> PoseidonPackage -> IO ()
-convertGenoTo outFormat removeOld pac = do
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> PoseidonLogIO ()
+convertGenoTo outFormat onlyGeno outPath removeOld pac = do
     -- start message
-    hPutStrLn stderr $
-        "Converting genotype data in package "
+    logInfo $
+        "Converting genotype data in "
         ++ posPacTitle pac
         ++ " to format "
         ++ show outFormat
         ++ ":"
     -- compile file names paths
     let outName = posPacTitle pac
-    let [outInd, outSnp, outGeno] = case outFormat of 
+    let [outInd, outSnp, outGeno] = case outFormat of
             GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
             GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
     -- check if genotype data needs conversion
     if format (posPacGenotypeData pac) == outFormat
-    then hPutStrLn stderr "The genotype data is already in the requested format"
+    then logWarning "The genotype data is already in the requested format"
     else do
         -- create new genotype data files
-        let [outG, outS, outI] = map (posPacBaseDir pac </>) [outGeno, outSnp, outInd]
+        newBaseDir <- case outPath of
+            Just x -> do
+                -- create new directory
+                logInfo $ "Writing to directory (will be created if missing): " ++ x
+                liftIO $ createDirectoryIfMissing True x
+                return x
+            Nothing -> return $ posPacBaseDir pac
+        let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then hPutStrLn stderr ("skipping genotype convertion for package " ++ posPacTitle pac)
+        then logWarning ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
-            runSafeT $ do            
-                (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
-                let outConsumer = case outFormat of
-                        GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                        GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-                liftIO $ hPutStrLn stderr "Processing SNPs..."
-                runEffect $ eigenstratProd >-> printSNPCopyProgress >-> outConsumer
-                liftIO $ hPutStrLn stderr "Done"
+            logInfo "Processing SNPs..."
+            logEnv <- ask
+            currentTime <- liftIO getCurrentTime
+            liftIO $ catch (
+                runSafeT $ do
+                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
+                    let outConsumer = case outFormat of
+                            GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
+                            GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
+                    runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
+                ) (throwIO . PoseidonGenotypeExceptionForward)
+            logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
-            let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
-                newPac = pac { posPacGenotypeData = genotypeData }
-            writePoseidonPackage newPac
+            unless (onlyGeno || isJust outPath) $ do
+                let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
+                    newPac = pac { posPacGenotypeData = genotypeData }
+                logInfo "Adjusting POSEIDON.yml..."
+                liftIO $ writePoseidonPackage newPac
             -- delete now replaced input genotype data
-            when removeOld $ mapM_ removeFile [
-                posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
+            when removeOld $ liftIO $ mapM_ removeFile [
+                  posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
                 , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
                 , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
                 ]
   where
-    checkFile :: FilePath -> IO Bool
+    checkFile :: FilePath -> PoseidonLogIO Bool
     checkFile fn = do
-        fe <- doesFileExist fn
-        when fe $ hPutStrLn stderr ("File " ++ fn ++ " exists")
+        fe <- liftIO $ doesFileExist fn
+        when fe $ logWarning $ "File " ++ fn ++ " exists"
         return fe

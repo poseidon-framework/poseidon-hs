@@ -1,28 +1,29 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Survey where
 
-import           Poseidon.BibFile      (BibTeX)
-import           Poseidon.GenotypeData (GenotypeDataSpec (..))
-import           Poseidon.Janno        (JannoRow (..))
-import           Poseidon.Package      (PackageReadOptions (..),
-                                        PoseidonPackage (..),
-                                        defaultPackageReadOptions,
-                                        readPoseidonPackageCollection)
+import           Poseidon.BibFile       (BibTeX)
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
+import           Poseidon.Janno         (JannoRow (..))
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonLogIO, logInfo)
 
-import           Control.Monad         (forM)
-import           Data.List             (intercalate, zip4, unfoldr)
-import           Data.Ratio            (Ratio, (%))
-import           Data.Maybe            (isJust)
-import           System.Directory      (doesFileExist)
-import           System.FilePath       ((</>))
-import           System.IO             (hPutStrLn, stderr)
-import           Text.Layout.Table     (asciiRoundS, column, def, expandUntil,
-                                        rowsG, tableString, titlesH)
+import           Control.Monad          (forM)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.List              (intercalate, unfoldr, zip4)
+import           Data.Maybe             (isJust)
+import           Data.Ratio             (Ratio, (%))
+import           System.Directory       (doesFileExist)
+import           System.FilePath        ((</>))
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _surveyBaseDirs :: [FilePath]
+    { _surveyBaseDirs  :: [FilePath]
     , _surveyRawOutput :: Bool
     }
 
@@ -36,16 +37,16 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runSurvey :: SurveyOptions -> IO ()
+runSurvey :: SurveyOptions -> PoseidonLogIO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages
     -- geno
     let genotypeDataTuples = [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- allPackages]
-    genoFilesExist <- sequence [doesFileExist (d </> genoFile gd) | (d, gd) <- genotypeDataTuples]
-    snpFilesExist <- sequence [doesFileExist (d </> snpFile gd) | (d, gd) <- genotypeDataTuples]
-    indFilesExist <- sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
+    genoFilesExist <- liftIO $ sequence [doesFileExist (d </> genoFile gd) | (d, gd) <- genotypeDataTuples]
+    snpFilesExist  <- liftIO $ sequence [doesFileExist (d </> snpFile gd) | (d, gd) <- genotypeDataTuples]
+    indFilesExist  <- liftIO $ sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
     let jannos = map posPacJanno allPackages
@@ -59,10 +60,10 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
     if rawOutput
-    then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
-    else putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
+    then liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+    else liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
     -- print help
-    hPutStrLn stderr "see trident survey -h for a list of column names" 
+    logInfo "see trident survey -h for a list of column names"
 
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
@@ -109,7 +110,7 @@ renderJannoCompleteness jS =
     : getColChar jS jSourceTissue
     : getColChar jS jNrLibraries
     : getColChar jS jCaptureType
-    : getColChar jS jUDG 
+    : getColChar jS jUDG
     : getColChar jS jLibraryBuilt
     : getColChar jS jGenotypePloidy
     : getColChar jS jDataPreparationPipelineURL
