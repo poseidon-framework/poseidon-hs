@@ -37,7 +37,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String Version) -&gt; ReadM Version
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Version
-</span><a href="#local-6989586621679159332"><span class="hs-identifier hs-var">readPoseidonVersionString</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162609"><span class="hs-identifier hs-var">readPoseidonVersionString</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-29"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe Version)
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -69,10 +69,10 @@ forall a (f :: * -&gt; *). Show a =&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.showDefault</span></span><span>
 </span><span id="line-34"></span><span>    </span><span class="hs-special">)</span><span>
 </span><span id="line-35"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-36"></span><span>        </span><span class="annot"><a href="#local-6989586621679159332"><span class="hs-identifier hs-type">readPoseidonVersionString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
-</span><span id="line-37"></span><span>        </span><span id="local-6989586621679159332"><span class="annot"><span class="annottext">readPoseidonVersionString :: String -&gt; Either String Version
-</span><a href="#local-6989586621679159332"><span class="hs-identifier hs-var hs-var">readPoseidonVersionString</span></a></span></span><span> </span><span id="local-6989586621679159327"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159327"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec String () Version
+</span><span id="line-36"></span><span>        </span><span class="annot"><a href="#local-6989586621679162609"><span class="hs-identifier hs-type">readPoseidonVersionString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
+</span><span id="line-37"></span><span>        </span><span id="local-6989586621679162609"><span class="annot"><span class="annottext">readPoseidonVersionString :: String -&gt; Either String Version
+</span><a href="#local-6989586621679162609"><span class="hs-identifier hs-var hs-var">readPoseidonVersionString</span></a></span></span><span> </span><span id="local-6989586621679162604"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162604"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec String () Version
 -&gt; () -&gt; String -&gt; String -&gt; Either ParseError Version
 forall s t u a.
 Stream s Identity t =&gt;
@@ -80,19 +80,19 @@ Parsec s u a -&gt; u -&gt; String -&gt; s -&gt; Either ParseError a
 </span><span class="hs-identifier hs-var">runParser</span></span><span> </span><span class="annot"><span class="annottext">Parsec String () Version
 </span><a href="Poseidon.SecondaryTypes.html#poseidonVersionParser"><span class="hs-identifier hs-var">poseidonVersionParser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159327"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-38"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679159326"><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679159326"><span class="hs-identifier hs-var">p</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Version
+</span><a href="#local-6989586621679162604"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-38"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679162603"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679162603"><span class="hs-identifier hs-var">p</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Version
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParseError -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679159326"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-39"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679159324"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679159324"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Version -&gt; Either String Version
+</span><a href="#local-6989586621679162603"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679162601"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679162601"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Version -&gt; Either String Version
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679159324"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679162601"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-40"></span><span>
 </span><span id="line-41"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseLogMode"><span class="hs-identifier hs-type">parseLogMode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogMode"><span class="hs-identifier hs-type">LogMode</span></a></span><span>
 </span><span id="line-42"></span><span id="parseLogMode"><span class="annot"><span class="annottext">parseLogMode :: Parser LogMode
@@ -101,7 +101,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.option</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; Either String LogMode) -&gt; ReadM LogMode
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String LogMode
-</span><a href="#local-6989586621679159322"><span class="hs-identifier hs-var">readLogMode</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162599"><span class="hs-identifier hs-var">readLogMode</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-43"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields LogMode
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -129,11 +129,11 @@ forall a (f :: * -&gt; *). Show a =&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.showDefault</span></span><span>
 </span><span id="line-48"></span><span>    </span><span class="hs-special">)</span><span>
 </span><span id="line-49"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-50"></span><span>        </span><span class="annot"><a href="#local-6989586621679159322"><span class="hs-identifier hs-type">readLogMode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogMode"><span class="hs-identifier hs-type">LogMode</span></a></span><span>
-</span><span id="line-51"></span><span>        </span><span id="local-6989586621679159322"><span class="annot"><span class="annottext">readLogMode :: String -&gt; Either String LogMode
-</span><a href="#local-6989586621679159322"><span class="hs-identifier hs-var hs-var">readLogMode</span></a></span></span><span> </span><span id="local-6989586621679159320"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159320"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159320"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-50"></span><span>        </span><span class="annot"><a href="#local-6989586621679162599"><span class="hs-identifier hs-type">readLogMode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogMode"><span class="hs-identifier hs-type">LogMode</span></a></span><span>
+</span><span id="line-51"></span><span>        </span><span id="local-6989586621679162599"><span class="annot"><span class="annottext">readLogMode :: String -&gt; Either String LogMode
+</span><a href="#local-6989586621679162599"><span class="hs-identifier hs-var hs-var">readLogMode</span></a></span></span><span> </span><span id="local-6989586621679162597"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162597"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162597"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-52"></span><span>            </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;NoLog&quot;</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LogMode -&gt; Either String LogMode
 forall a b. b -&gt; Either a b
@@ -165,7 +165,7 @@ forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog&quot;</span></span><span>
 </span><span id="line-58"></span><span>
-</span><span id="line-59"></span><span class="hs-keyword">data</span><span> </span><span id="ErrorLength"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#ErrorLength"><span class="hs-identifier hs-var">ErrorLength</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CharInf"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#CharInf"><span class="hs-identifier hs-var">CharInf</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="CharCount"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#CharCount"><span class="hs-identifier hs-var">CharCount</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679159308"><span id="local-6989586621679159310"><span id="local-6989586621679159312"><span class="annot"><span class="annottext">Int -&gt; ErrorLength -&gt; ShowS
+</span><span id="line-59"></span><span class="hs-keyword">data</span><span> </span><span id="ErrorLength"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#ErrorLength"><span class="hs-identifier hs-var">ErrorLength</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CharInf"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#CharInf"><span class="hs-identifier hs-var">CharInf</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="CharCount"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#CharCount"><span class="hs-identifier hs-var">CharCount</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679162585"><span id="local-6989586621679162587"><span id="local-6989586621679162589"><span class="annot"><span class="annottext">Int -&gt; ErrorLength -&gt; ShowS
 [ErrorLength] -&gt; ShowS
 ErrorLength -&gt; String
 (Int -&gt; ErrorLength -&gt; ShowS)
@@ -190,7 +190,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.option</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; Either String ErrorLength) -&gt; ReadM ErrorLength
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String ErrorLength
-</span><a href="#local-6989586621679159305"><span class="hs-identifier hs-var">readErrorLengthString</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162582"><span class="hs-identifier hs-var">readErrorLengthString</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-63"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields ErrorLength
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -217,12 +217,12 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a (f :: * -&gt; *). Show a =&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.showDefault</span></span><span>
 </span><span id="line-67"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-68"></span><span>        </span><span class="annot"><a href="#local-6989586621679159305"><span class="hs-identifier hs-type">readErrorLengthString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#ErrorLength"><span class="hs-identifier hs-type">ErrorLength</span></a></span><span>
-</span><span id="line-69"></span><span>        </span><span id="local-6989586621679159305"><span class="annot"><span class="annottext">readErrorLengthString :: String -&gt; Either String ErrorLength
-</span><a href="#local-6989586621679159305"><span class="hs-identifier hs-var hs-var">readErrorLengthString</span></a></span></span><span> </span><span id="local-6989586621679159304"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159304"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-68"></span><span>        </span><span class="annot"><a href="#local-6989586621679162582"><span class="hs-identifier hs-type">readErrorLengthString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#ErrorLength"><span class="hs-identifier hs-type">ErrorLength</span></a></span><span>
+</span><span id="line-69"></span><span>        </span><span id="local-6989586621679162582"><span class="annot"><span class="annottext">readErrorLengthString :: String -&gt; Either String ErrorLength
+</span><a href="#local-6989586621679162582"><span class="hs-identifier hs-var hs-var">readErrorLengthString</span></a></span></span><span> </span><span id="local-6989586621679162581"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162581"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-70"></span><span>            </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159304"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679162581"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Inf&quot;</span></span><span>
@@ -233,16 +233,16 @@ forall a b. b -&gt; Either a b
 </span><span id="line-72"></span><span>            </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Int
 forall a. Read a =&gt; String -&gt; Maybe a
 </span><span class="hs-identifier hs-var">readMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159304"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-73"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679159303"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679159303"><span class="hs-identifier hs-var">n</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ErrorLength -&gt; Either String ErrorLength
+</span><a href="#local-6989586621679162581"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-73"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679162580"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679162580"><span class="hs-identifier hs-var">n</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ErrorLength -&gt; Either String ErrorLength
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">(ErrorLength -&gt; Either String ErrorLength)
 -&gt; ErrorLength -&gt; Either String ErrorLength
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; ErrorLength
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#CharCount"><span class="hs-identifier hs-var">CharCount</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679159303"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><a href="#local-6989586621679162580"><span class="hs-identifier hs-var">n</span></a></span><span>
 </span><span id="line-74"></span><span>                </span><span class="annot"><span class="annottext">Maybe Int
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String ErrorLength
 forall a b. a -&gt; Either a b
@@ -271,7 +271,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 -&gt; ReadM VersionComponent
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String VersionComponent
-</span><a href="#local-6989586621679159299"><span class="hs-identifier hs-var">readVersionComponent</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162576"><span class="hs-identifier hs-var">readVersionComponent</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-81"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields VersionComponent
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -303,11 +303,11 @@ forall a (f :: * -&gt; *). Show a =&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.showDefault</span></span><span>
 </span><span id="line-87"></span><span>    </span><span class="hs-special">)</span><span>
 </span><span id="line-88"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-89"></span><span>        </span><span class="annot"><a href="#local-6989586621679159299"><span class="hs-identifier hs-type">readVersionComponent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.SecondaryTypes.html#VersionComponent"><span class="hs-identifier hs-type">VersionComponent</span></a></span><span>
-</span><span id="line-90"></span><span>        </span><span id="local-6989586621679159299"><span class="annot"><span class="annottext">readVersionComponent :: String -&gt; Either String VersionComponent
-</span><a href="#local-6989586621679159299"><span class="hs-identifier hs-var hs-var">readVersionComponent</span></a></span></span><span> </span><span id="local-6989586621679159297"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159297"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159297"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-89"></span><span>        </span><span class="annot"><a href="#local-6989586621679162576"><span class="hs-identifier hs-type">readVersionComponent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.SecondaryTypes.html#VersionComponent"><span class="hs-identifier hs-type">VersionComponent</span></a></span><span>
+</span><span id="line-90"></span><span>        </span><span id="local-6989586621679162576"><span class="annot"><span class="annottext">readVersionComponent :: String -&gt; Either String VersionComponent
+</span><a href="#local-6989586621679162576"><span class="hs-identifier hs-var hs-var">readVersionComponent</span></a></span></span><span> </span><span id="local-6989586621679162574"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162574"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162574"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-91"></span><span>            </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Major&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">VersionComponent -&gt; Either String VersionComponent
 forall a b. b -&gt; Either a b
@@ -361,7 +361,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 -&gt; ReadM [ContributorSpec]
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [ContributorSpec]
-</span><a href="#local-6989586621679159290"><span class="hs-identifier hs-var">readContributorString</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162567"><span class="hs-identifier hs-var">readContributorString</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields [ContributorSpec]
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -377,10 +377,10 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
             \ in the form \&quot;[Firstname Lastname](Email address);...\&quot;&quot;</span></span><span>
 </span><span id="line-107"></span><span>    </span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-108"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-109"></span><span>        </span><span class="annot"><a href="#local-6989586621679159290"><span class="hs-identifier hs-type">readContributorString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.SecondaryTypes.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-110"></span><span>        </span><span id="local-6989586621679159290"><span class="annot"><span class="annottext">readContributorString :: String -&gt; Either String [ContributorSpec]
-</span><a href="#local-6989586621679159290"><span class="hs-identifier hs-var hs-var">readContributorString</span></a></span></span><span> </span><span id="local-6989586621679159289"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159289"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec String () [ContributorSpec]
+</span><span id="line-109"></span><span>        </span><span class="annot"><a href="#local-6989586621679162567"><span class="hs-identifier hs-type">readContributorString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.SecondaryTypes.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-110"></span><span>        </span><span id="local-6989586621679162567"><span class="annot"><span class="annottext">readContributorString :: String -&gt; Either String [ContributorSpec]
+</span><a href="#local-6989586621679162567"><span class="hs-identifier hs-var hs-var">readContributorString</span></a></span></span><span> </span><span id="local-6989586621679162566"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162566"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec String () [ContributorSpec]
 -&gt; () -&gt; String -&gt; String -&gt; Either ParseError [ContributorSpec]
 forall s t u a.
 Stream s Identity t =&gt;
@@ -388,19 +388,19 @@ Parsec s u a -&gt; u -&gt; String -&gt; s -&gt; Either ParseError a
 </span><span class="hs-identifier hs-var">runParser</span></span><span> </span><span class="annot"><span class="annottext">Parsec String () [ContributorSpec]
 </span><a href="Poseidon.SecondaryTypes.html#contributorSpecParser"><span class="hs-identifier hs-var">contributorSpecParser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159289"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-111"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679159288"><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679159288"><span class="hs-identifier hs-var">p</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [ContributorSpec]
+</span><a href="#local-6989586621679162566"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-111"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679162565"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679162565"><span class="hs-identifier hs-var">p</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [ContributorSpec]
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParseError -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679159288"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-112"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679159287"><span class="annot"><span class="annottext">[ContributorSpec]
-</span><a href="#local-6989586621679159287"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[ContributorSpec] -&gt; Either String [ContributorSpec]
+</span><a href="#local-6989586621679162565"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679162564"><span class="annot"><span class="annottext">[ContributorSpec]
+</span><a href="#local-6989586621679162564"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[ContributorSpec] -&gt; Either String [ContributorSpec]
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">[ContributorSpec]
-</span><a href="#local-6989586621679159287"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679162564"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-113"></span><span>
 </span><span id="line-114"></span><span>
 </span><span id="line-115"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseLog"><span class="hs-identifier hs-type">parseLog</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
@@ -460,10 +460,10 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 -&gt; Parser [EntityInput SignedEntity]
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
 </span><span class="hs-identifier hs-var">OP.many</span></span><span> </span><span class="annot"><span class="annottext">Parser (EntityInput SignedEntity)
-</span><a href="#local-6989586621679159282"><span class="hs-identifier hs-var">parseSignedEntityInput</span></a></span><span>
+</span><a href="#local-6989586621679162559"><span class="hs-identifier hs-var">parseSignedEntityInput</span></a></span><span>
 </span><span id="line-135"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-136"></span><span>    </span><span id="local-6989586621679159282"><span class="annot"><span class="annottext">parseSignedEntityInput :: Parser (EntityInput SignedEntity)
-</span><a href="#local-6989586621679159282"><span class="hs-identifier hs-var hs-var">parseSignedEntityInput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; EntityInput SignedEntity
+</span><span id="line-136"></span><span>    </span><span id="local-6989586621679162559"><span class="annot"><span class="annottext">parseSignedEntityInput :: Parser (EntityInput SignedEntity)
+</span><a href="#local-6989586621679162559"><span class="hs-identifier hs-var hs-var">parseSignedEntityInput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; EntityInput SignedEntity
 forall a. String -&gt; EntityInput a
 </span><a href="Poseidon.EntitiesList.html#EntitiesFromFile"><span class="hs-identifier hs-var">EntitiesFromFile</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; EntityInput SignedEntity)
 -&gt; Parser String -&gt; Parser (EntityInput SignedEntity)
@@ -487,7 +487,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span id="line-141"></span><span id="parseFetchEntityInputs"><span class="annot"><span class="annottext">parseFetchEntityInputs :: Parser [EntityInput PoseidonEntity]
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseFetchEntityInputs"><span class="hs-identifier hs-var hs-var">parseFetchEntityInputs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser [EntityInput PoseidonEntity]
 forall a. Parser [a]
-</span><a href="#local-6989586621679159276"><span class="hs-identifier hs-var">parseDownloadAll</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [EntityInput PoseidonEntity]
+</span><a href="#local-6989586621679162553"><span class="hs-identifier hs-var">parseDownloadAll</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [EntityInput PoseidonEntity]
 -&gt; Parser [EntityInput PoseidonEntity]
 -&gt; Parser [EntityInput PoseidonEntity]
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
@@ -495,10 +495,10 @@ forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 -&gt; Parser [EntityInput PoseidonEntity]
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
 </span><span class="hs-identifier hs-var">OP.some</span></span><span> </span><span class="annot"><span class="annottext">Parser (EntityInput PoseidonEntity)
-</span><a href="#local-6989586621679159274"><span class="hs-identifier hs-var">parseEntityInput</span></a></span><span>
+</span><a href="#local-6989586621679162551"><span class="hs-identifier hs-var">parseEntityInput</span></a></span><span>
 </span><span id="line-142"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-143"></span><span>    </span><span id="local-6989586621679159276"><span class="annot"><span class="annottext">parseDownloadAll :: Parser [a]
-</span><a href="#local-6989586621679159276"><span class="hs-identifier hs-var hs-var">parseDownloadAll</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Mod FlagFields [a] -&gt; Parser [a]
+</span><span id="line-143"></span><span>    </span><span id="local-6989586621679162553"><span class="annot"><span class="annottext">parseDownloadAll :: Parser [a]
+</span><a href="#local-6989586621679162553"><span class="hs-identifier hs-var hs-var">parseDownloadAll</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Mod FlagFields [a] -&gt; Parser [a]
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-144"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields [a]
@@ -512,8 +512,8 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;download all packages the server is offering&quot;</span></span><span>
 </span><span id="line-146"></span><span>        </span><span class="hs-special">)</span><span>
-</span><span id="line-147"></span><span>    </span><span id="local-6989586621679159274"><span class="annot"><span class="annottext">parseEntityInput :: Parser (EntityInput PoseidonEntity)
-</span><a href="#local-6989586621679159274"><span class="hs-identifier hs-var hs-var">parseEntityInput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; EntityInput PoseidonEntity
+</span><span id="line-147"></span><span>    </span><span id="local-6989586621679162551"><span class="annot"><span class="annottext">parseEntityInput :: Parser (EntityInput PoseidonEntity)
+</span><a href="#local-6989586621679162551"><span class="hs-identifier hs-var hs-var">parseEntityInput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; EntityInput PoseidonEntity
 forall a. String -&gt; EntityInput a
 </span><a href="Poseidon.EntitiesList.html#EntitiesFromFile"><span class="hs-identifier hs-var">EntitiesFromFile</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; EntityInput PoseidonEntity)
 -&gt; Parser String -&gt; Parser (EntityInput PoseidonEntity)
@@ -559,7 +559,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [SignedEntity]
 forall a. EntitySpec a =&gt; String -&gt; Either String [a]
-</span><a href="#local-6989586621679159269"><span class="hs-identifier hs-var">readSignedEntities</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields [SignedEntity]
+</span><a href="#local-6989586621679162546"><span class="hs-identifier hs-var">readSignedEntities</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields [SignedEntity]
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;forgeString&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields [SignedEntity]
@@ -589,24 +589,24 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
         \ones explicitly excluded) before the exclude entities are applied. \
         \An empty forgeString (and no --forgeFile) will therefore merge all available individuals.&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-171"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-172"></span><span>    </span><span id="local-6989586621679159269"><span class="annot"><span class="annottext">readSignedEntities :: String -&gt; Either String [a]
-</span><a href="#local-6989586621679159269"><span class="hs-identifier hs-var hs-var">readSignedEntities</span></a></span></span><span> </span><span id="local-6989586621679159267"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159267"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either PoseidonException [a]
+</span><span id="line-172"></span><span>    </span><span id="local-6989586621679162546"><span class="annot"><span class="annottext">readSignedEntities :: String -&gt; Either String [a]
+</span><a href="#local-6989586621679162546"><span class="hs-identifier hs-var hs-var">readSignedEntities</span></a></span></span><span> </span><span id="local-6989586621679162544"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162544"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either PoseidonException [a]
 forall a. EntitySpec a =&gt; String -&gt; Either PoseidonException [a]
 </span><a href="Poseidon.EntitiesList.html#readEntitiesFromString"><span class="hs-identifier hs-var">readEntitiesFromString</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159267"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-173"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679159266"><span class="annot"><span class="annottext">PoseidonException
-</span><a href="#local-6989586621679159266"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [a]
+</span><a href="#local-6989586621679162544"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-173"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679162543"><span class="annot"><span class="annottext">PoseidonException
+</span><a href="#local-6989586621679162543"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [a]
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">PoseidonException
-</span><a href="#local-6989586621679159266"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-174"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679159265"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679159265"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Either String [a]
+</span><a href="#local-6989586621679162543"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-174"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679162542"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679162542"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Either String [a]
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679159265"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><a href="#local-6989586621679162542"><span class="hs-identifier hs-var">e</span></a></span><span>
 </span><span id="line-175"></span><span>
 </span><span id="line-176"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseFetchEntitiesDirect"><span class="hs-identifier hs-type">parseFetchEntitiesDirect</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.EntitiesList.html#EntitiesList"><span class="hs-identifier hs-type">EntitiesList</span></a></span><span>
 </span><span id="line-177"></span><span id="parseFetchEntitiesDirect"><span class="annot"><span class="annottext">parseFetchEntitiesDirect :: Parser [PoseidonEntity]
@@ -618,7 +618,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [PoseidonEntity]
 forall a. EntitySpec a =&gt; String -&gt; Either String [a]
-</span><a href="#local-6989586621679159264"><span class="hs-identifier hs-var">readEntities</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields [PoseidonEntity]
+</span><a href="#local-6989586621679162541"><span class="hs-identifier hs-var">readEntities</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields [PoseidonEntity]
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;fetchString&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields [PoseidonEntity]
@@ -643,24 +643,24 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
         \fetchString uses the same parser as forgeString, but does not allow excludes. If groups or individuals are \
         \specified, then packages which include these groups or individuals are included in the download.&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-184"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-185"></span><span>    </span><span id="local-6989586621679159264"><span class="annot"><span class="annottext">readEntities :: String -&gt; Either String [a]
-</span><a href="#local-6989586621679159264"><span class="hs-identifier hs-var hs-var">readEntities</span></a></span></span><span> </span><span id="local-6989586621679159263"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159263"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either PoseidonException [a]
+</span><span id="line-185"></span><span>    </span><span id="local-6989586621679162541"><span class="annot"><span class="annottext">readEntities :: String -&gt; Either String [a]
+</span><a href="#local-6989586621679162541"><span class="hs-identifier hs-var hs-var">readEntities</span></a></span></span><span> </span><span id="local-6989586621679162540"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162540"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either PoseidonException [a]
 forall a. EntitySpec a =&gt; String -&gt; Either PoseidonException [a]
 </span><a href="Poseidon.EntitiesList.html#readEntitiesFromString"><span class="hs-identifier hs-var">readEntitiesFromString</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159263"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-186"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679159262"><span class="annot"><span class="annottext">PoseidonException
-</span><a href="#local-6989586621679159262"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [a]
+</span><a href="#local-6989586621679162540"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-186"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679162539"><span class="annot"><span class="annottext">PoseidonException
+</span><a href="#local-6989586621679162539"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [a]
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">PoseidonException
-</span><a href="#local-6989586621679159262"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-187"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679159261"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679159261"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Either String [a]
+</span><a href="#local-6989586621679162539"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-187"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679162538"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679162538"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Either String [a]
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679159261"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><a href="#local-6989586621679162538"><span class="hs-identifier hs-var">e</span></a></span><span>
 </span><span id="line-188"></span><span>
 </span><span id="line-189"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseForgeEntitiesFromFile"><span class="hs-identifier hs-type">parseForgeEntitiesFromFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
 </span><span id="line-190"></span><span id="parseForgeEntitiesFromFile"><span class="annot"><span class="annottext">parseForgeEntitiesFromFile :: Parser String
@@ -734,10 +734,10 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span id="line-213"></span><span>
 </span><span id="line-214"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutGenotypeFormat"><span class="hs-identifier hs-type">parseOutGenotypeFormat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeFormatSpec"><span class="hs-identifier hs-type">GenotypeFormatSpec</span></a></span><span>
 </span><span id="line-215"></span><span id="parseOutGenotypeFormat"><span class="annot"><span class="annottext">parseOutGenotypeFormat :: Bool -&gt; Parser GenotypeFormatSpec
-</span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutGenotypeFormat"><span class="hs-identifier hs-var hs-var">parseOutGenotypeFormat</span></a></span></span><span> </span><span id="local-6989586621679159256"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679159256"><span class="hs-identifier hs-var">withDefault</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseOutGenotypeFormat"><span class="hs-identifier hs-var hs-var">parseOutGenotypeFormat</span></a></span></span><span> </span><span id="local-6989586621679162533"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679162533"><span class="hs-identifier hs-var">withDefault</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-216"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679159256"><span class="hs-identifier hs-var">withDefault</span></a></span><span>
+</span><a href="#local-6989586621679162533"><span class="hs-identifier hs-var">withDefault</span></a></span><span>
 </span><span id="line-217"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">ReadM GenotypeFormatSpec
 -&gt; Mod OptionFields GenotypeFormatSpec -&gt; Parser GenotypeFormatSpec
 forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
@@ -745,8 +745,8 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 -&gt; ReadM GenotypeFormatSpec
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String GenotypeFormatSpec
-</span><a href="#local-6989586621679159255"><span class="hs-identifier hs-var">readGenotypeFormat</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields GenotypeFormatSpec
-</span><a href="#local-6989586621679159254"><span class="hs-identifier hs-var">settingsWithDefault</span></a></span><span>
+</span><a href="#local-6989586621679162532"><span class="hs-identifier hs-var">readGenotypeFormat</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields GenotypeFormatSpec
+</span><a href="#local-6989586621679162531"><span class="hs-identifier hs-var">settingsWithDefault</span></a></span><span>
 </span><span id="line-218"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">ReadM GenotypeFormatSpec
 -&gt; Mod OptionFields GenotypeFormatSpec -&gt; Parser GenotypeFormatSpec
 forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
@@ -754,12 +754,12 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 -&gt; ReadM GenotypeFormatSpec
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String GenotypeFormatSpec
-</span><a href="#local-6989586621679159255"><span class="hs-identifier hs-var">readGenotypeFormat</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields GenotypeFormatSpec
+</span><a href="#local-6989586621679162532"><span class="hs-identifier hs-var">readGenotypeFormat</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields GenotypeFormatSpec
 forall a. Mod OptionFields a
-</span><a href="#local-6989586621679159253"><span class="hs-identifier hs-var">settingsWithoutDefault</span></a></span><span>
+</span><a href="#local-6989586621679162530"><span class="hs-identifier hs-var">settingsWithoutDefault</span></a></span><span>
 </span><span id="line-219"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-220"></span><span>    </span><span id="local-6989586621679159254"><span class="annot"><span class="annottext">settingsWithDefault :: Mod OptionFields GenotypeFormatSpec
-</span><a href="#local-6989586621679159254"><span class="hs-identifier hs-var hs-var">settingsWithDefault</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields GenotypeFormatSpec
+</span><span id="line-220"></span><span>    </span><span id="local-6989586621679162531"><span class="annot"><span class="annottext">settingsWithDefault :: Mod OptionFields GenotypeFormatSpec
+</span><a href="#local-6989586621679162531"><span class="hs-identifier hs-var hs-var">settingsWithDefault</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields GenotypeFormatSpec
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;outFormat&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields GenotypeFormatSpec
@@ -779,8 +779,8 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. HasValue f =&gt; a -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.value</span></span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
 </span><a href="Poseidon.GenotypeData.html#GenotypeFormatPlink"><span class="hs-identifier hs-var">GenotypeFormatPlink</span></a></span><span>
-</span><span id="line-223"></span><span>    </span><span id="local-6989586621679159253"><span class="annot"><span class="annottext">settingsWithoutDefault :: Mod OptionFields a
-</span><a href="#local-6989586621679159253"><span class="hs-identifier hs-var hs-var">settingsWithoutDefault</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields a
+</span><span id="line-223"></span><span>    </span><span id="local-6989586621679162530"><span class="annot"><span class="annottext">settingsWithoutDefault :: Mod OptionFields a
+</span><a href="#local-6989586621679162530"><span class="hs-identifier hs-var hs-var">settingsWithoutDefault</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields a
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;outFormat&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields a -&gt; Mod OptionFields a -&gt; Mod OptionFields a
@@ -790,11 +790,11 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;the format of the output genotype data: EIGENSTRAT or PLINK.&quot;</span></span><span>
-</span><span id="line-225"></span><span>    </span><span class="annot"><a href="#local-6989586621679159255"><span class="hs-identifier hs-type">readGenotypeFormat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeFormatSpec"><span class="hs-identifier hs-type">GenotypeFormatSpec</span></a></span><span>
-</span><span id="line-226"></span><span>    </span><span id="local-6989586621679159255"><span class="annot"><span class="annottext">readGenotypeFormat :: String -&gt; Either String GenotypeFormatSpec
-</span><a href="#local-6989586621679159255"><span class="hs-identifier hs-var hs-var">readGenotypeFormat</span></a></span></span><span> </span><span id="local-6989586621679159251"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159251"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159251"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-225"></span><span>    </span><span class="annot"><a href="#local-6989586621679162532"><span class="hs-identifier hs-type">readGenotypeFormat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeFormatSpec"><span class="hs-identifier hs-type">GenotypeFormatSpec</span></a></span><span>
+</span><span id="line-226"></span><span>    </span><span id="local-6989586621679162532"><span class="annot"><span class="annottext">readGenotypeFormat :: String -&gt; Either String GenotypeFormatSpec
+</span><a href="#local-6989586621679162532"><span class="hs-identifier hs-var hs-var">readGenotypeFormat</span></a></span></span><span> </span><span id="local-6989586621679162528"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162528"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162528"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-227"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;EIGENSTRAT&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec -&gt; Either String GenotypeFormatSpec
 forall a b. b -&gt; Either a b
@@ -895,7 +895,7 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span id="line-249"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseInGenotypeDataset"><span class="hs-identifier hs-type">parseInGenotypeDataset</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier hs-type">GenotypeDataSpec</span></a></span><span>
 </span><span id="line-250"></span><span id="parseInGenotypeDataset"><span class="annot"><span class="annottext">parseInGenotypeDataset :: Parser GenotypeDataSpec
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseInGenotypeDataset"><span class="hs-identifier hs-var hs-var">parseInGenotypeDataset</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenoInput -&gt; Maybe SNPSetSpec -&gt; GenotypeDataSpec
-</span><a href="#local-6989586621679159237"><span class="hs-identifier hs-var">createGeno</span></a></span><span> </span><span class="annot"><span class="annottext">(GenoInput -&gt; Maybe SNPSetSpec -&gt; GenotypeDataSpec)
+</span><a href="#local-6989586621679162514"><span class="hs-identifier hs-var">createGeno</span></a></span><span> </span><span class="annot"><span class="annottext">(GenoInput -&gt; Maybe SNPSetSpec -&gt; GenotypeDataSpec)
 -&gt; Parser GenoInput
 -&gt; Parser (Maybe SNPSetSpec -&gt; GenotypeDataSpec)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
@@ -909,14 +909,14 @@ forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Maybe SNPSetSpec)
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseGenotypeSNPSet"><span class="hs-identifier hs-var">parseGenotypeSNPSet</span></a></span><span>
 </span><span id="line-251"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-252"></span><span>        </span><span class="annot"><a href="#local-6989586621679159237"><span class="hs-identifier hs-type">createGeno</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#GenoInput"><span class="hs-identifier hs-type">GenoInput</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#SNPSetSpec"><span class="hs-identifier hs-type">SNPSetSpec</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier hs-type">GenotypeDataSpec</span></a></span><span>
-</span><span id="line-253"></span><span>        </span><span id="local-6989586621679159237"><span class="annot"><span class="annottext">createGeno :: GenoInput -&gt; Maybe SNPSetSpec -&gt; GenotypeDataSpec
-</span><a href="#local-6989586621679159237"><span class="hs-identifier hs-var hs-var">createGeno</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159233"><span class="annot"><span class="annottext">GenotypeFormatSpec
-</span><a href="#local-6989586621679159233"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679159232"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159232"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679159231"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159231"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679159230"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159230"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679159229"><span class="annot"><span class="annottext">Maybe SNPSetSpec
-</span><a href="#local-6989586621679159229"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
+</span><span id="line-252"></span><span>        </span><span class="annot"><a href="#local-6989586621679162514"><span class="hs-identifier hs-type">createGeno</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#GenoInput"><span class="hs-identifier hs-type">GenoInput</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#SNPSetSpec"><span class="hs-identifier hs-type">SNPSetSpec</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier hs-type">GenotypeDataSpec</span></a></span><span>
+</span><span id="line-253"></span><span>        </span><span id="local-6989586621679162514"><span class="annot"><span class="annottext">createGeno :: GenoInput -&gt; Maybe SNPSetSpec -&gt; GenotypeDataSpec
+</span><a href="#local-6989586621679162514"><span class="hs-identifier hs-var hs-var">createGeno</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162510"><span class="annot"><span class="annottext">GenotypeFormatSpec
+</span><a href="#local-6989586621679162510"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679162509"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162509"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679162508"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162508"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679162507"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162507"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679162506"><span class="annot"><span class="annottext">Maybe SNPSetSpec
+</span><a href="#local-6989586621679162506"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
 -&gt; String
 -&gt; Maybe String
 -&gt; String
@@ -926,17 +926,17 @@ forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f
 -&gt; Maybe SNPSetSpec
 -&gt; GenotypeDataSpec
 </span><a href="Poseidon.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier hs-var">GenotypeDataSpec</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec
-</span><a href="#local-6989586621679159233"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159232"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679162510"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162509"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159231"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679162508"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159230"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679162507"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">Maybe SNPSetSpec
-</span><a href="#local-6989586621679159229"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><a href="#local-6989586621679162506"><span class="hs-identifier hs-var">e</span></a></span><span>
 </span><span id="line-254"></span><span>
 </span><span id="line-255"></span><span class="hs-keyword">type</span><span> </span><span id="GenoInput"><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#GenoInput"><span class="hs-identifier hs-var">GenoInput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeFormatSpec"><span class="hs-identifier hs-type">GenotypeFormatSpec</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">)</span><span>
 </span><span id="line-256"></span><span>
@@ -947,7 +947,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.option</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; Either String GenoInput) -&gt; ReadM GenoInput
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String GenoInput
-</span><a href="#local-6989586621679159227"><span class="hs-identifier hs-var">readGenoInput</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162504"><span class="hs-identifier hs-var">readGenoInput</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-259"></span><span>        </span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields GenoInput
 forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.short</span></span><span> </span><span class="annot"><span class="annottext">Char
@@ -969,21 +969,21 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
             \ .geno or .snp or .ind for EIGENSTRAT.\
             \ The other files must be in the same directory and must have the same base name&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-264"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-265"></span><span>        </span><span class="annot"><a href="#local-6989586621679159227"><span class="hs-identifier hs-type">readGenoInput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#GenoInput"><span class="hs-identifier hs-type">GenoInput</span></a></span><span>
-</span><span id="line-266"></span><span>        </span><span id="local-6989586621679159227"><span class="annot"><span class="annottext">readGenoInput :: String -&gt; Either String GenoInput
-</span><a href="#local-6989586621679159227"><span class="hs-identifier hs-var hs-var">readGenoInput</span></a></span></span><span> </span><span id="local-6989586621679159226"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159226"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Either String GenoInput
-</span><a href="#local-6989586621679159225"><span class="hs-identifier hs-var">makeGenoInput</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
+</span><span id="line-265"></span><span>        </span><span class="annot"><a href="#local-6989586621679162504"><span class="hs-identifier hs-type">readGenoInput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#GenoInput"><span class="hs-identifier hs-type">GenoInput</span></a></span><span>
+</span><span id="line-266"></span><span>        </span><span id="local-6989586621679162504"><span class="annot"><span class="annottext">readGenoInput :: String -&gt; Either String GenoInput
+</span><a href="#local-6989586621679162504"><span class="hs-identifier hs-var hs-var">readGenoInput</span></a></span></span><span> </span><span id="local-6989586621679162503"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162503"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Either String GenoInput
+</span><a href="#local-6989586621679162502"><span class="hs-identifier hs-var">makeGenoInput</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
 </span><span class="hs-identifier hs-var">dropExtension</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159226"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
+</span><a href="#local-6989586621679162503"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
 </span><span class="hs-identifier hs-var">takeExtension</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159226"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-267"></span><span>        </span><span id="local-6989586621679159225"><span class="annot"><span class="annottext">makeGenoInput :: String -&gt; String -&gt; Either String GenoInput
-</span><a href="#local-6989586621679159225"><span class="hs-identifier hs-var hs-var">makeGenoInput</span></a></span></span><span> </span><span id="local-6989586621679159224"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679159223"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159223"><span class="hs-identifier hs-var">ext</span></a></span></span><span>
+</span><a href="#local-6989586621679162503"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-267"></span><span>        </span><span id="local-6989586621679162502"><span class="annot"><span class="annottext">makeGenoInput :: String -&gt; String -&gt; Either String GenoInput
+</span><a href="#local-6989586621679162502"><span class="hs-identifier hs-var hs-var">makeGenoInput</span></a></span></span><span> </span><span id="local-6989586621679162501"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679162500"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162500"><span class="hs-identifier hs-var">ext</span></a></span></span><span>
 </span><span id="line-268"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159223"><span class="hs-identifier hs-var">ext</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; Bool
+</span><a href="#local-6989586621679162500"><span class="hs-identifier hs-var">ext</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; Bool
 forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.geno&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
@@ -993,17 +993,17 @@ forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenotypeFormatSpec
 </span><a href="Poseidon.GenotypeData.html#GenotypeFormatEigenstrat"><span class="hs-identifier hs-var">GenotypeFormatEigenstrat</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;geno&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;snp&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;ind&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-270"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159223"><span class="hs-identifier hs-var">ext</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; Bool
+</span><a href="#local-6989586621679162500"><span class="hs-identifier hs-var">ext</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; Bool
 forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.bed&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
@@ -1013,13 +1013,13 @@ forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenotypeFormatSpec
 </span><a href="Poseidon.GenotypeData.html#GenotypeFormatPlink"><span class="hs-identifier hs-var">GenotypeFormatPlink</span></a></span><span class="hs-special">,</span><span>      </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;bed&quot;</span></span><span class="hs-special">,</span><span>  </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;bim&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159224"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679162501"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;fam&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-272"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
@@ -1032,7 +1032,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;unknown file extension: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159223"><span class="hs-identifier hs-var">ext</span></a></span><span>
+</span><a href="#local-6989586621679162500"><span class="hs-identifier hs-var">ext</span></a></span><span>
 </span><span id="line-273"></span><span>
 </span><span id="line-274"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseInGenoSep"><span class="hs-identifier hs-type">parseInGenoSep</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#GenoInput"><span class="hs-identifier hs-type">GenoInput</span></a></span><span>
 </span><span id="line-275"></span><span id="parseInGenoSep"><span class="annot"><span class="annottext">parseInGenoSep :: Parser GenoInput
@@ -1063,7 +1063,7 @@ forall a. ReadM a -&gt; Mod OptionFields a -&gt; Parser a
 -&gt; ReadM GenotypeFormatSpec
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String GenotypeFormatSpec
-</span><a href="#local-6989586621679159217"><span class="hs-identifier hs-var">readGenotypeFormat</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
+</span><a href="#local-6989586621679162494"><span class="hs-identifier hs-var">readGenotypeFormat</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span>
 </span><span id="line-279"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields GenotypeFormatSpec
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -1078,11 +1078,11 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-string">&quot;the format of the input genotype data: EIGENSTRAT or PLINK\
             \ (only necessary for data input with --genoFile + --snpFile + --indFile)&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-282"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-283"></span><span>    </span><span class="annot"><a href="#local-6989586621679159217"><span class="hs-identifier hs-type">readGenotypeFormat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeFormatSpec"><span class="hs-identifier hs-type">GenotypeFormatSpec</span></a></span><span>
-</span><span id="line-284"></span><span>    </span><span id="local-6989586621679159217"><span class="annot"><span class="annottext">readGenotypeFormat :: String -&gt; Either String GenotypeFormatSpec
-</span><a href="#local-6989586621679159217"><span class="hs-identifier hs-var hs-var">readGenotypeFormat</span></a></span></span><span> </span><span id="local-6989586621679159216"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159216"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159216"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-283"></span><span>    </span><span class="annot"><a href="#local-6989586621679162494"><span class="hs-identifier hs-type">readGenotypeFormat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeFormatSpec"><span class="hs-identifier hs-type">GenotypeFormatSpec</span></a></span><span>
+</span><span id="line-284"></span><span>    </span><span id="local-6989586621679162494"><span class="annot"><span class="annottext">readGenotypeFormat :: String -&gt; Either String GenotypeFormatSpec
+</span><a href="#local-6989586621679162494"><span class="hs-identifier hs-var hs-var">readGenotypeFormat</span></a></span></span><span> </span><span id="local-6989586621679162493"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162493"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162493"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-285"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;EIGENSTRAT&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GenotypeFormatSpec -&gt; Either String GenotypeFormatSpec
 forall a b. b -&gt; Either a b
@@ -1163,7 +1163,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String SNPSetSpec) -&gt; ReadM SNPSetSpec
 forall a. (String -&gt; Either String a) -&gt; ReadM a
 </span><span class="hs-identifier hs-var">OP.eitherReader</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String SNPSetSpec
-</span><a href="#local-6989586621679159215"><span class="hs-identifier hs-var">readSnpSet</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe SNPSetSpec)
+</span><a href="#local-6989586621679162492"><span class="hs-identifier hs-var">readSnpSet</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod OptionFields (Maybe SNPSetSpec)
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.long</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;snpSet&quot;</span></span><span> </span><span class="annot"><span class="annottext">Mod OptionFields (Maybe SNPSetSpec)
@@ -1189,11 +1189,11 @@ forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">SNPSetSpec
 </span><a href="Poseidon.GenotypeData.html#SNPSetOther"><span class="hs-identifier hs-var">SNPSetOther</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-311"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-312"></span><span>    </span><span class="annot"><a href="#local-6989586621679159215"><span class="hs-identifier hs-type">readSnpSet</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#SNPSetSpec"><span class="hs-identifier hs-type">SNPSetSpec</span></a></span><span>
-</span><span id="line-313"></span><span>    </span><span id="local-6989586621679159215"><span class="annot"><span class="annottext">readSnpSet :: String -&gt; Either String SNPSetSpec
-</span><a href="#local-6989586621679159215"><span class="hs-identifier hs-var hs-var">readSnpSet</span></a></span></span><span> </span><span id="local-6989586621679159213"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159213"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679159213"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-312"></span><span>    </span><span class="annot"><a href="#local-6989586621679162492"><span class="hs-identifier hs-type">readSnpSet</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Poseidon.GenotypeData.html#SNPSetSpec"><span class="hs-identifier hs-type">SNPSetSpec</span></a></span><span>
+</span><span id="line-313"></span><span>    </span><span id="local-6989586621679162492"><span class="annot"><span class="annottext">readSnpSet :: String -&gt; Either String SNPSetSpec
+</span><a href="#local-6989586621679162492"><span class="hs-identifier hs-var hs-var">readSnpSet</span></a></span></span><span> </span><span id="local-6989586621679162490"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162490"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162490"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-314"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;1240K&quot;</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SNPSetSpec -&gt; Either String SNPSetSpec
 forall a b. b -&gt; Either a b
@@ -1414,19 +1414,19 @@ forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span id="line-369"></span><span class="annot"><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseListEntity"><span class="hs-identifier hs-type">parseListEntity</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OP.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.List.html#ListEntity"><span class="hs-identifier hs-type">ListEntity</span></a></span><span>
 </span><span id="line-370"></span><span id="parseListEntity"><span class="annot"><span class="annottext">parseListEntity :: Parser ListEntity
 </span><a href="Poseidon.CLI.OptparseApplicativeParsers.html#parseListEntity"><span class="hs-identifier hs-var hs-var">parseListEntity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser ListEntity
-</span><a href="#local-6989586621679159201"><span class="hs-identifier hs-var">parseListPackages</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity -&gt; Parser ListEntity -&gt; Parser ListEntity
+</span><a href="#local-6989586621679162478"><span class="hs-identifier hs-var">parseListPackages</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity -&gt; Parser ListEntity -&gt; Parser ListEntity
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 </span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity
-</span><a href="#local-6989586621679159200"><span class="hs-identifier hs-var">parseListGroups</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity -&gt; Parser ListEntity -&gt; Parser ListEntity
+</span><a href="#local-6989586621679162477"><span class="hs-identifier hs-var">parseListGroups</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity -&gt; Parser ListEntity -&gt; Parser ListEntity
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 </span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser ()
-</span><a href="#local-6989586621679159199"><span class="hs-identifier hs-var">parseListIndividualsDummy</span></a></span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; Parser ListEntity -&gt; Parser ListEntity
+</span><a href="#local-6989586621679162476"><span class="hs-identifier hs-var">parseListIndividualsDummy</span></a></span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; Parser ListEntity -&gt; Parser ListEntity
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
 </span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser ListEntity
-</span><a href="#local-6989586621679159198"><span class="hs-identifier hs-var">parseListIndividualsExtraCols</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679162475"><span class="hs-identifier hs-var">parseListIndividualsExtraCols</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-371"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-372"></span><span>    </span><span id="local-6989586621679159201"><span class="annot"><span class="annottext">parseListPackages :: Parser ListEntity
-</span><a href="#local-6989586621679159201"><span class="hs-identifier hs-var hs-var">parseListPackages</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListEntity -&gt; Mod FlagFields ListEntity -&gt; Parser ListEntity
+</span><span id="line-372"></span><span>    </span><span id="local-6989586621679162478"><span class="annot"><span class="annottext">parseListPackages :: Parser ListEntity
+</span><a href="#local-6989586621679162478"><span class="hs-identifier hs-var hs-var">parseListPackages</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListEntity -&gt; Mod FlagFields ListEntity -&gt; Parser ListEntity
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="annot"><span class="annottext">ListEntity
 </span><a href="Poseidon.CLI.List.html#ListPackages"><span class="hs-identifier hs-var">ListPackages</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields ListEntity
@@ -1439,8 +1439,8 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list all packages&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-373"></span><span>    </span><span id="local-6989586621679159200"><span class="annot"><span class="annottext">parseListGroups :: Parser ListEntity
-</span><a href="#local-6989586621679159200"><span class="hs-identifier hs-var hs-var">parseListGroups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListEntity -&gt; Mod FlagFields ListEntity -&gt; Parser ListEntity
+</span><span id="line-373"></span><span>    </span><span id="local-6989586621679162477"><span class="annot"><span class="annottext">parseListGroups :: Parser ListEntity
+</span><a href="#local-6989586621679162477"><span class="hs-identifier hs-var hs-var">parseListGroups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListEntity -&gt; Mod FlagFields ListEntity -&gt; Parser ListEntity
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="annot"><span class="annottext">ListEntity
 </span><a href="Poseidon.CLI.List.html#ListGroups"><span class="hs-identifier hs-var">ListGroups</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields ListEntity
@@ -1453,8 +1453,8 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list all groups, ignoring any group names after the first as specified in the Janno-file&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-374"></span><span>    </span><span id="local-6989586621679159199"><span class="annot"><span class="annottext">parseListIndividualsDummy :: Parser ()
-</span><a href="#local-6989586621679159199"><span class="hs-identifier hs-var hs-var">parseListIndividualsDummy</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; Mod FlagFields () -&gt; Parser ()
+</span><span id="line-374"></span><span>    </span><span id="local-6989586621679162476"><span class="annot"><span class="annottext">parseListIndividualsDummy :: Parser ()
+</span><a href="#local-6989586621679162476"><span class="hs-identifier hs-var hs-var">parseListIndividualsDummy</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; Mod FlagFields () -&gt; Parser ()
 forall a. a -&gt; Mod FlagFields a -&gt; Parser a
 </span><span class="hs-identifier hs-var">OP.flag'</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Mod FlagFields ()
 forall (f :: * -&gt; *) a. HasName f =&gt; String -&gt; Mod f a
@@ -1465,16 +1465,16 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall (f :: * -&gt; *) a. String -&gt; Mod f a
 </span><span class="hs-identifier hs-var">OP.help</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;list individuals&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-375"></span><span>    </span><span id="local-6989586621679159198"><span class="annot"><span class="annottext">parseListIndividualsExtraCols :: Parser ListEntity
-</span><a href="#local-6989586621679159198"><span class="hs-identifier hs-var hs-var">parseListIndividualsExtraCols</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; ListEntity
+</span><span id="line-375"></span><span>    </span><span id="local-6989586621679162475"><span class="annot"><span class="annottext">parseListIndividualsExtraCols :: Parser ListEntity
+</span><a href="#local-6989586621679162475"><span class="hs-identifier hs-var hs-var">parseListIndividualsExtraCols</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; ListEntity
 </span><a href="Poseidon.CLI.List.html#ListIndividuals"><span class="hs-identifier hs-var">ListIndividuals</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; ListEntity) -&gt; Parser [String] -&gt; Parser ListEntity
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser String -&gt; Parser [String]
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
 </span><span class="hs-identifier hs-var">OP.many</span></span><span> </span><span class="annot"><span class="annottext">Parser String
-</span><a href="#local-6989586621679159194"><span class="hs-identifier hs-var">parseExtraCol</span></a></span><span>
-</span><span id="line-376"></span><span>    </span><span id="local-6989586621679159194"><span class="annot"><span class="annottext">parseExtraCol :: Parser String
-</span><a href="#local-6989586621679159194"><span class="hs-identifier hs-var hs-var">parseExtraCol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String -&gt; Parser String
+</span><a href="#local-6989586621679162471"><span class="hs-identifier hs-var">parseExtraCol</span></a></span><span>
+</span><span id="line-376"></span><span>    </span><span id="local-6989586621679162471"><span class="annot"><span class="annottext">parseExtraCol :: Parser String
+</span><a href="#local-6989586621679162471"><span class="hs-identifier hs-var hs-var">parseExtraCol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Mod OptionFields String -&gt; Parser String
 forall s. IsString s =&gt; Mod OptionFields s -&gt; Parser s
 </span><span class="hs-identifier hs-var">OP.strOption</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Mod OptionFields String
 forall (f :: * -&gt; *) a. HasName f =&gt; Char -&gt; Mod f a
