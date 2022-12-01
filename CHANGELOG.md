@@ -1,4 +1,5 @@
-- V 1.1.3.1: Package reading will no fail if bib-entries are not found due to missing bibtex files
+- V 1.1.4.0: Changes to make poseidon-hs compatible with Poseidon v2.6.0 (backwards compatible with v2.5.0): contributor field optional, added orcid field for contributors, added more capture type options in janno files 
+- V 1.1.3.1: Package reading will now fail if bib-entries are not found due to missing bibtex files
 - V 1.1.3.0: Added new features to the server, updated logging, and new API for compatibility checks
 - V 1.1.2.0: Replaced progress indicators with simple, sequential log messages for the download in fetch and the SNP-wise operations in forge and genoconvert
 - V 1.1.1.3: Tiny change to make the documentation of --snpSet more clear

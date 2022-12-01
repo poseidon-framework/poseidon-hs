@@ -1,9 +1,10 @@
-poseidonVersion: 2.5.0
+poseidonVersion: 2.6.0
 title: Schiffels
 description: Empty package template. Please add a description
 contributor:
-- name: John Doe
-  email: john@doe.net
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
 - name: Berta Testfrau
   email: berta@testfrau.org
 - name: Herbert Testmann

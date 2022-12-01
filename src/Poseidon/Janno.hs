@@ -128,6 +128,10 @@ instance Show JannoDateType where
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType = Shotgun
     | A1240K
+    | ArborComplete
+    | ArborPrimePlus
+    | ArborAncestralPlus
+    | TwistAncientDNA
     | OtherCapture
     | ReferenceGenome
     deriving (Eq, Ord, Generic)
@@ -139,24 +143,36 @@ instance FromJSON JannoCaptureType
 
 instance Csv.FromField JannoCaptureType where
     parseField x
-        | x == "Shotgun"         = pure Shotgun
-        | x == "1240K"           = pure A1240K
-        | x == "OtherCapture"    = pure OtherCapture
-        | x == "ReferenceGenome" = pure ReferenceGenome
-        | otherwise              = fail $ "Capture_Type " ++ show x ++
-                                          " not in [Shotgun, 1240K, OtherCapture, ReferenceGenome]"
+        | x == "Shotgun"            = pure Shotgun
+        | x == "1240K"              = pure A1240K
+        | x == "ArborComplete"      = pure ArborComplete
+        | x == "ArborPrimePlus"     = pure ArborPrimePlus
+        | x == "ArborAncestralPlus" = pure ArborAncestralPlus
+        | x == "TwistAncientDNA"    = pure TwistAncientDNA
+        | x == "OtherCapture"       = pure OtherCapture
+        | x == "ReferenceGenome"    = pure ReferenceGenome
+        | otherwise                 = fail $ "Capture_Type " ++ show x ++
+                                          " not in [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]"
 
 instance Csv.ToField JannoCaptureType where
-    toField Shotgun         = "Shotgun"
-    toField A1240K          = "1240K"
-    toField OtherCapture    = "OtherCapture"
-    toField ReferenceGenome = "ReferenceGenome"
+    toField Shotgun            = "Shotgun"
+    toField A1240K             = "1240K"
+    toField ArborComplete      = "ArborComplete"
+    toField ArborPrimePlus     = "ArborPrimePlus"
+    toField ArborAncestralPlus = "ArborAncestralPlus"
+    toField TwistAncientDNA    = "TwistAncientDNA"
+    toField OtherCapture       = "OtherCapture"
+    toField ReferenceGenome    = "ReferenceGenome"
 
 instance Show JannoCaptureType where
-    show Shotgun         = "Shotgun"
-    show A1240K          = "1240K"
-    show OtherCapture    = "OtherCapture"
-    show ReferenceGenome = "ReferenceGenome"
+    show Shotgun            = "Shotgun"
+    show A1240K             = "1240K"
+    show ArborComplete      = "ArborComplete"
+    show ArborPrimePlus     = "ArborPrimePlus"
+    show ArborAncestralPlus = "ArborAncestralPlus"
+    show TwistAncientDNA    = "TwistAncientDNA"
+    show OtherCapture       = "OtherCapture"
+    show ReferenceGenome    = "ReferenceGenome"
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy = Diploid

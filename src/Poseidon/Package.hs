@@ -34,7 +34,7 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
-                                             IndividualInfo (..))
+                                             IndividualInfo (..), ORCID (..))
 import           Poseidon.Utils             (LogEnv, PoseidonException (..),
                                              PoseidonLogIO, checkFile, logDebug,
                                              logInfo, logWarning, logWithEnv,
@@ -47,7 +47,7 @@ import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Reader       (ask)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
-                                             (.:), (.:?), (.=))
+                                             (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
 import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
@@ -110,7 +110,7 @@ instance FromJSON PoseidonYamlStruct where
         <$> v .:   "poseidonVersion"
         <*> v .:   "title"
         <*> v .:?  "description"
-        <*> v .:   "contributor"
+        <*> v .:?  "contributor" .!= []
         <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
         <*> v .:   "genotypeData"
@@ -122,12 +122,12 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:?  "changelogFile"
 
 instance ToJSON PoseidonYamlStruct where
-    toJSON x = object [
+    toJSON x = object $ [
         "poseidonVersion" .= _posYamlPoseidonVersion x,
         "title"           .= _posYamlTitle x,
-        "description"     .= _posYamlDescription x,
-        "contributor"     .= _posYamlContributor x,
-        "packageVersion"  .= _posYamlPackageVersion x,
+        "description"     .= _posYamlDescription x] ++
+        (if not $ null (_posYamlContributor x) then ["contributor" .= _posYamlContributor x] else []) ++
+        ["packageVersion"  .= _posYamlPackageVersion x,
         "lastModified"    .= _posYamlLastModified x,
         "genotypeData"    .= _posYamlGenotypeData x,
         "jannoFile"       .= _posYamlJannoFile x,
@@ -146,6 +146,7 @@ instance ToPrettyYaml PoseidonYamlStruct where
         "contributor",
         "name",
         "email",
+        "orcid",
         "packageVersion",
         "lastModified",
         "genotypeData",
@@ -548,7 +549,7 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
     ,   posPacTitle = name
     ,   posPacDescription = Nothing
-    ,   posPacContributor = [ContributorSpec "John Doe" "john@doe.net"]
+    ,   posPacContributor = []
     ,   posPacPackageVersion = Nothing
     ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
@@ -592,6 +593,12 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
+        ,   posPacContributor = [
+                ContributorSpec
+                    "Josiah Carberry"
+                    "carberry@brown.edu"
+                    (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
+                ]
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
