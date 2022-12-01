@@ -467,7 +467,7 @@ instance Csv.FromField AccessionID where
 
 -- the patterns are documented at:
 -- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
-determineAccessionIDType :: String -> AccessionID 
+determineAccessionIDType :: String -> AccessionID
 determineAccessionIDType x
     | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = INSDCProject x
     | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = INSDCStudy x
@@ -489,14 +489,14 @@ instance Csv.ToField AccessionID where
     toField (OtherID x)         = Csv.toField x
 
 instance Show AccessionID where
-    show (INSDCProject x)       = x
-    show (INSDCStudy x)         = x
-    show (INSDCBioSample x)     = x
-    show (INSDCSample x)        = x
-    show (INSDCExperiment x)    = x
-    show (INSDCRun x)           = x
-    show (INSDCAnalysis x)      = x
-    show (OtherID x)            = x
+    show (INSDCProject x)    = x
+    show (INSDCStudy x)      = x
+    show (INSDCBioSample x)  = x
+    show (INSDCSample x)     = x
+    show (INSDCExperiment x) = x
+    show (INSDCRun x)        = x
+    show (INSDCAnalysis x)   = x
+    show (OtherID x)         = x
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
