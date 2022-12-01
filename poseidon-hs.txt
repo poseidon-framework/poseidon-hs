@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.4.0
+@version 1.1.4.1
 
 module Poseidon.MathHelpers
 
@@ -230,7 +230,7 @@ module Poseidon.Janno
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv</a>
 --   for more details
 data JannoRow
-JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe Int -> Maybe Int -> Maybe Int -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> JannoRow
+JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> JannoRow
 [jPoseidonID] :: JannoRow -> String
 [jAlternativeIDs] :: JannoRow -> Maybe JannoStringList
 [jRelationTo] :: JannoRow -> Maybe JannoStringList
@@ -247,9 +247,9 @@ JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe Ja
 [jDateC14Labnr] :: JannoRow -> Maybe JannoStringList
 [jDateC14UncalBP] :: JannoRow -> Maybe JannoIntList
 [jDateC14UncalBPErr] :: JannoRow -> Maybe JannoIntList
-[jDateBCADMedian] :: JannoRow -> Maybe Int
-[jDateBCADStart] :: JannoRow -> Maybe Int
-[jDateBCADStop] :: JannoRow -> Maybe Int
+[jDateBCADMedian] :: JannoRow -> Maybe BCADAge
+[jDateBCADStart] :: JannoRow -> Maybe BCADAge
+[jDateBCADStop] :: JannoRow -> Maybe BCADAge
 [jDateType] :: JannoRow -> Maybe JannoDateType
 [jDateNote] :: JannoRow -> Maybe String
 [jNrLibraries] :: JannoRow -> Maybe Int
@@ -287,6 +287,10 @@ data Sex
 Male :: Sex
 Female :: Sex
 Unknown :: Sex
+
+-- | A datatype for BC-AD ages
+newtype BCADAge
+BCADAge :: Int -> BCADAge
 
 -- | A datatype for Latitudes
 newtype Latitude
@@ -355,6 +359,9 @@ readJannoFile :: Bool -> FilePath -> IO [JannoRow]
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
 jannoHeaderString :: [String]
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
+instance GHC.Generics.Generic Poseidon.Janno.BCADAge
+instance GHC.Classes.Ord Poseidon.Janno.BCADAge
+instance GHC.Classes.Eq Poseidon.Janno.BCADAge
 instance GHC.Generics.Generic Poseidon.Janno.JannoDateType
 instance GHC.Classes.Ord Poseidon.Janno.JannoDateType
 instance GHC.Classes.Eq Poseidon.Janno.JannoDateType
@@ -451,6 +458,11 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoDateType
 instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoDateType
 instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoDateType
 instance GHC.Show.Show Poseidon.Janno.JannoDateType
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.BCADAge
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.BCADAge
+instance Data.Csv.Conversion.FromField Poseidon.Janno.BCADAge
+instance Data.Csv.Conversion.ToField Poseidon.Janno.BCADAge
+instance GHC.Show.Show Poseidon.Janno.BCADAge
 instance GHC.Classes.Ord Poseidon.Janno.JannoSex
 instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoSex
 instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoSex
