@@ -122,12 +122,12 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:?  "changelogFile"
 
 instance ToJSON PoseidonYamlStruct where
-    toJSON x = object [
+    toJSON x = object $ [
         "poseidonVersion" .= _posYamlPoseidonVersion x,
         "title"           .= _posYamlTitle x,
-        "description"     .= _posYamlDescription x,
-        "contributor"     .= _posYamlContributor x,
-        "packageVersion"  .= _posYamlPackageVersion x,
+        "description"     .= _posYamlDescription x] ++
+        (if not $ null (_posYamlContributor x) then ["contributor" .= _posYamlContributor x] else []) ++
+        ["packageVersion"  .= _posYamlPackageVersion x,
         "lastModified"    .= _posYamlLastModified x,
         "genotypeData"    .= _posYamlGenotypeData x,
         "jannoFile"       .= _posYamlJannoFile x,

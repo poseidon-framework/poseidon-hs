@@ -1,6 +1,5 @@
 poseidonVersion: 2.6.0
 title: ForgePac2
-contributor: []
 genotypeData:
   format: PLINK
   genoFile: ForgePac2.bed

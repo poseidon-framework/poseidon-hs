@@ -1,6 +1,5 @@
 poseidonVersion: 2.6.0
 title: Wang
-contributor: []
 genotypeData:
   format: EIGENSTRAT
   genoFile: Wang.geno

@@ -149,7 +149,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             gd = _posYamlGenotypeData p_
             gdTrue = _posYamlGenotypeData truePackageRelPaths
         gd `shouldBe` gdTrue {snpSet = Nothing}
-    it "should parse missing contributor field as Nothing" $ do
+    it "should parse missing contributor field as empty list" $ do
         let yamlPackage2 = replace
                 "contributor:\n  - name: Stephan Schiffels\n    email: schiffels@institute.org\n    orcid: 0000-0002-1017-9150" "" yamlPackage
             (Right p_) = decodeEither' yamlPackage2 :: Either ParseException PoseidonYamlStruct
