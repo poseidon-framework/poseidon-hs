@@ -1,3 +1,4 @@
+- V 1.1.4.2: Added parsing for Accession IDs (.janno file). Wrong entries are ignored, so this is non-breaking.
 - V 1.1.4.1: Added a small validation check for calibrated ages in the .janno file
 - V 1.1.4.0: Changes to make poseidon-hs compatible with Poseidon v2.6.0 (backwards compatible with v2.5.0): contributor field optional, added orcid field for contributors, added more capture type options in janno files 
 - V 1.1.3.1: Package reading will now fail if bib-entries are not found due to missing bibtex files
