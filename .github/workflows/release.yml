@@ -79,7 +79,10 @@ jobs:
 
       - name: Set binary path name
         id: binarypath
-        run: echo "BINARY_PATH=./dist/trident${{ steps.ifwin.outputs.EXT }}" >> $GITHUB_OUTPUT
+        run: |
+          WinExt=${{ steps.ifwin.outputs.EXT }}
+          echo $WinExt
+          echo "BINARY_PATH=./dist/trident$WinExt" >> $GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
