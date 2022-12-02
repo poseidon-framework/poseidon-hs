@@ -46,6 +46,7 @@ import           Data.Char                            (ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Lazy                    as HM
+import qualified Data.HashMap.Strict                  as HMS
 import           Data.List                            (elemIndex, intercalate,
                                                        nub, (\\))
 import           Data.Maybe                           (fromJust, isNothing)
@@ -546,127 +547,9 @@ data JannoRow = JannoRow
     , jPublication                :: Maybe JannoStringList
     , jComments                   :: Maybe String
     , jKeywords                   :: Maybe JannoStringList
+    , jAdditionalColumns          :: Csv.NamedRecord
     }
     deriving (Show, Eq, Generic)
-
-instance ToJSON JannoRow where
-    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
-
-instance FromJSON JannoRow
-
-instance Csv.FromNamedRecord JannoRow where
-    parseNamedRecord m = JannoRow
-        <$> filterLookup         m "Poseidon_ID"
-        <*> filterLookupOptional m "Alternative_IDs"
-        <*> filterLookupOptional m "Relation_To"
-        <*> filterLookupOptional m "Relation_Degree"
-        <*> filterLookupOptional m "Relation_Type"
-        <*> filterLookupOptional m "Relation_Note"
-        <*> filterLookupOptional m "Collection_ID"
-        <*> filterLookupOptional m "Source_Tissue"
-        <*> filterLookupOptional m "Country"
-        <*> filterLookupOptional m "Location"
-        <*> filterLookupOptional m "Site"
-        <*> filterLookupOptional m "Latitude"
-        <*> filterLookupOptional m "Longitude"
-        <*> filterLookupOptional m "Date_C14_Labnr"
-        <*> filterLookupOptional m "Date_C14_Uncal_BP"
-        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
-        <*> filterLookupOptional m "Date_BC_AD_Median"
-        <*> filterLookupOptional m "Date_BC_AD_Start"
-        <*> filterLookupOptional m "Date_BC_AD_Stop"
-        <*> filterLookupOptional m "Date_Type"
-        <*> filterLookupOptional m "Date_Note"
-        <*> filterLookupOptional m "Nr_Libraries"
-        <*> filterLookupOptional m "Capture_Type"
-        <*> filterLookupOptional m "Genotype_Ploidy"
-        <*> filterLookup         m "Group_Name"
-        <*> filterLookup         m "Genetic_Sex"
-        <*> filterLookupOptional m "Nr_SNPs"
-        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
-        <*> filterLookupOptional m "MT_Haplogroup"
-        <*> filterLookupOptional m "Y_Haplogroup"
-        <*> filterLookupOptional m "Endogenous"
-        <*> filterLookupOptional m "UDG"
-        <*> filterLookupOptional m "Library_Built"
-        <*> filterLookupOptional m "Damage"
-        <*> filterLookupOptional m "Contamination"
-        <*> filterLookupOptional m "Contamination_Err"
-        <*> filterLookupOptional m "Contamination_Meas"
-        <*> filterLookupOptional m "Contamination_Note"
-        <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
-        <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
-        <*> filterLookupOptional m "Primary_Contact"
-        <*> filterLookupOptional m "Publication"
-        <*> filterLookupOptional m "Note"
-        <*> filterLookupOptional m "Keywords"
-
-filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
-
-filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = case HM.lookup name m of
-    Nothing -> pure Nothing
-    justField -> case ignoreNA justField of
-        Nothing -> pure Nothing
-        Just x  -> Csv.parseField x
-
-ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-ignoreNA (Just "")    = Nothing
-ignoreNA (Just "n/a") = Nothing
-ignoreNA (Just x)     = Just x
-ignoreNA Nothing      = Nothing
-
-instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord j = Csv.namedRecord [
-          "Poseidon_ID"                     Csv..= jPoseidonID j
-        , "Alternative_IDs"                 Csv..= jAlternativeIDs j
-        , "Relation_To"                     Csv..= jRelationTo j
-        , "Relation_Degree"                 Csv..= jRelationDegree j
-        , "Relation_Type"                   Csv..= jRelationType j
-        , "Relation_Note"                   Csv..= jRelationNote j
-        , "Collection_ID"                   Csv..= jCollectionID j
-        , "Source_Tissue"                   Csv..= jSourceTissue j
-        , "Country"                         Csv..= jCountry j
-        , "Location"                        Csv..= jLocation j
-        , "Site"                            Csv..= jSite j
-        , "Latitude"                        Csv..= jLatitude j
-        , "Longitude"                       Csv..= jLongitude j
-        , "Date_C14_Labnr"                  Csv..= jDateC14Labnr j
-        , "Date_C14_Uncal_BP"               Csv..= jDateC14UncalBP j
-        , "Date_C14_Uncal_BP_Err"           Csv..= jDateC14UncalBPErr j
-        , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
-        , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
-        , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
-        , "Date_Type"                       Csv..= jDateType j
-        , "Date_Note"                       Csv..= jDateNote j
-        , "Nr_Libraries"                    Csv..= jNrLibraries j
-        , "Capture_Type"                    Csv..= jCaptureType j
-        , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
-        , "Group_Name"                      Csv..= jGroupName j
-        , "Genetic_Sex"                     Csv..= jGeneticSex j
-        , "Nr_SNPs"                         Csv..= jNrSNPs j
-        , "Coverage_on_Target_SNPs"         Csv..= jCoverageOnTargets j
-        , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
-        , "Y_Haplogroup"                    Csv..= jYHaplogroup j
-        , "Endogenous"                      Csv..= jEndogenous j
-        , "UDG"                             Csv..= jUDG j
-        , "Library_Built"                   Csv..= jLibraryBuilt j
-        , "Damage"                          Csv..= jDamage j
-        , "Contamination"                   Csv..= jContamination j
-        , "Contamination_Err"               Csv..= jContaminationErr j
-        , "Contamination_Meas"              Csv..= jContaminationMeas j
-        , "Contamination_Note"              Csv..= jContaminationNote j
-        , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
-        , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL j
-        , "Primary_Contact"                 Csv..= jPrimaryContact j
-        , "Publication"                     Csv..= jPublication j
-        , "Note"                            Csv..= jComments j
-        , "Keywords"                        Csv..= jKeywords j
-        ]
-
-instance Csv.DefaultOrdered JannoRow where
-    headerOrder _ = Csv.header jannoHeader
 
 -- This header also defines the output column order when writing to csv!
 -- When the order is changed, don't forget to also update the order in the survey module
@@ -718,8 +601,144 @@ jannoHeader = [
     , "Keywords"
     ]
 
+jannoRefHashMap :: HMS.HashMap Bchs.ByteString ()
+jannoRefHashMap = HMS.fromList $ map (\x -> (x, ())) jannoHeader
+
+--instance ToJSON JannoRow where
+--    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
+
+--instance FromJSON JannoRow
+
+instance Csv.FromNamedRecord JannoRow where
+    parseNamedRecord m = JannoRow
+        <$> filterLookup         m "Poseidon_ID"
+        <*> filterLookupOptional m "Alternative_IDs"
+        <*> filterLookupOptional m "Relation_To"
+        <*> filterLookupOptional m "Relation_Degree"
+        <*> filterLookupOptional m "Relation_Type"
+        <*> filterLookupOptional m "Relation_Note"
+        <*> filterLookupOptional m "Collection_ID"
+        <*> filterLookupOptional m "Source_Tissue"
+        <*> filterLookupOptional m "Country"
+        <*> filterLookupOptional m "Location"
+        <*> filterLookupOptional m "Site"
+        <*> filterLookupOptional m "Latitude"
+        <*> filterLookupOptional m "Longitude"
+        <*> filterLookupOptional m "Date_C14_Labnr"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
+        <*> filterLookupOptional m "Date_BC_AD_Median"
+        <*> filterLookupOptional m "Date_BC_AD_Start"
+        <*> filterLookupOptional m "Date_BC_AD_Stop"
+        <*> filterLookupOptional m "Date_Type"
+        <*> filterLookupOptional m "Date_Note"
+        <*> filterLookupOptional m "Nr_Libraries"
+        <*> filterLookupOptional m "Capture_Type"
+        <*> filterLookupOptional m "Genotype_Ploidy"
+        <*> filterLookup         m "Group_Name"
+        <*> filterLookup         m "Genetic_Sex"
+        <*> filterLookupOptional m "Nr_SNPs"
+        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
+        <*> filterLookupOptional m "MT_Haplogroup"
+        <*> filterLookupOptional m "Y_Haplogroup"
+        <*> filterLookupOptional m "Endogenous"
+        <*> filterLookupOptional m "UDG"
+        <*> filterLookupOptional m "Library_Built"
+        <*> filterLookupOptional m "Damage"
+        <*> filterLookupOptional m "Contamination"
+        <*> filterLookupOptional m "Contamination_Err"
+        <*> filterLookupOptional m "Contamination_Meas"
+        <*> filterLookupOptional m "Contamination_Note"
+        <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
+        <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
+        <*> filterLookupOptional m "Primary_Contact"
+        <*> filterLookupOptional m "Publication"
+        <*> filterLookupOptional m "Note"
+        <*> filterLookupOptional m "Keywords"
+        <*> pure (m `HMS.difference` jannoRefHashMap)
+
+filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
+filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
+
+filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
+filterLookupOptional m name = case HM.lookup name m of
+    Nothing -> pure Nothing
+    justField -> case ignoreNA justField of
+        Nothing -> pure Nothing
+        Just x  -> Csv.parseField x
+
+ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
+ignoreNA (Just "")    = Nothing
+ignoreNA (Just "n/a") = Nothing
+ignoreNA (Just x)     = Just x
+ignoreNA Nothing      = Nothing
+
+instance Csv.ToNamedRecord JannoRow where
+    toNamedRecord j = jAdditionalColumns j `HM.union` Csv.namedRecord [
+          "Poseidon_ID"                     Csv..= jPoseidonID j
+        , "Alternative_IDs"                 Csv..= jAlternativeIDs j
+        , "Relation_To"                     Csv..= jRelationTo j
+        , "Relation_Degree"                 Csv..= jRelationDegree j
+        , "Relation_Type"                   Csv..= jRelationType j
+        , "Relation_Note"                   Csv..= jRelationNote j
+        , "Collection_ID"                   Csv..= jCollectionID j
+        , "Source_Tissue"                   Csv..= jSourceTissue j
+        , "Country"                         Csv..= jCountry j
+        , "Location"                        Csv..= jLocation j
+        , "Site"                            Csv..= jSite j
+        , "Latitude"                        Csv..= jLatitude j
+        , "Longitude"                       Csv..= jLongitude j
+        , "Date_C14_Labnr"                  Csv..= jDateC14Labnr j
+        , "Date_C14_Uncal_BP"               Csv..= jDateC14UncalBP j
+        , "Date_C14_Uncal_BP_Err"           Csv..= jDateC14UncalBPErr j
+        , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
+        , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
+        , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
+        , "Date_Type"                       Csv..= jDateType j
+        , "Date_Note"                       Csv..= jDateNote j
+        , "Nr_Libraries"                    Csv..= jNrLibraries j
+        , "Capture_Type"                    Csv..= jCaptureType j
+        , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
+        , "Group_Name"                      Csv..= jGroupName j
+        , "Genetic_Sex"                     Csv..= jGeneticSex j
+        , "Nr_SNPs"                         Csv..= jNrSNPs j
+        , "Coverage_on_Target_SNPs"         Csv..= jCoverageOnTargets j
+        , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
+        , "Y_Haplogroup"                    Csv..= jYHaplogroup j
+        , "Endogenous"                      Csv..= jEndogenous j
+        , "UDG"                             Csv..= jUDG j
+        , "Library_Built"                   Csv..= jLibraryBuilt j
+        , "Damage"                          Csv..= jDamage j
+        , "Contamination"                   Csv..= jContamination j
+        , "Contamination_Err"               Csv..= jContaminationErr j
+        , "Contamination_Meas"              Csv..= jContaminationMeas j
+        , "Contamination_Note"              Csv..= jContaminationNote j
+        , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
+        , "Data_Preparation_Pipeline_URL"   Csv..= jDataPreparationPipelineURL j
+        , "Primary_Contact"                 Csv..= jPrimaryContact j
+        , "Publication"                     Csv..= jPublication j
+        , "Note"                            Csv..= jComments j
+        , "Keywords"                        Csv..= jKeywords j
+        ]
+
+instance Csv.DefaultOrdered JannoRow where
+    headerOrder _ = Csv.header jannoHeader
+
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
+
+makeCompleteHeader :: [JannoRow] -> Csv.Header
+makeCompleteHeader ms = V.fromList $ jannoHeader ++ HM.keys (HM.unions (map jAdditionalColumns ms))
+
+combineJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
+combineJannos xs1 xs2 =
+    let simpleSum = xs1 ++ xs2
+        addColKeys = HM.keys (HM.unions (map jAdditionalColumns simpleSum))
+        toAddHashMap = HM.fromList (map (\k -> (k, "n/a")) addColKeys)
+    in map (\x -> x { jAdditionalColumns = fillAddCols (jAdditionalColumns x) toAddHashMap }) simpleSum
+    where
+        fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
+        fillAddCols cur toAdd = HM.union cur (toAdd `HM.difference` cur)
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
@@ -774,6 +793,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jPublication                  = Nothing
         , jComments                     = Nothing
         , jKeywords                     = Nothing
+        , jAdditionalColumns            = HM.fromList []
     }
 
 -- Janno file writing
