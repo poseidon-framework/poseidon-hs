@@ -45,8 +45,7 @@ import qualified Data.ByteString.Lazy.Char8           as Bch
 import           Data.Char                            (ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
-import qualified Data.HashMap.Lazy                    as HM
-import qualified Data.HashMap.Strict                  as HMS
+import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, intercalate,
                                                        nub, (\\))
 import           Data.Maybe                           (fromJust, isNothing)
@@ -59,6 +58,7 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import           System.IO                            (hPutStrLn, stderr)
 import qualified Text.Regex.TDFA                      as Reg
+import Data.Aeson.Types (emptyObject)
 
 newtype JannoSex = JannoSex { sfSex :: Sex }
     deriving (Eq)
@@ -547,9 +547,18 @@ data JannoRow = JannoRow
     , jPublication                :: Maybe JannoStringList
     , jComments                   :: Maybe String
     , jKeywords                   :: Maybe JannoStringList
-    , jAdditionalColumns          :: Csv.NamedRecord
+    , jAdditionalColumns          :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
+
+newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
+unwrapCsvNamedRecord (CsvNamedRecord x) = x 
+
+instance ToJSON CsvNamedRecord where
+    toJSON _ = emptyObject
+
+instance FromJSON CsvNamedRecord where
+    parseJSON _ = pure $ CsvNamedRecord $ HM.fromList []
 
 -- This header also defines the output column order when writing to csv!
 -- When the order is changed, don't forget to also update the order in the survey module
@@ -601,13 +610,13 @@ jannoHeader = [
     , "Keywords"
     ]
 
-jannoRefHashMap :: HMS.HashMap Bchs.ByteString ()
-jannoRefHashMap = HMS.fromList $ map (\x -> (x, ())) jannoHeader
+jannoRefHashMap :: HM.HashMap Bchs.ByteString ()
+jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
---instance ToJSON JannoRow where
---    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
+instance ToJSON JannoRow where
+    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
 
---instance FromJSON JannoRow
+instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = JannoRow
@@ -655,7 +664,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Publication"
         <*> filterLookupOptional m "Note"
         <*> filterLookupOptional m "Keywords"
-        <*> pure (m `HMS.difference` jannoRefHashMap)
+        <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
 filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
@@ -674,7 +683,7 @@ ignoreNA (Just x)     = Just x
 ignoreNA Nothing      = Nothing
 
 instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord j = jAdditionalColumns j `HM.union` Csv.namedRecord [
+    toNamedRecord j = Csv.namedRecord [
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Alternative_IDs"                 Csv..= jAlternativeIDs j
         , "Relation_To"                     Csv..= jRelationTo j
@@ -719,7 +728,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Publication"                     Csv..= jPublication j
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
-        ]
+        ] `HM.union` (unwrapCsvNamedRecord $ jAdditionalColumns j)
 
 instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
@@ -728,14 +737,14 @@ jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
 
 makeCompleteHeader :: [JannoRow] -> Csv.Header
-makeCompleteHeader ms = V.fromList $ jannoHeader ++ HM.keys (HM.unions (map jAdditionalColumns ms))
+makeCompleteHeader ms = V.fromList $ jannoHeader ++ HM.keys (HM.unions (map (unwrapCsvNamedRecord . jAdditionalColumns) ms))
 
 combineJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
 combineJannos xs1 xs2 =
     let simpleSum = xs1 ++ xs2
-        addColKeys = HM.keys (HM.unions (map jAdditionalColumns simpleSum))
+        addColKeys = HM.keys (HM.unions (map (unwrapCsvNamedRecord . jAdditionalColumns) simpleSum))
         toAddHashMap = HM.fromList (map (\k -> (k, "n/a")) addColKeys)
-    in map (\x -> x { jAdditionalColumns = fillAddCols (jAdditionalColumns x) toAddHashMap }) simpleSum
+    in map (\x -> x { jAdditionalColumns = CsvNamedRecord $ fillAddCols (unwrapCsvNamedRecord $ jAdditionalColumns x) toAddHashMap }) simpleSum
     where
         fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
         fillAddCols cur toAdd = HM.union cur (toAdd `HM.difference` cur)
@@ -793,7 +802,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jPublication                  = Nothing
         , jComments                     = Nothing
         , jKeywords                     = Nothing
-        , jAdditionalColumns            = HM.fromList []
+        , jAdditionalColumns            = CsvNamedRecord $ HM.fromList []
     }
 
 -- Janno file writing
