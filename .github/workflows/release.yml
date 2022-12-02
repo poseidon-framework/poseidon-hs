@@ -79,7 +79,7 @@ jobs:
 
       - name: Set binary path name
         id: binarypath
-        run: echo "BINARY_PATH={./dist/trident${{ steps.ifwin.outputs.EXT }}}" >> $GITHUB_OUTPUT
+        run: echo "BINARY_PATH=./dist/trident${{ steps.ifwin.outputs.EXT }}" >> $GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
@@ -93,7 +93,7 @@ jobs:
 
       - name: Get Release File Name & Upload URL
         id: get_release_info
-        run: echo "upload_url={$(cat release_url/release_url.txt)}" >> $GITHUB_OUTPUT
+        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -129,7 +129,7 @@ jobs:
 
     - name: Get Release File Name & Upload URL
       id: get_release_info
-      run: echo "upload_url={$(cat release_url/release_url.txt)}" >> $GITHUB_OUTPUT
+      run: echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_OUTPUT
 
     - name: Upload Release Asset
       id: upload-release-asset
