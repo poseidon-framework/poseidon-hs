@@ -40,6 +40,7 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
                                                        toJSON)
+import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
@@ -47,8 +48,8 @@ import           Data.Char                            (ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
-import           Data.List                            (elemIndex, intercalate,
-                                                       nub, (\\), foldl')
+import           Data.List                            (elemIndex, foldl',
+                                                       intercalate, nub, (\\))
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Vector                          as V
@@ -59,7 +60,6 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import           System.IO                            (hPutStrLn, stderr)
 import qualified Text.Regex.TDFA                      as Reg
-import Data.Aeson.Types (emptyObject)
 
 newtype JannoSex = JannoSex { sfSex :: Sex }
     deriving (Eq)
@@ -502,7 +502,7 @@ instance Show AccessionID where
 
 -- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
-getCsvNR (CsvNamedRecord x) = x 
+getCsvNR (CsvNamedRecord x) = x
 
 -- In our current workflow additional columns do not have to be considered for the json representation:
 -- json is only relevant for the webserver, which only serves well-specified packages
@@ -761,7 +761,7 @@ combineTwoJannos janno1 janno2 =
         addEmptyAddColsToJannoRow :: Csv.NamedRecord -> JannoRow -> JannoRow
         addEmptyAddColsToJannoRow toAdd x =
             x { jAdditionalColumns =
-                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x) 
+                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x)
             }
         fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
         fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)

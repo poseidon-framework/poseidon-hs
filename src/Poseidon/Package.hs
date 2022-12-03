@@ -28,8 +28,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
-                                             JannoSex (..), createMinimalJanno,
-                                             readJannoFile, concatJannos)
+                                             JannoSex (..), concatJannos,
+                                             createMinimalJanno, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
