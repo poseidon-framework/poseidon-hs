@@ -21,6 +21,7 @@ module Poseidon.Janno (
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,
+    concatJannos,
     createMinimalJanno,
     jannoHeaderString,
     determineAccessionIDType
@@ -47,7 +48,7 @@ import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, intercalate,
-                                                       nub, (\\))
+                                                       nub, (\\), foldl')
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Vector                          as V
@@ -739,9 +740,12 @@ jannoHeaderString = map Bchs.unpack jannoHeader
 makeCompleteHeader :: [JannoRow] -> Csv.Header
 makeCompleteHeader ms = V.fromList $ jannoHeader ++ HM.keys (HM.unions (map (unwrapCsvNamedRecord . jAdditionalColumns) ms))
 
-combineJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
-combineJannos xs1 xs2 =
-    let simpleSum = xs1 ++ xs2
+concatJannos :: [[JannoRow]] -> [JannoRow]
+concatJannos = foldl' combineTwoJannos []
+
+combineTwoJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
+combineTwoJannos janno1 janno2 =
+    let simpleSum = janno1 ++ janno2
         addColKeys = HM.keys (HM.unions (map (unwrapCsvNamedRecord . jAdditionalColumns) simpleSum))
         toAddHashMap = HM.fromList (map (\k -> (k, "n/a")) addColKeys)
     in map (\x -> x { jAdditionalColumns = CsvNamedRecord $ fillAddCols (unwrapCsvNamedRecord $ jAdditionalColumns x) toAddHashMap }) simpleSum
