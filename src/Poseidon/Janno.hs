@@ -500,6 +500,18 @@ instance Show AccessionID where
     show (INSDCAnalysis x)   = x
     show (OtherID x)         = x
 
+-- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
+newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
+getCsvNR (CsvNamedRecord x) = x 
+
+-- In our current workflow additional columns do not have to be considered for the json representation:
+-- json is only relevant for the webserver, which only serves well-specified packages
+instance ToJSON CsvNamedRecord where
+    toJSON _ = emptyObject
+
+instance FromJSON CsvNamedRecord where
+    parseJSON _ = pure $ CsvNamedRecord $ HM.fromList []
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -552,15 +564,6 @@ data JannoRow = JannoRow
     }
     deriving (Show, Eq, Generic)
 
-newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
-unwrapCsvNamedRecord (CsvNamedRecord x) = x 
-
-instance ToJSON CsvNamedRecord where
-    toJSON _ = emptyObject
-
-instance FromJSON CsvNamedRecord where
-    parseJSON _ = pure $ CsvNamedRecord $ HM.fromList []
-
 -- This header also defines the output column order when writing to csv!
 -- When the order is changed, don't forget to also update the order in the survey module
 jannoHeader :: [Bchs.ByteString]
@@ -611,6 +614,7 @@ jannoHeader = [
     , "Keywords"
     ]
 
+-- This hashmap represents an empty janno file with all normal, specified columns
 jannoRefHashMap :: HM.HashMap Bchs.ByteString ()
 jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
@@ -665,6 +669,8 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Publication"
         <*> filterLookupOptional m "Note"
         <*> filterLookupOptional m "Keywords"
+        -- beyond that read everything that is not in the set of defined variables
+        -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
@@ -729,7 +735,8 @@ instance Csv.ToNamedRecord JannoRow where
         , "Publication"                     Csv..= jPublication j
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
-        ] `HM.union` (unwrapCsvNamedRecord $ jAdditionalColumns j)
+        -- beyond that add what is in the hashmap of additional columns
+        ] `HM.union` (getCsvNR $ jAdditionalColumns j)
 
 instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
@@ -737,21 +744,27 @@ instance Csv.DefaultOrdered JannoRow where
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
 
-makeCompleteHeader :: [JannoRow] -> Csv.Header
-makeCompleteHeader ms = V.fromList $ jannoHeader ++ HM.keys (HM.unions (map (unwrapCsvNamedRecord . jAdditionalColumns) ms))
+makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
+makeHeaderWithAdditionalColumns ms =
+    V.fromList $ jannoHeader ++ HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms))
 
 concatJannos :: [[JannoRow]] -> [JannoRow]
 concatJannos = foldl' combineTwoJannos []
 
 combineTwoJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
 combineTwoJannos janno1 janno2 =
-    let simpleSum = janno1 ++ janno2
-        addColKeys = HM.keys (HM.unions (map (unwrapCsvNamedRecord . jAdditionalColumns) simpleSum))
-        toAddHashMap = HM.fromList (map (\k -> (k, "n/a")) addColKeys)
-    in map (\x -> x { jAdditionalColumns = CsvNamedRecord $ fillAddCols (unwrapCsvNamedRecord $ jAdditionalColumns x) toAddHashMap }) simpleSum
+    let simpleJannoSum = janno1 ++ janno2
+        toAddColNames = HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) simpleJannoSum))
+        toAddEmptyCols = HM.fromList (map (\k -> (k, "n/a")) toAddColNames)
+    in map (addEmptyAddColsToJannoRow toAddEmptyCols) simpleJannoSum
     where
+        addEmptyAddColsToJannoRow :: Csv.NamedRecord -> JannoRow -> JannoRow
+        addEmptyAddColsToJannoRow toAdd x =
+            x { jAdditionalColumns =
+                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x) 
+            }
         fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
-        fillAddCols cur toAdd = HM.union cur (toAdd `HM.difference` cur)
+        fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
@@ -806,6 +819,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jPublication                  = Nothing
         , jComments                     = Nothing
         , jKeywords                     = Nothing
+        -- The template should of course not have any additional columns
         , jAdditionalColumns            = CsvNamedRecord $ HM.fromList []
     }
 
@@ -813,7 +827,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 writeJannoFile :: FilePath -> [JannoRow] -> IO ()
 writeJannoFile path samples = do
-    let jannoAsBytestring = Csv.encodeDefaultOrderedByNameWith encodingOptions samples
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns samples) samples
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
 
