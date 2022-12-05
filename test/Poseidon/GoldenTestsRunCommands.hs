@@ -22,6 +22,8 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
+import           Poseidon.Janno           (CsvNamedRecord (..), JannoRow (..),
+                                           readJannoFile, writeJannoFile)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (LogMode (..), getChecksum,
@@ -29,6 +31,7 @@ import           Poseidon.Utils           (LogMode (..), getChecksum,
 
 import           Control.Monad            (unless, when)
 import           Data.Either              (fromRight)
+import           Data.HashMap.Strict      (fromList)
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
@@ -121,7 +124,9 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacName   = Just "Schiffels"
         , _initMinimal   = False
     }
-    let action = usePoseidonLogger NoLog (runInit initOpts1) >> patchLastModified testDir ("Schiffels" </> "POSEIDON.yml")
+    let action = usePoseidonLogger NoLog (runInit initOpts1) >>
+                 patchLastModified testDir ("Schiffels" </> "POSEIDON.yml") >>
+                 addAdditionalColumnsToJanno testDir ("Schiffels" </> "Schiffels.janno")
     runAndChecksumFiles checkFilePath testDir action "init" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
@@ -143,7 +148,8 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacName   = Nothing
         , _initMinimal   = True
     }
-    let action2 = usePoseidonLogger NoLog (runInit initOpts2) >> patchLastModified testDir ("Wang" </> "POSEIDON.yml")
+    let action2 = usePoseidonLogger NoLog (runInit initOpts2) >>
+                  patchLastModified testDir ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
         , "Wang" </> "Wang_2020.bed"
@@ -158,6 +164,19 @@ patchLastModified testDir yamlFile = do
                 then return "lastModified: 1970-01-01"
                 else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+addAdditionalColumnsToJanno :: FilePath -> FilePath -> IO ()
+addAdditionalColumnsToJanno testDir jannoFile = do
+    janno <- readJannoFile False (testDir </> jannoFile)
+    let modifiedJanno = map addVariables janno
+    writeJannoFile (testDir </> jannoFile) modifiedJanno
+    where
+        addVariables :: JannoRow -> JannoRow
+        addVariables x = x {
+                jAdditionalColumns = CsvNamedRecord (fromList [
+                      ("AdditionalColumn1", "test_value_1")
+                    , ("AdditionalColumn2", "test_value_2")
+                ] ) }
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do

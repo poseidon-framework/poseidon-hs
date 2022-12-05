@@ -895,6 +895,7 @@ findSimilarNames :: [String] -> [String] -> [String]
 findSimilarNames reference = map (findSimilar reference)
     where
         findSimilar ::  [String] -> String -> String
+        findSimilar [] _  = []
         findSimilar ref x =
             let dists = map (\y -> x `editDistance` y) ref
             in ref !! fromJust (elemIndex (minimum dists) dists)
