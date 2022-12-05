@@ -24,7 +24,8 @@ module Poseidon.Janno (
     concatJannos,
     createMinimalJanno,
     jannoHeaderString,
-    determineAccessionIDType
+    determineAccessionIDType,
+    CsvNamedRecord (..)
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
