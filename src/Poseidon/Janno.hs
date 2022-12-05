@@ -50,7 +50,8 @@ import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
-                                                       intercalate, nub, (\\))
+                                                       intercalate, nub, sort,
+                                                       (\\))
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Vector                          as V
@@ -749,7 +750,7 @@ jannoHeaderString = map Bchs.unpack jannoHeader
 
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
 makeHeaderWithAdditionalColumns ms =
-    V.fromList $ jannoHeader ++ HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms))
+    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms)))
 
 concatJannos :: [[JannoRow]] -> [JannoRow]
 concatJannos = foldl' combineTwoJannos []
