@@ -1,3 +1,42 @@
+### V 1.1.5.0
+
+This release changes the way additional columns in .janno files are treated.
+
+So far `trident` fully ignored additional variables, which had the consequence that `trident forge` dropped them without warning. With this new release, additional variables are loaded and carried along in `forge`. For merging different .janno files **A** and **B** the following rules apply regarding additional columns:
+
+- If **A** has an additional column which is not in **B** then empty cells in the rows imported from **B** are filled with `n/a`.
+- If **A** and **B** share additional columns with identical column name, then they are treated as semantically identical units and merged accordingly.
+- In the resulting .janno file, all additional columns from both **A** and **B** are sorted alphabetically and appended after the normal, specified variables.
+
+The following example illustrates the described behaviour:
+
+**A.janno**
+
+| Poseidon_ID | Group_Name | Genetic_Sex | AdditionalColumn1 | AdditionalColumn2 |
+|-------------|------------|-------------|-------------------|-------------------|
+| XXX011      | POP1       | M           | A                 | D                 |
+| XXX012      | POP2       | F           | B                 | E                 |
+| XXX013      | POP1       | M           | C                 | F                 |
+
+**B.janno**
+
+| Poseidon_ID | Group_Name | Genetic_Sex | AdditionalColumn3 | AdditionalColumn2 |
+|-------------|------------|-------------|-------------------|-------------------|
+| YYY022      | POP5       | F           | G                 | J                 |
+| YYY023      | POP5       | F           | H                 | K                 |
+| YYY024      | POP5       | M           | I                 | L                 |
+
+**A.janno + B.janno**
+
+| Poseidon_ID | Group_Name | Genetic_Sex | AdditionalColumn1 | AdditionalColumn2 | AdditionalColumn3 |
+|-------------|------------|-------------|-------------------|-------------------|-------------------|
+| XXX011      | POP1       | M           | A                 | D                 | n/a               |
+| XXX012      | POP2       | F           | B                 | E                 | n/a               |
+| XXX013      | POP1       | M           | C                 | F                 | n/a               |
+| YYY022      | POP5       | F           | n/a               | J                 | G                 |
+| YYY023      | POP5       | F           | n/a               | K                 | H                 |
+| YYY024      | POP5       | M           | n/a               | L                 | I                 |
+
 ### V 1.1.4.2
 
 With this release trident becomes able to handle the changes introduced for Poseidon v2.6.0.
