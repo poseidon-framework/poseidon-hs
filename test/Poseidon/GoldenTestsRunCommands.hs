@@ -30,6 +30,7 @@ import           Poseidon.Utils           (LogMode (..), getChecksum,
                                            usePoseidonLogger)
 
 import           Control.Monad            (unless, when)
+import           Data.ByteString.Char8    (ByteString)
 import           Data.Either              (fromRight)
 import           Data.HashMap.Strict      (fromList)
 import qualified Data.Text                as T
@@ -126,7 +127,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     }
     let action = usePoseidonLogger NoLog (runInit initOpts1) >>
                  patchLastModified testDir ("Schiffels" </> "POSEIDON.yml") >>
-                 addAdditionalColumnsToJanno testDir ("Schiffels" </> "Schiffels.janno")
+                 addAdditionalColumnsToJanno [("AddCol1", "v1"), ("AddCol2", "v2")] testDir ("Schiffels" </> "Schiffels.janno")
     runAndChecksumFiles checkFilePath testDir action "init" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
@@ -154,6 +155,27 @@ testPipelineInit testDir checkFilePath testPacsDir = do
           "Wang" </> "POSEIDON.yml"
         , "Wang" </> "Wang_2020.bed"
         ]
+    let initOpts3 = InitOptions {
+          _initGenoData  = GenotypeDataSpec {
+            format   = GenotypeFormatEigenstrat
+          , genoFile = testPacsDir </> "Lamnidis_2018" </> "geno.txt"
+          , genoFileChkSum = Nothing
+          , snpFile  = testPacsDir </> "Lamnidis_2018" </> "snp.txt"
+          , snpFileChkSum = Nothing
+          , indFile  = testPacsDir </> "Lamnidis_2018" </> "ind.txt"
+          , indFileChkSum = Nothing
+          , snpSet   = Just SNPSetOther
+          }
+        , _initPacPath   = testDir </> "Lamnidis"
+        , _initPacName   = Nothing
+        , _initMinimal   = False
+    }
+    let action3 = usePoseidonLogger NoLog (runInit initOpts3) >>
+                  patchLastModified testDir ("Lamnidis" </> "POSEIDON.yml") >>
+                  addAdditionalColumnsToJanno [("AddCol3", "v3"), ("AddCol2", "v2")] testDir ("Lamnidis" </> "Lamnidis.janno")
+    runAndChecksumFiles checkFilePath testDir action3 "init" [
+          "Lamnidis" </> "Lamnidis.janno"
+        ]
 
 patchLastModified :: FilePath -> FilePath -> IO ()
 patchLastModified testDir yamlFile = do
@@ -165,18 +187,15 @@ patchLastModified testDir yamlFile = do
                 else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
-addAdditionalColumnsToJanno :: FilePath -> FilePath -> IO ()
-addAdditionalColumnsToJanno testDir jannoFile = do
+addAdditionalColumnsToJanno :: [(ByteString, ByteString)] -> FilePath -> FilePath -> IO ()
+addAdditionalColumnsToJanno toAdd testDir jannoFile = do
     janno <- readJannoFile False (testDir </> jannoFile)
-    let modifiedJanno = map addVariables janno
+    let modifiedJanno = map (addVariables toAdd) janno
     writeJannoFile (testDir </> jannoFile) modifiedJanno
     where
-        addVariables :: JannoRow -> JannoRow
-        addVariables x = x {
-                jAdditionalColumns = CsvNamedRecord (fromList [
-                      ("AdditionalColumn1", "test_value_1")
-                    , ("AdditionalColumn2", "test_value_2")
-                ] ) }
+        addVariables :: [(ByteString, ByteString)] -> JannoRow -> JannoRow
+        addVariables a x = x {
+                jAdditionalColumns = CsvNamedRecord (fromList a) }
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
@@ -523,6 +542,23 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , "ForgePac7" </> "ForgePac7.geno"
         , "ForgePac7" </> "ForgePac7.snp"
         , "ForgePac7" </> "ForgePac7.ind"
+        ]
+    -- forge test 8 (combining additional janno columns from separate source janno files)
+    let forgeOpts8 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Lamnidis"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX001>,<XXX011>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac8"
+        , _forgeOutPacName   = Just "ForgePac8"
+        , _forgeNoExtract    = False
+    }
+    let action8 = usePoseidonLogger NoLog (runForge forgeOpts8) >> patchLastModified testDir ("ForgePac8" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action8 "forge" [
+          "ForgePac8" </> "ForgePac8.janno"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that

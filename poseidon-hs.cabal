@@ -67,6 +67,6 @@ executable poseidon-devtools
     main-is:            Main-devtools.hs
     hs-source-dirs:     test, src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, directory,
-                        filepath, text, unordered-containers
+                        filepath, text, unordered-containers, bytestring
     other-modules:      Paths_poseidon_hs, Poseidon.GoldenTestsRunCommands
     default-language:   Haskell2010
