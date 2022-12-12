@@ -806,7 +806,8 @@ readJannoFile jannoPath = do
     -- filter out empty lines
         jannoFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- create header + individual line combination
-        headerOnly = snd $ head jannoFileRowsWithNumberFiltered
+        headerOnlyPotentiallyWithQuotes = snd $ head jannoFileRowsWithNumberFiltered
+        headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
         rowsOnly = tail jannoFileRowsWithNumberFiltered
         jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
     -- report missing or additional columns
