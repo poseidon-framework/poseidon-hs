@@ -7,9 +7,9 @@ import           Poseidon.Janno (BCADAge (..), JURI (..), JannoCaptureType (..),
                                  Latitude (..), Longitude (..), Percent (..),
                                  RelationDegree (..), Sex (..), readJannoFile)
 
+import           Poseidon.Utils (testLog)
 import           Test.Hspec     (Spec, anyException, describe, it, shouldBe,
                                  shouldThrow)
-import Poseidon.Utils (testLog)
 
 spec :: Spec
 spec = do

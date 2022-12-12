@@ -3,8 +3,8 @@ module Poseidon.SurveySpec (spec) where
 import           Poseidon.CLI.Survey
 import           Poseidon.Janno
 
+import           Poseidon.Utils      (testLog)
 import           Test.Hspec
-import Poseidon.Utils (testLog)
 
 spec :: Spec
 spec = do

@@ -16,8 +16,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
 import           Poseidon.Utils             (LogMode (..),
                                              PoseidonException (..),
-                                             getChecksum, noLog,
-                                             testLog)
+                                             getChecksum, noLog, testLog)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)

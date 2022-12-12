@@ -27,8 +27,8 @@ module Poseidon.Janno (
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
-                                                       renderPoseidonException,
-                                                       PoseidonLogIO, logDebug)
+                                                       PoseidonLogIO, logDebug,
+                                                       renderPoseidonException)
 
 
 import           Control.Applicative                  (empty)
