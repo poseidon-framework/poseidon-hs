@@ -19,7 +19,6 @@ import           System.Exit            (exitFailure, exitSuccess)
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
     { _validateBaseDirs   :: [FilePath]
-    , _validateVerbose    :: Bool
     , _validateIgnoreGeno :: Bool
     , _validateNoExitCode :: Bool
     }
@@ -32,10 +31,10 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runValidate :: ValidateOptions -> PoseidonLogIO ()
-runValidate (ValidateOptions baseDirs verbose ignoreGeno noExitCode) = do
+runValidate (ValidateOptions baseDirs ignoreGeno noExitCode) = do
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
     allPackages <- readPoseidonPackageCollection
-        pacReadOpts {_readOptVerbose = verbose, _readOptIgnoreGeno = ignoreGeno}
+        pacReadOpts {_readOptIgnoreGeno = ignoreGeno}
         baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages

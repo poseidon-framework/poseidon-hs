@@ -38,8 +38,7 @@ data UpdateOptions = UpdateOptions
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptVerbose          = False
-    , _readOptStopOnDuplicates = True
+      _readOptStopOnDuplicates = True
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = True
     , _readOptGenoCheck        = False

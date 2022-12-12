@@ -4,6 +4,7 @@ module Poseidon.Utils (
     PoseidonException (..),
     renderPoseidonException,
     usePoseidonLogger,
+    testLog,
     PoseidonLogIO,
     LogMode (..),
     checkFile,
@@ -54,6 +55,9 @@ usePoseidonLogger SimpleLog  = flip runReaderT simpleLog
 usePoseidonLogger DefaultLog = flip runReaderT defaultLog
 usePoseidonLogger ServerLog  = flip runReaderT serverLog
 usePoseidonLogger VerboseLog = flip runReaderT verboseLog
+
+testLog :: PoseidonLogIO a -> IO a
+testLog = usePoseidonLogger NoLog
 
 noLog      :: LogEnv
 noLog      = cfilter (const False) simpleLog

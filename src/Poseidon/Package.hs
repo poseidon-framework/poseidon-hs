@@ -206,9 +206,7 @@ data PoseidonPackage = PoseidonPackage
     deriving (Show, Eq, Generic)
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptVerbose          :: Bool
-    -- ^ whether to print verbose output
-    , _readOptStopOnDuplicates :: Bool
+    { _readOptStopOnDuplicates :: Bool
     -- ^ whether to stop on duplicated individuals
     , _readOptIgnoreChecksums  :: Bool
     -- ^ whether to ignore all checksums
@@ -222,8 +220,7 @@ data PackageReadOptions = PackageReadOptions
 
 defaultPackageReadOptions :: PackageReadOptions
 defaultPackageReadOptions = PackageReadOptions {
-      _readOptVerbose          = False
-    , _readOptStopOnDuplicates = False
+      _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
@@ -325,9 +322,9 @@ readPoseidonPackage opts ymlPath = do
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
-        Just p -> liftIO $ do
-            loadedJanno <- readJannoFile (_readOptVerbose opts) p
-            checkJannoIndConsistency tit loadedJanno indEntries
+        Just p -> do
+            loadedJanno <- readJannoFile p
+            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries
             return loadedJanno
 
     -- read bib (or fill with empty list)

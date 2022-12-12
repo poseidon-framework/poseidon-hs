@@ -27,12 +27,14 @@ module Poseidon.Janno (
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
-                                                       renderPoseidonException)
+                                                       renderPoseidonException,
+                                                       PoseidonLogIO, logDebug)
 
 
 import           Control.Applicative                  (empty)
 import           Control.Exception                    (throwIO)
-import           Control.Monad                        (unless, when)
+import           Control.Monad                        (unless)
+import           Control.Monad.IO.Class               (liftIO)
 import           Data.Aeson                           (FromJSON, Options (..),
                                                        ToJSON, Value (..),
                                                        defaultOptions,
@@ -56,7 +58,6 @@ import           Network.URI                          (isURI)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
-import           System.IO                            (hPutStrLn, stderr)
 import qualified Text.Regex.TDFA                      as Reg
 
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -793,16 +794,13 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: Bool -- whether to print verbose output
-              -> FilePath
-              -> IO [JannoRow]
-readJannoFile verbose jannoPath = do
-    when verbose $ do
-        hPutStrLn stderr $ jannoPath ++ ":"
-    jannoFile <- Bch.readFile jannoPath
+readJannoFile :: FilePath
+              -> PoseidonLogIO [JannoRow]
+readJannoFile jannoPath = do
+    logDebug $ "Reading: " ++ jannoPath
+    jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
-    when verbose $ do
-        hPutStrLn stderr $ show (length jannoFileRows - 1) ++ " samples in this file"
+    logDebug $ show (length jannoFileRows - 1) ++ " samples in this file"
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
     -- filter out empty lines
@@ -812,28 +810,27 @@ readJannoFile verbose jannoPath = do
         rowsOnly = tail jannoFileRowsWithNumberFiltered
         jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
     -- report missing or additional columns
-    when verbose $ do
-        let jannoColNames = map Bch.toStrict (Bch.split '\t' headerOnly)
-            missing_columns = map Bchs.unpack $ jannoHeader \\ jannoColNames
-            additional_columns = map Bchs.unpack $ jannoColNames \\ jannoHeader
-        unless (null missing_columns) $ do
-            hPutStrLn stderr $ "Missing standard columns: " ++ intercalate ", " missing_columns
-        unless (null additional_columns) $ do
-            hPutStrLn stderr $ "Additional columns: " ++
-                -- for each additional column a standard column is suggested: "Countro (Country?)"
-                intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
-                    additional_columns (findSimilarNames missing_columns additional_columns))
+    let jannoColNames = map Bch.toStrict (Bch.split '\t' headerOnly)
+        missing_columns = map Bchs.unpack $ jannoHeader \\ jannoColNames
+        additional_columns = map Bchs.unpack $ jannoColNames \\ jannoHeader
+    unless (null missing_columns) $ do
+        logDebug ("Missing standard columns: " ++ intercalate ", " missing_columns)
+    unless (null additional_columns) $ do
+        logDebug ("Additional columns: " ++
+        -- for each additional column a standard column is suggested: "Countro (Country?)"
+            intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
+            additional_columns (findSimilarNames missing_columns additional_columns)))
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
-        mapM_ (hPutStrLn stderr . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
-        throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines"
+        mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
+        liftIO $ throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines"
     else do
         let consistentJanno = checkJannoConsistency jannoPath $ rights jannoRepresentation
         case consistentJanno of
-            Left e -> do throwIO e
+            Left e -> do liftIO $ throwIO e
             Right x -> do
                 -- putStrLn ""
                 -- putStrLn $ show $ map jSourceTissue x
@@ -850,7 +847,7 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> IO (Either PoseidonException JannoRow)
+readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonLogIO (Either PoseidonException JannoRow)
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do

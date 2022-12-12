@@ -383,12 +383,6 @@ parseRawOutput = OP.switch (
     OP.help "output table as tsv without header. Useful for piping into grep or awk"
     )
 
-parseVerbose :: OP.Parser Bool
-parseVerbose = OP.switch (
-    OP.long "verbose" <>
-    OP.help "print more output to the command line"
-    )
-
 parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <>
