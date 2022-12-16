@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.5.0
+@version 1.1.6.0
 
 module Poseidon.MathHelpers
 
@@ -202,6 +202,7 @@ PoseidonEmptyOutPacNameException :: PoseidonException
 PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
+testLog :: PoseidonLogIO a -> IO a
 type PoseidonLogIO = ReaderT LogEnv IO
 data LogMode
 NoLog :: LogMode
@@ -220,6 +221,7 @@ noLog :: LogEnv
 logWithEnv :: MonadIO m => LogEnv -> PoseidonLogIO () -> m ()
 padRight :: Int -> String -> String
 padLeft :: Int -> String -> String
+determinePackageOutName :: Maybe String -> FilePath -> IO String
 instance GHC.Show.Show Poseidon.Utils.LogMode
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
@@ -354,7 +356,7 @@ Other :: JannoLibraryBuilt
 writeJannoFile :: FilePath -> [JannoRow] -> IO ()
 
 -- | A function to load one janno file
-readJannoFile :: Bool -> FilePath -> IO [JannoRow]
+readJannoFile :: FilePath -> PoseidonLogIO [JannoRow]
 concatJannos :: [[JannoRow]] -> [JannoRow]
 
 -- | A function to create empty janno rows for a set of individuals
@@ -726,10 +728,7 @@ PoseidonEmptyOutPacNameException :: PoseidonException
 --   directory
 PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
 data PackageReadOptions
-PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
-
--- | whether to print verbose output
-[_readOptVerbose] :: PackageReadOptions -> Bool
+PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
 -- | whether to stop on duplicated individuals
 [_readOptStopOnDuplicates] :: PackageReadOptions -> Bool
@@ -834,9 +833,8 @@ module Poseidon.CLI.Validate
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions
-ValidateOptions :: [FilePath] -> Bool -> Bool -> Bool -> ValidateOptions
+ValidateOptions :: [FilePath] -> Bool -> Bool -> ValidateOptions
 [_validateBaseDirs] :: ValidateOptions -> [FilePath]
-[_validateVerbose] :: ValidateOptions -> Bool
 [_validateIgnoreGeno] :: ValidateOptions -> Bool
 [_validateNoExitCode] :: ValidateOptions -> Bool
 pacReadOpts :: PackageReadOptions
@@ -974,7 +972,6 @@ parseNoExtract :: Parser Bool
 parseMaybeSnpFile :: Parser (Maybe FilePath)
 parseListEntity :: Parser ListEntity
 parseRawOutput :: Parser Bool
-parseVerbose :: Parser Bool
 parseIgnoreGeno :: Parser Bool
 parseNoExitCode :: Parser Bool
 parseRemoteURL :: Parser String
