@@ -434,12 +434,12 @@ checkIndividualsUnique stopOnDuplicates indEntries = do
         if stopOnDuplicates
         then do
             liftIO $ throwIO $ PoseidonCollectionException $
-                "Duplicate individuals (" ++
+                "Duplicate individuals in package collection (" ++
                 intercalate ", " (genoIDs \\ nub genoIDs) ++
                 ")"
         else do
             logWarning $
-                "Duplicate individuals (" ++
+                "Duplicate individuals in package collection (" ++
                 intercalate ", " (take 3 $ genoIDs \\ nub genoIDs) ++
                 if length (genoIDs \\ nub genoIDs) > 3
                 then ", ...)"

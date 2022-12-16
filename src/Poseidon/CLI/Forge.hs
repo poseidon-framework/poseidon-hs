@@ -54,6 +54,7 @@ import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
+import Data.Function ((&))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -113,7 +114,8 @@ runForge (
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
-        logWarning $ "The following entities do not exist in this dataset and will be ignored: " ++
+        logWarning $ "Detected entities that do not exist in the dataset. " ++
+            "They will be considered to recover from duplicated individuals or ignored: " ++
             intercalate ", " (map show nonExistentEntities)
 
     -- determine relevant packages
@@ -124,30 +126,42 @@ runForge (
     -- all individuals from relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
-    -- determine relevant individual indices
+    -- determine relevant individuals
     let relevantIndicesWithDuplicates = conformingEntityIndices entities allInds
-        relevantIndividuals = map (allInds !!) relevantIndicesWithDuplicates
-        relevantIndividualsSimpleName = map indInfoName relevantIndividuals
-        relevantIndividualsFullName = map (\(IndividualInfo indN groupNs pacN) -> pacN ++ "." ++ head groupNs ++ "." ++ indN) relevantIndividuals
+        relevantInds = map (allInds !!) relevantIndicesWithDuplicates
+        relevantIndsSimpleName = map indInfoName relevantInds
+        relevantIndsFullName = map (\(IndividualInfo indN groupNs pacN) -> pacN ++ "." ++ head groupNs ++ "." ++ indN) relevantInds
 
     -- find duplicates
-    let equalNameIndividuals = groupBy (\(_,x,_) (_,y,_) -> x == y) $
-            sortBy (\(_,x,_) (_,y,_) -> compare x y) $
-            zip3 relevantIndicesWithDuplicates relevantIndividualsSimpleName relevantIndividualsFullName
-        nonDuplicatedInds = concat $ filter (\x -> length x == 1) equalNameIndividuals
-        duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividuals
+    let equalNameIndividuals =
+            zip3 relevantIndicesWithDuplicates relevantIndsSimpleName relevantIndsFullName &
+            sortBy (\(_,x,_) (_,y,_) -> compare x y) &
+            groupBy (\(_,x,_) (_,y,_) -> x == y)
+        singleInds      = concat $ filter (\x -> length x == 1) equalNameIndividuals
+        duplicatedInds  = concat $ filter (\x -> length x > 1 ) equalNameIndividuals
 
-    dIs <-  if null duplicatedInds
-            then return []
-            else do
-                logWarning $ "There are duplicated individuals"
-                mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> " ++ fullName) duplicatedInds
-                logWarning $ "Trying to recover"
-                let huhu = filter (\(_,_,x) -> x `elem` ([a | Ind a <- nonExistentEntities])) duplicatedInds
-                mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> " ++ fullName) huhu
-                return huhu
+    dupIndsToKeep <-
+        if null duplicatedInds
+        then return []
+        else do
+            logWarning $ "There are duplicated individuals, but forge does not allow that"
+            logWarning $ "Please use the following names in your --forgeString or --forgeFile to select them explictly"
+            mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> <" ++ fullName ++ ">") duplicatedInds
+            unless (null nonExistentEntities) $
+                logWarning $ "Trying to apply nonexistent entities to recover..."
+            let selectedDuplicatedInds = filter (\(_,_,x) -> x `elem` ([a | Ind a <- nonExistentEntities])) duplicatedInds
+            unless (null selectedDuplicatedInds) $ do
+                logWarning $ "You made a decision for the following Individuals: " ++ intercalate "," (map (\(_,x,_) -> x) selectedDuplicatedInds)
+            let totalNames = nub $ map (\(_,x,_) -> x) duplicatedInds
+                recoveredNames = nub $ map (\(_,x,_) -> x) selectedDuplicatedInds
+                notRecoveredNames = totalNames \\ recoveredNames
+            unless (null notRecoveredNames) $
+                liftIO $ throwIO $ PoseidonForgeEntitiesException $
+                    "Please make a decision for the following duplicated individuals: " ++
+                    intercalate ", " notRecoveredNames
+            return selectedDuplicatedInds
 
-    let relevantIndices = map (\(x,_,_) -> x) nonDuplicatedInds ++ map (\(x,_,_) -> x) dIs
+    let relevantIndices = map (\(x,_,_) -> x) singleInds ++ map (\(x,_,_) -> x) dupIndsToKeep
 
     -- collect data --
     -- janno
