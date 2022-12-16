@@ -169,7 +169,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacName   = Nothing
         , _initMinimal   = False
     }
-    let action3 = usePoseidonLogger NoLog (runInit initOpts3) >>
+    let action3 = testLog (runInit initOpts3) >>
                   patchLastModified testDir ("Lamnidis" </> "POSEIDON.yml") >>
                   addAdditionalColumnsToJanno [("AddCol3", "v3"), ("AddCol2", "v2")] testDir ("Lamnidis" </> "Lamnidis.janno")
     runAndChecksumFiles checkFilePath testDir action3 "init" [
@@ -188,7 +188,7 @@ patchLastModified testDir yamlFile = do
 
 addAdditionalColumnsToJanno :: [(ByteString, ByteString)] -> FilePath -> FilePath -> IO ()
 addAdditionalColumnsToJanno toAdd testDir jannoFile = do
-    janno <- readJannoFile False (testDir </> jannoFile)
+    janno <- testLog $ readJannoFile (testDir </> jannoFile)
     let modifiedJanno = map (addVariables toAdd) janno
     writeJannoFile (testDir </> jannoFile) modifiedJanno
     where
@@ -550,7 +550,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacName   = Just "ForgePac8"
         , _forgeNoExtract    = False
     }
-    let action8 = usePoseidonLogger NoLog (runForge forgeOpts8) >> patchLastModified testDir ("ForgePac8" </> "POSEIDON.yml")
+    let action8 = testLog (runForge forgeOpts8) >> patchLastModified testDir ("ForgePac8" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action8 "forge" [
           "ForgePac8" </> "ForgePac8.janno"
         ]
