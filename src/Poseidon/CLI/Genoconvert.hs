@@ -27,7 +27,8 @@ import           SequenceFormats.Eigenstrat (writeEigenstrat)
 import           SequenceFormats.Plink      (writePlink)
 import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile)
-import           System.FilePath            ((<.>), (</>))
+import           System.FilePath            (dropTrailingPathSeparator, (<.>),
+                                             (</>))
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
@@ -79,7 +80,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
             Just x -> do
                 -- create new directory
                 logInfo $ "Writing to directory (will be created if missing): " ++ x
-                liftIO $ createDirectoryIfMissing True x
+                liftIO $ createDirectoryIfMissing True (dropTrailingPathSeparator x)
                 return x
             Nothing -> return $ posPacBaseDir pac
         let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]

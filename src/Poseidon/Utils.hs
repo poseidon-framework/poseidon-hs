@@ -16,14 +16,15 @@ module Poseidon.Utils (
     LogEnv,
     noLog,
     logWithEnv,
-    padRight, padLeft
+    padRight, padLeft,
+    determinePackageOutName
 ) where
 
 import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
                                          msgText, showSeverity)
-import           Control.Exception      (Exception)
+import           Control.Exception      (Exception, throwIO)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (when)
 import           Control.Monad.Catch    (throwM)
@@ -37,6 +38,7 @@ import           Data.Time              (defaultTimeLocale, formatTime,
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           System.Directory       (doesFileExist)
+import           System.FilePath.Posix  (takeBaseName)
 
 type LogEnv = LogAction IO Message
 
@@ -225,3 +227,12 @@ padLeft n s
     | length s >= n = reverse (take n (reverse s))
     | length s < n = replicate (n - length s) ' ' ++ s
     | otherwise    = s
+
+-- helper function to determine the package name depending on -n and -o
+determinePackageOutName :: Maybe String -> FilePath -> IO String
+determinePackageOutName maybeOutName outPath = do
+    case maybeOutName of -- take basename of outPath, if name is not provided
+            Just x  -> return x
+            Nothing -> case takeBaseName outPath of -- check if outPath is empty
+                "" -> throwIO PoseidonEmptyOutPacNameException
+                y  -> return y
