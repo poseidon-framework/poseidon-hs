@@ -9,8 +9,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           getJointIndividualInfo,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..))
-import           Poseidon.Utils          (LogMode (..), PoseidonException,
-                                          testLog)
+import           Poseidon.Utils          (PoseidonException, testLog)
 
 import           Data.Aeson              (decode, encode)
 import           Data.Either             (fromRight, isLeft)

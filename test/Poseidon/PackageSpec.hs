@@ -14,8 +14,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
-import           Poseidon.Utils             (LogMode (..),
-                                             PoseidonException (..),
+import           Poseidon.Utils             (PoseidonException (..),
                                              getChecksum, noLog, testLog)
 
 import qualified Data.ByteString.Char8      as B
