@@ -21,9 +21,11 @@ module Poseidon.Janno (
     JannoLibraryBuilt (..),
     writeJannoFile,
     readJannoFile,
+    concatJannos,
     createMinimalJanno,
     jannoHeaderString,
-    determineAccessionIDType
+    determineAccessionIDType,
+    CsvNamedRecord (..)
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -39,15 +41,17 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
                                                        toJSON)
+import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
 import           Data.Char                            (ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
-import qualified Data.HashMap.Lazy                    as HM
-import           Data.List                            (elemIndex, intercalate,
-                                                       nub, (\\))
+import qualified Data.HashMap.Strict                  as HM
+import           Data.List                            (elemIndex, foldl',
+                                                       intercalate, nub, sort,
+                                                       (\\))
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Vector                          as V
@@ -498,6 +502,20 @@ instance Show AccessionID where
     show (INSDCAnalysis x)   = x
     show (OtherID x)         = x
 
+-- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
+newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
+
+getCsvNR :: CsvNamedRecord -> Csv.NamedRecord
+getCsvNR (CsvNamedRecord x) = x
+
+-- In our current workflow additional columns do not have to be considered for the json representation:
+-- json is only relevant for the webserver, which only serves well-specified packages
+instance ToJSON CsvNamedRecord where
+    toJSON _ = emptyObject
+
+instance FromJSON CsvNamedRecord where
+    parseJSON _ = pure $ CsvNamedRecord $ HM.fromList []
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -546,8 +564,63 @@ data JannoRow = JannoRow
     , jPublication                :: Maybe JannoStringList
     , jComments                   :: Maybe String
     , jKeywords                   :: Maybe JannoStringList
+    , jAdditionalColumns          :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
+
+-- This header also defines the output column order when writing to csv!
+-- When the order is changed, don't forget to also update the order in the survey module
+jannoHeader :: [Bchs.ByteString]
+jannoHeader = [
+      "Poseidon_ID"
+    , "Genetic_Sex"
+    , "Group_Name"
+    , "Alternative_IDs"
+    , "Relation_To"
+    , "Relation_Degree"
+    , "Relation_Type"
+    , "Relation_Note"
+    , "Collection_ID"
+    , "Country"
+    , "Location"
+    , "Site"
+    , "Latitude"
+    , "Longitude"
+    , "Date_Type"
+    , "Date_C14_Labnr"
+    , "Date_C14_Uncal_BP"
+    , "Date_C14_Uncal_BP_Err"
+    , "Date_BC_AD_Start"
+    , "Date_BC_AD_Median"
+    , "Date_BC_AD_Stop"
+    , "Date_Note"
+    , "MT_Haplogroup"
+    , "Y_Haplogroup"
+    , "Source_Tissue"
+    , "Nr_Libraries"
+    , "Capture_Type"
+    , "UDG"
+    , "Library_Built"
+    , "Genotype_Ploidy"
+    , "Data_Preparation_Pipeline_URL"
+    , "Endogenous"
+    , "Nr_SNPs"
+    , "Coverage_on_Target_SNPs"
+    , "Damage"
+    , "Contamination"
+    , "Contamination_Err"
+    , "Contamination_Meas"
+    , "Contamination_Note"
+    , "Genetic_Source_Accession_IDs"
+    , "Primary_Contact"
+    , "Publication"
+    , "Note"
+    , "Keywords"
+    ]
+
+-- This hashmap represents an empty janno file with all normal, specified columns
+jannoRefHashMap :: HM.HashMap Bchs.ByteString ()
+jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
 instance ToJSON JannoRow where
     toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
@@ -600,6 +673,9 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Publication"
         <*> filterLookupOptional m "Note"
         <*> filterLookupOptional m "Keywords"
+        -- beyond that read everything that is not in the set of defined variables
+        -- as a separate hashmap
+        <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
 filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
@@ -663,63 +739,36 @@ instance Csv.ToNamedRecord JannoRow where
         , "Publication"                     Csv..= jPublication j
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
-        ]
+        -- beyond that add what is in the hashmap of additional columns
+        ] `HM.union` (getCsvNR $ jAdditionalColumns j)
 
 instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
 
--- This header also defines the output column order when writing to csv!
--- When the order is changed, don't forget to also update the order in the survey module
-jannoHeader :: [Bchs.ByteString]
-jannoHeader = [
-      "Poseidon_ID"
-    , "Genetic_Sex"
-    , "Group_Name"
-    , "Alternative_IDs"
-    , "Relation_To"
-    , "Relation_Degree"
-    , "Relation_Type"
-    , "Relation_Note"
-    , "Collection_ID"
-    , "Country"
-    , "Location"
-    , "Site"
-    , "Latitude"
-    , "Longitude"
-    , "Date_Type"
-    , "Date_C14_Labnr"
-    , "Date_C14_Uncal_BP"
-    , "Date_C14_Uncal_BP_Err"
-    , "Date_BC_AD_Start"
-    , "Date_BC_AD_Median"
-    , "Date_BC_AD_Stop"
-    , "Date_Note"
-    , "MT_Haplogroup"
-    , "Y_Haplogroup"
-    , "Source_Tissue"
-    , "Nr_Libraries"
-    , "Capture_Type"
-    , "UDG"
-    , "Library_Built"
-    , "Genotype_Ploidy"
-    , "Data_Preparation_Pipeline_URL"
-    , "Endogenous"
-    , "Nr_SNPs"
-    , "Coverage_on_Target_SNPs"
-    , "Damage"
-    , "Contamination"
-    , "Contamination_Err"
-    , "Contamination_Meas"
-    , "Contamination_Note"
-    , "Genetic_Source_Accession_IDs"
-    , "Primary_Contact"
-    , "Publication"
-    , "Note"
-    , "Keywords"
-    ]
-
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
+
+makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
+makeHeaderWithAdditionalColumns ms =
+    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms)))
+
+concatJannos :: [[JannoRow]] -> [JannoRow]
+concatJannos = foldl' combineTwoJannos []
+
+combineTwoJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
+combineTwoJannos janno1 janno2 =
+    let simpleJannoSum = janno1 ++ janno2
+        toAddColNames = HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) simpleJannoSum))
+        toAddEmptyCols = HM.fromList (map (\k -> (k, "n/a")) toAddColNames)
+    in map (addEmptyAddColsToJannoRow toAddEmptyCols) simpleJannoSum
+    where
+        addEmptyAddColsToJannoRow :: Csv.NamedRecord -> JannoRow -> JannoRow
+        addEmptyAddColsToJannoRow toAdd x =
+            x { jAdditionalColumns =
+                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x)
+            }
+        fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
+        fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
@@ -774,13 +823,15 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jPublication                  = Nothing
         , jComments                     = Nothing
         , jKeywords                     = Nothing
+        -- The template should of course not have any additional columns
+        , jAdditionalColumns            = CsvNamedRecord $ HM.fromList []
     }
 
 -- Janno file writing
 
 writeJannoFile :: FilePath -> [JannoRow] -> IO ()
 writeJannoFile path samples = do
-    let jannoAsBytestring = Csv.encodeDefaultOrderedByNameWith encodingOptions samples
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns samples) samples
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
 
@@ -845,6 +896,7 @@ findSimilarNames :: [String] -> [String] -> [String]
 findSimilarNames reference = map (findSimilar reference)
     where
         findSimilar ::  [String] -> String -> String
+        findSimilar [] _  = []
         findSimilar ref x =
             let dists = map (\y -> x `editDistance` y) ref
             in ref !! fromJust (elemIndex (minimum dists) dists)
