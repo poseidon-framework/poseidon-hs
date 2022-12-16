@@ -1,4 +1,6 @@
-### V 1.1.5.0
+### V 1.1.6.0
+
+#### Additional columns in .janno files (V 1.1.5.0)
 
 This release changes the way additional columns in .janno files are treated.
 
@@ -36,6 +38,11 @@ The following example illustrates the described behaviour:
 | YYY022      | POP5       | F           | n/a               | J                 | G                 |
 | YYY023      | POP5       | F           | n/a               | K                 | H                 |
 | YYY024      | POP5       | M           | n/a               | L                 | I                 |
+
+#### Minor changes (V 1.1.6.0)
+
+- `--verbose` in `trident validate` was deprecated. The respective output is now logged on the DEBUG level, so can be accessed with `--logMode VerboseLog`
+- Trailing slashes in `--outPath` for `init`, `genoconvert` and `forge` are now automatically removed. This prevents a common, confusing error, where a trailing slash would cause `trident` to assume the name of the resulting package is empty.
 
 ### V 1.1.4.2
 

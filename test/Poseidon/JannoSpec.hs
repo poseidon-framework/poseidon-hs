@@ -12,6 +12,7 @@ import           Poseidon.Janno      (BCADAge (..), CsvNamedRecord (..),
                                       Longitude (..), Percent (..),
                                       RelationDegree (..), Sex (..),
                                       readJannoFile)
+import           Poseidon.Utils      (testLog)
 
 import           Data.HashMap.Strict (fromList)
 import           Test.Hspec          (Spec, anyException, describe, it,
@@ -30,8 +31,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let borkedFullJannoPath       = "test/testDat/testJannoFiles/borked_full.janno"
     let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
     it "should read minimal janno files correctly" $ do
-        janno <- readJannoFile False minimalFullJannoPath
-        janno_partial <- readJannoFile False minimalPartialJannoPath
+        janno <- testLog $ readJannoFile minimalFullJannoPath
+        janno_partial <- testLog $ readJannoFile minimalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -51,8 +52,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLibraryBuilt janno                 `shouldBe` [Nothing, Nothing, Nothing]
         map jDamage janno                       `shouldBe` [Nothing, Nothing, Nothing]
     it "should read normal janno files correctly" $ do
-        janno <- readJannoFile False normalFullJannoPath
-        janno_partial <- readJannoFile False normalPartialJannoPath
+        janno <- testLog $ readJannoFile normalFullJannoPath
+        janno_partial <- testLog $ readJannoFile normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -87,10 +88,10 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     -- the following tests should be more precise and comprehensive; we should consider refactoring
     -- (maybe when we eventually switch to a different error logging strategy)
     it "should fail to read somehow borked janno files" $ do
-        readJannoFile False borkedFullJannoPath `shouldThrow` anyException
-        readJannoFile False borkedPartialJannoPath `shouldThrow` anyException
+        testLog (readJannoFile borkedFullJannoPath) `shouldThrow` anyException
+        testLog (readJannoFile borkedPartialJannoPath) `shouldThrow` anyException
     it "should fail to read borked janno files with specific issues" $ do
-        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_wrong_name.janno" `shouldThrow` anyException
-        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_relations.janno" `shouldThrow` anyException
-        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_contamination.janno" `shouldThrow` anyException
-        readJannoFile False "test/testDat/testJannoFiles/specificallyBorked/borked_dating.janno" `shouldThrow` anyException
+        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_wrong_name.janno") `shouldThrow` anyException
+        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_relations.janno") `shouldThrow` anyException
+        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_contamination.janno") `shouldThrow` anyException
+        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_dating.janno") `shouldThrow` anyException

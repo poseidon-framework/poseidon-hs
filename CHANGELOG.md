@@ -1,3 +1,4 @@
+- V 1.1.6.0: Removed outdated --verbose from validate and ignore trailing slashes from --outPath
 - V 1.1.5.0: Enabled reading and forging additional, unspecified variables in .janno files 
 - V 1.1.4.2: Added parsing for Accession IDs (.janno file). Wrong entries are ignored, so this is non-breaking.
 - V 1.1.4.1: Added a small validation check for calibrated ages in the .janno file

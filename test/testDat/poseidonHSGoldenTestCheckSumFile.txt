@@ -10,7 +10,6 @@ ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
 2369ffa0099cfa34042012afac7fd77d init Lamnidis/Lamnidis.janno
 d41d8cd98f00b204e9800998ecf8427e validate validate1
 d41d8cd98f00b204e9800998ecf8427e validate validate2
-d41d8cd98f00b204e9800998ecf8427e validate validate3
 338208621f2547bbb0eb2f8abf17db7d list list1
 c27895a4e15eb46f0d4473cd37488cae list list2
 c448a4bd45d6cdc7e127316549beccf3 list list3

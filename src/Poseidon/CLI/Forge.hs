@@ -30,7 +30,8 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.Utils              (PoseidonException (..),
-                                              PoseidonLogIO, logInfo,
+                                              PoseidonLogIO,
+                                              determinePackageOutName, logInfo,
                                               logWarning)
 
 import           Control.Exception           (catch, throwIO)
@@ -50,7 +51,8 @@ import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               writeEigenstrat)
 import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
-import           System.FilePath             (takeBaseName, (<.>), (</>))
+import           System.FilePath             (dropTrailingPathSeparator, (<.>),
+                                              (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -69,8 +71,7 @@ data ForgeOptions = ForgeOptions
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptVerbose          = False
-    , _readOptStopOnDuplicates = False
+      _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
@@ -81,7 +82,7 @@ runForge :: ForgeOptions -> PoseidonLogIO ()
 runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
-                 outFormat minimal onlyGeno outPath maybeOutName
+                 outFormat minimal onlyGeno outPathRaw maybeOutName
                  noExtract
     ) = do
 
@@ -134,10 +135,8 @@ runForge (
         relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
 
     -- create new package --
-    let outName = case maybeOutName of -- take basename of outPath, if name is not provided
-            Just x  -> x
-            Nothing -> takeBaseName outPath
-    when (outName == "") $ liftIO $ throwIO PoseidonEmptyOutPacNameException
+    let outPath = dropTrailingPathSeparator outPathRaw
+    outName <- liftIO $ determinePackageOutName maybeOutName outPath
     -- create new directory
     logInfo $ "Writing to directory (will be created if missing): " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath

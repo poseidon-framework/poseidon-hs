@@ -9,15 +9,14 @@ import           Poseidon.Package       (PoseidonPackage (..),
                                          newMinimalPackageTemplate,
                                          newPackageTemplate,
                                          writePoseidonPackage)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
-                                         checkFile, logInfo)
+import           Poseidon.Utils         (PoseidonLogIO, checkFile,
+                                         determinePackageOutName, logInfo)
 
-import           Control.Exception      (throwIO)
-import           Control.Monad          (unless, when)
+import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
 import           System.Directory       (copyFile, createDirectoryIfMissing)
-import           System.FilePath        (takeBaseName, takeFileName, (<.>),
-                                         (</>))
+import           System.FilePath        (dropTrailingPathSeparator,
+                                         takeFileName, (<.>), (</>))
 
 data InitOptions = InitOptions
     { _initGenoData :: GenotypeDataSpec
@@ -27,8 +26,9 @@ data InitOptions = InitOptions
     }
 
 runInit :: InitOptions -> PoseidonLogIO ()
-runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPath maybeOutName minimal) = do
+runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPathRaw maybeOutName minimal) = do
     -- create new directory
+    let outPath = dropTrailingPathSeparator outPathRaw
     logInfo $ "Creating new package directory: " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
@@ -46,10 +46,7 @@ runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _
     liftIO $ copyFile genoFile_ $ outPath </> outGeno
     -- create new package
     logInfo "Creating new package entity"
-    let outName = case maybeOutName of -- take basename of outPath, if name is not provided
-            Just x  -> x
-            Nothing -> takeBaseName outPath
-    when (outName == "") $ liftIO $ throwIO PoseidonEmptyOutPacNameException
+    outName <- liftIO $ determinePackageOutName maybeOutName outPath
     inds <- liftIO $ loadIndividuals outPath genotypeData
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData

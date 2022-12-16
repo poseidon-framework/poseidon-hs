@@ -54,8 +54,7 @@ main = usePoseidonLogger VerboseLog $ do
     CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
     let pacReadOpts = defaultPackageReadOptions {
-              _readOptVerbose          = False
-            , _readOptStopOnDuplicates = True
+              _readOptStopOnDuplicates = True
             , _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = ignoreGenoFiles
         }
