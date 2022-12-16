@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.4.2
+@version 1.1.5.0
 
 module Poseidon.MathHelpers
 
@@ -230,7 +230,7 @@ module Poseidon.Janno
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv</a>
 --   for more details
 data JannoRow
-JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe JannoAccessionIDList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> JannoRow
+JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe JannoAccessionIDList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> CsvNamedRecord -> JannoRow
 [jPoseidonID] :: JannoRow -> String
 [jAlternativeIDs] :: JannoRow -> Maybe JannoStringList
 [jRelationTo] :: JannoRow -> Maybe JannoStringList
@@ -275,6 +275,7 @@ JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe Ja
 [jPublication] :: JannoRow -> Maybe JannoStringList
 [jComments] :: JannoRow -> Maybe String
 [jKeywords] :: JannoRow -> Maybe JannoStringList
+[jAdditionalColumns] :: JannoRow -> CsvNamedRecord
 newtype JannoSex
 JannoSex :: Sex -> JannoSex
 [sfSex] :: JannoSex -> Sex
@@ -354,11 +355,17 @@ writeJannoFile :: FilePath -> [JannoRow] -> IO ()
 
 -- | A function to load one janno file
 readJannoFile :: Bool -> FilePath -> IO [JannoRow]
+concatJannos :: [[JannoRow]] -> [JannoRow]
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
 jannoHeaderString :: [String]
 determineAccessionIDType :: String -> AccessionID
+
+-- | A datatype to collect additional, unpecified .janno file columns (a
+--   hashmap in cassava/Data.Csv)
+newtype CsvNamedRecord
+CsvNamedRecord :: NamedRecord -> CsvNamedRecord
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.BCADAge
 instance GHC.Classes.Ord Poseidon.Janno.BCADAge
@@ -400,6 +407,9 @@ instance GHC.Classes.Eq Poseidon.Janno.RelationDegree
 instance GHC.Generics.Generic Poseidon.Janno.AccessionID
 instance GHC.Classes.Ord Poseidon.Janno.AccessionID
 instance GHC.Classes.Eq Poseidon.Janno.AccessionID
+instance GHC.Generics.Generic Poseidon.Janno.CsvNamedRecord
+instance GHC.Classes.Eq Poseidon.Janno.CsvNamedRecord
+instance GHC.Show.Show Poseidon.Janno.CsvNamedRecord
 instance GHC.Generics.Generic Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoRow
 instance GHC.Show.Show Poseidon.Janno.JannoRow
@@ -408,6 +418,8 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.FromNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.CsvNamedRecord
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.CsvNamedRecord
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.AccessionID
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.AccessionID
 instance Data.Csv.Conversion.FromField Poseidon.Janno.AccessionID
