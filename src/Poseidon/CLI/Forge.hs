@@ -33,11 +33,12 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonLogIO,
                                               determinePackageOutName, logInfo,
                                               logWarning)
+import          Poseidon.SecondaryTypes      (IndividualInfo (..))
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
-import           Data.List                   (intercalate, nub, (\\))
+import           Data.List                   (intercalate, nub, (\\), groupBy, sortBy)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -120,8 +121,33 @@ runForge (
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
+    -- all individuals from relevant packages
+    let allInds = getJointIndividualInfo $ relevantPackages
+
     -- determine relevant individual indices
-    let relevantIndices = conformingEntityIndices entities . getJointIndividualInfo $ relevantPackages
+    let relevantIndicesWithDuplicates = conformingEntityIndices entities allInds
+        relevantIndividuals = map (allInds !!) relevantIndicesWithDuplicates
+        relevantIndividualsSimpleName = map indInfoName relevantIndividuals
+        relevantIndividualsFullName = map (\(IndividualInfo indN groupNs pacN) -> pacN ++ "." ++ head groupNs ++ "." ++ indN) relevantIndividuals
+
+    -- find duplicates
+    let equalNameIndividuals = groupBy (\(_,x,_) (_,y,_) -> x == y) $
+            sortBy (\(_,x,_) (_,y,_) -> compare x y) $
+            zip3 relevantIndicesWithDuplicates relevantIndividualsSimpleName relevantIndividualsFullName
+        nonDuplicatedInds = concat $ filter (\x -> length x == 1) equalNameIndividuals
+        duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividuals
+
+    dIs <-  if null duplicatedInds
+            then return []
+            else do
+                logWarning $ "There are duplicated individuals"
+                mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> " ++ fullName) duplicatedInds
+                logWarning $ "Trying to recover"
+                let huhu = filter (\(_,_,x) -> x `elem` ([a | Ind a <- nonExistentEntities])) duplicatedInds
+                mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> " ++ fullName) huhu
+                return huhu
+
+    let relevantIndices = map (\(x,_,_) -> x) nonDuplicatedInds ++ map (\(x,_,_) -> x) dIs
 
     -- collect data --
     -- janno
