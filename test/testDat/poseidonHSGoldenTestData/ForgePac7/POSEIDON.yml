@@ -6,7 +6,7 @@ contributor:
   email: carberry@brown.edu
   orcid: 0000-0002-1825-0097
 packageVersion: 0.1.0
-lastModified: 2022-12-08
+lastModified: 2022-12-16
 genotypeData:
   format: EIGENSTRAT
   genoFile: ForgePac7.geno
