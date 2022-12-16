@@ -41,7 +41,7 @@ data GenoconvertOptions = GenoconvertOptions
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = True
+      _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
