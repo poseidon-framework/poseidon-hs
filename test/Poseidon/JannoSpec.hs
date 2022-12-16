@@ -1,15 +1,22 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.JannoSpec (spec) where
 
-import           Poseidon.Janno (BCADAge (..), JURI (..), JannoCaptureType (..),
-                                 JannoDateType (..), JannoGenotypePloidy (..),
-                                 JannoLibraryBuilt (..), JannoList (..),
-                                 JannoRow (..), JannoSex (..), JannoUDG (..),
-                                 Latitude (..), Longitude (..), Percent (..),
-                                 RelationDegree (..), Sex (..), readJannoFile)
+import           Poseidon.Janno      (BCADAge (..), CsvNamedRecord (..),
+                                      JURI (..), JannoCaptureType (..),
+                                      JannoDateType (..),
+                                      JannoGenotypePloidy (..),
+                                      JannoLibraryBuilt (..), JannoList (..),
+                                      JannoRow (..), JannoSex (..),
+                                      JannoUDG (..), Latitude (..),
+                                      Longitude (..), Percent (..),
+                                      RelationDegree (..), Sex (..),
+                                      readJannoFile)
+import           Poseidon.Utils      (testLog)
 
-import           Poseidon.Utils (testLog)
-import           Test.Hspec     (Spec, anyException, describe, it, shouldBe,
-                                 shouldThrow)
+import           Data.HashMap.Strict (fromList)
+import           Test.Hspec          (Spec, anyException, describe, it,
+                                      shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do
@@ -70,8 +77,14 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDamage janno                       `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
         map jContamination janno                `shouldBe` [Just (JannoList ["10"]), Just (JannoList ["20", "50", "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
-                                                          Just (JURI "https://www.google.de"),
-                                                          Just (JURI "http://huhu.org/23&test")]
+                                                            Just (JURI "https://www.google.de"),
+                                                            Just (JURI "http://huhu.org/23&test")
+                                                           ]
+        map jAdditionalColumns janno            `shouldBe` [ CsvNamedRecord (fromList [("AdditionalColumn2","test2"),("AdditionalColumn1","test1")])
+                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test4"),("AdditionalColumn1","test3")])
+                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test6"),("AdditionalColumn1","test5")])
+                                                           ]
+
     -- the following tests should be more precise and comprehensive; we should consider refactoring
     -- (maybe when we eventually switch to a different error logging strategy)
     it "should fail to read somehow borked janno files" $ do

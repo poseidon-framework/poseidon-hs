@@ -28,8 +28,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
-                                             JannoSex (..), createMinimalJanno,
-                                             readJannoFile)
+                                             JannoSex (..), concatJannos,
+                                             createMinimalJanno, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
@@ -513,7 +513,7 @@ getJointGenotypeData logEnv intersect pacs maybeSnpFile = do
         _ ->  return ()
 
 getJointJanno :: [PoseidonPackage] -> [JannoRow]
-getJointJanno = concatMap posPacJanno
+getJointJanno pacs = concatJannos $ map posPacJanno pacs
 
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getJointIndividualInfo packages = do
