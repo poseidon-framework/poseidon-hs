@@ -9,7 +9,7 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              readEntityInputs)
+                                              readEntityInputs, getIndName, PoseidonIndividual (..))
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -114,9 +114,11 @@ runForge (
     -- check for entities that do not exist this this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
-        logWarning $ "Detected entities that do not exist in the dataset. " ++
-            "They will be considered to recover from duplicated individuals or ignored: " ++
+        logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
+
+    -- extract SpecificInd values
+    let specificInds = [SpecificInd p g i | (Include (Ind (SpecificInd p g i))) <- entities]
 
     -- determine relevant packages
     let relevantPackages = filterRelevantPackages entities allPackages
@@ -130,7 +132,7 @@ runForge (
     let relevantIndicesWithDuplicates = conformingEntityIndices entities allInds
         relevantInds = map (allInds !!) relevantIndicesWithDuplicates
         relevantIndsSimpleName = map indInfoName relevantInds
-        relevantIndsFullName = map (\(IndividualInfo indN groupNs pacN) -> pacN ++ "." ++ head groupNs ++ "." ++ indN) relevantInds
+        relevantIndsFullName = map (\(IndividualInfo indN groupNs pacN) -> pacN ++ ":" ++ head groupNs ++ ":" ++ indN) relevantInds
 
     -- find duplicates
     let equalNameIndividuals =
@@ -149,7 +151,7 @@ runForge (
             mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> <" ++ fullName ++ ">") duplicatedInds
             unless (null nonExistentEntities) $
                 logWarning $ "Trying to apply nonexistent entities to recover..."
-            let selectedDuplicatedInds = filter (\(_,_,x) -> x `elem` ([a | Ind a <- nonExistentEntities])) duplicatedInds
+            let selectedDuplicatedInds = filter (\(_,_,x) -> x `elem` ([a | Ind (SpecificInd _ _ a) <- nonExistentEntities])) duplicatedInds
             unless (null selectedDuplicatedInds) $ do
                 logWarning $ "You made a decision for the following Individuals: " ++ intercalate "," (map (\(_,x,_) -> x) selectedDuplicatedInds)
             let totalNames = nub $ map (\(_,x,_) -> x) duplicatedInds

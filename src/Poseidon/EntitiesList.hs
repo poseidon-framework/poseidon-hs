@@ -4,7 +4,7 @@ module Poseidon.EntitiesList (
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs) where
+    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..)) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
@@ -27,19 +27,34 @@ import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
 
 -- | A datatype to represent a package, a group or an individual
-data PoseidonEntity = Pac String
+data PoseidonEntity =
+      Pac String
     | Group String
-    | Ind String
+    | Ind PoseidonIndividual
     deriving (Eq, Ord)
 
+data PoseidonIndividual =
+      SimpleInd String
+    | SpecificInd String String String
+    deriving (Eq, Ord)
+
+getIndName :: PoseidonIndividual -> String
+getIndName (SimpleInd n)       = n
+getIndName (SpecificInd _ _ n) = n
+
+instance Show PoseidonIndividual where
+    show (SimpleInd       i) = "<" ++ i ++ ">"
+    show (SpecificInd p g i) = "<" ++ p ++ ":" ++ g ++ ":" ++ i ++ ">"
+
 instance Show PoseidonEntity where
-    show (Pac   n) = "*" ++ n ++ "*"
-    show (Group n) = n
-    show (Ind   n) = "<" ++ n ++ ">"
+    show (Pac   p) = "*" ++ p ++ "*"
+    show (Group g) = g
+    show (Ind   i) = show i
 
 type EntitiesList = [PoseidonEntity]
 
-data SignedEntity = Include PoseidonEntity
+data SignedEntity =
+      Include PoseidonEntity
     | Exclude PoseidonEntity
     deriving (Eq, Ord)
 
@@ -65,7 +80,8 @@ instance EntitySpec SignedEntity where
         shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
         shouldIncExc (Exclude entity) = if entity & isIndInfo then Just False else Nothing
         isIndInfo :: PoseidonEntity -> Bool
-        isIndInfo (Ind   n) = n == indName
+        isIndInfo (Ind (SimpleInd n)) = n == indName
+        isIndInfo (Ind (SpecificInd _ _ n)) = n == indName
         isIndInfo (Group n) = n `elem` groupNames
         isIndInfo (Pac   n) = n == pacName
     underlyingEntity = removeEntitySign
@@ -79,10 +95,20 @@ instance EntitySpec PoseidonEntity where
     underlyingEntity = id
     entitySpecParser = parsePac <|> parseGroup <|> parseInd
       where
-        parsePac   = Pac   <$> P.between (P.char '*') (P.char '*') parseName
-        parseGroup = Group <$> parseName
-        parseInd   = Ind   <$> P.between (P.char '<') (P.char '>') parseName
-        parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
+        parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseName
+        parseGroup       = Group <$> parseName
+        parseInd         = Ind <$> (parseSpecificInd <|> parseSimpleInd)
+        parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
+        parseSimpleInd   = SimpleInd <$> P.between (P.char '<') (P.char '>') parseName
+        parseSpecificInd = do
+            _ <- P.char '<'
+            pacName <- parseName
+            _ <- P.char ':'
+            groupName <- parseName
+            _ <- P.char ':'
+            individualName <- parseName
+            _ <- P.char '>'
+            return $ SpecificInd pacName groupName individualName
 
 -- turns out that we cannot easily write instances for classes, so need to be explicit for both types
 instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
@@ -155,7 +181,7 @@ findNonExistentEntities entities individuals =
         groupNamesStats     = nub [ group | Group group <- map underlyingEntity entities]
         indNamesStats       = nub [ ind   | Ind   ind   <- map underlyingEntity entities]
         missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
-        missingInds   = map Ind   $ indNamesStats       \\ indNamesPac
+        missingInds   = map Ind   $ filter (\x -> getIndName x `notElem` indNamesPac) indNamesStats
         missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
     in  missingPacs ++ missingInds ++ missingGroups
 
