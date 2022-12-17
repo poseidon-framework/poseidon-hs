@@ -35,16 +35,16 @@ data PoseidonEntity =
 
 data PoseidonIndividual =
       SimpleInd String
-    | SpecificInd String String String
+    | SpecificInd IndividualInfo
     deriving (Eq, Ord)
 
 getIndName :: PoseidonIndividual -> String
 getIndName (SimpleInd n)       = n
-getIndName (SpecificInd _ _ n) = n
+getIndName (SpecificInd (IndividualInfo n _ _)) = n
 
 instance Show PoseidonIndividual where
-    show (SimpleInd       i) = "<" ++ i ++ ">"
-    show (SpecificInd p g i) = "<" ++ p ++ ":" ++ g ++ ":" ++ i ++ ">"
+    show (SimpleInd                   i     ) = "<" ++ i ++ ">"
+    show (SpecificInd (IndividualInfo i g p)) = "<" ++ p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
 instance Show PoseidonEntity where
     show (Pac   p) = "*" ++ p ++ "*"
@@ -71,7 +71,7 @@ class Eq a => EntitySpec a where
     entitySpecParser :: P.Parser a
 
 instance EntitySpec SignedEntity where
-    indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) =
+    indInfoConformsToEntitySpec signedEntities indInfo@(IndividualInfo indName groupNames pacName) =
       case mapMaybe shouldIncExc signedEntities of
           [] -> False
           xs -> last xs
@@ -81,7 +81,7 @@ instance EntitySpec SignedEntity where
         shouldIncExc (Exclude entity) = if entity & isIndInfo then Just False else Nothing
         isIndInfo :: PoseidonEntity -> Bool
         isIndInfo (Ind (SimpleInd n)) = n == indName
-        isIndInfo (Ind (SpecificInd _ _ n)) = n == indName
+        isIndInfo (Ind (SpecificInd i)) = i == indInfo
         isIndInfo (Group n) = n `elem` groupNames
         isIndInfo (Pac   n) = n == pacName
     underlyingEntity = removeEntitySign
@@ -97,7 +97,7 @@ instance EntitySpec PoseidonEntity where
       where
         parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseName
         parseGroup       = Group <$> parseName
-        parseInd         = Ind <$> (parseSpecificInd <|> parseSimpleInd)
+        parseInd         = Ind   <$> (P.try parseSimpleInd <|> parseSpecificInd)
         parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
         parseSimpleInd   = SimpleInd <$> P.between (P.char '<') (P.char '>') parseName
         parseSpecificInd = do
@@ -106,9 +106,9 @@ instance EntitySpec PoseidonEntity where
             _ <- P.char ':'
             groupName <- parseName
             _ <- P.char ':'
-            individualName <- parseName
+            indName <- parseName
             _ <- P.char '>'
-            return $ SpecificInd pacName groupName individualName
+            return $ SpecificInd (IndividualInfo indName [groupName] pacName)
 
 -- turns out that we cannot easily write instances for classes, so need to be explicit for both types
 instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
@@ -185,8 +185,8 @@ findNonExistentEntities entities individuals =
         missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
     in  missingPacs ++ missingInds ++ missingGroups
 
-conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
-conformingEntityIndices entities = map fst . filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..]
+conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo)]
+conformingEntityIndices entities = filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..]
 
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =

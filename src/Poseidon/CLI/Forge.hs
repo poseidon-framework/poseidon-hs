@@ -32,7 +32,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonLogIO,
                                               determinePackageOutName, logInfo,
-                                              logWarning)
+                                              logWarning, logError)
 import          Poseidon.SecondaryTypes      (IndividualInfo (..))
 
 import           Control.Exception           (catch, throwIO)
@@ -118,7 +118,7 @@ runForge (
             intercalate ", " (map show nonExistentEntities)
 
     -- extract SpecificInd values
-    let specificInds = [SpecificInd p g i | (Include (Ind (SpecificInd p g i))) <- entities]
+    let specificInds = [i | (Include (Ind (SpecificInd i))) <- entities]
 
     -- determine relevant packages
     let relevantPackages = filterRelevantPackages entities allPackages
@@ -129,41 +129,23 @@ runForge (
     let allInds = getJointIndividualInfo $ relevantPackages
 
     -- determine relevant individuals
-    let relevantIndicesWithDuplicates = conformingEntityIndices entities allInds
-        relevantInds = map (allInds !!) relevantIndicesWithDuplicates
-        relevantIndsSimpleName = map indInfoName relevantInds
-        relevantIndsFullName = map (\(IndividualInfo indN groupNs pacN) -> pacN ++ ":" ++ head groupNs ++ ":" ++ indN) relevantInds
+    let relevantIndizesAndInds = conformingEntityIndices entities allInds
+        relevantIndices = map fst relevantIndizesAndInds
+        relevantInds    = map snd relevantIndizesAndInds
 
-    -- find duplicates
+    -- check for duplicates
     let equalNameIndividuals =
-            zip3 relevantIndicesWithDuplicates relevantIndsSimpleName relevantIndsFullName &
-            sortBy (\(_,x,_) (_,y,_) -> compare x y) &
-            groupBy (\(_,x,_) (_,y,_) -> x == y)
-        singleInds      = concat $ filter (\x -> length x == 1) equalNameIndividuals
-        duplicatedInds  = concat $ filter (\x -> length x > 1 ) equalNameIndividuals
+            relevantInds &
+            sortBy (\(IndividualInfo a _ _) (IndividualInfo b _ _) -> compare a b) &
+            groupBy (\(IndividualInfo a _ _) (IndividualInfo b _ _) -> a == b)
+        duplicatedInds  = filter (\x -> length x > 1 ) equalNameIndividuals
+        duplicatedIndsNotHandledBySpecifics = concat $ filter (\xs -> length (filter (\x -> x `notElem` specificInds) xs) > 1) duplicatedInds
 
-    dupIndsToKeep <-
-        if null duplicatedInds
-        then return []
-        else do
-            logWarning $ "There are duplicated individuals, but forge does not allow that"
-            logWarning $ "Please use the following names in your --forgeString or --forgeFile to select them explictly"
-            mapM_ (\(_,simpleName,fullName) -> logWarning $ simpleName ++ " -> <" ++ fullName ++ ">") duplicatedInds
-            unless (null nonExistentEntities) $
-                logWarning $ "Trying to apply nonexistent entities to recover..."
-            let selectedDuplicatedInds = filter (\(_,_,x) -> x `elem` ([a | Ind (SpecificInd _ _ a) <- nonExistentEntities])) duplicatedInds
-            unless (null selectedDuplicatedInds) $ do
-                logWarning $ "You made a decision for the following Individuals: " ++ intercalate "," (map (\(_,x,_) -> x) selectedDuplicatedInds)
-            let totalNames = nub $ map (\(_,x,_) -> x) duplicatedInds
-                recoveredNames = nub $ map (\(_,x,_) -> x) selectedDuplicatedInds
-                notRecoveredNames = totalNames \\ recoveredNames
-            unless (null notRecoveredNames) $
-                liftIO $ throwIO $ PoseidonForgeEntitiesException $
-                    "Please make a decision for the following duplicated individuals: " ++
-                    intercalate ", " notRecoveredNames
-            return selectedDuplicatedInds
-
-    let relevantIndices = map (\(x,_,_) -> x) singleInds ++ map (\(x,_,_) -> x) dupIndsToKeep
+    unless (null duplicatedInds) $ do
+        logError "There are duplicated individuals, but forge does not allow that"
+        logError "Please specify in your --forgeString or --forgeFile with the following names"
+        mapM_ (\i@(IndividualInfo n _ _) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) duplicatedIndsNotHandledBySpecifics
+        liftIO $ throwIO $ PoseidonForgeEntitiesException "Duplicated individuals"
 
     -- collect data --
     -- janno
