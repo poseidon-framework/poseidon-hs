@@ -9,7 +9,7 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              readEntityInputs, getIndName, PoseidonIndividual (..))
+                                              readEntityInputs, getIndName, PoseidonIndividual (..), SelectionLevel2 (..))
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -117,7 +117,7 @@ runForge (
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
 
-    -- extract SpecificInd values
+    -- extract fully specified individuals from the entity list
     let specificInds = [i | (Include (Ind (SpecificInd i))) <- entities]
 
     -- determine relevant packages
@@ -129,23 +129,23 @@ runForge (
     let allInds = getJointIndividualInfo $ relevantPackages
 
     -- determine relevant individuals
-    let relevantIndizesAndInds = conformingEntityIndices entities allInds
-        relevantIndices = map fst relevantIndizesAndInds
-        relevantInds    = map snd relevantIndizesAndInds
+    let relevantInds = conformingEntityIndices entities allInds
 
     -- check for duplicates
     let equalNameIndividuals =
             relevantInds &
-            sortBy (\(IndividualInfo a _ _) (IndividualInfo b _ _) -> compare a b) &
-            groupBy (\(IndividualInfo a _ _) (IndividualInfo b _ _) -> a == b)
-        duplicatedInds  = filter (\x -> length x > 1 ) equalNameIndividuals
-        duplicatedIndsNotHandledBySpecifics = concat $ filter (\xs -> length (filter (\x -> x `notElem` specificInds) xs) > 1) duplicatedInds
+            sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
+            groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
+        equalNameIndividualsFiltered = map onlyKeepSpecifics equalNameIndividuals
+        duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividualsFiltered
 
     unless (null duplicatedInds) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile with the following names"
-        mapM_ (\i@(IndividualInfo n _ _) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) duplicatedIndsNotHandledBySpecifics
+        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) duplicatedInds
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Duplicated individuals"
+
+    let relevantIndices = map (\(i,_,_) -> i) $ concat equalNameIndividualsFiltered
 
     -- collect data --
     -- janno
@@ -261,3 +261,15 @@ fillMissingSnpSets packages = forM packages $ \pac -> do
             logWarning $ "Warning for package " ++ title_ ++ ": field \"snpSet\" \
                 \is not set. I will interpret this as \"snpSet: Other\""
             return SNPSetOther
+
+--exactlyOneSpecified :: [IndividualInfo] -> [IndividualInfo] -> Bool
+--exactlyOneSpecified specified xs = 
+--    let indsThatAreSpecified = filter (`elem` specified) xs
+--    in length indsThatAreSpecified == 1
+
+onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
+onlyKeepSpecifics xs =
+    let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- xs]
+    in if length xs > 1 && length highPrio == 1
+       then highPrio
+       else xs

@@ -4,7 +4,7 @@ module Poseidon.EntitiesList (
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..)) where
+    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..), SelectionLevel2 (..)) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
@@ -33,6 +33,13 @@ data PoseidonEntity =
     | Ind PoseidonIndividual
     deriving (Eq, Ord)
 
+instance Show PoseidonEntity where
+    show (Pac   p) = "*" ++ p ++ "*"
+    show (Group g) = g
+    show (Ind   i) = show i
+
+type EntitiesList = [PoseidonEntity]
+
 data PoseidonIndividual =
       SimpleInd String
     | SpecificInd IndividualInfo
@@ -46,12 +53,21 @@ instance Show PoseidonIndividual where
     show (SimpleInd                   i     ) = "<" ++ i ++ ">"
     show (SpecificInd (IndividualInfo i g p)) = "<" ++ p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
-instance Show PoseidonEntity where
-    show (Pac   p) = "*" ++ p ++ "*"
-    show (Group g) = g
-    show (Ind   i) = show i
+data SelectionLevel1 =
+      IsInIndInfo
+    | IsInIndInfoSpecified
+    | IsNotInIndInfo
 
-type EntitiesList = [PoseidonEntity]
+data SelectionLevel2 =
+      ShouldBeIncluded
+    | ShouldBeIncludedWithHigherPriority
+    | ShouldNotBeIncluded
+    deriving Show
+
+meansIn :: SelectionLevel2 -> Bool
+meansIn ShouldBeIncluded = True
+meansIn ShouldBeIncludedWithHigherPriority = True
+meansIn ShouldNotBeIncluded = False
 
 data SignedEntity =
       Include PoseidonEntity
@@ -66,24 +82,34 @@ type SignedEntitiesList = [SignedEntity]
 
 -- A class to generalise signed and unsigned Entity Lists. Both have the feature that they can be used to filter individuals.
 class Eq a => EntitySpec a where
-    indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> Bool
+    indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> SelectionLevel2
     underlyingEntity :: a -> PoseidonEntity
     entitySpecParser :: P.Parser a
 
 instance EntitySpec SignedEntity where
     indInfoConformsToEntitySpec signedEntities indInfo@(IndividualInfo indName groupNames pacName) =
       case mapMaybe shouldIncExc signedEntities of
-          [] -> False
+          [] -> ShouldNotBeIncluded
           xs -> last xs
       where
-        shouldIncExc :: SignedEntity -> Maybe Bool
-        shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
-        shouldIncExc (Exclude entity) = if entity & isIndInfo then Just False else Nothing
-        isIndInfo :: PoseidonEntity -> Bool
-        isIndInfo (Ind (SimpleInd n)) = n == indName
-        isIndInfo (Ind (SpecificInd i)) = i == indInfo
-        isIndInfo (Group n) = n `elem` groupNames
-        isIndInfo (Pac   n) = n == pacName
+        shouldIncExc :: SignedEntity -> Maybe SelectionLevel2
+        shouldIncExc (Include entity) =
+            case isIndInfo entity of
+                IsInIndInfo          -> Just ShouldBeIncluded
+                IsInIndInfoSpecified -> Just ShouldBeIncludedWithHigherPriority
+                IsNotInIndInfo       -> Nothing
+            --if isIndInfo entity then Just True else Nothing
+        shouldIncExc (Exclude entity) =
+            case isIndInfo entity of
+                IsInIndInfo          -> Just ShouldNotBeIncluded
+                IsInIndInfoSpecified -> Just ShouldNotBeIncluded
+                IsNotInIndInfo       -> Nothing
+            --if isIndInfo entity then Just False else Nothing
+        isIndInfo :: PoseidonEntity -> SelectionLevel1
+        isIndInfo (Ind (SimpleInd n))   = if n == indName        then IsInIndInfo          else IsNotInIndInfo
+        isIndInfo (Ind (SpecificInd i)) = if i == indInfo        then IsInIndInfoSpecified else IsNotInIndInfo
+        isIndInfo (Group n)             = if n `elem` groupNames then IsInIndInfo          else IsNotInIndInfo
+        isIndInfo (Pac   n)             = if n == pacName        then IsInIndInfo          else IsNotInIndInfo
     underlyingEntity = removeEntitySign
     entitySpecParser = parseSign <*> entitySpecParser
       where
@@ -165,7 +191,7 @@ readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
 
 indInfoFindRelevantPackageNames :: (EntitySpec a) => [a] -> [IndividualInfo] -> [String]
 indInfoFindRelevantPackageNames e =
-    nub . map indInfoPacName . filter (indInfoConformsToEntitySpec e)
+    nub . map indInfoPacName . filter (meansIn . indInfoConformsToEntitySpec e)
 
 filterRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
 filterRelevantPackages e packages =
@@ -185,8 +211,9 @@ findNonExistentEntities entities individuals =
         missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
     in  missingPacs ++ missingInds ++ missingGroups
 
-conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo)]
-conformingEntityIndices entities = filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..]
+conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
+conformingEntityIndices entities xs = --filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..] xs
+   filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec entities x)) (zip [0..] xs)
 
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =
