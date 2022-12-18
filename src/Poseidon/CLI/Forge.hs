@@ -41,7 +41,8 @@ import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.Function               ((&))
-import           Data.List                   (groupBy, intercalate, nub, sortBy)
+import           Data.List                   (groupBy, intercalate, nub, sort,
+                                              sortBy)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -127,10 +128,10 @@ runForge (
     -- get all individuals from the relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
-    -- determine which individuals are potentially relevant
+    -- determine which individuals are potentially relevant and attribute each of them an index
     let relevantInds = conformingEntityIndices entities allInds
 
-    -- resolve duplicates that are already specified
+    -- resolve duplicates that are already specified in --foŕgeString with <pac:group:id>
     let equalNameIndividuals =
             relevantInds &
             sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
@@ -146,7 +147,7 @@ runForge (
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- reduce individual list to a list of relevant indices
-    let relevantIndices = map (\(i,_,_) -> i) $ concat equalNameIndividuals
+    let relevantIndices = sort $ map (\(i,_,_) -> i) $ concat equalNameIndividuals
 
     -- collect data --
     -- janno
