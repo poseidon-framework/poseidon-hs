@@ -46,7 +46,7 @@ data PoseidonIndividual =
     deriving (Eq, Ord)
 
 getIndName :: PoseidonIndividual -> String
-getIndName (SimpleInd n)       = n
+getIndName (SimpleInd n)                        = n
 getIndName (SpecificInd (IndividualInfo n _ _)) = n
 
 instance Show PoseidonIndividual where
@@ -76,9 +76,9 @@ data SelectionLevel2 =
     deriving Show
 
 meansIn :: SelectionLevel2 -> Bool
-meansIn ShouldBeIncluded = True
+meansIn ShouldBeIncluded                   = True
 meansIn ShouldBeIncludedWithHigherPriority = True
-meansIn ShouldNotBeIncluded = False
+meansIn ShouldNotBeIncluded                = False
 
 -- A class to generalise signed and unsigned Entity Lists. Both have the feature that they can be used to filter individuals.
 class Eq a => EntitySpec a where

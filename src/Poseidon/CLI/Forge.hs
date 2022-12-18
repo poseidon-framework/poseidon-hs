@@ -5,11 +5,13 @@ module Poseidon.CLI.Forge where
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
 import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
+                                              PoseidonIndividual (..),
                                               SignedEntity (..),
                                               conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              readEntityInputs, getIndName, PoseidonIndividual (..), onlyKeepSpecifics)
+                                              getIndName, onlyKeepSpecifics,
+                                              readEntityInputs)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -29,16 +31,18 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
+import           Poseidon.SecondaryTypes     (IndividualInfo (..))
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonLogIO,
-                                              determinePackageOutName, logInfo,
-                                              logWarning, logError)
-import          Poseidon.SecondaryTypes      (IndividualInfo (..))
+                                              determinePackageOutName, logError,
+                                              logInfo, logWarning)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
-import           Data.List                   (intercalate, nub, (\\), groupBy, sortBy)
+import           Data.Function               ((&))
+import           Data.List                   (groupBy, intercalate, nub, sortBy,
+                                              (\\))
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -54,7 +58,6 @@ import           SequenceFormats.Plink       (writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
-import Data.Function ((&))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -137,7 +140,7 @@ runForge (
             sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
             groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b) &
             map onlyKeepSpecifics
-    
+
     -- check if there still are duplicates and if yes, then stop
     let duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividuals
     unless (null duplicatedInds) $ do
