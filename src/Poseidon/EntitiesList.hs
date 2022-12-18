@@ -4,7 +4,7 @@ module Poseidon.EntitiesList (
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..), SelectionLevel2 (..)) where
+    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..), onlyKeepSpecifics) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
@@ -53,6 +53,17 @@ instance Show PoseidonIndividual where
     show (SimpleInd                   i     ) = "<" ++ i ++ ">"
     show (SpecificInd (IndividualInfo i g p)) = "<" ++ p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
+data SignedEntity =
+      Include PoseidonEntity
+    | Exclude PoseidonEntity
+    deriving (Eq, Ord)
+
+instance Show SignedEntity where
+    show (Include a) = show a
+    show (Exclude a) = "-" ++ show a
+
+type SignedEntitiesList = [SignedEntity]
+
 data SelectionLevel1 =
       IsInIndInfo
     | IsInIndInfoSpecified
@@ -68,17 +79,6 @@ meansIn :: SelectionLevel2 -> Bool
 meansIn ShouldBeIncluded = True
 meansIn ShouldBeIncludedWithHigherPriority = True
 meansIn ShouldNotBeIncluded = False
-
-data SignedEntity =
-      Include PoseidonEntity
-    | Exclude PoseidonEntity
-    deriving (Eq, Ord)
-
-instance Show SignedEntity where
-    show (Include a) = show a
-    show (Exclude a) = "-" ++ show a
-
-type SignedEntitiesList = [SignedEntity]
 
 -- A class to generalise signed and unsigned Entity Lists. Both have the feature that they can be used to filter individuals.
 class Eq a => EntitySpec a where
@@ -214,6 +214,13 @@ findNonExistentEntities entities individuals =
 conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
 conformingEntityIndices entities xs = --filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..] xs
    filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec entities x)) (zip [0..] xs)
+
+onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
+onlyKeepSpecifics xs =
+    let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- xs]
+    in if length xs > 1 && length highPrio == 1
+       then highPrio
+       else xs
 
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =

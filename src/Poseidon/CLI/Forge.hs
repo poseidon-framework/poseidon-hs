@@ -9,7 +9,7 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              readEntityInputs, getIndName, PoseidonIndividual (..), SelectionLevel2 (..))
+                                              readEntityInputs, getIndName, PoseidonIndividual (..), onlyKeepSpecifics)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -125,35 +125,35 @@ runForge (
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
-    -- all individuals from relevant packages
+    -- get all individuals from the relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
-    -- determine relevant individuals
+    -- determine which individuals are potentially relevant
     let relevantInds = conformingEntityIndices entities allInds
 
-    -- check for duplicates
+    -- resolve duplicates that are already specified
     let equalNameIndividuals =
             relevantInds &
             sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
-            groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
-        equalNameIndividualsFiltered = map onlyKeepSpecifics equalNameIndividuals
-        duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividualsFiltered
-
+            groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b) &
+            map onlyKeepSpecifics
+    
+    -- check if there still are duplicates and if yes, then stop
+    let duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividuals
     unless (null duplicatedInds) $ do
         logError "There are duplicated individuals, but forge does not allow that"
-        logError "Please specify in your --forgeString or --forgeFile with the following names"
+        logError "Please specify in your --forgeString or --forgeFile:"
         mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) duplicatedInds
-        liftIO $ throwIO $ PoseidonForgeEntitiesException "Duplicated individuals"
+        liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
-    let relevantIndices = map (\(i,_,_) -> i) $ concat equalNameIndividualsFiltered
+    -- reduce individual list to a list of relevant indices
+    let relevantIndices = map (\(i,_,_) -> i) $ concat equalNameIndividuals
 
     -- collect data --
     -- janno
     let jannoRows = getJointJanno relevantPackages
         relevantJannoRows = map (jannoRows !!) relevantIndices
 
-    -- check for duplicates among the individuals selected for merging
-    checkIndividualsUniqueJanno relevantJannoRows
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
         relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
@@ -237,15 +237,6 @@ sumNonMissingSNPs accumulator (_, geno) = do
         | x == Missing = 0
         | otherwise = 1
 
-checkIndividualsUniqueJanno :: [JannoRow] -> PoseidonLogIO ()
-checkIndividualsUniqueJanno rows = do
-    let indIDs = map jPoseidonID rows
-    when (length indIDs /= length (nub indIDs)) $ do
-        liftIO $ throwIO $ PoseidonForgeEntitiesException $
-            "Duplicate individuals in selection (" ++
-            intercalate ", " (indIDs \\ nub indIDs) ++
-            ")"
-
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 filterBibEntries samples references_ =
     let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
@@ -261,15 +252,3 @@ fillMissingSnpSets packages = forM packages $ \pac -> do
             logWarning $ "Warning for package " ++ title_ ++ ": field \"snpSet\" \
                 \is not set. I will interpret this as \"snpSet: Other\""
             return SNPSetOther
-
---exactlyOneSpecified :: [IndividualInfo] -> [IndividualInfo] -> Bool
---exactlyOneSpecified specified xs = 
---    let indsThatAreSpecified = filter (`elem` specified) xs
---    in length indsThatAreSpecified == 1
-
-onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
-onlyKeepSpecifics xs =
-    let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- xs]
-    in if length xs > 1 && length highPrio == 1
-       then highPrio
-       else xs
