@@ -97,13 +97,11 @@ instance EntitySpec SignedEntity where
                 IsInIndInfo          -> Just ShouldBeIncluded
                 IsInIndInfoSpecified -> Just ShouldBeIncludedWithHigherPriority
                 IsNotInIndInfo       -> Nothing
-            --if isIndInfo entity then Just True else Nothing
         shouldIncExc (Exclude entity) =
             case isIndInfo entity of
                 IsInIndInfo          -> Just ShouldNotBeIncluded
                 IsInIndInfoSpecified -> Just ShouldNotBeIncluded
                 IsNotInIndInfo       -> Nothing
-            --if isIndInfo entity then Just False else Nothing
         isIndInfo :: PoseidonEntity -> SelectionLevel1
         isIndInfo (Ind (SimpleInd n))   = if n == indName        then IsInIndInfo          else IsNotInIndInfo
         isIndInfo (Ind (SpecificInd i)) = if i == indInfo        then IsInIndInfoSpecified else IsNotInIndInfo
@@ -211,7 +209,7 @@ findNonExistentEntities entities individuals =
     in  missingPacs ++ missingInds ++ missingGroups
 
 conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
-conformingEntityIndices entities xs = --filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..] xs
+conformingEntityIndices entities xs =
    filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec entities x)) (zip [0..] xs)
 
 onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
