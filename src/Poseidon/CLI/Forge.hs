@@ -10,7 +10,7 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              getIndName, onlyKeepSpecifics,
+                                              onlyKeepSpecifics,
                                               readEntityInputs)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
@@ -41,8 +41,7 @@ import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.Function               ((&))
-import           Data.List                   (groupBy, intercalate, nub, sortBy,
-                                              (\\))
+import           Data.List                   (groupBy, intercalate, nub, sortBy)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -119,9 +118,6 @@ runForge (
     unless (null nonExistentEntities) $
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
-
-    -- extract fully specified individuals from the entity list
-    let specificInds = [i | (Include (Ind (SpecificInd i))) <- entities]
 
     -- determine relevant packages
     let relevantPackages = filterRelevantPackages entities allPackages
