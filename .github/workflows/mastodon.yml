@@ -1,0 +1,22 @@
+# https://github.com/marketplace/actions/fediverse-action
+
+name: toot-release
+
+# More triggers
+# https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#release
+#on: [push]
+on:
+  release:
+    types: [published]
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: rzr/fediverse-action@master
+        with:
+          access-token: ${{ secrets.MASTODON_ACCESS_TOKEN }}
+          host: "ecoevo.social" # custom host if not "mastodon.social" (default)
+          # GitHub event payload
+          # https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#release
+          message: "New ${{ github.event.repository.name }} release ${{ github.event.release.tag_name }}! ${{ github.event.release.html_url }} #aDNA #OpenData #Haskell"
