@@ -73,7 +73,7 @@ jobs:
           if [ "$RUNNER_OS" == "Linux" ]; then
               cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
           elif [ "$RUNNER_OS" == "macOS" ]; then
-              cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files --constraint="text -simdutf"
+              cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files --constraint="any.text -simdutf" --minimize-conflict-set
           else
               echo "$RUNNER_OS not supported"
               exit 1
