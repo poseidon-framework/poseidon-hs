@@ -10,7 +10,7 @@ on:
     types: [published]
 
 jobs:
-  tweet:
+  toot:
     runs-on: ubuntu-latest
     steps:
       - uses: rzr/fediverse-action@master
@@ -19,4 +19,5 @@ jobs:
           host: "ecoevo.social" # custom host if not "mastodon.social" (default)
           # GitHub event payload
           # https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#release
-          message: "New ${{ github.event.repository.name }} release ${{ github.event.release.tag_name }}! ${{ github.event.release.html_url }} #aDNA #OpenData #Haskell"
+          # repo name can be queried with ${{ github.event.repository.name }}
+          message: "New trident release ${{ github.event.release.tag_name }}! Please see the changelog here: ${{ github.event.release.html_url }} #aDNA #OpenData #Haskell"
