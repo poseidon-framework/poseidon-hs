@@ -65,6 +65,7 @@ jobs:
 
       - name: Freeze
         run: |
+          : # simdutf doesn't build on macOS any more, so we need to set a flag to ignore it when building the text package
           if [ "$RUNNER_OS" == "Linux" ]; then
               cabal freeze
           elif [ "$RUNNER_OS" == "macOS" ]; then
