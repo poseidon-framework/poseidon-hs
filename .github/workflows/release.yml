@@ -65,19 +65,20 @@ jobs:
 
       - name: Freeze
         run: |
-          cabal freeze
-
-      - name: Build
-        run: |
-          mkdir dist
           if [ "$RUNNER_OS" == "Linux" ]; then
-              cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
+              cabal freeze
           elif [ "$RUNNER_OS" == "macOS" ]; then
-              cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files --constraint="any.text -simdutf" --minimize-conflict-set
+              cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
           else
               echo "$RUNNER_OS not supported"
               exit 1
           fi
+
+
+      - name: Build
+        run: |
+          mkdir dist
+          cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
 
       - name: Set binary path name
         id: binarypath
