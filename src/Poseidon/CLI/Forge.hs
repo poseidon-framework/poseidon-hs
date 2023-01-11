@@ -114,9 +114,9 @@ runForge (
     logInfo $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
-    -- check for entities that do not exist this this dataset
+    -- check for entities that do not exist in this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
-    unless (null nonExistentEntities) $
+    unless (null nonExistentEntities) $ 
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
 

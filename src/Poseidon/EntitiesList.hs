@@ -93,20 +93,20 @@ instance EntitySpec SignedEntity where
       where
         shouldIncExc :: SignedEntity -> Maybe SelectionLevel2
         shouldIncExc (Include entity) =
-            case isIndInfo entity of
+            case isInIndInfo entity of
                 IsInIndInfo          -> Just ShouldBeIncluded
                 IsInIndInfoSpecified -> Just ShouldBeIncludedWithHigherPriority
                 IsNotInIndInfo       -> Nothing
         shouldIncExc (Exclude entity) =
-            case isIndInfo entity of
+            case isInIndInfo entity of
                 IsInIndInfo          -> Just ShouldNotBeIncluded
                 IsInIndInfoSpecified -> Just ShouldNotBeIncluded
                 IsNotInIndInfo       -> Nothing
-        isIndInfo :: PoseidonEntity -> SelectionLevel1
-        isIndInfo (Ind (SimpleInd n))   = if n == indName        then IsInIndInfo          else IsNotInIndInfo
-        isIndInfo (Ind (SpecificInd i)) = if i == indInfo        then IsInIndInfoSpecified else IsNotInIndInfo
-        isIndInfo (Group n)             = if n `elem` groupNames then IsInIndInfo          else IsNotInIndInfo
-        isIndInfo (Pac   n)             = if n == pacName        then IsInIndInfo          else IsNotInIndInfo
+        isInIndInfo :: PoseidonEntity -> SelectionLevel1
+        isInIndInfo (Ind (SimpleInd n))   = if n == indName        then IsInIndInfo          else IsNotInIndInfo
+        isInIndInfo (Ind (SpecificInd i)) = if i == indInfo        then IsInIndInfoSpecified else IsNotInIndInfo
+        isInIndInfo (Group n)             = if n `elem` groupNames then IsInIndInfo          else IsNotInIndInfo
+        isInIndInfo (Pac   n)             = if n == pacName        then IsInIndInfo          else IsNotInIndInfo
     underlyingEntity = removeEntitySign
     entitySpecParser = parseSign <*> entitySpecParser
       where
