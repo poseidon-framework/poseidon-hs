@@ -116,7 +116,7 @@ runForge (
 
     -- check for entities that do not exist in this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
-    unless (null nonExistentEntities) $ 
+    unless (null nonExistentEntities) $
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
 
