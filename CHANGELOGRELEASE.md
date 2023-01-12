@@ -1,3 +1,5 @@
+### V 1.1.7.0
+
 ### V 1.1.6.0
 
 #### Additional columns in .janno files (V 1.1.5.0)

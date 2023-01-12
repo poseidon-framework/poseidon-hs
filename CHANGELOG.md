@@ -1,6 +1,7 @@
+- V 1.1.7.0: Reorganized handling of duplicate individuals: Duplicates are now generally ignored, except in validate (can also be turned of with a new flag) and forge. The forgeString language features a new syntactic entity to select individuals specifically and thus resolve duplication conflicts
 - V 1.1.6.0: Removed outdated --verbose from validate and ignore trailing slashes from --outPath
 - V 1.1.5.0: Enabled reading and forging additional, unspecified variables in .janno files 
-- V 1.1.4.2: Added parsing for Accession IDs (.janno file). Wrong entries are ignored, so this is non-breaking.
+- V 1.1.4.2: Added parsing for Accession IDs (.janno file). Wrong entries are ignored, so this is non-breaking
 - V 1.1.4.1: Added a small validation check for calibrated ages in the .janno file
 - V 1.1.4.0: Changes to make poseidon-hs compatible with Poseidon v2.6.0 (backwards compatible with v2.5.0): contributor field optional, added orcid field for contributors, added more capture type options in janno files 
 - V 1.1.3.1: Package reading will now fail if bib-entries are not found due to missing bibtex files
