@@ -244,6 +244,15 @@ testResolveEntityIndices =
                 ]],
                 [1]
             )
+        resolveEntityIndices [
+              Include (Group "PopB")
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
+            , Exclude (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] "Pac1"))
+            , Exclude (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] "Pac3"))
+            ] indInfoDuplicates `shouldBe` (
+                [],
+                [1,4]
+            )
 
 testJSON :: Spec
 testJSON =
