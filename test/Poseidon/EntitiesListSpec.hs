@@ -207,7 +207,7 @@ testResolveEntityIndices =
             , Include (Ind (SimpleInd "Ind3"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind8" ["Pop4"] "Pac2"))
             ] indInfo `shouldBe` ([], [0, 1, 2, 7])
-    it "should correctly extract indices in case of duplicates" $ do
+    it "should correctly extract indices in case of duplicates across packages" $ do
         let indInfoDuplicates = [
                   IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1"
                 , IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac2"
@@ -216,6 +216,14 @@ testResolveEntityIndices =
                 , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac2"
                 , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac3"
                 ]
+        -- test simple extraction with specific syntax
+        resolveEntityIndices [
+               Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
+            ] indInfoDuplicates `shouldBe` (
+                [],
+                [1]
+            )
+        -- test solving simple duplication for one individual
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
@@ -223,6 +231,7 @@ testResolveEntityIndices =
                 [],
                 [1]
             )
+        -- test solving duplication for two individuals at once
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
@@ -232,6 +241,7 @@ testResolveEntityIndices =
                 [],
                 [1,5]
             )
+        -- test output in case of unresolved duplicates
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
@@ -244,6 +254,7 @@ testResolveEntityIndices =
                 ]],
                 [1]
             )
+        -- test interaction with secondary group name selection and negative selection to solve duplication
         resolveEntityIndices [
               Include (Group "PopB")
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
@@ -252,6 +263,19 @@ testResolveEntityIndices =
             ] indInfoDuplicates `shouldBe` (
                 [],
                 [1,4]
+            )
+    it "should correctly extract indices in case of duplicates within one package" $ do
+        let indInfoDuplicates = [
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1"
+                , IndividualInfo "Ind1" ["Pop2", "PopB"] "Pac1"
+                , IndividualInfo "Ind1" ["Pop3", "PopB"] "Pac1"
+                ]
+        resolveEntityIndices [
+              Include (Ind (SimpleInd "Ind1"))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop2"] "Pac1"))
+            ] indInfoDuplicates `shouldBe` (
+                [],
+                [1]
             )
 
 testJSON :: Spec
