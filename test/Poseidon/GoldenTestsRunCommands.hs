@@ -589,6 +589,24 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
           "ForgePac9" </> "ForgePac9.geno"
         , "ForgePac9" </> "ForgePac9.janno"
         ]
+    -- forge test 10 (duplicates can also be resolved with negative selection)
+    let forgeOpts10 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Schmid"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "-<Schmid:POP1:XXX001>,-<Schiffels:POP2:XXX002>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac10"
+        , _forgeOutPacName   = Just "ForgePac10"
+        , _forgeNoExtract    = False
+    }
+    let action10 = testLog (runForge forgeOpts10) >> patchLastModified testDir ("ForgePac10" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action10 "forge" [
+          "ForgePac10" </> "ForgePac10.geno"
+        , "ForgePac10" </> "ForgePac10.janno"
+        ]
 
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
