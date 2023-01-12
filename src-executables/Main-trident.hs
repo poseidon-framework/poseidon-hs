@@ -207,3 +207,4 @@ validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
                                     <*> parseNoExitCode
+                                    <*> parseIgnoreDuplicates

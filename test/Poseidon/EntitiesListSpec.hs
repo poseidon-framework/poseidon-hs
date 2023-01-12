@@ -125,7 +125,7 @@ testReadEntitiesFromFile =
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = True
+      _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
@@ -170,7 +170,7 @@ testFilterPackages =
     it "should select all relevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages goodEntities ps
-        map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_Plink_test_2020", "Lamnidis_2018"]
+        map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_Plink_test_2020", "Schmid_2028", "Lamnidis_2018"]
     it "should drop all irrelevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages badEntities ps
@@ -182,7 +182,7 @@ testResolveEntityIndices =
     it "should select all relevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = resolveEntityIndices goodEntities (getJointIndividualInfo ps)
-        indInts `shouldBe` ([], [0, 1, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23])
+        indInts `shouldBe` ([], [0, 1, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 25])
     it "should drop all irrelevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = resolveEntityIndices badEntities (getJointIndividualInfo ps)

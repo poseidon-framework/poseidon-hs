@@ -397,6 +397,13 @@ parseNoExitCode = OP.switch (
     OP.hidden
     )
 
+parseIgnoreDuplicates :: OP.Parser Bool
+parseIgnoreDuplicates = OP.switch (
+    OP.long "ignoreDuplicates" <>
+    OP.help "do not stop on duplicated individual names in the package collection" <>
+    OP.hidden
+    )
+
 parseRemoteURL :: OP.Parser String
 parseRemoteURL = OP.strOption (
     OP.long "remoteURL" <>
