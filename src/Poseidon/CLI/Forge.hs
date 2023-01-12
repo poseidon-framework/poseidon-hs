@@ -7,11 +7,10 @@ import           Poseidon.BibFile            (BibEntry (..), BibTeX,
 import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               PoseidonIndividual (..),
                                               SignedEntity (..),
-                                              conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
                                               readEntityInputs,
-                                              resolveIndividualNameDuplicates)
+                                              resolveEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -40,7 +39,7 @@ import           Poseidon.Utils              (PoseidonException (..),
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
-import           Data.List                   (intercalate, nub, sort)
+import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -126,22 +125,15 @@ runForge (
     -- get all individuals from the relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
-    -- determine which individuals are potentially relevant and attribute each of them an index
-    let relevantInds = conformingEntityIndices entities allInds
-
-    -- resolve duplicates that are already specified in --foŕgeString with <pac:group:id>
-    let equalNameIndividuals = resolveIndividualNameDuplicates relevantInds
+    -- determine indizes of relevant individuals and resolve duplicates
+    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices entities allInds
 
     -- check if there still are duplicates and if yes, then stop
-    let duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividuals
-    unless (null duplicatedInds) $ do
+    unless (null unresolvedDuplicatedInds) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) duplicatedInds
+        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) $ concat unresolvedDuplicatedInds
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
-
-    -- reduce individual list to a list of relevant indices
-    let relevantIndices = sort $ map (\(i,_,_) -> i) $ concat equalNameIndividuals
 
     -- collect data --
     -- janno

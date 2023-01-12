@@ -21,8 +21,7 @@ spec = do
     testReadEntitiesFromFile
     testFindNonExistentEntities
     testFilterPackages
-    testExtractEntityIndices
-    testResolveIndividualNameDuplicates
+    testResolveEntityIndices
     testJSON
 
 
@@ -177,17 +176,17 @@ testFilterPackages =
         let pacs = filterRelevantPackages badEntities ps
         pacs `shouldBe` []
 
-testExtractEntityIndices :: Spec
-testExtractEntityIndices =
-    describe "Poseidon.EntitiesList.extractEntityIndices" $ do
+testResolveEntityIndices :: Spec
+testResolveEntityIndices =
+    describe "Poseidon.EntitiesList.resolveEntityIndices" $ do
     it "should select all relevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let indInts = map (\(i,_,_) -> i) $ conformingEntityIndices goodEntities (getJointIndividualInfo ps)
-        indInts `shouldMatchList` [0, 1, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23]
+        let indInts = resolveEntityIndices goodEntities (getJointIndividualInfo ps)
+        indInts `shouldBe` ([], [0, 1, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23])
     it "should drop all irrelevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let indInts = map (\(i,_,_) -> i) $ conformingEntityIndices badEntities (getJointIndividualInfo ps)
-        indInts `shouldBe` []
+        let indInts = resolveEntityIndices badEntities (getJointIndividualInfo ps)
+        indInts `shouldBe` ([], [])
     it "should correctly extract indices with ordered signed entities" $ do
         let indInfo = [
                   IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1"
@@ -199,19 +198,15 @@ testExtractEntityIndices =
                 , IndividualInfo "Ind7" ["Pop4", "PopC"] "Pac2"
                 , IndividualInfo "Ind8" ["Pop4", "PopC"] "Pac2"
                 ]
-        map (\(i,_,_) -> i) (conformingEntityIndices [
+        resolveEntityIndices [
               Include (Pac "Pac1")
-            ] indInfo) `shouldBe` [0, 1, 2, 3]
-        map (\(i,_,_) -> i) (conformingEntityIndices [
+            ] indInfo `shouldBe` ([], [0, 1, 2, 3])
+        resolveEntityIndices [
               Include (Pac "Pac1")
             , Exclude (Group "Pop2")
             , Include (Ind (SimpleInd "Ind3"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind8" ["Pop4"] "Pac2"))
-            ] indInfo) `shouldBe` [0, 1, 2, 7]
-
-testResolveIndividualNameDuplicates :: Spec
-testResolveIndividualNameDuplicates =
-    describe "Poseidon.EntitiesList.resolveIndividualNameDuplicates" $ do
+            ] indInfo `shouldBe` ([], [0, 1, 2, 7])
     it "should correctly extract indices in case of duplicates" $ do
         let indInfoDuplicates = [
                   IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1"
@@ -221,12 +216,34 @@ testResolveIndividualNameDuplicates =
                 , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac2"
                 , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac3"
                 ]
-        map (\(i,_,_) -> i) (concat (resolveIndividualNameDuplicates (conformingEntityIndices [
+        resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
-            , Include (Ind (SimpleInd "Pop2"))
+            ] indInfoDuplicates `shouldBe` (
+                [],
+                [1]
+            )
+        resolveEntityIndices [
+              Include (Ind (SimpleInd "Ind1"))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
+            , Include (Ind (SimpleInd "Ind2"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] "Pac3"))
-            ] indInfoDuplicates))) `shouldBe` [1,5]
+            ] indInfoDuplicates `shouldBe` (
+                [],
+                [1,5]
+            )
+        resolveEntityIndices [
+              Include (Ind (SimpleInd "Ind1"))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
+            , Include (Ind (SimpleInd "Ind2"))
+            ] indInfoDuplicates `shouldBe` (
+                [[
+                  (3, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPacName = "Pac1"}, ShouldBeIncluded)
+                , (4, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPacName = "Pac2"}, ShouldBeIncluded)
+                , (5, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPacName = "Pac3"}, ShouldBeIncluded)
+                ]],
+                [1]
+            )
 
 testJSON :: Spec
 testJSON =

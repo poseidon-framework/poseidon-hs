@@ -4,7 +4,8 @@ module Poseidon.EntitiesList (
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..), resolveIndividualNameDuplicates) where
+    entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..),
+    resolveEntityIndices, SelectionLevel2 (..)) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
@@ -20,7 +21,7 @@ import           Data.Aeson              (FromJSON (..), ToJSON (..),
 import           Data.Aeson.Types        (Parser)
 import           Data.Char               (isSpace)
 import           Data.Function           ((&))
-import           Data.List               (groupBy, nub, sortBy, (\\))
+import           Data.List               (groupBy, nub, sort, sortBy, (\\))
 import           Data.Maybe              (mapMaybe)
 import           Data.Text               (Text, pack, unpack)
 import qualified Text.Parsec             as P
@@ -73,7 +74,7 @@ data SelectionLevel2 =
       ShouldBeIncluded
     | ShouldBeIncludedWithHigherPriority
     | ShouldNotBeIncluded
-    deriving Show
+    deriving (Show, Eq)
 
 meansIn :: SelectionLevel2 -> Bool
 meansIn ShouldBeIncluded                   = True
@@ -211,23 +212,31 @@ findNonExistentEntities entities individuals =
         missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ individuals
     in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
 
-conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
-conformingEntityIndices entities xs =
-   filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec entities x)) (zip [0..] xs)
-
-resolveIndividualNameDuplicates :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
-resolveIndividualNameDuplicates entityIndices =
-    entityIndices &
-        sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
-        groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b) &
-        map onlyKeepSpecifics
+-- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
+resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
+resolveEntityIndices entities xs =
+    let allFittingIndizes = conformingEntityIndices entities xs
+        groupsOfEqualNameIndividuals = resolveDuplicatesIfPossible $ groupByIndividualName allFittingIndizes
+        unresolvedDuplicates = filter (\x -> length x > 1) groupsOfEqualNameIndividuals
+        simpleSingles = sort $ map (\(i,_,_) -> i) $ concat $ filter (\x -> length x == 1) groupsOfEqualNameIndividuals
+    in (unresolvedDuplicates, simpleSingles)
     where
+        conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
+        conformingEntityIndices ents inds =
+            filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec ents x)) (zip [0..] inds)
+        groupByIndividualName :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        groupByIndividualName entityIndices =
+            entityIndices &
+                sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
+                groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
+        resolveDuplicatesIfPossible :: [[(Int, IndividualInfo, SelectionLevel2)]] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        resolveDuplicatesIfPossible = map onlyKeepSpecifics
         onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
-        onlyKeepSpecifics xs =
-            let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- xs]
+        onlyKeepSpecifics groupOfInds =
+            let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- groupOfInds]
             in if length xs > 1 && length highPrio == 1
                then highPrio
-               else xs
+               else groupOfInds
 
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =
