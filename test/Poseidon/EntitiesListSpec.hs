@@ -22,6 +22,7 @@ spec = do
     testFindNonExistentEntities
     testFilterPackages
     testExtractEntityIndices
+    testResolveIndividualNameDuplicates
     testJSON
 
 
@@ -34,27 +35,37 @@ testReadPoseidonEntitiesString =
         fromRight [] (readEntitiesFromString "b") `shouldBe` [Include $ Group "b"]
         fromRight [] (readEntitiesFromString "*c*") `shouldBe` [Include $ Pac "c"]
     it "should parse longer entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>,b,*c*") `shouldBe`
-            map Include [Ind (SimpleInd "a"), Group "b", Pac "c"]
-        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2") `shouldBe`
-            map Include [Ind (SimpleInd "a1"), Group "b1", Ind (SimpleInd "a2"), Pac "c", Group "b2"]
+        fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
+            map Include [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"), Group "b", Pac "c"]
+        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>") `shouldBe`
+            map Include [
+                  Ind (SimpleInd "a1")
+                , Group "b1"
+                , Ind (SimpleInd "a2")
+                , Pac "c"
+                , Group "b2"
+                , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] "c")
+            ]
     it "should parse unsigned entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>,b,*c*") `shouldBe`
-            [Ind (SimpleInd "a"), Group "b", Pac "c"]
-        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2") `shouldBe`
-            [Ind (SimpleInd "a1"), Group "b1", Ind (SimpleInd "a2"), Pac "c", Group "b2"]
+        fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
+            [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"), Group "b", Pac "c"]
+        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>") `shouldBe`
+            [Ind (SimpleInd "a1"), Group "b1", Ind (SimpleInd "a2"), Pac "c", Group "b2", Ind (SpecificInd $ IndividualInfo "a3" ["b2"] "c")]
     it "should ignore spaces after commas" $ do
-        fromRight [] (readEntitiesFromString "<a>, b, *c*") `shouldBe`
-            map Include [Ind (SimpleInd "a"), Group "b", Pac "c"]
+        fromRight [] (readEntitiesFromString "<a>, <c:b:a>, b, *c*") `shouldBe`
+            map Include [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"), Group "b", Pac "c"]
         fromRight [] (readEntitiesFromString "*c*,  b") `shouldBe`
             map Include [Pac "c", Group "b"]
     it "should parse exclusion entities correctly" $ do
         fromRight [] (readEntitiesFromString "-<a>") `shouldBe` [Exclude $ Ind (SimpleInd "a")]
-        fromRight [] (readEntitiesFromString "-<a1>, <a2>, -b1,b2,-*c1*, *c2*") `shouldBe`
-            [Exclude $ Ind (SimpleInd "a1"), Include $ Ind (SimpleInd "a2"),
-             Exclude $ Group "b1", Include $ Group "b2",
-             Exclude $ Pac "c1", Include $ Pac "c2"]
-    it "should fail with any other spaces" $ do
+        fromRight [] (readEntitiesFromString "-<a1>, -<c:b:a>, <a2>, -b1,b2,-*c1*, *c2*") `shouldBe`
+            [ Exclude $ Ind (SimpleInd "a1")
+            , Exclude $ Ind (SpecificInd $ IndividualInfo "a" ["b"] "c")
+            , Include $ Ind (SimpleInd "a2")
+            , Exclude $ Group "b1", Include $ Group "b2"
+            , Exclude $ Pac "c1", Include $ Pac "c2"
+            ]
+    it "should fail with any other setting" $ do
         -- the following type annotations - annoyingly - are required because readEntitiesFromString is polymorphic,
         -- and even though it all returns Left, the compiler complains about ambiguous types.
         (readEntitiesFromString "<a> ,b,*c*"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
@@ -68,6 +79,10 @@ testReadPoseidonEntitiesString =
         (readEntitiesFromString "-<a>,b,*c*c*" :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
         (readEntitiesFromString "<a>,b,*c*-"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
         (readEntitiesFromString "-a>,b,*c*"    :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<cb:a>"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c:ba>"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c :b:a>"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c: b:a>"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
 
 testReadEntitiesFromFile :: Spec
 testReadEntitiesFromFile =
@@ -80,11 +95,19 @@ testReadEntitiesFromFile =
     it "should parse good, single-value-per-line files correctly" $ do
         g1res <- readEntitiesFromFile g1
         g1res `shouldBe`
-            map Include [Ind (SimpleInd "a"), Group "b", Pac "c"]
+            map Include [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"), Group "b", Pac "c"]
     it "should parse good, multi-value-per-line files correctly" $ do
         g2res <- readEntitiesFromFile g2
         g2res `shouldBe`
-            map Include [Ind (SimpleInd "a1"), Ind (SimpleInd "a2"), Group "b1", Pac "c1", Pac "c2", Group "b2", Group "b3"]
+            map Include [
+                  Ind (SimpleInd "a1")
+                , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] "c")
+                , Ind (SimpleInd "a2")
+                , Group "b1", Pac "c1"
+                , Pac "c2"
+                , Group "b2"
+                , Group "b3"
+                ]
     it "should handle empty lines and #-comments correctly" $ do
         g3res <- readEntitiesFromFile g3
         g3res `shouldBe`
@@ -92,9 +115,12 @@ testReadEntitiesFromFile =
     it "should handle exclusion correctly" $ do
         g4res <- readEntitiesFromFile g4
         g4res `shouldBe`
-            [Include $ Ind (SimpleInd "a1"), Exclude $ Ind (SimpleInd "a2"),
-             Exclude $ Group "b1", Include $ Group "b1",
-             Exclude $ Pac "c2"]
+            [ Include $ Ind (SimpleInd "a1"),
+              Exclude $ Ind (SpecificInd $ IndividualInfo "a3" ["b2"] "c")
+            , Exclude $ Ind (SimpleInd "a2")
+            , Exclude $ Group "b1", Include $ Group "b1"
+            , Exclude $ Pac "c2"
+            ]
     it "should fail to parse bad files and throw an exception" $ do
         (readEntitiesFromFile b1 :: IO EntitiesList) `shouldThrow` anyException -- wrong space
 
@@ -111,16 +137,20 @@ testBaseDir = ["test/testDat/testPackages/ancient"]
 
 goodEntities :: EntitiesList
 goodEntities = [
-        Pac "Schiffels_2016",
-        Group "POP1",
-        Ind (SimpleInd "SAMPLE3")
+      Pac "Schiffels_2016"
+    , Group "POP1"
+    , Ind (SimpleInd "SAMPLE3")
+    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP1"] "Schiffels_2016")
+    , Ind (SpecificInd $ IndividualInfo "XXX012" ["POP2"] "Lamnidis_2018")
     ]
 
 badEntities :: EntitiesList
 badEntities = [
-        Pac "Schiffels_2015",
-        Group "foo",
-        Ind (SimpleInd "bar")
+      Pac "Schiffels_2015"
+    , Group "foo"
+    , Ind (SimpleInd "bar")
+    , Ind (SpecificInd $ IndividualInfo "XXX002" ["POP1"] "Schiffels_2016")
+    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP2"] "Schiffels_2016")
     ]
 
 testFindNonExistentEntities :: Spec
@@ -153,38 +183,69 @@ testExtractEntityIndices =
     it "should select all relevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = map (\(i,_,_) -> i) $ conformingEntityIndices goodEntities (getJointIndividualInfo ps)
-        indInts `shouldMatchList` [0, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23]
+        indInts `shouldMatchList` [0, 1, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23]
     it "should drop all irrelevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let indInts = map (\(i,_,_) -> i) $ conformingEntityIndices badEntities (getJointIndividualInfo ps)
         indInts `shouldBe` []
     it "should correctly extract indices with ordered signed entities" $ do
         let indInfo = [
-                IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1",
-                IndividualInfo "Ind2" ["Pop1", "PopB"] "Pac1",
-                IndividualInfo "Ind3" ["Pop2", "PopB"] "Pac1",
-                IndividualInfo "Ind4" ["Pop2", "PopB"] "Pac1",
-                IndividualInfo "Ind5" ["Pop3", "PopC"] "Pac2",
-                IndividualInfo "Ind6" ["Pop3", "PopC"] "Pac2",
-                IndividualInfo "Ind7" ["Pop4", "PopC"] "Pac2",
-                IndividualInfo "Ind8" ["Pop4", "PopC"] "Pac2"]
-        map (\(i,_,_) -> i) (conformingEntityIndices [Include (Pac "Pac1"), Exclude (Group "Pop2"), Include (Ind (SimpleInd "Ind3"))] indInfo) `shouldBe` [0, 1, 2]
-        map (\(i,_,_) -> i) (conformingEntityIndices [Include (Pac "Pac1")] indInfo) `shouldBe` [0, 1, 2, 3]
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1"
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] "Pac1"
+                , IndividualInfo "Ind3" ["Pop2", "PopB"] "Pac1"
+                , IndividualInfo "Ind4" ["Pop2", "PopB"] "Pac1"
+                , IndividualInfo "Ind5" ["Pop3", "PopC"] "Pac2"
+                , IndividualInfo "Ind6" ["Pop3", "PopC"] "Pac2"
+                , IndividualInfo "Ind7" ["Pop4", "PopC"] "Pac2"
+                , IndividualInfo "Ind8" ["Pop4", "PopC"] "Pac2"
+                ]
+        map (\(i,_,_) -> i) (conformingEntityIndices [
+              Include (Pac "Pac1")
+            ] indInfo) `shouldBe` [0, 1, 2, 3]
+        map (\(i,_,_) -> i) (conformingEntityIndices [
+              Include (Pac "Pac1")
+            , Exclude (Group "Pop2")
+            , Include (Ind (SimpleInd "Ind3"))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind8" ["Pop4"] "Pac2"))
+            ] indInfo) `shouldBe` [0, 1, 2, 7]
+
+testResolveIndividualNameDuplicates :: Spec
+testResolveIndividualNameDuplicates =
+    describe "Poseidon.EntitiesList.resolveIndividualNameDuplicates" $ do
+    it "should correctly extract indices in case of duplicates" $ do
+        let indInfoDuplicates = [
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac1"
+                , IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac2"
+                , IndividualInfo "Ind1" ["Pop1", "PopB"] "Pac3"
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac1"
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac2"
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] "Pac3"
+                ]
+        map (\(i,_,_) -> i) (concat (resolveIndividualNameDuplicates (conformingEntityIndices [
+              Include (Ind (SimpleInd "Ind1"))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] "Pac2"))
+            , Include (Ind (SimpleInd "Pop2"))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] "Pac3"))
+            ] indInfoDuplicates))) `shouldBe` [1,5]
 
 testJSON :: Spec
 testJSON =
     describe "Poseidon.EntitiesList.ToJSON" $ do
         it "should encode entities correctly to JSON" $ do
-            encode (Ind (SimpleInd "Ind1"))                `shouldBe` "\"<Ind1>\""
-            encode (Group "Group1")            `shouldBe` "\"Group1\""
-            encode (Pac "Pac1")                `shouldBe` "\"*Pac1*\""
-            encode (Exclude (Ind (SimpleInd "Ind1")))      `shouldBe` "\"-<Ind1>\""
-            encode (Exclude (Group "Group1"))  `shouldBe` "\"-Group1\""
-            encode (Exclude (Pac "Pac1"))      `shouldBe` "\"-*Pac1*\""
+            encode (Ind (SimpleInd "Ind1"))                                     `shouldBe` "\"<Ind1>\""
+            encode (Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"))           `shouldBe` "\"<c:b:a>\""
+            encode (Group "Group1")                                             `shouldBe` "\"Group1\""
+            encode (Pac "Pac1")                                                 `shouldBe` "\"*Pac1*\""
+            encode (Exclude (Ind (SimpleInd "Ind1")))                           `shouldBe` "\"-<Ind1>\""
+            encode (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"))) `shouldBe` "\"-<c:b:a>\""
+            encode (Exclude (Group "Group1"))                                   `shouldBe` "\"-Group1\""
+            encode (Exclude (Pac "Pac1"))                                       `shouldBe` "\"-*Pac1*\""
         it "should decode entities correctly from JSON" $ do
-            decode "\"<Ind1>\""  `shouldBe` Just (Ind (SimpleInd "Ind1"))
-            decode "\"Group1\""  `shouldBe` Just (Group "Group1")
-            decode "\"*Pac1*\""  `shouldBe` Just (Pac "Pac1")
-            decode "\"-<Ind1>\"" `shouldBe` Just (Exclude (Ind (SimpleInd "Ind1")))
-            decode "\"-Group1\"" `shouldBe` Just (Exclude (Group "Group1"))
-            decode "\"-*Pac1*\"" `shouldBe` Just (Exclude (Pac "Pac1"))
+            decode "\"<Ind1>\""   `shouldBe` Just (Ind (SimpleInd "Ind1"))
+            decode "\"<c:b:a>\""  `shouldBe` Just (Ind (SpecificInd $ IndividualInfo "a" ["b"] "c"))
+            decode "\"Group1\""   `shouldBe` Just (Group "Group1")
+            decode "\"*Pac1*\""   `shouldBe` Just (Pac "Pac1")
+            decode "\"-<Ind1>\""  `shouldBe` Just (Exclude (Ind (SimpleInd "Ind1")))
+            decode "\"-<c:b:a>\"" `shouldBe` Just (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"] "c")))
+            decode "\"-Group1\""  `shouldBe` Just (Exclude (Group "Group1"))
+            decode "\"-*Pac1*\""  `shouldBe` Just (Exclude (Pac "Pac1"))

@@ -4,7 +4,7 @@ module Poseidon.EntitiesList (
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..), onlyKeepSpecifics) where
+    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..), resolveIndividualNameDuplicates) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
@@ -19,7 +19,8 @@ import           Data.Aeson              (FromJSON (..), ToJSON (..),
                                           Value (..), withText)
 import           Data.Aeson.Types        (Parser)
 import           Data.Char               (isSpace)
-import           Data.List               (nub, (\\))
+import           Data.Function           ((&))
+import           Data.List               (groupBy, nub, sortBy, (\\))
 import           Data.Maybe              (mapMaybe)
 import           Data.Text               (Text, pack, unpack)
 import qualified Text.Parsec             as P
@@ -200,24 +201,33 @@ findNonExistentEntities entities individuals =
     let titlesPac     = nub . map indInfoPacName $ individuals
         indNamesPac   = map indInfoName individuals
         groupNamesPac = nub . concatMap indInfoGroups $ individuals
-        titlesRequestedPacs = nub [ pac   | Pac   pac   <- map underlyingEntity entities]
-        groupNamesStats     = nub [ group | Group group <- map underlyingEntity entities]
-        indNamesStats       = nub [ ind   | Ind   ind   <- map underlyingEntity entities]
-        missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
-        missingInds   = map Ind   $ filter (\x -> getIndName x `notElem` indNamesPac) indNamesStats
-        missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
-    in  missingPacs ++ missingInds ++ missingGroups
+        titlesRequestedPacs = nub [ pac   | Pac   pac               <- map underlyingEntity entities]
+        groupNamesStats     = nub [ group | Group group             <- map underlyingEntity entities]
+        simpleIndNamesStats = nub [ ind   | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
+        specificIndsStats   = nub [ ind   | Ind   (SpecificInd ind) <- map underlyingEntity entities]
+        missingPacs         = map Pac                 $ titlesRequestedPacs \\ titlesPac
+        missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
+        missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
+        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ individuals
+    in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
 
 conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
 conformingEntityIndices entities xs =
    filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec entities x)) (zip [0..] xs)
 
-onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
-onlyKeepSpecifics xs =
-    let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- xs]
-    in if length xs > 1 && length highPrio == 1
-       then highPrio
-       else xs
+resolveIndividualNameDuplicates :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+resolveIndividualNameDuplicates entityIndices =
+    entityIndices &
+        sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
+        groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b) &
+        map onlyKeepSpecifics
+    where
+        onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
+        onlyKeepSpecifics xs =
+            let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- xs]
+            in if length xs > 1 && length highPrio == 1
+               then highPrio
+               else xs
 
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =

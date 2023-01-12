@@ -10,8 +10,8 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              onlyKeepSpecifics,
-                                              readEntityInputs)
+                                              readEntityInputs,
+                                              resolveIndividualNameDuplicates)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -40,9 +40,7 @@ import           Poseidon.Utils              (PoseidonException (..),
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
-import           Data.Function               ((&))
-import           Data.List                   (groupBy, intercalate, nub, sort,
-                                              sortBy)
+import           Data.List                   (intercalate, nub, sort)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -132,11 +130,7 @@ runForge (
     let relevantInds = conformingEntityIndices entities allInds
 
     -- resolve duplicates that are already specified in --foŕgeString with <pac:group:id>
-    let equalNameIndividuals =
-            relevantInds &
-            sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
-            groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b) &
-            map onlyKeepSpecifics
+    let equalNameIndividuals = resolveIndividualNameDuplicates relevantInds
 
     -- check if there still are duplicates and if yes, then stop
     let duplicatedInds = concat $ filter (\x -> length x > 1) equalNameIndividuals
