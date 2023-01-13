@@ -4,9 +4,9 @@ This release clarifies a long standing uncertainty how trident treats individual
 
 trident does **not** allow individuals with identical identifiers, so `Poseidon_ID`s, **within one package**. And we generally also discourage such duplicates across packages in package collections. But there is no reason to enforce this unnecessarily for subcommands where it does not matter. Here are the rules we defined now:
 
-- Generally, so in the subcommands `ìnit`, `fetch`, `genoconvert`, `update`, `list`, `summarise`, and `survey`, `trident` logs a warning if it observes duplicates in a package collection found in the base dirs. But it proceeds normally then.
+- Generally, so in the subcommands `ìnit`, `fetch`, `genoconvert`, `update`, `list`, `summarise`, and `survey`, trident logs a warning if it observes duplicates in a package collection found in the base dirs. But it proceeds normally then.
 - Deviating from this, the special subcommand `validate` stops with an error if it observes duplicates. This behaviour can be changed with the new flag `--ignoreDuplicates`.
-- The `forge` subcommand, finally, also ignores duplicates in the base dirs, except (!) this conflict exists within the entities to be forged. In this case it stops with an informative error:
+- The `forge` subcommand, finally, also ignores duplicates in the base dirs, except (!) this conflict exists within the entities in the `--forgeString`. In this case it stops with an informative error:
 
 ```
 [Error]   There are duplicated individuals, but forge does not allow that
