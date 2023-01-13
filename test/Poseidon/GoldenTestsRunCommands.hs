@@ -175,6 +175,22 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     runAndChecksumFiles checkFilePath testDir action3 "init" [
           "Lamnidis" </> "Lamnidis.janno"
         ]
+    -- this is just here to copy the test package over
+    testLog (runInit InitOptions {
+          _initGenoData  = GenotypeDataSpec {
+            format   = GenotypeFormatEigenstrat
+          , genoFile = testPacsDir </> "Schmid_2028" </> "geno.txt"
+          , genoFileChkSum = Nothing
+          , snpFile  = testPacsDir </> "Schmid_2028" </> "snp.txt"
+          , snpFileChkSum = Nothing
+          , indFile  = testPacsDir </> "Schmid_2028" </> "ind.txt"
+          , indFileChkSum = Nothing
+          , snpSet   = Just SNPSetOther
+          }
+        , _initPacPath   = testDir </> "Schmid"
+        , _initPacName   = Nothing
+        , _initMinimal   = True
+    }) >> patchLastModified testDir ("Schmid" </> "POSEIDON.yml")
 
 patchLastModified :: FilePath -> FilePath -> IO ()
 patchLastModified testDir yamlFile = do
@@ -202,6 +218,7 @@ testPipelineValidate testDir checkFilePath = do
           _validateBaseDirs     = [testDir]
         , _validateIgnoreGeno   = False
         , _validateNoExitCode   = True
+        , _validateIgnoreDuplicates = True
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts1) "validate" 1
     let validateOpts2 = validateOpts1 {
@@ -554,6 +571,43 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
     runAndChecksumFiles checkFilePath testDir action8 "forge" [
           "ForgePac8" </> "ForgePac8.janno"
         ]
+    -- forge test 9 (duplicates are handled correctly if an individual is properly specified)
+    let forgeOpts9 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Schmid"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,<Schmid:POP1:XXX001>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac9"
+        , _forgeOutPacName   = Just "ForgePac9"
+        , _forgeNoExtract    = False
+    }
+    let action9 = testLog (runForge forgeOpts9) >> patchLastModified testDir ("ForgePac9" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action9 "forge" [
+          "ForgePac9" </> "ForgePac9.geno"
+        , "ForgePac9" </> "ForgePac9.janno"
+        ]
+    -- forge test 10 (duplicates can also be resolved with negative selection)
+    let forgeOpts10 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "Schiffels", PacBaseDir $ testDir </> "Schmid"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "-<Schmid:POP1:XXX001>,-<Schiffels:POP2:XXX002>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "ForgePac10"
+        , _forgeOutPacName   = Just "ForgePac10"
+        , _forgeNoExtract    = False
+    }
+    let action10 = testLog (runForge forgeOpts10) >> patchLastModified testDir ("ForgePac10" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action10 "forge" [
+          "ForgePac10" </> "ForgePac10.geno"
+        , "ForgePac10" </> "ForgePac10.janno"
+        ]
+
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
  -- sometimes we would like to implement new features that affect the communication

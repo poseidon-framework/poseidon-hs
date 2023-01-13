@@ -431,17 +431,18 @@ checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonLogIO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
     let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
     when (length genoIDs /= length (nub genoIDs)) $ do
+        let dups = nub (genoIDs \\ nub genoIDs)
         if stopOnDuplicates
         then do
             liftIO $ throwIO $ PoseidonCollectionException $
-                "Duplicate individuals (" ++
-                intercalate ", " (genoIDs \\ nub genoIDs) ++
+                "Duplicate individuals in package collection (" ++
+                intercalate ", " dups ++
                 ")"
         else do
             logWarning $
-                "Duplicate individuals (" ++
-                intercalate ", " (take 3 $ genoIDs \\ nub genoIDs) ++
-                if length (genoIDs \\ nub genoIDs) > 3
+                "Duplicate individuals in package collection (" ++
+                intercalate ", " (take 3 dups) ++
+                if length (nub $ dups) > 3
                 then ", ...)"
                 else ")"
 

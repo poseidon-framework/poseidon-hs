@@ -4,7 +4,8 @@ module Poseidon.EntitiesList (
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    conformingEntityIndices, entitiesListP, EntityInput(..), readEntityInputs) where
+    entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..),
+    resolveEntityIndices, SelectionLevel2 (..)) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
@@ -20,26 +21,41 @@ import           Data.Aeson              (FromJSON (..), ToJSON (..),
 import           Data.Aeson.Types        (Parser)
 import           Data.Char               (isSpace)
 import           Data.Function           ((&))
-import           Data.List               (nub, (\\))
+import           Data.List               (groupBy, nub, sort, sortBy, (\\))
 import           Data.Maybe              (mapMaybe)
 import           Data.Text               (Text, pack, unpack)
 import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
 
 -- | A datatype to represent a package, a group or an individual
-data PoseidonEntity = Pac String
+data PoseidonEntity =
+      Pac String
     | Group String
-    | Ind String
+    | Ind PoseidonIndividual
     deriving (Eq, Ord)
 
 instance Show PoseidonEntity where
-    show (Pac   n) = "*" ++ n ++ "*"
-    show (Group n) = n
-    show (Ind   n) = "<" ++ n ++ ">"
+    show (Pac   p) = "*" ++ p ++ "*"
+    show (Group g) = g
+    show (Ind   i) = show i
 
 type EntitiesList = [PoseidonEntity]
 
-data SignedEntity = Include PoseidonEntity
+data PoseidonIndividual =
+      SimpleInd String
+    | SpecificInd IndividualInfo
+    deriving (Eq, Ord)
+
+getIndName :: PoseidonIndividual -> String
+getIndName (SimpleInd n)                        = n
+getIndName (SpecificInd (IndividualInfo n _ _)) = n
+
+instance Show PoseidonIndividual where
+    show (SimpleInd                   i     ) = "<" ++ i ++ ">"
+    show (SpecificInd (IndividualInfo i g p)) = "<" ++ p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
+
+data SignedEntity =
+      Include PoseidonEntity
     | Exclude PoseidonEntity
     deriving (Eq, Ord)
 
@@ -49,25 +65,50 @@ instance Show SignedEntity where
 
 type SignedEntitiesList = [SignedEntity]
 
+data SelectionLevel1 =
+      IsInIndInfo
+    | IsInIndInfoSpecified
+    | IsNotInIndInfo
+
+data SelectionLevel2 =
+      ShouldBeIncluded
+    | ShouldBeIncludedWithHigherPriority
+    | ShouldNotBeIncluded
+    deriving (Show, Eq)
+
+meansIn :: SelectionLevel2 -> Bool
+meansIn ShouldBeIncluded                   = True
+meansIn ShouldBeIncludedWithHigherPriority = True
+meansIn ShouldNotBeIncluded                = False
+
 -- A class to generalise signed and unsigned Entity Lists. Both have the feature that they can be used to filter individuals.
 class Eq a => EntitySpec a where
-    indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> Bool
+    indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> SelectionLevel2
     underlyingEntity :: a -> PoseidonEntity
     entitySpecParser :: P.Parser a
 
 instance EntitySpec SignedEntity where
-    indInfoConformsToEntitySpec signedEntities (IndividualInfo indName groupNames pacName) =
+    indInfoConformsToEntitySpec signedEntities indInfo@(IndividualInfo indName groupNames pacName) =
       case mapMaybe shouldIncExc signedEntities of
-          [] -> False
+          [] -> ShouldNotBeIncluded
           xs -> last xs
       where
-        shouldIncExc :: SignedEntity -> Maybe Bool
-        shouldIncExc (Include entity) = if entity & isIndInfo then Just True  else Nothing
-        shouldIncExc (Exclude entity) = if entity & isIndInfo then Just False else Nothing
-        isIndInfo :: PoseidonEntity -> Bool
-        isIndInfo (Ind   n) = n == indName
-        isIndInfo (Group n) = n `elem` groupNames
-        isIndInfo (Pac   n) = n == pacName
+        shouldIncExc :: SignedEntity -> Maybe SelectionLevel2
+        shouldIncExc (Include entity) =
+            case isInIndInfo entity of
+                IsInIndInfo          -> Just ShouldBeIncluded
+                IsInIndInfoSpecified -> Just ShouldBeIncludedWithHigherPriority
+                IsNotInIndInfo       -> Nothing
+        shouldIncExc (Exclude entity) =
+            case isInIndInfo entity of
+                IsInIndInfo          -> Just ShouldNotBeIncluded
+                IsInIndInfoSpecified -> Just ShouldNotBeIncluded
+                IsNotInIndInfo       -> Nothing
+        isInIndInfo :: PoseidonEntity -> SelectionLevel1
+        isInIndInfo (Ind (SimpleInd n))   = if n == indName        then IsInIndInfo          else IsNotInIndInfo
+        isInIndInfo (Ind (SpecificInd i)) = if i == indInfo        then IsInIndInfoSpecified else IsNotInIndInfo
+        isInIndInfo (Group n)             = if n `elem` groupNames then IsInIndInfo          else IsNotInIndInfo
+        isInIndInfo (Pac   n)             = if n == pacName        then IsInIndInfo          else IsNotInIndInfo
     underlyingEntity = removeEntitySign
     entitySpecParser = parseSign <*> entitySpecParser
       where
@@ -79,10 +120,20 @@ instance EntitySpec PoseidonEntity where
     underlyingEntity = id
     entitySpecParser = parsePac <|> parseGroup <|> parseInd
       where
-        parsePac   = Pac   <$> P.between (P.char '*') (P.char '*') parseName
-        parseGroup = Group <$> parseName
-        parseInd   = Ind   <$> P.between (P.char '<') (P.char '>') parseName
-        parseName  = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ",<>*")))
+        parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseName
+        parseGroup       = Group <$> parseName
+        parseInd         = Ind   <$> (P.try parseSimpleInd <|> parseSpecificInd)
+        parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
+        parseSimpleInd   = SimpleInd <$> P.between (P.char '<') (P.char '>') parseName
+        parseSpecificInd = do
+            _ <- P.char '<'
+            pacName <- parseName
+            _ <- P.char ':'
+            groupName <- parseName
+            _ <- P.char ':'
+            indName <- parseName
+            _ <- P.char '>'
+            return $ SpecificInd (IndividualInfo indName [groupName] pacName)
 
 -- turns out that we cannot easily write instances for classes, so need to be explicit for both types
 instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
@@ -139,7 +190,7 @@ readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
 
 indInfoFindRelevantPackageNames :: (EntitySpec a) => [a] -> [IndividualInfo] -> [String]
 indInfoFindRelevantPackageNames e =
-    nub . map indInfoPacName . filter (indInfoConformsToEntitySpec e)
+    nub . map indInfoPacName . filter (meansIn . indInfoConformsToEntitySpec e)
 
 filterRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
 filterRelevantPackages e packages =
@@ -151,16 +202,41 @@ findNonExistentEntities entities individuals =
     let titlesPac     = nub . map indInfoPacName $ individuals
         indNamesPac   = map indInfoName individuals
         groupNamesPac = nub . concatMap indInfoGroups $ individuals
-        titlesRequestedPacs = nub [ pac   | Pac   pac   <- map underlyingEntity entities]
-        groupNamesStats     = nub [ group | Group group <- map underlyingEntity entities]
-        indNamesStats       = nub [ ind   | Ind   ind   <- map underlyingEntity entities]
-        missingPacs   = map Pac   $ titlesRequestedPacs \\ titlesPac
-        missingInds   = map Ind   $ indNamesStats       \\ indNamesPac
-        missingGroups = map Group $ groupNamesStats     \\ groupNamesPac
-    in  missingPacs ++ missingInds ++ missingGroups
+        titlesRequestedPacs = nub [ pac   | Pac   pac               <- map underlyingEntity entities]
+        groupNamesStats     = nub [ group | Group group             <- map underlyingEntity entities]
+        simpleIndNamesStats = nub [ ind   | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
+        specificIndsStats   = nub [ ind   | Ind   (SpecificInd ind) <- map underlyingEntity entities]
+        missingPacs         = map Pac                 $ titlesRequestedPacs \\ titlesPac
+        missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
+        missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
+        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ individuals
+    in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
 
-conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
-conformingEntityIndices entities = map fst . filter (indInfoConformsToEntitySpec entities .  snd) . zip [0..]
+-- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
+resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
+resolveEntityIndices entities xs =
+    let allFittingIndizes = conformingEntityIndices entities xs
+        groupsOfEqualNameIndividuals = resolveDuplicatesIfPossible $ groupByIndividualName allFittingIndizes
+        unresolvedDuplicates = filter (\x -> length x > 1) groupsOfEqualNameIndividuals
+        simpleSingles = sort $ map (\(i,_,_) -> i) $ concat $ filter (\x -> length x == 1) groupsOfEqualNameIndividuals
+    in (unresolvedDuplicates, simpleSingles)
+    where
+        conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
+        conformingEntityIndices ents inds =
+            filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec ents x)) (zip [0..] inds)
+        groupByIndividualName :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        groupByIndividualName entityIndices =
+            entityIndices &
+                sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
+                groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
+        resolveDuplicatesIfPossible :: [[(Int, IndividualInfo, SelectionLevel2)]] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        resolveDuplicatesIfPossible = map onlyKeepSpecifics
+        onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
+        onlyKeepSpecifics groupOfInds =
+            let highPrio = [ x | x@(_,_,ShouldBeIncludedWithHigherPriority) <- groupOfInds]
+            in if length xs > 1 && length highPrio == 1
+               then highPrio
+               else groupOfInds
 
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
 readEntityInputs entityInputs =

@@ -1,16 +1,16 @@
 poseidonVersion: 2.6.0
-title: ForgePac7
+title: ForgePac10
 description: Empty package template. Please add a description
 contributor:
 - name: Josiah Carberry
   email: carberry@brown.edu
   orcid: 0000-0002-1825-0097
 packageVersion: 0.1.0
-lastModified: 2023-01-12
+lastModified: 1970-01-01
 genotypeData:
   format: EIGENSTRAT
-  genoFile: ForgePac7.geno
-  snpFile: ForgePac7.snp
-  indFile: ForgePac7.ind
+  genoFile: ForgePac10.geno
+  snpFile: ForgePac10.snp
+  indFile: ForgePac10.ind
   snpSet: Other
-jannoFile: ForgePac7.janno
+jannoFile: ForgePac10.janno

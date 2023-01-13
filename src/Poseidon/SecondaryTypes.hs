@@ -33,7 +33,10 @@ data IndividualInfo = IndividualInfo
     { indInfoName    :: String
     , indInfoGroups  :: [String]
     , indInfoPacName :: String
-    } deriving Show
+    } deriving (Show, Ord)
+
+instance Eq IndividualInfo where
+    (==) (IndividualInfo a1 b1 c1) (IndividualInfo a2 b2 c2) = a1 == a2 && head b1 == head b2 && c1 == c2
 
 instance ToJSON IndividualInfo where
     toJSON x = object [

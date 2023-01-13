@@ -44,7 +44,7 @@ spec = do
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = True
+      _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
@@ -162,10 +162,11 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
     let dir = "test/testDat/testPackages/ancient"
     it "should discover packages correctly" $ do
         pac <- testLog $ readPoseidonPackageCollection testPacReadOpts [dir]
-        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Wang_Plink_test_2020"]
+        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_Plink_test_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 5 20),
-                                                      Just (fromGregorian 2021 11 9)]
+                                                      Just (fromGregorian 2021 11 9),
+                                                      Just (fromGregorian 2023 01 12)]
 
 files :: [String]
 files  = ["test/testDat/testPackages/ancient/Schiffels_2016/geno.txt",

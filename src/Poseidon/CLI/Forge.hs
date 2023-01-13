@@ -5,11 +5,12 @@ module Poseidon.CLI.Forge where
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
 import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
+                                              PoseidonIndividual (..),
                                               SignedEntity (..),
-                                              conformingEntityIndices,
                                               filterRelevantPackages,
                                               findNonExistentEntities,
-                                              readEntityInputs)
+                                              readEntityInputs,
+                                              resolveEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -29,15 +30,16 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
+import           Poseidon.SecondaryTypes     (IndividualInfo (..))
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonLogIO,
-                                              determinePackageOutName, logInfo,
-                                              logWarning)
+                                              determinePackageOutName, logError,
+                                              logInfo, logWarning)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
-import           Data.List                   (intercalate, nub, (\\))
+import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -109,10 +111,10 @@ runForge (
     logInfo $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
-    -- check for entities that do not exist this this dataset
+    -- check for entities that do not exist in this dataset
     let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
-        logWarning $ "The following entities do not exist in this dataset and will be ignored: " ++
+        logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
 
     -- determine relevant packages
@@ -120,16 +122,24 @@ runForge (
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
-    -- determine relevant individual indices
-    let relevantIndices = conformingEntityIndices entities . getJointIndividualInfo $ relevantPackages
+    -- get all individuals from the relevant packages
+    let allInds = getJointIndividualInfo $ relevantPackages
+
+    -- determine indizes of relevant individuals and resolve duplicates
+    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices entities allInds
+
+    -- check if there still are duplicates and if yes, then stop
+    unless (null unresolvedDuplicatedInds) $ do
+        logError "There are duplicated individuals, but forge does not allow that"
+        logError "Please specify in your --forgeString or --forgeFile:"
+        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) $ concat unresolvedDuplicatedInds
+        liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- collect data --
     -- janno
     let jannoRows = getJointJanno relevantPackages
         relevantJannoRows = map (jannoRows !!) relevantIndices
 
-    -- check for duplicates among the individuals selected for merging
-    checkIndividualsUniqueJanno relevantJannoRows
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
         relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
@@ -212,15 +222,6 @@ sumNonMissingSNPs accumulator (_, geno) = do
     nonMissingToInt x
         | x == Missing = 0
         | otherwise = 1
-
-checkIndividualsUniqueJanno :: [JannoRow] -> PoseidonLogIO ()
-checkIndividualsUniqueJanno rows = do
-    let indIDs = map jPoseidonID rows
-    when (length indIDs /= length (nub indIDs)) $ do
-        liftIO $ throwIO $ PoseidonForgeEntitiesException $
-            "Duplicate individuals in selection (" ++
-            intercalate ", " (indIDs \\ nub indIDs) ++
-            ")"
 
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 filterBibEntries samples references_ =

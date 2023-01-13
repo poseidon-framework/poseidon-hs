@@ -167,7 +167,9 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.lo
         \forge will apply excludes and includes in order. If the first entity is negative, then forge \
         \will assume you want to merge all individuals in the packages found in the baseDirs (except the \
         \ones explicitly excluded) before the exclude entities are applied. \
-        \An empty forgeString (and no --forgeFile) will therefore merge all available individuals.")
+        \An empty forgeString (and no --forgeFile) will therefore merge all available individuals. \
+        \If there are individuals in your input packages with equal individual id, but different main group or \
+        \source package, they can be specified with the special syntax \"<package:group:individual>\".")
   where
     readSignedEntities s = case readEntitiesFromString s of
         Left e  -> Left (show e)
@@ -394,6 +396,13 @@ parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
     OP.long "noExitCode" <>
     OP.help "do not produce an explicit exit code" <>
+    OP.hidden
+    )
+
+parseIgnoreDuplicates :: OP.Parser Bool
+parseIgnoreDuplicates = OP.switch (
+    OP.long "ignoreDuplicates" <>
+    OP.help "do not stop on duplicated individual names in the package collection" <>
     OP.hidden
     )
 
