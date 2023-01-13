@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.6.0
+@version 1.1.7.0
 
 module Poseidon.MathHelpers
 
@@ -105,6 +105,7 @@ ORCID :: [Char] -> Char -> ORCID
 [_orcidNums] :: ORCID -> [Char]
 [_orcidChecksum] :: ORCID -> Char
 instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
+instance GHC.Classes.Ord Poseidon.SecondaryTypes.IndividualInfo
 instance GHC.Show.Show Poseidon.SecondaryTypes.IndividualInfo
 instance GHC.Show.Show Poseidon.SecondaryTypes.PackageInfo
 instance GHC.Classes.Eq Poseidon.SecondaryTypes.ORCID
@@ -119,6 +120,7 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.GroupInfo
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.GroupInfo
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PackageInfo
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PackageInfo
+instance GHC.Classes.Eq Poseidon.SecondaryTypes.IndividualInfo
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.IndividualInfo
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.IndividualInfo
 
@@ -795,14 +797,14 @@ module Poseidon.EntitiesList
 data PoseidonEntity
 Pac :: String -> PoseidonEntity
 Group :: String -> PoseidonEntity
-Ind :: String -> PoseidonEntity
+Ind :: PoseidonIndividual -> PoseidonEntity
 data SignedEntity
 Include :: PoseidonEntity -> SignedEntity
 Exclude :: PoseidonEntity -> SignedEntity
 type SignedEntitiesList = [SignedEntity]
 type EntitiesList = [PoseidonEntity]
 class Eq a => EntitySpec a
-indInfoConformsToEntitySpec :: EntitySpec a => [a] -> IndividualInfo -> Bool
+indInfoConformsToEntitySpec :: EntitySpec a => [a] -> IndividualInfo -> SelectionLevel2
 underlyingEntity :: EntitySpec a => a -> PoseidonEntity
 entitySpecParser :: EntitySpec a => Parser a
 readEntitiesFromFile :: EntitySpec a => FilePath -> IO [a]
@@ -810,16 +812,31 @@ readEntitiesFromString :: EntitySpec a => String -> Either PoseidonException [a]
 findNonExistentEntities :: EntitySpec a => [a] -> [IndividualInfo] -> EntitiesList
 indInfoFindRelevantPackageNames :: EntitySpec a => [a] -> [IndividualInfo] -> [String]
 filterRelevantPackages :: EntitySpec a => [a] -> [PoseidonPackage] -> [PoseidonPackage]
-conformingEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> [Int]
 entitiesListP :: EntitySpec a => Parser [a]
 data EntityInput a
 EntitiesDirect :: [a] -> EntityInput a
 EntitiesFromFile :: FilePath -> EntityInput a
 readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a]
+getIndName :: PoseidonIndividual -> String
+data PoseidonIndividual
+SimpleInd :: String -> PoseidonIndividual
+SpecificInd :: IndividualInfo -> PoseidonIndividual
+
+-- | Result: fst is a list of unresolved duplicates, snd a simple list of
+--   integers for the simple single individuals
+resolveEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
+data SelectionLevel2
+ShouldBeIncluded :: SelectionLevel2
+ShouldBeIncludedWithHigherPriority :: SelectionLevel2
+ShouldNotBeIncluded :: SelectionLevel2
+instance GHC.Classes.Ord Poseidon.EntitiesList.PoseidonIndividual
+instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonIndividual
 instance GHC.Classes.Ord Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Classes.Ord Poseidon.EntitiesList.SignedEntity
 instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
+instance GHC.Classes.Eq Poseidon.EntitiesList.SelectionLevel2
+instance GHC.Show.Show Poseidon.EntitiesList.SelectionLevel2
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.SignedEntity
 instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Show.Show Poseidon.EntitiesList.SignedEntity
@@ -828,15 +845,17 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.SignedEntity
 instance GHC.Show.Show Poseidon.EntitiesList.PoseidonEntity
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntitiesList.PoseidonEntity
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.PoseidonEntity
+instance GHC.Show.Show Poseidon.EntitiesList.PoseidonIndividual
 
 module Poseidon.CLI.Validate
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions
-ValidateOptions :: [FilePath] -> Bool -> Bool -> ValidateOptions
+ValidateOptions :: [FilePath] -> Bool -> Bool -> Bool -> ValidateOptions
 [_validateBaseDirs] :: ValidateOptions -> [FilePath]
 [_validateIgnoreGeno] :: ValidateOptions -> Bool
 [_validateNoExitCode] :: ValidateOptions -> Bool
+[_validateIgnoreDuplicates] :: ValidateOptions -> Bool
 pacReadOpts :: PackageReadOptions
 runValidate :: ValidateOptions -> PoseidonLogIO ()
 
@@ -974,6 +993,7 @@ parseListEntity :: Parser ListEntity
 parseRawOutput :: Parser Bool
 parseIgnoreGeno :: Parser Bool
 parseNoExitCode :: Parser Bool
+parseIgnoreDuplicates :: Parser Bool
 parseRemoteURL :: Parser String
 parseUpgrade :: Parser Bool
 instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
@@ -1062,6 +1082,5 @@ pacReadOpts :: PackageReadOptions
 -- | The main function running the forge command
 runForge :: ForgeOptions -> PoseidonLogIO ()
 sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
-checkIndividualsUniqueJanno :: [JannoRow] -> PoseidonLogIO ()
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonLogIO [SNPSetSpec]
