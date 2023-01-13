@@ -1,6 +1,6 @@
 ### V 1.1.7.0
 
-This release clarifies a long standing uncertainty how trident treats individual ID duplicates. It adds a new feature to the forge language to specify individuals more precisly and thus resolve duplication conflicts.
+This release clarifies a long standing uncertainty how trident treats individual ID duplicates. It adds a new feature to the forge language to specify individuals more precisely and thus resolve duplication conflicts.
 
 trident does **not** allow individuals with identical identifiers, so `Poseidon_ID`s, **within one package**. And we generally also discourage such duplicates across packages in package collections. But there is no reason to enforce this unnecessarily for subcommands where it does not matter. Here are the rules we defined now:
 
@@ -16,7 +16,7 @@ trident does **not** allow individuals with identical identifiers, so `Poseidon_
 [Error]   Error in the forge selection: Unresolved duplicated individuals
 ```
 
-This already shows that the `-f`/`--forgeString` selection language of `forge` (and ìncidentally also `fetch`) includes a new syntactic element since this release: Individuals can now be described not just with `<individual>`, but also more specifically `<package:group:individual>`. Such defined individuals take precedence over differently defined ones (so: directly with `<individual>` or as a subset of `*package*` or `group`). This allows to resolve duplication issues precisely -- at least in cases where the duplicated individuals differ in source package or primary group.
+This already shows that the `-f`/`--forgeString` selection language of `forge` (and incidentally also `fetch`) includes a new syntactic element since this release: Individuals can now be described not just with `<individual>`, but also more specifically `<package:group:individual>`. Such defined individuals take precedence over differently defined ones (so: directly with `<individual>` or as a subset of `*package*` or `group`). This allows to resolve duplication issues precisely -- at least in cases where the duplicated individuals differ in source package or primary group.
 
 ### V 1.1.6.0
 
