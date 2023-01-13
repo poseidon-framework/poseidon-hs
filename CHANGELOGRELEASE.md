@@ -1,5 +1,23 @@
 ### V 1.1.7.0
 
+This release clarifies a long standing uncertainty how trident treats individual ID duplicates. It adds a new feature to the forge language to specify individuals more precisly and thus resolve duplication conflicts.
+
+Generally we discourage individuals with identical identifiers, so `Poseidon_ID`s, across package collections. But there is no reason to enforce this unnecessarily for subcommands where it does not matter. Here are the rules we defined now:
+
+- Generally, so in the subcommands `ìnit`, `fetch`, `genoconvert`, `update`, `list`, `summarise`, and `survey`, `trident` logs a warning if it observes duplicates in the package collection found in the base dirs, but then proceeds normally.
+- Deviating from this the special subcommand `validate` stops with an error if it observes duplicates. This behaviour can be changed with the new flag `--ignoreDuplicates`.
+- The `forge` subcommand, finally, also ignores duplicates in the base dirs, except (!) this conflict exists within the entities to be forged. In this case it stops with an informative error:
+
+```
+[Error]   There are duplicated individuals, but forge does not allow that
+[Error]   Please specify in your --forgeString or --forgeFile:
+[Error]   <Inuk.SG> -> <2010_RasmussenNature:Greenland_Saqqaq.SG:Inuk.SG>
+[Error]   <Inuk.SG> -> <2011_RasmussenNature:Greenland_Saqqaq.SG:Inuk.SG>
+[Error]   Error in the forge selection: Unresolved duplicated individuals
+```
+
+This already shows that the `-f`/`--forgeString` selection language of `forge` (and ìncidentally also `fetch`) includes a new syntactic element since this release: Individuals can now be described not just with `<individual>`, but also more specifically `<package:group:individual>`. Such defined individuals take precedence over differently defined ones (so: directly with `<individual>` or as a subset of `*package*` or `group`). This allows to resolve duplication issues precisely -- at least in cases where the duplicated individuals differ in source package or primary group.
+
 ### V 1.1.6.0
 
 #### Additional columns in .janno files (V 1.1.5.0)
