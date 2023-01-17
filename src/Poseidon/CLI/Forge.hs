@@ -41,6 +41,7 @@ import           Control.Monad               (forM, forM_, unless, when)
 import           Control.Monad.Reader        (ask)
 import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
+import qualified Data.Text                   as T
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
@@ -225,7 +226,7 @@ sumNonMissingSNPs accumulator (_, geno) = do
 
 filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
 filterBibEntries samples references_ =
-    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
+    let relevantPublications = map T.unpack . nub . concatMap getJannoList . mapMaybe jPublication $ samples
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonLogIO [SNPSetSpec]

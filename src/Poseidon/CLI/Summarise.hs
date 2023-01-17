@@ -12,6 +12,7 @@ import           Poseidon.Utils         (PoseidonLogIO)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
+import qualified Data.Text              as T
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -43,18 +44,18 @@ summariseJannoRows xs rawOutput = do
         let tableH = ["Summary", "Value"]
             tableB = [
                 ["Nr Individuals", show (length xs)],
-                ["Individuals", paste $ sort $ map jPoseidonID xs],
+                ["Individuals", paste $ sort $ map (T.unpack . jPoseidonID) xs],
                 ["Nr Groups", show $ length $ nub $ map jGroupName xs],
-                ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
+                ["Groups", printFrequency ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
                 ["Nr Publications", show $ length $ nub $ map jPublication xs],
-                ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ xs],
+                ["Publications", paste . map T.unpack . nub . concatMap getJannoList . mapMaybe jPublication $ xs],
                 ["Nr Countries", show $ length $ nub $ map jCountry xs],
-                ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
+                ["Countries", printFrequencyMaybe ", " $ frequency $ map jCountry xs],
                 ["Mean age BC/AD", meanAndSdInteger $ map (\(BCADAge x) -> fromIntegral x) $ mapMaybe jDateBCADMedian xs],
                 ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType xs],
                 ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex xs],
-                ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup xs],
-                ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map jYHaplogroup xs],
+                ["MT haplogroups", printFrequencyMaybe ", " $ frequency $ map jMTHaplogroup xs],
+                ["Y haplogroups",printFrequencyMaybe ", " $ frequency $ map jYHaplogroup xs],
                 ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe jEndogenous xs],
                 ["Nr of SNPs", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrSNPs xs],
                 ["Coverage on target SNPs", meanAndSdRoundTo 2 $ mapMaybe jCoverageOnTargets xs],
@@ -100,20 +101,3 @@ printFrequencyMaybe sep (x:xs) = maybeShow (fst x) ++ ": " ++ show (snd x) ++ se
 maybeShow :: Show a => Maybe a -> String
 maybeShow (Just x) = show x
 maybeShow Nothing  = "n/a"
-
--- | As printFrequency, but without additional quoting of strings
-printFrequencyString :: String -> [(String,Int)] -> String
-printFrequencyString _ [] = "no values"
-printFrequencyString _ [x] = fst x ++ ": " ++ show (snd x)
-printFrequencyString sep (x:xs) = fst x ++ ": " ++ show (snd x) ++ sep ++ printFrequencyString sep xs
-
--- | As printFrequencyMaybe, but without additional quoting of strings
-printFrequencyMaybeString :: String -> [(Maybe String,Int)] -> String
-printFrequencyMaybeString _ [] = "no values"
-printFrequencyMaybeString _ [x] = maybeShowString (fst x) ++ ": " ++ show (snd x)
-printFrequencyMaybeString sep (x:xs) = maybeShowString (fst x) ++ ": " ++ show (snd x) ++ sep ++ printFrequencyMaybeString sep xs
-
--- | As maybeShow, but without additional quoting of strings
-maybeShowString :: Maybe String -> String
-maybeShowString (Just x) = x
-maybeShowString Nothing  = "n/a"

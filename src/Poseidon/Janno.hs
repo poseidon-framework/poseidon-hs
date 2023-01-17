@@ -56,6 +56,7 @@ import           Data.List                            (elemIndex, foldl',
                                                        (\\))
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
+import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -385,7 +386,7 @@ instance Show JURI where
 newtype JannoList a = JannoList {getJannoList :: [a]}
     deriving (Eq, Ord, Generic, Show)
 
-type JannoStringList = JannoList String
+type JannoStringList = JannoList T.Text
 type JannoIntList = JannoList Int
 
 instance (Csv.ToField a) => Csv.ToField (JannoList a) where
@@ -521,17 +522,17 @@ instance FromJSON CsvNamedRecord where
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
-    { jPoseidonID                 :: String
+    { jPoseidonID                 :: T.Text
     , jAlternativeIDs             :: Maybe JannoStringList
     , jRelationTo                 :: Maybe JannoStringList
     , jRelationDegree             :: Maybe JannoRelationDegreeList
     , jRelationType               :: Maybe JannoStringList
-    , jRelationNote               :: Maybe String
-    , jCollectionID               :: Maybe String
+    , jRelationNote               :: Maybe T.Text
+    , jCollectionID               :: Maybe T.Text
     , jSourceTissue               :: Maybe JannoStringList
-    , jCountry                    :: Maybe String
-    , jLocation                   :: Maybe String
-    , jSite                       :: Maybe String
+    , jCountry                    :: Maybe T.Text
+    , jLocation                   :: Maybe T.Text
+    , jSite                       :: Maybe T.Text
     , jLatitude                   :: Maybe Latitude
     , jLongitude                  :: Maybe Longitude
     , jDateC14Labnr               :: Maybe JannoStringList
@@ -541,7 +542,7 @@ data JannoRow = JannoRow
     , jDateBCADStart              :: Maybe BCADAge
     , jDateBCADStop               :: Maybe BCADAge
     , jDateType                   :: Maybe JannoDateType
-    , jDateNote                   :: Maybe String
+    , jDateNote                   :: Maybe T.Text
     , jNrLibraries                :: Maybe Int
     , jCaptureType                :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
@@ -549,8 +550,8 @@ data JannoRow = JannoRow
     , jGeneticSex                 :: JannoSex
     , jNrSNPs                     :: Maybe Int
     , jCoverageOnTargets          :: Maybe Double
-    , jMTHaplogroup               :: Maybe String
-    , jYHaplogroup                :: Maybe String
+    , jMTHaplogroup               :: Maybe T.Text
+    , jYHaplogroup                :: Maybe T.Text
     , jEndogenous                 :: Maybe Percent
     , jUDG                        :: Maybe JannoUDG
     , jLibraryBuilt               :: Maybe JannoLibraryBuilt
@@ -558,12 +559,12 @@ data JannoRow = JannoRow
     , jContamination              :: Maybe JannoStringList
     , jContaminationErr           :: Maybe JannoStringList
     , jContaminationMeas          :: Maybe JannoStringList
-    , jContaminationNote          :: Maybe String
+    , jContaminationNote          :: Maybe T.Text
     , jGeneticSourceAccessionIDs  :: Maybe JannoAccessionIDList
     , jDataPreparationPipelineURL :: Maybe JURI
-    , jPrimaryContact             :: Maybe String
+    , jPrimaryContact             :: Maybe T.Text
     , jPublication                :: Maybe JannoStringList
-    , jComments                   :: Maybe String
+    , jComments                   :: Maybe T.Text
     , jKeywords                   :: Maybe JannoStringList
     , jAdditionalColumns          :: CsvNamedRecord
     }
@@ -780,7 +781,7 @@ createMinimalJanno xs = map createMinimalSample xs
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow {
-          jPoseidonID                   = id_
+          jPoseidonID                   = T.pack id_
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
@@ -804,7 +805,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jNrLibraries                  = Nothing
         , jCaptureType                  = Nothing
         , jGenotypePloidy               = Nothing
-        , jGroupName                    = JannoList [pop]
+        , jGroupName                    = JannoList [T.pack pop]
         , jGeneticSex                   = JannoSex sex
         , jNrSNPs                       = Nothing
         , jCoverageOnTargets            = Nothing
@@ -957,9 +958,9 @@ checkJannoRowConsistency jannoPath row x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
 checkMandatoryStringNotEmpty x =
-    (not . null . jPoseidonID $ x)
+    (not . T.null . jPoseidonID $ x)
     && (not . null . getJannoList . jGroupName $ x)
-    && (not . null . head . getJannoList . jGroupName $ x)
+    && (not . T.null . head . getJannoList . jGroupName $ x)
 
 getCellLength :: Maybe (JannoList a) -> Int
 getCellLength = maybe 0 (length . getJannoList)

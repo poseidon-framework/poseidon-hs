@@ -54,6 +54,7 @@ import           Data.Either                (lefts, rights)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
 import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
+import qualified Data.Text                  as T
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -387,9 +388,9 @@ checkJannoIndConsistency pacName janno indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jPoseidonID janno
+    let jannoIDs        = map (T.unpack . jPoseidonID) janno
         jannoSexs       = map (sfSex . jGeneticSex) janno
-        jannoGroups     = map (head . getJannoList . jGroupName) janno
+        jannoGroups     = map (T.unpack . head . getJannoList . jGroupName) janno
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -420,7 +421,7 @@ zipWithPadding _ b xs     []     = zip xs (repeat b)
 checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
 checkJannoBibConsistency pacName janno bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ janno
+    let literatureInJanno = map T.unpack $ nub . concatMap getJannoList . mapMaybe jPublication $ janno
         literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
@@ -520,7 +521,10 @@ getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getJointIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
-    return $ IndividualInfo (jPoseidonID jannoRow) ((getJannoList . jGroupName) jannoRow) (posPacTitle pac)
+    return $ IndividualInfo
+                (T.unpack $ jPoseidonID jannoRow)
+                (map T.unpack $ (getJannoList . jGroupName) jannoRow)
+                (posPacTitle pac)
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.

@@ -8,14 +8,16 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
-                                         logInfo)
+                                         logInfo, logWarning)
 
 import           Control.Exception      (throwIO)
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (eitherDecode')
 import qualified Data.ByteString.Lazy   as LB
+import           Data.Either            (lefts, rights)
 import           Data.List              (group, intercalate, sortOn)
+import qualified Data.Text              as T
 import           Network.HTTP.Conduit   (simpleHttp)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
@@ -81,8 +83,8 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
                 forM rows (\row -> do
-                    moreFields <- liftIO $ extractAdditionalFields row moreJannoColumns
-                    return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
+                    moreFields <- extractAdditionalFields row moreJannoColumns
+                    return ([pacName, T.unpack $ jPoseidonID row, T.unpack $ head . getJannoList . jGroupName $ row] ++ moreFields))
             logInfo $ "found " ++ show (length tableB) ++ " individuals/samples"
             return (tableH, tableB)
     if rawOutput then
@@ -96,7 +98,7 @@ unnestGroupNames = concatMap unnestOne
     where
         unnestOne :: (String, JannoRow) -> [(String, String)]
         unnestOne (pac, jR) =
-            let groups = getJannoList . jGroupName $ jR
+            let groups = map T.unpack $ getJannoList . jGroupName $ jR
             in zip (repeat pac) groups
 
 readSampleInfo :: LB.ByteString -> IO [(String, [JannoRow])]
@@ -105,76 +107,75 @@ readSampleInfo bs = do
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
         Right sam -> return sam
 
-extractAdditionalFields :: JannoRow -> [String] -> IO [String]
-extractAdditionalFields jannoRow = mapM (\f -> extractAdditionalField f jannoRow)
+extractAdditionalFields :: JannoRow -> [String] -> PoseidonLogIO [String]
+extractAdditionalFields jannoRow requestedCols = do
+    let addFields = map (`extractAdditionalField` jannoRow) requestedCols
+        unknownFields = lefts addFields
+        goodFields = rights addFields
+    mapM_ logWarning unknownFields
+    return goodFields
 
-extractAdditionalField :: String -> JannoRow -> IO String
-extractAdditionalField "Poseidon_ID"                    = return .                   jPoseidonID
-extractAdditionalField "Alternative_IDs"                = handleMaybeList            jAlternativeIDs
-extractAdditionalField "Relation_To"                    = handleMaybeList            jRelationTo
-extractAdditionalField "Relation_Degree"                = handleMaybeShowList        jRelationDegree
-extractAdditionalField "Relation_Type"                  = handleMaybeList            jRelationType
-extractAdditionalField "Relation_Note"                  = handleMaybe                jRelationNote
-extractAdditionalField "Collection_ID"                  = handleMaybe                jCollectionID
-extractAdditionalField "Source_Tissue"                  = handleMaybeList            jSourceTissue
-extractAdditionalField "Country"                        = handleMaybe                jCountry
-extractAdditionalField "Location"                       = handleMaybe                jLocation
-extractAdditionalField "Site"                           = handleMaybe                jSite
-extractAdditionalField "Latitude"                       = handleMaybeShow            jLatitude
-extractAdditionalField "Longitude"                      = handleMaybeShow            jLongitude
-extractAdditionalField "Date_C14_Labnr"                 = handleMaybeList            jDateC14Labnr
-extractAdditionalField "Date_C14_Uncal_BP"              = handleMaybeShowList        jDateC14UncalBP
-extractAdditionalField "Date_C14_Uncal_BP_Err"          = handleMaybeShowList        jDateC14UncalBPErr
-extractAdditionalField "Date_BC_AD_Median"              = handleMaybeShow            jDateBCADMedian
-extractAdditionalField "Date_BC_AD_Start"               = handleMaybeShow            jDateBCADStart
-extractAdditionalField "Date_BC_AD_Stop"                = handleMaybeShow            jDateBCADStop
-extractAdditionalField "Date_Type"                      = handleMaybeShow            jDateType
-extractAdditionalField "Date_Note"                      = handleMaybe                jDateNote
-extractAdditionalField "Nr_Libraries"                   = handleMaybeShow            jNrLibraries
-extractAdditionalField "Capture_Type"                   = handleMaybeShowList        jCaptureType
-extractAdditionalField "Genotype_Ploidy"                = handleMaybeShow            jGenotypePloidy
-extractAdditionalField "Group_Name"                     = return . intercalate ";" . getJannoList . jGroupName
-extractAdditionalField "Genetic_Sex"                    = return . show .            jGeneticSex
-extractAdditionalField "Nr_SNPs"                        = handleMaybeShow            jNrSNPs
-extractAdditionalField "Coverage_on_Target_SNPs"        = handleMaybeShow            jCoverageOnTargets
-extractAdditionalField "MT_Haplogroup"                  = handleMaybe                jMTHaplogroup
-extractAdditionalField "Y_Haplogroup"                   = handleMaybe                jYHaplogroup
-extractAdditionalField "Endogenous"                     = handleMaybeShow            jEndogenous
-extractAdditionalField "UDG"                            = handleMaybeShow            jUDG
-extractAdditionalField "Library_Built"                  = handleMaybeShow            jLibraryBuilt
-extractAdditionalField "Damage"                         = handleMaybeShow            jDamage
-extractAdditionalField "Contamination"                  = handleMaybeList            jContamination
-extractAdditionalField "Contamination_Err"              = handleMaybeList            jContaminationErr
-extractAdditionalField "Contamination_Meas"             = handleMaybeList            jContaminationMeas
-extractAdditionalField "Contamination_Note"             = handleMaybe                jContaminationNote
-extractAdditionalField "Primary_Contact"                = handleMaybe                jPrimaryContact
-extractAdditionalField "Genetic_Source_Accession_IDs"   = handleMaybeShowList        jGeneticSourceAccessionIDs
-extractAdditionalField "Data_Preparation_Pipeline_URL"  = handleMaybeShow            jDataPreparationPipelineURL
-extractAdditionalField "Publication"                    = handleMaybeList            jPublication
-extractAdditionalField "Note"                           = handleMaybe                jComments
-extractAdditionalField "Keywords"                       = handleMaybeList            jKeywords
-extractAdditionalField f                                = const (throwIO $ PoseidonGenericException (f ++ " is not a standard Janno column name"))
+extractAdditionalField :: String -> JannoRow -> Either String String
+extractAdditionalField "Poseidon_ID"                    = Right . T.unpack .                 jPoseidonID
+extractAdditionalField "Alternative_IDs"                = Right . handleMaybeList            jAlternativeIDs
+extractAdditionalField "Relation_To"                    = Right . handleMaybeList            jRelationTo
+extractAdditionalField "Relation_Degree"                = Right . handleMaybeShowList        jRelationDegree
+extractAdditionalField "Relation_Type"                  = Right . handleMaybeList            jRelationType
+extractAdditionalField "Relation_Note"                  = Right . handleMaybe                jRelationNote
+extractAdditionalField "Collection_ID"                  = Right . handleMaybe                jCollectionID
+extractAdditionalField "Source_Tissue"                  = Right . handleMaybeList            jSourceTissue
+extractAdditionalField "Country"                        = Right . handleMaybe                jCountry
+extractAdditionalField "Location"                       = Right . handleMaybe                jLocation
+extractAdditionalField "Site"                           = Right . handleMaybe                jSite
+extractAdditionalField "Latitude"                       = Right . handleMaybeShow            jLatitude
+extractAdditionalField "Longitude"                      = Right . handleMaybeShow            jLongitude
+extractAdditionalField "Date_C14_Labnr"                 = Right . handleMaybeList            jDateC14Labnr
+extractAdditionalField "Date_C14_Uncal_BP"              = Right . handleMaybeShowList        jDateC14UncalBP
+extractAdditionalField "Date_C14_Uncal_BP_Err"          = Right . handleMaybeShowList        jDateC14UncalBPErr
+extractAdditionalField "Date_BC_AD_Median"              = Right . handleMaybeShow            jDateBCADMedian
+extractAdditionalField "Date_BC_AD_Start"               = Right . handleMaybeShow            jDateBCADStart
+extractAdditionalField "Date_BC_AD_Stop"                = Right . handleMaybeShow            jDateBCADStop
+extractAdditionalField "Date_Type"                      = Right . handleMaybeShow            jDateType
+extractAdditionalField "Date_Note"                      = Right . handleMaybe                jDateNote
+extractAdditionalField "Nr_Libraries"                   = Right . handleMaybeShow            jNrLibraries
+extractAdditionalField "Capture_Type"                   = Right . handleMaybeShowList        jCaptureType
+extractAdditionalField "Genotype_Ploidy"                = Right . handleMaybeShow            jGenotypePloidy
+extractAdditionalField "Group_Name"                     = Right . intercalate ";" . map T.unpack . getJannoList . jGroupName
+extractAdditionalField "Genetic_Sex"                    = Right . show .                     jGeneticSex
+extractAdditionalField "Nr_SNPs"                        = Right . handleMaybeShow            jNrSNPs
+extractAdditionalField "Coverage_on_Target_SNPs"        = Right . handleMaybeShow            jCoverageOnTargets
+extractAdditionalField "MT_Haplogroup"                  = Right . handleMaybe                jMTHaplogroup
+extractAdditionalField "Y_Haplogroup"                   = Right . handleMaybe                jYHaplogroup
+extractAdditionalField "Endogenous"                     = Right . handleMaybeShow            jEndogenous
+extractAdditionalField "UDG"                            = Right . handleMaybeShow            jUDG
+extractAdditionalField "Library_Built"                  = Right . handleMaybeShow            jLibraryBuilt
+extractAdditionalField "Damage"                         = Right . handleMaybeShow            jDamage
+extractAdditionalField "Contamination"                  = Right . handleMaybeList            jContamination
+extractAdditionalField "Contamination_Err"              = Right . handleMaybeList            jContaminationErr
+extractAdditionalField "Contamination_Meas"             = Right . handleMaybeList            jContaminationMeas
+extractAdditionalField "Contamination_Note"             = Right . handleMaybe                jContaminationNote
+extractAdditionalField "Primary_Contact"                = Right . handleMaybe                jPrimaryContact
+extractAdditionalField "Genetic_Source_Accession_IDs"   = Right . handleMaybeShowList        jGeneticSourceAccessionIDs
+extractAdditionalField "Data_Preparation_Pipeline_URL"  = Right . handleMaybeShow            jDataPreparationPipelineURL
+extractAdditionalField "Publication"                    = Right . handleMaybeList            jPublication
+extractAdditionalField "Note"                           = Right . handleMaybe                jComments
+extractAdditionalField "Keywords"                       = Right . handleMaybeList            jKeywords
+extractAdditionalField f                                = const $ Left (f ++ " is not a standard Janno column name")
 
-handleMaybe :: (JannoRow -> Maybe String) -> JannoRow -> IO String
-handleMaybe func row =
-    case func row of
-        Just val -> return val
-        Nothing  -> return "n/a"
+handleMaybe :: (JannoRow -> Maybe T.Text) -> JannoRow -> String
+handleMaybe func row = maybe "n/a" T.unpack (func row)
 
-handleMaybeShow :: Show a => (JannoRow -> Maybe a) -> JannoRow -> IO String
-handleMaybeShow func row =
-    case func row of
-        Just val -> return $ show val
-        Nothing  -> return "n/a"
+handleMaybeShow :: Show a => (JannoRow -> Maybe a) -> JannoRow -> String
+handleMaybeShow func row = maybe "n/a" show (func row)
 
-handleMaybeList :: (JannoRow -> Maybe (JannoList String)) -> JannoRow -> IO String
+handleMaybeList :: (JannoRow -> Maybe (JannoList T.Text)) -> JannoRow -> String
 handleMaybeList func row =
     case func row of
-        Just vals -> return . intercalate ";" . getJannoList $ vals
-        Nothing   -> return "n/a"
+        Just vals -> intercalate ";" (map T.unpack $ getJannoList vals)
+        Nothing   -> "n/a"
 
-handleMaybeShowList :: Show a => (JannoRow -> Maybe (JannoList a)) -> JannoRow -> IO String
+handleMaybeShowList :: Show a => (JannoRow -> Maybe (JannoList a)) -> JannoRow -> String
 handleMaybeShowList func row =
     case func row of
-        Just vals -> return . intercalate ";" . map show . getJannoList $ vals
-        Nothing   -> return "n/a"
+        Just vals -> intercalate ";" . map show . getJannoList $ vals
+        Nothing   -> "n/a"

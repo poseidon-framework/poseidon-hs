@@ -20,6 +20,7 @@ import           Control.Monad                (forM, unless, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (group, nub, sortOn)
+import qualified Data.Text                    as T
 import           Data.Text.Lazy               (Text, intercalate, pack, unpack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
 import           Data.Version                 (parseVersion, showVersion)
@@ -298,8 +299,8 @@ getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getAllIndividualInfo packages = do
     pac <- packages
     jannoRow <- posPacJanno pac
-    let name = jPoseidonID jannoRow
-        groups = getJannoList . jGroupName $ jannoRow
+    let name = T.unpack $ jPoseidonID jannoRow
+        groups = map T.unpack . getJannoList . jGroupName $ jannoRow
         pacName = posPacTitle pac
     return $ IndividualInfo name groups pacName
 
