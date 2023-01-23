@@ -390,7 +390,7 @@ instance Show JURI where
 newtype JannoList a = JannoList {getJannoList :: [a]}
     deriving (Eq, Ord, Generic, Show)
 
-type JannoStringList = JannoList T.Text
+type JannoTextList = JannoList T.Text
 type JannoIntList = JannoList Int
 
 instance (Csv.ToField a) => Csv.ToField (JannoList a) where
@@ -527,19 +527,19 @@ instance FromJSON CsvNamedRecord where
 -- for more details
 data JannoRow = JannoRow
     { jPoseidonID                 :: T.Text
-    , jAlternativeIDs             :: Maybe JannoStringList
-    , jRelationTo                 :: Maybe JannoStringList
+    , jAlternativeIDs             :: Maybe JannoTextList
+    , jRelationTo                 :: Maybe JannoTextList
     , jRelationDegree             :: Maybe JannoRelationDegreeList
-    , jRelationType               :: Maybe JannoStringList
+    , jRelationType               :: Maybe JannoTextList
     , jRelationNote               :: Maybe T.Text
     , jCollectionID               :: Maybe T.Text
-    , jSourceTissue               :: Maybe JannoStringList
+    , jSourceTissue               :: Maybe JannoTextList
     , jCountry                    :: Maybe T.Text
     , jLocation                   :: Maybe T.Text
     , jSite                       :: Maybe T.Text
     , jLatitude                   :: Maybe Latitude
     , jLongitude                  :: Maybe Longitude
-    , jDateC14Labnr               :: Maybe JannoStringList
+    , jDateC14Labnr               :: Maybe JannoTextList
     , jDateC14UncalBP             :: Maybe JannoIntList
     , jDateC14UncalBPErr          :: Maybe JannoIntList
     , jDateBCADMedian             :: Maybe BCADAge
@@ -550,7 +550,7 @@ data JannoRow = JannoRow
     , jNrLibraries                :: Maybe Int
     , jCaptureType                :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
-    , jGroupName                  :: JannoStringList
+    , jGroupName                  :: JannoTextList
     , jGeneticSex                 :: JannoSex
     , jNrSNPs                     :: Maybe Int
     , jCoverageOnTargets          :: Maybe Double
@@ -560,16 +560,16 @@ data JannoRow = JannoRow
     , jUDG                        :: Maybe JannoUDG
     , jLibraryBuilt               :: Maybe JannoLibraryBuilt
     , jDamage                     :: Maybe Percent
-    , jContamination              :: Maybe JannoStringList
-    , jContaminationErr           :: Maybe JannoStringList
-    , jContaminationMeas          :: Maybe JannoStringList
+    , jContamination              :: Maybe JannoTextList
+    , jContaminationErr           :: Maybe JannoTextList
+    , jContaminationMeas          :: Maybe JannoTextList
     , jContaminationNote          :: Maybe T.Text
     , jGeneticSourceAccessionIDs  :: Maybe JannoAccessionIDList
     , jDataPreparationPipelineURL :: Maybe JURI
     , jPrimaryContact             :: Maybe T.Text
-    , jPublication                :: Maybe JannoStringList
+    , jPublication                :: Maybe JannoTextList
     , jComments                   :: Maybe T.Text
-    , jKeywords                   :: Maybe JannoStringList
+    , jKeywords                   :: Maybe JannoTextList
     , jAdditionalColumns          :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
