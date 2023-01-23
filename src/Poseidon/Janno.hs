@@ -57,6 +57,9 @@ import           Data.List                            (elemIndex, foldl',
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
+import           Data.Text.Encoding                   (decodeUtf8With,
+                                                       encodeUtf8)
+import           Data.Text.Encoding.Error             (ignore)
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -680,26 +683,22 @@ instance Csv.FromNamedRecord JannoRow where
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField . trimWS . ignoreNA $ HM.lookup name m
+filterLookup m name = maybe empty Csv.parseField $ cleanInput $ HM.lookup name m
 
 filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . trimWS . ignoreNA $ HM.lookup name m
+filterLookupOptional m name = maybe (pure Nothing) Csv.parseField $ cleanInput $ HM.lookup name m
 
-ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-ignoreNA (Just "")    = Nothing
-ignoreNA (Just "n/a") = Nothing
-ignoreNA (Just x)     = Just x
-ignoreNA Nothing      = Nothing
-
-trimWS :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-trimWS (Just x) = Just $ Bchs.dropWhileEnd isSpace $ Bchs.dropWhile isSpace x
+cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
+cleanInput Nothing = Nothing
+cleanInput (Just rawInputByteString) =
+    -- "ignore" here, because cassava parsing (FromField Text) failes on invalid input
+    let rawInputText = decodeUtf8With ignore rawInputByteString
+    in fmap encodeUtf8 $ ignoreNA $ T.strip rawInputText
     where
-        isSpace :: Char -> Bool
-        isSpace c =
-            c == '\32'  || -- Space
-            c == '\160' || -- No-Break Space
-            c == '\194'    -- No-Break Space (194 160 is the UTF-8 encoding of a No-Break Space)
-trimWS Nothing = Nothing
+        ignoreNA :: T.Text -> Maybe T.Text
+        ignoreNA ""    = Nothing
+        ignoreNA "n/a" = Nothing
+        ignoreNA x     = Just x
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [
@@ -748,7 +747,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
         -- beyond that add what is in the hashmap of additional columns
-        ] `HM.union` (getCsvNR $ jAdditionalColumns j)
+        ] `HM.union` getCsvNR (jAdditionalColumns j)
 
 instance Csv.DefaultOrdered JannoRow where
     headerOrder _ = Csv.header jannoHeader
