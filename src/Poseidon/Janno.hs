@@ -690,14 +690,16 @@ filterLookupOptional m name =
     maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-cleanInput Nothing = Nothing
+cleanInput Nothing           = Nothing
 cleanInput (Just rawInputBS) =
+    -- the transformation from ByteString to Text to ByteString feels verbose
+    -- but it allows for reliable trimming of whitespaces
     fmap T.encodeUtf8 . transNA . trimWS $ T.decodeUtf8With T.ignore rawInputBS
     where
         trimWS :: T.Text -> T.Text
         trimWS = T.dropAround isAnySpace
         isAnySpace :: Char -> Bool
-        isAnySpace x = isSpace x || x == '\160'
+        isAnySpace x = isSpace x || x == '\160' -- 160 is No-Break Space
         transNA :: T.Text -> Maybe T.Text
         transNA ""    = Nothing
         transNA "n/a" = Nothing
