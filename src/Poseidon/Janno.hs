@@ -58,9 +58,8 @@ import           Data.Maybe                           (fromJust, isNothing,
                                                        mapMaybe)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
-import           Data.Text.Encoding                   (decodeUtf8With,
-                                                       encodeUtf8)
-import           Data.Text.Encoding.Error             (ignore)
+import qualified Data.Text.Encoding                   as T
+import qualified Data.Text.Encoding.Error             as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -684,26 +683,25 @@ instance Csv.FromNamedRecord JannoRow where
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField $ cleanInput $ HM.lookup name m
-
+filterLookup m name =
+    maybe empty          Csv.parseField . cleanInput $ HM.lookup name m
 filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = maybe (pure Nothing) Csv.parseField $ cleanInput $ HM.lookup name m
+filterLookupOptional m name =
+    maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 cleanInput Nothing = Nothing
-cleanInput (Just rawInputByteString) =
-    -- "ignore" here, because cassava parsing (FromField Text) failes on invalid input
-    let rawInputText = decodeUtf8With ignore rawInputByteString
-    in fmap encodeUtf8 $ ignoreNA $ trimWS rawInputText
+cleanInput (Just rawInputBS) =
+    fmap T.encodeUtf8 . transNA . trimWS $ T.decodeUtf8With T.ignore rawInputBS
     where
         trimWS :: T.Text -> T.Text
-        trimWS = T.dropAround isMoreSpace
-        isMoreSpace :: Char -> Bool
-        isMoreSpace x = isSpace x || x == '\160'
-        ignoreNA :: T.Text -> Maybe T.Text
-        ignoreNA ""    = Nothing
-        ignoreNA "n/a" = Nothing
-        ignoreNA x     = Just x
+        trimWS = T.dropAround isAnySpace
+        isAnySpace :: Char -> Bool
+        isAnySpace x = isSpace x || x == '\160'
+        transNA :: T.Text -> Maybe T.Text
+        transNA ""    = Nothing
+        transNA "n/a" = Nothing
+        transNA x     = Just x
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [
