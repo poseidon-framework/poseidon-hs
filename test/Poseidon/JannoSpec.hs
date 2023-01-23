@@ -95,3 +95,4 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_relations.janno") `shouldThrow` anyException
         testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_contamination.janno") `shouldThrow` anyException
         testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_dating.janno") `shouldThrow` anyException
+        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_dating2.janno") `shouldThrow` anyException
