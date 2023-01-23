@@ -47,14 +47,15 @@ import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (ord)
+import           Data.Char                            (isSpace, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        (\\))
-import           Data.Maybe                           (fromJust, isNothing)
+import           Data.Maybe                           (fromJust, isNothing,
+                                                       mapMaybe)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
 import           Data.Text.Encoding                   (decodeUtf8With,
@@ -399,7 +400,7 @@ instance (Csv.FromField a) => Csv.FromField (JannoList a) where
     parseField x = do
         fieldStr <- Csv.parseField x
         let subStrings = Bchs.splitWith (==';') fieldStr
-        fmap JannoList . mapM Csv.parseField $ subStrings
+        fmap JannoList . mapM Csv.parseField . mapMaybe (cleanInput . Just) $ subStrings
 
 instance (ToJSON a) => ToJSON (JannoList a) where
     toJSON (JannoList x) = toJSON x
@@ -693,8 +694,12 @@ cleanInput Nothing = Nothing
 cleanInput (Just rawInputByteString) =
     -- "ignore" here, because cassava parsing (FromField Text) failes on invalid input
     let rawInputText = decodeUtf8With ignore rawInputByteString
-    in fmap encodeUtf8 $ ignoreNA $ T.strip rawInputText
+    in fmap encodeUtf8 $ ignoreNA $ trimWS rawInputText
     where
+        trimWS :: T.Text -> T.Text
+        trimWS = T.dropAround isMoreSpace
+        isMoreSpace :: Char -> Bool
+        isMoreSpace x = isSpace x || x == '\160'
         ignoreNA :: T.Text -> Maybe T.Text
         ignoreNA ""    = Nothing
         ignoreNA "n/a" = Nothing
