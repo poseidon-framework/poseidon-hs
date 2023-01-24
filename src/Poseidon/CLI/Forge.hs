@@ -126,8 +126,14 @@ runForge (
     -- get all individuals from the relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
+    -- set entities to only packages, if --no-extract is set
+    let relevantEntities =
+            if noExtract
+            then map (Include . Pac . posPacTitle) relevantPackages
+            else entities
+
     -- determine indizes of relevant individuals and resolve duplicates
-    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices entities allInds
+    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices relevantEntities allInds
 
     -- check if there still are duplicates and if yes, then stop
     unless (null unresolvedDuplicatedInds) $ do
@@ -185,8 +191,7 @@ runForge (
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
-            let eigenstratIndEntriesV = eigenstratIndEntries
-            let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
+            let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
 
             let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
             let outConsumer = case outFormat of
