@@ -233,9 +233,12 @@ defaultPackageReadOptions = PackageReadOptions {
 readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
                               -> PoseidonLogIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection opts dirs = do
+readPoseidonPackageCollection opts baseDirs = do
+    logInfo "Checking base directories... "
+    goodDirs <- catMaybes <$> mapM checkIfBaseDirExists baseDirs
+    when (null goodDirs) $ liftIO $ throwIO PoseidonNoExistingBaseDirs
     logInfo "Searching POSEIDON.yml files... "
-    posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles dirs
+    posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
     logInfo $ show (length posFilesAllVersions) ++ " found"
     posFiles <- if _readOptIgnorePosVersion opts
                 then return posFilesAllVersions
@@ -269,6 +272,14 @@ readPoseidonPackageCollection opts dirs = do
     -- return package list
     return finalPackageList
   where
+    checkIfBaseDirExists :: FilePath -> PoseidonLogIO (Maybe FilePath)
+    checkIfBaseDirExists p = do
+        exists <- liftIO $ doesDirectoryExist p
+        if exists
+        then return (Just p)
+        else do
+            logWarning $ "baseDir " ++ show p ++ " does not exist"
+            return Nothing
     filterByPoseidonVersion :: [FilePath] -> PoseidonLogIO [FilePath]
     filterByPoseidonVersion posFiles = do
         eitherPaths <- liftIO $ mapM isInVersionRange posFiles

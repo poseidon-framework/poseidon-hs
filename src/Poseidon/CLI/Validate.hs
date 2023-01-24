@@ -32,10 +32,10 @@ pacReadOpts = defaultPackageReadOptions {
 
 runValidate :: ValidateOptions -> PoseidonLogIO ()
 runValidate (ValidateOptions baseDirs ignoreGeno noExitCode ignoreDup) = do
-    posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnoreGeno = ignoreGeno, _readOptStopOnDuplicates = not ignoreDup}
         baseDirs
+    posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
