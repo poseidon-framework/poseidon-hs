@@ -278,7 +278,7 @@ readPoseidonPackageCollection opts baseDirs = do
         if exists
         then return (Just p)
         else do
-            logWarning $ "baseDir " ++ show p ++ " does not exist"
+            logWarning $ "Base directory (-d) " ++ show p ++ " does not exist"
             return Nothing
     filterByPoseidonVersion :: [FilePath] -> PoseidonLogIO [FilePath]
     filterByPoseidonVersion posFiles = do
