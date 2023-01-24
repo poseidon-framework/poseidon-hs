@@ -236,7 +236,6 @@ readPoseidonPackageCollection :: PackageReadOptions
 readPoseidonPackageCollection opts baseDirs = do
     logInfo "Checking base directories... "
     goodDirs <- catMaybes <$> mapM checkIfBaseDirExists baseDirs
-    when (null goodDirs) $ liftIO $ throwIO PoseidonNoExistingBaseDirs
     logInfo "Searching POSEIDON.yml files... "
     posFilesAllVersions <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
     logInfo $ show (length posFilesAllVersions) ++ " found"

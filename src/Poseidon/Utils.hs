@@ -60,6 +60,7 @@ usePoseidonLogger VerboseLog = flip runReaderT verboseLog
 
 testLog :: PoseidonLogIO a -> IO a
 testLog = usePoseidonLogger NoLog
+--testLog = usePoseidonLogger DefaultLog
 
 noLog      :: LogEnv
 noLog      = cfilter (const False) simpleLog
@@ -116,8 +117,7 @@ logWithEnv logEnv = liftIO . flip runReaderT logEnv
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException =
-      PoseidonNoExistingBaseDirs -- ^ An exception to indicate that non of the listed baseDirs exists
-    | PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
+      PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     | PoseidonPackageException String -- ^ An exception to represent a logical error in a package
     | PoseidonPackageVersionException FilePath String -- ^ An exception to represent an issue with a package version
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
@@ -145,8 +145,6 @@ data PoseidonException =
 instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
-renderPoseidonException PoseidonNoExistingBaseDirs =
-    "None of the listed base dirs exist"
 renderPoseidonException (PoseidonYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ": " ++ show e
 renderPoseidonException (PoseidonPackageException s) =
