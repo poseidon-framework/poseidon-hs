@@ -1,3 +1,4 @@
+- V 1.1.8.0: Renamed `--no-extract` to `--packagewise` , fixed its behaviour with implicit package selection, and clarified help text 
 - V 1.1.7.0: Reorganized handling of duplicate individuals: Duplicates are now generally ignored, except in validate (can also be turned of with a new flag) and forge. The forgeString language features a new syntactic entity to select individuals specifically and thus resolve duplication conflicts
 - V 1.1.6.0: Removed outdated --verbose from validate and ignore trailing slashes from --outPath
 - V 1.1.5.0: Enabled reading and forging additional, unspecified variables in .janno files 

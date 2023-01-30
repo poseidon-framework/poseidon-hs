@@ -353,7 +353,7 @@ parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
     OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
 
 parseNoExtract :: OP.Parser Bool
-parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the within-package selection step in forge. \
+parseNoExtract = OP.switch (OP.long "packagewise" <> OP.help "Skip the within-package selection step in forge. \
     \This will result in \
     \outputting all individuals in the relevant packages, and hence a superset of the requested \
     \individuals/groups. It may result in better performance in cases where one wants to forge entire packages or \
