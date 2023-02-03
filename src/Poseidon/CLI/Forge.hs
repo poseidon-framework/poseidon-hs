@@ -51,32 +51,25 @@ import           Pipes.Safe                  (SafeT, runSafeT)
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
-import           SequenceFormats.Plink       (writePlink)
+import           SequenceFormats.Plink       (writePlink, PlinkPopNameMode, eigenstratInd2PlinkFam)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeGenoSources :: [GenoDataSource]
+    { _forgeGenoSources  :: [GenoDataSource]
     -- Empty list = forge all packages
-    , _forgeEntityInput :: [EntityInput SignedEntity] -- Empty list = forge all packages
-    , _forgeSnpFile     :: Maybe FilePath
-    , _forgeIntersect   :: Bool
-    , _forgeOutFormat   :: GenotypeFormatSpec
-    , _forgeOutMinimal  :: Bool
-    , _forgeOutOnlyGeno :: Bool
-    , _forgeOutPacPath  :: FilePath
-    , _forgeOutPacName  :: Maybe String
-    , _forgeNoExtract   :: Bool
-    }
-
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = False
-    , _readOptGenoCheck        = True
+    , _forgeEntityInput  :: [EntityInput SignedEntity] -- Empty list = forge all packages
+    , _forgeSnpFile      :: Maybe FilePath
+    , _forgeIntersect    :: Bool
+    , _forgeOutFormat    :: GenotypeFormatSpec
+    , _forgeOutMinimal   :: Bool
+    , _forgeOutOnlyGeno  :: Bool
+    , _forgeOutPacPath   :: FilePath
+    , _forgeOutPacName   :: Maybe String
+    , _forgeNoExtract    :: Bool
+    , _forgePlinkPopMode :: PlinkPopNameMode
     }
 
 -- | The main function running the forge command
@@ -85,12 +78,21 @@ runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
-                 noExtract
+                 noExtract plinkPopMode
     ) = do
+
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = False
+        , _readOptGenoCheck        = True
+        , _readOptPlinkPopMode     = plinkPopMode
+        }
+
 
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
-    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
+    pseudoPackages <- liftIO . forM [getGenoDirect x | x@GenoDirect {} <- genoSources] $ \gd -> makePseudoPackageFromGenotypeData gd plinkPopMode
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 
@@ -123,7 +125,7 @@ runForge (
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
     -- get all individuals from the relevant packages
-    let allInds = getJointIndividualInfo $ relevantPackages
+    let allInds = getJointIndividualInfo relevantPackages
 
     -- determine indizes of relevant individuals and resolve duplicates
     let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices entities allInds
@@ -183,14 +185,14 @@ runForge (
     currentTime <- liftIO getCurrentTime
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
-            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ plinkPopMode relevantPackages maybeSnpFile
             let eigenstratIndEntriesV = eigenstratIndEntries
             let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
 
             let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                    GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
+                    GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam plinkPopMode) newEigenstratIndEntries)
             let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold

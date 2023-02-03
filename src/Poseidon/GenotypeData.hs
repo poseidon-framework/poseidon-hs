@@ -26,7 +26,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
-import           SequenceFormats.Plink      (readFamFile, readPlink)
+import           SequenceFormats.Plink      (readFamFile, readPlink, PlinkPopNameMode, plinkFam2EigenstratInd)
 import           System.FilePath            ((</>))
 
 data GenoDataSource = PacBaseDir
@@ -144,23 +144,27 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
+               -> PlinkPopNameMode -- ^ the Plink popName mode
                -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d gd = do
+loadIndividuals d gd popMode = do
     checkFile (d </> indFile gd) Nothing
     case format gd of
         GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
-        GenotypeFormatPlink      -> readFamFile (d </> indFile gd)
+        GenotypeFormatPlink      -> map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> indFile gd)
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: (MonadSafe m) =>
                    FilePath -- ^ the base path
                 -> GenotypeDataSpec -- ^ the genotype spec
+                -> PlinkPopNameMode -- ^ The Plink PopName Mode
                 -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) =
+loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) popMode =
     case format_ of
         GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
-        GenotypeFormatPlink      -> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
+        GenotypeFormatPlink      -> do
+            (famEntries, prod) <- readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
+            return (map (plinkFam2EigenstratInd popMode) famEntries, prod)
 
 joinEntries :: (MonadIO m) => LogEnv -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries logEnv nrInds pacNames maybeTupleList = do

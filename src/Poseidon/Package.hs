@@ -41,7 +41,7 @@ import           Poseidon.Utils             (LogEnv, PoseidonException (..),
                                              renderPoseidonException)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (filterM, forM_, unless, void, when)
+import           Control.Monad              (filterM, forM_, unless, void, when, forM)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Reader       (ask)
@@ -71,7 +71,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
-import           SequenceFormats.Plink      (readBimFile)
+import           SequenceFormats.Plink      (readBimFile, PlinkPopNameMode (PlinkPopNameAsFamily))
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
@@ -216,6 +216,8 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to check the first 100 SNPs of the genotypes
     , _readOptIgnorePosVersion :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
+    , _readOptPlinkPopMode     :: PlinkPopNameMode
+    -- ^ the mode in which popNames are encoded in the Plink fam-file format
     }
 
 defaultPackageReadOptions :: PackageReadOptions
@@ -225,6 +227,7 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
     , _readOptIgnorePosVersion = False
+    , _readOptPlinkPopMode     = PlinkPopNameAsFamily
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
@@ -264,7 +267,8 @@ readPoseidonPackageCollection opts baseDirs = do
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
             \x -> logWarning x
     -- individual duplication check
-    individuals <- liftIO $ mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
+    individuals <- liftIO . forM finalPackageList $ \pac ->
+        loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac) (_readOptPlinkPopMode opts)
     checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
     -- report number of valid packages
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
@@ -328,7 +332,7 @@ readPoseidonPackage opts ymlPath = do
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
 
     -- read janno (or fill with empty dummy object)
-    indEntries <- liftIO $ loadIndividuals baseDir geno
+    indEntries <- liftIO $ loadIndividuals baseDir geno (_readOptPlinkPopMode opts)
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
@@ -350,7 +354,7 @@ readPoseidonPackage opts ymlPath = do
         when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
+            (_, eigenstratProd) <- getJointGenotypeData logEnv False (_readOptPlinkPopMode opts) [pac] Nothing
             runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward)
     return pac
@@ -452,7 +456,7 @@ checkIndividualsUnique stopOnDuplicates indEntries = do
             logWarning $
                 "Duplicate individuals in package collection (" ++
                 intercalate ", " (take 3 dups) ++
-                if length (nub $ dups) > 3
+                if length (nub dups) > 3
                 then ", ...)"
                 else ")"
 
@@ -489,12 +493,13 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
 getJointGenotypeData :: MonadSafe m =>
                         LogEnv -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
+                     -> PlinkPopNameMode -- ^ how to read population labels from Plink 
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logEnv intersect pacs maybeSnpFile = do
-    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
+getJointGenotypeData logEnv intersect popMode pacs maybeSnpFile = do
+    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) popMode | pac <- pacs]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
@@ -572,15 +577,15 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacDuplicate = 1
     }
 
-makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
-makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = do
+makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PlinkPopNameMode -> IO PoseidonPackage
+makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) popMode = do
     let baseDir      = getBaseDir genoFile_ snpFile_ indFile_
         outInd       = takeFileName indFile_
         outSnp       = takeFileName snpFile_
         outGeno      = takeFileName genoFile_
         genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
         pacName      = takeBaseName genoFile_
-    inds <- loadIndividuals baseDir genotypeData
+    inds <- loadIndividuals baseDir genotypeData popMode
     newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
     where
         getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath

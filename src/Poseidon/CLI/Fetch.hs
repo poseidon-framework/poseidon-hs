@@ -37,12 +37,14 @@ import           Network.HTTP.Types      (hContentLength)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
+import SequenceFormats.Plink (PlinkPopNameMode)
 
 data FetchOptions = FetchOptions
-    { _jaBaseDirs  :: [FilePath]
-    , _entityInput :: [EntityInput PoseidonEntity] -- Empty list = All packages
-    , _remoteURL   :: String
-    , _upgrade     :: Bool
+    { _jaBaseDirs   :: [FilePath]
+    , _entityInput  :: [EntityInput PoseidonEntity] -- Empty list = All packages
+    , _remoteURL    :: String
+    , _upgrade      :: Bool
+    , _plinkPopMode :: PlinkPopNameMode
     }
 
 data PackageState = NotLocal
@@ -50,17 +52,18 @@ data PackageState = NotLocal
     | LaterRemote
     | LaterLocal
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = False
-    , _readOptGenoCheck        = False
-    }
-
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> PoseidonLogIO ()
-runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
+runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade plinkPopMode) = do
+
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = False
+        , _readOptGenoCheck        = False
+        , _readOptPlinkPopMode     = plinkPopMode
+        }
+
 
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
         downloadDir = head baseDirs
