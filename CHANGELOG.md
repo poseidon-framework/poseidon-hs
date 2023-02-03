@@ -1,3 +1,4 @@
+- V 1.1.8.2: Improved the behaviour of `list` when provided with undefined .janno columns in the `-j` argument
 - V 1.1.8.1: Fixed an decoding-encoding bug in the janno code by generally trimming all whitespaces on reading and deleting No-Break Space characters
 - V 1.1.8.0: Renamed `--no-extract` to `--packagewise`, fixed its behaviour with implicit package selection, and clarified help text
 - V 1.1.7.2: Added a proper warning in `readPoseidonPackageCollection` if one or all baseDirs do not exist 
