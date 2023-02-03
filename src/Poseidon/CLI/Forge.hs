@@ -68,7 +68,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutOnlyGeno :: Bool
     , _forgeOutPacPath  :: FilePath
     , _forgeOutPacName  :: Maybe String
-    , _forgeNoExtract   :: Bool
+    , _forgePackageWise :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -85,7 +85,7 @@ runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
-                 noExtract
+                 packageWise
     ) = do
 
     -- load packages --
@@ -125,9 +125,9 @@ runForge (
     -- get all individuals from the relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
-    -- set entities to only packages, if --no-extract is set
+    -- set entities to only packages, if --packagewise is set
     let relevantEntities =
-            if noExtract
+            if packageWise
             then map (Include . Pac . posPacTitle) relevantPackages
             else entities
 
@@ -196,7 +196,7 @@ runForge (
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                     GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
-            let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
+            let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->

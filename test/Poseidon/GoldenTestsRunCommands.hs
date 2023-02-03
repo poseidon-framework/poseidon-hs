@@ -392,7 +392,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action1 = testLog (runForge forgeOpts1) >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
@@ -411,7 +411,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac2"
         , _forgeOutPacName   = Nothing
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action2 = testLog (runForge forgeOpts2) >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
@@ -429,7 +429,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac3"
         , _forgeOutPacName   = Nothing
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action3 = testLog (runForge forgeOpts3) >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
@@ -450,7 +450,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac4"
         , _forgeOutPacName   = Nothing
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action4 = testLog (runForge forgeOpts4) >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
@@ -470,7 +470,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac5"
         , _forgeOutPacName   = Just "ForgePac5"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
         , _forgeSnpFile      = Nothing
     }
     let action5 = testLog (runForge forgeOpts5) >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
@@ -512,7 +512,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = True
         , _forgeOutPacPath   = testDir </> "ForgePac6"
         , _forgeOutPacName   = Just "ForgePac6"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
         , _forgeSnpFile      = Nothing
     }
     let action6 = testLog (runForge forgeOpts6)
@@ -544,7 +544,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac7"
         , _forgeOutPacName   = Just "ForgePac7"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
         , _forgeSnpFile      = Nothing
     }
     let action7 = testLog (runForge forgeOpts7)
@@ -565,7 +565,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac8"
         , _forgeOutPacName   = Just "ForgePac8"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action8 = testLog (runForge forgeOpts8) >> patchLastModified testDir ("ForgePac8" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action8 "forge" [
@@ -582,7 +582,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac9"
         , _forgeOutPacName   = Just "ForgePac9"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action9 = testLog (runForge forgeOpts9) >> patchLastModified testDir ("ForgePac9" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action9 "forge" [
@@ -600,7 +600,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "ForgePac10"
         , _forgeOutPacName   = Just "ForgePac10"
-        , _forgeNoExtract    = False
+        , _forgePackageWise  = False
     }
     let action10 = testLog (runForge forgeOpts10) >> patchLastModified testDir ("ForgePac10" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action10 "forge" [
