@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.7.2
+@version 1.1.8.0
 
 module Poseidon.MathHelpers
 
@@ -987,7 +987,7 @@ parseMaybeOutPackagePath :: Parser (Maybe FilePath)
 parseMaybeOutPackageName :: Parser (Maybe String)
 parseMakeMinimalPackage :: Parser Bool
 parseOutOnlyGeno :: Parser Bool
-parseNoExtract :: Parser Bool
+parsePackageWise :: Parser Bool
 parseMaybeSnpFile :: Parser (Maybe FilePath)
 parseListEntity :: Parser ListEntity
 parseRawOutput :: Parser Bool
@@ -1076,7 +1076,7 @@ ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath
 [_forgeOutOnlyGeno] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
-[_forgeNoExtract] :: ForgeOptions -> Bool
+[_forgePackageWise] :: ForgeOptions -> Bool
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
