@@ -68,7 +68,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutOnlyGeno :: Bool
     , _forgeOutPacPath  :: FilePath
     , _forgeOutPacName  :: Maybe String
-    , _forgeNoExtract   :: Bool
+    , _forgePackageWise :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -85,7 +85,7 @@ runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
-                 noExtract
+                 packageWise
     ) = do
 
     -- load packages --
@@ -125,8 +125,14 @@ runForge (
     -- get all individuals from the relevant packages
     let allInds = getJointIndividualInfo $ relevantPackages
 
+    -- set entities to only packages, if --packagewise is set
+    let relevantEntities =
+            if packageWise
+            then map (Include . Pac . posPacTitle) relevantPackages
+            else entities
+
     -- determine indizes of relevant individuals and resolve duplicates
-    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices entities allInds
+    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices relevantEntities allInds
 
     -- check if there still are duplicates and if yes, then stop
     unless (null unresolvedDuplicatedInds) $ do
@@ -184,14 +190,13 @@ runForge (
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
-            let eigenstratIndEntriesV = eigenstratIndEntries
-            let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
+            let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
 
             let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                     GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
-            let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
+            let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->

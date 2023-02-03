@@ -352,13 +352,12 @@ parseOutOnlyGeno :: OP.Parser Bool
 parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
     OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
 
-parseNoExtract :: OP.Parser Bool
-parseNoExtract = OP.switch (OP.long "no-extract" <> OP.help "Skip the selection step in forge. This will result in \
+parsePackageWise :: OP.Parser Bool
+parsePackageWise = OP.switch (OP.long "packagewise" <> OP.help "Skip the within-package selection step in forge. \
+    \This will result in \
     \outputting all individuals in the relevant packages, and hence a superset of the requested \
     \individuals/groups. It may result in better performance in cases where one wants to forge entire packages or \
-    \almost entire packages. \
-    \Note that this will also ignore any ordering in the output groups/individuals. With this option active, \
-    \individuals from the relevant packages will just be written in the order that they appear in the original packages.")
+    \almost entire packages. Details: Forge conceptually performs two types of selection: First, it identifies which packages in the supplied base directories are relevant to the requested forge, i.e. whether they are either explicitly listed using *PackageName*, or because they contain selected individuals or groups. Second, within each relevant package, individuals which are not requested are removed. This option skips only the second step, but still performs the first.")
 
 parseMaybeSnpFile :: OP.Parser (Maybe FilePath)
 parseMaybeSnpFile = OP.option (Just <$> OP.str) (OP.value Nothing <> OP.long "selectSnps" <>
