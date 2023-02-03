@@ -12,7 +12,9 @@ import           Poseidon.Utils         (PoseidonLogIO, logError, logInfo)
 
 import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.List     (filterM)
 import           Data.List              (foldl')
+import           System.Directory       (doesDirectoryExist)
 import           System.Exit            (exitFailure, exitSuccess)
 
 
@@ -32,10 +34,11 @@ pacReadOpts = defaultPackageReadOptions {
 
 runValidate :: ValidateOptions -> PoseidonLogIO ()
 runValidate (ValidateOptions baseDirs ignoreGeno noExitCode ignoreDup) = do
-    posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles baseDirs
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnoreGeno = ignoreGeno, _readOptStopOnDuplicates = not ignoreDup}
         baseDirs
+    goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
+    posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
