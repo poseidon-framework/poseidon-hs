@@ -878,7 +878,7 @@ readJannoFile jannoPath = do
     if not (null (lefts jannoRepresentation))
     then do
         mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
-        liftIO $ throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines"
+        liftIO $ throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
     else do
         let consistentJanno = checkJannoConsistency jannoPath $ rights jannoRepresentation
         case consistentJanno of
