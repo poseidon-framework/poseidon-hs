@@ -56,9 +56,6 @@ import           Data.List                            (elemIndex, foldl',
                                                        (\\))
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
-import qualified Data.Text                            as T
-import qualified Data.Text.Encoding                   as T
-import qualified Data.Text.Encoding.Error             as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -689,16 +686,17 @@ filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 cleanInput Nothing           = Nothing
-cleanInput (Just rawInputBS) =
-    -- the transformation from ByteString to Text to ByteString feels verbose
-    -- but it allows for reliable trimming of whitespaces
-    fmap T.encodeUtf8 . transNA . trimWS $ T.decodeUtf8With T.ignore rawInputBS
+cleanInput (Just rawInputBS) = transNA $ trimWS . removeWeirdNoBreakSpace $ rawInputBS
     where
-        trimWS :: T.Text -> T.Text
-        trimWS = T.dropAround isAnySpace
-        isAnySpace :: Char -> Bool
-        isAnySpace x = isSpace x || x == '\160' -- 160 is No-Break Space
-        transNA :: T.Text -> Maybe T.Text
+        trimWS :: Bchs.ByteString -> Bchs.ByteString
+        trimWS = Bchs.dropWhile isSpace . Bchs.dropWhileEnd isSpace
+        removeWeirdNoBreakSpace :: Bchs.ByteString -> Bchs.ByteString
+        removeWeirdNoBreakSpace x =
+            -- this removes the characters \194 and \160 independently:
+            Bchs.filter (\y -> y /= '\194' && y /= '\160') x -- \160 is No-Break Space
+            -- the following, more accurate solution doesn't work, unfortunately:
+            --uncurry (<>) $ Bchs.breakSubstring "\xc2\xa0" x
+        transNA :: Bchs.ByteString -> Maybe Bchs.ByteString
         transNA ""    = Nothing
         transNA "n/a" = Nothing
         transNA x     = Just x
