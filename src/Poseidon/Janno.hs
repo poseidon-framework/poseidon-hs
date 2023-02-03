@@ -47,7 +47,7 @@ import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (ord)
+import           Data.Char                            (isSpace, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
@@ -56,6 +56,9 @@ import           Data.List                            (elemIndex, foldl',
                                                        (\\))
 import           Data.Maybe                           (fromJust, isNothing)
 import           Data.Text                            (pack, replace, unpack)
+import qualified Data.Text                            as T
+import qualified Data.Text.Encoding                   as T
+import qualified Data.Text.Encoding.Error             as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -679,20 +682,26 @@ instance Csv.FromNamedRecord JannoRow where
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
+filterLookup m name = maybe empty Csv.parseField . cleanInput $ HM.lookup name m
 
 filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = case HM.lookup name m of
-    Nothing -> pure Nothing
-    justField -> case ignoreNA justField of
-        Nothing -> pure Nothing
-        Just x  -> Csv.parseField x
+filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
 
-ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-ignoreNA (Just "")    = Nothing
-ignoreNA (Just "n/a") = Nothing
-ignoreNA (Just x)     = Just x
-ignoreNA Nothing      = Nothing
+cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
+cleanInput Nothing           = Nothing
+cleanInput (Just rawInputBS) =
+    -- the transformation from ByteString to Text to ByteString feels verbose
+    -- but it allows for reliable trimming of whitespaces
+    fmap T.encodeUtf8 . transNA . trimWS $ T.decodeUtf8With T.ignore rawInputBS
+    where
+        trimWS :: T.Text -> T.Text
+        trimWS = T.dropAround isAnySpace
+        isAnySpace :: Char -> Bool
+        isAnySpace x = isSpace x || x == '\160' -- 160 is No-Break Space
+        transNA :: T.Text -> Maybe T.Text
+        transNA ""    = Nothing
+        transNA "n/a" = Nothing
+        transNA x     = Just x
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [
