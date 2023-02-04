@@ -152,6 +152,7 @@ initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
                             <*> parseMakeMinimalPackage
+                            <*> parsePlinkPopMode
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -164,6 +165,7 @@ fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
                               <*> parseRemoteURL
                               <*> parseUpgrade
+                              <*> parsePlinkPopMode
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
@@ -176,6 +178,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parseNoExtract
+                              <*> parsePlinkPopMode
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
@@ -183,6 +186,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseOutOnlyGeno
                                           <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
+                                          <*> parsePlinkPopMode
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths

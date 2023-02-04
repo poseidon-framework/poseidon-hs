@@ -14,19 +14,22 @@ import           Poseidon.Utils         (PoseidonLogIO, checkFile,
 
 import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
+import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           System.Directory       (copyFile, createDirectoryIfMissing)
 import           System.FilePath        (dropTrailingPathSeparator,
                                          takeFileName, (<.>), (</>))
 
 data InitOptions = InitOptions
-    { _initGenoData :: GenotypeDataSpec
-    , _initPacPath  :: FilePath
-    , _initPacName  :: Maybe String
-    , _initMinimal  :: Bool
+    { _initGenoData     :: GenotypeDataSpec
+    , _initPacPath      :: FilePath
+    , _initPacName      :: Maybe String
+    , _initMinimal      :: Bool
+    , _initPlinkPopMode :: PlinkPopNameMode
     }
 
 runInit :: InitOptions -> PoseidonLogIO ()
-runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPathRaw maybeOutName minimal) = do
+runInit (InitOptions gd outPathRaw maybeOutName minimal plinkPopMode) = do
+    let (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = gd
     -- create new directory
     let outPath = dropTrailingPathSeparator outPathRaw
     logInfo $ "Creating new package directory: " ++ outPath
@@ -47,7 +50,7 @@ runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _
     -- create new package
     logInfo "Creating new package entity"
     outName <- liftIO $ determinePackageOutName maybeOutName outPath
-    inds <- liftIO $ loadIndividuals outPath genotypeData
+    inds <- liftIO $ loadIndividuals outPath genotypeData plinkPopMode
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
            else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]

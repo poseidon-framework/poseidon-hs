@@ -92,7 +92,8 @@ runForge (
 
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
-    pseudoPackages <- liftIO . forM [getGenoDirect x | x@GenoDirect {} <- genoSources] $ \gd -> makePseudoPackageFromGenotypeData gd plinkPopMode
+    pseudoPackages <- liftIO . forM [getGenoDirect x | x@GenoDirect {} <- genoSources] $ \gd ->
+        makePseudoPackageFromGenotypeData gd plinkPopMode
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 

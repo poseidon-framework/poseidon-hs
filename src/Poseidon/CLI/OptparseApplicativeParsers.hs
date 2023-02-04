@@ -23,6 +23,7 @@ import           Data.Version            (Version)
 import qualified Options.Applicative     as OP
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
+import SequenceFormats.Plink (PlinkPopNameMode (PlinkPopNameAsFamily, PlinkPopNameAsPhenotype, PlinkPopNameAsBoth))
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
@@ -419,3 +420,16 @@ parseUpgrade = OP.switch (
     OP.long "upgrade" <>  OP.short 'u' <>
     OP.help "overwrite outdated local package versions"
     )
+
+-- PlinkPopNameAsFamily always is the default
+parsePlinkPopMode :: OP.Parser PlinkPopNameMode
+parsePlinkPopMode = parsePlinkPopAsPhenotype <|> parsePlinkPopAsBoth <|> pure PlinkPopNameAsFamily
+  where
+    parsePlinkPopAsPhenotype = OP.flag' PlinkPopNameAsPhenotype (OP.long "plinkPopNameAsPhenotype" <> OP.help "When reading and \
+        \writing PLINK fam-files, read and write the population name to and from the last column in the fam file \
+        \(the \"phenotype\" according to the Plink format specs). By default, it is the first column \
+        \(the \"Family ID\" according the Plink Specs) in the fam file that corresponds to the population name.")
+    parsePlinkPopAsBoth = OP.flag' PlinkPopNameAsBoth (OP.long "plinkPopNameAsBoth" <> OP.help "When reading and \
+        \writing PLINK fam-files, read and write the population name to and from both the first and the last column \
+        \in the fam file (see also option --plinkPopNameAsPhenotype). Note that when reading from a fam file with different \
+        \entries in the two columns, they are merged together with a \":\" as separator.")

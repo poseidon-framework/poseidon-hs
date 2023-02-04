@@ -35,6 +35,7 @@ import           Data.HashMap.Strict      (fromList)
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
+import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (createDirectory, doesDirectoryExist,
                                            removeDirectoryRecursive)
 import           System.FilePath.Posix    ((</>))
@@ -120,9 +121,10 @@ testPipelineInit testDir checkFilePath testPacsDir = do
             , indFileChkSum = Nothing
             , snpSet   = Just SNPSetOther
             }
-        , _initPacPath   = testDir </> "Schiffels"
-        , _initPacName   = Just "Schiffels"
-        , _initMinimal   = False
+        , _initPacPath      = testDir </> "Schiffels"
+        , _initPacName      = Just "Schiffels"
+        , _initMinimal      = False
+        , _initPlinkPopMode = PlinkPopNameAsFamily
     }
     let action = testLog (runInit initOpts1) >>
                  patchLastModified testDir ("Schiffels" </> "POSEIDON.yml") >>
@@ -147,6 +149,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacPath   = testDir </> "Wang"
         , _initPacName   = Nothing
         , _initMinimal   = True
+        , _initPlinkPopMode = PlinkPopNameAsFamily
     }
     let action2 = testLog (runInit initOpts2) >>
                   patchLastModified testDir ("Wang" </> "POSEIDON.yml")
@@ -168,6 +171,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacPath   = testDir </> "Lamnidis"
         , _initPacName   = Nothing
         , _initMinimal   = False
+        , _initPlinkPopMode = PlinkPopNameAsFamily
     }
     let action3 = testLog (runInit initOpts3) >>
                   patchLastModified testDir ("Lamnidis" </> "POSEIDON.yml") >>
@@ -187,9 +191,10 @@ testPipelineInit testDir checkFilePath testPacsDir = do
           , indFileChkSum = Nothing
           , snpSet   = Just SNPSetOther
           }
-        , _initPacPath   = testDir </> "Schmid"
-        , _initPacName   = Nothing
-        , _initMinimal   = True
+        , _initPacPath      = testDir </> "Schmid"
+        , _initPacName      = Nothing
+        , _initMinimal      = True
+        , _initPlinkPopMode = PlinkPopNameAsFamily
     }) >> patchLastModified testDir ("Schmid" </> "POSEIDON.yml")
 
 patchLastModified :: FilePath -> FilePath -> IO ()
@@ -282,6 +287,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
+        , _genoconvertPlinkPopMode = PlinkPopNameAsFamily
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
           "Wang" </> "Wang.geno"
@@ -294,6 +300,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "Schiffels"
         , _genoconvertRemoveOld = False
+        , _genoconvertPlinkPopMode = PlinkPopNameAsFamily
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
           "Schiffels" </> "Schiffels.bed"
@@ -318,6 +325,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoConvertOutOnlyGeno = True
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
+        , _genoconvertPlinkPopMode = PlinkPopNameAsFamily
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts3) "genoconvert" [
           "Schiffels" </> "geno.bed"
@@ -393,6 +401,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action1 = testLog (runForge forgeOpts1) >> patchLastModified testDir ("ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
@@ -412,6 +421,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac2"
         , _forgeOutPacName   = Nothing
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action2 = testLog (runForge forgeOpts2) >> patchLastModified testDir ("ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
@@ -430,6 +440,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac3"
         , _forgeOutPacName   = Nothing
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action3 = testLog (runForge forgeOpts3) >> patchLastModified testDir ("ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
@@ -451,6 +462,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac4"
         , _forgeOutPacName   = Nothing
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action4 = testLog (runForge forgeOpts4) >> patchLastModified testDir ("ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
@@ -472,6 +484,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacName   = Just "ForgePac5"
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action5 = testLog (runForge forgeOpts5) >> patchLastModified testDir ("ForgePac5" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action5 "forge" [
@@ -514,6 +527,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacName   = Just "ForgePac6"
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action6 = testLog (runForge forgeOpts6)
     runAndChecksumFiles checkFilePath testDir action6 "forge" [
@@ -546,6 +560,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacName   = Just "ForgePac7"
         , _forgeNoExtract    = False
         , _forgeSnpFile      = Nothing
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action7 = testLog (runForge forgeOpts7)
     runAndChecksumFiles checkFilePath testDir action7 "forge" [
@@ -566,6 +581,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac8"
         , _forgeOutPacName   = Just "ForgePac8"
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action8 = testLog (runForge forgeOpts8) >> patchLastModified testDir ("ForgePac8" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action8 "forge" [
@@ -583,6 +599,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac9"
         , _forgeOutPacName   = Just "ForgePac9"
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action9 = testLog (runForge forgeOpts9) >> patchLastModified testDir ("ForgePac9" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action9 "forge" [
@@ -601,6 +618,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac10"
         , _forgeOutPacName   = Just "ForgePac10"
         , _forgeNoExtract    = False
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action10 = testLog (runForge forgeOpts10) >> patchLastModified testDir ("ForgePac10" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action10 "forge" [
@@ -617,10 +635,11 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
     let fetchOpts1 = FetchOptions {
-          _jaBaseDirs       = [testDir]
-        , _entityInput      = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
-        , _remoteURL        = "http://c107-224.cloud.gwdg.de:3000"
-        , _upgrade          = True
+          _jaBaseDirs   = [testDir]
+        , _entityInput  = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
+        , _remoteURL    = "http://c107-224.cloud.gwdg.de:3000"
+        , _upgrade      = True
+        , _plinkPopMode = PlinkPopNameAsFamily
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
           "2019_Nikitin_LBK" </> "POSEIDON.yml"
