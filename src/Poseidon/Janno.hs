@@ -42,7 +42,10 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        defaultOptions,
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
-                                                       toJSON, withObject, (.:), withText, withScientific)
+                                                       toJSON, withObject,
+                                                       withScientific, withText,
+                                                       (.:))
+import           Data.Aeson.Encoding                  (text)
 import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
@@ -55,7 +58,9 @@ import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        (\\))
 import           Data.Maybe                           (fromJust, isNothing)
+import           Data.Scientific                      (toBoundedInteger)
 import           Data.Text                            (pack, replace, unpack)
+import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -63,9 +68,6 @@ import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Regex.TDFA                      as Reg
-import qualified Data.Text as T
-import Data.Scientific (toBoundedInteger)
-import Data.Aeson.Encoding (text)
 
 -- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -118,7 +120,7 @@ makeBCADAge x =
       else pure (BCADAge x)
 
 instance FromJSON BCADAge where
-    parseJSON = withScientific "BCADAge" $ \n -> 
+    parseJSON = withScientific "BCADAge" $ \n ->
         case toBoundedInteger n of
             Nothing -> fail $ "Number" ++ show n ++ "doesn't fit into a bounded integer."
             Just x -> makeBCADAge x
