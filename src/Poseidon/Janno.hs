@@ -42,7 +42,7 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        defaultOptions,
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
-                                                       toJSON)
+                                                       toJSON, withObject, (.:))
 import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
@@ -295,17 +295,19 @@ newtype Latitude =
         Latitude Double
     deriving (Eq, Ord, Generic)
 
-instance ToJSON Latitude where
-    toEncoding = genericToEncoding defaultOptions
+makeLatitude :: MonadFail m => Double -> m Latitude
+makeLatitude x
+    | x >= -90 && x <= 90 = pure (Latitude x)
+    | otherwise           = fail $ "Latitude " ++ show x ++ " not between -90 and 90"
 
-instance FromJSON Latitude
+instance FromJSON Latitude where
+    parseJSON = withObject "Latitude" $ \v -> v .: "Latitude" >>= makeLatitude
 
 instance Csv.FromField Latitude where
-    parseField x = do
-        val <- Csv.parseField x
-        if val < -90 || val > 90
-        then fail $ "Latitude " ++ show x ++ " not between -90 and 90"
-        else pure (Latitude val)
+    parseField x = Csv.parseField x >>= makeLatitude
+
+instance ToJSON Latitude where
+    toEncoding = genericToEncoding defaultOptions
 
 instance Csv.ToField Latitude where
     toField (Latitude x) = Csv.toField x
