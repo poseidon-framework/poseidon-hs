@@ -637,6 +637,7 @@ testPipelineForge testDir checkFilePath testEntityFiles = do
         , _forgeOutPacPath   = testDir </> "ForgePac11"
         , _forgeOutPacName   = Just "ForgePac11"
         , _forgePackageWise  = True
+        , _forgePlinkPopMode = PlinkPopNameAsFamily
     }
     let action11 = testLog (runForge forgeOpts11) >> patchLastModified testDir ("ForgePac11" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action11 "forge" [

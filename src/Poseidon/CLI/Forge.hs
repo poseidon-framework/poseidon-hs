@@ -199,7 +199,7 @@ runForge (
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                     GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam plinkPopMode) newEigenstratIndEntries)
-            let extractPipe = if noExtract then cat else P.map (selectIndices relevantIndices)
+            let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->
