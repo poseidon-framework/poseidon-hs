@@ -42,7 +42,7 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        defaultOptions,
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
-                                                       toJSON, withObject, (.:))
+                                                       toJSON, withObject, (.:), withText, withScientific)
 import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
@@ -63,9 +63,17 @@ import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Regex.TDFA                      as Reg
+import qualified Data.Text as T
+import Data.Scientific (toBoundedInteger)
 
+-- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
     deriving (Eq)
+
+instance Show JannoSex where
+    show (JannoSex Female)  = "F"
+    show (JannoSex Male)    = "M"
+    show (JannoSex Unknown) = "U"
 
 instance Ord JannoSex where
     compare (JannoSex Female) (JannoSex Male)    = GT
@@ -76,23 +84,18 @@ instance Ord JannoSex where
     compare (JannoSex Unknown) (JannoSex Female) = LT
     compare _ _                                  = EQ
 
-instance Csv.FromField JannoSex where
-    parseField x
-        | x == "F"             = pure (JannoSex Female)
-        | x == "M"             = pure (JannoSex Male)
-        | x == "U"             = pure (JannoSex Unknown)
-        | otherwise            = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
-
-instance Csv.ToField JannoSex where
-    toField (JannoSex Female)  = "F"
-    toField (JannoSex Male)    = "M"
-    toField (JannoSex Unknown) = "U"
+makeJannoSex :: MonadFail m => String -> m JannoSex
+makeJannoSex x
+    | x == "F"  = pure (JannoSex Female)
+    | x == "M"  = pure (JannoSex Male)
+    | x == "U"  = pure (JannoSex Unknown)
+    | otherwise = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
 
 instance FromJSON JannoSex where
-    parseJSON (String "F")     = pure (JannoSex Female)
-    parseJSON (String "M")     = pure (JannoSex Male)
-    parseJSON (String "U")     = pure (JannoSex Unknown)
-    parseJSON v                = fail ("could not parse " ++ show v ++ " as JannoSex")
+    parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
+
+instance Csv.FromField JannoSex where
+    parseField x = Csv.parseField x >>= makeJannoSex
 
 instance ToJSON JannoSex where
     -- this encodes directly to a bytestring Builder
@@ -100,34 +103,41 @@ instance ToJSON JannoSex where
     toJSON (JannoSex Male)    = String "M"
     toJSON (JannoSex Unknown) = String "U"
 
-instance Show JannoSex where
-    show (JannoSex Female)  = "F"
-    show (JannoSex Male)    = "M"
-    show (JannoSex Unknown) = "U"
+instance Csv.ToField JannoSex where
+    toField (JannoSex Female)  = "F"
+    toField (JannoSex Male)    = "M"
+    toField (JannoSex Unknown) = "U"
 
 -- | A datatype for BC-AD ages
 newtype BCADAge =
         BCADAge Int
     deriving (Eq, Ord, Generic)
 
+instance Show BCADAge where
+    show (BCADAge x) = show x
+
+makeBCADAge :: MonadFail m => Int -> m BCADAge
+makeBCADAge x =
+    let curYear = 2023 -- the current year
+    in if x >= curYear
+       then fail $ "Age " ++ show x ++ " later than " ++ show curYear ++ ", which is impossible. " ++
+                   "Did you accidentally enter a BP date?"
+      else pure (BCADAge x)
+
+instance FromJSON BCADAge where
+    parseJSON = withScientific "BCADAge" $ \n -> 
+        case toBoundedInteger n of
+            Nothing -> fail $ "Number" ++ show n ++ "doesn't fit into a bounded integer."
+            Just x -> makeBCADAge x
+
+instance Csv.FromField BCADAge where
+    parseField x = Csv.parseField x >>= makeBCADAge
+
 instance ToJSON BCADAge where
     toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON BCADAge
-
-instance Csv.FromField BCADAge where
-    parseField x = do
-        val <- Csv.parseField x
-        if val >= 2022 -- the current year
-        then fail $ "Age " ++ show x ++ " later than 2022, which is impossible. " ++
-                    "Did you accidentally enter a BP date?"
-        else pure (BCADAge val)
-
 instance Csv.ToField BCADAge where
     toField (BCADAge x) = Csv.toField x
-
-instance Show BCADAge where
-    show (BCADAge x) = show x
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType = C14
@@ -135,27 +145,31 @@ data JannoDateType = C14
     | Modern
     deriving (Eq, Ord, Generic)
 
-instance ToJSON JannoDateType where
-    toEncoding = genericToEncoding defaultOptions
+instance Show JannoDateType where
+    show C14        = "C14"
+    show Contextual = "contextual"
+    show Modern     = "modern"
 
-instance FromJSON JannoDateType
+makeJannoDateType :: MonadFail m => String -> m JannoDateType
+makeJannoDateType x
+    | x == "C14"        = pure C14
+    | x == "contextual" = pure Contextual
+    | x == "modern"     = pure Modern
+    | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
+
+instance FromJSON JannoDateType where
+    parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
 
 instance Csv.FromField JannoDateType where
-    parseField x
-        | x == "C14"        = pure C14
-        | x == "contextual" = pure Contextual
-        | x == "modern"     = pure Modern
-        | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
+    parseField x = Csv.parseField x >>= makeJannoDateType
+
+instance ToJSON JannoDateType where
+    toEncoding = genericToEncoding defaultOptions
 
 instance Csv.ToField JannoDateType where
     toField C14        = "C14"
     toField Contextual = "contextual"
     toField Modern     = "modern"
-
-instance Show JannoDateType where
-    show C14        = "C14"
-    show Contextual = "contextual"
-    show Modern     = "modern"
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType = Shotgun
