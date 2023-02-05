@@ -41,7 +41,8 @@ import           Poseidon.Utils             (LogEnv, PoseidonException (..),
                                              renderPoseidonException)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (filterM, forM_, unless, void, when, forM)
+import           Control.Monad              (filterM, forM, forM_, unless, void,
+                                             when)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Reader       (ask)
@@ -71,7 +72,8 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
-import           SequenceFormats.Plink      (readBimFile, PlinkPopNameMode (PlinkPopNameAsFamily))
+import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsFamily),
+                                             readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
@@ -495,7 +497,7 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
 getJointGenotypeData :: MonadSafe m =>
                         LogEnv -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
-                     -> PlinkPopNameMode -- ^ how to read population labels from Plink 
+                     -> PlinkPopNameMode -- ^ how to read population labels from Plink
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())

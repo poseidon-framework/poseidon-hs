@@ -51,7 +51,9 @@ import           Pipes.Safe                  (SafeT, runSafeT)
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
-import           SequenceFormats.Plink       (writePlink, PlinkPopNameMode, eigenstratInd2PlinkFam)
+import           SequenceFormats.Plink       (PlinkPopNameMode,
+                                              eigenstratInd2PlinkFam,
+                                              writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
@@ -68,7 +70,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutOnlyGeno  :: Bool
     , _forgeOutPacPath   :: FilePath
     , _forgeOutPacName   :: Maybe String
-    , _forgePackageWise :: Bool
+    , _forgePackageWise  :: Bool
     , _forgePlinkPopMode :: PlinkPopNameMode
     }
 

@@ -17,14 +17,15 @@ import           Poseidon.Package           (PackageReadOptions (..),
 import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (unless, when, forM)
+import           Control.Monad              (forM, unless, when)
 import           Control.Monad.Reader       (ask)
 import           Data.Maybe                 (isJust)
 import           Data.Time                  (getCurrentTime)
 import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
-import           SequenceFormats.Plink      (writePlink, PlinkPopNameMode, eigenstratInd2PlinkFam)
+import           SequenceFormats.Plink      (PlinkPopNameMode,
+                                             eigenstratInd2PlinkFam, writePlink)
 import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile)
 import           System.FilePath            (dropTrailingPathSeparator, (<.>),

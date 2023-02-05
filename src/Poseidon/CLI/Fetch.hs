@@ -34,10 +34,10 @@ import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
                                           simpleHttp, tlsManagerSettings)
 import           Network.HTTP.Types      (hContentLength)
+import           SequenceFormats.Plink   (PlinkPopNameMode)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
-import SequenceFormats.Plink (PlinkPopNameMode)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs   :: [FilePath]

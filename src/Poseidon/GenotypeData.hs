@@ -26,7 +26,9 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstrat, readEigenstratInd)
-import           SequenceFormats.Plink      (readFamFile, readPlink, PlinkPopNameMode, plinkFam2EigenstratInd)
+import           SequenceFormats.Plink      (PlinkPopNameMode,
+                                             plinkFam2EigenstratInd,
+                                             readFamFile, readPlink)
 import           System.FilePath            ((</>))
 
 data GenoDataSource = PacBaseDir

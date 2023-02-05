@@ -21,9 +21,9 @@ import           Poseidon.Utils          (LogMode (..))
 import           Control.Applicative     ((<|>))
 import           Data.Version            (Version)
 import qualified Options.Applicative     as OP
+import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
-import SequenceFormats.Plink (PlinkPopNameMode (PlinkPopNameAsFamily, PlinkPopNameAsPhenotype, PlinkPopNameAsBoth))
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
