@@ -94,14 +94,14 @@ makeJannoSex x
     | x == "U"  = pure (JannoSex Unknown)
     | otherwise = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
 
-instance FromJSON JannoSex where
-    parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
 instance Csv.FromField JannoSex where
     parseField x = Csv.parseField x >>= makeJannoSex
-instance ToJSON JannoSex where
-    toJSON x  = String $ T.pack $ show x
 instance Csv.ToField JannoSex where
     toField x = Csv.toField $ show x
+instance FromJSON JannoSex where
+    parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
+instance ToJSON JannoSex where
+    toJSON x  = String $ T.pack $ show x
 
 -- | A datatype for BC-AD ages
 newtype BCADAge =
