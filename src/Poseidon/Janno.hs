@@ -119,17 +119,17 @@ makeBCADAge x =
                    "Did you accidentally enter a BP date?"
       else pure (BCADAge x)
 
+instance Csv.FromField BCADAge where
+    parseField x = Csv.parseField x >>= makeBCADAge
+instance Csv.ToField BCADAge where
+    toField (BCADAge x) = Csv.toField x
 instance FromJSON BCADAge where
     parseJSON = withScientific "BCADAge" $ \n ->
         case toBoundedInteger n of
             Nothing -> fail $ "Number" ++ show n ++ "doesn't fit into a bounded integer."
             Just x -> makeBCADAge x
-instance Csv.FromField BCADAge where
-    parseField x = Csv.parseField x >>= makeBCADAge
 instance ToJSON BCADAge where
     toEncoding = genericToEncoding defaultOptions
-instance Csv.ToField BCADAge where
-    toField (BCADAge x) = Csv.toField x
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType =
@@ -150,14 +150,14 @@ makeJannoDateType x
     | x == "modern"     = pure Modern
     | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
 
-instance FromJSON JannoDateType where
-    parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
 instance Csv.FromField JannoDateType where
     parseField x = Csv.parseField x >>= makeJannoDateType
-instance ToJSON JannoDateType where
-    toEncoding x = text $ T.pack $ show x
 instance Csv.ToField JannoDateType where
     toField x = Csv.toField $ show x
+instance FromJSON JannoDateType where
+    parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
+instance ToJSON JannoDateType where
+    toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType =
@@ -194,14 +194,14 @@ makeJannoCaptureType x
     | otherwise                 = fail $ "Capture_Type " ++ show x ++
                                       " not in [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]"
 
-instance FromJSON JannoCaptureType where
-    parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
 instance Csv.FromField JannoCaptureType where
     parseField x = Csv.parseField x >>= makeJannoCaptureType
-instance ToJSON JannoCaptureType where
-    toEncoding x = text $ T.pack $ show x
 instance Csv.ToField JannoCaptureType where
     toField x = Csv.toField $ show x
+instance FromJSON JannoCaptureType where
+    parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
+instance ToJSON JannoCaptureType where
+    toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy =
@@ -219,14 +219,14 @@ makeJannoGenotypePloidy x
     | x == "haploid" = pure Haploid
     | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
 
-instance FromJSON JannoGenotypePloidy where
-    parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
 instance Csv.FromField JannoGenotypePloidy where
     parseField x = Csv.parseField x >>= makeJannoGenotypePloidy
-instance ToJSON JannoGenotypePloidy where
-    toEncoding x = text $ T.pack $ show x
 instance Csv.ToField JannoGenotypePloidy where
     toField x = Csv.toField $ show x
+instance FromJSON JannoGenotypePloidy where
+    parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
+instance ToJSON JannoGenotypePloidy where
+    toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
