@@ -65,6 +65,7 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
 import qualified Text.Regex.TDFA                      as Reg
 import qualified Data.Text as T
 import Data.Scientific (toBoundedInteger)
+import Data.Aeson.Encoding (text)
 
 -- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -140,7 +141,8 @@ instance Csv.ToField BCADAge where
     toField (BCADAge x) = Csv.toField x
 
 -- |A datatype to represent Date_Type in a janno file
-data JannoDateType = C14
+data JannoDateType =
+      C14
     | Contextual
     | Modern
     deriving (Eq, Ord, Generic)
@@ -172,7 +174,8 @@ instance Csv.ToField JannoDateType where
     toField Modern     = "modern"
 
 -- |A datatype to represent Capture_Type in a janno file
-data JannoCaptureType = Shotgun
+data JannoCaptureType =
+      Shotgun
     | A1240K
     | ArborComplete
     | ArborPrimePlus
@@ -181,34 +184,6 @@ data JannoCaptureType = Shotgun
     | OtherCapture
     | ReferenceGenome
     deriving (Eq, Ord, Generic)
-
-instance ToJSON JannoCaptureType where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON JannoCaptureType
-
-instance Csv.FromField JannoCaptureType where
-    parseField x
-        | x == "Shotgun"            = pure Shotgun
-        | x == "1240K"              = pure A1240K
-        | x == "ArborComplete"      = pure ArborComplete
-        | x == "ArborPrimePlus"     = pure ArborPrimePlus
-        | x == "ArborAncestralPlus" = pure ArborAncestralPlus
-        | x == "TwistAncientDNA"    = pure TwistAncientDNA
-        | x == "OtherCapture"       = pure OtherCapture
-        | x == "ReferenceGenome"    = pure ReferenceGenome
-        | otherwise                 = fail $ "Capture_Type " ++ show x ++
-                                          " not in [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]"
-
-instance Csv.ToField JannoCaptureType where
-    toField Shotgun            = "Shotgun"
-    toField A1240K             = "1240K"
-    toField ArborComplete      = "ArborComplete"
-    toField ArborPrimePlus     = "ArborPrimePlus"
-    toField ArborAncestralPlus = "ArborAncestralPlus"
-    toField TwistAncientDNA    = "TwistAncientDNA"
-    toField OtherCapture       = "OtherCapture"
-    toField ReferenceGenome    = "ReferenceGenome"
 
 instance Show JannoCaptureType where
     show Shotgun            = "Shotgun"
@@ -220,29 +195,74 @@ instance Show JannoCaptureType where
     show OtherCapture       = "OtherCapture"
     show ReferenceGenome    = "ReferenceGenome"
 
+makeJannoCaptureType :: MonadFail m => String -> m JannoCaptureType
+makeJannoCaptureType x
+    | x == "Shotgun"            = pure Shotgun
+    | x == "1240K"              = pure A1240K
+    | x == "ArborComplete"      = pure ArborComplete
+    | x == "ArborPrimePlus"     = pure ArborPrimePlus
+    | x == "ArborAncestralPlus" = pure ArborAncestralPlus
+    | x == "TwistAncientDNA"    = pure TwistAncientDNA
+    | x == "OtherCapture"       = pure OtherCapture
+    | x == "ReferenceGenome"    = pure ReferenceGenome
+    | otherwise                 = fail $ "Capture_Type " ++ show x ++
+                                      " not in [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]"
+
+instance FromJSON JannoCaptureType where
+    parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
+
+instance Csv.FromField JannoCaptureType where
+    parseField x = Csv.parseField x >>= makeJannoCaptureType
+
+instance ToJSON JannoCaptureType where
+    toEncoding Shotgun            = text "Shotgun"
+    toEncoding A1240K             = text "1240K"
+    toEncoding ArborComplete      = text "ArborComplete"
+    toEncoding ArborPrimePlus     = text "ArborPrimePlus"
+    toEncoding ArborAncestralPlus = text "ArborAncestralPlus"
+    toEncoding TwistAncientDNA    = text "TwistAncientDNA"
+    toEncoding OtherCapture       = text "OtherCapture"
+    toEncoding ReferenceGenome    = text "ReferenceGenome"
+
+instance Csv.ToField JannoCaptureType where
+    toField Shotgun            = "Shotgun"
+    toField A1240K             = "1240K"
+    toField ArborComplete      = "ArborComplete"
+    toField ArborPrimePlus     = "ArborPrimePlus"
+    toField ArborAncestralPlus = "ArborAncestralPlus"
+    toField TwistAncientDNA    = "TwistAncientDNA"
+    toField OtherCapture       = "OtherCapture"
+    toField ReferenceGenome    = "ReferenceGenome"
+
 -- |A datatype to represent Genotype_Ploidy in a janno file
-data JannoGenotypePloidy = Diploid
+data JannoGenotypePloidy =
+      Diploid
     | Haploid
     deriving (Eq, Ord, Generic)
-
-instance ToJSON JannoGenotypePloidy where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON JannoGenotypePloidy
-
-instance Csv.FromField JannoGenotypePloidy where
-    parseField x
-        | x == "diploid" = pure Diploid
-        | x == "haploid" = pure Haploid
-        | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
-
-instance Csv.ToField JannoGenotypePloidy where
-    toField Diploid = "diploid"
-    toField Haploid = "haploid"
 
 instance Show JannoGenotypePloidy where
     show Diploid = "diploid"
     show Haploid = "haploid"
+
+makeJannoGenotypePloidy :: MonadFail m => String -> m JannoGenotypePloidy
+makeJannoGenotypePloidy x
+    | x == "diploid" = pure Diploid
+    | x == "haploid" = pure Haploid
+    | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
+
+instance FromJSON JannoGenotypePloidy where
+    parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
+
+instance Csv.FromField JannoGenotypePloidy where
+    parseField x = Csv.parseField x >>= makeJannoGenotypePloidy
+
+instance ToJSON JannoGenotypePloidy where
+    toEncoding Diploid = text "diploid"
+    toEncoding Haploid = text "haploid"
+
+instance Csv.ToField JannoGenotypePloidy where
+    toField Diploid = "diploid"
+    toField Haploid = "haploid"
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
