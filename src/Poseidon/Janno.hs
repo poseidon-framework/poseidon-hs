@@ -47,7 +47,7 @@ import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (ord)
+import           Data.Char                            (isSpace, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
@@ -679,20 +679,27 @@ instance Csv.FromNamedRecord JannoRow where
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField . ignoreNA $ HM.lookup name m
+filterLookup m name = maybe empty Csv.parseField . cleanInput $ HM.lookup name m
 
 filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = case HM.lookup name m of
-    Nothing -> pure Nothing
-    justField -> case ignoreNA justField of
-        Nothing -> pure Nothing
-        Just x  -> Csv.parseField x
+filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
 
-ignoreNA :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-ignoreNA (Just "")    = Nothing
-ignoreNA (Just "n/a") = Nothing
-ignoreNA (Just x)     = Just x
-ignoreNA Nothing      = Nothing
+cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
+cleanInput Nothing           = Nothing
+cleanInput (Just rawInputBS) = transNA $ trimWS . removeWeirdNoBreakSpace $ rawInputBS
+    where
+        trimWS :: Bchs.ByteString -> Bchs.ByteString
+        trimWS = Bchs.dropWhile isSpace . Bchs.dropWhileEnd isSpace
+        removeWeirdNoBreakSpace :: Bchs.ByteString -> Bchs.ByteString
+        removeWeirdNoBreakSpace x =
+            -- this removes the characters \194 and \160 independently:
+            Bchs.filter (\y -> y /= '\194' && y /= '\160') x -- \160 is No-Break Space
+            -- the following, more accurate solution doesn't work, unfortunately:
+            --uncurry (<>) $ Bchs.breakSubstring "\xc2\xa0" x
+        transNA :: Bchs.ByteString -> Maybe Bchs.ByteString
+        transNA ""    = Nothing
+        transNA "n/a" = Nothing
+        transNA x     = Just x
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = Csv.namedRecord [

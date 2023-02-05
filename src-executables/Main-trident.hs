@@ -177,7 +177,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
-                              <*> parseNoExtract
+                              <*> parsePackageWise
                               <*> parsePlinkPopMode
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
