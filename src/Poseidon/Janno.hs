@@ -229,36 +229,35 @@ instance ToJSON JannoGenotypePloidy where
     toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent UDG in a janno file
-data JannoUDG = Minus
+data JannoUDG =
+      Minus
     | Half
     | Plus
     | Mixed
     deriving (Eq, Ord, Generic)
-
-instance ToJSON JannoUDG where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON JannoUDG
-
-instance Csv.FromField JannoUDG where
-    parseField x
-        | x == "minus" = pure Minus
-        | x == "half"  = pure Half
-        | x == "plus"  = pure Plus
-        | x == "mixed" = pure Mixed
-        | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
-
-instance Csv.ToField JannoUDG where
-    toField Minus = "minus"
-    toField Half  = "half"
-    toField Plus  = "plus"
-    toField Mixed = "mixed"
 
 instance Show JannoUDG where
     show Minus = "minus"
     show Half  = "half"
     show Plus  = "plus"
     show Mixed = "mixed"
+
+makeJannoUDG :: MonadFail m => String -> m JannoUDG
+makeJannoUDG x
+    | x == "minus" = pure Minus
+    | x == "half"  = pure Half
+    | x == "plus"  = pure Plus
+    | x == "mixed" = pure Mixed
+    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
+
+instance Csv.FromField JannoUDG where
+    parseField x = Csv.parseField x >>= makeJannoUDG
+instance Csv.ToField JannoUDG where
+    toField x = Csv.toField $ show x
+instance FromJSON JannoUDG where
+    parseJSON = withText "JannoUDG" (makeJannoUDG . T.unpack)
+instance ToJSON JannoUDG where
+    toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt = DS
