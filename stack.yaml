@@ -5,9 +5,9 @@ packages:
 extra-deps:
 - table-layout-0.9.1.0
 - data-default-instances-base-0.1.0.1
-# - sequence-formats-1.6.1
-- git: https://github.com/stschiff/sequence-formats
-  commit: f8a6b713982e7add4400b2471fde9d8fdef40add
+- sequence-formats-1.7.0
+# - git: https://github.com/stschiff/sequence-formats
+#   commit: f8a6b713982e7add4400b2471fde9d8fdef40add
 - yaml-pretty-extras-0.0.2.2
 - pipes-ordered-zip-1.2.1
 - co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
