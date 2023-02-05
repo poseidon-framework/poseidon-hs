@@ -94,16 +94,10 @@ makeJannoSex x
 
 instance FromJSON JannoSex where
     parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
-
 instance Csv.FromField JannoSex where
     parseField x = Csv.parseField x >>= makeJannoSex
-
 instance ToJSON JannoSex where
-    -- this encodes directly to a bytestring Builder
-    toJSON (JannoSex Female)  = String "F"
-    toJSON (JannoSex Male)    = String "M"
-    toJSON (JannoSex Unknown) = String "U"
-
+    toJSON x  = String $ T.pack $ show x
 instance Csv.ToField JannoSex where
     toField x = Csv.toField $ show x
 
@@ -128,13 +122,10 @@ instance FromJSON BCADAge where
         case toBoundedInteger n of
             Nothing -> fail $ "Number" ++ show n ++ "doesn't fit into a bounded integer."
             Just x -> makeBCADAge x
-
 instance Csv.FromField BCADAge where
     parseField x = Csv.parseField x >>= makeBCADAge
-
 instance ToJSON BCADAge where
     toEncoding = genericToEncoding defaultOptions
-
 instance Csv.ToField BCADAge where
     toField (BCADAge x) = Csv.toField x
 
@@ -159,13 +150,10 @@ makeJannoDateType x
 
 instance FromJSON JannoDateType where
     parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
-
 instance Csv.FromField JannoDateType where
     parseField x = Csv.parseField x >>= makeJannoDateType
-
 instance ToJSON JannoDateType where
     toEncoding x = text $ T.pack $ show x
-
 instance Csv.ToField JannoDateType where
     toField x = Csv.toField $ show x
 
@@ -206,13 +194,10 @@ makeJannoCaptureType x
 
 instance FromJSON JannoCaptureType where
     parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
-
 instance Csv.FromField JannoCaptureType where
     parseField x = Csv.parseField x >>= makeJannoCaptureType
-
 instance ToJSON JannoCaptureType where
     toEncoding x = text $ T.pack $ show x
-
 instance Csv.ToField JannoCaptureType where
     toField x = Csv.toField $ show x
 
@@ -234,17 +219,12 @@ makeJannoGenotypePloidy x
 
 instance FromJSON JannoGenotypePloidy where
     parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
-
 instance Csv.FromField JannoGenotypePloidy where
     parseField x = Csv.parseField x >>= makeJannoGenotypePloidy
-
 instance ToJSON JannoGenotypePloidy where
-    toEncoding Diploid = text "diploid"
-    toEncoding Haploid = text "haploid"
-
+    toEncoding x = text $ T.pack $ show x
 instance Csv.ToField JannoGenotypePloidy where
-    toField Diploid = "diploid"
-    toField Haploid = "haploid"
+    toField x = Csv.toField $ show x
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG = Minus
