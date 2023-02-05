@@ -105,9 +105,7 @@ instance ToJSON JannoSex where
     toJSON (JannoSex Unknown) = String "U"
 
 instance Csv.ToField JannoSex where
-    toField (JannoSex Female)  = "F"
-    toField (JannoSex Male)    = "M"
-    toField (JannoSex Unknown) = "U"
+    toField x = Csv.toField $ show x
 
 -- | A datatype for BC-AD ages
 newtype BCADAge =
@@ -166,12 +164,10 @@ instance Csv.FromField JannoDateType where
     parseField x = Csv.parseField x >>= makeJannoDateType
 
 instance ToJSON JannoDateType where
-    toEncoding = genericToEncoding defaultOptions
+    toEncoding x = text $ T.pack $ show x
 
 instance Csv.ToField JannoDateType where
-    toField C14        = "C14"
-    toField Contextual = "contextual"
-    toField Modern     = "modern"
+    toField x = Csv.toField $ show x
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType =
@@ -215,24 +211,10 @@ instance Csv.FromField JannoCaptureType where
     parseField x = Csv.parseField x >>= makeJannoCaptureType
 
 instance ToJSON JannoCaptureType where
-    toEncoding Shotgun            = text "Shotgun"
-    toEncoding A1240K             = text "1240K"
-    toEncoding ArborComplete      = text "ArborComplete"
-    toEncoding ArborPrimePlus     = text "ArborPrimePlus"
-    toEncoding ArborAncestralPlus = text "ArborAncestralPlus"
-    toEncoding TwistAncientDNA    = text "TwistAncientDNA"
-    toEncoding OtherCapture       = text "OtherCapture"
-    toEncoding ReferenceGenome    = text "ReferenceGenome"
+    toEncoding x = text $ T.pack $ show x
 
 instance Csv.ToField JannoCaptureType where
-    toField Shotgun            = "Shotgun"
-    toField A1240K             = "1240K"
-    toField ArborComplete      = "ArborComplete"
-    toField ArborPrimePlus     = "ArborPrimePlus"
-    toField ArborAncestralPlus = "ArborAncestralPlus"
-    toField TwistAncientDNA    = "TwistAncientDNA"
-    toField OtherCapture       = "OtherCapture"
-    toField ReferenceGenome    = "ReferenceGenome"
+    toField x = Csv.toField $ show x
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy =
@@ -434,7 +416,7 @@ instance (Csv.FromField a) => Csv.FromField (JannoList a) where
         fmap JannoList . mapM Csv.parseField $ subStrings
 
 instance (ToJSON a) => ToJSON (JannoList a) where
-    toJSON (JannoList x) = toJSON x
+    toEncoding (JannoList x) = toEncoding x
 
 instance (FromJSON a) => FromJSON (JannoList a) where
     parseJSON v = JannoList <$> parseJSON v
