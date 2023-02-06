@@ -24,7 +24,6 @@ module Poseidon.Janno (
     concatJannos,
     createMinimalJanno,
     jannoHeaderString,
-    determineAccessionIDType,
     CsvNamedRecord (..)
 ) where
 
@@ -42,9 +41,8 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        defaultOptions,
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
-                                                       toJSON, withObject,
-                                                       withScientific, withText,
-                                                       (.:))
+                                                       toJSON, withScientific,
+                                                       withText)
 import           Data.Aeson.Encoding                  (text)
 import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
@@ -435,39 +433,6 @@ data AccessionID =
     | OtherID String
     deriving (Eq, Ord, Generic)
 
-instance ToJSON AccessionID where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON AccessionID
-
-instance Csv.FromField AccessionID where
-    parseField x = do
-        val <- Csv.parseField x
-        pure $ determineAccessionIDType val
-
--- the patterns are documented at:
--- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
-determineAccessionIDType :: String -> AccessionID
-determineAccessionIDType x
-    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = INSDCProject x
-    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = INSDCStudy x
-    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = INSDCBioSample x
-    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = INSDCSample x
-    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = INSDCExperiment x
-    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = INSDCRun x
-    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = INSDCAnalysis x
-    | otherwise                                   = OtherID x
-
-instance Csv.ToField AccessionID where
-    toField (INSDCProject x)    = Csv.toField x
-    toField (INSDCStudy x)      = Csv.toField x
-    toField (INSDCBioSample x)  = Csv.toField x
-    toField (INSDCSample x)     = Csv.toField x
-    toField (INSDCExperiment x) = Csv.toField x
-    toField (INSDCRun x)        = Csv.toField x
-    toField (INSDCAnalysis x)   = Csv.toField x
-    toField (OtherID x)         = Csv.toField x
-
 instance Show AccessionID where
     show (INSDCProject x)    = x
     show (INSDCStudy x)      = x
@@ -477,6 +442,28 @@ instance Show AccessionID where
     show (INSDCRun x)        = x
     show (INSDCAnalysis x)   = x
     show (OtherID x)         = x
+
+-- the patterns are documented at:
+-- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
+makeAccessionID :: MonadFail m => String -> m AccessionID
+makeAccessionID x
+    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = pure $ INSDCProject x
+    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = pure $ INSDCStudy x
+    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = pure $ INSDCBioSample x
+    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = pure $ INSDCSample x
+    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = pure $ INSDCExperiment x
+    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = pure $ INSDCRun x
+    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = pure $ INSDCAnalysis x
+    | otherwise                                   = pure $ OtherID x
+
+instance Csv.FromField AccessionID where
+    parseField x = Csv.parseField x >>= makeAccessionID
+instance Csv.ToField AccessionID where
+    toField x = Csv.toField $ show x
+instance FromJSON AccessionID where
+    parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
+instance ToJSON AccessionID where
+    toEncoding x = text $ T.pack $ show x
 
 -- | A general datatype for janno list columns
 newtype JannoList a = JannoList {getJannoList :: [a]}
