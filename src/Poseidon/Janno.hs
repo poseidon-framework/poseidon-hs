@@ -93,14 +93,14 @@ makeJannoSex x
     | x == "U"  = pure (JannoSex Unknown)
     | otherwise = fail $ "Sex " ++ show x ++ " not in [F, M, U]"
 
-instance Csv.FromField JannoSex where
-    parseField x = Csv.parseField x >>= makeJannoSex
 instance Csv.ToField JannoSex where
     toField x = Csv.toField $ show x
-instance FromJSON JannoSex where
-    parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
+instance Csv.FromField JannoSex where
+    parseField x = Csv.parseField x >>= makeJannoSex
 instance ToJSON JannoSex where
     toJSON x  = String $ T.pack $ show x
+instance FromJSON JannoSex where
+    parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
 
 -- | A datatype for BC-AD ages
 newtype BCADAge =
@@ -118,17 +118,17 @@ makeBCADAge x =
                    "Did you accidentally enter a BP date?"
       else pure (BCADAge x)
 
-instance Csv.FromField BCADAge where
-    parseField x = Csv.parseField x >>= makeBCADAge
 instance Csv.ToField BCADAge where
     toField (BCADAge x) = Csv.toField x
+instance Csv.FromField BCADAge where
+    parseField x = Csv.parseField x >>= makeBCADAge
+instance ToJSON BCADAge where
+    toEncoding = genericToEncoding defaultOptions
 instance FromJSON BCADAge where
     parseJSON = withScientific "BCADAge" $ \n ->
         case toBoundedInteger n of
             Nothing -> fail $ "Number" ++ show n ++ "doesn't fit into a bounded integer."
             Just x -> makeBCADAge x
-instance ToJSON BCADAge where
-    toEncoding = genericToEncoding defaultOptions
 
 -- |A datatype to represent Date_Type in a janno file
 data JannoDateType =
@@ -149,14 +149,14 @@ makeJannoDateType x
     | x == "modern"     = pure Modern
     | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
 
-instance Csv.FromField JannoDateType where
-    parseField x = Csv.parseField x >>= makeJannoDateType
 instance Csv.ToField JannoDateType where
     toField x = Csv.toField $ show x
-instance FromJSON JannoDateType where
-    parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
+instance Csv.FromField JannoDateType where
+    parseField x = Csv.parseField x >>= makeJannoDateType
 instance ToJSON JannoDateType where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON JannoDateType where
+    parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType =
@@ -193,14 +193,15 @@ makeJannoCaptureType x
     | otherwise                 = fail $ "Capture_Type " ++ show x ++
                                       " not in [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]"
 
-instance Csv.FromField JannoCaptureType where
-    parseField x = Csv.parseField x >>= makeJannoCaptureType
 instance Csv.ToField JannoCaptureType where
     toField x = Csv.toField $ show x
-instance FromJSON JannoCaptureType where
-    parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
+instance Csv.FromField JannoCaptureType where
+    parseField x = Csv.parseField x >>= makeJannoCaptureType
 instance ToJSON JannoCaptureType where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON JannoCaptureType where
+    parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
+
 
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy =
@@ -218,14 +219,14 @@ makeJannoGenotypePloidy x
     | x == "haploid" = pure Haploid
     | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
 
-instance Csv.FromField JannoGenotypePloidy where
-    parseField x = Csv.parseField x >>= makeJannoGenotypePloidy
 instance Csv.ToField JannoGenotypePloidy where
     toField x = Csv.toField $ show x
-instance FromJSON JannoGenotypePloidy where
-    parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
+instance Csv.FromField JannoGenotypePloidy where
+    parseField x = Csv.parseField x >>= makeJannoGenotypePloidy
 instance ToJSON JannoGenotypePloidy where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON JannoGenotypePloidy where
+    parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
 
 -- |A datatype to represent UDG in a janno file
 data JannoUDG =
@@ -249,14 +250,14 @@ makeJannoUDG x
     | x == "mixed" = pure Mixed
     | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
 
-instance Csv.FromField JannoUDG where
-    parseField x = Csv.parseField x >>= makeJannoUDG
 instance Csv.ToField JannoUDG where
     toField x = Csv.toField $ show x
-instance FromJSON JannoUDG where
-    parseJSON = withText "JannoUDG" (makeJannoUDG . T.unpack)
+instance Csv.FromField JannoUDG where
+    parseField x = Csv.parseField x >>= makeJannoUDG
 instance ToJSON JannoUDG where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON JannoUDG where
+    parseJSON = withText "JannoUDG" (makeJannoUDG . T.unpack)
 
 -- |A datatype to represent Library_Built in a janno file
 data JannoLibraryBuilt =
@@ -277,14 +278,14 @@ makeJannoLibraryBuilt x
     | x == "other" = pure Other
     | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
 
-instance Csv.FromField JannoLibraryBuilt where
-    parseField x = Csv.parseField x >>= makeJannoLibraryBuilt
 instance Csv.ToField JannoLibraryBuilt where
     toField x = Csv.toField $ show x
-instance FromJSON JannoLibraryBuilt where
-    parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
+instance Csv.FromField JannoLibraryBuilt where
+    parseField x = Csv.parseField x >>= makeJannoLibraryBuilt
 instance ToJSON JannoLibraryBuilt where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON JannoLibraryBuilt where
+    parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
 
 -- | A datatype for Latitudes
 newtype Latitude =
@@ -299,14 +300,14 @@ makeLatitude x
     | x >= -90 && x <= 90 = pure (Latitude x)
     | otherwise           = fail $ "Latitude " ++ show x ++ " not between -90 and 90"
 
-instance Csv.FromField Latitude where
-    parseField x = Csv.parseField x >>= makeLatitude
 instance Csv.ToField Latitude where
     toField (Latitude x) = Csv.toField x
-instance FromJSON Latitude where
-    parseJSON = withScientific "Latitude" $ \n -> (makeLatitude . toRealFloat) n
+instance Csv.FromField Latitude where
+    parseField x = Csv.parseField x >>= makeLatitude
 instance ToJSON Latitude where
     toEncoding = genericToEncoding defaultOptions
+instance FromJSON Latitude where
+    parseJSON = withScientific "Latitude" $ \n -> (makeLatitude . toRealFloat) n
 
 -- | A datatype for Longitudes
 newtype Longitude =
@@ -321,14 +322,14 @@ makeLongitude x
     | x >= -180 && x <= 180 = pure (Longitude x)
     | otherwise             = fail $ "Longitude " ++ show x ++ " not between -180 and 180"
 
-instance Csv.FromField Longitude where
-    parseField x = Csv.parseField x >>= makeLongitude
 instance Csv.ToField Longitude where
     toField (Longitude x) = Csv.toField x
-instance FromJSON Longitude where
-    parseJSON = withScientific "Longitude" $ \n -> (makeLongitude . toRealFloat) n
+instance Csv.FromField Longitude where
+    parseField x = Csv.parseField x >>= makeLongitude
 instance ToJSON Longitude where
     toEncoding = genericToEncoding defaultOptions
+instance FromJSON Longitude where
+    parseJSON = withScientific "Longitude" $ \n -> (makeLongitude . toRealFloat) n
 
 -- | A datatype for Percent values
 newtype Percent =
@@ -343,14 +344,14 @@ makePercent x
     | x >= 0 && x <= 100 = pure (Percent x)
     | otherwise          = fail $ "Percentage " ++ show x ++ " not between 0 and 100"
 
-instance Csv.FromField Percent where
-    parseField x = Csv.parseField x >>= makePercent
 instance Csv.ToField Percent where
     toField (Percent x) = Csv.toField x
-instance FromJSON Percent where
-    parseJSON = withScientific "Percent" $ \n -> (makePercent . toRealFloat) n
+instance Csv.FromField Percent where
+    parseField x = Csv.parseField x >>= makePercent
 instance ToJSON Percent where
     toEncoding = genericToEncoding defaultOptions
+instance FromJSON Percent where
+    parseJSON = withScientific "Percent" $ \n -> (makePercent . toRealFloat) n
 
 -- | A datatype to represent URIs in a janno file
 newtype JURI =
@@ -365,14 +366,14 @@ makeJURI x
     | isURI x   = pure $ JURI x
     | otherwise = fail $ "URI " ++ show x ++ " not well structured"
 
-instance Csv.FromField JURI where
-    parseField x = Csv.parseField x >>= makeJURI
 instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
-instance FromJSON JURI where
-    parseJSON = withText "JURI" (makeJURI . T.unpack)
+instance Csv.FromField JURI where
+    parseField x = Csv.parseField x >>= makeJURI
 instance ToJSON JURI where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON JURI where
+    parseJSON = withText "JURI" (makeJURI . T.unpack)
 
 -- |A datatype to represent Relationship degree lists in a janno file
 type JannoRelationDegreeList = JannoList RelationDegree
@@ -410,14 +411,14 @@ makeRelationDegree x
     | otherwise           = fail $ "Relation degree " ++ show x ++
                                    " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
 
-instance Csv.FromField RelationDegree where
-    parseField x = Csv.parseField x >>= makeRelationDegree
 instance Csv.ToField RelationDegree where
     toField x = Csv.toField $ show x
-instance FromJSON RelationDegree where
-    parseJSON = withText "RelationDegree" (makeRelationDegree . T.unpack)
+instance Csv.FromField RelationDegree where
+    parseField x = Csv.parseField x >>= makeRelationDegree
 instance ToJSON RelationDegree where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON RelationDegree where
+    parseJSON = withText "RelationDegree" (makeRelationDegree . T.unpack)
 
 -- |A datatype to represent AccessionID lists in a janno file
 type JannoAccessionIDList = JannoList AccessionID
@@ -456,14 +457,14 @@ makeAccessionID x
     | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = pure $ INSDCAnalysis x
     | otherwise                                   = pure $ OtherID x
 
-instance Csv.FromField AccessionID where
-    parseField x = Csv.parseField x >>= makeAccessionID
 instance Csv.ToField AccessionID where
     toField x = Csv.toField $ show x
-instance FromJSON AccessionID where
-    parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
+instance Csv.FromField AccessionID where
+    parseField x = Csv.parseField x >>= makeAccessionID
 instance ToJSON AccessionID where
     toEncoding x = text $ T.pack $ show x
+instance FromJSON AccessionID where
+    parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
 
 -- | A general datatype for janno list columns
 newtype JannoList a = JannoList {getJannoList :: [a]}
@@ -472,17 +473,17 @@ newtype JannoList a = JannoList {getJannoList :: [a]}
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int
 
+instance (Csv.ToField a) => Csv.ToField (JannoList a) where
+    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList
 instance (Csv.FromField a) => Csv.FromField (JannoList a) where
     parseField x = do
         fieldStr <- Csv.parseField x
         let subStrings = Bchs.splitWith (==';') fieldStr
         fmap JannoList . mapM Csv.parseField $ subStrings
-instance (Csv.ToField a) => Csv.ToField (JannoList a) where
-    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList
-instance (FromJSON a) => FromJSON (JannoList a) where
-    parseJSON v = JannoList <$> parseJSON v
 instance (ToJSON a) => ToJSON (JannoList a) where
     toEncoding (JannoList x) = toEncoding x
+instance (FromJSON a) => FromJSON (JannoList a) where
+    parseJSON v = JannoList <$> parseJSON v
 
 -- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
