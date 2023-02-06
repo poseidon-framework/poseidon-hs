@@ -44,7 +44,6 @@ import           Data.Aeson                           (FromJSON, Options (..),
                                                        toJSON, withScientific,
                                                        withText)
 import           Data.Aeson.Encoding                  (text)
-import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
@@ -60,6 +59,7 @@ import           Data.Scientific                      (toBoundedInteger,
                                                        toRealFloat)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
+import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURI)
@@ -490,13 +490,17 @@ newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Gene
 getCsvNR :: CsvNamedRecord -> Csv.NamedRecord
 getCsvNR (CsvNamedRecord x) = x
 
--- In our current workflow additional columns do not have to be considered for the json representation:
--- json is only relevant for the webserver, which only serves well-specified packages
+-- Aeson does not encode ByteStrings, so that's why we have to go through Text
 instance ToJSON CsvNamedRecord where
-    toJSON _ = emptyObject
-
+    toJSON (CsvNamedRecord x) =
+        let listOfBSTuples = HM.toList x
+            listOfTextTuples = map (\(a,b) -> (T.decodeUtf8 a, T.decodeUtf8 b)) listOfBSTuples
+        in toJSON listOfTextTuples
 instance FromJSON CsvNamedRecord where
-    parseJSON _ = pure $ CsvNamedRecord $ HM.fromList []
+    parseJSON x = do
+        listOfTextTuples <- parseJSON x -- :: [(T.Text, T.Text)]
+        let listOfBSTuples = map (\(a,b) -> (T.encodeUtf8 a, T.encodeUtf8 b)) listOfTextTuples
+        pure $ CsvNamedRecord $ HM.fromList listOfBSTuples
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
