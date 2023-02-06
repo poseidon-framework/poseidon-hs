@@ -58,7 +58,8 @@ import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        (\\))
 import           Data.Maybe                           (fromJust, isNothing)
-import           Data.Scientific                      (toBoundedInteger)
+import           Data.Scientific                      (toBoundedInteger,
+                                                       toRealFloat)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
@@ -260,125 +261,120 @@ instance ToJSON JannoUDG where
     toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent Library_Built in a janno file
-data JannoLibraryBuilt = DS
+data JannoLibraryBuilt =
+      DS
     | SS
     | Other
     deriving (Eq, Ord, Generic)
-
-instance Csv.FromField JannoLibraryBuilt where
-    parseField x
-        | x == "ds"    = pure DS
-        | x == "ss"    = pure SS
-        | x == "other" = pure Other
-        | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
-
-instance Csv.ToField JannoLibraryBuilt where
-    toField DS    = "ds"
-    toField SS    = "ss"
-    toField Other = "other"
 
 instance Show JannoLibraryBuilt where
     show DS    = "ds"
     show SS    = "ss"
     show Other = "other"
 
-instance ToJSON JannoLibraryBuilt where
-    toEncoding = genericToEncoding defaultOptions
+makeJannoLibraryBuilt :: MonadFail m => String -> m JannoLibraryBuilt
+makeJannoLibraryBuilt x
+    | x == "ds"    = pure DS
+    | x == "ss"    = pure SS
+    | x == "other" = pure Other
+    | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
 
-instance FromJSON JannoLibraryBuilt
+instance Csv.FromField JannoLibraryBuilt where
+    parseField x = Csv.parseField x >>= makeJannoLibraryBuilt
+instance Csv.ToField JannoLibraryBuilt where
+    toField x = Csv.toField $ show x
+instance FromJSON JannoLibraryBuilt where
+    parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
+instance ToJSON JannoLibraryBuilt where
+    toEncoding x = text $ T.pack $ show x
 
 -- | A datatype for Latitudes
 newtype Latitude =
         Latitude Double
     deriving (Eq, Ord, Generic)
 
+instance Show Latitude where
+    show (Latitude x) = show x
+
 makeLatitude :: MonadFail m => Double -> m Latitude
 makeLatitude x
     | x >= -90 && x <= 90 = pure (Latitude x)
     | otherwise           = fail $ "Latitude " ++ show x ++ " not between -90 and 90"
 
-instance FromJSON Latitude where
-    parseJSON = withObject "Latitude" $ \v -> v .: "Latitude" >>= makeLatitude
-
 instance Csv.FromField Latitude where
     parseField x = Csv.parseField x >>= makeLatitude
-
-instance ToJSON Latitude where
-    toEncoding = genericToEncoding defaultOptions
-
 instance Csv.ToField Latitude where
     toField (Latitude x) = Csv.toField x
-
-instance Show Latitude where
-    show (Latitude x) = show x
+instance FromJSON Latitude where
+    parseJSON = withScientific "Latitude" $ \n -> (makeLatitude . toRealFloat) n
+instance ToJSON Latitude where
+    toEncoding = genericToEncoding defaultOptions
 
 -- | A datatype for Longitudes
 newtype Longitude =
         Longitude Double
     deriving (Eq, Ord, Generic)
 
-instance ToJSON Longitude where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON Longitude
-
-instance Csv.FromField Longitude where
-    parseField x = do
-        val <- Csv.parseField x
-        if val < -180 || val > 180
-        then fail $ "Longitude " ++ show x ++ " not between -180 and 180"
-        else pure (Longitude val)
-
-instance Csv.ToField Longitude where
-    toField (Longitude x) = Csv.toField x
-
 instance Show Longitude where
     show (Longitude x) = show x
+
+makeLongitude :: MonadFail m => Double -> m Longitude
+makeLongitude x
+    | x >= -180 && x <= 180 = pure (Longitude x)
+    | otherwise             = fail $ "Longitude " ++ show x ++ " not between -180 and 180"
+
+instance Csv.FromField Longitude where
+    parseField x = Csv.parseField x >>= makeLongitude
+instance Csv.ToField Longitude where
+    toField (Longitude x) = Csv.toField x
+instance FromJSON Longitude where
+    parseJSON = withScientific "Longitude" $ \n -> (makeLongitude . toRealFloat) n
+instance ToJSON Longitude where
+    toEncoding = genericToEncoding defaultOptions
 
 -- | A datatype for Percent values
 newtype Percent =
         Percent Double
     deriving (Eq, Ord, Generic)
 
-instance ToJSON Percent where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON Percent
-
-instance Csv.FromField Percent where
-    parseField x = do
-        val <- Csv.parseField x
-        if val < 0  || val > 100
-        then fail $ "Percent value " ++ show x ++ " not between 0 and 100"
-        else pure (Percent val)
-
-instance Csv.ToField Percent where
-    toField (Percent x) = Csv.toField x
-
 instance Show Percent where
     show (Percent x) = show x
 
--- | A datatype to represent URIs in a janno file
-newtype JURI = JURI String
-    deriving (Eq, Ord, Generic)
+makePercent :: MonadFail m => Double -> m Percent
+makePercent x
+    | x >= 0 && x <= 100 = pure (Percent x)
+    | otherwise          = fail $ "Percentage " ++ show x ++ " not between 0 and 100"
 
-instance ToJSON JURI where
+instance Csv.FromField Percent where
+    parseField x = Csv.parseField x >>= makePercent
+instance Csv.ToField Percent where
+    toField (Percent x) = Csv.toField x
+instance FromJSON Percent where
+    parseJSON = withScientific "Percent" $ \n -> (makePercent . toRealFloat) n
+instance ToJSON Percent where
     toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON JURI
-
-instance Csv.FromField JURI where
-    parseField x = do
-        val <- Csv.parseField x
-        if not $ isURI val
-        then fail $ "URI " ++ show x ++ " not well structured"
-        else pure $ JURI val
-
-instance Csv.ToField JURI where
-    toField x = Csv.toField $ show x
+-- | A datatype to represent URIs in a janno file
+newtype JURI =
+        JURI String
+    deriving (Eq, Ord, Generic)
 
 instance Show JURI where
     show (JURI x) = x
+
+makeJURI :: MonadFail m => String -> m JURI
+makeJURI x
+    | isURI x   = pure $ JURI x
+    | otherwise = fail $ "URI " ++ show x ++ " not well structured"
+
+instance Csv.FromField JURI where
+    parseField x = Csv.parseField x >>= makeJURI
+instance Csv.ToField JURI where
+    toField x = Csv.toField $ show x
+instance FromJSON JURI where
+    parseJSON = withText "JURI" (makeJURI . T.unpack)
+instance ToJSON JURI where
+    toEncoding x = text $ T.pack $ show x
 
 -- | A general datatype for janno list columns
 newtype JannoList a = JannoList {getJannoList :: [a]}
