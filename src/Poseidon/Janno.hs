@@ -376,61 +376,18 @@ instance FromJSON JURI where
 instance ToJSON JURI where
     toEncoding x = text $ T.pack $ show x
 
--- | A general datatype for janno list columns
-newtype JannoList a = JannoList {getJannoList :: [a]}
-    deriving (Eq, Ord, Generic, Show)
-
-type JannoStringList = JannoList String
-type JannoIntList = JannoList Int
-
-instance (Csv.ToField a) => Csv.ToField (JannoList a) where
-    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList
-
-instance (Csv.FromField a) => Csv.FromField (JannoList a) where
-    parseField x = do
-        fieldStr <- Csv.parseField x
-        let subStrings = Bchs.splitWith (==';') fieldStr
-        fmap JannoList . mapM Csv.parseField $ subStrings
-
-instance (ToJSON a) => ToJSON (JannoList a) where
-    toEncoding (JannoList x) = toEncoding x
-
-instance (FromJSON a) => FromJSON (JannoList a) where
-    parseJSON v = JannoList <$> parseJSON v
-
 -- |A datatype to represent Relationship degree lists in a janno file
 type JannoRelationDegreeList = JannoList RelationDegree
 
-data RelationDegree = Identical | First | Second | ThirdToFifth | SixthToTenth | Unrelated | OtherDegree
+data RelationDegree =
+      Identical
+    | First
+    | Second
+    | ThirdToFifth
+    | SixthToTenth
+    | Unrelated
+    | OtherDegree
     deriving (Eq, Ord, Generic)
-
-instance ToJSON RelationDegree where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON RelationDegree
-
-instance Csv.FromField RelationDegree where
-    parseField x
-        | x == "identical"    = pure Identical
-        | x == "first"        = pure First
-        | x == "second"       = pure Second
-        | x == "thirdToFifth" = pure ThirdToFifth
-        | x == "sixthToTenth" = pure SixthToTenth
-        | x == "unrelated"    = pure Unrelated -- this should be omitted in the documentation
-                                               -- relations of type "unrelated" don't have to be
-                                               -- listed explicitly
-        | x == "other"        = pure OtherDegree
-        | otherwise           = fail $ "Relation degree " ++ show x ++
-                                       " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
-
-instance Csv.ToField RelationDegree where
-    toField Identical    = "identical"
-    toField First        = "first"
-    toField Second       = "second"
-    toField ThirdToFifth = "thirdToFifth"
-    toField SixthToTenth = "sixthToTenth"
-    toField Unrelated    = "unrelated"
-    toField OtherDegree  = "other"
 
 instance Show RelationDegree where
     show Identical    = "identical"
@@ -440,6 +397,29 @@ instance Show RelationDegree where
     show SixthToTenth = "sixthToTenth"
     show Unrelated    = "unrelated"
     show OtherDegree  = "other"
+
+makeRelationDegree :: MonadFail m => String -> m RelationDegree
+makeRelationDegree x
+    | x == "identical"    = pure Identical
+    | x == "first"        = pure First
+    | x == "second"       = pure Second
+    | x == "thirdToFifth" = pure ThirdToFifth
+    | x == "sixthToTenth" = pure SixthToTenth
+    | x == "unrelated"    = pure Unrelated -- this should be omitted in the documentation
+                                           -- relations of type "unrelated" don't have to be
+                                           -- listed explicitly
+    | x == "other"        = pure OtherDegree
+    | otherwise           = fail $ "Relation degree " ++ show x ++
+                                   " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
+
+instance Csv.FromField RelationDegree where
+    parseField x = Csv.parseField x >>= makeRelationDegree
+instance Csv.ToField RelationDegree where
+    toField x = Csv.toField $ show x
+instance FromJSON RelationDegree where
+    parseJSON = withText "RelationDegree" (makeRelationDegree . T.unpack)
+instance ToJSON RelationDegree where
+    toEncoding x = text $ T.pack $ show x
 
 -- |A datatype to represent AccessionID lists in a janno file
 type JannoAccessionIDList = JannoList AccessionID
@@ -497,6 +477,25 @@ instance Show AccessionID where
     show (INSDCRun x)        = x
     show (INSDCAnalysis x)   = x
     show (OtherID x)         = x
+
+-- | A general datatype for janno list columns
+newtype JannoList a = JannoList {getJannoList :: [a]}
+    deriving (Eq, Ord, Generic, Show)
+
+type JannoStringList = JannoList String
+type JannoIntList = JannoList Int
+
+instance (Csv.FromField a) => Csv.FromField (JannoList a) where
+    parseField x = do
+        fieldStr <- Csv.parseField x
+        let subStrings = Bchs.splitWith (==';') fieldStr
+        fmap JannoList . mapM Csv.parseField $ subStrings
+instance (Csv.ToField a) => Csv.ToField (JannoList a) where
+    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList
+instance (FromJSON a) => FromJSON (JannoList a) where
+    parseJSON v = JannoList <$> parseJSON v
+instance (ToJSON a) => ToJSON (JannoList a) where
+    toEncoding (JannoList x) = toEncoding x
 
 -- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
