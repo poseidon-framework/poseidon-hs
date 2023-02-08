@@ -1,3 +1,4 @@
+- V 1.1.8.3: The fix in introduced in 1.1.8.1 introduced a bug: It broke valid unicode characters in .janno files and prevented reading them. The solution implemented here solves this issue
 - V 1.1.8.2: Improved the behaviour of `list` when provided with undefined .janno columns in the `-j` argument
 - V 1.1.8.1: Fixed an decoding-encoding bug in the janno code by generally trimming all whitespaces on reading and deleting No-Break Space characters
 - V 1.1.8.0: Renamed `--no-extract` to `--packagewise`, fixed its behaviour with implicit package selection, and clarified help text
