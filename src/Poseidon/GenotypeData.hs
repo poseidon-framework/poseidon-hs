@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
@@ -276,7 +275,7 @@ printSNPCopyProgress logEnv startTime = do
         logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
         logProgress c t
             |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ padLeft 9 (show c) ++ "    " ++ prettyTime (floor t)
-            |  c == 1000          = logInfo $ "Probing of the first 1000 SNPs successful. Continue forging now..."
+            |  c == 1000          = logInfo   "Probing of the first 1000 SNPs successful. Continue forging now..."
             | otherwise = return ()
         prettyTime :: Int -> String
         prettyTime t

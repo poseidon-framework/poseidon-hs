@@ -195,8 +195,7 @@ runForge (
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ plinkPopMode relevantPackages maybeSnpFile
-            let eigenstratIndEntriesV = eigenstratIndEntries
-            let newEigenstratIndEntries = map (eigenstratIndEntriesV !!) relevantIndices
+            let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
             let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
