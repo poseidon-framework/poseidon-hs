@@ -19,6 +19,7 @@ module Poseidon.Janno (
     JURI (..),
     RelationDegree (..),
     JannoLibraryBuilt (..),
+    AccessionID (..),
     writeJannoFile,
     readJannoFile,
     concatJannos,
@@ -135,7 +136,7 @@ data JannoDateType =
       C14
     | Contextual
     | Modern
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoDateType where
     show C14        = "C14"
@@ -168,7 +169,7 @@ data JannoCaptureType =
     | TwistAncientDNA
     | OtherCapture
     | ReferenceGenome
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoCaptureType where
     show Shotgun            = "Shotgun"
@@ -202,12 +203,11 @@ instance ToJSON JannoCaptureType where
 instance FromJSON JannoCaptureType where
     parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
 
-
 -- |A datatype to represent Genotype_Ploidy in a janno file
 data JannoGenotypePloidy =
       Diploid
     | Haploid
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoGenotypePloidy where
     show Diploid = "diploid"
@@ -234,7 +234,7 @@ data JannoUDG =
     | Half
     | Plus
     | Mixed
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoUDG where
     show Minus = "minus"
@@ -264,7 +264,7 @@ data JannoLibraryBuilt =
       DS
     | SS
     | Other
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoLibraryBuilt where
     show DS    = "ds"
@@ -386,7 +386,7 @@ data RelationDegree =
     | SixthToTenth
     | Unrelated
     | OtherDegree
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show RelationDegree where
     show Identical    = "identical"
