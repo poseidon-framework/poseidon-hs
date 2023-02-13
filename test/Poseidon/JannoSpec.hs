@@ -2,9 +2,9 @@
 
 module Poseidon.JannoSpec (spec) where
 
-import           Poseidon.Janno      (BCADAge (..), CsvNamedRecord (..),
-                                      JURI (..), JannoCaptureType (..),
-                                      JannoDateType (..),
+import           Poseidon.Janno      (AccessionID (..), BCADAge (..),
+                                      CsvNamedRecord (..), JURI (..),
+                                      JannoCaptureType (..), JannoDateType (..),
                                       JannoGenotypePloidy (..),
                                       JannoLibraryBuilt (..), JannoList (..),
                                       JannoRow (..), JannoSex (..),
@@ -14,13 +14,60 @@ import           Poseidon.Janno      (BCADAge (..), CsvNamedRecord (..),
                                       readJannoFile)
 import           Poseidon.Utils      (testLog)
 
+import           Control.Applicative (liftA2)
+import qualified Data.Aeson          as A
+import qualified Data.Csv            as C
 import           Data.HashMap.Strict (fromList)
-import           Test.Hspec          (Spec, anyException, describe, it,
-                                      shouldBe, shouldThrow)
+import           Test.Hspec          (Expectation, Spec, anyException, describe,
+                                      it, shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do
+    testEnAndDecoding
     testPoseidonSampleFromJannoFile
+
+testEnAndDecoding :: Spec
+testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ do
+    it "should pass smoothly through all relevant en- and decoding cycles" $ do
+        -- generic instances
+        check (["a", "b", "c"] :: [String])
+        check ([1, 2, 3] :: [Int])
+        -- self defined instances
+        check [JannoSex Female, JannoSex Male, JannoSex Unknown]
+        check [BCADAge (-100), BCADAge 100]
+        check (enumFrom minBound :: [JannoDateType]) -- get all constructors for JannoDateType in a list
+        check (enumFrom minBound :: [JannoCaptureType])
+        check (enumFrom minBound :: [JannoGenotypePloidy])
+        check (enumFrom minBound :: [JannoUDG])
+        check (enumFrom minBound :: [JannoLibraryBuilt])
+        check [Latitude (-45), Latitude 45]
+        check [Longitude (-100), Longitude 100]
+        check [Percent 0, Percent 100]
+        check [JURI "http://www.google.de"]
+        check (enumFrom minBound :: [RelationDegree])
+        check [INSDCProject "PRJEA0", INSDCStudy "ERP000000"]
+        check [JannoList (["a", "b", "c"] :: [String])]
+        check [JannoList ([1, 2, 3] :: [Int])]
+        check [JannoList (enumFrom minBound :: [JannoUDG])] -- to test if JannoList is really fully general
+        -- with Maybe
+        check ([Nothing, Just $ Latitude (-45), Just $ Latitude 45] :: [Maybe Latitude])
+        where
+            -- infrastructure to check an en- and decoding cycle
+            check :: (Show a, Eq a, A.FromJSON a, A.ToJSON a, C.FromField a, C.ToField a) => [a] -> IO ()
+            check = liftA2 (>>) checkAeson checkCassava
+            checkAeson :: (Show a, Eq a, A.FromJSON a, A.ToJSON a) => [a] -> Expectation
+            checkAeson xs = aesonCycle xs `shouldBe` aesonResult xs
+                where
+                    aesonCycle :: (A.FromJSON a, A.ToJSON a) => [a] -> [Maybe a]
+                    aesonCycle = map (A.decode . A.encode)
+                    aesonResult = map Just
+            checkCassava :: (Show a, Eq a, C.FromField a, C.ToField a) => [a] -> Expectation
+            checkCassava xs = cassavaCycle xs `shouldBe` cassavaResult xs
+                where
+                    cassavaCycle :: (C.FromField a, C.ToField a) => [a] -> [Either String a]
+                    cassavaCycle = map (C.runParser . C.parseField . C.toField)
+                    cassavaResult = map Right
+
 
 testPoseidonSampleFromJannoFile :: Spec
 testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
