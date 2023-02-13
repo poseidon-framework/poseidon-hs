@@ -6,9 +6,9 @@
 </span><span id="line-6"></span><span class="hs-comment">-- | A helper function to calculate the mean of a list of doubles</span><span>
 </span><span id="line-7"></span><span class="annot"><a href="Poseidon.MathHelpers.html#avg"><span class="hs-identifier hs-type">avg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
 </span><span id="line-8"></span><span id="avg"><span class="annot"><span class="annottext">avg :: [Double] -&gt; Double
-</span><a href="Poseidon.MathHelpers.html#avg"><span class="hs-identifier hs-var hs-var">avg</span></a></span></span><span> </span><span id="local-6989586621679160172"><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160172"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679160171"><span class="annot"><span class="annottext">sum_ :: Double
-</span><a href="#local-6989586621679160171"><span class="hs-identifier hs-var hs-var">sum_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double) -&gt; Double -&gt; [Double] -&gt; Double
+</span><a href="Poseidon.MathHelpers.html#avg"><span class="hs-identifier hs-var hs-var">avg</span></a></span></span><span> </span><span id="local-6989586621679159730"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679159730"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679159729"><span class="annot"><span class="annottext">sum_ :: Double
+</span><a href="#local-6989586621679159729"><span class="hs-identifier hs-var hs-var">sum_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double) -&gt; Double -&gt; [Double] -&gt; Double
 forall (t :: * -&gt; *) b a.
 Foldable t =&gt;
 (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
@@ -16,47 +16,47 @@ Foldable t =&gt;
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">(+)</span></span><span> </span><span class="annot"><span class="annottext">Double
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160172"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679159730"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-9"></span><span>         </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Double
-</span><a href="#local-6989586621679160171"><span class="hs-identifier hs-var">sum_</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679159729"><span class="hs-identifier hs-var">sum_</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
 forall a. Fractional a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
 forall a b. (Integral a, Num b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Double] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160172"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679159730"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-10"></span><span>
 </span><span id="line-11"></span><span class="hs-comment">-- | A helper function to round doubles</span><span>
 </span><span id="line-12"></span><span class="annot"><a href="Poseidon.MathHelpers.html#roundTo"><span class="hs-identifier hs-type">roundTo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
 </span><span id="line-13"></span><span id="roundTo"><span class="annot"><span class="annottext">roundTo :: Int -&gt; Double -&gt; Double
-</span><a href="Poseidon.MathHelpers.html#roundTo"><span class="hs-identifier hs-var hs-var">roundTo</span></a></span></span><span> </span><span id="local-6989586621679160166"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160166"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679160165"><span class="annot"><span class="annottext">Double
-</span><a href="#local-6989586621679160165"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+</span><a href="Poseidon.MathHelpers.html#roundTo"><span class="hs-identifier hs-var hs-var">roundTo</span></a></span></span><span> </span><span id="local-6989586621679159724"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679159724"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679159723"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679159723"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
 forall a b. (Integral a, Num b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160164"><span class="hs-identifier hs-var">val</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679159722"><span class="hs-identifier hs-var">val</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
 forall a. Fractional a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Double
-</span><a href="#local-6989586621679160163"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621679159721"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-14"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-15"></span><span>    </span><span id="local-6989586621679160164"><span class="annot"><span class="annottext">val :: Int
-</span><a href="#local-6989586621679160164"><span class="hs-identifier hs-var hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Int
+</span><span id="line-15"></span><span>    </span><span id="local-6989586621679159722"><span class="annot"><span class="annottext">val :: Int
+</span><a href="#local-6989586621679159722"><span class="hs-identifier hs-var hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Int
 forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
-</span><a href="#local-6989586621679160165"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679159723"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Double
-</span><a href="#local-6989586621679160163"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-16"></span><span>    </span><span id="local-6989586621679160163"><span class="annot"><span class="annottext">t :: Double
-</span><a href="#local-6989586621679160163"><span class="hs-identifier hs-var hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679159721"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-16"></span><span>    </span><span id="local-6989586621679159721"><span class="annot"><span class="annottext">t :: Double
+</span><a href="#local-6989586621679159721"><span class="hs-identifier hs-var hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
 </span><span class="hs-number">10</span></span><span class="annot"><span class="annottext">Double -&gt; Int -&gt; Double
 forall a b. (Num a, Integral b) =&gt; a -&gt; b -&gt; a
 </span><span class="hs-operator hs-var">^</span></span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160166"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><a href="#local-6989586621679159724"><span class="hs-identifier hs-var">n</span></a></span><span>
 </span><span id="line-17"></span><span>
 </span><span id="line-18"></span><span class="hs-comment">-- | A helper function to print rounded doubles</span><span>
-</span><span id="line-19"></span><span id="local-6989586621679160159"><span class="annot"><a href="Poseidon.MathHelpers.html#roundToStr"><span class="hs-identifier hs-type">roundToStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">PrintfArg</span></span><span> </span><span class="annot"><a href="#local-6989586621679160159"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Floating</span></span><span> </span><span class="annot"><a href="#local-6989586621679160159"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679160159"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-19"></span><span id="local-6989586621679159717"><span class="annot"><a href="Poseidon.MathHelpers.html#roundToStr"><span class="hs-identifier hs-type">roundToStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">PrintfArg</span></span><span> </span><span class="annot"><a href="#local-6989586621679159717"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Floating</span></span><span> </span><span class="annot"><a href="#local-6989586621679159717"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679159717"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
 </span><span id="line-20"></span><span id="roundToStr"><span class="annot"><span class="annottext">roundToStr :: Int -&gt; a -&gt; String
 </span><a href="Poseidon.MathHelpers.html#roundToStr"><span class="hs-identifier hs-var hs-var">roundToStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; a -&gt; String
 forall r. PrintfType r =&gt; String -&gt; r
@@ -66,8 +66,8 @@ forall r. PrintfType r =&gt; String -&gt; r
 </span><span id="line-22"></span><span class="hs-comment">-- | A helper function to calculate the standard deviation of a list of doubles</span><span>
 </span><span id="line-23"></span><span class="annot"><a href="Poseidon.MathHelpers.html#stdev"><span class="hs-identifier hs-type">stdev</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
 </span><span id="line-24"></span><span id="stdev"><span class="annot"><span class="annottext">stdev :: [Double] -&gt; Double
-</span><a href="Poseidon.MathHelpers.html#stdev"><span class="hs-identifier hs-var hs-var">stdev</span></a></span></span><span> </span><span id="local-6989586621679160156"><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160156"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+</span><a href="Poseidon.MathHelpers.html#stdev"><span class="hs-identifier hs-var hs-var">stdev</span></a></span></span><span> </span><span id="local-6989586621679159714"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679159714"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
 forall a. Floating a =&gt; a -&gt; a
 </span><span class="hs-identifier hs-var">sqrt</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; ([Double] -&gt; Double) -&gt; [Double] -&gt; Double
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
@@ -79,39 +79,39 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double
 forall a. Num a =&gt; a -&gt; a
-</span><a href="#local-6989586621679160153"><span class="hs-identifier hs-var">sq</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; (Double -&gt; Double) -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679159711"><span class="hs-identifier hs-var">sq</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; (Double -&gt; Double) -&gt; Double -&gt; Double
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Double] -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#avg"><span class="hs-identifier hs-var">avg</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160156"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Double] -&gt; Double) -&gt; [Double] -&gt; Double
+</span><a href="#local-6989586621679159714"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Double] -&gt; Double) -&gt; [Double] -&gt; Double
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160156"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679159714"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-25"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-26"></span><span>    </span><span id="local-6989586621679160153"><span class="annot"><span class="annottext">sq :: a -&gt; a
-</span><a href="#local-6989586621679160153"><span class="hs-identifier hs-var hs-var">sq</span></a></span></span><span> </span><span id="local-6989586621679160152"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679160152"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679160152"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><span id="line-26"></span><span>    </span><span id="local-6989586621679159711"><span class="annot"><span class="annottext">sq :: a -&gt; a
+</span><a href="#local-6989586621679159711"><span class="hs-identifier hs-var hs-var">sq</span></a></span></span><span> </span><span id="local-6989586621679159710"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679159710"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679159710"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679160152"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679159710"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-27"></span><span class="hs-comment">-- | A helper function to get a nice string with mean and sd for a list of doubles</span><span>
 </span><span id="line-28"></span><span class="annot"><a href="Poseidon.MathHelpers.html#meanAndSdRoundTo"><span class="hs-identifier hs-type">meanAndSdRoundTo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-29"></span><span id="meanAndSdRoundTo"><span class="annot"><span class="annottext">meanAndSdRoundTo :: Int -&gt; [Double] -&gt; String
 </span><a href="Poseidon.MathHelpers.html#meanAndSdRoundTo"><span class="hs-identifier hs-var hs-var">meanAndSdRoundTo</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;no values&quot;</span></span><span>
-</span><span id="line-30"></span><span class="annot"><a href="Poseidon.MathHelpers.html#meanAndSdRoundTo"><span class="hs-identifier hs-var">meanAndSdRoundTo</span></a></span><span> </span><span id="local-6989586621679160150"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160150"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679160149"><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160149"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; String
+</span><span id="line-30"></span><span class="annot"><a href="Poseidon.MathHelpers.html#meanAndSdRoundTo"><span class="hs-identifier hs-var">meanAndSdRoundTo</span></a></span><span> </span><span id="local-6989586621679159708"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679159708"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679159707"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679159707"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Double -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#roundTo"><span class="hs-identifier hs-var">roundTo</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160150"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679159708"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#avg"><span class="hs-identifier hs-var">avg</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160149"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679159707"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; &#177; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
@@ -120,11 +120,11 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Double -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#roundTo"><span class="hs-identifier hs-var">roundTo</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160150"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679159708"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#stdev"><span class="hs-identifier hs-var">stdev</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160149"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679159707"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-31"></span><span>
 </span><span id="line-32"></span><span class="hs-comment">-- | A helper function to get a nice string with mean and sd for a list of doubles</span><span>
 </span><span id="line-33"></span><span class="hs-comment">-- (here rounded to integer)</span><span>
@@ -132,11 +132,11 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-35"></span><span id="meanAndSdInteger"><span class="annot"><span class="annottext">meanAndSdInteger :: [Double] -&gt; String
 </span><a href="Poseidon.MathHelpers.html#meanAndSdInteger"><span class="hs-identifier hs-var hs-var">meanAndSdInteger</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;no values&quot;</span></span><span>
-</span><span id="line-36"></span><span class="annot"><a href="Poseidon.MathHelpers.html#meanAndSdInteger"><span class="hs-identifier hs-var">meanAndSdInteger</span></a></span><span> </span><span id="local-6989586621679160146"><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160146"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+</span><span id="line-36"></span><span class="annot"><a href="Poseidon.MathHelpers.html#meanAndSdInteger"><span class="hs-identifier hs-var">meanAndSdInteger</span></a></span><span> </span><span id="local-6989586621679159704"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679159704"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160145"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679159703"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; &#177; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
@@ -144,22 +144,22 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679160144"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><a href="#local-6989586621679159702"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-37"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-38"></span><span>    </span><span id="local-6989586621679160145"><span class="annot"><span class="annottext">a :: Int
-</span><a href="#local-6989586621679160145"><span class="hs-identifier hs-var hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Int
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679159703"><span class="annot"><span class="annottext">a :: Int
+</span><a href="#local-6989586621679159703"><span class="hs-identifier hs-var hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Int
 forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Int) -&gt; Double -&gt; Int
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#avg"><span class="hs-identifier hs-var">avg</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160146"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-39"></span><span>    </span><span id="local-6989586621679160144"><span class="annot"><span class="annottext">s :: Int
-</span><a href="#local-6989586621679160144"><span class="hs-identifier hs-var hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Int
+</span><a href="#local-6989586621679159704"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-39"></span><span>    </span><span id="local-6989586621679159702"><span class="annot"><span class="annottext">s :: Int
+</span><a href="#local-6989586621679159702"><span class="hs-identifier hs-var hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Int
 forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Int) -&gt; Double -&gt; Int
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Double
 </span><a href="Poseidon.MathHelpers.html#stdev"><span class="hs-identifier hs-var">stdev</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679160146"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><a href="#local-6989586621679159704"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-40"></span></pre></body></html>

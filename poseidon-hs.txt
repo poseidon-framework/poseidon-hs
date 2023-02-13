@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.8.3
+@version 1.1.8.4
 
 module Poseidon.MathHelpers
 
@@ -280,6 +280,8 @@ JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe Ja
 [jComments] :: JannoRow -> Maybe String
 [jKeywords] :: JannoRow -> Maybe JannoStringList
 [jAdditionalColumns] :: JannoRow -> CsvNamedRecord
+
+-- | A datatype for genetic sex
 newtype JannoSex
 JannoSex :: Sex -> JannoSex
 [sfSex] :: JannoSex -> Sex
@@ -355,6 +357,15 @@ data JannoLibraryBuilt
 DS :: JannoLibraryBuilt
 SS :: JannoLibraryBuilt
 Other :: JannoLibraryBuilt
+data AccessionID
+INSDCProject :: String -> AccessionID
+INSDCStudy :: String -> AccessionID
+INSDCBioSample :: String -> AccessionID
+INSDCSample :: String -> AccessionID
+INSDCExperiment :: String -> AccessionID
+INSDCRun :: String -> AccessionID
+INSDCAnalysis :: String -> AccessionID
+OtherID :: String -> AccessionID
 writeJannoFile :: FilePath -> [JannoRow] -> IO ()
 
 -- | A function to load one janno file
@@ -364,7 +375,6 @@ concatJannos :: [[JannoRow]] -> [JannoRow]
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
 jannoHeaderString :: [String]
-determineAccessionIDType :: String -> AccessionID
 
 -- | A datatype to collect additional, unpecified .janno file columns (a
 --   hashmap in cassava/Data.Csv)
@@ -374,18 +384,28 @@ instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.BCADAge
 instance GHC.Classes.Ord Poseidon.Janno.BCADAge
 instance GHC.Classes.Eq Poseidon.Janno.BCADAge
+instance GHC.Enum.Bounded Poseidon.Janno.JannoDateType
+instance GHC.Enum.Enum Poseidon.Janno.JannoDateType
 instance GHC.Generics.Generic Poseidon.Janno.JannoDateType
 instance GHC.Classes.Ord Poseidon.Janno.JannoDateType
 instance GHC.Classes.Eq Poseidon.Janno.JannoDateType
+instance GHC.Enum.Bounded Poseidon.Janno.JannoCaptureType
+instance GHC.Enum.Enum Poseidon.Janno.JannoCaptureType
 instance GHC.Generics.Generic Poseidon.Janno.JannoCaptureType
 instance GHC.Classes.Ord Poseidon.Janno.JannoCaptureType
 instance GHC.Classes.Eq Poseidon.Janno.JannoCaptureType
+instance GHC.Enum.Bounded Poseidon.Janno.JannoGenotypePloidy
+instance GHC.Enum.Enum Poseidon.Janno.JannoGenotypePloidy
 instance GHC.Generics.Generic Poseidon.Janno.JannoGenotypePloidy
 instance GHC.Classes.Ord Poseidon.Janno.JannoGenotypePloidy
 instance GHC.Classes.Eq Poseidon.Janno.JannoGenotypePloidy
+instance GHC.Enum.Bounded Poseidon.Janno.JannoUDG
+instance GHC.Enum.Enum Poseidon.Janno.JannoUDG
 instance GHC.Generics.Generic Poseidon.Janno.JannoUDG
 instance GHC.Classes.Ord Poseidon.Janno.JannoUDG
 instance GHC.Classes.Eq Poseidon.Janno.JannoUDG
+instance GHC.Enum.Bounded Poseidon.Janno.JannoLibraryBuilt
+instance GHC.Enum.Enum Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Generics.Generic Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Classes.Ord Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Classes.Eq Poseidon.Janno.JannoLibraryBuilt
@@ -401,16 +421,18 @@ instance GHC.Classes.Eq Poseidon.Janno.Percent
 instance GHC.Generics.Generic Poseidon.Janno.JURI
 instance GHC.Classes.Ord Poseidon.Janno.JURI
 instance GHC.Classes.Eq Poseidon.Janno.JURI
-instance GHC.Show.Show a => GHC.Show.Show (Poseidon.Janno.JannoList a)
-instance GHC.Generics.Generic (Poseidon.Janno.JannoList a)
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Poseidon.Janno.JannoList a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Poseidon.Janno.JannoList a)
+instance GHC.Enum.Bounded Poseidon.Janno.RelationDegree
+instance GHC.Enum.Enum Poseidon.Janno.RelationDegree
 instance GHC.Generics.Generic Poseidon.Janno.RelationDegree
 instance GHC.Classes.Ord Poseidon.Janno.RelationDegree
 instance GHC.Classes.Eq Poseidon.Janno.RelationDegree
 instance GHC.Generics.Generic Poseidon.Janno.AccessionID
 instance GHC.Classes.Ord Poseidon.Janno.AccessionID
 instance GHC.Classes.Eq Poseidon.Janno.AccessionID
+instance GHC.Show.Show a => GHC.Show.Show (Poseidon.Janno.JannoList a)
+instance GHC.Generics.Generic (Poseidon.Janno.JannoList a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Poseidon.Janno.JannoList a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Poseidon.Janno.JannoList a)
 instance GHC.Generics.Generic Poseidon.Janno.CsvNamedRecord
 instance GHC.Classes.Eq Poseidon.Janno.CsvNamedRecord
 instance GHC.Show.Show Poseidon.Janno.CsvNamedRecord
@@ -424,76 +446,76 @@ instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.CsvNamedRecord
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.CsvNamedRecord
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.AccessionID
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.AccessionID
-instance Data.Csv.Conversion.FromField Poseidon.Janno.AccessionID
-instance Data.Csv.Conversion.ToField Poseidon.Janno.AccessionID
-instance GHC.Show.Show Poseidon.Janno.AccessionID
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.RelationDegree
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.RelationDegree
-instance Data.Csv.Conversion.FromField Poseidon.Janno.RelationDegree
-instance Data.Csv.Conversion.ToField Poseidon.Janno.RelationDegree
-instance GHC.Show.Show Poseidon.Janno.RelationDegree
 instance Data.Csv.Conversion.ToField a => Data.Csv.Conversion.ToField (Poseidon.Janno.JannoList a)
 instance Data.Csv.Conversion.FromField a => Data.Csv.Conversion.FromField (Poseidon.Janno.JannoList a)
 instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Poseidon.Janno.JannoList a)
 instance Data.Aeson.Types.FromJSON.FromJSON a => Data.Aeson.Types.FromJSON.FromJSON (Poseidon.Janno.JannoList a)
+instance GHC.Show.Show Poseidon.Janno.AccessionID
+instance Data.Csv.Conversion.ToField Poseidon.Janno.AccessionID
+instance Data.Csv.Conversion.FromField Poseidon.Janno.AccessionID
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.AccessionID
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.AccessionID
+instance GHC.Show.Show Poseidon.Janno.RelationDegree
+instance Data.Csv.Conversion.ToField Poseidon.Janno.RelationDegree
+instance Data.Csv.Conversion.FromField Poseidon.Janno.RelationDegree
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.RelationDegree
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.RelationDegree
+instance GHC.Show.Show Poseidon.Janno.JURI
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JURI
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JURI
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JURI
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JURI
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JURI
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JURI
-instance GHC.Show.Show Poseidon.Janno.JURI
+instance GHC.Show.Show Poseidon.Janno.Percent
+instance Data.Csv.Conversion.ToField Poseidon.Janno.Percent
+instance Data.Csv.Conversion.FromField Poseidon.Janno.Percent
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.Percent
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.Percent
-instance Data.Csv.Conversion.FromField Poseidon.Janno.Percent
-instance Data.Csv.Conversion.ToField Poseidon.Janno.Percent
-instance GHC.Show.Show Poseidon.Janno.Percent
+instance GHC.Show.Show Poseidon.Janno.Longitude
+instance Data.Csv.Conversion.ToField Poseidon.Janno.Longitude
+instance Data.Csv.Conversion.FromField Poseidon.Janno.Longitude
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.Longitude
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.Longitude
-instance Data.Csv.Conversion.FromField Poseidon.Janno.Longitude
-instance Data.Csv.Conversion.ToField Poseidon.Janno.Longitude
-instance GHC.Show.Show Poseidon.Janno.Longitude
+instance GHC.Show.Show Poseidon.Janno.Latitude
+instance Data.Csv.Conversion.ToField Poseidon.Janno.Latitude
+instance Data.Csv.Conversion.FromField Poseidon.Janno.Latitude
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.Latitude
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.Latitude
-instance Data.Csv.Conversion.FromField Poseidon.Janno.Latitude
-instance Data.Csv.Conversion.ToField Poseidon.Janno.Latitude
-instance GHC.Show.Show Poseidon.Janno.Latitude
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoLibraryBuilt
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Show.Show Poseidon.Janno.JannoLibraryBuilt
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoLibraryBuilt
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoLibraryBuilt
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoLibraryBuilt
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoLibraryBuilt
+instance GHC.Show.Show Poseidon.Janno.JannoUDG
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoUDG
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoUDG
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoUDG
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoUDG
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoUDG
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoUDG
-instance GHC.Show.Show Poseidon.Janno.JannoUDG
+instance GHC.Show.Show Poseidon.Janno.JannoGenotypePloidy
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoGenotypePloidy
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoGenotypePloidy
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoGenotypePloidy
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoGenotypePloidy
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoGenotypePloidy
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoGenotypePloidy
-instance GHC.Show.Show Poseidon.Janno.JannoGenotypePloidy
+instance GHC.Show.Show Poseidon.Janno.JannoCaptureType
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoCaptureType
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoCaptureType
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoCaptureType
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoCaptureType
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoCaptureType
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoCaptureType
-instance GHC.Show.Show Poseidon.Janno.JannoCaptureType
+instance GHC.Show.Show Poseidon.Janno.JannoDateType
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoDateType
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoDateType
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoDateType
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoDateType
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoDateType
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoDateType
-instance GHC.Show.Show Poseidon.Janno.JannoDateType
+instance GHC.Show.Show Poseidon.Janno.BCADAge
+instance Data.Csv.Conversion.ToField Poseidon.Janno.BCADAge
+instance Data.Csv.Conversion.FromField Poseidon.Janno.BCADAge
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.BCADAge
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.BCADAge
-instance Data.Csv.Conversion.FromField Poseidon.Janno.BCADAge
-instance Data.Csv.Conversion.ToField Poseidon.Janno.BCADAge
-instance GHC.Show.Show Poseidon.Janno.BCADAge
-instance GHC.Classes.Ord Poseidon.Janno.JannoSex
-instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoSex
-instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoSex
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoSex
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoSex
 instance GHC.Show.Show Poseidon.Janno.JannoSex
+instance GHC.Classes.Ord Poseidon.Janno.JannoSex
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoSex
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoSex
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoSex
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoSex
 
 module Poseidon.GenotypeData
 data GenoDataSource
