@@ -21,9 +21,9 @@ import           Data.Maybe              (fromJust, fromMaybe, isNothing)
 import           Data.Time               (Day, UTCTime (..), getCurrentTime)
 import           Data.Version            (Version (..), makeVersion,
                                           showVersion)
+import           SequenceFormats.Plink   (PlinkPopNameMode)
 import           System.Directory        (doesFileExist, removeFile)
 import           System.FilePath         ((</>))
-import SequenceFormats.Plink (PlinkPopNameMode)
 
 data UpdateOptions = UpdateOptions
     { _updateBaseDirs              :: [FilePath]
@@ -47,7 +47,7 @@ runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionC
         , _readOptIgnoreGeno       = True
         , _readOptGenoCheck        = False
         }
-        
+
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
         baseDirs

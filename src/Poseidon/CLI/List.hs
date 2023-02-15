@@ -21,9 +21,9 @@ import           Data.List              (group, intercalate, intersect, sortOn,
                                          (\\))
 import           Data.Maybe             (fromMaybe)
 import           Network.HTTP.Conduit   (simpleHttp)
+import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
-import SequenceFormats.Plink (PlinkPopNameMode)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions

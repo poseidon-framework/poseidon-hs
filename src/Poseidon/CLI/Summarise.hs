@@ -12,9 +12,9 @@ import           Poseidon.Utils         (PoseidonLogIO)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
+import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
-import SequenceFormats.Plink (PlinkPopNameMode)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions

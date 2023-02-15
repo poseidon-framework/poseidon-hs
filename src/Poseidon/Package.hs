@@ -72,7 +72,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
-import           SequenceFormats.Plink      (readBimFile, PlinkPopNameMode(..))
+import           SequenceFormats.Plink      (PlinkPopNameMode (..), readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))

@@ -16,11 +16,11 @@ import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (intercalate, unfoldr, zip4)
 import           Data.Maybe             (isJust)
 import           Data.Ratio             (Ratio, (%))
+import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           System.Directory       (doesFileExist)
 import           System.FilePath        ((</>))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
-import SequenceFormats.Plink (PlinkPopNameMode)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -38,7 +38,7 @@ runSurvey (SurveyOptions baseDirs rawOutput plinkMode) = do
         , _readOptIgnoreGeno       = True
         , _readOptGenoCheck        = False
         }
-        
+
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages
