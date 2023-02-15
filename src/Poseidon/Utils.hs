@@ -5,7 +5,7 @@ module Poseidon.Utils (
     renderPoseidonException,
     usePoseidonLogger,
     testLog,
-    PoseidonLogIO,
+    PoseidonIO,
     LogMode (..),
     checkFile,
     getChecksum,
@@ -37,12 +37,18 @@ import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
+import           SequenceFormats.Plink  (PlinkPopNameMode(..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
 
 type LogEnv = LogAction IO Message
 
-type PoseidonLogIO = ReaderT LogEnv IO
+data Env = Env {
+    _envLogAction      :: LogEnv,
+    _envInputPlinkMode :: PlinkPopNameMode
+}
+
+type PoseidonIO = ReaderT Env IO
 
 data LogMode = NoLog
     | SimpleLog
@@ -51,15 +57,15 @@ data LogMode = NoLog
     | VerboseLog
     deriving Show
 
-usePoseidonLogger :: LogMode -> PoseidonLogIO a -> IO a
-usePoseidonLogger NoLog      = flip runReaderT noLog
-usePoseidonLogger SimpleLog  = flip runReaderT simpleLog
-usePoseidonLogger DefaultLog = flip runReaderT defaultLog
-usePoseidonLogger ServerLog  = flip runReaderT serverLog
-usePoseidonLogger VerboseLog = flip runReaderT verboseLog
+usePoseidonLogger :: LogMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
+usePoseidonLogger NoLog      plinkMode = flip runReaderT (Env noLog plinkMode)
+usePoseidonLogger SimpleLog  plinkMode = flip runReaderT (Env simpleLog plinkMode)
+usePoseidonLogger DefaultLog plinkMode = flip runReaderT (Env defaultLog plinkMode)
+usePoseidonLogger ServerLog  plinkMode = flip runReaderT (Env serverLog plinkMode)
+usePoseidonLogger VerboseLog plinkMode = flip runReaderT (Env verboseLog plinkMode)
 
-testLog :: PoseidonLogIO a -> IO a
-testLog = usePoseidonLogger NoLog
+testLog :: PoseidonIO a -> IO a
+testLog = usePoseidonLogger NoLog PlinkPopNameAsFamily
 --testLog = usePoseidonLogger DefaultLog
 
 noLog      :: LogEnv
@@ -89,7 +95,7 @@ compileLogMsg severity time = cmapM prepareMessage logTextStderr
                     else mempty
             return $ textSeverity <> textTime <> textMessage
 
-logMsg :: Severity -> String -> PoseidonLogIO ()
+logMsg :: Severity -> String -> PoseidonIO ()
 logMsg sev msg = do
     {-
     Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the
@@ -97,22 +103,22 @@ logMsg sev msg = do
     we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the
     environment.
     -}
-    LogAction logF <- asks getLogAction
+    LogAction logF <- asks (getLogAction . _envLogAction)
     liftIO . withFrozenCallStack . logF $ Msg sev callStack (pack msg)
 
-logWarning :: String -> PoseidonLogIO ()
+logWarning :: String -> PoseidonIO ()
 logWarning = logMsg Warning
 
-logInfo :: String -> PoseidonLogIO ()
+logInfo :: String -> PoseidonIO ()
 logInfo = logMsg Info
 
-logDebug :: String -> PoseidonLogIO ()
+logDebug :: String -> PoseidonIO ()
 logDebug = logMsg Debug
 
-logError :: String -> PoseidonLogIO ()
+logError :: String -> PoseidonIO ()
 logError = logMsg Error
 
-logWithEnv :: (MonadIO m) => LogEnv -> PoseidonLogIO () -> m ()
+logWithEnv :: (MonadIO m) => LogEnv -> PoseidonIO () -> m ()
 logWithEnv logEnv = liftIO . flip runReaderT logEnv
 
 -- | A Poseidon Exception data type with several concrete constructors
