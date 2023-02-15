@@ -9,12 +9,10 @@ import           Poseidon.Package       (PoseidonPackage (..),
                                          newMinimalPackageTemplate,
                                          newPackageTemplate,
                                          writePoseidonPackage)
-import           Poseidon.Utils         (PoseidonLogIO, checkFile,
-                                         determinePackageOutName, logInfo)
+import           Poseidon.Utils         (PoseidonIO, checkFile, determinePackageOutName, logInfo)
 
 import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
-import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           System.Directory       (copyFile, createDirectoryIfMissing)
 import           System.FilePath        (dropTrailingPathSeparator,
                                          takeFileName, (<.>), (</>))
@@ -24,11 +22,10 @@ data InitOptions = InitOptions
     , _initPacPath      :: FilePath
     , _initPacName      :: Maybe String
     , _initMinimal      :: Bool
-    , _initPlinkPopMode :: PlinkPopNameMode
     }
 
-runInit :: InitOptions -> PoseidonLogIO ()
-runInit (InitOptions gd outPathRaw maybeOutName minimal plinkPopMode) = do
+runInit :: InitOptions -> PoseidonIO ()
+runInit (InitOptions gd outPathRaw maybeOutName minimal) = do
     let (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = gd
     -- create new directory
     let outPath = dropTrailingPathSeparator outPathRaw
@@ -50,10 +47,10 @@ runInit (InitOptions gd outPathRaw maybeOutName minimal plinkPopMode) = do
     -- create new package
     logInfo "Creating new package entity"
     outName <- liftIO $ determinePackageOutName maybeOutName outPath
-    inds <- liftIO $ loadIndividuals outPath genotypeData plinkPopMode
+    inds <- loadIndividuals outPath genotypeData
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
+           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
     -- POSEIDON.yml
     logInfo "Creating POSEIDON.yml"
     liftIO $ writePoseidonPackage pac

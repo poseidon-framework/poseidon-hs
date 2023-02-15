@@ -29,7 +29,7 @@ module Poseidon.Janno (
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
-                                                       PoseidonLogIO, logDebug,
+                                                       PoseidonIO, logDebug,
                                                        renderPoseidonException)
 
 
@@ -852,8 +852,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: FilePath
-              -> PoseidonLogIO [JannoRow]
+readJannoFile :: FilePath -> PoseidonIO [JannoRow]
 readJannoFile jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -907,7 +906,7 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonLogIO (Either PoseidonException JannoRow)
+readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException JannoRow)
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do

@@ -8,13 +8,12 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          findAllPoseidonYmlFiles,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonLogIO, logError, logInfo)
+import           Poseidon.Utils         (PoseidonIO, logError, logInfo)
 
 import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.List     (filterM)
 import           Data.List              (foldl')
-import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           System.Directory       (doesDirectoryExist)
 import           System.Exit            (exitFailure, exitSuccess)
 
@@ -25,17 +24,18 @@ data ValidateOptions = ValidateOptions
     , _validateIgnoreGeno       :: Bool
     , _validateNoExitCode       :: Bool
     , _validateIgnoreDuplicates :: Bool
-    , _validatePlinkPopMode     :: PlinkPopNameMode
     }
 
-runValidate :: ValidateOptions -> PoseidonLogIO ()
-runValidate (ValidateOptions baseDirs ignoreGeno noExitCode ignoreDup plinkMode) = do
-    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
+runValidate :: ValidateOptions -> PoseidonIO ()
+runValidate (ValidateOptions baseDirs ignoreGeno noExitCode ignoreDup) = do
+
+    let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = False
         , _readOptGenoCheck        = True
         , _readOptIgnoreGeno       = ignoreGeno
         , _readOptStopOnDuplicates = not ignoreDup
         }
+
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs

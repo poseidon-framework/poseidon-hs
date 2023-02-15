@@ -9,14 +9,13 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonLogIO, logInfo)
+import           Poseidon.Utils         (PoseidonIO, logInfo)
 
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (intercalate, unfoldr, zip4)
 import           Data.Maybe             (isJust)
 import           Data.Ratio             (Ratio, (%))
-import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           System.Directory       (doesFileExist)
 import           System.FilePath        ((</>))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
@@ -26,18 +25,19 @@ import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
 data SurveyOptions = SurveyOptions
     { _surveyBaseDirs     :: [FilePath]
     , _surveyRawOutput    :: Bool
-    , _surveyPlinkPopMode :: PlinkPopNameMode
+    }
+
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = True
+    , _readOptGenoCheck        = False
     }
 
 -- | The main function running the janno command
-runSurvey :: SurveyOptions -> PoseidonLogIO ()
-runSurvey (SurveyOptions baseDirs rawOutput plinkMode) = do
-    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
-          _readOptStopOnDuplicates = False
-        , _readOptIgnoreChecksums  = True
-        , _readOptIgnoreGeno       = True
-        , _readOptGenoCheck        = False
-        }
+runSurvey :: SurveyOptions -> PoseidonIO ()
+runSurvey (SurveyOptions baseDirs rawOutput) = do
 
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information

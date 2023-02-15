@@ -25,10 +25,11 @@ import           Poseidon.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
 import           Poseidon.Utils                          (LogMode (..),
                                                           PoseidonException (..),
-                                                          PoseidonLogIO,
+                                                          PoseidonIO,
                                                           logError,
                                                           renderPoseidonException,
-                                                          usePoseidonLogger)
+                                                          usePoseidonLogger,
+                                                          PlinkPopNameMode(..))
 
 import           Control.Applicative                     ((<|>))
 import           Control.Exception                       (catch)
@@ -42,6 +43,7 @@ import           System.IO                               (hPutStrLn, stderr)
 data Options = Options {
     _logMode    :: LogMode
   , _errLength  :: ErrorLength
+  , _plinkMode  :: PlinkPopNameMode
   , _subcommand :: Subcommand
   }
 
@@ -60,12 +62,12 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    (Options logMode errLength subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode $ runCmd subcommand) (handler logMode errLength)
+    (Options logMode errLength plinkMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode plinkMode $ runCmd subcommand) (handler logMode errLength plinkMode)
     where
-        handler :: LogMode -> ErrorLength -> PoseidonException -> IO ()
-        handler l len e = do
-            usePoseidonLogger l $ logError $ truncateErr len $ renderPoseidonException e
+        handler :: LogMode -> ErrorLength -> PlinkPopNameMode -> PoseidonException -> IO ()
+        handler l len pm e = do
+            usePoseidonLogger l pm $ logError $ truncateErr len $ renderPoseidonException e
             exitFailure
         truncateErr :: ErrorLength -> String -> String
         truncateErr CharInf         s = s
@@ -73,7 +75,7 @@ main = do
             | length s > len          = take len s ++ "... (see more with --errLength)"
             | otherwise               = s
 
-runCmd :: Subcommand -> PoseidonLogIO ()
+runCmd :: Subcommand -> PoseidonIO ()
 runCmd o = case o of
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
@@ -86,7 +88,8 @@ runCmd o = case o of
     CmdValidate opts    -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> parseErrorLength <*> subcommandParser)) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*>
+        (Options <$> parseLogMode <*> parseErrorLength <*> parseInputPlinkPopMode <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -152,21 +155,18 @@ initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
                             <*> parseMakeMinimalPackage
-                            <*> parseInputPlinkPopMode
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
-                            <*> parseInputPlinkPopMode
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
                               <*> parseRemoteURL
                               <*> parseUpgrade
-                              <*> parseInputPlinkPopMode
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
@@ -179,7 +179,6 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
-                              <*> parseInputPlinkPopMode
                               <*> parseOutputPlinkPopMode
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
@@ -188,18 +187,15 @@ genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseOutOnlyGeno
                                           <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
-                                          <*> parseInputPlinkPopMode
                                           <*> parseOutputPlinkPopMode
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
                                       <*> parseRawOutput
-                                      <*> parseInputPlinkPopMode
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
-                                <*> parseInputPlinkPopMode
 
 updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
@@ -211,11 +207,9 @@ updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parseContributors
                                 <*> parseLog
                                 <*> parseForce
-                                <*> parseInputPlinkPopMode
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates
-                                    <*> parseInputPlinkPopMode

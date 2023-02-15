@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import           Poseidon.Utils             (LogEnv, PoseidonException (..),
-                                             PoseidonLogIO, checkFile, logDebug,
-                                             logInfo, logWithEnv, padLeft)
+import           Poseidon.Utils             (LogA, PoseidonException (..),
+                                             PoseidonIO, checkFile, logDebug,
+                                             logInfo, logWithEnv, padLeft, envInputPlinkMode)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)
@@ -145,10 +145,10 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
-               -> PlinkPopNameMode -- ^ the Plink popName mode
-               -> IO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d gd popMode = do
-    checkFile (d </> indFile gd) Nothing
+               -> PoseidonIO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
+loadIndividuals d gd = do
+    popMode <- envInputPlinkMode
+    liftIO $ checkFile (d </> indFile gd) Nothing
     case format gd of
         GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
         GenotypeFormatPlink      -> map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> indFile gd)
@@ -167,10 +167,10 @@ loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) popM
             (famEntries, prod) <- readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
             return (map (plinkFam2EigenstratInd popMode) famEntries, prod)
 
-joinEntries :: (MonadIO m) => LogEnv -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-joinEntries logEnv nrInds pacNames maybeTupleList = do
+joinEntries :: (MonadIO m) => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries logA nrInds pacNames maybeTupleList = do
     let allSnpEntries = map fst . catMaybes $ maybeTupleList
-    consensusSnpEntry <- getConsensusSnpEntry logEnv allSnpEntries
+    consensusSnpEntry <- getConsensusSnpEntry logA allSnpEntries
     recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) ->
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
@@ -181,8 +181,8 @@ joinEntries logEnv nrInds pacNames maybeTupleList = do
                 Right x -> return x
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadIO m) => LogEnv -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
-getConsensusSnpEntry logEnv snpEntries = do
+getConsensusSnpEntry :: (MonadIO m) => LogA -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+getConsensusSnpEntry logA snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
         uniqueIds = nub . map snpId $ snpEntries
@@ -196,7 +196,7 @@ getConsensusSnpEntry logEnv snpEntries = do
                 selectedId = case rsIds of
                     (i:_) -> i
                     _     -> head uniqueIds
-            logWithEnv logEnv . logDebug $
+            logWithEnv logA . logDebug $
                 "Found inconsistent SNP IDs: " ++ show uniqueIds ++ ". Choosing " ++ show selectedId
             return selectedId
     genPos <- case uniqueGenPos of
@@ -204,17 +204,17 @@ getConsensusSnpEntry logEnv snpEntries = do
         [0.0, p] -> return p -- 0.0 is considered "no data" in genetic position column
         _ -> do -- multiple non-zero genetic positions. Choosing the largest one.
             let selectedGenPos = maximum uniqueGenPos
-            logWithEnv logEnv . logDebug $
+            logWithEnv logA . logDebug $
                 "Found inconsistent genetic positions in SNP " ++ show id_ ++ ": " ++
                 show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
     case uniqueAlleles of
         [] -> do -- no non-missing alleles found
-            -- logWithEnv logEnv . logDebug $
+            -- logWithEnv LogA . logDebug $
             --     "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
         [r] -> do -- only one non-missing allele found
-            -- logWithEnv logEnv . logDebug $
+            -- logWithEnv LogA . logDebug $
             --     "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] ->
@@ -262,17 +262,17 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
     flipGeno HomAlt = HomRef
     flipGeno g      = g
 
-printSNPCopyProgress :: (MonadIO m) => LogEnv -> UTCTime -> Pipe a a m ()
-printSNPCopyProgress logEnv startTime = do
+printSNPCopyProgress :: (MonadIO m) => LogA -> UTCTime -> Pipe a a m ()
+printSNPCopyProgress logA startTime = do
     counterRef <- liftIO $ newIORef (0 :: Int)
     for cat $ \val -> do
         n <- liftIO $ readIORef counterRef
         currentTime <- liftIO getCurrentTime
-        logWithEnv logEnv $ logProgress n (diffUTCTime currentTime startTime)
+        logWithEnv logA $ logProgress n (diffUTCTime currentTime startTime)
         liftIO $ modifyIORef counterRef (+1)
         yield val
     where
-        logProgress :: Int -> NominalDiffTime -> PoseidonLogIO ()
+        logProgress :: Int -> NominalDiffTime -> PoseidonIO ()
         logProgress c t
             |  c `rem` 10000 == 0 = logInfo $ "SNPs: " ++ padLeft 9 (show c) ++ "    " ++ prettyTime (floor t)
             |  c == 1000          = logInfo   "Probing of the first 1000 SNPs successful. Continue forging now..."

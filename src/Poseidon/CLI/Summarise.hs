@@ -7,12 +7,11 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonLogIO)
+import           Poseidon.Utils         (PoseidonIO)
 
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
-import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -20,19 +19,20 @@ import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
 data SummariseOptions = SummariseOptions
     { _summariseBaseDirs     :: [FilePath]
     , _summariseRawOutput    :: Bool
-    , _summarisePlinkPopMode :: PlinkPopNameMode
+    }
+
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = True
+    , _readOptGenoCheck        = False
     }
 
 
 -- | The main function running the janno command
-runSummarise :: SummariseOptions -> PoseidonLogIO ()
-runSummarise (SummariseOptions baseDirs rawOutput plinkMode) = do
-    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
-          _readOptStopOnDuplicates = False
-        , _readOptIgnoreChecksums  = True
-        , _readOptIgnoreGeno       = True
-        , _readOptGenoCheck        = False
-        }
+runSummarise :: SummariseOptions -> PoseidonIO ()
+runSummarise (SummariseOptions baseDirs rawOutput) = do
 
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages

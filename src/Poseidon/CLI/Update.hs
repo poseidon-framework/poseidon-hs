@@ -12,7 +12,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..))
-import           Poseidon.Utils          (PoseidonLogIO, getChecksum, logInfo,
+import           Poseidon.Utils          (PoseidonIO, getChecksum, logInfo,
                                           logWarning)
 
 import           Control.Monad.IO.Class  (liftIO)
@@ -21,7 +21,6 @@ import           Data.Maybe              (fromJust, fromMaybe, isNothing)
 import           Data.Time               (Day, UTCTime (..), getCurrentTime)
 import           Data.Version            (Version (..), makeVersion,
                                           showVersion)
-import           SequenceFormats.Plink   (PlinkPopNameMode)
 import           System.Directory        (doesFileExist, removeFile)
 import           System.FilePath         ((</>))
 
@@ -35,18 +34,18 @@ data UpdateOptions = UpdateOptions
     , _updateNewContributors       :: [ContributorSpec]
     , _updateLog                   :: String
     , _updateForce                 :: Bool
-    , _updatePlinkPopMode          :: PlinkPopNameMode
     }
 
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptIgnoreGeno       = True
+    , _readOptGenoCheck        = False
+    }
 
-runUpdate :: UpdateOptions -> PoseidonLogIO ()
-runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force plinkMode) = do
-    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
-          _readOptStopOnDuplicates = False
-        , _readOptIgnoreChecksums  = True
-        , _readOptIgnoreGeno       = True
-        , _readOptGenoCheck        = False
-        }
+runUpdate :: UpdateOptions -> PoseidonIO ()
+runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
 
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}

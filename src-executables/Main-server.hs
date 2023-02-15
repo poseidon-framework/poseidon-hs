@@ -12,7 +12,7 @@ import           Poseidon.SecondaryTypes                 (GroupInfo (..),
                                                           IndividualInfo (..),
                                                           PackageInfo (..))
 import           Poseidon.Utils                          (LogMode (..),
-                                                          PoseidonLogIO,
+                                                          PoseidonIO,
                                                           logInfo,
                                                           usePoseidonLogger)
 
@@ -61,78 +61,81 @@ data CommandLineOptions = CommandLineOptions
     deriving (Show)
 
 main :: IO ()
-main = usePoseidonLogger VerboseLog $ do
-    logInfo "Server starting up. Loading packages..."
-    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles plinkMode <- liftIO $
+main = do
+    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles plinkMode <-
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
-              _readOptStopOnDuplicates = True
-            , _readOptIgnoreChecksums  = ignoreChecksums
-            , _readOptGenoCheck        = ignoreGenoFiles
-        }
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    logInfo "Checking whether zip files are missing or outdated"
-    liftIO $ createDirectoryIfMissing True zipPath
-    zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
-        let fn = zipPath </> posPacTitle pac <.> "zip"
-        zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn ignoreGenoFiles
-        when zipFileOutdated $ do
-            logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
-            zip_ <- liftIO $ makeZipArchive pac ignoreGenoFiles
-            let zip_raw = fromArchive zip_
-            liftIO $ B.writeFile fn zip_raw
-        return (posPacTitle pac, fn))
-    let runScotty = case certFiles of
-            Nothing                              -> scottyHTTP  port
-            Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
-    runScotty $ do
-        middleware simpleCors
 
-        -- API to check for compatibility between client and server. Currently a dummy, since all previous trident version should be happy with the API
-        -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
-        get "/compatibility/:client_version" $ do
-            vStr <- param "client_version"
-            let compat = (True, Nothing) :: (Bool, Maybe String)
-            _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
-                [(v', "")] -> return v'
-                _          -> raise . pack $ "cannot parse Version nr " ++ vStr
-            json compat
+    usePoseidonLogger VerboseLog plinkMode $ do
+        let pacReadOpts = defaultPackageReadOptions {
+                _readOptStopOnDuplicates = True
+                , _readOptIgnoreChecksums  = ignoreChecksums
+                , _readOptGenoCheck        = ignoreGenoFiles
+            }
 
-        -- basic APIs for retreiving metadata
-        get "/janno_all" $
-            json (getAllPacJannoPairs allPackages)
-        get "/individuals_all" $
-            json (getAllIndividualInfo allPackages)
-        get "/groups_all" $
-            json (getAllGroupInfo allPackages)
-        get "/packages_all" $
-            (json . map packageToPackageInfo) allPackages
+        logInfo "Server starting up. Loading packages..."
+        allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+        logInfo "Checking whether zip files are missing or outdated"
+        liftIO $ createDirectoryIfMissing True zipPath
+        zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
+            let fn = zipPath </> posPacTitle pac <.> "zip"
+            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn ignoreGenoFiles
+            when zipFileOutdated $ do
+                logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
+                zip_ <- liftIO $ makeZipArchive pac ignoreGenoFiles
+                let zip_raw = fromArchive zip_
+                liftIO $ B.writeFile fn zip_raw
+            return (posPacTitle pac, fn))
+        let runScotty = case certFiles of
+                Nothing                              -> scottyHTTP  port
+                Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
+        runScotty $ do
+            middleware simpleCors
 
-        -- API for retreiving package zip files
-        unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
-            p_ <- param "package_name"
-            let zipFN = lookup (unpack p_) zipDict
-            case zipFN of
-                Just fn -> file fn
-                Nothing -> raise ("unknown package " <> p_)
+            -- API to check for compatibility between client and server. Currently a dummy, since all previous trident version should be happy with the API
+            -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
+            get "/compatibility/:client_version" $ do
+                vStr <- param "client_version"
+                let compat = (True, Nothing) :: (Bool, Maybe String)
+                _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
+                    [(v', "")] -> return v'
+                    _          -> raise . pack $ "cannot parse Version nr " ++ vStr
+                json compat
 
-        -- API for version output
-        get "/server_version" $
-            text . pack . showVersion $ version
+            -- basic APIs for retreiving metadata
+            get "/janno_all" $
+                json (getAllPacJannoPairs allPackages)
+            get "/individuals_all" $
+                json (getAllIndividualInfo allPackages)
+            get "/groups_all" $
+                json (getAllGroupInfo allPackages)
+            get "/packages_all" $
+                (json . map packageToPackageInfo) allPackages
 
-        -- Ugly helper APIs for including package lists in docsify.
-        -- May not be needed when we switch to a "smarter" static site generator
-        get "/package_table" $
-            html . makeHTMLtable $ allPackages
-        get "/package_table_md.md" $
-            text . makeMDtable $ allPackages
+            -- API for retreiving package zip files
+            unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
+                p_ <- param "package_name"
+                let zipFN = lookup (unpack p_) zipDict
+                case zipFN of
+                    Just fn -> file fn
+                    Nothing -> raise ("unknown package " <> p_)
 
-        -- Superseded by "/packages_all". I've kept this old API for backwards-compatibility only.
-        -- May get deprecated at some point
-        get "/packages" $
-            (json . map packageToPackageInfo) allPackages
+            -- API for version output
+            get "/server_version" $
+                text . pack . showVersion $ version
 
-        notFound $ raise "Unknown request"
+            -- Ugly helper APIs for including package lists in docsify.
+            -- May not be needed when we switch to a "smarter" static site generator
+            get "/package_table" $
+                html . makeHTMLtable $ allPackages
+            get "/package_table_md.md" $
+                text . makeMDtable $ allPackages
+
+            -- Superseded by "/packages_all". I've kept this old API for backwards-compatibility only.
+            -- May get deprecated at some point
+            get "/packages" $
+                (json . map packageToPackageInfo) allPackages
+
+            notFound $ raise "Unknown request"
 
 optParserInfo :: OP.ParserInfo CommandLineOptions
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
@@ -254,7 +257,7 @@ makeZipArchive pac ignoreGenoFiles =
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
-scottyHTTPS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonLogIO ()
+scottyHTTPS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonIO ()
 scottyHTTPS port cert chains key s = do
     -- this is just the same output as with scotty, to make it consistent whether or not using https
     logInfo $ "Server now listening via HTTPS on " ++ show port
@@ -265,7 +268,7 @@ scottyHTTPS port cert chains key s = do
         app <- liftIO $ scottyApp s
         runTLS tsls (setPort port defaultSettings) app
 
-scottyHTTP :: Int -> ScottyM () -> PoseidonLogIO ()
+scottyHTTP :: Int -> ScottyM () -> PoseidonIO ()
 scottyHTTP port s = do
     logInfo $ "Server now listening via HTTP on " ++ show port
     liftIO $ do

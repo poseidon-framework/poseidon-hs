@@ -6,6 +6,8 @@ module Poseidon.Utils (
     usePoseidonLogger,
     testLog,
     PoseidonIO,
+    envLogAction,
+    envInputPlinkMode,
     LogMode (..),
     checkFile,
     getChecksum,
@@ -13,11 +15,12 @@ module Poseidon.Utils (
     logInfo,
     logDebug,
     logError,
-    LogEnv,
+    LogA,
     noLog,
     logWithEnv,
     padRight, padLeft,
-    determinePackageOutName
+    determinePackageOutName,
+    PlinkPopNameMode(..)
 ) where
 
 import           Colog                  (HasLog (..), LogAction (..), Message,
@@ -41,14 +44,24 @@ import           SequenceFormats.Plink  (PlinkPopNameMode(..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
 
-type LogEnv = LogAction IO Message
+type LogA = LogAction IO Message
 
 data Env = Env {
-    _envLogAction      :: LogEnv,
+    _envLogAction      :: LogA,
     _envInputPlinkMode :: PlinkPopNameMode
 }
 
+defaultEnv :: LogA -> Env 
+defaultEnv logA = Env logA PlinkPopNameAsFamily
+
 type PoseidonIO = ReaderT Env IO
+
+-- just two convenience helper functions
+envLogAction :: PoseidonIO LogA
+envLogAction = asks _envLogAction
+
+envInputPlinkMode :: PoseidonIO PlinkPopNameMode
+envInputPlinkMode = asks _envInputPlinkMode
 
 data LogMode = NoLog
     | SimpleLog
@@ -68,18 +81,18 @@ testLog :: PoseidonIO a -> IO a
 testLog = usePoseidonLogger NoLog PlinkPopNameAsFamily
 --testLog = usePoseidonLogger DefaultLog
 
-noLog      :: LogEnv
+noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
-simpleLog  :: LogEnv
+simpleLog  :: LogA
 simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False
-defaultLog :: LogEnv
+defaultLog :: LogA
 defaultLog = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True False
-serverLog  :: LogEnv
+serverLog  :: LogA
 serverLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg True True
-verboseLog :: LogEnv
+verboseLog :: LogA
 verboseLog = compileLogMsg True True
 
-compileLogMsg :: Bool -> Bool -> LogEnv
+compileLogMsg :: Bool -> Bool -> LogA
 compileLogMsg severity time = cmapM prepareMessage logTextStderr
     where
         prepareMessage :: Message -> IO Text
@@ -99,7 +112,7 @@ logMsg :: Severity -> String -> PoseidonIO ()
 logMsg sev msg = do
     {-
     Using asks getLogAction here gives us a bit of flexibility. If in the future we'd like to expand the
-    ReaderT environment by adding more options or parameters to LogEnv, perhaps even the command line options,
+    ReaderT environment by adding more options or parameters to LogA, perhaps even the command line options,
     we can do so, we just need to adapt the HasLog instance, which tells us how to get the logAction out of the
     environment.
     -}
@@ -118,8 +131,8 @@ logDebug = logMsg Debug
 logError :: String -> PoseidonIO ()
 logError = logMsg Error
 
-logWithEnv :: (MonadIO m) => LogEnv -> PoseidonIO () -> m ()
-logWithEnv logEnv = liftIO . flip runReaderT logEnv
+logWithEnv :: (MonadIO m) => LogA -> PoseidonIO () -> m ()
+logWithEnv logA = liftIO . flip runReaderT (defaultEnv logA)
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException =

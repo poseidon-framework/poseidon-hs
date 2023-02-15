@@ -14,11 +14,10 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
-import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
+import           Poseidon.Utils             (PoseidonIO, logInfo, logWarning, envInputPlinkMode, envLogAction)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (forM, unless, when)
-import           Control.Monad.Reader       (ask)
+import           Control.Monad              (unless, when)
 import           Data.Maybe                 (isJust)
 import           Data.Time                  (getCurrentTime)
 import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
@@ -38,24 +37,24 @@ data GenoconvertOptions = GenoconvertOptions
     , _genoConvertOutOnlyGeno     :: Bool
     , _genoMaybeOutPackagePath    :: Maybe FilePath
     , _genoconvertRemoveOld       :: Bool
-    , _genoconvertInPlinkPopMode  :: PlinkPopNameMode
     , _genoconvertOutPlinkPopMode :: PlinkPopNameMode
     }
 
-runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
-runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode) = do
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+        _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = False
+        , _readOptGenoCheck        = True
+        }
 
-    let pacReadOpts = (defaultPackageReadOptions inPlinkPopMode) {
-            _readOptStopOnDuplicates = False
-            , _readOptIgnoreChecksums  = True
-            , _readOptIgnoreGeno       = False
-            , _readOptGenoCheck        = True
-            }
+runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld outPlinkPopMode) = do
 
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
-    pseudoPackages <- liftIO . forM [getGenoDirect x | x@GenoDirect {} <- genoSources] $ \gd ->
-        makePseudoPackageFromGenotypeData gd inPlinkPopMode
+    inPlinkPopMode <- envInputPlinkMode
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData [getGenoDirect x | x@GenoDirect {} <- genoSources]
 
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
@@ -63,7 +62,7 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
     mapM_ (convertGenoTo outFormat True outPath removeOld inPlinkPopMode outPlinkPopMode) pseudoPackages
 
 convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode ->
-    PlinkPopNameMode -> PoseidonPackage -> PoseidonLogIO ()
+    PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
 convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode pac = do
     -- start message
     logInfo $
@@ -95,7 +94,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
         then logWarning ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
-            logEnv <- ask
+            logA <- envLogAction
             currentTime <- liftIO getCurrentTime
             liftIO $ catch (
                 runSafeT $ do
@@ -103,7 +102,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
                     let outConsumer = case outFormat of
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                             GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
-                    runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
+                    runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
                 ) (throwIO . PoseidonGenotypeExceptionForward)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
@@ -119,7 +118,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
                 , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
                 ]
   where
-    checkFile :: FilePath -> PoseidonLogIO Bool
+    checkFile :: FilePath -> PoseidonIO Bool
     checkFile fn = do
         fe <- liftIO $ doesFileExist fn
         when fe $ logWarning $ "File " ++ fn ++ " exists"

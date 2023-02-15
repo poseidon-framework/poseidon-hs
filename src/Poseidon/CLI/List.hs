@@ -8,7 +8,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logInfo, logWarning)
 
 import           Control.Exception      (throwIO)
@@ -21,7 +21,6 @@ import           Data.List              (group, intercalate, intersect, sortOn,
                                          (\\))
 import           Data.Maybe             (fromMaybe)
 import           Network.HTTP.Conduit   (simpleHttp)
-import           SequenceFormats.Plink  (PlinkPopNameMode)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -31,7 +30,6 @@ data ListOptions = ListOptions
     , _listListEntity   :: ListEntity -- ^ what to list
     , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     , _listIgnoreGeno   :: Bool
-    , _listPlinkPopMode :: PlinkPopNameMode
     }
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
@@ -41,15 +39,16 @@ data ListEntity = ListPackages
     | ListGroups
     | ListIndividuals [String]
 
--- | The main function running the list command
-runList :: ListOptions -> PoseidonLogIO ()
-runList (ListOptions repoLocation listEntity rawOutput ignoreGeno plinkMode) = do
+pacReadOpts :: PackageReadOptions
+pacReadOpts = defaultPackageReadOptions {
+      _readOptStopOnDuplicates = False
+    , _readOptIgnoreChecksums  = True
+    , _readOptGenoCheck        = False
+}
 
-    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
-          _readOptStopOnDuplicates = False
-        , _readOptIgnoreChecksums  = True
-        , _readOptGenoCheck        = False
-        }
+-- | The main function running the list command
+runList :: ListOptions -> PoseidonIO ()
+runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
 
     allSampleInfo <- case repoLocation of
         RepoRemote remoteURL -> do
@@ -114,7 +113,7 @@ readSampleInfo bs = do
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
         Right sam -> return sam
 
-extractAdditionalFields :: JannoRow -> [String] -> PoseidonLogIO [String]
+extractAdditionalFields :: JannoRow -> [String] -> PoseidonIO [String]
 extractAdditionalFields jannoRow requestedCols = do
     let addFields = map (`extractAdditionalField` jannoRow) requestedCols
         unknownFields = lefts addFields
