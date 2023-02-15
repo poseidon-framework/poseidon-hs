@@ -24,12 +24,11 @@ import           Poseidon.Janno                          (jannoHeaderString)
 import           Poseidon.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
 import           Poseidon.Utils                          (LogMode (..),
+                                                          PlinkPopNameMode (..),
                                                           PoseidonException (..),
-                                                          PoseidonIO,
-                                                          logError,
+                                                          PoseidonIO, logError,
                                                           renderPoseidonException,
-                                                          usePoseidonLogger,
-                                                          PlinkPopNameMode(..))
+                                                          usePoseidonLogger)
 
 import           Control.Applicative                     ((<|>))
 import           Control.Exception                       (catch)

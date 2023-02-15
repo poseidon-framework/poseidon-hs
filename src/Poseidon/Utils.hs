@@ -40,7 +40,7 @@ import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
-import           SequenceFormats.Plink  (PlinkPopNameMode(..))
+import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
 
@@ -51,7 +51,7 @@ data Env = Env {
     _envInputPlinkMode :: PlinkPopNameMode
 }
 
-defaultEnv :: LogA -> Env 
+defaultEnv :: LogA -> Env
 defaultEnv logA = Env logA PlinkPopNameAsFamily
 
 type PoseidonIO = ReaderT Env IO

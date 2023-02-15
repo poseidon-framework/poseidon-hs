@@ -36,9 +36,11 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..), ORCID (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
-                                             PoseidonIO, checkFile, logDebug,
-                                             logInfo, logWarning, logWithEnv,
-                                             renderPoseidonException, envLogAction, envInputPlinkMode)
+                                             PoseidonIO, checkFile,
+                                             envInputPlinkMode, envLogAction,
+                                             logDebug, logInfo, logWarning,
+                                             logWithEnv,
+                                             renderPoseidonException)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM, forM_, unless, void,

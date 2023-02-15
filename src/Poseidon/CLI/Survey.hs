@@ -23,8 +23,8 @@ import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _surveyBaseDirs     :: [FilePath]
-    , _surveyRawOutput    :: Bool
+    { _surveyBaseDirs  :: [FilePath]
+    , _surveyRawOutput :: Bool
     }
 
 pacReadOpts :: PackageReadOptions

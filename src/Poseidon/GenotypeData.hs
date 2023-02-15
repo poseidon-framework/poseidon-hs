@@ -2,8 +2,9 @@
 module Poseidon.GenotypeData where
 
 import           Poseidon.Utils             (LogA, PoseidonException (..),
-                                             PoseidonIO, checkFile, logDebug,
-                                             logInfo, logWithEnv, padLeft, envInputPlinkMode)
+                                             PoseidonIO, checkFile,
+                                             envInputPlinkMode, logDebug,
+                                             logInfo, logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM)

@@ -12,8 +12,7 @@ import           Poseidon.SecondaryTypes                 (GroupInfo (..),
                                                           IndividualInfo (..),
                                                           PackageInfo (..))
 import           Poseidon.Utils                          (LogMode (..),
-                                                          PoseidonIO,
-                                                          logInfo,
+                                                          PoseidonIO, logInfo,
                                                           usePoseidonLogger)
 
 import           Codec.Archive.Zip                       (Archive,

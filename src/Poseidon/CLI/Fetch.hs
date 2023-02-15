@@ -13,8 +13,9 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..))
 import           Poseidon.Utils          (LogA, PoseidonException (..),
-                                          PoseidonIO, envLogAction, logInfo, logWarning,
-                                          logWithEnv, padLeft, padRight)
+                                          PoseidonIO, envLogAction, logInfo,
+                                          logWarning, logWithEnv, padLeft,
+                                          padRight)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -38,10 +39,10 @@ import           System.Directory        (createDirectoryIfMissing,
 import           System.FilePath         ((</>))
 
 data FetchOptions = FetchOptions
-    { _jaBaseDirs   :: [FilePath]
-    , _entityInput  :: [EntityInput PoseidonEntity] -- Empty list = All packages
-    , _remoteURL    :: String
-    , _upgrade      :: Bool
+    { _jaBaseDirs  :: [FilePath]
+    , _entityInput :: [EntityInput PoseidonEntity] -- Empty list = All packages
+    , _remoteURL   :: String
+    , _upgrade     :: Bool
     }
 
 data PackageState = NotLocal

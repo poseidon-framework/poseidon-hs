@@ -9,7 +9,8 @@ import           Poseidon.Package       (PoseidonPackage (..),
                                          newMinimalPackageTemplate,
                                          newPackageTemplate,
                                          writePoseidonPackage)
-import           Poseidon.Utils         (PoseidonIO, checkFile, determinePackageOutName, logInfo)
+import           Poseidon.Utils         (PoseidonIO, checkFile,
+                                         determinePackageOutName, logInfo)
 
 import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
@@ -18,10 +19,10 @@ import           System.FilePath        (dropTrailingPathSeparator,
                                          takeFileName, (<.>), (</>))
 
 data InitOptions = InitOptions
-    { _initGenoData     :: GenotypeDataSpec
-    , _initPacPath      :: FilePath
-    , _initPacName      :: Maybe String
-    , _initMinimal      :: Bool
+    { _initGenoData :: GenotypeDataSpec
+    , _initPacPath  :: FilePath
+    , _initPacName  :: Maybe String
+    , _initMinimal  :: Bool
     }
 
 runInit :: InitOptions -> PoseidonIO ()

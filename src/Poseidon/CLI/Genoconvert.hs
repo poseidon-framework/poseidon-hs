@@ -14,7 +14,8 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
-import           Poseidon.Utils             (PoseidonIO, logInfo, logWarning, envInputPlinkMode, envLogAction)
+import           Poseidon.Utils             (PoseidonIO, envInputPlinkMode,
+                                             envLogAction, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
