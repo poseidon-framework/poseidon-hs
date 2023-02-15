@@ -421,19 +421,25 @@ parseUpgrade = OP.switch (
     )
 
 -- PlinkPopNameAsFamily always is the default
-parsePlinkPopMode :: OP.Parser PlinkPopNameMode
-parsePlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
-    OP.long "plinkPopName" <> OP.help "In Plink Format, the *.fam file encodes information about individuals. \
+parseInputPlinkPopMode :: OP.Parser PlinkPopNameMode
+parseInputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
+    OP.long "inPlinkPopName" <> OP.help "In Plink Format, the *.fam file encodes information about individuals. \
         \But there is no natural rule how to encode the group name. By default, trident assumes that the group name \
         \is encoded in the first column of the fam file, which according to the Plink documentation is the \"Family ID\". \
-        \Some other tools, such as Admixtools and Eigensoft prefer the group name to be encoded in the last column instead \
-        \(the phenotype according to the Plink documentation). This option lets the user specify this encoding explicitly. \
-        \Three options are possible: asFamily (default) | asPhenotype | asBoth. With the latter, the population name is written to \
-        \both columns, and read from both columns (differing names are merged if necessary)")
-  where
-    readPlinkPopName :: String -> Either String PlinkPopNameMode
-    readPlinkPopName s = case s of
-        "asFamily"    -> Right PlinkPopNameAsFamily
-        "asPhenotype" -> Right PlinkPopNameAsPhenotype
-        "asBoth"      -> Right PlinkPopNameAsBoth
-        _             -> Left "must be asFamily, asPhenotype or asBoth"
+        \Some other tools, such as Admixtools and Eigensoft read and write the group name from the last column instead \
+        \(the phenotype according to the Plink documentation). This option lets the user specify this encoding explicitly, as \
+        \far as reading is concerned. \
+        \Three options are possible: asFamily (default) | asPhenotype | asBoth. With the latter, the population name is \
+        \read from both columns (differing names are merged if necessary)")
+
+parseOutputPlinkPopMode :: OP.Parser PlinkPopNameMode
+parseOutputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
+    OP.long "outPlinkPopName" <> OP.help "Specify how population names are written in fam-files when writing to Plink format. \
+        \See also --inPlinkPopName.")
+
+readPlinkPopName :: String -> Either String PlinkPopNameMode
+readPlinkPopName s = case s of
+    "asFamily"    -> Right PlinkPopNameAsFamily
+    "asPhenotype" -> Right PlinkPopNameAsPhenotype
+    "asBoth"      -> Right PlinkPopNameAsBoth
+    _             -> Left "must be asFamily, asPhenotype or asBoth"

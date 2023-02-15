@@ -10,6 +10,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..))
 import           Poseidon.Utils          (PoseidonException, testLog)
+import           SequenceFormats.Plink   (PlinkPopNameMode (..))
 
 import           Data.Aeson              (decode, encode)
 import           Data.Either             (fromRight, isLeft)
@@ -124,7 +125,7 @@ testReadEntitiesFromFile =
         (readEntitiesFromFile b1 :: IO EntitiesList) `shouldThrow` anyException -- wrong space
 
 testPacReadOpts :: PackageReadOptions
-testPacReadOpts = defaultPackageReadOptions {
+testPacReadOpts = (defaultPackageReadOptions PlinkPopNameAsFamily) {
       _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False

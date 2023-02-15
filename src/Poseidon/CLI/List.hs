@@ -23,6 +23,7 @@ import           Data.Maybe             (fromMaybe)
 import           Network.HTTP.Conduit   (simpleHttp)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
+import SequenceFormats.Plink (PlinkPopNameMode)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
@@ -30,6 +31,7 @@ data ListOptions = ListOptions
     , _listListEntity   :: ListEntity -- ^ what to list
     , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     , _listIgnoreGeno   :: Bool
+    , _listPlinkPopMode :: PlinkPopNameMode
     }
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
@@ -39,16 +41,16 @@ data ListEntity = ListPackages
     | ListGroups
     | ListIndividuals [String]
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptGenoCheck        = False
-    }
-
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonLogIO ()
-runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
+runList (ListOptions repoLocation listEntity rawOutput ignoreGeno plinkMode) = do
+
+    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
+          _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptGenoCheck        = False
+        }
+
     allSampleInfo <- case repoLocation of
         RepoRemote remoteURL -> do
             -- load remote samples list

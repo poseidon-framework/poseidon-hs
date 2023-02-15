@@ -72,8 +72,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
-import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsFamily),
-                                             readBimFile)
+import           SequenceFormats.Plink      (readBimFile, PlinkPopNameMode(..))
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
@@ -222,14 +221,17 @@ data PackageReadOptions = PackageReadOptions
     -- ^ the mode in which popNames are encoded in the Plink fam-file format
     }
 
-defaultPackageReadOptions :: PackageReadOptions
-defaultPackageReadOptions = PackageReadOptions {
+-- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
+-- from the client caller, since we typically get this as an option from the CLI, and it would be wrong not to explicitly
+-- pass it on to the package read system.
+defaultPackageReadOptions :: PlinkPopNameMode -> PackageReadOptions
+defaultPackageReadOptions plinkMode = PackageReadOptions {
       _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
     , _readOptIgnorePosVersion = False
-    , _readOptPlinkPopMode     = PlinkPopNameAsFamily
+    , _readOptPlinkPopMode     = plinkMode
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.

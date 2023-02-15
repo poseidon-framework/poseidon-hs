@@ -14,24 +14,26 @@ import           Data.List              (group, intercalate, nub, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
+import SequenceFormats.Plink (PlinkPopNameMode)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
-    { _summariseBaseDirs  :: [FilePath]
-    , _summariseRawOutput :: Bool
+    { _summariseBaseDirs     :: [FilePath]
+    , _summariseRawOutput    :: Bool
+    , _summarisePlinkPopMode :: PlinkPopNameMode
     }
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
-    }
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> PoseidonLogIO ()
-runSummarise (SummariseOptions baseDirs rawOutput) = do
+runSummarise (SummariseOptions baseDirs rawOutput plinkMode) = do
+    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
+          _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = True
+        , _readOptGenoCheck        = False
+        }
+
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
     liftIO $ summariseJannoRows (concat jannos) rawOutput

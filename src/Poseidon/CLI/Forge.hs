@@ -60,18 +60,19 @@ import           System.FilePath             (dropTrailingPathSeparator, (<.>),
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeGenoSources  :: [GenoDataSource]
+    { _forgeGenoSources        :: [GenoDataSource]
     -- Empty list = forge all packages
-    , _forgeEntityInput  :: [EntityInput SignedEntity] -- Empty list = forge all packages
-    , _forgeSnpFile      :: Maybe FilePath
-    , _forgeIntersect    :: Bool
-    , _forgeOutFormat    :: GenotypeFormatSpec
-    , _forgeOutMinimal   :: Bool
-    , _forgeOutOnlyGeno  :: Bool
-    , _forgeOutPacPath   :: FilePath
-    , _forgeOutPacName   :: Maybe String
-    , _forgePackageWise  :: Bool
-    , _forgePlinkPopMode :: PlinkPopNameMode
+    , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
+    , _forgeSnpFile            :: Maybe FilePath
+    , _forgeIntersect          :: Bool
+    , _forgeOutFormat          :: GenotypeFormatSpec
+    , _forgeOutMinimal         :: Bool
+    , _forgeOutOnlyGeno        :: Bool
+    , _forgeOutPacPath         :: FilePath
+    , _forgeOutPacName         :: Maybe String
+    , _forgePackageWise        :: Bool
+    , _forgeInputPlinkPopMode  :: PlinkPopNameMode
+    , _forgeOutputPlinkPopMode :: PlinkPopNameMode
     }
 
 -- | The main function running the forge command
@@ -80,22 +81,21 @@ runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
-                 packageWise plinkPopMode
+                 packageWise inPlinkPopMode outPlinkPopMode
     ) = do
 
-    let pacReadOpts = defaultPackageReadOptions {
+    let pacReadOpts = (defaultPackageReadOptions inPlinkPopMode) {
           _readOptStopOnDuplicates = False
         , _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = False
         , _readOptGenoCheck        = True
-        , _readOptPlinkPopMode     = plinkPopMode
         }
 
 
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     pseudoPackages <- liftIO . forM [getGenoDirect x | x@GenoDirect {} <- genoSources] $ \gd ->
-        makePseudoPackageFromGenotypeData gd plinkPopMode
+        makePseudoPackageFromGenotypeData gd inPlinkPopMode
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 
@@ -194,12 +194,12 @@ runForge (
     currentTime <- liftIO getCurrentTime
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
-            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ plinkPopMode relevantPackages maybeSnpFile
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ inPlinkPopMode relevantPackages maybeSnpFile
             let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
             let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                    GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam plinkPopMode) newEigenstratIndEntries)
+                    GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
             let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold

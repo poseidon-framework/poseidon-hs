@@ -33,38 +33,38 @@ import           System.FilePath            (dropTrailingPathSeparator, (<.>),
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertGenoSources  :: [GenoDataSource]
-    , _genoConvertOutFormat    :: GenotypeFormatSpec
-    , _genoConvertOutOnlyGeno  :: Bool
-    , _genoMaybeOutPackagePath :: Maybe FilePath
-    , _genoconvertRemoveOld    :: Bool
-    , _genoconvertPlinkPopMode :: PlinkPopNameMode
+    { _genoconvertGenoSources     :: [GenoDataSource]
+    , _genoConvertOutFormat       :: GenotypeFormatSpec
+    , _genoConvertOutOnlyGeno     :: Bool
+    , _genoMaybeOutPackagePath    :: Maybe FilePath
+    , _genoconvertRemoveOld       :: Bool
+    , _genoconvertInPlinkPopMode  :: PlinkPopNameMode
+    , _genoconvertOutPlinkPopMode :: PlinkPopNameMode
     }
 
 runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
-runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld plinkPopMode) = do
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode) = do
 
-    let pacReadOpts = defaultPackageReadOptions {
+    let pacReadOpts = (defaultPackageReadOptions inPlinkPopMode) {
             _readOptStopOnDuplicates = False
             , _readOptIgnoreChecksums  = True
             , _readOptIgnoreGeno       = False
             , _readOptGenoCheck        = True
-            , _readOptPlinkPopMode     = plinkPopMode
             }
 
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     pseudoPackages <- liftIO . forM [getGenoDirect x | x@GenoDirect {} <- genoSources] $ \gd ->
-        makePseudoPackageFromGenotypeData gd plinkPopMode
+        makePseudoPackageFromGenotypeData gd inPlinkPopMode
 
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld plinkPopMode) properPackages
-    mapM_ (convertGenoTo outFormat True outPath removeOld plinkPopMode) pseudoPackages
+    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode) properPackages
+    mapM_ (convertGenoTo outFormat True outPath removeOld inPlinkPopMode outPlinkPopMode) pseudoPackages
 
 convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode ->
-    PoseidonPackage -> PoseidonLogIO ()
-convertGenoTo outFormat onlyGeno outPath removeOld plinkPopMode pac = do
+    PlinkPopNameMode -> PoseidonPackage -> PoseidonLogIO ()
+convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode pac = do
     -- start message
     logInfo $
         "Converting genotype data in "
@@ -99,10 +99,10 @@ convertGenoTo outFormat onlyGeno outPath removeOld plinkPopMode pac = do
             currentTime <- liftIO getCurrentTime
             liftIO $ catch (
                 runSafeT $ do
-                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) plinkPopMode
+                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) inPlinkPopMode
                     let outConsumer = case outFormat of
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                            GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam plinkPopMode) eigenstratIndEntries)
+                            GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
                     runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
                 ) (throwIO . PoseidonGenotypeExceptionForward)
             logInfo "Done"

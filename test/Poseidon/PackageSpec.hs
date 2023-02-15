@@ -44,7 +44,7 @@ spec = do
     testThrowOnMissingBibEntries
 
 testPacReadOpts :: PackageReadOptions
-testPacReadOpts = defaultPackageReadOptions {
+testPacReadOpts = (defaultPackageReadOptions PlinkPopNameAsFamily) {
       _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
@@ -284,7 +284,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
 
 testThrowOnMissingBibEntries :: Spec
 testThrowOnMissingBibEntries = describe "Poseidon.Package.readPoseidonPackage" $ do
-    let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
+    let opts = (defaultPackageReadOptions PlinkPopNameAsFamily) {_readOptGenoCheck = False}
     let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
     it "should throw if bibentries aren't found" $
         testLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException

@@ -152,20 +152,21 @@ initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
                             <*> parseMakeMinimalPackage
-                            <*> parsePlinkPopMode
+                            <*> parseInputPlinkPopMode
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
                             <*> parseIgnoreGeno
+                            <*> parseInputPlinkPopMode
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
                               <*> parseRemoteURL
                               <*> parseUpgrade
-                              <*> parsePlinkPopMode
+                              <*> parseInputPlinkPopMode
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
@@ -178,7 +179,8 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
-                              <*> parsePlinkPopMode
+                              <*> parseInputPlinkPopMode
+                              <*> parseOutputPlinkPopMode
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
@@ -186,15 +188,18 @@ genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseOutOnlyGeno
                                           <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
-                                          <*> parsePlinkPopMode
+                                          <*> parseInputPlinkPopMode
+                                          <*> parseOutputPlinkPopMode
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
                                       <*> parseRawOutput
+                                      <*> parseInputPlinkPopMode
 
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
+                                <*> parseInputPlinkPopMode
 
 updateOptParser :: OP.Parser UpdateOptions
 updateOptParser = UpdateOptions <$> parseBasePaths
@@ -206,9 +211,11 @@ updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parseContributors
                                 <*> parseLog
                                 <*> parseForce
+                                <*> parseInputPlinkPopMode
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates
+                                    <*> parseInputPlinkPopMode

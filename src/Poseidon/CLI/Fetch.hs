@@ -56,12 +56,11 @@ data PackageState = NotLocal
 runFetch :: FetchOptions -> PoseidonLogIO ()
 runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade plinkPopMode) = do
 
-    let pacReadOpts = defaultPackageReadOptions {
+    let pacReadOpts = (defaultPackageReadOptions plinkPopMode) {
           _readOptStopOnDuplicates = False
         , _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = False
         , _readOptGenoCheck        = False
-        , _readOptPlinkPopMode     = plinkPopMode
         }
 
 

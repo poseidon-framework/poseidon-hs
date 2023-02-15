@@ -20,24 +20,25 @@ import           System.Directory       (doesFileExist)
 import           System.FilePath        ((</>))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
+import SequenceFormats.Plink (PlinkPopNameMode)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _surveyBaseDirs  :: [FilePath]
-    , _surveyRawOutput :: Bool
-    }
-
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
+    { _surveyBaseDirs     :: [FilePath]
+    , _surveyRawOutput    :: Bool
+    , _surveyPlinkPopMode :: PlinkPopNameMode
     }
 
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> PoseidonLogIO ()
-runSurvey (SurveyOptions baseDirs rawOutput) = do
+runSurvey (SurveyOptions baseDirs rawOutput plinkMode) = do
+    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
+          _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = True
+        , _readOptGenoCheck        = False
+        }
+        
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages

@@ -1,42 +1,53 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
-import           Poseidon.Janno               (JannoList (..), JannoRow (..))
-import           Poseidon.Package             (PackageReadOptions (..),
-                                               PoseidonPackage (..),
-                                               defaultPackageReadOptions,
-                                               readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes      (GroupInfo (..),
-                                               IndividualInfo (..),
-                                               PackageInfo (..))
-import           Poseidon.Utils               (LogMode (..), PoseidonLogIO,
-                                               logInfo, usePoseidonLogger)
+import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
+import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
+import           Poseidon.Janno                          (JannoList (..),
+                                                          JannoRow (..))
+import           Poseidon.Package                        (PackageReadOptions (..),
+                                                          PoseidonPackage (..),
+                                                          defaultPackageReadOptions,
+                                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes                 (GroupInfo (..),
+                                                          IndividualInfo (..),
+                                                          PackageInfo (..))
+import           Poseidon.Utils                          (LogMode (..),
+                                                          PoseidonLogIO,
+                                                          logInfo,
+                                                          usePoseidonLogger)
 
-import           Codec.Archive.Zip            (Archive, addEntryToArchive,
-                                               emptyArchive, fromArchive,
-                                               toEntry)
-import           Control.Applicative          (optional)
-import           Control.Monad                (forM, unless, when)
-import           Control.Monad.IO.Class       (liftIO)
-import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (group, nub, sortOn)
-import           Data.Text.Lazy               (Text, intercalate, pack, unpack)
-import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
-import           Data.Version                 (parseVersion, showVersion)
-import           Network.Wai.Handler.Warp     (defaultSettings, run, setPort)
-import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
-                                               tlsSettingsChain)
-import           Network.Wai.Middleware.Cors  (simpleCors)
-import qualified Options.Applicative          as OP
-import           Paths_poseidon_hs            (version)
-import           System.Directory             (createDirectoryIfMissing,
-                                               doesFileExist,
-                                               getModificationTime)
-import           System.FilePath              ((<.>), (</>))
-import           Text.ParserCombinators.ReadP (readP_to_S)
-import           Web.Scotty                   (ScottyM, file, get, html, json,
-                                               middleware, notFound, param,
-                                               raise, scottyApp, text)
+import           Codec.Archive.Zip                       (Archive,
+                                                          addEntryToArchive,
+                                                          emptyArchive,
+                                                          fromArchive, toEntry)
+import           Control.Applicative                     (optional)
+import           Control.Monad                           (forM, unless, when)
+import           Control.Monad.IO.Class                  (liftIO)
+import qualified Data.ByteString.Lazy                    as B
+import           Data.List                               (group, nub, sortOn)
+import           Data.Text.Lazy                          (Text, intercalate,
+                                                          pack, unpack)
+import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
+import           Data.Version                            (parseVersion,
+                                                          showVersion)
+import           Network.Wai.Handler.Warp                (defaultSettings, run,
+                                                          setPort)
+import           Network.Wai.Handler.WarpTLS             (runTLS, tlsSettings,
+                                                          tlsSettingsChain)
+import           Network.Wai.Middleware.Cors             (simpleCors)
+import qualified Options.Applicative                     as OP
+import           Paths_poseidon_hs                       (version)
+import           SequenceFormats.Plink                   (PlinkPopNameMode)
+import           System.Directory                        (createDirectoryIfMissing,
+                                                          doesFileExist,
+                                                          getModificationTime)
+import           System.FilePath                         ((<.>), (</>))
+import           Text.ParserCombinators.ReadP            (readP_to_S)
+import           Web.Scotty                              (ScottyM, file, get,
+                                                          html, json,
+                                                          middleware, notFound,
+                                                          param, raise,
+                                                          scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -45,15 +56,16 @@ data CommandLineOptions = CommandLineOptions
     , cliIgnoreGenoFiles :: Bool
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
+    , cliPlinkPopMode    :: PlinkPopNameMode
     }
     deriving (Show)
 
 main :: IO ()
 main = usePoseidonLogger VerboseLog $ do
     logInfo "Server starting up. Loading packages..."
-    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
+    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles plinkMode <- liftIO $
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    let pacReadOpts = defaultPackageReadOptions {
+    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
               _readOptStopOnDuplicates = True
             , _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = ignoreGenoFiles
@@ -136,7 +148,8 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parseZipDir <*> parsePort <*> parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles
+optParser = CommandLineOptions <$> parseBasePaths <*> parseZipDir <*> parsePort <*>
+    parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles <*> parseInputPlinkPopMode
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>

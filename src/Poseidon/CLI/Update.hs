@@ -23,6 +23,7 @@ import           Data.Version            (Version (..), makeVersion,
                                           showVersion)
 import           System.Directory        (doesFileExist, removeFile)
 import           System.FilePath         ((</>))
+import SequenceFormats.Plink (PlinkPopNameMode)
 
 data UpdateOptions = UpdateOptions
     { _updateBaseDirs              :: [FilePath]
@@ -34,18 +35,19 @@ data UpdateOptions = UpdateOptions
     , _updateNewContributors       :: [ContributorSpec]
     , _updateLog                   :: String
     , _updateForce                 :: Bool
+    , _updatePlinkPopMode          :: PlinkPopNameMode
     }
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
-    }
 
 runUpdate :: UpdateOptions -> PoseidonLogIO ()
-runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
+runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force plinkMode) = do
+    let pacReadOpts = (defaultPackageReadOptions plinkMode) {
+          _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = True
+        , _readOptGenoCheck        = False
+        }
+        
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
         baseDirs
