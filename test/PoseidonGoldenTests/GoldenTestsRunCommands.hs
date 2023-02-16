@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.GoldenTestsRunCommands (
+module PoseidonGoldenTests.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
@@ -23,7 +23,8 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
 import           Poseidon.Janno           (CsvNamedRecord (..), JannoRow (..),
-                                           readJannoFile, writeJannoFile, jannoHeaderString)
+                                           jannoHeaderString, readJannoFile,
+                                           writeJannoFile)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (getChecksum, testLog)
