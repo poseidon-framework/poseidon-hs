@@ -423,7 +423,8 @@ parseUpgrade = OP.switch (
 -- PlinkPopNameAsFamily always is the default
 parseInputPlinkPopMode :: OP.Parser PlinkPopNameMode
 parseInputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
-    OP.long "inPlinkPopName" <> OP.help "In Plink Format, the *.fam file encodes information about individuals. \
+    OP.long "inPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
+    OP.help "In Plink Format, the *.fam file encodes information about individuals. \
         \But there is no natural rule how to encode the group name. By default, trident assumes that the group name \
         \is encoded in the first column of the fam file, which according to the Plink documentation is the \"Family ID\". \
         \Some other tools, such as Admixtools and Eigensoft read and write the group name from the last column instead \
