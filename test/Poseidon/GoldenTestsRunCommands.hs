@@ -23,7 +23,7 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
 import           Poseidon.Janno           (CsvNamedRecord (..), JannoRow (..),
-                                           readJannoFile, writeJannoFile)
+                                           readJannoFile, writeJannoFile, jannoHeaderString)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (getChecksum, testLog)
@@ -85,24 +85,28 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
     stderr_old <- hDuplicate stderr
     unless interactive $ hDuplicateTo devNull stderr
     -- run CLI pipeline
-    hPutStrLn stderr "--- init ---"
+    hPutStrLn stderr "--* local tests"
+    hPutStrLn stderr "--- init"
     testPipelineInit testDir checkFilePath testPacsDir
-    hPutStrLn stderr "--- validate ---"
+    hPutStrLn stderr "--- validate"
     testPipelineValidate testDir checkFilePath
-    hPutStrLn stderr "--- list ---"
+    hPutStrLn stderr "--- list"
     testPipelineList testDir checkFilePath
-    hPutStrLn stderr "--- summarise ---"
+    hPutStrLn stderr "--- summarise"
     testPipelineSummarise testDir checkFilePath
-    hPutStrLn stderr "--- survey ---"
+    hPutStrLn stderr "--- survey"
     testPipelineSurvey testDir checkFilePath
-    hPutStrLn stderr "--- genoconvert ---"
+    hPutStrLn stderr "--- genoconvert"
     testPipelineGenoconvert testDir checkFilePath
-    hPutStrLn stderr "--- update ---"
+    hPutStrLn stderr "--- update"
     testPipelineUpdate testDir checkFilePath
-    hPutStrLn stderr "--- forge ---"
+    hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath testEntityFiles
-    hPutStrLn stderr "--- fetch ---"
+    hPutStrLn stderr "--* test server interaction"
+    hPutStrLn stderr "--- fetch"
     testPipelineFetch testDir checkFilePath
+    hPutStrLn stderr "--- list --remote"
+    testPipelineListRemote
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -646,6 +650,28 @@ testPipelineFetch testDir checkFilePath = do
         , "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
         ]
 
+-- this tests only if the commands run without an error
+-- the results are not stored like for the other golden tests,
+-- because the data available on the server changes
+testPipelineListRemote :: IO ()
+testPipelineListRemote = do
+    let listOpts1 = ListOptions {
+          _listRepoLocation = RepoRemote "http://c107-224.cloud.gwdg.de:3000"
+        , _listListEntity   = ListPackages
+        , _listRawOutput    = False
+        , _listIgnoreGeno   = False
+        }
+    writeStdOutToFile "/dev/null" (testLog $ runList listOpts1)
+    let listOpts2 = listOpts1 {
+          _listListEntity    = ListGroups
+        }
+    writeStdOutToFile "/dev/null" (testLog $ runList listOpts2)
+    let listOpts3 = listOpts1 {
+          _listListEntity    = ListIndividuals jannoHeaderString
+        , _listRawOutput     = True
+        }
+    writeStdOutToFile "/dev/null" (testLog $ runList listOpts3)
+
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
     -- run action
@@ -662,15 +688,19 @@ runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO
 runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
     -- store stdout in a specific output file
     let outFile = actionName ++ show outFileNumber
-    withFile (testDir </> outFile) WriteMode $ \handle -> do
-        -- backup stdout handle
-        stdout_old <- hDuplicate stdout
-        -- redirect stdout to file
-        hDuplicateTo handle stdout
-        -- run action
-        action
-        -- load backup again
-        hDuplicateTo stdout_old stdout
+    writeStdOutToFile (testDir </> outFile) action
     -- append checksum to checksumfile
     checksum <- getChecksum $ testDir </> outFile
     appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outFile
+
+writeStdOutToFile :: FilePath -> IO () -> IO ()
+writeStdOutToFile path action =
+    withFile path WriteMode $ \handle -> do
+      -- backup stdout handle
+      stdout_old <- hDuplicate stdout
+      -- redirect stdout to file
+      hDuplicateTo handle stdout
+      -- run action
+      action
+      -- load backup again
+      hDuplicateTo stdout_old stdout
