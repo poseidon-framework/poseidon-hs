@@ -2,23 +2,23 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno         (JannoList (..), JannoRow (..))
+import           Poseidon.Janno         (JannoList (..), JannoRow (..), concatJannos)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
-                                         logInfo)
+                                         logInfo, logWarning)
 
 import           Control.Exception      (throwIO)
-import           Control.Monad          (forM)
+import           Control.Monad          (forM, when)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (eitherDecode')
 import qualified Data.ByteString.Char8  as Bchs
 import qualified Data.ByteString.Lazy   as LB
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
-import           Data.List              (group, intercalate, sortOn)
+import           Data.List              (group, intercalate, sortOn, (\\))
 import           Network.HTTP.Conduit   (simpleHttp)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
@@ -81,6 +81,14 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             logInfo $ "found " ++ show (length tableB) ++ " groups/populations"
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
+            -- warning in case -j does not exist in the entire janno dataset
+            let allJannoRows = concatJannos $ map snd allSampleInfo
+            when (not . null $ allJannoRows) $ do
+                let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
+                    requestedCols = map Bchs.pack moreJannoColumns
+                    unknownCols = requestedCols \\ allAvailableCols
+                mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols
+            -- construct table
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
                 forM rows (\row -> do
