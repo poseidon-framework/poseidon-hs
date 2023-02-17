@@ -1,3 +1,4 @@
+- V 1.1.8.6: Refactored the `-j` mechanism by which `list --individuals` includes additional variables in the output table. It is now possible to query arbitrary addititional columns
 - V 1.1.8.5: Rolled back some of the ToJSON instances changed in 1.1.8.4 because they broke backwards compatibility of the server-client communication. Added some additional tests to prevent such oversights in the future. Slightly reorganized the golden tests
 - V 1.1.8.4: Unified the implementation of ToJSON/FromJSON and ToField/FromField instances for .janno datatypes to perform input validation through smart constructors
 - V 1.1.8.3: The fix in introduced in 1.1.8.1 introduced a bug: It broke valid unicode characters in .janno files and prevented reading them. The solution implemented here solves this issue

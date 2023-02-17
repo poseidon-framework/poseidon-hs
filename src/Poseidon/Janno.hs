@@ -478,13 +478,10 @@ newtype JannoList a = JannoList {getJannoList :: [a]}
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int
 
-instance (Csv.ToField a) => Csv.ToField (JannoList a) where
-    toField = Csv.toField . intercalate ";" . map (read . show . Csv.toField) . getJannoList
+instance (Csv.ToField a, Show a) => Csv.ToField (JannoList a) where
+    toField x = Bchs.intercalate ";" $ map Csv.toField $ getJannoList x
 instance (Csv.FromField a) => Csv.FromField (JannoList a) where
-    parseField x = do
-        fieldStr <- Csv.parseField x
-        let subStrings = Bchs.splitWith (==';') fieldStr
-        fmap JannoList . mapM Csv.parseField $ subStrings
+    parseField x = fmap JannoList . mapM Csv.parseField $ Bchs.splitWith (==';') x
 instance (ToJSON a) => ToJSON (JannoList a) where
     toEncoding (JannoList x) = toEncoding x
 instance (FromJSON a) => FromJSON (JannoList a) where

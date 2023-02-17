@@ -1,19 +1,19 @@
 .-----------.------------.-------.---------.---------.
 |  Package  | Individual | Group | Country | Nr_SNPs |
 :===========:============:=======:=========:=========:
-| Schiffels | XXX001     | POP1  | n/a     | n/a     |
-| Schiffels | XXX002     | POP2  | n/a     | n/a     |
-| Schiffels | XXX003     | POP1  | n/a     | n/a     |
-| Schiffels | XXX004     | POP2  | n/a     | n/a     |
-| Schiffels | XXX005     | POP2  | n/a     | n/a     |
-| Schiffels | XXX006     | POP2  | n/a     | n/a     |
-| Schiffels | XXX007     | POP1  | n/a     | n/a     |
-| Schiffels | XXX008     | POP3  | n/a     | n/a     |
-| Schiffels | XXX009     | POP1  | n/a     | n/a     |
-| Schiffels | XXX010     | POP3  | n/a     | n/a     |
-| Wang      | SAMPLE0    | 1     | n/a     | n/a     |
-| Wang      | SAMPLE1    | 2     | n/a     | n/a     |
-| Wang      | SAMPLE2    | 3     | n/a     | n/a     |
-| Wang      | SAMPLE3    | 4     | n/a     | n/a     |
-| Wang      | SAMPLE4    | 5     | n/a     | n/a     |
+| Schiffels | XXX001     | POP1  |         |         |
+| Schiffels | XXX002     | POP2  |         |         |
+| Schiffels | XXX003     | POP1  |         |         |
+| Schiffels | XXX004     | POP2  |         |         |
+| Schiffels | XXX005     | POP2  |         |         |
+| Schiffels | XXX006     | POP2  |         |         |
+| Schiffels | XXX007     | POP1  |         |         |
+| Schiffels | XXX008     | POP3  |         |         |
+| Schiffels | XXX009     | POP1  |         |         |
+| Schiffels | XXX010     | POP3  |         |         |
+| Wang      | SAMPLE0    | 1     |         |         |
+| Wang      | SAMPLE1    | 2     |         |         |
+| Wang      | SAMPLE2    | 3     |         |         |
+| Wang      | SAMPLE3    | 4     |         |         |
+| Wang      | SAMPLE4    | 5     |         |         |
 '-----------'------------'-------'---------'---------'
