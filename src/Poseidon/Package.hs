@@ -419,7 +419,7 @@ checkJannoIndConsistency pacName janno indEntries = do
     when groupMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
         \that this could be due to a wrong Plink file population-name encoding \
-        \(see the --plinkPopName option). " ++
+        \(see the --inPlinkPopName option). " ++
         renderMismatch genoGroups jannoGroups
 
 
