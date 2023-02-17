@@ -2,7 +2,8 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno         (JannoList (..), JannoRow (..), concatJannos)
+import           Poseidon.Janno         (JannoList (..), JannoRow (..),
+                                         concatJannos)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -11,7 +12,7 @@ import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
                                          logInfo, logWarning)
 
 import           Control.Exception      (throwIO)
-import           Control.Monad          (forM, when)
+import           Control.Monad          (forM, unless)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (eitherDecode')
 import qualified Data.ByteString.Char8  as Bchs
@@ -83,7 +84,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
         ListIndividuals moreJannoColumns -> do
             -- warning in case -j does not exist in the entire janno dataset
             let allJannoRows = concatJannos $ map snd allSampleInfo
-            when (not . null $ allJannoRows) $ do
+            unless (null allJannoRows) $ do
                 let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
                     requestedCols = map Bchs.pack moreJannoColumns
                     unknownCols = requestedCols \\ allAvailableCols
