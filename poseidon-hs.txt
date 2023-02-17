@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.8.4
+@version 1.1.8.6
 
 module Poseidon.MathHelpers
 
@@ -446,7 +446,7 @@ instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.CsvNamedRecord
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.CsvNamedRecord
-instance Data.Csv.Conversion.ToField a => Data.Csv.Conversion.ToField (Poseidon.Janno.JannoList a)
+instance (Data.Csv.Conversion.ToField a, GHC.Show.Show a) => Data.Csv.Conversion.ToField (Poseidon.Janno.JannoList a)
 instance Data.Csv.Conversion.FromField a => Data.Csv.Conversion.FromField (Poseidon.Janno.JannoList a)
 instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Poseidon.Janno.JannoList a)
 instance Data.Aeson.Types.FromJSON.FromJSON a => Data.Aeson.Types.FromJSON.FromJSON (Poseidon.Janno.JannoList a)
