@@ -28,7 +28,8 @@ library
                         vector, pipes-ordered-zip, table-layout, mtl,
                         cassava, pureMD5,
                         yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
-                        unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa
+                        unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
+                        scientific
     default-language:   Haskell2010
 
 executable trident
@@ -55,12 +56,12 @@ Test-Suite poseidon-tools-tests
                         raw-strings-qq, yaml, time, vector,
                         text, QuickCheck, directory, sequence-formats,
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
-                        unordered-containers
+                        unordered-containers, cassava
     other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
                         Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
-                        Poseidon.GoldenTestsValidateChecksumsSpec, Poseidon.GoldenTestsRunCommands,
-                        Poseidon.EntitiesListSpec
+                        Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
+                        PoseidonGoldenTests.GoldenTestsRunCommands
   default-language:     Haskell2010
 
 executable poseidon-devtools
@@ -69,5 +70,5 @@ executable poseidon-devtools
     build-depends:      base, poseidon-hs, optparse-applicative, directory,
                         filepath, text, unordered-containers, bytestring,
                         sequence-formats
-    other-modules:      Paths_poseidon_hs, Poseidon.GoldenTestsRunCommands
+    other-modules:      Paths_poseidon_hs, PoseidonGoldenTests.GoldenTestsRunCommands
     default-language:   Haskell2010

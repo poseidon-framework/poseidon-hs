@@ -1,8 +1,8 @@
-module Poseidon.GoldenTestsValidateChecksumsSpec (spec) where
+module PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec (spec) where
 
-import           Poseidon.GoldenTestsRunCommands (createDynamicCheckSumFile,
-                                                  dynamicCheckSumFile,
-                                                  staticCheckSumFile)
+import           PoseidonGoldenTests.GoldenTestsRunCommands (createDynamicCheckSumFile,
+                                                             dynamicCheckSumFile,
+                                                             staticCheckSumFile)
 
 import           Test.Hspec
 
