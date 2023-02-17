@@ -20,6 +20,8 @@ import qualified Data.ByteString.Lazy   as LB
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
 import           Data.List              (group, intercalate, sortOn, (\\))
+import qualified Data.Text              as T
+import qualified Data.Text.Encoding     as T
 import           Network.HTTP.Conduit   (simpleHttp)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
@@ -119,4 +121,4 @@ readSampleInfo bs = do
 
 extractAdditionalFields :: JannoRow -> [String] -> [String]
 extractAdditionalFields jannoRow =
-    map (\j -> Bchs.unpack $ HM.findWithDefault "" (Bchs.pack j) (Csv.toNamedRecord jannoRow))
+    map (\j -> T.unpack $ T.decodeUtf8 $ HM.findWithDefault "" (Bchs.pack j) (Csv.toNamedRecord jannoRow))
