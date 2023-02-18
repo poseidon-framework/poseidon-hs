@@ -81,7 +81,7 @@ writeOrUpdateChangelogFile logText pac = do
     case posPacChangelogFile pac of
         Nothing -> do
             writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
-                "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
+                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
             return pac {
                 posPacChangelogFile = Just "CHANGELOG.md"
             }
@@ -89,7 +89,7 @@ writeOrUpdateChangelogFile logText pac = do
             changelogFile <- readFile (posPacBaseDir pac </> x)
             removeFile (posPacBaseDir pac </> x)
             writeFile (posPacBaseDir pac </> x) $
-                "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
+                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
             return pac
 
 updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
