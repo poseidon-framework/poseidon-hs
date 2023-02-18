@@ -17,8 +17,8 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
-import           Poseidon.Janno              (JannoList (..), JannoRow (..),
-                                              writeJannoFile)
+import           Poseidon.Janno              (JannoFile (..), JannoList (..),
+                                              JannoRow (..), writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
@@ -143,7 +143,7 @@ runForge (
 
     -- collect data --
     -- janno
-    let jannoRows = getJointJanno relevantPackages
+    let (JannoFile jannoRows) = getJointJanno relevantPackages
         relevantJannoRows = map (jannoRows !!) relevantIndices
 
     -- bib
@@ -171,7 +171,7 @@ runForge (
     logInfo "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
+           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right (JannoFile relevantJannoRows))) relevantBibEntries
 
     -- write new package to the file system --
     -- POSEIDON.yml
@@ -214,7 +214,7 @@ runForge (
         let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrSNPs = Just y})
                                                 relevantJannoRows
                                                 (VU.toList snpList)
-        liftIO $ writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
+        liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoFile jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do

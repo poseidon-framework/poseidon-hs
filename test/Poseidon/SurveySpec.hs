@@ -20,12 +20,12 @@ testRenderJannoCompleteness :: Spec
 testRenderJannoCompleteness =
     describe "Poseidon.CLI.Survey.renderJannoCompleteness" $ do
     it "should work for a full janno file" $ do
-        janno <- testLog $ readJannoFile testJannoNormal
-        renderJannoCompleteness janno
+        (JannoFile rows) <- testLog $ readJannoFile testJannoNormal
+        renderJannoCompleteness rows
             `shouldBe`
             "\9608\9608\9608\9619\9608\9608\9619\9619.\9608\9608\9608\9608\9608\9608\9618\9618\9618\9608\9608\9608\9619\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9608\9619\9619\9619\9618\9608\9608\9608\9619\9619"
     it "should work for a minimum janno file" $ do
-        janno <- testLog $ readJannoFile testJannoMinimal
-        renderJannoCompleteness janno
+        (JannoFile rows) <- testLog $ readJannoFile testJannoMinimal
+        renderJannoCompleteness rows
             `shouldBe`
             "\9608\9608\9608........................................."

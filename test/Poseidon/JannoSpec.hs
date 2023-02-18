@@ -5,7 +5,7 @@ module Poseidon.JannoSpec (spec) where
 import           Poseidon.Janno      (AccessionID (..), BCADAge (..),
                                       CsvNamedRecord (..), JURI (..),
                                       JannoCaptureType (..), JannoDateType (..),
-                                      JannoGenotypePloidy (..),
+                                      JannoFile (..), JannoGenotypePloidy (..),
                                       JannoLibraryBuilt (..), JannoList (..),
                                       JannoRow (..), JannoSex (..),
                                       JannoUDG (..), Latitude (..),
@@ -78,8 +78,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let borkedFullJannoPath       = "test/testDat/testJannoFiles/borked_full.janno"
     let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
     it "should read minimal janno files correctly" $ do
-        janno <- testLog $ readJannoFile minimalFullJannoPath
-        janno_partial <- testLog $ readJannoFile minimalPartialJannoPath
+        (JannoFile janno) <- testLog $ readJannoFile minimalFullJannoPath
+        (JannoFile janno_partial) <- testLog $ readJannoFile minimalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -99,8 +99,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLibraryBuilt janno                 `shouldBe` [Nothing, Nothing, Nothing]
         map jDamage janno                       `shouldBe` [Nothing, Nothing, Nothing]
     it "should read normal janno files correctly" $ do
-        janno <- testLog $ readJannoFile normalFullJannoPath
-        janno_partial <- testLog $ readJannoFile normalPartialJannoPath
+        (JannoFile janno) <- testLog $ readJannoFile normalFullJannoPath
+        (JannoFile janno_partial) <- testLog $ readJannoFile normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]

@@ -4,7 +4,7 @@ module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile       (BibTeX)
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
-import           Poseidon.Janno         (JannoRow (..))
+import           Poseidon.Janno         (JannoFile (..), JannoRow (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -67,8 +67,8 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
 
-renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
-renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
+renderPackageWithCompleteness :: (String, Bool, JannoFile, BibTeX) -> String
+renderPackageWithCompleteness (_,genoTypeDataExists,(JannoFile janno),bib) =
        (if genoTypeDataExists then "G" else ".")
     ++ (if not (null bib) then "B" else ".")
     ++ "|"

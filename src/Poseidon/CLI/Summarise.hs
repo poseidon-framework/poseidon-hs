@@ -1,7 +1,8 @@
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (BCADAge (..), JannoList (..),
-                                         JannoRow (..), Percent (..))
+import           Poseidon.Janno         (BCADAge (..), JannoFile (..),
+                                         JannoList (..), JannoRow (..),
+                                         Percent (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -34,11 +35,11 @@ runSummarise :: SummariseOptions -> PoseidonLogIO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
-    liftIO $ summariseJannoRows (concat jannos) rawOutput
+    liftIO $ summariseJannoRows (mconcat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples
-summariseJannoRows :: [JannoRow] -> Bool -> IO ()
-summariseJannoRows xs rawOutput = do
+summariseJannoRows :: JannoFile -> Bool -> IO ()
+summariseJannoRows (JannoFile xs) rawOutput = do
     (tableH, tableB) <- do
         let tableH = ["Summary", "Value"]
             tableB = [

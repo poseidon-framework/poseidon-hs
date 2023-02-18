@@ -2,8 +2,8 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno         (JannoList (..), JannoRow (..),
-                                         concatJannos)
+import           Poseidon.Janno         (JannoFile (..), JannoList (..),
+                                         JannoRow (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -65,13 +65,13 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             let tableH = ["Title", "Nr Individuals"]
-                tableB = [[name, show (length rows)] | (name, rows) <- sortOn fst allSampleInfo]
+                tableB = [[name, show (length rows)] | (name, JannoFile rows) <- sortOn fst allSampleInfo]
             logInfo $ "found " ++ show (length tableB) ++ " packages"
             return (tableH, tableB)
         ListGroups -> do
             let tableH = ["Group", "Packages", "Nr Individuals"]
                 pacJannoPairs = do
-                    (pacName, rows) <- allSampleInfo
+                    (pacName, (JannoFile rows)) <- allSampleInfo
                     row <- rows
                     return (pacName, row)
                 tableB = do
@@ -85,7 +85,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             -- warning in case -j does not exist in the entire janno dataset
-            let allJannoRows = concatJannos $ map snd allSampleInfo
+            let (JannoFile allJannoRows) = mconcat $ map snd allSampleInfo
             unless (null allJannoRows) $ do
                 let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
                     requestedCols = map Bchs.pack moreJannoColumns
@@ -93,7 +93,7 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
                 mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols
             -- construct table
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
-            tableB <- fmap concat . forM allSampleInfo $ \(pacName, rows) ->
+            tableB <- fmap concat . forM allSampleInfo $ \(pacName, JannoFile rows) ->
                 forM rows (\row -> do
                     let moreFields = extractAdditionalFields row moreJannoColumns
                     return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
@@ -113,7 +113,7 @@ unnestGroupNames = concatMap unnestOne
             let groups = getJannoList . jGroupName $ jR
             in zip (repeat pac) groups
 
-readSampleInfo :: LB.ByteString -> IO [(String, [JannoRow])]
+readSampleInfo :: LB.ByteString -> IO [(String, JannoFile)]
 readSampleInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err

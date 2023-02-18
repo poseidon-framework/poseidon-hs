@@ -22,10 +22,10 @@ module Poseidon.Janno (
     AccessionID (..),
     writeJannoFile,
     readJannoFile,
-    concatJannos,
     createMinimalJanno,
     jannoHeaderString,
-    CsvNamedRecord (..)
+    CsvNamedRecord (..),
+    JannoFile (..)
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -507,6 +507,35 @@ instance FromJSON CsvNamedRecord where
             let listOfBSTuples = map (\(a,b) -> (T.encodeUtf8 a, T.encodeUtf8 b)) listOfTextTuples
             pure $ CsvNamedRecord $ HM.fromList listOfBSTuples
 
+-- | A  data type to represent a janno file
+newtype JannoFile = JannoFile [JannoRow]
+    deriving (Show, Eq, Generic)
+
+instance Semigroup JannoFile where
+    (JannoFile j1) <> (JannoFile j2) = JannoFile $ j1 `combineTwoJannos` j2
+        where
+        combineTwoJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
+        combineTwoJannos janno1 janno2 =
+            let simpleJannoSum = janno1 ++ janno2
+                toAddColNames = HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) simpleJannoSum))
+                toAddEmptyCols = HM.fromList (map (\k -> (k, "n/a")) toAddColNames)
+            in map (addEmptyAddColsToJannoRow toAddEmptyCols) simpleJannoSum
+        addEmptyAddColsToJannoRow :: Csv.NamedRecord -> JannoRow -> JannoRow
+        addEmptyAddColsToJannoRow toAdd x =
+            x { jAdditionalColumns =
+                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x)
+            }
+        fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
+        fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)
+
+instance Monoid JannoFile where
+    mempty = JannoFile []
+    mconcat = foldl' mappend mempty
+
+instance ToJSON JannoFile where
+    toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoFile
+
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
@@ -608,6 +637,12 @@ jannoHeader = [
     , "Note"
     , "Keywords"
     ]
+
+instance Csv.DefaultOrdered JannoRow where
+    headerOrder _ = Csv.header jannoHeader
+
+jannoHeaderString :: [String]
+jannoHeaderString = map Bchs.unpack jannoHeader
 
 -- This hashmap represents an empty janno file with all normal, specified columns
 jannoRefHashMap :: HM.HashMap Bchs.ByteString ()
@@ -755,38 +790,10 @@ instance Csv.ToNamedRecord JannoRow where
         -- beyond that add what is in the hashmap of additional columns
         ] `HM.union` (getCsvNR $ jAdditionalColumns j)
 
-instance Csv.DefaultOrdered JannoRow where
-    headerOrder _ = Csv.header jannoHeader
-
-jannoHeaderString :: [String]
-jannoHeaderString = map Bchs.unpack jannoHeader
-
-makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
-makeHeaderWithAdditionalColumns ms =
-    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms)))
-
-concatJannos :: [[JannoRow]] -> [JannoRow]
-concatJannos = foldl' combineTwoJannos []
-
-combineTwoJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
-combineTwoJannos janno1 janno2 =
-    let simpleJannoSum = janno1 ++ janno2
-        toAddColNames = HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) simpleJannoSum))
-        toAddEmptyCols = HM.fromList (map (\k -> (k, "n/a")) toAddColNames)
-    in map (addEmptyAddColsToJannoRow toAddEmptyCols) simpleJannoSum
-    where
-        addEmptyAddColsToJannoRow :: Csv.NamedRecord -> JannoRow -> JannoRow
-        addEmptyAddColsToJannoRow toAdd x =
-            x { jAdditionalColumns =
-                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x)
-            }
-        fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
-        fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)
-
 -- | A function to create empty janno rows for a set of individuals
-createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
-createMinimalJanno [] = []
-createMinimalJanno xs = map createMinimalSample xs
+createMinimalJanno :: [EigenstratIndEntry] -> JannoFile
+createMinimalJanno [] = mempty
+createMinimalJanno xs = JannoFile $ map createMinimalSample xs
 
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow
@@ -842,11 +849,15 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
-writeJannoFile :: FilePath -> [JannoRow] -> IO ()
-writeJannoFile path samples = do
+writeJannoFile :: FilePath -> JannoFile -> IO ()
+writeJannoFile path (JannoFile samples) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns samples) samples
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
+    where
+        makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
+        makeHeaderWithAdditionalColumns ms =
+            V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms)))
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
@@ -858,7 +869,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 
 -- | A function to load one janno file
 readJannoFile :: FilePath
-              -> PoseidonLogIO [JannoRow]
+              -> PoseidonLogIO JannoFile
 readJannoFile jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -892,7 +903,7 @@ readJannoFile jannoPath = do
         mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
         liftIO $ throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
     else do
-        let consistentJanno = checkJannoConsistency jannoPath $ rights jannoRepresentation
+        let consistentJanno = checkJannoConsistency jannoPath $ JannoFile $ rights jannoRepresentation
         case consistentJanno of
             Left e -> do liftIO $ throwIO e
             Right x -> do
@@ -946,14 +957,14 @@ replaceInJannoBytestring from to tsv =
 
 -- Janno consistency checks
 
-checkJannoConsistency :: FilePath -> [JannoRow] -> Either PoseidonException [JannoRow]
+checkJannoConsistency :: FilePath -> JannoFile -> Either PoseidonException JannoFile
 checkJannoConsistency jannoPath xs
     | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath
         "The Poseidon_IDs are not unique"
     | otherwise = Right xs
 
-checkIndividualUnique :: [JannoRow] -> Bool
-checkIndividualUnique x = length x == length (nub $ map jPoseidonID x)
+checkIndividualUnique :: JannoFile -> Bool
+checkIndividualUnique (JannoFile xs) = length xs == length (nub $ map jPoseidonID xs)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
