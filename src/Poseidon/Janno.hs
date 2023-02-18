@@ -877,8 +877,8 @@ readJannoFile jannoPath = do
     let jannoColNames = map Bch.toStrict (Bch.split '\t' headerOnly)
         missing_columns = map Bchs.unpack $ jannoHeader \\ jannoColNames
         additional_columns = map Bchs.unpack $ jannoColNames \\ jannoHeader
-    unless (null missing_columns) $ do
-        logDebug ("Missing standard columns: " ++ intercalate ", " missing_columns)
+    --unless (null missing_columns) $ do
+    --    logDebug ("Missing standard columns: " ++ intercalate ", " missing_columns)
     unless (null additional_columns) $ do
         logDebug ("Additional columns: " ++
         -- for each additional column a standard column is suggested: "Countro (Country?)"
