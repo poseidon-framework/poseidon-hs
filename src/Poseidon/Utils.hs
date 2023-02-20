@@ -20,6 +20,8 @@ module Poseidon.Utils (
     determinePackageOutName
 ) where
 
+import           Paths_poseidon_hs                       (version)
+
 import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
@@ -39,6 +41,7 @@ import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
+import           Data.Version                            (showVersion)
 
 type LogEnv = LogAction IO Message
 
@@ -151,7 +154,9 @@ renderPoseidonException (PoseidonPackageException s) =
     "Encountered a logical error with a poseidon package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++
-    ". It has version \"" ++ s ++ "\", which is not supported by this trident version."
+    ". This package is build according to poseidon schema v" ++ s ++
+    ", which is not supported by trident v" ++ showVersion version ++
+    ". Modify the package, or download a newer (or older) version of trident."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
     "The POSEIDON.yml file " ++ show p ++ " has no poseidonVersion field. " ++
     "This is mandatory."
