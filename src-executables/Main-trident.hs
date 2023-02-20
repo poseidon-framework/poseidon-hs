@@ -206,5 +206,6 @@ updateOptParser = UpdateOptions <$> parseBasePaths
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
+                                    <*> parseFullGeno
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates

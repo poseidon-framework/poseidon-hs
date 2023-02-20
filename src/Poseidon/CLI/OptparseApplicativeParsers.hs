@@ -391,6 +391,13 @@ parseIgnoreGeno = OP.switch (
     OP.hidden
     )
 
+parseFullGeno  :: OP.Parser Bool
+parseFullGeno = OP.switch (
+    OP.long "fullGeno" <>
+    OP.help "test parsing of all SNPs" <>
+    OP.hidden
+    )
+
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
     OP.long "noExitCode" <>

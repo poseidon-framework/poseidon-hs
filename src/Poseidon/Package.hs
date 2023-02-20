@@ -26,7 +26,7 @@ module Poseidon.Package (
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
-                                             loadGenotypeData, loadIndividuals)
+                                             loadGenotypeData, loadIndividuals, printSNPCopyProgress)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), concatJannos,
                                              createMinimalJanno, readJannoFile)
@@ -213,7 +213,9 @@ data PackageReadOptions = PackageReadOptions
     , _readOptIgnoreGeno       :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
     , _readOptGenoCheck        :: Bool
-    -- ^ whether to check the first 100 SNPs of the genotypes
+    -- ^ whether to check the SNPs of the genotypes
+    , _readOptFullGeno         :: Bool
+    -- ^ whether to check all SNPs or only the first 100
     , _readOptIgnorePosVersion :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
     }
@@ -224,6 +226,7 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
+    , _readOptFullGeno         = False
     , _readOptIgnorePosVersion = False
     }
 
@@ -343,6 +346,9 @@ readPoseidonPackage opts ymlPath = do
         Just p  -> liftIO $ readBibTeXFile p
     liftIO $ checkJannoBibConsistency tit janno bib
 
+    when (_readOptFullGeno opts) $ do
+        logInfo $ "Trying to parse genotype data for package: " ++ tit
+
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
     logEnv <- ask
@@ -351,7 +357,13 @@ readPoseidonPackage opts ymlPath = do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
             (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
-            runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+            -- check all or only the first 100 SNPs
+            if _readOptFullGeno opts
+            then do
+                currentTime <- liftIO getCurrentTime
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> P.drain
+            else do
+                runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward)
     return pac
 
