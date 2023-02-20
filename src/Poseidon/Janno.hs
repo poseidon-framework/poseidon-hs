@@ -522,9 +522,7 @@ instance Semigroup JannoFile where
             in map (addEmptyAddColsToJannoRow toAddEmptyCols) simpleJannoSum
         addEmptyAddColsToJannoRow :: Csv.NamedRecord -> JannoRow -> JannoRow
         addEmptyAddColsToJannoRow toAdd x =
-            x { jAdditionalColumns =
-                CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x)
-            }
+            x { jAdditionalColumns = CsvNamedRecord $ fillAddCols toAdd (getCsvNR $ jAdditionalColumns x) }
         fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
         fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)
 
@@ -850,14 +848,14 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 -- Janno file writing
 
 writeJannoFile :: FilePath -> JannoFile -> IO ()
-writeJannoFile path (JannoFile samples) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns samples) samples
+writeJannoFile path (JannoFile rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
     where
-        makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
-        makeHeaderWithAdditionalColumns ms =
-            V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) ms)))
+        makeHeaderWithAdditionalColumns :: Csv.Header
+        makeHeaderWithAdditionalColumns =
+            V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
@@ -964,7 +962,7 @@ checkJannoConsistency jannoPath xs
     | otherwise = Right xs
 
 checkIndividualUnique :: JannoFile -> Bool
-checkIndividualUnique (JannoFile xs) = length xs == length (nub $ map jPoseidonID xs)
+checkIndividualUnique (JannoFile rows) = length xs == length (nub $ map jPoseidonID rows)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x

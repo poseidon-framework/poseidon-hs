@@ -143,12 +143,12 @@ runForge (
 
     -- collect data --
     -- janno
-    let (JannoFile jannoRows) = getJointJanno relevantPackages
-        relevantJannoRows = map (jannoRows !!) relevantIndices
+    let (JannoFile rows) = getJointJanno relevantPackages
+        newJanno@(JannoFile relevantJannoRows) = JannoFile $ map (rows !!) relevantIndices
 
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
-        relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
+        relevantBibEntries = filterBibEntries newJanno bibEntries
 
     -- create new package --
     let outPath = dropTrailingPathSeparator outPathRaw
@@ -171,7 +171,7 @@ runForge (
     logInfo "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right (JannoFile relevantJannoRows))) relevantBibEntries
+           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right newJanno)) relevantBibEntries
 
     -- write new package to the file system --
     -- POSEIDON.yml
@@ -228,9 +228,9 @@ sumNonMissingSNPs accumulator (_, geno) = do
         | x == Missing = 0
         | otherwise = 1
 
-filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
-filterBibEntries samples references_ =
-    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
+filterBibEntries :: JannoFile -> BibTeX -> BibTeX
+filterBibEntries (JannoFile rows) references_ =
+    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ rows
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonLogIO [SNPSetSpec]

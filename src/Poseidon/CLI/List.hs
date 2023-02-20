@@ -85,9 +85,9 @@ runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             -- warning in case -j does not exist in the entire janno dataset
-            let (JannoFile allJannoRows) = mconcat $ map snd allSampleInfo
-            unless (null allJannoRows) $ do
-                let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
+            let (JannoFile rows) = mconcat $ map snd allSampleInfo
+            unless (null rows) $ do
+                let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head rows
                     requestedCols = map Bchs.pack moreJannoColumns
                     unknownCols = requestedCols \\ allAvailableCols
                 mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols

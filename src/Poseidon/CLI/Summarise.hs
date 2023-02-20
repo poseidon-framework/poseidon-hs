@@ -39,28 +39,28 @@ runSummarise (SummariseOptions baseDirs rawOutput) = do
 
 -- | A function to print meaningful summary information for a list of poseidon samples
 summariseJannoRows :: JannoFile -> Bool -> IO ()
-summariseJannoRows (JannoFile xs) rawOutput = do
+summariseJannoRows (JannoFile rows) rawOutput = do
     (tableH, tableB) <- do
         let tableH = ["Summary", "Value"]
             tableB = [
-                ["Nr Individuals", show (length xs)],
-                ["Individuals", paste $ sort $ map jPoseidonID xs],
-                ["Nr Groups", show $ length $ nub $ map jGroupName xs],
-                ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) xs],
-                ["Nr Publications", show $ length $ nub $ map jPublication xs],
-                ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ xs],
-                ["Nr Countries", show $ length $ nub $ map jCountry xs],
-                ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry xs],
-                ["Mean age BC/AD", meanAndSdInteger $ map (\(BCADAge x) -> fromIntegral x) $ mapMaybe jDateBCADMedian xs],
-                ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType xs],
-                ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex xs],
-                ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup xs],
-                ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map jYHaplogroup xs],
-                ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe jEndogenous xs],
-                ["Nr of SNPs", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrSNPs xs],
-                ["Coverage on target SNPs", meanAndSdRoundTo 2 $ mapMaybe jCoverageOnTargets xs],
-                ["Library type", printFrequencyMaybe ", " $ frequency $ map jLibraryBuilt xs],
-                ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map jUDG xs]
+                ["Nr Individuals", show (length rows)],
+                ["Individuals", paste $ sort $ map jPoseidonID rows],
+                ["Nr Groups", show $ length $ nub $ map jGroupName rows],
+                ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) rows],
+                ["Nr Publications", show $ length $ nub $ map jPublication rows],
+                ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ rows],
+                ["Nr Countries", show $ length $ nub $ map jCountry rows],
+                ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry rows],
+                ["Mean age BC/AD", meanAndSdInteger $ map (\(BCADAge x) -> fromIntegral x) $ mapMaybe jDateBCADMedian rows],
+                ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType rows],
+                ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex rows],
+                ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup rows],
+                ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map jYHaplogroup rows],
+                ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe jEndogenous rows],
+                ["Nr of SNPs", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrSNPs rows],
+                ["Coverage on target SNPs", meanAndSdRoundTo 2 $ mapMaybe jCoverageOnTargets rows],
+                ["Library type", printFrequencyMaybe ", " $ frequency $ map jLibraryBuilt rows],
+                ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map jUDG rows]
                 ]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)

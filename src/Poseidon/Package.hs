@@ -394,13 +394,13 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
             checkFile (d </> indFile gd) $ indFileChkSum gd
 
 checkJannoIndConsistency :: String -> JannoFile -> [EigenstratIndEntry] -> IO ()
-checkJannoIndConsistency pacName (JannoFile janno) indEntries = do
+checkJannoIndConsistency pacName (JannoFile rows) indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jPoseidonID janno
-        jannoSexs       = map (sfSex . jGeneticSex) janno
-        jannoGroups     = map (head . getJannoList . jGroupName) janno
+    let jannoIDs        = map jPoseidonID rows
+        jannoSexs       = map (sfSex . jGeneticSex) rows
+        jannoGroups     = map (head . getJannoList . jGroupName) rows
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -429,9 +429,9 @@ zipWithPadding a _ []     ys     = zip (repeat a) ys
 zipWithPadding _ b xs     []     = zip xs (repeat b)
 
 checkJannoBibConsistency :: String -> JannoFile -> BibTeX -> IO ()
-checkJannoBibConsistency pacName (JannoFile janno) bibtex = do
+checkJannoBibConsistency pacName (JannoFile rows) bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ janno
+    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ rows
         literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
@@ -534,7 +534,7 @@ getJointIndividualInfo packages = do
     return $ IndividualInfo (jPoseidonID jannoRow) ((getJannoList . jGroupName) jannoRow) (posPacTitle pac)
 
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
-getJannoRowsFromPac pac = let (JannoFile xs) = posPacJanno pac in xs
+getJannoRowsFromPac pac = let (JannoFile rows) = posPacJanno pac in rows
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
