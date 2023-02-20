@@ -8,7 +8,9 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes      (GroupInfo (..),
                                                IndividualInfo (..),
-                                               PackageInfo (..))
+                                               PackageInfo (..),
+                                               ServerApiReturnType(..),
+                                               ApiReturnData(..))
 import           Poseidon.Utils               (LogMode (..), PoseidonLogIO,
                                                logInfo, usePoseidonLogger)
 
@@ -20,9 +22,13 @@ import           Control.Monad                (forM, unless, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (group, nub, sortOn)
+import Data.Maybe (maybeToList)
+import qualified Data.Text                    as TS
 import           Data.Text.Lazy               (Text, intercalate, pack, unpack)
+import           Data.Text.Lazy.Encoding      (decodeUtf8)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
-import           Data.Version                 (parseVersion, showVersion)
+import           Data.Version                 (parseVersion, showVersion, Version, makeVersion)
+import           Network.Wai                  (Request, pathInfo, queryString)
 import           Network.Wai.Handler.Warp     (defaultSettings, run, setPort)
 import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
                                                tlsSettingsChain)
@@ -34,9 +40,9 @@ import           System.Directory             (createDirectoryIfMissing,
                                                getModificationTime)
 import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
-import           Web.Scotty                   (ScottyM, file, get, html, json,
-                                               middleware, notFound, param,
-                                               raise, scottyApp, text)
+import           Web.Scotty                   (ScottyM, file, get, html, json, ActionM,
+                                               middleware, notFound, param, function,
+                                               raise, scottyApp, text, Param, rescue, params)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -80,10 +86,10 @@ main = usePoseidonLogger VerboseLog $ do
         -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
         get "/compatibility/:client_version" $ do
             vStr <- param "client_version"
+            _ <- case parseVersionString vStr of
+                Just v -> return ()
+                Nothing -> raise $ "cannot parse Version nr " <> vStr
             let compat = (True, Nothing) :: (Bool, Maybe String)
-            _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
-                [(v', "")] -> return v'
-                _          -> raise . pack $ "cannot parse Version nr " ++ vStr
             json compat
 
         -- basic APIs for retreiving metadata
@@ -120,7 +126,14 @@ main = usePoseidonLogger VerboseLog $ do
         get "/packages" $
             (json . map packageToPackageInfo) allPackages
 
+        respondToV2requests allPackages
+
         notFound $ raise "Unknown request"
+
+parseVersionString :: Text -> Maybe Version
+parseVersionString vText = case filter ((=="") . snd) $ readP_to_S parseVersion (unpack vText) of
+    [(v', "")] -> Just v'
+    _          -> Nothing
 
 optParserInfo :: OP.ParserInfo CommandLineOptions
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
@@ -325,3 +338,34 @@ packageToPackageInfo pac = PackageInfo {
     pLastModified  = posPacLastModified pac,
     pNrIndividuals = (length . posPacJanno) pac
 }
+
+respondToV2requests :: [PoseidonPackage] -> ScottyM ()
+respondToV2requests allPackages = do
+    get "/v2/packages" . conditionOnClientVersion $
+        let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
+        in  return (retData, [])
+    get "/v2/groups" . conditionOnClientVersion $
+        let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
+        in  return (retData, [])
+    -- get "/v2/individuals" $
+    --     let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
+    --     in  return (retData, [])
+    get "/v2/janno" . conditionOnClientVersion $
+        let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
+        in  return (retData, [])
+
+conditionOnClientVersion :: ActionM (ApiReturnData, [String]) -> ActionM ()
+conditionOnClientVersion contentAction = do
+    maybeClientVersion <- (Just <$> param "client_version") `rescue` (\_ -> return Nothing)
+    (clientVersion, versionWarnings) <- case maybeClientVersion of
+        Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
+        Just versionString -> case parseVersionString versionString of
+            Just v -> return (v, [])
+            Nothing -> return (version, ["Could not parse Client Version string " ++ unpack versionString ++ ", assuming latest version " ++ showVersion version])
+    if clientVersion < makeVersion [1, 1, 8, 5] then do
+        let msg = "The Server API requires trident versions at least 1.1.8.5. \
+            \Please go to https://poseidon-framework.github.io/#/trident and update your trident installation."
+        json $ ServerApiReturnType (versionWarnings ++ [msg]) Nothing
+    else do
+        (content, messages) <- contentAction
+        json $ ServerApiReturnType (versionWarnings ++ messages) (Just content)

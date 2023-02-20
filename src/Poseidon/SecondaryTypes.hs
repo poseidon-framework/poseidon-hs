@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 
 module Poseidon.SecondaryTypes (
     poseidonVersionParser,
@@ -9,18 +11,23 @@ module Poseidon.SecondaryTypes (
     VersionComponent (..),
     PackageInfo(..),
     P.runParser,
-    ORCID (..)
+    ORCID (..),
+    ServerApiReturnType(..),
+    ApiReturnData(..)
 ) where
 
 import           Control.Monad      (guard, mzero)
-import           Data.Aeson         (FromJSON, ToJSON, Value (String), object,
+import           Data.Aeson         (FromJSON, ToJSON(..), Value (String), object,
                                      parseJSON, toJSON, withObject, (.:), (.:?),
+                                     genericToEncoding, defaultOptions,
                                      (.=))
 import           Data.Char          (digitToInt)
 import           Data.List          (intercalate)
 import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
 import           Data.Version       (Version (..), makeVersion)
+import           GHC.Generics       (Generic)
+import           Poseidon.Janno     (CsvNamedRecord, JannoRow)
 import qualified Text.Parsec        as P
 import qualified Text.Parsec.String as P
 
@@ -95,6 +102,26 @@ instance FromJSON GroupInfo where
         <*> v .: "packages"
         <*> v .: "nrIndividuals"
 
+data ServerApiReturnType = ServerApiReturnType {
+    _apiMessages :: [String],
+    _apiResponse :: Maybe ApiReturnData
+} deriving (Generic)
+
+instance ToJSON ServerApiReturnType where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON ServerApiReturnType
+
+data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
+                   | ApiReturnGroupInfo [GroupInfo]
+                   | ApiReturnIndividualInfo [IndividualInfo] CsvNamedRecord
+                   | ApiReturnJanno [(String, [JannoRow])] deriving (Generic)
+
+instance ToJSON ApiReturnData where
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON ApiReturnData
+
 poseidonVersionParser :: P.Parser Version
 poseidonVersionParser = do
     major <- read <$> P.many1 P.digit
@@ -103,6 +130,7 @@ poseidonVersionParser = do
     _ <- P.oneOf "."
     patch <- read <$> P.many1 P.digit
     return (makeVersion [major, minor, patch])
+
 
 -- | A data type to represent a contributor
 data ContributorSpec = ContributorSpec
