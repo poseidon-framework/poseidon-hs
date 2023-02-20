@@ -962,7 +962,7 @@ checkJannoConsistency jannoPath xs
     | otherwise = Right xs
 
 checkIndividualUnique :: JannoFile -> Bool
-checkIndividualUnique (JannoFile rows) = length xs == length (nub $ map jPoseidonID rows)
+checkIndividualUnique (JannoFile rows) = length rows == length (nub $ map jPoseidonID rows)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
