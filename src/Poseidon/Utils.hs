@@ -20,7 +20,7 @@ module Poseidon.Utils (
     determinePackageOutName
 ) where
 
-import           Paths_poseidon_hs                       (version)
+import           Paths_poseidon_hs      (version)
 
 import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
@@ -37,11 +37,11 @@ import           Data.Digest.Pure.MD5   (md5)
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
+import           Data.Version           (showVersion)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
-import           Data.Version                            (showVersion)
 
 type LogEnv = LogAction IO Message
 
