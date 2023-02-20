@@ -26,7 +26,8 @@ module Poseidon.Package (
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
-                                             loadGenotypeData, loadIndividuals, printSNPCopyProgress)
+                                             loadGenotypeData, loadIndividuals,
+                                             printSNPCopyProgress)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
                                              JannoSex (..), concatJannos,
                                              createMinimalJanno, readJannoFile)
