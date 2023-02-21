@@ -14,8 +14,10 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
-import           Poseidon.Utils             (PoseidonException (..),
-                                             getChecksum, noLog, testLog)
+import           Poseidon.Utils             (LogMode (..),
+                                             PoseidonException (..),
+                                             getChecksum, noLog, testLog,
+                                             usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -41,7 +43,7 @@ spec = do
     testRenderMismatch
     testZipWithPadding
     testGetJoinGenotypeData
-    testThrowOnMissingBibEntries
+    testThrowOnRead
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
@@ -282,12 +284,16 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
 
-testThrowOnMissingBibEntries :: Spec
-testThrowOnMissingBibEntries = describe "Poseidon.Package.readPoseidonPackage" $ do
-    let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
-    let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
-    it "should throw if bibentries aren't found" $
+testThrowOnRead :: Spec
+testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
+    it "should throw if bibentries aren't found" $ do
+        let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
+        let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
         testLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
+    it "should throw if Plink Setting is not right" $ do
+        let opts = defaultPackageReadOptions
+        let ymlPath = "test/testDat/testPackages/ancient/Wang_Plink_test_2020/POSEIDON.yml"
+        usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
   where
     isPoseidonCrossFileConsistencyException :: Selector PoseidonException
     isPoseidonCrossFileConsistencyException (PoseidonCrossFileConsistencyException _ _) = True
