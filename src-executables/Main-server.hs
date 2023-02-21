@@ -2,7 +2,8 @@
 
 import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
 import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
-import           Poseidon.Janno                          (JannoFile (..), JannoList (..),
+import           Poseidon.Janno                          (JannoFile (..),
+                                                          JannoList (..),
                                                           JannoRow (..))
 import           Poseidon.Package                        (PackageReadOptions (..),
                                                           PoseidonPackage (..),
