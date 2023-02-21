@@ -394,7 +394,7 @@ parseIgnoreGeno = OP.switch (
 parseFullGeno  :: OP.Parser Bool
 parseFullGeno = OP.switch (
     OP.long "fullGeno" <>
-    OP.help "test parsing of all SNPs" <>
+    OP.help "test parsing of all SNPs (by default only the first 100 SNPs are probed)" <>
     OP.hidden
     )
 
