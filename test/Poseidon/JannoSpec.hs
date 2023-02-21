@@ -5,13 +5,13 @@ module Poseidon.JannoSpec (spec) where
 import           Poseidon.Janno      (AccessionID (..), BCADAge (..),
                                       CsvNamedRecord (..), JURI (..),
                                       JannoCaptureType (..), JannoDateType (..),
-                                      JannoFile (..), JannoGenotypePloidy (..),
+                                      JannoGenotypePloidy (..),
                                       JannoLibraryBuilt (..), JannoList (..),
-                                      JannoRow (..), JannoSex (..),
-                                      JannoUDG (..), Latitude (..),
-                                      Longitude (..), Percent (..),
-                                      RelationDegree (..), Sex (..),
-                                      readJannoFile)
+                                      JannoRow (..), JannoRows (..),
+                                      JannoSex (..), JannoUDG (..),
+                                      Latitude (..), Longitude (..),
+                                      Percent (..), RelationDegree (..),
+                                      Sex (..), readJannoFile)
 import           Poseidon.Utils      (testLog)
 
 import           Control.Applicative (liftA2)
@@ -78,8 +78,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let borkedFullJannoPath       = "test/testDat/testJannoFiles/borked_full.janno"
     let borkedPartialJannoPath    = "test/testDat/testJannoFiles/borked_partial.janno"
     it "should read minimal janno files correctly" $ do
-        (JannoFile janno) <- testLog $ readJannoFile minimalFullJannoPath
-        (JannoFile janno_partial) <- testLog $ readJannoFile minimalPartialJannoPath
+        (JannoRows janno) <- testLog $ readJannoFile minimalFullJannoPath
+        (JannoRows janno_partial) <- testLog $ readJannoFile minimalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
@@ -99,8 +99,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLibraryBuilt janno                 `shouldBe` [Nothing, Nothing, Nothing]
         map jDamage janno                       `shouldBe` [Nothing, Nothing, Nothing]
     it "should read normal janno files correctly" $ do
-        (JannoFile janno) <- testLog $ readJannoFile normalFullJannoPath
-        (JannoFile janno_partial) <- testLog $ readJannoFile normalPartialJannoPath
+        (JannoRows janno) <- testLog $ readJannoFile normalFullJannoPath
+        (JannoRows janno_partial) <- testLog $ readJannoFile normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]

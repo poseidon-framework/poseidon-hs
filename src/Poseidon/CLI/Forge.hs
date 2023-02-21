@@ -17,8 +17,8 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
-import           Poseidon.Janno              (JannoFile (..), JannoList (..),
-                                              JannoRow (..), writeJannoFile)
+import           Poseidon.Janno              (JannoList (..), JannoRow (..),
+                                              JannoRows (..), writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
@@ -146,8 +146,8 @@ runForge (
 
     -- collect data --
     -- janno
-    let (JannoFile rows) = getJointJanno relevantPackages
-        newJanno@(JannoFile relevantJannoRows) = JannoFile $ map (rows !!) relevantIndices
+    let (JannoRows rows) = getJointJanno relevantPackages
+        newJanno@(JannoRows relevantJannoRows) = JannoRows $ map (rows !!) relevantIndices
 
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
@@ -217,7 +217,7 @@ runForge (
         let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrSNPs = Just y})
                                                 relevantJannoRows
                                                 (VU.toList snpList)
-        liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoFile jannoRowsWithNewSNPNumbers)
+        liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoRows jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do
@@ -231,8 +231,8 @@ sumNonMissingSNPs accumulator (_, geno) = do
         | x == Missing = 0
         | otherwise = 1
 
-filterBibEntries :: JannoFile -> BibTeX -> BibTeX
-filterBibEntries (JannoFile rows) references_ =
+filterBibEntries :: JannoRows -> BibTeX -> BibTeX
+filterBibEntries (JannoRows rows) references_ =
     let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ rows
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 

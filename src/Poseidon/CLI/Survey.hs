@@ -4,7 +4,7 @@ module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile       (BibTeX)
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
-import           Poseidon.Janno         (JannoFile (..), JannoRow (..))
+import           Poseidon.Janno         (JannoRow (..), JannoRows (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -68,7 +68,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
 
-renderPackageWithCompleteness :: (String, Bool, JannoFile, BibTeX) -> String
+renderPackageWithCompleteness :: (String, Bool, JannoRows, BibTeX) -> String
 renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
        (if genoTypeDataExists then "G" else ".")
     ++ (if not (null bib) then "B" else ".")
@@ -81,7 +81,7 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
             where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
 -- this has to be in the same order as jannoHeader in the janno module
-renderJannoCompleteness :: JannoFile -> String
+renderJannoCompleteness :: JannoRows -> String
 renderJannoCompleteness jS =
       '█'
     : '█'
@@ -129,8 +129,8 @@ renderJannoCompleteness jS =
     : getColChar jS jKeywords
     : ""
     where
-        getColChar :: JannoFile -> (JannoRow -> Maybe a) -> Char
-        getColChar (JannoFile rows) column_ =
+        getColChar :: JannoRows -> (JannoRow -> Maybe a) -> Char
+        getColChar (JannoRows rows) column_ =
             let nrRows = length rows
                 nrFilledValues = length $ filter (isJust . column_) rows
             in prop2Char $ nrFilledValues % nrRows

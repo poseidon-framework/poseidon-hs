@@ -22,8 +22,8 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.Janno           (CsvNamedRecord (..), JannoFile (..),
-                                           JannoRow (..), jannoHeaderString,
+import           Poseidon.Janno           (CsvNamedRecord (..), JannoRow (..),
+                                           JannoRows (..), jannoHeaderString,
                                            readJannoFile, writeJannoFile)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
@@ -210,9 +210,9 @@ patchLastModified testDir yamlFile = do
 
 addAdditionalColumnsToJanno :: [(ByteString, ByteString)] -> FilePath -> FilePath -> IO ()
 addAdditionalColumnsToJanno toAdd testDir jannoFile = do
-    (JannoFile rows) <- testLog $ readJannoFile (testDir </> jannoFile)
+    (JannoRows rows) <- testLog $ readJannoFile (testDir </> jannoFile)
     let modifiedJanno = map (addVariables toAdd) rows
-    writeJannoFile (testDir </> jannoFile) (JannoFile modifiedJanno)
+    writeJannoFile (testDir </> jannoFile) (JannoRows modifiedJanno)
     where
         addVariables :: [(ByteString, ByteString)] -> JannoRow -> JannoRow
         addVariables a x = x {

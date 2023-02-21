@@ -25,7 +25,7 @@ module Poseidon.Janno (
     createMinimalJanno,
     jannoHeaderString,
     CsvNamedRecord (..),
-    JannoFile (..)
+    JannoRows (..)
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -508,11 +508,11 @@ instance FromJSON CsvNamedRecord where
             pure $ CsvNamedRecord $ HM.fromList listOfBSTuples
 
 -- | A  data type to represent a janno file
-newtype JannoFile = JannoFile [JannoRow]
+newtype JannoRows = JannoRows [JannoRow]
     deriving (Show, Eq, Generic)
 
-instance Semigroup JannoFile where
-    (JannoFile j1) <> (JannoFile j2) = JannoFile $ j1 `combineTwoJannos` j2
+instance Semigroup JannoRows where
+    (JannoRows j1) <> (JannoRows j2) = JannoRows $ j1 `combineTwoJannos` j2
         where
         combineTwoJannos :: [JannoRow] -> [JannoRow] -> [JannoRow]
         combineTwoJannos janno1 janno2 =
@@ -526,13 +526,13 @@ instance Semigroup JannoFile where
         fillAddCols :: Csv.NamedRecord -> Csv.NamedRecord -> Csv.NamedRecord
         fillAddCols toAdd cur = HM.union cur (toAdd `HM.difference` cur)
 
-instance Monoid JannoFile where
-    mempty = JannoFile []
+instance Monoid JannoRows where
+    mempty = JannoRows []
     mconcat = foldl' mappend mempty
 
-instance ToJSON JannoFile where
+instance ToJSON JannoRows where
     toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoFile
+instance FromJSON JannoRows
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
@@ -789,9 +789,9 @@ instance Csv.ToNamedRecord JannoRow where
         ] `HM.union` (getCsvNR $ jAdditionalColumns j)
 
 -- | A function to create empty janno rows for a set of individuals
-createMinimalJanno :: [EigenstratIndEntry] -> JannoFile
+createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
 createMinimalJanno [] = mempty
-createMinimalJanno xs = JannoFile $ map createMinimalSample xs
+createMinimalJanno xs = JannoRows $ map createMinimalSample xs
 
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow
@@ -847,8 +847,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
-writeJannoFile :: FilePath -> JannoFile -> IO ()
-writeJannoFile path (JannoFile rows) = do
+writeJannoFile :: FilePath -> JannoRows -> IO ()
+writeJannoFile path (JannoRows rows) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
@@ -866,7 +866,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> PoseidonIO JannoFile
+readJannoFile :: FilePath -> PoseidonIO JannoRows
 readJannoFile jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -900,7 +900,7 @@ readJannoFile jannoPath = do
         mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
         liftIO $ throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
     else do
-        let consistentJanno = checkJannoConsistency jannoPath $ JannoFile $ rights jannoRepresentation
+        let consistentJanno = checkJannoConsistency jannoPath $ JannoRows $ rights jannoRepresentation
         case consistentJanno of
             Left e -> do liftIO $ throwIO e
             Right x -> do
@@ -954,14 +954,14 @@ replaceInJannoBytestring from to tsv =
 
 -- Janno consistency checks
 
-checkJannoConsistency :: FilePath -> JannoFile -> Either PoseidonException JannoFile
+checkJannoConsistency :: FilePath -> JannoRows -> Either PoseidonException JannoRows
 checkJannoConsistency jannoPath xs
     | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath
         "The Poseidon_IDs are not unique"
     | otherwise = Right xs
 
-checkIndividualUnique :: JannoFile -> Bool
-checkIndividualUnique (JannoFile rows) = length rows == length (nub $ map jPoseidonID rows)
+checkIndividualUnique :: JannoRows -> Bool
+checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x

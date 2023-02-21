@@ -2,12 +2,13 @@
 
 import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
 import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
-import           Poseidon.Janno                          (JannoFile (..),
-                                                          JannoList (..),
-                                                          JannoRow (..))
+import           Poseidon.Janno                          (JannoList (..),
+                                                          JannoRow (..),
+                                                          JannoRows (..))
 import           Poseidon.Package                        (PackageReadOptions (..),
                                                           PoseidonPackage (..),
                                                           defaultPackageReadOptions,
+                                                          getJannoRowsFromPac,
                                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes                 (GroupInfo (..),
                                                           IndividualInfo (..),
@@ -307,7 +308,7 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
             maybe "n/a" (pack . show) lastMod <> " | " <>
             link <> " | "
 
-getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoFile)]
+getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoRows)]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
 getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
