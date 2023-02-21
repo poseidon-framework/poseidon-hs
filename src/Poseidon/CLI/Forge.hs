@@ -32,13 +32,13 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               writePoseidonPackage)
 import           Poseidon.SecondaryTypes     (IndividualInfo (..))
 import           Poseidon.Utils              (PoseidonException (..),
-                                              PoseidonLogIO,
-                                              determinePackageOutName, logError,
-                                              logInfo, logWarning)
+                                              PoseidonIO,
+                                              determinePackageOutName,
+                                              envInputPlinkMode, envLogAction,
+                                              logError, logInfo, logWarning)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
-import           Control.Monad.Reader        (ask)
 import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
@@ -51,24 +51,27 @@ import           Pipes.Safe                  (SafeT, runSafeT)
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
-import           SequenceFormats.Plink       (writePlink)
+import           SequenceFormats.Plink       (PlinkPopNameMode,
+                                              eigenstratInd2PlinkFam,
+                                              writePlink)
 import           System.Directory            (createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeGenoSources :: [GenoDataSource]
+    { _forgeGenoSources        :: [GenoDataSource]
     -- Empty list = forge all packages
-    , _forgeEntityInput :: [EntityInput SignedEntity] -- Empty list = forge all packages
-    , _forgeSnpFile     :: Maybe FilePath
-    , _forgeIntersect   :: Bool
-    , _forgeOutFormat   :: GenotypeFormatSpec
-    , _forgeOutMinimal  :: Bool
-    , _forgeOutOnlyGeno :: Bool
-    , _forgeOutPacPath  :: FilePath
-    , _forgeOutPacName  :: Maybe String
-    , _forgePackageWise :: Bool
+    , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
+    , _forgeSnpFile            :: Maybe FilePath
+    , _forgeIntersect          :: Bool
+    , _forgeOutFormat          :: GenotypeFormatSpec
+    , _forgeOutMinimal         :: Bool
+    , _forgeOutOnlyGeno        :: Bool
+    , _forgeOutPacPath         :: FilePath
+    , _forgeOutPacName         :: Maybe String
+    , _forgePackageWise        :: Bool
+    , _forgeOutputPlinkPopMode :: PlinkPopNameMode
     }
 
 pacReadOpts :: PackageReadOptions
@@ -80,17 +83,17 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the forge command
-runForge :: ForgeOptions -> PoseidonLogIO ()
+runForge :: ForgeOptions -> PoseidonIO ()
 runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
-                 packageWise
+                 packageWise outPlinkPopMode
     ) = do
 
     -- load packages --
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
-    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData [getGenoDirect x | x@GenoDirect {} <- genoSources]
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     let allPackages = properPackages ++ pseudoPackages
 
@@ -123,7 +126,7 @@ runForge (
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
     -- get all individuals from the relevant packages
-    let allInds = getJointIndividualInfo $ relevantPackages
+    let allInds = getJointIndividualInfo relevantPackages
 
     -- set entities to only packages, if --packagewise is set
     let relevantEntities =
@@ -171,7 +174,7 @@ runForge (
     logInfo "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
+           else newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
 
     -- write new package to the file system --
     -- POSEIDON.yml
@@ -185,22 +188,22 @@ runForge (
     -- genotype data
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
-    logEnv <- ask
+    logA <- envLogAction
+    inPlinkPopMode <- envInputPlinkMode
     currentTime <- liftIO getCurrentTime
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
-            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logEnv intersect_ relevantPackages maybeSnpFile
+            (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logA intersect_ inPlinkPopMode relevantPackages maybeSnpFile
             let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
-
             let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                    GenotypeFormatPlink -> writePlink outG outS outI newEigenstratIndEntries
+                    GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
             let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
             -- define main forge pipe including file output.
             -- The final tee forwards the results to be used in the snpCounting-fold
             let forgePipe = eigenstratProd >->
-                    printSNPCopyProgress logEnv currentTime >->
+                    printSNPCopyProgress logA currentTime >->
                     extractPipe >->
                     P.tee outConsumer
             let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
@@ -233,7 +236,7 @@ filterBibEntries samples references_ =
     let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
-fillMissingSnpSets :: [PoseidonPackage] -> PoseidonLogIO [SNPSetSpec]
+fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do
     let title_ = posPacTitle pac
         maybeSnpSet = snpSet . posPacGenotypeData $ pac

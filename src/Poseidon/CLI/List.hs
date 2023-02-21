@@ -8,7 +8,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonLogIO,
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logInfo, logWarning)
 
 import           Control.Exception      (throwIO)
@@ -46,11 +46,12 @@ pacReadOpts = defaultPackageReadOptions {
       _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = True
     , _readOptGenoCheck        = False
-    }
+}
 
 -- | The main function running the list command
-runList :: ListOptions -> PoseidonLogIO ()
+runList :: ListOptions -> PoseidonIO ()
 runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
+
     allSampleInfo <- case repoLocation of
         RepoRemote remoteURL -> do
             -- load remote samples list

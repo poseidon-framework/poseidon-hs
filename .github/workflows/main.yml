@@ -19,7 +19,7 @@ jobs:
     steps:
     # setup and loading cache
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Setup Haskell
       uses: haskell/actions/setup@v2
@@ -55,7 +55,7 @@ jobs:
         target: stack:poseidon-tools-tests
 
     - name: Send coverage report
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
 
     # render and deploy haddock documentation
     - name: Render haddock documentation
