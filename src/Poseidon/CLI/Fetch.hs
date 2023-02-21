@@ -12,9 +12,10 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..))
-import           Poseidon.Utils          (LogEnv, PoseidonException (..),
-                                          PoseidonLogIO, logInfo, logWarning,
-                                          logWithEnv, padLeft, padRight)
+import           Poseidon.Utils          (LogA, PoseidonException (..),
+                                          PoseidonIO, envLogAction, logInfo,
+                                          logWarning, logWithEnv, padLeft,
+                                          padRight)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -23,7 +24,6 @@ import           Conduit                 (ResourceT, await, runResourceT,
 import           Control.Exception       (throwIO)
 import           Control.Monad           (forM_, unless, when)
 import           Control.Monad.IO.Class  (liftIO)
-import           Control.Monad.Reader    (ask)
 import           Data.Aeson              (eitherDecode')
 import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
@@ -59,7 +59,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the Fetch command
-runFetch :: FetchOptions -> PoseidonLogIO ()
+runFetch :: FetchOptions -> PoseidonIO ()
 runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
 
     let remote = remoteURL --"https://c107-224.cloud.gwdg.de"
@@ -139,7 +139,7 @@ determinePackageState localPacs desiredRemotePac
         localPacsSimple = zip localPacsTitles localPacsVersion
         localVersionOfDesired = snd $ head $ filter (\x -> fst x == desiredRemotePacTitle) localPacsSimple
 
-handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonLogIO ()
+handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
 handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, _, _) = do
     downloadAndUnzipPackage downloadDir tempDir remote pac
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
@@ -159,7 +159,7 @@ printV :: Maybe Version -> String
 printV Nothing  = "?.?.?"
 printV (Just x) = showVersion x
 
-downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonLogIO ()
+downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonIO ()
 downloadAndUnzipPackage baseDir tempDir remote pacName = do
     logInfo $ padRight 40 pacName ++ " now downloading"
     downloadPackage tempDir remote pacName
@@ -173,9 +173,9 @@ unzipPackage zip_ outDir = do
     let archive = toArchive archiveBS
     extractFilesFromArchive [OptRecursive, OptDestination outDir] archive
 
-downloadPackage :: FilePath -> String -> String -> PoseidonLogIO ()
+downloadPackage :: FilePath -> String -> String -> PoseidonIO ()
 downloadPackage pathToRepo remote pacName = do
-    logEnv <- ask
+    logA <- envLogAction
     downloadManager <- liftIO $ newManager tlsManagerSettings
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     liftIO $ runResourceT $ do
@@ -183,14 +183,14 @@ downloadPackage pathToRepo remote pacName = do
         let Just fileSize = lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
-        logWithEnv logEnv $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"
+        logWithEnv logA $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"
         sealConduitT (responseBody response) $$+-
-            printDownloadProgress logEnv fileSizeMB .|
+            printDownloadProgress logA fileSizeMB .|
             sinkFile (pathToRepo </> pacName)
     return ()
 
-printDownloadProgress :: LogEnv -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printDownloadProgress logEnv fileSizeMB = loop 0 0
+printDownloadProgress :: LogA -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printDownloadProgress logA fileSizeMB = loop 0 0
     where
         loop loadedB loadedMB = do
             x <- await
@@ -209,6 +209,6 @@ printDownloadProgress logEnv fileSizeMB = loop 0 0
                                       else loadedMB
                     when (loadedMB /= newLoadedMB) $ do
                         let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
-                        logWithEnv logEnv $ logInfo ("MB:" ++ padLeft 9 (show curLoadedMB) ++ "    " ++ padLeft 5 (roundToStr 1 leadedPercent) ++ "% ")
+                        logWithEnv logA $ logInfo ("MB:" ++ padLeft 9 (show curLoadedMB) ++ "    " ++ padLeft 5 (roundToStr 1 leadedPercent) ++ "% ")
                     yield x
                     loop newLoadedB newLoadedMB

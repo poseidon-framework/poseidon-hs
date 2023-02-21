@@ -14,8 +14,10 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
-import           Poseidon.Utils             (PoseidonException (..),
-                                             getChecksum, noLog, testLog)
+import           Poseidon.Utils             (LogMode (..),
+                                             PoseidonException (..),
+                                             getChecksum, noLog, testLog,
+                                             usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.List                  (sort)
@@ -28,6 +30,7 @@ import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
                                              GenoEntry (..))
+import           SequenceFormats.Plink      (PlinkPopNameMode (..))
 import           SequenceFormats.Utils      (Chrom (..))
 import           Test.Hspec
 import           Text.RawString.QQ
@@ -40,7 +43,7 @@ spec = do
     testRenderMismatch
     testZipWithPadding
     testGetJoinGenotypeData
-    testThrowOnMissingBibEntries
+    testThrowOnRead
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
@@ -234,7 +237,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     it "should correctly load genotype data without intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False pacs Nothing
+            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
@@ -244,7 +247,7 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     it "should correctly load genotype data with intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog True pacs Nothing
+            (_, jointProd) <- getJointGenotypeData noLog True PlinkPopNameAsFamily pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
@@ -254,19 +257,19 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile.snp")
+            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 6
     it "should correctly load the right nr of SNPs with snpFile and intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog True pacs (Just "test/testDat/snpFile.snp")
+            (_, jointProd) <- getJointGenotypeData noLog True PlinkPopNameAsFamily pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 4
     it "should fail with unordered SNP input file" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         let makeJointDat = runSafeT $ do
-                (_, jointProd) <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile_unordered.snp")
+                (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs (Just "test/testDat/snpFile_unordered.snp")
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
     it "should skip incongruent alleles" $ do
@@ -274,19 +277,28 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                          "test/testDat/testPackages/test_incongruent_snps/POSEIDON.yml"]
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False pacs Nothing
+            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 7
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
 
-testThrowOnMissingBibEntries :: Spec
-testThrowOnMissingBibEntries = describe "Poseidon.Package.readPoseidonPackage" $ do
-    let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
-    let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
-    it "should throw if bibentries aren't found" $
+testThrowOnRead :: Spec
+testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
+    it "should throw if bibentries aren't found" $ do
+        let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
+        let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
         testLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
+    it "should throw if Plink Setting is not correct" $ do
+        let opts = defaultPackageReadOptions
+        let ymlPath = "test/testDat/testPackages/ancient/Wang_Plink_test_2020/POSEIDON.yml"
+        usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
+    it "should not throw if Plink Setting is correct" $ do
+        let opts = defaultPackageReadOptions
+        let ymlPath = "test/testDat/testPackages/ancient/Wang_Plink_test_2020/POSEIDON_otherPlinkEncoding.yml"
+        _ <- usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath)
+        return ()
   where
     isPoseidonCrossFileConsistencyException :: Selector PoseidonException
     isPoseidonCrossFileConsistencyException (PoseidonCrossFileConsistencyException _ _) = True

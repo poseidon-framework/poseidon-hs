@@ -1,3 +1,4 @@
+- V 1.1.9.0: Added option to control the read/write of the population name from Plink FAM files more flexibly.
 - V 1.1.8.6: Refactored the `-j` mechanism by which `list --individuals` includes additional variables in the output table. It is now possible to query arbitrary addititional columns
 - V 1.1.8.5: Rolled back some of the ToJSON instances changed in 1.1.8.4 because they broke backwards compatibility of the server-client communication. Added some additional tests to prevent such oversights in the future. Slightly reorganized the golden tests
 - V 1.1.8.4: Unified the implementation of ToJSON/FromJSON and ToField/FromField instances for .janno datatypes to perform input validation through smart constructors

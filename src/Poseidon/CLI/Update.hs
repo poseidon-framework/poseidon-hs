@@ -12,7 +12,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..))
-import           Poseidon.Utils          (PoseidonLogIO, getChecksum, logInfo,
+import           Poseidon.Utils          (PoseidonIO, getChecksum, logInfo,
                                           logWarning)
 
 import           Control.Monad.IO.Class  (liftIO)
@@ -44,8 +44,9 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = False
     }
 
-runUpdate :: UpdateOptions -> PoseidonLogIO ()
+runUpdate :: UpdateOptions -> PoseidonIO ()
 runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
+
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
         baseDirs

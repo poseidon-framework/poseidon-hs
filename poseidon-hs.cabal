@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.1.8.6
+version:             1.1.9.0
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -44,7 +44,7 @@ executable poseidon-http-server
     main-is:            Main-server.hs
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, scotty, text, aeson, time, zip-archive,
-                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls
+                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls, sequence-formats
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
@@ -68,6 +68,7 @@ executable poseidon-devtools
     main-is:            Main-devtools.hs
     hs-source-dirs:     test, src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, directory,
-                        filepath, text, unordered-containers, bytestring
+                        filepath, text, unordered-containers, bytestring,
+                        sequence-formats
     other-modules:      Paths_poseidon_hs, PoseidonGoldenTests.GoldenTestsRunCommands
     default-language:   Haskell2010

@@ -7,7 +7,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonLogIO)
+import           Poseidon.Utils         (PoseidonIO)
 
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, nub, sort, sortBy)
@@ -29,9 +29,11 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = False
     }
 
+
 -- | The main function running the janno command
-runSummarise :: SummariseOptions -> PoseidonLogIO ()
+runSummarise :: SummariseOptions -> PoseidonIO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
+
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
     liftIO $ summariseJannoRows (concat jannos) rawOutput

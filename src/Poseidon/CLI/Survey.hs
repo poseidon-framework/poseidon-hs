@@ -9,7 +9,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonLogIO, logInfo)
+import           Poseidon.Utils         (PoseidonIO, logInfo)
 
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (liftIO)
@@ -36,8 +36,9 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runSurvey :: SurveyOptions -> PoseidonLogIO ()
+runSurvey :: SurveyOptions -> PoseidonIO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
+
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages
