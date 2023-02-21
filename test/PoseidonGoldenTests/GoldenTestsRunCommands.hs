@@ -334,6 +334,20 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "Schiffels" </> "geno.fam"
         ]
 
+    let genoconvertOpts4 = GenoconvertOptions {
+          _genoconvertGenoSources = [PacBaseDir $ testDir </> "Schiffels"]
+        , _genoConvertOutFormat = GenotypeFormatPlink
+        , _genoConvertOutOnlyGeno = False
+        , _genoMaybeOutPackagePath = Just $ testDir </> "Schiffels_otherPlinkEncoding"
+        , _genoconvertRemoveOld = False
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
+    }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts4) "genoconvert" [
+          "Schiffels_otherPlinkEncoding" </> "Schiffels.bed"
+        , "Schiffels_otherPlinkEncoding" </> "Schiffels.bim"
+        , "Schiffels_otherPlinkEncoding" </> "Schiffels.fam"
+        ]
+
 testPipelineUpdate :: FilePath -> FilePath -> IO ()
 testPipelineUpdate testDir checkFilePath = do
     let updateOpts1 = UpdateOptions {
