@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.10.0
+@version 1.1.10.1
 
 module Poseidon.MathHelpers
 
@@ -372,20 +372,23 @@ INSDCExperiment :: String -> AccessionID
 INSDCRun :: String -> AccessionID
 INSDCAnalysis :: String -> AccessionID
 OtherID :: String -> AccessionID
-writeJannoFile :: FilePath -> [JannoRow] -> IO ()
+writeJannoFile :: FilePath -> JannoRows -> IO ()
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> PoseidonIO [JannoRow]
-concatJannos :: [[JannoRow]] -> [JannoRow]
+readJannoFile :: FilePath -> PoseidonIO JannoRows
 
 -- | A function to create empty janno rows for a set of individuals
-createMinimalJanno :: [EigenstratIndEntry] -> [JannoRow]
+createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
 jannoHeaderString :: [String]
 
 -- | A datatype to collect additional, unpecified .janno file columns (a
 --   hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord
 CsvNamedRecord :: NamedRecord -> CsvNamedRecord
+
+-- | A data type to represent a janno file
+newtype JannoRows
+JannoRows :: [JannoRow] -> JannoRows
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.BCADAge
 instance GHC.Classes.Ord Poseidon.Janno.BCADAge
@@ -445,11 +448,18 @@ instance GHC.Show.Show Poseidon.Janno.CsvNamedRecord
 instance GHC.Generics.Generic Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoRow
 instance GHC.Show.Show Poseidon.Janno.JannoRow
+instance GHC.Generics.Generic Poseidon.Janno.JannoRows
+instance GHC.Classes.Eq Poseidon.Janno.JannoRows
+instance GHC.Show.Show Poseidon.Janno.JannoRows
+instance GHC.Base.Semigroup Poseidon.Janno.JannoRows
+instance GHC.Base.Monoid Poseidon.Janno.JannoRows
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoRows
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoRows
+instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoRow
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.FromNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
-instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.CsvNamedRecord
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.CsvNamedRecord
 instance (Data.Csv.Conversion.ToField a, GHC.Show.Show a) => Data.Csv.Conversion.ToField (Poseidon.Janno.JannoList a)
@@ -628,7 +638,7 @@ PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> 
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage
-PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> [JannoRow] -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> Int -> PoseidonPackage
+PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> JannoRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> Int -> PoseidonPackage
 
 -- | the base directory of the YAML file
 [posPacBaseDir] :: PoseidonPackage -> FilePath
@@ -658,7 +668,7 @@ PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [Contributor
 [posPacJannoFile] :: PoseidonPackage -> Maybe FilePath
 
 -- | the loaded janno file
-[posPacJanno] :: PoseidonPackage -> [JannoRow]
+[posPacJanno] :: PoseidonPackage -> JannoRows
 
 -- | the optional jannofile checksum
 [posPacJannoFileChkSum] :: PoseidonPackage -> Maybe String
@@ -792,7 +802,7 @@ readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO 
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m => LogA -> Bool -> PlinkPopNameMode -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-getJointJanno :: [PoseidonPackage] -> [JannoRow]
+getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
@@ -802,7 +812,7 @@ newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonP
 --   only the filenames of the provided files, so it assumes that the files
 --   will be copied into the directory into which the YAML file will be
 --   written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> BibTeX -> PoseidonIO PoseidonPackage
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] JannoRows) -> BibTeX -> PoseidonIO PoseidonPackage
 renderMismatch :: [String] -> [String] -> String
 zipWithPadding :: a -> b -> [a] -> [b] -> [(a, b)]
 writePoseidonPackage :: PoseidonPackage -> IO ()
@@ -812,6 +822,7 @@ defaultPackageReadOptions :: PackageReadOptions
 --   this function calls the addFullPaths function to make paths absolute.
 readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonIO PoseidonPackage
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
+getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -918,7 +929,7 @@ runSummarise :: SummariseOptions -> PoseidonIO ()
 
 -- | A function to print meaningful summary information for a list of
 --   poseidon samples
-summariseJannoRows :: [JannoRow] -> Bool -> IO ()
+summariseJannoRows :: JannoRows -> Bool -> IO ()
 
 -- | A helper function to concat the first N elements of a string list in a
 --   nice way
@@ -1086,8 +1097,8 @@ pacReadOpts :: PackageReadOptions
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> PoseidonIO ()
 extractFirst :: (a, b, c, d) -> a
-renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
-renderJannoCompleteness :: [JannoRow] -> String
+renderPackageWithCompleteness :: (String, Bool, JannoRows, BibTeX) -> String
+renderJannoCompleteness :: JannoRows -> String
 
 module Poseidon.CLI.Init
 data InitOptions
@@ -1119,5 +1130,5 @@ pacReadOpts :: PackageReadOptions
 -- | The main function running the forge command
 runForge :: ForgeOptions -> PoseidonIO ()
 sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
-filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
+filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
