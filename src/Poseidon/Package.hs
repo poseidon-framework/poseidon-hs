@@ -369,7 +369,7 @@ readPoseidonPackage opts ymlPath = do
             if _readOptFullGeno opts
             then do
                 currentTime <- liftIO getCurrentTime
-                runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> P.drain
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else do
                 runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward)
