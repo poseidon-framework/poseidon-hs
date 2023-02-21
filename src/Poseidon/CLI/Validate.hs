@@ -22,20 +22,20 @@ import           System.Exit            (exitFailure, exitSuccess)
 data ValidateOptions = ValidateOptions
     { _validateBaseDirs         :: [FilePath]
     , _validateIgnoreGeno       :: Bool
+    , _validateFullGeno         :: Bool
     , _validateNoExitCode       :: Bool
     , _validateIgnoreDuplicates :: Bool
     }
 
 runValidate :: ValidateOptions -> PoseidonIO ()
-runValidate (ValidateOptions baseDirs ignoreGeno noExitCode ignoreDup) = do
-
+runValidate (ValidateOptions baseDirs ignoreGeno fullGeno noExitCode ignoreDup) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = False
         , _readOptGenoCheck        = True
         , _readOptIgnoreGeno       = ignoreGeno
+        , _readOptFullGeno         = fullGeno
         , _readOptStopOnDuplicates = not ignoreDup
         }
-
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs

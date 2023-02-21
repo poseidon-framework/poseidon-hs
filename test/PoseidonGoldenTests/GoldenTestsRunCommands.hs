@@ -223,6 +223,7 @@ testPipelineValidate testDir checkFilePath = do
     let validateOpts1 = ValidateOptions {
           _validateBaseDirs     = [testDir]
         , _validateIgnoreGeno   = False
+        , _validateFullGeno     = False
         , _validateNoExitCode   = True
         , _validateIgnoreDuplicates = True
     }
@@ -231,6 +232,10 @@ testPipelineValidate testDir checkFilePath = do
           _validateIgnoreGeno   = True
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts2) "validate" 2
+    let validateOpts3 = validateOpts1 {
+          _validateFullGeno     = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts3) "validate" 3
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do

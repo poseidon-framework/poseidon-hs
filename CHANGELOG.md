@@ -1,3 +1,4 @@
+- V 1.1.10.0: Added an option to `validate` (and therefore `readPoseidonPackage`) to test parsing the entire .bed/.geno file, not just the first 100 SNPs
 - V 1.1.9.1: Small changes: made trident update write messages to the CHANGELOG file now with a prefix `-` (to make it proper markdown), turned off verbose debug-level warnings about missing standard columns in the .janno file and made the schema version mismatch error message clearer
 - V 1.1.9.0: Added option to control the read/write of the population name from Plink FAM files more flexibly.
 - V 1.1.8.6: Refactored the `-j` mechanism by which `list --individuals` includes additional variables in the output table. It is now possible to query arbitrary addititional columns
