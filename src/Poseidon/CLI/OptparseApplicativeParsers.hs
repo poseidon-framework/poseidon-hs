@@ -424,19 +424,14 @@ parseUpgrade = OP.switch (
 parseInputPlinkPopMode :: OP.Parser PlinkPopNameMode
 parseInputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
     OP.long "inPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
-    OP.help "In Plink Format, the *.fam file encodes information about individuals. \
-        \But there is no natural rule how to encode the group name. By default, trident assumes that the group name \
-        \is encoded in the first column of the fam file, which according to the Plink documentation is the \"Family ID\". \
-        \Some other tools, such as Admixtools and Eigensoft read and write the group name from the last column instead \
-        \(the phenotype according to the Plink documentation). This option lets the user specify this encoding explicitly, as \
-        \far as reading is concerned. \
-        \Three options are possible: asFamily (default) | asPhenotype | asBoth. With the latter, the population name is \
-        \read from both columns (differing names are merged if necessary)")
+    OP.help "Where to read the population/group name from the FAM file in Plink-format. \
+        \Three options are possible: asFamily (default) | asPhenotype | asBoth.")
 
 parseOutputPlinkPopMode :: OP.Parser PlinkPopNameMode
 parseOutputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
-    OP.long "outPlinkPopName" <> OP.help "Specify how population names are written in fam-files when writing to Plink format. \
-        \See also --inPlinkPopName.")
+    OP.long "outPlinkPopName" <> OP.help "Where to write the population/group name \
+        \into the FAM file in Plink-format. Three options are possible: \
+        \asFamily (default) | asPhenotype | asBoth. See also --inPlinkPopName.")
 
 readPlinkPopName :: String -> Either String PlinkPopNameMode
 readPlinkPopName s = case s of
