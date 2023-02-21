@@ -18,7 +18,7 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
-                                              writeJannoFile)
+                                              JannoRows (..), writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
@@ -146,12 +146,12 @@ runForge (
 
     -- collect data --
     -- janno
-    let jannoRows = getJointJanno relevantPackages
-        relevantJannoRows = map (jannoRows !!) relevantIndices
+    let (JannoRows rows) = getJointJanno relevantPackages
+        newJanno@(JannoRows relevantJannoRows) = JannoRows $ map (rows !!) relevantIndices
 
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
-        relevantBibEntries = filterBibEntries relevantJannoRows bibEntries
+        relevantBibEntries = filterBibEntries newJanno bibEntries
 
     -- create new package --
     let outPath = dropTrailingPathSeparator outPathRaw
@@ -174,7 +174,7 @@ runForge (
     logInfo "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate outPath outName genotypeData (Just (Right relevantJannoRows)) relevantBibEntries
+           else newPackageTemplate outPath outName genotypeData (Just (Right newJanno)) relevantBibEntries
 
     -- write new package to the file system --
     -- POSEIDON.yml
@@ -217,7 +217,7 @@ runForge (
         let jannoRowsWithNewSNPNumbers = zipWith (\x y -> x {jNrSNPs = Just y})
                                                 relevantJannoRows
                                                 (VU.toList snpList)
-        liftIO $ writeJannoFile (outPath </> outName <.> "janno") jannoRowsWithNewSNPNumbers
+        liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoRows jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do
@@ -231,9 +231,9 @@ sumNonMissingSNPs accumulator (_, geno) = do
         | x == Missing = 0
         | otherwise = 1
 
-filterBibEntries :: [JannoRow] -> BibTeX -> BibTeX
-filterBibEntries samples references_ =
-    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ samples
+filterBibEntries :: JannoRows -> BibTeX -> BibTeX
+filterBibEntries (JannoRows rows) references_ =
+    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ rows
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]

@@ -4,7 +4,7 @@ module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile       (BibTeX)
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
-import           Poseidon.Janno         (JannoRow (..))
+import           Poseidon.Janno         (JannoRow (..), JannoRows (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -68,7 +68,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
 extractFirst :: (a, b, c, d) -> a
 extractFirst (a,_,_,_) = a
 
-renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
+renderPackageWithCompleteness :: (String, Bool, JannoRows, BibTeX) -> String
 renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
        (if genoTypeDataExists then "G" else ".")
     ++ (if not (null bib) then "B" else ".")
@@ -81,7 +81,7 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
             where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
 -- this has to be in the same order as jannoHeader in the janno module
-renderJannoCompleteness :: [JannoRow] -> String
+renderJannoCompleteness :: JannoRows -> String
 renderJannoCompleteness jS =
       '█'
     : '█'
@@ -129,11 +129,11 @@ renderJannoCompleteness jS =
     : getColChar jS jKeywords
     : ""
     where
-        nrRows = length jS
-        getColChar :: [JannoRow] -> (JannoRow -> Maybe a) -> Char
-        getColChar jannoRows column_ =
-             let nrFilledValues = length $ filter (isJust . column_) jannoRows
-             in prop2Char $ nrFilledValues % nrRows
+        getColChar :: JannoRows -> (JannoRow -> Maybe a) -> Char
+        getColChar (JannoRows rows) column_ =
+            let nrRows = length rows
+                nrFilledValues = length $ filter (isJust . column_) rows
+            in prop2Char $ nrFilledValues % nrRows
         prop2Char :: Ratio Int -> Char
         prop2Char r
             | r == 0    = '.'

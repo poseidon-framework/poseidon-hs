@@ -3,10 +3,12 @@
 import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
 import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
 import           Poseidon.Janno                          (JannoList (..),
-                                                          JannoRow (..))
+                                                          JannoRow (..),
+                                                          JannoRows (..))
 import           Poseidon.Package                        (PackageReadOptions (..),
                                                           PoseidonPackage (..),
                                                           defaultPackageReadOptions,
+                                                          getJannoRowsFromPac,
                                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes                 (GroupInfo (..),
                                                           IndividualInfo (..),
@@ -306,13 +308,13 @@ makeMDtable packages = header <> "\n" <> body <> "\n"
             maybe "n/a" (pack . show) lastMod <> " | " <>
             link <> " | "
 
-getAllPacJannoPairs :: [PoseidonPackage] -> [(String, [JannoRow])]
+getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoRows)]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
 getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getAllIndividualInfo packages = do
     pac <- packages
-    jannoRow <- posPacJanno pac
+    jannoRow <- getJannoRowsFromPac pac
     let name = jPoseidonID jannoRow
         groups = getJannoList . jGroupName $ jannoRow
         pacName = posPacTitle pac
@@ -331,12 +333,11 @@ getAllGroupInfo packages = do
         groupNrInds = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
-
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 packageToPackageInfo pac = PackageInfo {
     pTitle         = posPacTitle pac,
     pVersion       = posPacPackageVersion pac,
     pDescription   = posPacDescription pac,
     pLastModified  = posPacLastModified pac,
-    pNrIndividuals = (length . posPacJanno) pac
+    pNrIndividuals = (length . getJannoRowsFromPac) pac
 }
