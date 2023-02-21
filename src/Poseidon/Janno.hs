@@ -29,7 +29,7 @@ module Poseidon.Janno (
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
-                                                       PoseidonLogIO, logDebug,
+                                                       PoseidonIO, logDebug,
                                                        renderPoseidonException)
 
 
@@ -866,8 +866,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: FilePath
-              -> PoseidonLogIO JannoFile
+readJannoFile :: FilePath -> PoseidonIO JannoFile
 readJannoFile jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -886,8 +885,8 @@ readJannoFile jannoPath = do
     let jannoColNames = map Bch.toStrict (Bch.split '\t' headerOnly)
         missing_columns = map Bchs.unpack $ jannoHeader \\ jannoColNames
         additional_columns = map Bchs.unpack $ jannoColNames \\ jannoHeader
-    unless (null missing_columns) $ do
-        logDebug ("Missing standard columns: " ++ intercalate ", " missing_columns)
+    --unless (null missing_columns) $ do
+    --    logDebug ("Missing standard columns: " ++ intercalate ", " missing_columns)
     unless (null additional_columns) $ do
         logDebug ("Additional columns: " ++
         -- for each additional column a standard column is suggested: "Countro (Country?)"
@@ -921,7 +920,7 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonLogIO (Either PoseidonException JannoRow)
+readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException JannoRow)
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do

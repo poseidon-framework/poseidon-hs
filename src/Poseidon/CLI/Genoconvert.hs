@@ -14,17 +14,18 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
-import           Poseidon.Utils             (PoseidonLogIO, logInfo, logWarning)
+import           Poseidon.Utils             (PoseidonIO, envInputPlinkMode,
+                                             envLogAction, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
-import           Control.Monad.Reader       (ask)
 import           Data.Maybe                 (isJust)
 import           Data.Time                  (getCurrentTime)
 import           Pipes                      (MonadIO (liftIO), runEffect, (>->))
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (writeEigenstrat)
-import           SequenceFormats.Plink      (writePlink)
+import           SequenceFormats.Plink      (PlinkPopNameMode,
+                                             eigenstratInd2PlinkFam, writePlink)
 import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile)
 import           System.FilePath            (dropTrailingPathSeparator, (<.>),
@@ -32,33 +33,38 @@ import           System.FilePath            (dropTrailingPathSeparator, (<.>),
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
-    { _genoconvertGenoSources  :: [GenoDataSource]
-    , _genoConvertOutFormat    :: GenotypeFormatSpec
-    , _genoConvertOutOnlyGeno  :: Bool
-    , _genoMaybeOutPackagePath :: Maybe FilePath
-    , _genoconvertRemoveOld    :: Bool
+    { _genoconvertGenoSources     :: [GenoDataSource]
+    , _genoConvertOutFormat       :: GenotypeFormatSpec
+    , _genoConvertOutOnlyGeno     :: Bool
+    , _genoMaybeOutPackagePath    :: Maybe FilePath
+    , _genoconvertRemoveOld       :: Bool
+    , _genoconvertOutPlinkPopMode :: PlinkPopNameMode
     }
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = False
-    , _readOptGenoCheck        = True
-    }
+        _readOptStopOnDuplicates = False
+        , _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = False
+        , _readOptGenoCheck        = True
+        }
 
-runGenoconvert :: GenoconvertOptions -> PoseidonLogIO ()
-runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld) = do
+runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld outPlinkPopMode) = do
+
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
-    pseudoPackages <- liftIO $ mapM makePseudoPackageFromGenotypeData $ [getGenoDirect x | x@GenoDirect {} <- genoSources]
+    inPlinkPopMode <- envInputPlinkMode
+    pseudoPackages <- mapM makePseudoPackageFromGenotypeData [getGenoDirect x | x@GenoDirect {} <- genoSources]
+
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld) properPackages
-    mapM_ (convertGenoTo outFormat True outPath removeOld) pseudoPackages
+    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode) properPackages
+    mapM_ (convertGenoTo outFormat True outPath removeOld inPlinkPopMode outPlinkPopMode) pseudoPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PoseidonPackage -> PoseidonLogIO ()
-convertGenoTo outFormat onlyGeno outPath removeOld pac = do
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode ->
+    PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
+convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode pac = do
     -- start message
     logInfo $
         "Converting genotype data in "
@@ -89,15 +95,15 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
         then logWarning ("skipping genotype conversion for " ++ posPacTitle pac)
         else do
             logInfo "Processing SNPs..."
-            logEnv <- ask
+            logA <- envLogAction
             currentTime <- liftIO getCurrentTime
             liftIO $ catch (
                 runSafeT $ do
-                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
+                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) inPlinkPopMode
                     let outConsumer = case outFormat of
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                            GenotypeFormatPlink -> writePlink outG outS outI eigenstratIndEntries
-                    runEffect $ eigenstratProd >-> printSNPCopyProgress logEnv currentTime >-> outConsumer
+                            GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
+                    runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
                 ) (throwIO . PoseidonGenotypeExceptionForward)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
@@ -113,7 +119,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld pac = do
                 , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
                 ]
   where
-    checkFile :: FilePath -> PoseidonLogIO Bool
+    checkFile :: FilePath -> PoseidonIO Bool
     checkFile fn = do
         fe <- liftIO $ doesFileExist fn
         when fe $ logWarning $ "File " ++ fn ++ " exists"
