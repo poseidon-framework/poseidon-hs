@@ -1,3 +1,4 @@
+- V 1.1.10.1: Internal refactoring. Introduced a newtype wrapper `JannoRows` for `[JannoRow]`, which is an instance of `Monoid`. This should encourage the use of a dedicated implementation of `mconcat` for `JannoRows`
 - V 1.1.10.0: Added an option to `validate` (and therefore `readPoseidonPackage`) to test parsing the entire .bed/.geno file, not just the first 100 SNPs
 - V 1.1.9.1: Small changes: made trident update write messages to the CHANGELOG file now with a prefix `-` (to make it proper markdown), turned off verbose debug-level warnings about missing standard columns in the .janno file and made the schema version mismatch error message clearer
 - V 1.1.9.0: Added option to control the read/write of the population name from Plink FAM files more flexibly.
