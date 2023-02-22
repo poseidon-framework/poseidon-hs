@@ -436,7 +436,8 @@ parseInputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
 
 parseOutputPlinkPopMode :: OP.Parser PlinkPopNameMode
 parseOutputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
-    OP.long "outPlinkPopName" <> OP.help "Where to write the population/group name \
+    OP.long "outPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
+    OP.help "Where to write the population/group name \
         \into the FAM file in Plink-format. Three options are possible: \
         \asFamily (default) | asPhenotype | asBoth. See also --inPlinkPopName.")
 

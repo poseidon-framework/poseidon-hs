@@ -1,4 +1,4 @@
-### V 1.1.10.1
+### V 1.1.10.2
 
 This release bundles a number or minor changes, new minor command line options and some internal refactoring without immediate consequences for `trident`.
 
