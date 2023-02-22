@@ -23,13 +23,13 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: true
 
-  build_linux_mac_artifact:
+  build_linux_artifact:
     needs: [create_release]
     name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macOS-latest]
+        os: [ubuntu-22.04]
         cabal: ["3.6"]
         ghc: ["8.10.7"]
 
@@ -52,16 +52,72 @@ jobs:
           cabal-version: ${{ matrix.cabal }}
 
       - name: Freeze
+        run: cabal freeze
+
+      - name: Build
+        run: |
+          mkdir dist
+          cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
+
+      - name: Set binary path name
+        id: binarypath
+        run: |
+          currentEXE="./dist/trident"
+          newEXE="trident-$RUNNER_OS"
+          mv $currentEXE $newEXE
+          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
+
+      - name: Compress binary
+        uses: svenstaro/upx-action@v2
+        with:
+          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: ncipollo/release-action@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          artifactContentType: application/octet-stream
+
+  build_mac_artifact:
+    needs: [create_release]
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest]
+        cabal: ["3.6"]
+        ghc: ["8.10.7"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set tag name
+        uses: olegtarasov/get-tag@v2.1
+        id: tagName
+        with:
+          tagRegex: "v(.*)"
+          tagRegexGroup: 1
+
+      - name: Install pkgconfig (for the dependency "digest")
+        run: brew install pkg-config
+
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
+        id: setup-haskell-cabal
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+
+      - name: Freeze
         run: |
           : # simdutf doesn't build on macOS any more, so we need to set a flag to ignore it when building the text package
-          if [ "$RUNNER_OS" == "Linux" ]; then
-              cabal freeze
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-              cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
-          else
-              echo "$RUNNER_OS not supported"
-              exit 1
-          fi
+          cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
 
       - name: Build
         run: |
@@ -154,7 +210,7 @@ jobs:
   build_centos_artifact:
     needs: [create_release]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
