@@ -113,7 +113,7 @@ writeSeqSourceFile path (SeqSourceRows rows) = do
         makeHeaderWithAdditionalColumns =
             V.fromList $ seqSourceHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . sAdditionalColumns) rows)))
 
--- | A function to load one seqSourceFile
+-- | A function to read one seqSourceFile
 readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
 readSeqSourceFile seqSourcePath = do
     logDebug $ "Reading: " ++ seqSourcePath
@@ -129,7 +129,7 @@ readSeqSourceFile seqSourcePath = do
         headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
         rowsOnly = tail seqSourceFileRowsWithNumberFiltered
         seqSourceFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
-    -- load janno by rows
+    -- read seqSourceFile by rows
     seqSourceRepresentation <- mapM (readSeqSourceFileRow seqSourcePath) seqSourceFileRowsWithHeader
     -- error case management
     if not (null (lefts seqSourceRepresentation))
@@ -142,7 +142,7 @@ readSeqSourceFile seqSourcePath = do
             Left e  -> do liftIO $ throwIO (e :: PoseidonException)
             Right x -> do return x
 
--- | A function to load one row of a seqSourceFile
+-- | A function to read one row of a seqSourceFile
 readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
 readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
@@ -153,6 +153,7 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                 Left e                     -> do return $ Left e
                 Right (pS :: SeqSourceRow) -> do return $ Right pS
 
+-- SeqSource consistency checks
 
 checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
 checkSeqSourceConsistency seqSourcePath xs
