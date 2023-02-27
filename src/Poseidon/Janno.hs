@@ -25,7 +25,10 @@ module Poseidon.Janno (
     createMinimalJanno,
     jannoHeaderString,
     CsvNamedRecord (..),
-    JannoRows (..)
+    JannoRows (..),
+    JannoStringList,
+    filterLookup,
+    getCsvNR
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
