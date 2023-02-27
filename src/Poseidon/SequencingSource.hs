@@ -6,9 +6,9 @@ module Poseidon.SequencingSource where
 
 import           Poseidon.Janno             (AccessionID (..),
                                              CsvNamedRecord (..),
-                                             JannoStringList, decodingOptions,
-                                             encodingOptions, explicitNA,
-                                             filterLookup, getCsvNR,
+                                             JannoList (..), JannoStringList,
+                                             decodingOptions, encodingOptions,
+                                             explicitNA, filterLookup, getCsvNR,
                                              removeUselessSuffix)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logDebug, renderPoseidonException)
@@ -24,7 +24,7 @@ import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (foldl', sort)
+import           Data.List                  (foldl', nub, sort)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 
@@ -154,5 +154,22 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                 Right (pS :: SeqSourceRow) -> do return $ Right pS
 
 
-checkSeqSourceConsistency = undefined
-checkSeqSourceRowConsistency = undefined
+checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
+checkSeqSourceConsistency seqSourcePath xs
+    | not $ checkSamplesUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
+        "The values in the sample_accession column are not unique"
+    | otherwise = Right xs
+
+checkSamplesUnique :: SeqSourceRows -> Bool
+checkSamplesUnique (SeqSourceRows rows) = length rows == length (nub $ map sGeneticSourceAccessionIDs rows)
+
+checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
+checkSeqSourceRowConsistency seqSourcePath row x
+    | not $ checkMandatoryNotEmpty x = Left $ PoseidonFileRowException seqSourcePath row
+        "The mandatory column Poseidon_ID contains empty values"
+    | otherwise = Right x
+
+checkMandatoryNotEmpty :: SeqSourceRow -> Bool
+checkMandatoryNotEmpty x =
+       (not . null . getJannoList . sPoseidonID $ x)
+    && (not . null . head . getJannoList . sPoseidonID $ x)
