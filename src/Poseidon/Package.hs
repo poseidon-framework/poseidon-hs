@@ -37,13 +37,13 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..), ORCID (..))
+import           Poseidon.SequencingSource  (SeqSourceRows, readSeqSourceFile)
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
                                              logDebug, logInfo, logWarning,
                                              logWithEnv,
                                              renderPoseidonException)
-import Poseidon.SequencingSource (SeqSourceRows, readSeqSourceFile)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM, forM_, unless, void,
@@ -85,21 +85,21 @@ import           System.IO                  (IOMode (ReadMode), hGetContents,
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
-    { _posYamlPoseidonVersion :: Version
-    , _posYamlTitle           :: String
-    , _posYamlDescription     :: Maybe String
-    , _posYamlContributor     :: [ContributorSpec]
-    , _posYamlPackageVersion  :: Maybe Version
-    , _posYamlLastModified    :: Maybe Day
-    , _posYamlGenotypeData    :: GenotypeDataSpec
-    , _posYamlJannoFile       :: Maybe FilePath
-    , _posYamlJannoFileChkSum :: Maybe String
-    , _posYamlSeqSourceFile :: Maybe FilePath
+    { _posYamlPoseidonVersion     :: Version
+    , _posYamlTitle               :: String
+    , _posYamlDescription         :: Maybe String
+    , _posYamlContributor         :: [ContributorSpec]
+    , _posYamlPackageVersion      :: Maybe Version
+    , _posYamlLastModified        :: Maybe Day
+    , _posYamlGenotypeData        :: GenotypeDataSpec
+    , _posYamlJannoFile           :: Maybe FilePath
+    , _posYamlJannoFileChkSum     :: Maybe String
+    , _posYamlSeqSourceFile       :: Maybe FilePath
     , _posYamlSeqSourceFileChkSum :: Maybe String
-    , _posYamlBibFile         :: Maybe FilePath
-    , _posYamlBibFileChkSum   :: Maybe String
-    , _posYamlReadmeFile      :: Maybe FilePath
-    , _posYamlChangelogFile   :: Maybe FilePath
+    , _posYamlBibFile             :: Maybe FilePath
+    , _posYamlBibFileChkSum       :: Maybe String
+    , _posYamlReadmeFile          :: Maybe FilePath
+    , _posYamlChangelogFile       :: Maybe FilePath
     }
     deriving (Show, Eq, Generic)
 
@@ -183,27 +183,27 @@ instance ToPrettyYaml PoseidonYamlStruct where
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
-    { posPacBaseDir         :: FilePath
+    { posPacBaseDir             :: FilePath
     -- ^ the base directory of the YAML file
-    , posPacPoseidonVersion :: Version
+    , posPacPoseidonVersion     :: Version
     -- ^ the version of the package
-    , posPacTitle           :: String
+    , posPacTitle               :: String
     -- ^ the title of the package
-    , posPacDescription     :: Maybe String
+    , posPacDescription         :: Maybe String
     -- ^ the optional description string of the package
-    , posPacContributor     :: [ContributorSpec]
+    , posPacContributor         :: [ContributorSpec]
     -- ^ the contributor(s) of the package
-    , posPacPackageVersion  :: Maybe Version
+    , posPacPackageVersion      :: Maybe Version
     -- ^ the optional version of the package
-    , posPacLastModified    :: Maybe Day
+    , posPacLastModified        :: Maybe Day
     -- ^ the optional date of last update
-    , posPacGenotypeData    :: GenotypeDataSpec
+    , posPacGenotypeData        :: GenotypeDataSpec
     -- ^ the paths to the genotype files
-    , posPacJannoFile       :: Maybe FilePath
+    , posPacJannoFile           :: Maybe FilePath
     -- ^ the path to the janno file
-    , posPacJanno           :: JannoRows
+    , posPacJanno               :: JannoRows
     -- ^ the loaded janno file
-    , posPacJannoFileChkSum :: Maybe String
+    , posPacJannoFileChkSum     :: Maybe String
     -- ^ the optional jannofile checksum
     , posPacSeqSourceFile       :: Maybe FilePath
     -- ^ the path to the seqSource file
@@ -211,17 +211,17 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the loaded seqSource file
     , posPacSeqSourceFileChkSum :: Maybe String
     -- ^ the optional seqSource file checksum
-    , posPacBibFile         :: Maybe FilePath
+    , posPacBibFile             :: Maybe FilePath
     -- ^ the path to the BibTeX file
-    , posPacBib             :: BibTeX
+    , posPacBib                 :: BibTeX
     -- ^ the loaded bibliography file
-    , posPacBibFileChkSum   :: Maybe String
+    , posPacBibFileChkSum       :: Maybe String
     -- ^ the optional bibfile chksum
-    , posPacReadmeFile      :: Maybe FilePath
+    , posPacReadmeFile          :: Maybe FilePath
     -- ^ the path to the README file
-    , posPacChangelogFile   :: Maybe FilePath
+    , posPacChangelogFile       :: Maybe FilePath
     -- ^ the path to the CHANGELOG file
-    , posPacDuplicate       :: Int
+    , posPacDuplicate           :: Int
     -- ^ how many packages of this name exist in the current collection
     }
     deriving (Show, Eq, Generic)
