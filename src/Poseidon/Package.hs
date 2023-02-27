@@ -37,7 +37,9 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..), ORCID (..))
-import           Poseidon.SequencingSource  (SeqSourceRows, readSeqSourceFile)
+import           Poseidon.SequencingSource  (SeqSourceRow (..),
+                                             SeqSourceRows (..),
+                                             readSeqSourceFile)
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
@@ -369,6 +371,7 @@ readPoseidonPackage opts ymlPath = do
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
         Nothing -> return mempty
         Just p  -> readSeqSourceFile p
+    checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
@@ -464,7 +467,6 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
         \(see the --inPlinkPopName option). " ++
         renderMismatch genoGroups jannoGroups
 
-
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b =
     let misMatchList = map (\ (x, y) -> "(" ++ x ++ " = " ++ y ++ ")")
@@ -477,6 +479,15 @@ zipWithPadding :: a -> b -> [a] -> [b] -> [(a,b)]
 zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
 zipWithPadding a _ []     ys     = zip (repeat a) ys
 zipWithPadding _ b xs     []     = zip xs (repeat b)
+
+checkSeqSourceJannoConsistency :: String -> SeqSourceRows -> JannoRows -> PoseidonIO ()
+checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) = do
+    let seqSourceIDs = nub $ concatMap (getJannoList . sPoseidonID) sRows
+        jannoIDs = map jPoseidonID jRows
+        misMatch = seqSourceIDs \\ jannoIDs
+    unless (null misMatch) $ do
+        logWarning $ "The sequencingSourceFile in the package " ++ pacName ++
+            " features Poseidon_IDs that are not in the package: " ++ intercalate ", " misMatch
 
 checkJannoBibConsistency :: String -> JannoRows -> BibTeX -> IO ()
 checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
