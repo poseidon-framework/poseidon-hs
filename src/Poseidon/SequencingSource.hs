@@ -1,19 +1,32 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Poseidon.SequencingSource where
 
-import           Poseidon.Janno        (AccessionID (..), CsvNamedRecord (..),
-                                        JannoStringList, filterLookup, getCsvNR)
+import           Poseidon.Janno             (AccessionID (..),
+                                             CsvNamedRecord (..),
+                                             JannoStringList, decodingOptions,
+                                             encodingOptions, explicitNA,
+                                             filterLookup, getCsvNR,
+                                             removeUselessSuffix)
+import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
+                                             logDebug, renderPoseidonException)
 
-import           Data.Aeson            (FromJSON, Options (..), ToJSON,
-                                        defaultOptions, genericToEncoding,
-                                        toEncoding)
-import qualified Data.ByteString.Char8 as Bchs
-import qualified Data.Csv              as Csv
-import qualified Data.HashMap.Strict   as HM
-import           Data.List             (foldl')
-import           GHC.Generics          (Generic)
+import           Control.Exception          (throwIO)
+import           Control.Monad.IO.Class     (liftIO)
+import           Data.Aeson                 (FromJSON, Options (..), ToJSON,
+                                             defaultOptions, genericToEncoding,
+                                             toEncoding)
+import           Data.Bifunctor             (second)
+import qualified Data.ByteString.Char8      as Bchs
+import qualified Data.ByteString.Lazy.Char8 as Bch
+import qualified Data.Csv                   as Csv
+import           Data.Either                (lefts, rights)
+import qualified Data.HashMap.Strict        as HM
+import           Data.List                  (foldl', sort)
+import qualified Data.Vector                as V
+import           GHC.Generics               (Generic)
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows [SeqSourceRow]
@@ -88,3 +101,58 @@ instance Csv.ToNamedRecord SeqSourceRow where
         , "sample_accession" Csv..= sGeneticSourceAccessionIDs s
         -- beyond that add what is in the hashmap of additional columns
         ] `HM.union` (getCsvNR $ sAdditionalColumns s)
+
+-- | A function to write one seqSourceFile
+writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
+writeSeqSourceFile path (SeqSourceRows rows) = do
+    let seqSourceAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
+    let seqSourceAsBytestringwithNA = explicitNA seqSourceAsBytestring
+    Bch.writeFile path seqSourceAsBytestringwithNA
+    where
+        makeHeaderWithAdditionalColumns :: Csv.Header
+        makeHeaderWithAdditionalColumns =
+            V.fromList $ seqSourceHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . sAdditionalColumns) rows)))
+
+-- | A function to load one seqSourceFile
+readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
+readSeqSourceFile seqSourcePath = do
+    logDebug $ "Reading: " ++ seqSourcePath
+    seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
+    let seqSourceFileRows = Bch.lines seqSourceFile
+    logDebug $ show (length seqSourceFileRows - 1) ++ " samples in this file"
+    -- tupel with row number and row bytestring
+    let seqSourceFileRowsWithNumber = zip [1..(length seqSourceFileRows)] seqSourceFileRows
+    -- filter out empty lines
+        seqSourceFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) seqSourceFileRowsWithNumber
+    -- create header + individual line combination
+        headerOnlyPotentiallyWithQuotes = snd $ head seqSourceFileRowsWithNumberFiltered
+        headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
+        rowsOnly = tail seqSourceFileRowsWithNumberFiltered
+        seqSourceFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
+    -- load janno by rows
+    seqSourceRepresentation <- mapM (readSeqSourceFileRow seqSourcePath) seqSourceFileRowsWithHeader
+    -- error case management
+    if not (null (lefts seqSourceRepresentation))
+    then do
+        mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
+        liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines. See more details with --logMode VerboseLog"
+    else do
+        let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
+        case consistentSeqSource of
+            Left e  -> do liftIO $ throwIO (e :: PoseidonException)
+            Right x -> do return x
+
+-- | A function to load one row of a seqSourceFile
+readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
+readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
+    case Csv.decodeByNameWith decodingOptions row of
+        Left e -> do
+            return $ Left $ PoseidonFileRowException seqSourcePath lineNumber $ removeUselessSuffix e
+        Right (_, seqSourceRow :: V.Vector SeqSourceRow) -> do
+            case checkSeqSourceRowConsistency seqSourcePath lineNumber $ V.head seqSourceRow of
+                Left e                     -> do return $ Left e
+                Right (pS :: SeqSourceRow) -> do return $ Right pS
+
+
+checkSeqSourceConsistency = undefined
+checkSeqSourceRowConsistency = undefined

@@ -28,7 +28,11 @@ module Poseidon.Janno (
     JannoRows (..),
     JannoStringList,
     filterLookup,
-    getCsvNR
+    getCsvNR,
+    encodingOptions,
+    decodingOptions,
+    explicitNA,
+    removeUselessSuffix
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -901,7 +905,7 @@ readJannoFile jannoPath = do
     if not (null (lefts jannoRepresentation))
     then do
         mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
-        liftIO $ throwIO $ PoseidonJannoConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
+        liftIO $ throwIO $ PoseidonFileConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
     else do
         let consistentJanno = checkJannoConsistency jannoPath $ JannoRows $ rights jannoRepresentation
         case consistentJanno of
@@ -927,7 +931,7 @@ readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either Pose
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
-            return $ Left $ PoseidonJannoRowException jannoPath lineNumber $ removeUselessSuffix e
+            return $ Left $ PoseidonFileRowException jannoPath lineNumber $ removeUselessSuffix e
         Right (_, jannoRow :: V.Vector JannoRow) -> do
             case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
                 Left e -> do
@@ -959,7 +963,7 @@ replaceInJannoBytestring from to tsv =
 
 checkJannoConsistency :: FilePath -> JannoRows -> Either PoseidonException JannoRows
 checkJannoConsistency jannoPath xs
-    | not $ checkIndividualUnique xs = Left $ PoseidonJannoConsistencyException jannoPath
+    | not $ checkIndividualUnique xs = Left $ PoseidonFileConsistencyException jannoPath
         "The Poseidon_IDs are not unique"
     | otherwise = Right xs
 
@@ -968,13 +972,13 @@ checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPosei
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
 checkJannoRowConsistency jannoPath row x
-    | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonJannoRowException jannoPath row
+    | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonFileRowException jannoPath row
           "The mandatory columns Poseidon_ID and Group_Name contain empty values"
-    | not $ checkC14ColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+    | not $ checkC14ColsConsistent x = Left $ PoseidonFileRowException jannoPath row
           "The Date_* columns are not consistent"
-    | not $ checkContamColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+    | not $ checkContamColsConsistent x = Left $ PoseidonFileRowException jannoPath row
           "The Contamination_* columns are not consistent"
-    | not $ checkRelationColsConsistent x = Left $ PoseidonJannoRowException jannoPath row
+    | not $ checkRelationColsConsistent x = Left $ PoseidonFileRowException jannoPath row
           "The Relation_* columns are not consistent"
     | otherwise = Right x
 
