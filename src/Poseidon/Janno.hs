@@ -72,6 +72,7 @@ import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Regex.TDFA                      as Reg
+import Country
 
 -- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -295,6 +296,28 @@ instance ToJSON JannoLibraryBuilt where
     --toEncoding x = text $ T.pack $ show x
 instance FromJSON JannoLibraryBuilt --where
     --parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
+
+-- | A datatype for countries in ISO-alpha2 code format
+newtype JannoCountry = JannoCountry Country
+    deriving (Eq, Ord)
+
+instance Show JannoCountry where
+    show (JannoCountry x) = T.unpack $ alphaTwoUpper x
+
+makeJannoCountry :: MonadFail m => String -> m JannoCountry
+makeJannoCountry x =
+    case decodeAlphaTwo (T.pack x) of
+        Just c  -> pure $ JannoCountry c
+        Nothing -> fail $ x ++ "not a valid ISO-alpha2 code describing an existing country"
+
+instance Csv.ToField JannoCountry where
+    toField x = Csv.toField $ show x
+instance Csv.FromField JannoCountry where
+    parseField x = Csv.parseField x >>= makeJannoCountry
+instance ToJSON JannoCountry where
+    toJSON x  = String $ T.pack $ show x
+instance FromJSON JannoCountry where
+    parseJSON = withText "JannoCountry" (makeJannoCountry . T.unpack)
 
 -- | A datatype for Latitudes
 newtype Latitude =
@@ -554,6 +577,7 @@ data JannoRow = JannoRow
     , jCollectionID               :: Maybe String
     , jSourceTissue               :: Maybe JannoStringList
     , jCountry                    :: Maybe String
+    , jCountryISO                 :: Maybe JannoCountry
     , jLocation                   :: Maybe String
     , jSite                       :: Maybe String
     , jLatitude                   :: Maybe Latitude
@@ -607,6 +631,7 @@ jannoHeader = [
     , "Relation_Note"
     , "Collection_ID"
     , "Country"
+    , "Country_ISO"
     , "Location"
     , "Site"
     , "Latitude"
@@ -669,6 +694,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Source_Tissue"
         <*> filterLookupOptional m "Country"
+        <*> filterLookupOptional m "Country_ISO"
         <*> filterLookupOptional m "Location"
         <*> filterLookupOptional m "Site"
         <*> filterLookupOptional m "Latitude"
@@ -757,6 +783,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Source_Tissue"                   Csv..= jSourceTissue j
         , "Country"                         Csv..= jCountry j
+        , "Country_ISO"                     Csv..= jCountryISO j
         , "Location"                        Csv..= jLocation j
         , "Site"                            Csv..= jSite j
         , "Latitude"                        Csv..= jLatitude j
@@ -813,6 +840,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jCollectionID                 = Nothing
         , jSourceTissue                 = Nothing
         , jCountry                      = Nothing
+        , jCountryISO                   = Nothing
         , jLocation                     = Nothing
         , jSite                         = Nothing
         , jLatitude                     = Nothing

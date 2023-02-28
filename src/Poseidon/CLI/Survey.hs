@@ -93,6 +93,7 @@ renderJannoCompleteness jS =
     : getColChar jS jRelationNote
     : getColChar jS jCollectionID
     : getColChar jS jCountry
+    : getColChar jS jCountryISO
     : getColChar jS jLocation
     : getColChar jS jSite
     : getColChar jS jLatitude

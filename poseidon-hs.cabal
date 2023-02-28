@@ -29,7 +29,7 @@ library
                         cassava, pureMD5,
                         yaml-pretty-extras >= 0.0.2.2, http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific
+                        scientific, country
     default-language:   Haskell2010
 
 executable trident
