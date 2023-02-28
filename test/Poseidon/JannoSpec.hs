@@ -119,8 +119,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jGroupName janno                    `shouldBe` [JannoList ["POP1", "POP3"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno                   `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Just 0, Just 0, Just 0]
-        map jUDG janno                          `shouldBe` [Just Minus, Just Half, Just Plus]
-        map jLibraryBuilt janno                 `shouldBe` [Just DS, Just SS, Just Other]
+        map jUDG janno                          `shouldBe` [Just $ JannoList [Minus], Just $ JannoList [Half], Just $ JannoList [Plus]]
+        map jLibraryBuilt janno                 `shouldBe` [Just $ JannoList [DS], Just $ JannoList [SS], Just $ JannoList [Other]]
         map jDamage janno                       `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
         map jContamination janno                `shouldBe` [Just (JannoList ["10"]), Just (JannoList ["20", "50", "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
