@@ -44,6 +44,8 @@ import           Control.Applicative                  (empty)
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless)
 import           Control.Monad.IO.Class               (liftIO)
+import           Country                              (Country, alphaTwoUpper,
+                                                       decodeAlphaTwo)
 import           Data.Aeson                           (FromJSON, Options (..),
                                                        ToJSON, Value (..),
                                                        defaultOptions,
@@ -72,7 +74,6 @@ import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Regex.TDFA                      as Reg
-import Country
 
 -- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
