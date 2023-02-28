@@ -29,7 +29,7 @@ import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 
 -- | A data type to represent a seqSourceFile
-newtype SeqSourceRows = SeqSourceRows [SeqSourceRow]
+newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
     deriving (Show, Eq, Generic)
 
 instance Semigroup SeqSourceRows where

@@ -650,7 +650,7 @@ makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_
         genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
         pacName      = takeBaseName genoFile_
     inds <- loadIndividuals baseDir genotypeData
-    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
+    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) mempty []
     where
         getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
         getBaseDir g s i =
@@ -664,8 +664,15 @@ makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] JannoRows) -> BibTeX -> PoseidonIO PoseidonPackage
-newPackageTemplate baseDir name genoData indsOrJanno bib = do
+newPackageTemplate ::
+       FilePath
+    -> String
+    -> GenotypeDataSpec
+    -> Maybe (Either [EigenstratIndEntry] JannoRows)
+    -> SeqSourceRows
+    -> BibTeX
+    -> PoseidonIO PoseidonPackage
+newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
     (UTCTime today _) <- liftIO getCurrentTime
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
@@ -680,7 +687,8 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
         ,   posPacLastModified = Just today
         }
         jannoFilledTemplate = completeJannoSpec name indsOrJanno fluffedUpTemplate
-        bibFilledTemplate = completeBibSpec name bib jannoFilledTemplate
+        seqSourceFilledTemplate = completeSeqSourceSpec name seqSource jannoFilledTemplate
+        bibFilledTemplate = completeBibSpec name bib seqSourceFilledTemplate
     return bibFilledTemplate
     where
         completeJannoSpec _ Nothing inTemplate = inTemplate
@@ -693,6 +701,12 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
             inTemplate {
                 posPacJannoFile = Just $ name_ ++ ".janno",
                 posPacJanno = b
+            }
+        completeSeqSourceSpec _ (SeqSourceRows []) inTemplate = inTemplate
+        completeSeqSourceSpec _ xs inTemplate =
+            inTemplate {
+                posPacSeqSourceFile = Just $ "ena_table" ++ ".tsv",
+                posPacSeqSource = xs
             }
         completeBibSpec _ [] inTemplate = inTemplate
         completeBibSpec name_ xs inTemplate =
