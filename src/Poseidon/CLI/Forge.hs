@@ -31,12 +31,14 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.SecondaryTypes     (IndividualInfo (..))
+import           Poseidon.SequencingSource   (SeqSourceRow (..),
+                                              SeqSourceRows (..),
+                                              writeSeqSourceFile)
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
                                               logError, logInfo, logWarning)
-import Poseidon.SequencingSource
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
