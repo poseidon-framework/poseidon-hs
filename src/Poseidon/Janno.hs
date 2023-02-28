@@ -455,9 +455,7 @@ instance ToJSON RelationDegree where
 instance FromJSON RelationDegree-- where
     --parseJSON = withText "RelationDegree" (makeRelationDegree . T.unpack)
 
--- |A datatype to represent AccessionID lists in a janno file
-type JannoAccessionIDList = JannoList AccessionID
-
+-- |A datatype to represent AccessionIDs in a janno file
 data AccessionID =
       INSDCProject String
     | INSDCStudy String
@@ -592,6 +590,7 @@ data JannoRow = JannoRow
     , jDateType                   :: Maybe JannoDateType
     , jDateNote                   :: Maybe String
     , jNrLibraries                :: Maybe Int
+    , jLibraries                  :: Maybe JannoStringList
     , jCaptureType                :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
     , jGroupName                  :: JannoStringList
@@ -601,14 +600,14 @@ data JannoRow = JannoRow
     , jMTHaplogroup               :: Maybe String
     , jYHaplogroup                :: Maybe String
     , jEndogenous                 :: Maybe Percent
-    , jUDG                        :: Maybe JannoUDG
-    , jLibraryBuilt               :: Maybe JannoLibraryBuilt
+    , jUDG                        :: Maybe (JannoList JannoUDG)
+    , jLibraryBuilt               :: Maybe (JannoList JannoLibraryBuilt)
     , jDamage                     :: Maybe Percent
     , jContamination              :: Maybe JannoStringList
     , jContaminationErr           :: Maybe JannoStringList
     , jContaminationMeas          :: Maybe JannoStringList
     , jContaminationNote          :: Maybe String
-    , jGeneticSourceAccessionIDs  :: Maybe JannoAccessionIDList
+    , jGeneticSourceAccessionIDs  :: Maybe (JannoList AccessionID)
     , jDataPreparationPipelineURL :: Maybe JURI
     , jPrimaryContact             :: Maybe String
     , jPublication                :: Maybe JannoStringList
@@ -649,6 +648,7 @@ jannoHeader = [
     , "Y_Haplogroup"
     , "Source_Tissue"
     , "Nr_Libraries"
+    , "Libraries"
     , "Capture_Type"
     , "UDG"
     , "Library_Built"
@@ -709,6 +709,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_Type"
         <*> filterLookupOptional m "Date_Note"
         <*> filterLookupOptional m "Nr_Libraries"
+        <*> filterLookupOptional m "Libraries"
         <*> filterLookupOptional m "Capture_Type"
         <*> filterLookupOptional m "Genotype_Ploidy"
         <*> filterLookup         m "Group_Name"
@@ -798,6 +799,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_Type"                       Csv..= jDateType j
         , "Date_Note"                       Csv..= jDateNote j
         , "Nr_Libraries"                    Csv..= jNrLibraries j
+        , "Libraries"                       Csv..= jLibraries j
         , "Capture_Type"                    Csv..= jCaptureType j
         , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
         , "Group_Name"                      Csv..= jGroupName j
@@ -855,6 +857,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateType                     = Nothing
         , jDateNote                     = Nothing
         , jNrLibraries                  = Nothing
+        , jLibraries                    = Nothing
         , jCaptureType                  = Nothing
         , jGenotypePloidy               = Nothing
         , jGroupName                    = JannoList [pop]
@@ -1009,6 +1012,9 @@ checkJannoRowConsistency jannoPath row x
           "The Contamination_* columns are not consistent"
     | not $ checkRelationColsConsistent x = Left $ PoseidonFileRowException jannoPath row
           "The Relation_* columns are not consistent"
+    | not $ checkLibraryColsConsistent x = Left $ PoseidonFileRowException jannoPath row $
+          "The columns with library-wise information " ++
+          "(Libraries, Source_Tissue, Capture_Type, UDG, Library_Built) are not consistent"
     | otherwise = Right x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
@@ -1021,7 +1027,8 @@ getCellLength :: Maybe (JannoList a) -> Int
 getCellLength = maybe 0 (length . getJannoList)
 
 allEqual :: Eq a => [a] -> Bool
-allEqual x = length (nub x) == 1
+allEqual [] = True
+allEqual x  = length (nub x) == 1
 
 checkC14ColsConsistent :: JannoRow -> Bool
 checkC14ColsConsistent x =
@@ -1045,8 +1052,19 @@ checkContamColsConsistent x =
 
 checkRelationColsConsistent :: JannoRow -> Bool
 checkRelationColsConsistent x =
-  let lRelationTo = getCellLength $ jRelationTo x
+  let lRelationTo     = getCellLength $ jRelationTo x
       lRelationDegree = getCellLength $ jRelationDegree x
-      lRelationType = getCellLength $ jRelationType x
+      lRelationType   = getCellLength $ jRelationType x
   in allEqual [lRelationTo, lRelationType, lRelationDegree]
      || (allEqual [lRelationTo, lRelationDegree] && isNothing (jRelationType x))
+
+checkLibraryColsConsistent :: JannoRow -> Bool
+checkLibraryColsConsistent x =
+    let lLibraries    = getCellLength $ jLibraries x
+        lSourceTissue = getCellLength $ jSourceTissue x
+        lCaptureType  = getCellLength $ jCaptureType x
+        lUDG          = getCellLength $ jUDG x
+        lLibraryBuilt = getCellLength $ jLibraryBuilt x
+        lList         = [lLibraries, lSourceTissue, lCaptureType, lUDG, lLibraryBuilt]
+        lListMulti    = filter (> 1) lList
+    in allEqual lListMulti && (lLibraries == 0 || lLibraries == maximum lList)
