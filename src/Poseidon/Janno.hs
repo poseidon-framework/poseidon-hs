@@ -243,13 +243,15 @@ data JannoUDG =
     | Half
     | Plus
     | Mixed
+    | OtherUDG
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoUDG where
-    show Minus = "minus"
-    show Half  = "half"
-    show Plus  = "plus"
-    show Mixed = "mixed"
+    show Minus    = "minus"
+    show Half     = "half"
+    show Plus     = "plus"
+    show Mixed    = "mixed"
+    show OtherUDG = "other"
 
 makeJannoUDG :: MonadFail m => String -> m JannoUDG
 makeJannoUDG x
@@ -257,7 +259,8 @@ makeJannoUDG x
     | x == "half"  = pure Half
     | x == "plus"  = pure Plus
     | x == "mixed" = pure Mixed
-    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
+    | x == "other" = pure OtherUDG
+    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed, other]"
 
 instance Csv.ToField JannoUDG where
     toField x = Csv.toField $ show x
