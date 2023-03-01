@@ -686,9 +686,9 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
-        jannoFilledTemplate = completeJannoSpec name indsOrJanno fluffedUpTemplate
+        jannoFilledTemplate     = completeJannoSpec name indsOrJanno fluffedUpTemplate
         seqSourceFilledTemplate = completeSeqSourceSpec name seqSource jannoFilledTemplate
-        bibFilledTemplate = completeBibSpec name bib seqSourceFilledTemplate
+        bibFilledTemplate       = completeBibSpec name bib seqSourceFilledTemplate
     return bibFilledTemplate
     where
         completeJannoSpec _ Nothing inTemplate = inTemplate
