@@ -514,7 +514,13 @@ instance (Csv.FromField a) => Csv.FromField (JannoList a) where
 instance (ToJSON a) => ToJSON (JannoList a) where
     toEncoding (JannoList x) = toEncoding x
 instance (FromJSON a) => FromJSON (JannoList a) where
-    parseJSON v = JannoList <$> parseJSON v
+    parseJSON x
+        | isAesonString x = JannoList . singleton <$> parseJSON x
+        | otherwise = JannoList <$> parseJSON x
+        where
+            isAesonString (String _) = True
+            isAesonString _          = False
+            singleton a = [a]
 
 -- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
