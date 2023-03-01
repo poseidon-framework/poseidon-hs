@@ -14,6 +14,7 @@ import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logDebug, renderPoseidonException)
 
 import           Control.Exception          (throwIO)
+import           Control.Monad              (when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, Options (..), ToJSON,
                                              defaultOptions, genericToEncoding,
@@ -119,6 +120,7 @@ readSeqSourceFile seqSourcePath = do
     logDebug $ "Reading: " ++ seqSourcePath
     seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
     let seqSourceFileRows = Bch.lines seqSourceFile
+    when (length seqSourceFileRows < 2) $ liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "File has less than two lines"
     logDebug $ show (length seqSourceFileRows - 1) ++ " samples in this file"
     -- tupel with row number and row bytestring
     let seqSourceFileRowsWithNumber = zip [1..(length seqSourceFileRows)] seqSourceFileRows

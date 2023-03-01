@@ -42,7 +42,7 @@ import           Poseidon.Utils                       (PoseidonException (..),
 
 import           Control.Applicative                  (empty)
 import           Control.Exception                    (throwIO)
-import           Control.Monad                        (unless)
+import           Control.Monad                        (unless, when)
 import           Control.Monad.IO.Class               (liftIO)
 import           Country                              (Country, alphaTwoUpper,
                                                        decodeAlphaTwo)
@@ -919,6 +919,7 @@ readJannoFile jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
+    when (length jannoFileRows < 2) $ liftIO $ throwIO $ PoseidonFileConsistencyException jannoPath "File has less than two lines"
     logDebug $ show (length jannoFileRows - 1) ++ " samples in this file"
     -- tupel with row number and row bytestring
     let jannoFileRowsWithNumber = zip [1..(length jannoFileRows)] jannoFileRows
