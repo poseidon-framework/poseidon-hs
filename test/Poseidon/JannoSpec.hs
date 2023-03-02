@@ -11,16 +11,17 @@ import           Poseidon.Janno      (AccessionID (..), BCADAge (..),
                                       JannoSex (..), JannoUDG (..),
                                       Latitude (..), Longitude (..),
                                       Percent (..), RelationDegree (..),
-                                      Sex (..), readJannoFile, makeJannoCountryUnsafe)
+                                      Sex (..), makeJannoCountryUnsafe,
+                                      readJannoFile)
 import           Poseidon.Utils      (testLog)
 
 import           Control.Applicative (liftA2)
 import qualified Data.Aeson          as A
 import qualified Data.Csv            as C
 import           Data.HashMap.Strict (fromList)
+import           System.FilePath     ((</>))
 import           Test.Hspec          (Expectation, Spec, anyException, describe,
                                       it, shouldBe, shouldThrow)
-import System.FilePath ((</>))
 
 spec :: Spec
 spec = do
@@ -110,19 +111,21 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jCollectionID janno                 `shouldBe` [Nothing, Nothing, Nothing]
         map jSourceTissue janno                 `shouldBe` [Just (JannoList ["xxx", "yyy"]), Just (JannoList ["xxx"]), Just (JannoList ["xxx"])]
         map jCountry janno                      `shouldBe` [Just "xxx", Just "xxx", Just "xxx"]
+        map jCountryISO janno                   `shouldBe` [Just $ makeJannoCountryUnsafe "DE", Just $ makeJannoCountryUnsafe "FR", Just $ makeJannoCountryUnsafe "EG"]
         map jLatitude janno                     `shouldBe` [Just (Latitude 0), Just (Latitude (-90)), Just (Latitude 90)]
         map jLongitude janno                    `shouldBe` [Just (Longitude 0), Just (Longitude (-180)), Just (Longitude 180)]
         map jDateC14Labnr janno                 `shouldBe` [Just (JannoList ["A-1", "A-2", "A-3"]), Nothing, Nothing]
         map jDateC14UncalBP janno               `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
         map jDateBCADMedian janno               `shouldBe` [Just (BCADAge (-1000)), Just (BCADAge (-5000)), Just (BCADAge 2000)]
         map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
+        map jLibraries janno                    `shouldBe` [Just $ JannoList ["Lib1", "Lib2"], Just $ JannoList ["Lib3"], Nothing]
         map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
         map jGroupName janno                    `shouldBe` [JannoList ["POP1", "POP3"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno                   `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Just 0, Just 0, Just 0]
-        map jUDG janno                          `shouldBe` [Just $ JannoList [Minus], Just $ JannoList [Half], Just $ JannoList [Plus]]
-        map jLibraryBuilt janno                 `shouldBe` [Just $ JannoList [DS], Just $ JannoList [SS], Just $ JannoList [Other]]
+        map jUDG janno                          `shouldBe` [Just $ JannoList [Minus, Minus], Just $ JannoList [Half], Just $ JannoList [Plus]]
+        map jLibraryBuilt janno                 `shouldBe` [Just $ JannoList [DS, SS], Just $ JannoList [SS], Just $ JannoList [Other]]
         map jDamage janno                       `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
         map jContamination janno                `shouldBe` [Just (JannoList ["10"]), Just (JannoList ["20", "50", "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
