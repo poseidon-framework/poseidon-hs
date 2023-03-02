@@ -148,4 +148,5 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         testLog (readJannoFile $ borkedDir </> "borked_relations.janno") `shouldThrow` anyException
         testLog (readJannoFile $ borkedDir </> "borked_contamination.janno") `shouldThrow` anyException
         testLog (readJannoFile $ borkedDir </> "borked_dating.janno") `shouldThrow` anyException
-        testLog (readJannoFile $ borkedDir </> "borked_non_existent_ISO_country.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_ISO_country.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_libraries.janno") `shouldThrow` anyException
