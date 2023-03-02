@@ -9,6 +9,8 @@ module Poseidon.Janno (
     JannoList (..),
     Sex (..),
     BCADAge (..),
+    JannoCountry (..),
+    makeJannoCountryUnsafe,
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
@@ -309,11 +311,17 @@ newtype JannoCountry = JannoCountry Country
 instance Show JannoCountry where
     show (JannoCountry x) = T.unpack $ alphaTwoUpper x
 
+makeJannoCountryUnsafe :: String -> JannoCountry
+makeJannoCountryUnsafe x =
+    case decodeAlphaTwo (T.pack x) of
+        Just c  -> JannoCountry c
+        Nothing -> error $ x ++ " is not a valid ISO-alpha2 code describing an existing country"
+
 makeJannoCountry :: MonadFail m => String -> m JannoCountry
 makeJannoCountry x =
     case decodeAlphaTwo (T.pack x) of
         Just c  -> pure $ JannoCountry c
-        Nothing -> fail $ x ++ "not a valid ISO-alpha2 code describing an existing country"
+        Nothing -> fail $ x ++ " is not a valid ISO-alpha2 code describing an existing country"
 
 instance Csv.ToField JannoCountry where
     toField x = Csv.toField $ show x

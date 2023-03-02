@@ -11,7 +11,7 @@ import           Poseidon.Janno      (AccessionID (..), BCADAge (..),
                                       JannoSex (..), JannoUDG (..),
                                       Latitude (..), Longitude (..),
                                       Percent (..), RelationDegree (..),
-                                      Sex (..), readJannoFile)
+                                      Sex (..), readJannoFile, makeJannoCountryUnsafe)
 import           Poseidon.Utils      (testLog)
 
 import           Control.Applicative (liftA2)
@@ -20,6 +20,7 @@ import qualified Data.Csv            as C
 import           Data.HashMap.Strict (fromList)
 import           Test.Hspec          (Expectation, Spec, anyException, describe,
                                       it, shouldBe, shouldThrow)
+import System.FilePath ((</>))
 
 spec :: Spec
 spec = do
@@ -40,6 +41,7 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe (enumFrom minBound :: [JannoGenotypePloidy])
         checkEnDe (enumFrom minBound :: [JannoUDG])
         checkEnDe (enumFrom minBound :: [JannoLibraryBuilt])
+        checkEnDe [makeJannoCountryUnsafe "DE", makeJannoCountryUnsafe "FR", makeJannoCountryUnsafe "KE"]
         checkEnDe [Latitude (-45), Latitude 45]
         checkEnDe [Longitude (-100), Longitude 100]
         checkEnDe [Percent 0, Percent 100]
@@ -138,7 +140,9 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         testLog (readJannoFile borkedFullJannoPath) `shouldThrow` anyException
         testLog (readJannoFile borkedPartialJannoPath) `shouldThrow` anyException
     it "should fail to read borked janno files with specific issues" $ do
-        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_wrong_name.janno") `shouldThrow` anyException
-        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_relations.janno") `shouldThrow` anyException
-        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_contamination.janno") `shouldThrow` anyException
-        testLog (readJannoFile "test/testDat/testJannoFiles/specificallyBorked/borked_dating.janno") `shouldThrow` anyException
+        let borkedDir = "test/testDat/testJannoFiles/specificallyBorked"
+        testLog (readJannoFile $ borkedDir </> "borked_wrong_name.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_relations.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_contamination.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_dating.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_non_existent_ISO_country.janno") `shouldThrow` anyException
