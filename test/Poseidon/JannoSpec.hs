@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.JannoSpec (spec) where
+module Poseidon.JannoSpec (spec, checkEnDe) where
 
 import           Poseidon.Janno      (AccessionID (..), BCADAge (..),
                                       CsvNamedRecord (..), JURI (..),
@@ -30,43 +30,43 @@ testEnAndDecoding :: Spec
 testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ do
     it "should pass smoothly through all relevant en- and decoding cycles" $ do
         -- generic instances
-        check (["a", "b", "c"] :: [String])
-        check ([1, 2, 3] :: [Int])
+        checkEnDe (["a", "b", "c"] :: [String])
+        checkEnDe ([1, 2, 3] :: [Int])
         -- self defined instances
-        check [JannoSex Female, JannoSex Male, JannoSex Unknown]
-        check [BCADAge (-100), BCADAge 100]
-        check (enumFrom minBound :: [JannoDateType]) -- get all constructors for JannoDateType in a list
-        check (enumFrom minBound :: [JannoCaptureType])
-        check (enumFrom minBound :: [JannoGenotypePloidy])
-        check (enumFrom minBound :: [JannoUDG])
-        check (enumFrom minBound :: [JannoLibraryBuilt])
-        check [Latitude (-45), Latitude 45]
-        check [Longitude (-100), Longitude 100]
-        check [Percent 0, Percent 100]
-        check [JURI "http://www.google.de"]
-        check (enumFrom minBound :: [RelationDegree])
-        check [INSDCProject "PRJEA0", INSDCStudy "ERP000000"]
-        check [JannoList (["a", "b", "c"] :: [String])]
-        check [JannoList ([1, 2, 3] :: [Int])]
-        check [JannoList (enumFrom minBound :: [JannoUDG])] -- to test if JannoList is really fully general
+        checkEnDe [JannoSex Female, JannoSex Male, JannoSex Unknown]
+        checkEnDe [BCADAge (-100), BCADAge 100]
+        checkEnDe (enumFrom minBound :: [JannoDateType]) -- get all constructors for JannoDateType in a list
+        checkEnDe (enumFrom minBound :: [JannoCaptureType])
+        checkEnDe (enumFrom minBound :: [JannoGenotypePloidy])
+        checkEnDe (enumFrom minBound :: [JannoUDG])
+        checkEnDe (enumFrom minBound :: [JannoLibraryBuilt])
+        checkEnDe [Latitude (-45), Latitude 45]
+        checkEnDe [Longitude (-100), Longitude 100]
+        checkEnDe [Percent 0, Percent 100]
+        checkEnDe [JURI "http://www.google.de"]
+        checkEnDe (enumFrom minBound :: [RelationDegree])
+        checkEnDe [INSDCProject "PRJEA0", INSDCStudy "ERP000000"]
+        checkEnDe [JannoList (["a", "b", "c"] :: [String])]
+        checkEnDe [JannoList ([1, 2, 3] :: [Int])]
+        checkEnDe [JannoList (enumFrom minBound :: [JannoUDG])] -- to test if JannoList is really fully general
         -- with Maybe
-        check ([Nothing, Just $ Latitude (-45), Just $ Latitude 45] :: [Maybe Latitude])
-        where
-            -- infrastructure to check an en- and decoding cycle
-            check :: (Show a, Eq a, A.FromJSON a, A.ToJSON a, C.FromField a, C.ToField a) => [a] -> IO ()
-            check = liftA2 (>>) checkAeson checkCassava
-            checkAeson :: (Show a, Eq a, A.FromJSON a, A.ToJSON a) => [a] -> Expectation
-            checkAeson xs = aesonCycle xs `shouldBe` aesonResult xs
-                where
-                    aesonCycle :: (A.FromJSON a, A.ToJSON a) => [a] -> [Maybe a]
-                    aesonCycle = map (A.decode . A.encode)
-                    aesonResult = map Just
-            checkCassava :: (Show a, Eq a, C.FromField a, C.ToField a) => [a] -> Expectation
-            checkCassava xs = cassavaCycle xs `shouldBe` cassavaResult xs
-                where
-                    cassavaCycle :: (C.FromField a, C.ToField a) => [a] -> [Either String a]
-                    cassavaCycle = map (C.runParser . C.parseField . C.toField)
-                    cassavaResult = map Right
+        checkEnDe ([Nothing, Just $ Latitude (-45), Just $ Latitude 45] :: [Maybe Latitude])
+
+-- infrastructure to check an en- and decoding cycle
+checkEnDe :: (Show a, Eq a, A.FromJSON a, A.ToJSON a, C.FromField a, C.ToField a) => [a] -> IO ()
+checkEnDe = liftA2 (>>) checkAeson checkCassava
+checkAeson :: (Show a, Eq a, A.FromJSON a, A.ToJSON a) => [a] -> Expectation
+checkAeson xs = aesonCycle xs `shouldBe` aesonResult xs
+    where
+        aesonCycle :: (A.FromJSON a, A.ToJSON a) => [a] -> [Maybe a]
+        aesonCycle = map (A.decode . A.encode)
+        aesonResult = map Just
+checkCassava :: (Show a, Eq a, C.FromField a, C.ToField a) => [a] -> Expectation
+checkCassava xs = cassavaCycle xs `shouldBe` cassavaResult xs
+    where
+        cassavaCycle :: (C.FromField a, C.ToField a) => [a] -> [Either String a]
+        cassavaCycle = map (C.runParser . C.parseField . C.toField)
+        cassavaResult = map Right
 
 
 testPoseidonSampleFromJannoFile :: Spec

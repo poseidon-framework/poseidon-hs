@@ -20,6 +20,7 @@ module Poseidon.Janno (
     RelationDegree (..),
     JannoLibraryBuilt (..),
     AccessionID (..),
+    makeAccessionID,
     writeJannoFile,
     readJannoFile,
     createMinimalJanno,
