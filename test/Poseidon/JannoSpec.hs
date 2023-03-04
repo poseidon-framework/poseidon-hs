@@ -118,14 +118,14 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateC14UncalBP janno               `shouldBe` [Just (JannoList [3000, 3100, 2900]), Nothing, Nothing]
         map jDateBCADMedian janno               `shouldBe` [Just (BCADAge (-1000)), Just (BCADAge (-5000)), Just (BCADAge 2000)]
         map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
-        map jLibraries janno                    `shouldBe` [Just $ JannoList ["Lib1", "Lib2"], Just $ JannoList ["Lib3"], Nothing]
+        map jLibraryNames janno                 `shouldBe` [Just $ JannoList ["Lib1", "Lib2"], Just $ JannoList ["Lib3"], Nothing]
         map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
         map jGroupName janno                    `shouldBe` [JannoList ["POP1", "POP3"], JannoList ["POP2"], JannoList ["POP1"]]
         map jGeneticSex janno                   `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Just 0, Just 0, Just 0]
-        map jUDG janno                          `shouldBe` [Just $ JannoList [Minus, Minus], Just $ JannoList [Half], Just $ JannoList [Plus]]
-        map jLibraryBuilt janno                 `shouldBe` [Just $ JannoList [DS, SS], Just $ JannoList [SS], Just $ JannoList [Other]]
+        map jUDG janno                          `shouldBe` [Just Minus, Just Half, Just Plus]
+        map jLibraryBuilt janno                 `shouldBe` [Just DS, Just SS, Just MixedSSDS]
         map jDamage janno                       `shouldBe` [Just (Percent 0), Just (Percent 100), Just (Percent 50)]
         map jContamination janno                `shouldBe` [Just (JannoList ["10"]), Just (JannoList ["20", "50", "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JURI "ftp://test.test"),
@@ -149,4 +149,3 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         testLog (readJannoFile $ borkedDir </> "borked_contamination.janno") `shouldThrow` anyException
         testLog (readJannoFile $ borkedDir </> "borked_dating.janno") `shouldThrow` anyException
         testLog (readJannoFile $ borkedDir </> "borked_ISO_country.janno") `shouldThrow` anyException
-        testLog (readJannoFile $ borkedDir </> "borked_libraries.janno") `shouldThrow` anyException

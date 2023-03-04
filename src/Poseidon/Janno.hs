@@ -246,7 +246,6 @@ data JannoUDG =
     | Half
     | Plus
     | Mixed
-    | OtherUDG
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoUDG where
@@ -254,7 +253,6 @@ instance Show JannoUDG where
     show Half     = "half"
     show Plus     = "plus"
     show Mixed    = "mixed"
-    show OtherUDG = "other"
 
 makeJannoUDG :: MonadFail m => String -> m JannoUDG
 makeJannoUDG x
@@ -262,7 +260,6 @@ makeJannoUDG x
     | x == "half"  = pure Half
     | x == "plus"  = pure Plus
     | x == "mixed" = pure Mixed
-    | x == "other" = pure OtherUDG
     | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed, other]"
 
 instance Csv.ToField JannoUDG where
@@ -279,20 +276,23 @@ instance FromJSON JannoUDG-- where
 data JannoLibraryBuilt =
       DS
     | SS
-    | Other
+    | MixedSSDS
+    | Other -- the "other" option is deprecated and should be removed at some point
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoLibraryBuilt where
-    show DS    = "ds"
-    show SS    = "ss"
-    show Other = "other"
+    show DS        = "ds"
+    show SS        = "ss"
+    show MixedSSDS = "mixed"
+    show Other     = "other"
 
 makeJannoLibraryBuilt :: MonadFail m => String -> m JannoLibraryBuilt
 makeJannoLibraryBuilt x
     | x == "ds"    = pure DS
     | x == "ss"    = pure SS
+    | x == "mixed" = pure MixedSSDS
     | x == "other" = pure Other
-    | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, other]"
+    | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, mixed]"
 
 instance Csv.ToField JannoLibraryBuilt where
     toField x = Csv.toField $ show x
@@ -608,7 +608,7 @@ data JannoRow = JannoRow
     , jDateType                   :: Maybe JannoDateType
     , jDateNote                   :: Maybe String
     , jNrLibraries                :: Maybe Int
-    , jLibraries                  :: Maybe JannoStringList
+    , jLibraryNames               :: Maybe JannoStringList
     , jCaptureType                :: Maybe (JannoList JannoCaptureType)
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
     , jGroupName                  :: JannoStringList
@@ -618,8 +618,8 @@ data JannoRow = JannoRow
     , jMTHaplogroup               :: Maybe String
     , jYHaplogroup                :: Maybe String
     , jEndogenous                 :: Maybe Percent
-    , jUDG                        :: Maybe (JannoList JannoUDG)
-    , jLibraryBuilt               :: Maybe (JannoList JannoLibraryBuilt)
+    , jUDG                        :: Maybe JannoUDG
+    , jLibraryBuilt               :: Maybe JannoLibraryBuilt
     , jDamage                     :: Maybe Percent
     , jContamination              :: Maybe JannoStringList
     , jContaminationErr           :: Maybe JannoStringList
@@ -666,7 +666,7 @@ jannoHeader = [
     , "Y_Haplogroup"
     , "Source_Tissue"
     , "Nr_Libraries"
-    , "Libraries"
+    , "Library_Names"
     , "Capture_Type"
     , "UDG"
     , "Library_Built"
@@ -727,7 +727,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_Type"
         <*> filterLookupOptional m "Date_Note"
         <*> filterLookupOptional m "Nr_Libraries"
-        <*> filterLookupOptional m "Libraries"
+        <*> filterLookupOptional m "Library_Names"
         <*> filterLookupOptional m "Capture_Type"
         <*> filterLookupOptional m "Genotype_Ploidy"
         <*> filterLookup         m "Group_Name"
@@ -817,7 +817,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_Type"                       Csv..= jDateType j
         , "Date_Note"                       Csv..= jDateNote j
         , "Nr_Libraries"                    Csv..= jNrLibraries j
-        , "Libraries"                       Csv..= jLibraries j
+        , "Library_Names"                   Csv..= jLibraryNames j
         , "Capture_Type"                    Csv..= jCaptureType j
         , "Genotype_Ploidy"                 Csv..= jGenotypePloidy j
         , "Group_Name"                      Csv..= jGroupName j
@@ -875,7 +875,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateType                     = Nothing
         , jDateNote                     = Nothing
         , jNrLibraries                  = Nothing
-        , jLibraries                    = Nothing
+        , jLibraryNames                 = Nothing
         , jCaptureType                  = Nothing
         , jGenotypePloidy               = Nothing
         , jGroupName                    = JannoList [pop]
@@ -1031,9 +1031,6 @@ checkJannoRowConsistency jannoPath row x
           "The Contamination_* columns are not consistent"
     | not $ checkRelationColsConsistent x = Left $ PoseidonFileRowException jannoPath row
           "The Relation_* columns are not consistent"
-    | not $ checkLibraryColsConsistent x = Left $ PoseidonFileRowException jannoPath row $
-          "The columns with library-wise information " ++
-          "(Libraries, Source_Tissue, Capture_Type, UDG, Library_Built) are not consistent"
     | otherwise = Right x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
@@ -1076,14 +1073,3 @@ checkRelationColsConsistent x =
       lRelationType   = getCellLength $ jRelationType x
   in allEqual [lRelationTo, lRelationType, lRelationDegree]
      || (allEqual [lRelationTo, lRelationDegree] && isNothing (jRelationType x))
-
-checkLibraryColsConsistent :: JannoRow -> Bool
-checkLibraryColsConsistent x =
-    let lLibraries    = getCellLength $ jLibraries x
-        lSourceTissue = getCellLength $ jSourceTissue x
-        lCaptureType  = getCellLength $ jCaptureType x
-        lUDG          = getCellLength $ jUDG x
-        lLibraryBuilt = getCellLength $ jLibraryBuilt x
-        lList         = [lLibraries, lSourceTissue, lCaptureType, lUDG, lLibraryBuilt]
-        lListMulti    = filter (> 1) lList
-    in allEqual lListMulti && (lLibraries == 0 || lLibraries == maximum lList)

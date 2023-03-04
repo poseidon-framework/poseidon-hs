@@ -21,7 +21,7 @@ genotypeData:
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
   snpSet: Other
 jannoFile: Schiffels.janno
-jannoFileChkSum: 145aafdbe0e1a4f71d2a4ebaa0b21091
+jannoFileChkSum: 74e34fcd64327d9a6184316d90251b4c
 sequencingSourceFile: ena_table.tsv
 bibFile: Schiffels.bib
 bibFileChkSum: 66fee695ba94e12688567db73c0f2830
