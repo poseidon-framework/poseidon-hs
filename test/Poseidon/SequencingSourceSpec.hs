@@ -5,9 +5,10 @@ module Poseidon.SequencingSourceSpec (spec) where
 import           Poseidon.Janno            (AccessionID (..),
                                             CsvNamedRecord (..), JannoList (..))
 import           Poseidon.JannoSpec        (checkEnDe)
-import           Poseidon.SequencingSource (SeqSourceRow (..),
+import           Poseidon.SequencingSource (SSFLibraryBuilt (..), SSFUDG (..),
+                                            SeqSourceRow (..),
                                             SeqSourceRows (..),
-                                            readSeqSourceFile, SSFUDG (..), SSFLibraryBuilt (..))
+                                            readSeqSourceFile)
 import           Poseidon.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
