@@ -249,10 +249,10 @@ data JannoUDG =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Show JannoUDG where
-    show Minus    = "minus"
-    show Half     = "half"
-    show Plus     = "plus"
-    show Mixed    = "mixed"
+    show Minus = "minus"
+    show Half  = "half"
+    show Plus  = "plus"
+    show Mixed = "mixed"
 
 makeJannoUDG :: MonadFail m => String -> m JannoUDG
 makeJannoUDG x
