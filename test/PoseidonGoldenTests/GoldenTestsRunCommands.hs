@@ -153,11 +153,11 @@ addAdditionalColumnsToJanno toAdd testDir jannoFile = do
 
 addSequencingSourceFile :: T.Text -> FilePath -> FilePath -> FilePath -> IO ()
 addSequencingSourceFile toAdd testDir seqSourceFile yamlFile = do
-    -- create ena_table.tsv
+    -- create .ssf file
     T.writeFile (testDir </> seqSourceFile) toAdd
     -- add file to yml file
     ymlLines <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = ymlLines <> ["sequencingSourceFile: ena_table.tsv"]
+    let patchedLines = ymlLines <> ["sequencingSourceFile: ena_table.ssf"]
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
 testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
@@ -180,7 +180,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     let action = testLog (runInit initOpts1) >>
                  patchLastModified testDir ("Schiffels" </> "POSEIDON.yml") >>
                  addAdditionalColumnsToJanno addJannoColumnsSchiffels testDir ("Schiffels" </> "Schiffels.janno") >>
-                 addSequencingSourceFile seqSourceSchiffels testDir ("Schiffels" </> "ena_table.tsv") ("Schiffels" </> "POSEIDON.yml")
+                 addSequencingSourceFile seqSourceSchiffels testDir ("Schiffels" </> "ena_table.ssf") ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action "init" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
@@ -204,7 +204,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     }
     let action2 = testLog (runInit initOpts2) >>
                   patchLastModified testDir ("Wang" </> "POSEIDON.yml") >>
-                  addSequencingSourceFile seqSourceWang testDir ("Wang" </> "ena_table.tsv") ("Wang" </> "POSEIDON.yml")
+                  addSequencingSourceFile seqSourceWang testDir ("Wang" </> "ena_table.ssf") ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
         , "Wang" </> "Wang_2020.bed"

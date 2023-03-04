@@ -703,9 +703,9 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
                 posPacJanno = b
             }
         completeSeqSourceSpec _ (SeqSourceRows []) inTemplate = inTemplate
-        completeSeqSourceSpec _ xs inTemplate =
+        completeSeqSourceSpec name_ xs inTemplate =
             inTemplate {
-                posPacSeqSourceFile = Just $ "ena_table" ++ ".tsv",
+                posPacSeqSourceFile = Just $ name_ ++ ".ssf",
                 posPacSeqSource = xs
             }
         completeBibSpec _ [] inTemplate = inTemplate

@@ -6,4 +6,4 @@ genotypeData:
   snpFile: Wang.snp
   indFile: Wang.ind
   snpSet: Other
-sequencingSourceFile: ena_table.tsv
+sequencingSourceFile: ena_table.ssf

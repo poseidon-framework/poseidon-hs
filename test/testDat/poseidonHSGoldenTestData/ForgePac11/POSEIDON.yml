@@ -14,4 +14,4 @@ genotypeData:
   indFile: ForgePac11.ind
   snpSet: Other
 jannoFile: ForgePac11.janno
-sequencingSourceFile: ena_table.tsv
+sequencingSourceFile: ForgePac11.ssf

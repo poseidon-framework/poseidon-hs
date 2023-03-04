@@ -196,8 +196,8 @@ runForge (
         liftIO $ writePoseidonPackage pac
     -- bib
     unless (minimal || onlyGeno || null (getSeqSourceRowList relevantSeqSourceRows)) $ do
-        logInfo "Creating ena_table.tsv file"
-        liftIO $ writeSeqSourceFile (outPath </> "ena_table" <.> "tsv") relevantSeqSourceRows
+        logInfo "Creating .ssf file"
+        liftIO $ writeSeqSourceFile (outPath </> outName <.> "ssf") relevantSeqSourceRows
     -- bib
     unless (minimal || onlyGeno || null relevantBibEntries) $ do
         logInfo "Creating .bib file"
