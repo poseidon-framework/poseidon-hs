@@ -31,6 +31,7 @@ module Poseidon.Janno (
     JannoRows (..),
     JannoStringList,
     filterLookup,
+    filterLookupOptional,
     getCsvNR,
     encodingOptions,
     decodingOptions,
@@ -260,7 +261,7 @@ makeJannoUDG x
     | x == "half"  = pure Half
     | x == "plus"  = pure Plus
     | x == "mixed" = pure Mixed
-    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed, other]"
+    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
 
 instance Csv.ToField JannoUDG where
     toField x = Csv.toField $ show x

@@ -8,7 +8,8 @@ import           Poseidon.Janno             (AccessionID (..),
                                              CsvNamedRecord (..),
                                              JannoList (..), JannoStringList,
                                              decodingOptions, encodingOptions,
-                                             explicitNA, filterLookup, getCsvNR,
+                                             explicitNA, filterLookup,
+                                             filterLookupOptional, getCsvNR,
                                              removeUselessSuffix)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logDebug, renderPoseidonException)
@@ -18,7 +19,8 @@ import           Control.Monad              (when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, Options (..), ToJSON,
                                              defaultOptions, genericToEncoding,
-                                             toEncoding)
+                                             toEncoding, withText)
+import           Data.Aeson.Encoding        (text)
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
@@ -26,8 +28,63 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
+import qualified Data.Text                  as T
 import qualified Data.Vector                as V
+import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
+
+-- |A datatype to represent UDG in a ssf file
+data SSFUDG =
+      SSFMinus
+    | SSFHalf
+    | SSFPlus
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance Show SSFUDG where
+    show SSFMinus = "minus"
+    show SSFHalf  = "half"
+    show SSFPlus  = "plus"
+
+makeSSFUDG :: MonadFail m => String -> m SSFUDG
+makeSSFUDG x
+    | x == "minus" = pure SSFMinus
+    | x == "half"  = pure SSFHalf
+    | x == "plus"  = pure SSFPlus
+    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus]"
+
+instance Csv.ToField SSFUDG where
+    toField x = Csv.toField $ show x
+instance Csv.FromField SSFUDG where
+    parseField x = Csv.parseField x >>= makeSSFUDG
+instance ToJSON SSFUDG where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON SSFUDG where
+    parseJSON = withText "SSFUDG" (makeSSFUDG . T.unpack)
+
+-- |A datatype to represent Library_Built in a janno file
+data SSFLibraryBuilt =
+      SSFDS
+    | SSFSS
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance Show SSFLibraryBuilt where
+    show SSFDS = "ds"
+    show SSFSS = "ss"
+
+makeSSFLibraryBuilt :: MonadFail m => String -> m SSFLibraryBuilt
+makeSSFLibraryBuilt x
+    | x == "ds"    = pure SSFDS
+    | x == "ss"    = pure SSFSS
+    | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss]"
+
+instance Csv.ToField SSFLibraryBuilt where
+    toField x = Csv.toField $ show x
+instance Csv.FromField SSFLibraryBuilt where
+    parseField x = Csv.parseField x >>= makeSSFLibraryBuilt
+instance ToJSON SSFLibraryBuilt where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON SSFLibraryBuilt where
+    parseJSON = withText "SSFLibraryBuilt" (makeSSFLibraryBuilt . T.unpack)
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
@@ -61,6 +118,8 @@ instance FromJSON SeqSourceRows
 -- for more details
 data SeqSourceRow = SeqSourceRow
     { sPoseidonID                :: JannoStringList
+    , sUDG                       :: Maybe SSFUDG
+    , sLibraryBuilt              :: Maybe SSFLibraryBuilt
     , sGeneticSourceAccessionIDs :: AccessionID
     , sAdditionalColumns         :: CsvNamedRecord
     }
@@ -69,7 +128,9 @@ data SeqSourceRow = SeqSourceRow
 -- This header also defines the output column order when writing to csv!
 seqSourceHeader :: [Bchs.ByteString]
 seqSourceHeader = [
-      "Poseidon_ID"
+      "poseidon_IDs"
+    , "udg"
+    , "library_built"
     , "sample_accession"
     ]
 
@@ -90,15 +151,19 @@ instance FromJSON SeqSourceRow
 
 instance Csv.FromNamedRecord SeqSourceRow where
     parseNamedRecord m = SeqSourceRow
-        <$> filterLookup m "Poseidon_ID"
-        <*> filterLookup m "sample_accession"
+        <$> filterLookup m         "poseidon_IDs"
+        <*> filterLookupOptional m "udg"
+        <*> filterLookupOptional m "library_built"
+        <*> filterLookup m         "sample_accession"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
 
 instance Csv.ToNamedRecord SeqSourceRow where
     toNamedRecord s = Csv.namedRecord [
-          "Poseidon_ID"      Csv..= sPoseidonID s
+          "poseidon_IDs"     Csv..= sPoseidonID s
+        , "udg"              Csv..= sUDG s
+        , "library_built"    Csv..= sLibraryBuilt s
         , "sample_accession" Csv..= sGeneticSourceAccessionIDs s
         -- beyond that add what is in the hashmap of additional columns
         ] `HM.union` (getCsvNR $ sAdditionalColumns s)

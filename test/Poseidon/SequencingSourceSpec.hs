@@ -7,7 +7,7 @@ import           Poseidon.Janno            (AccessionID (..),
 import           Poseidon.JannoSpec        (checkEnDe)
 import           Poseidon.SequencingSource (SeqSourceRow (..),
                                             SeqSourceRows (..),
-                                            readSeqSourceFile)
+                                            readSeqSourceFile, SSFUDG (..), SSFLibraryBuilt (..))
 import           Poseidon.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
@@ -23,6 +23,8 @@ testEnAndDecoding :: Spec
 testEnAndDecoding = describe "Poseidon.SequencingSource: JSON and CSV en- and decoding" $ do
     it "should pass smoothly through all relevant en- and decoding cycles" $ do
         -- self defined instances
+        checkEnDe (enumFrom minBound :: [SSFUDG])
+        checkEnDe (enumFrom minBound :: [SSFLibraryBuilt])
         checkEnDe [ -- examples from https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
               INSDCProject "PRJEB12345"
             , INSDCStudy "ERP123456"
@@ -36,11 +38,13 @@ testEnAndDecoding = describe "Poseidon.SequencingSource: JSON and CSV en- and de
 
 testReadSeqSourceFile :: Spec
 testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $ do
-    let normalFullSeqSourcePath = "test/testDat/testSeqSourceFiles/normal_full.tsv"
+    let normalFullSeqSourcePath = "test/testDat/testSeqSourceFiles/normal_full.ssf"
     it "should read normal janno files correctly" $ do
         (SeqSourceRows s) <- testLog $ readSeqSourceFile normalFullSeqSourcePath
         length s `shouldBe` 3
         map sPoseidonID s                `shouldBe` [JannoList ["Ash033.SG"], JannoList ["Ash002.SG"], JannoList ["Ash040.SG"]]
+        map sUDG s                       `shouldBe` [Just SSFMinus, Just SSFHalf, Just SSFPlus]
+        map sLibraryBuilt s              `shouldBe` [Just SSFSS, Just SSFDS, Just SSFDS]
         map sGeneticSourceAccessionIDs s `shouldBe` [INSDCBioSample "SAMEA7050454", INSDCBioSample "SAMEA7050404", INSDCBioSample "SAMEA7050455"]
         map sAdditionalColumns s         `shouldBe` [
               CsvNamedRecord (fromList [
