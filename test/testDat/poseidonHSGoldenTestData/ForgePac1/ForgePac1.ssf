@@ -1,3 +1,3 @@
-Poseidon_ID	sample_accession	other_info_1	other_info_2
-XXX001;XXX002	SAMEA7050478	A	B
-XXX002;XXX004;XXX005	SAMEA7050479	C	D
+poseidon_IDs	udg	library_built	sample_accession	other_info_1	other_info_2
+XXX001;XXX002	n/a	n/a	SAMEA7050478	A	B
+XXX002;XXX004;XXX005	n/a	n/a	SAMEA7050479	C	D

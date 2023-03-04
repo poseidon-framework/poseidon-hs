@@ -119,7 +119,7 @@ addJannoColumnsLamnidis  :: [(ByteString, ByteString)]
 addJannoColumnsLamnidis  = [("AddCol3", "v3"), ("AddCol2", "v2")]
 seqSourceSchiffels :: T.Text
 seqSourceSchiffels = "\
-\Poseidon_ID\tsample_accession\tother_info_1\tother_info_2\n\
+\poseidon_IDs\tsample_accession\tother_info_1\tother_info_2\n\
 \XXX001;XXX002\tSAMEA7050478\tA\tB\n\
 \XXX002;XXX004;XXX005\tSAMEA7050479\tC\tD\n\
 \XXX003\tSAMEA7050480\tE\tF\n\
@@ -127,7 +127,7 @@ seqSourceSchiffels = "\
 \"
 seqSourceWang :: T.Text
 seqSourceWang = "\
-\Poseidon_ID\tsample_accession\tother_info_1\tother_info_2\n\
+\poseidon_IDs\tsample_accession\tother_info_1\tother_info_2\n\
 \SAMPLE1\tSAMEA7050482\tA\tB\n\
 \"
 
