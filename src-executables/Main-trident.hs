@@ -141,7 +141,7 @@ subcommandParser = OP.subparser (
         OP.footerDoc (Just $ string $
                "Output structure\n"
             ++ "Data coverage proportions - 0: ., <0.25: ░, <0.5: ▒, <1: ▓, 1: █\n"
-            ++ ".janno column order - G: Genotype data present, B: Bibliography file present, "
+            ++ ".janno column order - G: Genotype data present, S: .ssf file present, B: .bib file present, "
             ++ intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) ([1..] :: [Int]) jannoHeaderString)
             ))
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
