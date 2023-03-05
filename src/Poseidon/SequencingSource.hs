@@ -5,7 +5,7 @@
 module Poseidon.SequencingSource where
 
 import           Poseidon.Janno             (AccessionID (..),
-                                             CsvNamedRecord (..),
+                                             CsvNamedRecord (..), JURI,
                                              JannoList (..), JannoStringList,
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
@@ -120,7 +120,25 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID                :: JannoStringList
     , sUDG                       :: Maybe SSFUDG
     , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sGeneticSourceAccessionIDs :: AccessionID
+    , sGeneticSourceAccessionIDs :: AccessionID -- could be a specific AccessionID
+    , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
+    , sRunAccession              :: Maybe AccessionID -- could be a specific AccessionID
+    , sSampleAlias               :: Maybe String
+    , sSecondarySampleAccession  :: Maybe String
+    , sFirstPublic               :: Maybe String -- could be a date type
+    , sLastUpdated               :: Maybe String -- could be a date type
+    , sInstrumentModel           :: Maybe String
+    , sLibraryLayout             :: Maybe String
+    , sLibrarySource             :: Maybe String
+    , sInstrumentPlatform        :: Maybe String
+    , sLibraryName               :: Maybe String
+    , sLibraryStrategy           :: Maybe String
+    , sFastqFTP                  :: Maybe JURI
+    , sFastqASPERA               :: Maybe JURI
+    , sFastqBytes                :: Maybe Integer -- integer, not int, because it can be a very large number
+    , sFastqMD5                  :: Maybe String -- could be a dedicated md5 type
+    , sReadCount                 :: Maybe Integer -- integer, not int, because it can be a very large number
+    , sSubmittedFTP              :: Maybe JURI
     , sAdditionalColumns         :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
@@ -132,6 +150,24 @@ seqSourceHeader = [
     , "udg"
     , "library_built"
     , "sample_accession"
+    , "study_accession"
+    , "run_accession"
+    , "sample_alias"
+    , "secondary_sample_accession"
+    , "first_public"
+    , "last_updated"
+    , "instrument_model"
+    , "library_layout"
+    , "library_source"
+    , "instrument_platform"
+    , "library_name"
+    , "library_strategy"
+    , "fastq_ftp"
+    , "fastq_aspera"
+    , "fastq_bytes"
+    , "fastq_md5"
+    , "read_count"
+    , "submitted_ftp"
     ]
 
 instance Csv.DefaultOrdered SeqSourceRow where
@@ -155,16 +191,52 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <*> filterLookupOptional m "udg"
         <*> filterLookupOptional m "library_built"
         <*> filterLookup m         "sample_accession"
+        <*> filterLookupOptional m "study_accession"
+        <*> filterLookupOptional m "run_accession"
+        <*> filterLookupOptional m "sample_alias"
+        <*> filterLookupOptional m "secondary_sample_accession"
+        <*> filterLookupOptional m "first_public"
+        <*> filterLookupOptional m "last_updated"
+        <*> filterLookupOptional m "instrument_model"
+        <*> filterLookupOptional m "library_layout"
+        <*> filterLookupOptional m "library_source"
+        <*> filterLookupOptional m "instrument_platform"
+        <*> filterLookupOptional m "library_name"
+        <*> filterLookupOptional m "library_strategy"
+        <*> filterLookupOptional m "fastq_ftp"
+        <*> filterLookupOptional m "fastq_aspera"
+        <*> filterLookupOptional m "fastq_bytes"
+        <*> filterLookupOptional m "fastq_md5"
+        <*> filterLookupOptional m "read_count"
+        <*> filterLookupOptional m "submitted_ftp"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
 
 instance Csv.ToNamedRecord SeqSourceRow where
     toNamedRecord s = Csv.namedRecord [
-          "poseidon_IDs"     Csv..= sPoseidonID s
-        , "udg"              Csv..= sUDG s
-        , "library_built"    Csv..= sLibraryBuilt s
-        , "sample_accession" Csv..= sGeneticSourceAccessionIDs s
+          "poseidon_IDs"               Csv..= sPoseidonID s
+        , "udg"                        Csv..= sUDG s
+        , "library_built"              Csv..= sLibraryBuilt s
+        , "sample_accession"           Csv..= sGeneticSourceAccessionIDs s
+        , "study_accession"            Csv..= sStudyAccession s
+        , "run_accession"              Csv..= sRunAccession s
+        , "sample_alias"               Csv..= sSampleAlias s
+        , "secondary_sample_accession" Csv..= sSecondarySampleAccession s
+        , "first_public"               Csv..= sFirstPublic s
+        , "last_updated"               Csv..= sLastUpdated s
+        , "instrument_model"           Csv..= sInstrumentModel s
+        , "library_layout"             Csv..= sLibraryLayout s
+        , "library_source"             Csv..= sLibrarySource s
+        , "instrument_platform"        Csv..= sInstrumentPlatform s
+        , "library_name"               Csv..= sLibraryName s
+        , "library_strategy"           Csv..= sLibraryStrategy s
+        , "fastq_ftp"                  Csv..= sFastqFTP s
+        , "fastq_aspera"               Csv..= sFastqASPERA s
+        , "fastq_bytes"                Csv..= sFastqBytes s
+        , "fastq_md5"                  Csv..= sFastqMD5 s
+        , "read_count"                 Csv..= sReadCount s
+        , "submitted_ftp"              Csv..= sSubmittedFTP s
         -- beyond that add what is in the hashmap of additional columns
         ] `HM.union` (getCsvNR $ sAdditionalColumns s)
 

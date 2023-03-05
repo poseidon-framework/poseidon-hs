@@ -73,7 +73,7 @@ import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
-import           Network.URI                          (isURI)
+import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
@@ -409,8 +409,8 @@ instance Show JURI where
 
 makeJURI :: MonadFail m => String -> m JURI
 makeJURI x
-    | isURI x   = pure $ JURI x
-    | otherwise = fail $ "URI " ++ show x ++ " not well structured"
+    | isURIReference x   = pure $ JURI x
+    | otherwise          = fail $ "URI " ++ show x ++ " not well structured"
 
 instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
