@@ -17,8 +17,8 @@ c27895a4e15eb46f0d4473cd37488cae list list2
 05ea5297f10834da67f1ff5fe303ce40 list list4
 a27f3820e0d0893aedfd37666e6f0c15 summarise summarise1
 88cef92d61b209f7ee57dbc9791d79bd summarise summarise2
-aea57915a3e5e21fbd862a34e10c8950 survey survey1
-2edf0e993cb36ecca63f4a01bf2b395b survey survey2
+6933a8c68ede8b8dfd1902c85ab69f0c survey survey1
+bbb943d2a78e9169dd6404c9c3a90785 survey survey2
 3feaa876c5d05fd000470c5ba840cc2d genoconvert Wang/Wang.geno
 b46831b007c2d53a12b472484b7b00b4 genoconvert Wang/Wang.snp
 2faf8a7b87037451d4fd5ae9cc9af460 genoconvert Wang/Wang.ind
