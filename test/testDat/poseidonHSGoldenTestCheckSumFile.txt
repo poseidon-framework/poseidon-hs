@@ -1,11 +1,11 @@
 Checksums for trident CLI output
 Automatically generated with: poseidon-devtools updateGoldenTests
 
-0c8bfe1406be07467ca1d16b3c393f9f init Schiffels/POSEIDON.yml
+53087b4a4205580843b59a5036fc97e2 init Schiffels/POSEIDON.yml
 74e34fcd64327d9a6184316d90251b4c init Schiffels/Schiffels.janno
 0332344057c0c4dce2ff7176f8e1103d init Schiffels/geno.txt
 66fee695ba94e12688567db73c0f2830 init Schiffels/Schiffels.bib
-9325eb122307e1f33a2796c55b84b34e init Wang/POSEIDON.yml
+cd1a412838f6a2aa30ecd5b6d3484773 init Wang/POSEIDON.yml
 ae66d851301f4a761b819f97ec28fa55 init Wang/Wang_2020.bed
 5f35cc7261913b7fe3f35297ff9aae91 init Lamnidis/Lamnidis.janno
 d41d8cd98f00b204e9800998ecf8427e validate validate1
@@ -31,28 +31,28 @@ a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert Schiffels/geno.fam
 3c38f40efe215a047c02f4e98e0390da genoconvert Schiffels_otherPlinkEncoding/Schiffels.bed
 8538ffd971ebb12cf5ef6e338da27970 genoconvert Schiffels_otherPlinkEncoding/Schiffels.bim
 eb8cfdda25991c8477da5abb84681f2b genoconvert Schiffels_otherPlinkEncoding/Schiffels.fam
-bf7867f66626b323419e4a2eda2027ea update Schiffels/POSEIDON.yml
+37efe3f9fb1c177af674c7bb979c5721 update Schiffels/POSEIDON.yml
 4aeae97cfc44b55b2a8005425d786148 update Schiffels/CHANGELOG.md
-8defa235fe1fa7fc5bc4c00a5b7a00ad update Schiffels/POSEIDON.yml
+6d67ed89764bfeef9c072ccd8dbb997b update Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b update Schiffels/CHANGELOG.md
-2b7a48ad03d3add533d8b01f5a961632 update Schiffels/POSEIDON.yml
+f47a01f15aeed782b8ba0925c8f80a2f update Schiffels/POSEIDON.yml
 fdda0f630a68f0da74e35a21d8f748a8 update Schiffels/CHANGELOG.md
-ff829b5fb374aa60107f1f3e8a2d034a forge ForgePac1/POSEIDON.yml
+13cc594805fa41cacdebacc2b5f385ed forge ForgePac1/POSEIDON.yml
 1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac1/ForgePac1.geno
 78666277be354d5da826a5afbe9cebf1 forge ForgePac1/ForgePac1.janno
-c5bcbdda54549a1319a4f378a5cad26d forge ForgePac2/POSEIDON.yml
+3f43e16cf4d9cb2d4d5fd90d596f1ebd forge ForgePac2/POSEIDON.yml
 6010163f73dc9cf5185933fc7a0333df forge ForgePac2/ForgePac2.bed
-e2172ae6c5e77fd71c5d7c16272c3ffd forge ForgePac3/POSEIDON.yml
+d483b9b6dcc7c803286ebc53548c3492 forge ForgePac3/POSEIDON.yml
 7bd06bf634e6c29815a74532f696d753 forge ForgePac3/ForgePac3.geno
 d817ecc64d504e1351d85996903f09b2 forge ForgePac3/ForgePac3.snp
 ad8add34e464ee620bb392c00636e7f2 forge ForgePac3/ForgePac3.ind
 3765f2e426f308ff61c94f7fe989ec0b forge ForgePac3/ForgePac3.janno
-13113ec50e3b248c6bf196e2d3766d7d forge ForgePac4/POSEIDON.yml
+f6efa36b30ea42e736890ce757721786 forge ForgePac4/POSEIDON.yml
 f348944d864cbaa595f138b11d154248 forge ForgePac4/ForgePac4.bim
 217cbb31258a3a7c9522d8dc9bda2386 forge ForgePac4/ForgePac4.bed
 3001829ad782e27375a6132583c16f05 forge ForgePac4/ForgePac4.fam
 04ce7a5c8956b2bc48e1ed39f1751d3a forge ForgePac4/ForgePac4.janno
-24a133dbf36bf2bf3ddafb0d51d8681f forge ForgePac5/POSEIDON.yml
+0fd08a9a28a8743966f4b27c1fa0f727 forge ForgePac5/POSEIDON.yml
 5a3783db28cf9da6356b3c6105564be5 forge ForgePac5/ForgePac5.geno
 efc400b90b9cba2531e7bcf633770749 forge ForgePac5/ForgePac5.janno
 1286a2580e4bfbed7d804d5f3fe125f7 forge ForgePac6/ForgePac6.geno
