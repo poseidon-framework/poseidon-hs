@@ -320,12 +320,12 @@ makeJannoCountryEither x =
 
 makeJannoCountryUnsafe :: String -> JannoCountry
 makeJannoCountryUnsafe x = case makeJannoCountryEither x of
-    Left e -> error . show $ e
+    Left e  -> error . show $ e
     Right r -> r
 
 makeJannoCountry :: (MonadFail m) => String -> m JannoCountry
 makeJannoCountry x = case makeJannoCountryEither x of
-    Left e -> fail . show $ e
+    Left e  -> fail . show $ e
     Right r -> return r
 
 instance Csv.ToField JannoCountry where
