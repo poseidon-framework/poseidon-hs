@@ -59,8 +59,8 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- print information
     (tableH, tableB) <- do
         let tableH = ["Package", "Survey"]
-        tableB <- forM (zip5 packageNames genoTypeDataExists jannos ssfs bibs) $ \pac -> do
-            return [extractFirst pac, renderPackageWithCompleteness pac]
+        tableB <- forM (zip5 packageNames genoTypeDataExists jannos ssfs bibs) $ \(p, g, j, s, b) -> do
+            return [p, renderPackageWithCompleteness p g j s b]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
     if rawOutput
@@ -69,11 +69,8 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- print help
     logInfo "see trident survey -h for a list of column names"
 
-extractFirst :: (a, b, c, d, e) -> a
-extractFirst (a,_,_,_,_) = a
-
-renderPackageWithCompleteness :: (String, Bool, JannoRows, SeqSourceRows, BibTeX) -> String
-renderPackageWithCompleteness (_,genoTypeDataExists,janno,SeqSourceRows seqSource,bib) =
+renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
+renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSource) bib =
        (if genoTypeDataExists then "G" else ".")
     ++ (if not (null seqSource) then "S" else ".")
     ++ (if not (null bib) then "B" else ".")

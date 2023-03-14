@@ -312,17 +312,21 @@ newtype JannoCountry = JannoCountry Country
 instance Show JannoCountry where
     show (JannoCountry x) = T.unpack $ alphaTwoUpper x
 
-makeJannoCountryUnsafe :: String -> JannoCountry
-makeJannoCountryUnsafe x =
+makeJannoCountryEither :: String -> Either PoseidonException JannoCountry
+makeJannoCountryEither x =
     case decodeAlphaTwo (T.pack x) of
-        Just c  -> JannoCountry c
-        Nothing -> error $ x ++ " is not a valid ISO-alpha2 code describing an existing country"
+        Just c  -> Right $ JannoCountry c
+        Nothing -> Left . PoseidonGenericException $ x ++ " is not a valid ISO-alpha2 code describing an existing country"
 
-makeJannoCountry :: MonadFail m => String -> m JannoCountry
-makeJannoCountry x =
-    case decodeAlphaTwo (T.pack x) of
-        Just c  -> pure $ JannoCountry c
-        Nothing -> fail $ x ++ " is not a valid ISO-alpha2 code describing an existing country"
+makeJannoCountryUnsafe :: String -> JannoCountry
+makeJannoCountryUnsafe x = case makeJannoCountryEither x of
+    Left e -> error . show $ e
+    Right r -> r
+
+makeJannoCountry :: (MonadFail m) => String -> m JannoCountry
+makeJannoCountry x = case makeJannoCountryEither x of
+    Left e -> fail . show $ e
+    Right r -> return r
 
 instance Csv.ToField JannoCountry where
     toField x = Csv.toField $ show x
