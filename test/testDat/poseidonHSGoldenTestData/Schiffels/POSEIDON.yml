@@ -23,6 +23,7 @@ genotypeData:
 jannoFile: Schiffels.janno
 jannoFileChkSum: 74e34fcd64327d9a6184316d90251b4c
 sequencingSourceFile: ena_table.ssf
+sequencingSourceFileChkSum: 5d1f89b504dffe16320f36fd5b00e6ab
 bibFile: Schiffels.bib
 bibFileChkSum: 66fee695ba94e12688567db73c0f2830
 changelogFile: CHANGELOG.md
