@@ -29,15 +29,18 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
-import           Poseidon.Janno             (JannoList (..), JannoRow (..),
+import           Poseidon.Janno             (JannoLibraryBuilt (..),
+                                             JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
-                                             createMinimalJanno, readJannoFile)
+                                             JannoUDG (..), createMinimalJanno,
+                                             readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..), ORCID (..))
-import           Poseidon.SequencingSource  (SeqSourceRow (..),
+import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
+                                             SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
 import           Poseidon.Utils             (LogA, PoseidonException (..),
@@ -482,12 +485,50 @@ zipWithPadding _ b xs     []     = zip xs (repeat b)
 
 checkSeqSourceJannoConsistency :: String -> SeqSourceRows -> JannoRows -> PoseidonIO ()
 checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) = do
-    let seqSourceIDs = nub $ concatMap (getJannoList . sPoseidonID) sRows
-        jannoIDs = map jPoseidonID jRows
-        misMatch = seqSourceIDs \\ jannoIDs
-    unless (null misMatch) $ do
-        logWarning $ "The sequencingSourceFile in the package " ++ pacName ++
-            " features Poseidon_IDs that are not in the package: " ++ intercalate ", " misMatch
+    checkPoseidonIDOverlap
+    checkUDGandLibraryBuiltOverlap
+    where
+        js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
+        ss = map (\r -> (getJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        checkPoseidonIDOverlap :: PoseidonIO ()
+        checkPoseidonIDOverlap = do
+            let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
+                misMatch = flatSeqSourceIDs \\ [a | (a,_,_) <- js]
+            unless (null misMatch) $ do
+                logWarning $ "The .ssf file in the package " ++ pacName ++
+                    " features Poseidon_IDs that are not in the package: " ++ intercalate ", " misMatch
+        checkUDGandLibraryBuiltOverlap :: PoseidonIO ()
+        checkUDGandLibraryBuiltOverlap = do
+            mapM_ checkOneIndividual js
+            where
+                checkOneIndividual :: (String, Maybe JannoUDG, Maybe JannoLibraryBuilt) -> PoseidonIO ()
+                checkOneIndividual (jannoPoseidonID, jannoUDG, jannoLibraryBuilt) = do
+                    let relevantSeqSourceRows = filter (\(seqSourcePoseidonID,_,_) -> jannoPoseidonID `elem` seqSourcePoseidonID) ss
+                        allSeqSourceUDGs = catMaybes $ [b | (_,b,_) <- relevantSeqSourceRows]
+                        allSeqSourceLibraryBuilts = catMaybes $ [c | (_,_,c) <- relevantSeqSourceRows]
+                    case jannoUDG of
+                        Nothing -> return ()
+                        Just j -> unless (all (compareU j) allSeqSourceUDGs) $
+                            throwM $ PoseidonCrossFileConsistencyException pacName $
+                            "The information on UDG treatment in .janno and .ssf do not match" ++
+                            " for the individual: " ++ jannoPoseidonID
+                    case jannoLibraryBuilt of
+                        Nothing -> return ()
+                        Just j -> unless (all (compareL j) allSeqSourceLibraryBuilts) $
+                            throwM $ PoseidonCrossFileConsistencyException pacName $
+                            "The information on library strandedness in .janno and .ssf do not match" ++
+                            " for the individual: " ++ jannoPoseidonID
+                compareU :: JannoUDG -> SSFUDG -> Bool
+                compareU Mixed _        = True
+                compareU Minus SSFMinus = True
+                compareU Half  SSFHalf  = True
+                compareU Plus  SSFPlus  = True
+                compareU _     _        = False
+                compareL :: JannoLibraryBuilt -> SSFLibraryBuilt -> Bool
+                compareL MixedSSDS _     = True
+                compareL DS        SSFDS = True
+                compareL SS        SSFSS = True
+                compareL _         _     = False
 
 checkJannoBibConsistency :: String -> JannoRows -> BibTeX -> IO ()
 checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
