@@ -31,23 +31,15 @@ jobs:
     - name: Cache ~/.stack
       uses: freckle/stack-cache-action@v2
 
-    # basic build test
     - name: Build
       run: |
         stack build \
         --system-ghc \
         --test \
+        --coverage \
         --bench \
-        --no-run-tests \
         --no-run-benchmarks \
         --pedantic
-
-    # run tests and deploy coverage
-    - name: Test
-      run: |
-        stack test \
-        --system-ghc \
-        --coverage
 
     - name: Generate coverage report
       uses: 8c6794b6/hpc-codecov-action@v2
