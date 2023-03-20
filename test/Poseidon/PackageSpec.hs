@@ -104,6 +104,8 @@ truePackageRelPaths = PoseidonYamlStruct {
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
+    _posYamlSeqSourceFile       = Nothing,
+    _posYamlSeqSourceFileChkSum = Nothing,
     _posYamlBibFile         = Just "sources.bib",
     _posYamlBibFileChkSum   = Nothing,
     _posYamlReadmeFile      = Nothing,

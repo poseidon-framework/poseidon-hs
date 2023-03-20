@@ -1,3 +1,4 @@
+- V 1.1.11.0: Implemented the changes and additions for the new schema release Poseidon v2.7.0: The sequencingSourceFile (.ssf) file, the new .janno columns (Country_ISO, Library_Names) and the small changes to existing columns (Library_Built).
 - V 1.1.10.2: Added a missing default (`asFamily`) for the `--outPlinkPopName` option
 - V 1.1.10.1: Internal refactoring. Introduced a newtype wrapper `JannoRows` for `[JannoRow]`, which is an instance of `Monoid`. This should encourage the use of a dedicated implementation of `mconcat` for `JannoRows`
 - V 1.1.10.0: Added an option to `validate` (and therefore `readPoseidonPackage`) to test parsing the entire .bed/.geno file, not just the first 100 SNPs

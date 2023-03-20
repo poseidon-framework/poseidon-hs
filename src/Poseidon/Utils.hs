@@ -146,8 +146,8 @@ data PoseidonException =
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
     | PoseidonGenotypeExceptionForward SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
-    | PoseidonJannoRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the .janno file
-    | PoseidonJannoConsistencyException FilePath String -- ^ An exception to represent within-janno consistency errors
+    | PoseidonFileRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the janno or seqSource file
+    | PoseidonFileConsistencyException FilePath String -- ^ An exception to represent consistency errors in janno or seqSource files
     | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
     | PoseidonCollectionException String -- ^ An exception to represent logical issues in a poseidon package Collection
     | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
@@ -185,10 +185,10 @@ renderPoseidonException (PoseidonGenotypeException s) =
     "Genotype data structurally inconsistent: " ++ show s
 renderPoseidonException (PoseidonGenotypeExceptionForward e) =
     "Issues in genotype data parsing: " ++ show e
-renderPoseidonException (PoseidonJannoRowException f i s) =
+renderPoseidonException (PoseidonFileRowException f i s) =
     "Can't read sample in " ++ f ++ " in line " ++ show i ++ ": " ++ s
-renderPoseidonException (PoseidonJannoConsistencyException f s) =
-    "Consistency issues in .janno file " ++ f ++ ": " ++ s
+renderPoseidonException (PoseidonFileConsistencyException f s) =
+    "Consistency issues in file " ++ f ++ ": " ++ s
 renderPoseidonException (PoseidonCrossFileConsistencyException p s) =
     "Cross-file consistency issue in package " ++ p ++ ": " ++ s
 renderPoseidonException (PoseidonCollectionException s) =

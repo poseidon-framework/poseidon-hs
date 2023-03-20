@@ -51,7 +51,7 @@ runInit (InitOptions gd outPathRaw maybeOutName minimal) = do
     inds <- loadIndividuals outPath genotypeData
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
+           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) mempty [dummyBibEntry]
     -- POSEIDON.yml
     logInfo "Creating POSEIDON.yml"
     liftIO $ writePoseidonPackage pac

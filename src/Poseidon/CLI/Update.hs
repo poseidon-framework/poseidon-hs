@@ -116,11 +116,15 @@ updateChecksums ignoreGeno pac = do
     jannoChkSum <- case posPacJannoFile pac of
         Nothing -> return $ posPacJannoFileChkSum pac
         Just fn -> Just <$> getChecksum (d </> fn)
+    seqSourceChkSum <- case posPacSeqSourceFile pac of
+        Nothing -> return $ posPacSeqSourceFileChkSum pac
+        Just fn -> Just <$> getChecksum (d </> fn)
     bibChkSum <- case posPacBibFile pac of
         Nothing -> return $ posPacBibFileChkSum pac
         Just fn -> Just <$> getChecksum (d </> fn)
     let newPac1 = pac {
             posPacJannoFileChkSum = jannoChkSum,
+            posPacSeqSourceFileChkSum = seqSourceChkSum,
             posPacBibFileChkSum = bibChkSum
         }
     if ignoreGeno

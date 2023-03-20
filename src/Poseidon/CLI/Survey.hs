@@ -2,24 +2,26 @@
 
 module Poseidon.CLI.Survey where
 
-import           Poseidon.BibFile       (BibTeX)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
-import           Poseidon.Janno         (JannoRow (..), JannoRows (..))
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO, logInfo)
+import           Poseidon.BibFile          (BibTeX)
+import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
+import           Poseidon.Janno            (JannoRow (..), JannoRows (..))
+import           Poseidon.Package          (PackageReadOptions (..),
+                                            PoseidonPackage (..),
+                                            defaultPackageReadOptions,
+                                            readPoseidonPackageCollection)
+import           Poseidon.Utils            (PoseidonIO, logInfo)
 
-import           Control.Monad          (forM)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (intercalate, unfoldr, zip4)
-import           Data.Maybe             (isJust)
-import           Data.Ratio             (Ratio, (%))
-import           System.Directory       (doesFileExist)
-import           System.FilePath        ((</>))
-import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
-                                         rowsG, tableString, titlesH)
+import           Control.Monad             (forM)
+import           Control.Monad.IO.Class    (liftIO)
+import           Data.List                 (intercalate, unfoldr, zip5)
+import           Data.Maybe                (isJust)
+import           Data.Ratio                (Ratio, (%))
+import           Poseidon.SequencingSource (SeqSourceRows (..))
+import           System.Directory          (doesFileExist)
+import           System.FilePath           ((</>))
+import           Text.Layout.Table         (asciiRoundS, column, def,
+                                            expandUntil, rowsG, tableString,
+                                            titlesH)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -50,13 +52,15 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
     let jannos = map posPacJanno allPackages
+    -- ssf
+    let ssfs = map posPacSeqSource allPackages
     -- bib
     let bibs = map posPacBib allPackages
     -- print information
     (tableH, tableB) <- do
         let tableH = ["Package", "Survey"]
-        tableB <- forM (zip4 packageNames genoTypeDataExists jannos bibs) $ \pac -> do
-            return [extractFirst pac, renderPackageWithCompleteness pac]
+        tableB <- forM (zip5 packageNames genoTypeDataExists jannos ssfs bibs) $ \(p, g, j, s, b) -> do
+            return [p, renderPackageWithCompleteness p g j s b]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
     if rawOutput
@@ -65,12 +69,10 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- print help
     logInfo "see trident survey -h for a list of column names"
 
-extractFirst :: (a, b, c, d) -> a
-extractFirst (a,_,_,_) = a
-
-renderPackageWithCompleteness :: (String, Bool, JannoRows, BibTeX) -> String
-renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
+renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
+renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSource) bib =
        (if genoTypeDataExists then "G" else ".")
+    ++ (if not (null seqSource) then "S" else ".")
     ++ (if not (null bib) then "B" else ".")
     ++ "|"
     ++ insertEveryN 5 '|' (renderJannoCompleteness janno)
@@ -93,6 +95,7 @@ renderJannoCompleteness jS =
     : getColChar jS jRelationNote
     : getColChar jS jCollectionID
     : getColChar jS jCountry
+    : getColChar jS jCountryISO
     : getColChar jS jLocation
     : getColChar jS jSite
     : getColChar jS jLatitude
@@ -109,6 +112,7 @@ renderJannoCompleteness jS =
     : getColChar jS jYHaplogroup
     : getColChar jS jSourceTissue
     : getColChar jS jNrLibraries
+    : getColChar jS jLibraryNames
     : getColChar jS jCaptureType
     : getColChar jS jUDG
     : getColChar jS jLibraryBuilt

@@ -31,6 +31,9 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
 import           Poseidon.SecondaryTypes     (IndividualInfo (..))
+import           Poseidon.SequencingSource   (SeqSourceRow (..),
+                                              SeqSourceRows (..),
+                                              writeSeqSourceFile)
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
@@ -146,8 +149,12 @@ runForge (
 
     -- collect data --
     -- janno
-    let (JannoRows rows) = getJointJanno relevantPackages
-        newJanno@(JannoRows relevantJannoRows) = JannoRows $ map (rows !!) relevantIndices
+    let (JannoRows jannoRows) = getJointJanno relevantPackages
+        newJanno@(JannoRows relevantJannoRows) = JannoRows $ map (jannoRows !!) relevantIndices
+
+    -- seqSource
+    let seqSourceRows = mconcat $ map posPacSeqSource relevantPackages
+        relevantSeqSourceRows = filterSeqSourceRows newJanno seqSourceRows
 
     -- bib
     let bibEntries = concatMap posPacBib relevantPackages
@@ -174,13 +181,23 @@ runForge (
     logInfo "Creating new package entity"
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate outPath outName genotypeData (Just (Right newJanno)) relevantBibEntries
+           else newPackageTemplate
+                    outPath
+                    outName
+                    genotypeData
+                    (Just (Right newJanno))
+                    relevantSeqSourceRows
+                    relevantBibEntries
 
     -- write new package to the file system --
     -- POSEIDON.yml
     unless onlyGeno $ do
         logInfo "Creating POSEIDON.yml"
         liftIO $ writePoseidonPackage pac
+    -- bib
+    unless (minimal || onlyGeno || null (getSeqSourceRowList relevantSeqSourceRows)) $ do
+        logInfo "Creating .ssf file"
+        liftIO $ writeSeqSourceFile (outPath </> outName <.> "ssf") relevantSeqSourceRows
     -- bib
     unless (minimal || onlyGeno || null relevantBibEntries) $ do
         logInfo "Creating .bib file"
@@ -230,6 +247,16 @@ sumNonMissingSNPs accumulator (_, geno) = do
     nonMissingToInt x
         | x == Missing = 0
         | otherwise = 1
+
+filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
+filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
+    let desiredPoseidonIDs = map jPoseidonID jRows
+    in SeqSourceRows $ filter (hasAPoseidonID desiredPoseidonIDs) sRows
+    where
+        hasAPoseidonID :: [String] -> SeqSourceRow -> Bool
+        hasAPoseidonID jIDs seqSourceRows =
+            let sIDs = getJannoList $ sPoseidonID seqSourceRows
+            in any (`elem` jIDs) sIDs
 
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 filterBibEntries (JannoRows rows) references_ =

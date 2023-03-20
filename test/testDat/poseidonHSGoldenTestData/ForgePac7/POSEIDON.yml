@@ -1,4 +1,4 @@
-poseidonVersion: 2.6.0
+poseidonVersion: 2.7.0
 title: ForgePac7
 description: Empty package template. Please add a description
 contributor:
@@ -14,3 +14,4 @@ genotypeData:
   indFile: ForgePac7.ind
   snpSet: Other
 jannoFile: ForgePac7.janno
+sequencingSourceFile: ForgePac7.ssf

@@ -1,4 +1,4 @@
-poseidonVersion: 2.6.0
+poseidonVersion: 2.7.0
 title: Wang
 genotypeData:
   format: EIGENSTRAT
@@ -6,3 +6,4 @@ genotypeData:
   snpFile: Wang.snp
   indFile: Wang.ind
   snpSet: Other
+sequencingSourceFile: ena_table.ssf

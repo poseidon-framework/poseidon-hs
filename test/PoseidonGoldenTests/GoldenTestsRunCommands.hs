@@ -113,6 +113,53 @@ runCLICommands interactive testDir checkFilePath testPacsDir testEntityFiles = d
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
 
+addJannoColumnsSchiffels :: [(ByteString, ByteString)]
+addJannoColumnsSchiffels = [("AddCol1", "v1"), ("AddCol2", "v2")]
+addJannoColumnsLamnidis  :: [(ByteString, ByteString)]
+addJannoColumnsLamnidis  = [("AddCol3", "v3"), ("AddCol2", "v2")]
+seqSourceSchiffels :: T.Text
+seqSourceSchiffels = "\
+\poseidon_IDs\tsample_accession\tother_info_1\tother_info_2\n\
+\XXX001;XXX002\tSAMEA7050478\tA\tB\n\
+\XXX002;XXX004;XXX005\tSAMEA7050479\tC\tD\n\
+\XXX003\tSAMEA7050480\tE\tF\n\
+\XXX001\tSAMEA7050481\tG\tH\n\
+\"
+seqSourceWang :: T.Text
+seqSourceWang = "\
+\poseidon_IDs\tsample_accession\tother_info_1\tother_info_2\n\
+\SAMPLE1\tSAMEA7050482\tA\tB\n\
+\"
+
+patchLastModified :: FilePath -> FilePath -> IO ()
+patchLastModified testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "lastModified" `T.isPrefixOf` l
+                then return "lastModified: 1970-01-01"
+                else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+addAdditionalColumnsToJanno :: [(ByteString, ByteString)] -> FilePath -> FilePath -> IO ()
+addAdditionalColumnsToJanno toAdd testDir jannoFile = do
+    (JannoRows rows) <- testLog $ readJannoFile (testDir </> jannoFile)
+    let modifiedJanno = map (addVariables toAdd) rows
+    writeJannoFile (testDir </> jannoFile) (JannoRows modifiedJanno)
+    where
+        addVariables :: [(ByteString, ByteString)] -> JannoRow -> JannoRow
+        addVariables a x = x {
+                jAdditionalColumns = CsvNamedRecord (fromList a) }
+
+addSequencingSourceFile :: T.Text -> FilePath -> FilePath -> FilePath -> IO ()
+addSequencingSourceFile toAdd testDir seqSourceFile yamlFile = do
+    -- create .ssf file
+    T.writeFile (testDir </> seqSourceFile) toAdd
+    -- add file to yml file
+    ymlLines <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = ymlLines <> ["sequencingSourceFile: ena_table.ssf"]
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
 testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
 testPipelineInit testDir checkFilePath testPacsDir = do
     let initOpts1 = InitOptions {
@@ -132,7 +179,8 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     }
     let action = testLog (runInit initOpts1) >>
                  patchLastModified testDir ("Schiffels" </> "POSEIDON.yml") >>
-                 addAdditionalColumnsToJanno [("AddCol1", "v1"), ("AddCol2", "v2")] testDir ("Schiffels" </> "Schiffels.janno")
+                 addAdditionalColumnsToJanno addJannoColumnsSchiffels testDir ("Schiffels" </> "Schiffels.janno") >>
+                 addSequencingSourceFile seqSourceSchiffels testDir ("Schiffels" </> "ena_table.ssf") ("Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action "init" [
           "Schiffels" </> "POSEIDON.yml"
         , "Schiffels" </> "Schiffels.janno"
@@ -155,7 +203,8 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initMinimal   = True
     }
     let action2 = testLog (runInit initOpts2) >>
-                  patchLastModified testDir ("Wang" </> "POSEIDON.yml")
+                  patchLastModified testDir ("Wang" </> "POSEIDON.yml") >>
+                  addSequencingSourceFile seqSourceWang testDir ("Wang" </> "ena_table.ssf") ("Wang" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "init" [
           "Wang" </> "POSEIDON.yml"
         , "Wang" </> "Wang_2020.bed"
@@ -177,7 +226,7 @@ testPipelineInit testDir checkFilePath testPacsDir = do
     }
     let action3 = testLog (runInit initOpts3) >>
                   patchLastModified testDir ("Lamnidis" </> "POSEIDON.yml") >>
-                  addAdditionalColumnsToJanno [("AddCol3", "v3"), ("AddCol2", "v2")] testDir ("Lamnidis" </> "Lamnidis.janno")
+                  addAdditionalColumnsToJanno addJannoColumnsLamnidis testDir ("Lamnidis" </> "Lamnidis.janno")
     runAndChecksumFiles checkFilePath testDir action3 "init" [
           "Lamnidis" </> "Lamnidis.janno"
         ]
@@ -197,26 +246,6 @@ testPipelineInit testDir checkFilePath testPacsDir = do
         , _initPacName      = Nothing
         , _initMinimal      = True
     }) >> patchLastModified testDir ("Schmid" </> "POSEIDON.yml")
-
-patchLastModified :: FilePath -> FilePath -> IO ()
-patchLastModified testDir yamlFile = do
-    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = do
-            l <- lines_
-            if "lastModified" `T.isPrefixOf` l
-                then return "lastModified: 1970-01-01"
-                else return l
-    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
-
-addAdditionalColumnsToJanno :: [(ByteString, ByteString)] -> FilePath -> FilePath -> IO ()
-addAdditionalColumnsToJanno toAdd testDir jannoFile = do
-    (JannoRows rows) <- testLog $ readJannoFile (testDir </> jannoFile)
-    let modifiedJanno = map (addVariables toAdd) rows
-    writeJannoFile (testDir </> jannoFile) (JannoRows modifiedJanno)
-    where
-        addVariables :: [(ByteString, ByteString)] -> JannoRow -> JannoRow
-        addVariables a x = x {
-                jAdditionalColumns = CsvNamedRecord (fromList a) }
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
