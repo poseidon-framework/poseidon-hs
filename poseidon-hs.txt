@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.10.2
+@version 1.1.11.0
 
 module Poseidon.MathHelpers
 
@@ -152,11 +152,13 @@ PoseidonGenotypeException :: String -> PoseidonException
 --   the sequence-formats library
 PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
 
--- | An exception to represent errors when trying to parse the .janno file
-PoseidonJannoRowException :: FilePath -> Int -> String -> PoseidonException
+-- | An exception to represent errors when trying to parse the janno or
+--   seqSource file
+PoseidonFileRowException :: FilePath -> Int -> String -> PoseidonException
 
--- | An exception to represent within-janno consistency errors
-PoseidonJannoConsistencyException :: FilePath -> String -> PoseidonException
+-- | An exception to represent consistency errors in janno or seqSource
+--   files
+PoseidonFileConsistencyException :: FilePath -> String -> PoseidonException
 
 -- | An exception to represent inconsistencies across multiple files in a
 --   package
@@ -240,7 +242,7 @@ module Poseidon.Janno
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv</a>
 --   for more details
 data JannoRow
-JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe JannoAccessionIDList -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> CsvNamedRecord -> JannoRow
+JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoCountry -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe JannoStringList -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe (JannoList AccessionID) -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> CsvNamedRecord -> JannoRow
 [jPoseidonID] :: JannoRow -> String
 [jAlternativeIDs] :: JannoRow -> Maybe JannoStringList
 [jRelationTo] :: JannoRow -> Maybe JannoStringList
@@ -250,6 +252,7 @@ JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe Ja
 [jCollectionID] :: JannoRow -> Maybe String
 [jSourceTissue] :: JannoRow -> Maybe JannoStringList
 [jCountry] :: JannoRow -> Maybe String
+[jCountryISO] :: JannoRow -> Maybe JannoCountry
 [jLocation] :: JannoRow -> Maybe String
 [jSite] :: JannoRow -> Maybe String
 [jLatitude] :: JannoRow -> Maybe Latitude
@@ -263,6 +266,7 @@ JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe Ja
 [jDateType] :: JannoRow -> Maybe JannoDateType
 [jDateNote] :: JannoRow -> Maybe String
 [jNrLibraries] :: JannoRow -> Maybe Int
+[jLibraryNames] :: JannoRow -> Maybe JannoStringList
 [jCaptureType] :: JannoRow -> Maybe (JannoList JannoCaptureType)
 [jGenotypePloidy] :: JannoRow -> Maybe JannoGenotypePloidy
 [jGroupName] :: JannoRow -> JannoStringList
@@ -279,7 +283,7 @@ JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe Ja
 [jContaminationErr] :: JannoRow -> Maybe JannoStringList
 [jContaminationMeas] :: JannoRow -> Maybe JannoStringList
 [jContaminationNote] :: JannoRow -> Maybe String
-[jGeneticSourceAccessionIDs] :: JannoRow -> Maybe JannoAccessionIDList
+[jGeneticSourceAccessionIDs] :: JannoRow -> Maybe (JannoList AccessionID)
 [jDataPreparationPipelineURL] :: JannoRow -> Maybe JURI
 [jPrimaryContact] :: JannoRow -> Maybe String
 [jPublication] :: JannoRow -> Maybe JannoStringList
@@ -304,6 +308,11 @@ Unknown :: Sex
 -- | A datatype for BC-AD ages
 newtype BCADAge
 BCADAge :: Int -> BCADAge
+
+-- | A datatype for countries in ISO-alpha2 code format
+newtype JannoCountry
+JannoCountry :: Country -> JannoCountry
+makeJannoCountryUnsafe :: String -> JannoCountry
 
 -- | A datatype for Latitudes
 newtype Latitude
@@ -362,7 +371,10 @@ OtherDegree :: RelationDegree
 data JannoLibraryBuilt
 DS :: JannoLibraryBuilt
 SS :: JannoLibraryBuilt
+MixedSSDS :: JannoLibraryBuilt
 Other :: JannoLibraryBuilt
+
+-- | A datatype to represent AccessionIDs in a janno file
 data AccessionID
 INSDCProject :: String -> AccessionID
 INSDCStudy :: String -> AccessionID
@@ -372,6 +384,7 @@ INSDCExperiment :: String -> AccessionID
 INSDCRun :: String -> AccessionID
 INSDCAnalysis :: String -> AccessionID
 OtherID :: String -> AccessionID
+makeAccessionID :: MonadFail m => String -> m AccessionID
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 
 -- | A function to load one janno file
@@ -389,6 +402,17 @@ CsvNamedRecord :: NamedRecord -> CsvNamedRecord
 -- | A data type to represent a janno file
 newtype JannoRows
 JannoRows :: [JannoRow] -> JannoRows
+type JannoStringList = JannoList String
+filterLookup :: FromField a => NamedRecord -> ByteString -> Parser a
+filterLookupOptional :: FromField a => NamedRecord -> ByteString -> Parser (Maybe a)
+getCsvNR :: CsvNamedRecord -> NamedRecord
+encodingOptions :: EncodeOptions
+decodingOptions :: DecodeOptions
+
+-- | A helper functions to replace empty bytestrings values in janno files
+--   with explicit "n/a"
+explicitNA :: ByteString -> ByteString
+removeUselessSuffix :: String -> String
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.BCADAge
 instance GHC.Classes.Ord Poseidon.Janno.BCADAge
@@ -418,6 +442,8 @@ instance GHC.Enum.Enum Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Generics.Generic Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Classes.Ord Poseidon.Janno.JannoLibraryBuilt
 instance GHC.Classes.Eq Poseidon.Janno.JannoLibraryBuilt
+instance GHC.Classes.Ord Poseidon.Janno.JannoCountry
+instance GHC.Classes.Eq Poseidon.Janno.JannoCountry
 instance GHC.Generics.Generic Poseidon.Janno.Latitude
 instance GHC.Classes.Ord Poseidon.Janno.Latitude
 instance GHC.Classes.Eq Poseidon.Janno.Latitude
@@ -496,6 +522,11 @@ instance Data.Csv.Conversion.ToField Poseidon.Janno.Latitude
 instance Data.Csv.Conversion.FromField Poseidon.Janno.Latitude
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.Latitude
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.Latitude
+instance GHC.Show.Show Poseidon.Janno.JannoCountry
+instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoCountry
+instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoCountry
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoCountry
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoCountry
 instance GHC.Show.Show Poseidon.Janno.JannoLibraryBuilt
 instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoLibraryBuilt
 instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoLibraryBuilt
@@ -532,6 +563,106 @@ instance Data.Csv.Conversion.ToField Poseidon.Janno.JannoSex
 instance Data.Csv.Conversion.FromField Poseidon.Janno.JannoSex
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoSex
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Janno.JannoSex
+
+module Poseidon.SequencingSource
+
+-- | A datatype to represent UDG in a ssf file
+data SSFUDG
+SSFMinus :: SSFUDG
+SSFHalf :: SSFUDG
+SSFPlus :: SSFUDG
+makeSSFUDG :: MonadFail m => String -> m SSFUDG
+
+-- | A datatype to represent Library_Built in a janno file
+data SSFLibraryBuilt
+SSFDS :: SSFLibraryBuilt
+SSFSS :: SSFLibraryBuilt
+makeSSFLibraryBuilt :: MonadFail m => String -> m SSFLibraryBuilt
+
+-- | A data type to represent a seqSourceFile
+newtype SeqSourceRows
+SeqSourceRows :: [SeqSourceRow] -> SeqSourceRows
+[getSeqSourceRowList] :: SeqSourceRows -> [SeqSourceRow]
+
+-- | A data type to represent a row in the seqSourceFile See
+--   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv</a>
+--   for more details
+data SeqSourceRow
+SeqSourceRow :: JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> AccessionID -> Maybe AccessionID -> Maybe AccessionID -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe JURI -> Maybe JURI -> Maybe Integer -> Maybe String -> Maybe Integer -> Maybe JURI -> CsvNamedRecord -> SeqSourceRow
+[sPoseidonID] :: SeqSourceRow -> JannoStringList
+[sUDG] :: SeqSourceRow -> Maybe SSFUDG
+[sLibraryBuilt] :: SeqSourceRow -> Maybe SSFLibraryBuilt
+[sGeneticSourceAccessionIDs] :: SeqSourceRow -> AccessionID
+[sStudyAccession] :: SeqSourceRow -> Maybe AccessionID
+[sRunAccession] :: SeqSourceRow -> Maybe AccessionID
+[sSampleAlias] :: SeqSourceRow -> Maybe String
+[sSecondarySampleAccession] :: SeqSourceRow -> Maybe String
+[sFirstPublic] :: SeqSourceRow -> Maybe String
+[sLastUpdated] :: SeqSourceRow -> Maybe String
+[sInstrumentModel] :: SeqSourceRow -> Maybe String
+[sLibraryLayout] :: SeqSourceRow -> Maybe String
+[sLibrarySource] :: SeqSourceRow -> Maybe String
+[sInstrumentPlatform] :: SeqSourceRow -> Maybe String
+[sLibraryName] :: SeqSourceRow -> Maybe String
+[sLibraryStrategy] :: SeqSourceRow -> Maybe String
+[sFastqFTP] :: SeqSourceRow -> Maybe JURI
+[sFastqASPERA] :: SeqSourceRow -> Maybe JURI
+[sFastqBytes] :: SeqSourceRow -> Maybe Integer
+[sFastqMD5] :: SeqSourceRow -> Maybe String
+[sReadCount] :: SeqSourceRow -> Maybe Integer
+[sSubmittedFTP] :: SeqSourceRow -> Maybe JURI
+[sAdditionalColumns] :: SeqSourceRow -> CsvNamedRecord
+seqSourceHeader :: [ByteString]
+seqSourceHeaderString :: [String]
+seqSourceRefHashMap :: HashMap ByteString ()
+
+-- | A function to write one seqSourceFile
+writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
+
+-- | A function to read one seqSourceFile
+readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
+
+-- | A function to read one row of a seqSourceFile
+readSeqSourceFileRow :: FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
+checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
+checkSamplesUnique :: SeqSourceRows -> Bool
+checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
+checkMandatoryNotEmpty :: SeqSourceRow -> Bool
+instance GHC.Enum.Bounded Poseidon.SequencingSource.SSFUDG
+instance GHC.Enum.Enum Poseidon.SequencingSource.SSFUDG
+instance GHC.Generics.Generic Poseidon.SequencingSource.SSFUDG
+instance GHC.Classes.Ord Poseidon.SequencingSource.SSFUDG
+instance GHC.Classes.Eq Poseidon.SequencingSource.SSFUDG
+instance GHC.Enum.Bounded Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Enum.Enum Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Generics.Generic Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Classes.Ord Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Classes.Eq Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Base.Semigroup Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Base.Monoid Poseidon.SequencingSource.SeqSourceRows
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SeqSourceRows
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SeqSourceRows
+instance Data.Csv.Conversion.DefaultOrdered Poseidon.SequencingSource.SeqSourceRow
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SeqSourceRow
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SeqSourceRow
+instance Data.Csv.Conversion.FromNamedRecord Poseidon.SequencingSource.SeqSourceRow
+instance Data.Csv.Conversion.ToNamedRecord Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Show.Show Poseidon.SequencingSource.SSFLibraryBuilt
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SSFLibraryBuilt
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFLibraryBuilt
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SSFLibraryBuilt
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Show.Show Poseidon.SequencingSource.SSFUDG
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SSFUDG
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFUDG
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SSFUDG
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SSFUDG
 
 module Poseidon.GenotypeData
 data GenoDataSource
@@ -621,7 +752,7 @@ module Poseidon.Package
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct
-PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe FilePath -> PoseidonYamlStruct
+PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe String -> Maybe FilePath -> Maybe FilePath -> PoseidonYamlStruct
 [_posYamlPoseidonVersion] :: PoseidonYamlStruct -> Version
 [_posYamlTitle] :: PoseidonYamlStruct -> String
 [_posYamlDescription] :: PoseidonYamlStruct -> Maybe String
@@ -631,6 +762,8 @@ PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> 
 [_posYamlGenotypeData] :: PoseidonYamlStruct -> GenotypeDataSpec
 [_posYamlJannoFile] :: PoseidonYamlStruct -> Maybe FilePath
 [_posYamlJannoFileChkSum] :: PoseidonYamlStruct -> Maybe String
+[_posYamlSeqSourceFile] :: PoseidonYamlStruct -> Maybe FilePath
+[_posYamlSeqSourceFileChkSum] :: PoseidonYamlStruct -> Maybe String
 [_posYamlBibFile] :: PoseidonYamlStruct -> Maybe FilePath
 [_posYamlBibFileChkSum] :: PoseidonYamlStruct -> Maybe String
 [_posYamlReadmeFile] :: PoseidonYamlStruct -> Maybe FilePath
@@ -638,7 +771,7 @@ PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> 
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage
-PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> JannoRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> Int -> PoseidonPackage
+PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> JannoRows -> Maybe String -> Maybe FilePath -> SeqSourceRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> Int -> PoseidonPackage
 
 -- | the base directory of the YAML file
 [posPacBaseDir] :: PoseidonPackage -> FilePath
@@ -672,6 +805,15 @@ PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [Contributor
 
 -- | the optional jannofile checksum
 [posPacJannoFileChkSum] :: PoseidonPackage -> Maybe String
+
+-- | the path to the seqSource file
+[posPacSeqSourceFile] :: PoseidonPackage -> Maybe FilePath
+
+-- | the loaded seqSource file
+[posPacSeqSource] :: PoseidonPackage -> SeqSourceRows
+
+-- | the optional seqSource file checksum
+[posPacSeqSourceFileChkSum] :: PoseidonPackage -> Maybe String
 
 -- | the path to the BibTeX file
 [posPacBibFile] :: PoseidonPackage -> Maybe FilePath
@@ -717,11 +859,13 @@ PoseidonGenotypeException :: String -> PoseidonException
 --   the sequence-formats library
 PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
 
--- | An exception to represent errors when trying to parse the .janno file
-PoseidonJannoRowException :: FilePath -> Int -> String -> PoseidonException
+-- | An exception to represent errors when trying to parse the janno or
+--   seqSource file
+PoseidonFileRowException :: FilePath -> Int -> String -> PoseidonException
 
--- | An exception to represent within-janno consistency errors
-PoseidonJannoConsistencyException :: FilePath -> String -> PoseidonException
+-- | An exception to represent consistency errors in janno or seqSource
+--   files
+PoseidonFileConsistencyException :: FilePath -> String -> PoseidonException
 
 -- | An exception to represent inconsistencies across multiple files in a
 --   package
@@ -812,7 +956,7 @@ newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonP
 --   only the filenames of the provided files, so it assumes that the files
 --   will be copied into the directory into which the YAML file will be
 --   written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] JannoRows) -> BibTeX -> PoseidonIO PoseidonPackage
+newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] JannoRows) -> SeqSourceRows -> BibTeX -> PoseidonIO PoseidonPackage
 renderMismatch :: [String] -> [String] -> String
 zipWithPadding :: a -> b -> [a] -> [b] -> [(a, b)]
 writePoseidonPackage :: PoseidonPackage -> IO ()
@@ -1096,8 +1240,7 @@ pacReadOpts :: PackageReadOptions
 
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> PoseidonIO ()
-extractFirst :: (a, b, c, d) -> a
-renderPackageWithCompleteness :: (String, Bool, JannoRows, BibTeX) -> String
+renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
 renderJannoCompleteness :: JannoRows -> String
 
 module Poseidon.CLI.Init
@@ -1130,5 +1273,6 @@ pacReadOpts :: PackageReadOptions
 -- | The main function running the forge command
 runForge :: ForgeOptions -> PoseidonIO ()
 sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
+filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
