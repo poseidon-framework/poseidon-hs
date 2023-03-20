@@ -1,6 +1,6 @@
 ### V 1.1.11.0
 
-This release implemenents the changes necessary to make `trident` capable of handling packages specified for the new Poseidon standard v2.7.0:
+This release implements the changes necessary to make `trident` capable of handling packages specified for the new Poseidon standard v2.7.0:
 
 - A Poseidon package can now include a .ssf file ("sequencing source file") as specified. `trident` considers it in `validate`, `update`, `survey` and, most importantly, `forge`, where .ssf files are compiled for new packages just as .janno files.
 - `trident` now understands and validates the new .janno columns `Country_ISO` and `Library_Names`.
