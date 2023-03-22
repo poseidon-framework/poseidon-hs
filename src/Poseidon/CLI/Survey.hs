@@ -1,10 +1,19 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
-import           Poseidon.Janno            (JannoRow (..), JannoRows (..))
+import           Poseidon.Janno            (CsvNamedRecord, JannoRow (..),
+                                            JannoRows (..), JannoSex,
+                                            JannoStringList)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
@@ -16,12 +25,51 @@ import           Control.Monad.IO.Class    (liftIO)
 import           Data.List                 (intercalate, unfoldr, zip5)
 import           Data.Maybe                (isJust)
 import           Data.Ratio                (Ratio, (%))
+import           GHC.Generics              (Generic)
+import           Generics.SOP              (All, Generic (Code, from),
+                                            HCollapse (hcollapse),
+                                            HPure (hpure), I, K (K), NP,
+                                            Proxy (..), SListI, hcmap, hzipWith,
+                                            unI, unSOP, unZ)
+import           Generics.SOP.TH           (deriveGeneric)
 import           Poseidon.SequencingSource (SeqSourceRows (..))
 import           System.Directory          (doesFileExist)
 import           System.FilePath           ((</>))
 import           Text.Layout.Table         (asciiRoundS, column, def,
                                             expandUntil, rowsG, tableString,
                                             titlesH)
+
+--data Colour  = Red   | Green  deriving (Eq, Show, Enum, Ord)
+--data Width  = Thin  | Normal  deriving (Eq, Show, Enum, Ord)
+
+--data Object = Object { color  :: Colour
+--                     , width  :: Width } deriving (Show)
+
+--instance PresenceCountable Colour where
+--    countPresence Red  = 0
+--    countPresence Green = 1
+--instance PresenceCountable Width where
+--    countPresence Thin  = 0
+--    countPresence Normal = 1
+
+-- A typeclass to determine if a field in a .janno row is filled
+class PresenceCountable a where
+    countPresence :: a -> Int
+instance PresenceCountable (Maybe a) where
+    countPresence Nothing  = 0
+    countPresence (Just _) = 1
+instance PresenceCountable String where
+    countPresence _ = 1
+instance PresenceCountable JannoSex where
+    countPresence _ = 1
+instance PresenceCountable JannoStringList where
+    countPresence _ = 1
+instance PresenceCountable CsvNamedRecord where
+    countPresence _ = 0
+
+deriveGeneric ''JannoRow
+
+--objects = [Object Red Thin, Object Green Normal]
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -75,12 +123,40 @@ renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSourc
     ++ (if not (null seqSource) then "S" else ".")
     ++ (if not (null bib) then "B" else ".")
     ++ "|"
-    ++ insertEveryN 5 '|' (renderJannoCompleteness janno)
+    ++ insertEveryN 5 '|' (renderJannoCompleteness2 janno)
     where
         -- https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list
         insertEveryN :: Int -> a -> [a] -> [a]
         insertEveryN n y xs = intercalate [y] . groups n $ xs
             where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
+
+renderJannoCompleteness2 :: JannoRows -> String
+renderJannoCompleteness2 (JannoRows rows) =
+    map prop2Char $ getRatiosForEachField rows
+    where
+        -- magic inspired by https://stackoverflow.com/a/41524511/3216883
+        getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int]
+        getRatiosForEachField =
+            hcollapse
+          . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
+          . hunzip
+          . map (unZ . unSOP . from)
+        hunzip :: SListI xs => [NP I xs] -> NP [] xs
+        hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
+        measureFillState :: PresenceCountable a => [a] -> Ratio Int
+        measureFillState vals =
+            let nrValues = length vals
+                nrFilledValues = sum $ map countPresence vals
+            in nrFilledValues % nrValues
+        prop2Char :: Ratio Int -> Char
+        prop2Char r
+            | r == 0    = '.'
+            | r < 0.25  = '░'
+            | r < 0.5   = '▒'
+            | r < 1     = '▓'
+            | r == 1    = '█'
+            | otherwise = '?'
+
 
 -- this has to be in the same order as jannoHeader in the janno module
 renderJannoCompleteness :: JannoRows -> String
