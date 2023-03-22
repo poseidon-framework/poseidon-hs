@@ -2,6 +2,10 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- the following three are necessary for deriveGeneric
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Poseidon.Janno (
     JannoRow(..),
@@ -73,6 +77,7 @@ import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           GHC.Generics                         (Generic)
+import           Generics.SOP.TH                      (deriveGeneric)
 import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
@@ -1077,3 +1082,6 @@ checkRelationColsConsistent x =
       lRelationType   = getCellLength $ jRelationType x
   in allEqual [lRelationTo, lRelationType, lRelationDegree]
      || (allEqual [lRelationTo, lRelationDegree] && isNothing (jRelationType x))
+
+-- deriving with TemplateHaskell necessary for the generics magic in the Survey module
+deriveGeneric ''JannoRow
