@@ -132,7 +132,8 @@ renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSourc
 
 renderJannoCompleteness2 :: JannoRows -> String
 renderJannoCompleteness2 (JannoRows rows) =
-    map prop2Char $ getRatiosForEachField rows
+    let ratioString = map prop2Char $ getRatiosForEachField rows
+    in init ratioString -- remove last entry covering the additional columns (CsvNamedRecord)
     where
         -- magic inspired by https://stackoverflow.com/a/41524511/3216883
         getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int]
