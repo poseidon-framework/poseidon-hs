@@ -22,17 +22,13 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.Janno           (CsvNamedRecord (..), JannoRow (..),
-                                           JannoRows (..), jannoHeaderString,
-                                           readJannoFile, writeJannoFile)
+import           Poseidon.Janno           (jannoHeaderString)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (getChecksum, testLog)
 
 import           Control.Monad            (unless, when)
-import           Data.ByteString.Char8    (ByteString)
 import           Data.Either              (fromRight)
-import           Data.HashMap.Strict      (fromList)
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
@@ -42,31 +38,23 @@ import           System.Directory         (createDirectory, doesDirectoryExist,
 import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
-
-tempTestDir :: FilePath
-tempTestDir = "/tmp/poseidonHSGoldenTestData"
-staticTestDir :: FilePath
-staticTestDir = "test/testDat/poseidonHSGoldenTestData"
-staticCheckSumFile :: FilePath
-staticCheckSumFile = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
+tempTestDir         :: FilePath
+tempTestDir         = "/tmp/poseidonHSGoldenTestData"
+staticTestDir       :: FilePath
+staticTestDir       = "test/testDat/poseidonHSGoldenTestData"
+staticCheckSumFile  :: FilePath
+staticCheckSumFile  = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
-testPacsDir :: FilePath
-testPacsDir = "test/testDat/testPackages/ancient"
-testEntityFiles :: FilePath
-testEntityFiles = "test/testDat/testEntityFiles"
+testPacsDir         :: FilePath
+testPacsDir         = "test/testDat/testPackages/ancient"
+testEntityFiles     :: FilePath
+testEntityFiles     = "test/testDat/testEntityFiles"
 
 createStaticCheckSumFile :: FilePath -> IO ()
-createStaticCheckSumFile poseidonHSDir = runCLICommands
-    True 
-    (poseidonHSDir </> staticTestDir)
-    (poseidonHSDir </> staticCheckSumFile)
-
+createStaticCheckSumFile d = runCLICommands True (d </> staticTestDir) (d </> staticCheckSumFile)
 createDynamicCheckSumFile :: IO ()
-createDynamicCheckSumFile = runCLICommands
-    False
-    tempTestDir
-    dynamicCheckSumFile
+createDynamicCheckSumFile = runCLICommands False tempTestDir dynamicCheckSumFile
 
 runCLICommands :: Bool -> FilePath -> FilePath -> IO ()
 runCLICommands interactive testDir checkFilePath = do
@@ -76,8 +64,7 @@ runCLICommands interactive testDir checkFilePath = do
     createDirectory testDir
     -- create/overwrite checksum file
     writeFile checkFilePath "Checksums for trident CLI output\n\
-        \Automatically generated with: poseidon-devtools updateGoldenTests\n\
-        \"
+        \Automatically generated with: poseidon-devtools updateGoldenTests\n"
     -- create error sink
     devNull <- openFile "/dev/null" WriteMode
     stderr_old <- hDuplicate stderr
@@ -85,7 +72,7 @@ runCLICommands interactive testDir checkFilePath = do
     -- run CLI pipeline
     hPutStrLn stderr "--* local tests"
     hPutStrLn stderr "--- init"
-    testPipelineInit testDir checkFilePath testPacsDir
+    testPipelineInit testDir checkFilePath
     hPutStrLn stderr "--- validate"
     testPipelineValidate testDir checkFilePath
     hPutStrLn stderr "--- list"
@@ -109,18 +96,8 @@ runCLICommands interactive testDir checkFilePath = do
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
 
-patchLastModified :: FilePath -> FilePath -> IO ()
-patchLastModified testDir yamlFile = do
-    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = do
-            l <- lines_
-            if "lastModified" `T.isPrefixOf` l
-                then return "lastModified: 1970-01-01"
-                else return l
-    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
-
-testPipelineInit :: FilePath -> FilePath -> FilePath -> IO ()
-testPipelineInit testDir checkFilePath testPacsDir = do
+testPipelineInit :: FilePath -> FilePath -> IO ()
+testPipelineInit testDir checkFilePath = do
     let initOpts1 = InitOptions {
           _initGenoData  = GenotypeDataSpec {
               format   = GenotypeFormatEigenstrat
@@ -660,6 +637,20 @@ testPipelineListRemote = do
         }
     writeStdOutToFile "/dev/null" (testLog $ runList listOpts3)
 
+
+
+-- helper functions --
+
+patchLastModified :: FilePath -> FilePath -> IO ()
+patchLastModified testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "lastModified" `T.isPrefixOf` l
+                then return "lastModified: 1970-01-01"
+                else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
     -- run action
@@ -676,6 +667,7 @@ runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO
 runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
     -- store stdout in a specific output file
     let outFileName = actionName ++ show outFileNumber
+        outDirInTestDir = actionName </> outFileName
         outDir = testDir </> actionName
         outPath = outDir </> outFileName
     -- create outdir if it doesn't exist
@@ -685,7 +677,7 @@ runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = 
     writeStdOutToFile outPath action
     -- append checksum to checksumfile
     checksum <- getChecksum $ outPath
-    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outPath
+    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
 
 writeStdOutToFile :: FilePath -> IO () -> IO ()
 writeStdOutToFile path action =
