@@ -241,7 +241,7 @@ testPipelineSurvey testDir checkFilePath = do
 testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
-          _genoconvertGenoSources = [PacBaseDir $ testDir </> "init" </> "Schiffels"]
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = GenotypeFormatPlink
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
@@ -249,12 +249,12 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
-          "genoconvert" </> "Schiffels" </> "Schiffels.bed"
-        , "genoconvert" </> "Schiffels" </> "Schiffels.bim"
-        , "genoconvert" </> "Schiffels" </> "Schiffels.fam"
+          "genoconvert" </> "Schiffels" </> "Schiffels_2016.bed"
+        , "genoconvert" </> "Schiffels" </> "Schiffels_2016.bim"
+        , "genoconvert" </> "Schiffels" </> "Schiffels_2016.fam"
         ]
     let genoconvertOpts2 = GenoconvertOptions {
-          _genoconvertGenoSources = [PacBaseDir $ testDir </> "Schiffels"]
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = GenotypeFormatPlink
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
@@ -262,9 +262,9 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
-          "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels.bed"
-        , "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels.bim"
-        , "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels.fam"
+          "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.bed"
+        , "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.bim"
+        , "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.fam"
         ]
     -- in-place conversion
     let genoconvertOpts3 = GenoconvertOptions {
@@ -564,7 +564,7 @@ testPipelineForge testDir checkFilePath = do
     -- forge test 9 (duplicates are handled correctly if an individual is properly specified)
     let forgeOpts9 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
-        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,<Schmid:POP1:XXX001>")]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,<Schmid_2028:POP1:XXX001>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -583,7 +583,7 @@ testPipelineForge testDir checkFilePath = do
     -- forge test 10 (duplicates can also be resolved with negative selection)
     let forgeOpts10 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
-        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "-<Schmid:POP1:XXX001>,-<Schiffels:POP2:XXX002>")]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "-<Schmid_2028:POP1:XXX001>,-<Schiffels_2016:POP2:XXX002>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -602,7 +602,7 @@ testPipelineForge testDir checkFilePath = do
     -- forge test 11 (--packagewise works as expected)
     let forgeOpts11 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
-        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX001>,POP3")]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -675,11 +675,17 @@ runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
 runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
 runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
     -- store stdout in a specific output file
-    let outFile = actionName ++ show outFileNumber
-    writeStdOutToFile (testDir </> outFile) action
+    let outFileName = actionName ++ show outFileNumber
+        outDir = testDir </> actionName
+        outPath = outDir </> outFileName
+    -- create outdir if it doesn't exist
+    outDirExists <- doesDirectoryExist outDir
+    unless outDirExists $ createDirectory outDir
+    -- catch stdout and write it to the outPath
+    writeStdOutToFile outPath action
     -- append checksum to checksumfile
-    checksum <- getChecksum $ testDir </> outFile
-    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outFile
+    checksum <- getChecksum $ outPath
+    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outPath
 
 writeStdOutToFile :: FilePath -> IO () -> IO ()
 writeStdOutToFile path action =
