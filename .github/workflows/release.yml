@@ -11,7 +11,7 @@ on:
 jobs:
   create_release:
     name: Create Github Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-20.04]
         cabal: ["3.6"]
         ghc: ["8.10.7"]
 
