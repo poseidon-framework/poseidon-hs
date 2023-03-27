@@ -523,7 +523,6 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac7" </> "ForgePac7.snp"
         , "forge" </> "ForgePac7" </> "ForgePac7.ind"
         , "forge" </> "ForgePac7" </> "ForgePac7.janno"
-        , "forge" </> "ForgePac7" </> "ForgePac7.ssf"
         ]
     -- forge test 8 (combining additional janno columns from separate source janno files)
     let forgeOpts8 = ForgeOptions {
