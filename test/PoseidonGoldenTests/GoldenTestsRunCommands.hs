@@ -359,6 +359,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac1" </> "POSEIDON.yml"
         , "forge" </> "ForgePac1" </> "ForgePac1.geno"
         , "forge" </> "ForgePac1" </> "ForgePac1.janno"
+        , "forge" </> "ForgePac1" </> "ForgePac1.ssf"
         ]
     -- forge test 2
     let forgeOpts2 = ForgeOptions {
@@ -400,6 +401,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac3" </> "ForgePac3.snp"
         , "forge" </> "ForgePac3" </> "ForgePac3.ind"
         , "forge" </> "ForgePac3" </> "ForgePac3.janno"
+        , "forge" </> "ForgePac3" </> "ForgePac3.ssf"
         ]
     -- forge test 4
     let forgeOpts4 = ForgeOptions {
@@ -422,6 +424,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac4" </> "ForgePac4.bed"
         , "forge" </> "ForgePac4" </> "ForgePac4.fam"
         , "forge" </> "ForgePac4" </> "ForgePac4.janno"
+        , "forge" </> "ForgePac4" </> "ForgePac4.ssf"
         ]
     -- forge test 5
     let forgeOpts5 = ForgeOptions {
@@ -442,6 +445,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac5" </> "POSEIDON.yml"
         , "forge" </> "ForgePac5" </> "ForgePac5.geno"
         , "forge" </> "ForgePac5" </> "ForgePac5.janno"
+        , "forge" </> "ForgePac5" </> "ForgePac5.ssf"
         ]
     -- forge test 6 (direct genotype data input interface)
     let forgeOpts6 = ForgeOptions {
@@ -515,10 +519,11 @@ testPipelineForge testDir checkFilePath = do
     }
     let action7 = testLog (runForge forgeOpts7) >> patchLastModified testDir ("forge" </> "ForgePac7" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action7 "forge" [
-          "forge" </> "ForgePac7" </> "ForgePac7.janno"
-        , "forge" </> "ForgePac7" </> "ForgePac7.geno"
+          "forge" </> "ForgePac7" </> "ForgePac7.geno"
         , "forge" </> "ForgePac7" </> "ForgePac7.snp"
         , "forge" </> "ForgePac7" </> "ForgePac7.ind"
+        , "forge" </> "ForgePac7" </> "ForgePac7.janno"
+        , "forge" </> "ForgePac7" </> "ForgePac7.ssf"
         ]
     -- forge test 8 (combining additional janno columns from separate source janno files)
     let forgeOpts8 = ForgeOptions {
@@ -537,6 +542,7 @@ testPipelineForge testDir checkFilePath = do
     let action8 = testLog (runForge forgeOpts8) >> patchLastModified testDir ("forge" </> "ForgePac8" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action8 "forge" [
           "forge" </> "ForgePac8" </> "ForgePac8.janno"
+        , "forge" </> "ForgePac8" </> "ForgePac8.ssf"
         ]
     -- forge test 9 (duplicates are handled correctly if an individual is properly specified)
     let forgeOpts9 = ForgeOptions {
@@ -556,6 +562,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action9 "forge" [
           "forge" </> "ForgePac9" </> "ForgePac9.geno"
         , "forge" </> "ForgePac9" </> "ForgePac9.janno"
+        , "forge" </> "ForgePac9" </> "ForgePac9.ssf"
         ]
     -- forge test 10 (duplicates can also be resolved with negative selection)
     let forgeOpts10 = ForgeOptions {
@@ -575,6 +582,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action10 "forge" [
           "forge" </> "ForgePac10" </> "ForgePac10.geno"
         , "forge" </> "ForgePac10" </> "ForgePac10.janno"
+        , "forge" </> "ForgePac10" </> "ForgePac10.ssf"
         ]
     -- forge test 11 (--packagewise works as expected)
     let forgeOpts11 = ForgeOptions {
@@ -594,6 +602,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action11 "forge" [
           "forge" </> "ForgePac11" </> "ForgePac11.geno"
         , "forge" </> "ForgePac11" </> "ForgePac11.janno"
+        , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
