@@ -41,9 +41,9 @@ import           System.IO                (IOMode (WriteMode), hPutStrLn,
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
 staticTestDir       :: FilePath
-staticTestDir       = "test/testDat/poseidonHSGoldenTestData"
+staticTestDir       = "test/PoseidonGoldenTests/GoldenTestData"
 staticCheckSumFile  :: FilePath
-staticCheckSumFile  = "test/testDat/poseidonHSGoldenTestCheckSumFile.txt"
+staticCheckSumFile  = "test/PoseidonGoldenTests/GoldenTestCheckSumFile.txt"
 dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 testPacsDir         :: FilePath
@@ -64,7 +64,7 @@ runCLICommands interactive testDir checkFilePath = do
     createDirectory testDir
     -- create/overwrite checksum file
     writeFile checkFilePath "Checksums for trident CLI output\n\
-        \Automatically generated with: poseidon-devtools updateGoldenTests\n"
+        \Automatically generated with: poseidon-devtools golden\n"
     -- create error sink
     devNull <- openFile "/dev/null" WriteMode
     stderr_old <- hDuplicate stderr
