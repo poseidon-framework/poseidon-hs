@@ -527,7 +527,7 @@ testPipelineForge testDir checkFilePath = do
         ]
     -- forge test 8 (combining additional janno columns from separate source janno files)
     let forgeOpts8 = ForgeOptions {
-          _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Lamnidis_2018"]
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Lamnidis_2018_newVersion"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX001>,<XXX011>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
