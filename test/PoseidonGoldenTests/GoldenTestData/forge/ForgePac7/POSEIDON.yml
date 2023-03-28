@@ -14,3 +14,5 @@ genotypeData:
   indFile: ForgePac7.ind
   snpSet: Other
 jannoFile: ForgePac7.janno
+sequencingSourceFile: ForgePac7.ssf
+bibFile: ForgePac7.bib

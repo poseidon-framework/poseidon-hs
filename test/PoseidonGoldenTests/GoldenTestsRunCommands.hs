@@ -360,6 +360,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac1" </> "ForgePac1.geno"
         , "forge" </> "ForgePac1" </> "ForgePac1.janno"
         , "forge" </> "ForgePac1" </> "ForgePac1.ssf"
+        , "forge" </> "ForgePac1" </> "ForgePac1.bib"
         ]
     -- forge test 2
     let forgeOpts2 = ForgeOptions {
@@ -493,7 +494,7 @@ testPipelineForge testDir checkFilePath = do
     -- forge test 7 (mixed data input interface)
     let forgeOpts7 = ForgeOptions {
           _forgeGenoSources  = [
-            PacBaseDir $ testDir </> "Schiffels",
+            PacBaseDir $ testPacsDir </> "Schiffels_2016",
             GenoDirect $
               GenotypeDataSpec {
                   format   = GenotypeFormatPlink
@@ -582,6 +583,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac10" </> "ForgePac10.geno"
         , "forge" </> "ForgePac10" </> "ForgePac10.janno"
         , "forge" </> "ForgePac10" </> "ForgePac10.ssf"
+        , "forge" </> "ForgePac10" </> "ForgePac10.bib"
         ]
     -- forge test 11 (--packagewise works as expected)
     let forgeOpts11 = ForgeOptions {
