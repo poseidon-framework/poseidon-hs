@@ -29,6 +29,7 @@ import           Poseidon.Utils                          (LogMode (..),
                                                           PoseidonIO, logError,
                                                           renderPoseidonException,
                                                           usePoseidonLogger)
+import Poseidon.CLI.Snapshot (SnapshotOptions (..), runSnapshot)
 
 import           Control.Applicative                     ((<|>))
 import           Control.Exception                       (catch)
@@ -56,6 +57,7 @@ data Subcommand =
     | CmdSurvey SurveyOptions
     | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
+    | CmdSnapshot SnapshotOptions
 
 main :: IO ()
 main = do
@@ -85,6 +87,7 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
+    CmdSnapshot opts    -> runSnapshot opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*>
@@ -111,6 +114,7 @@ subcommandParser = OP.subparser (
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
         OP.command "update" updateOptInfo <>
+        OP.command "snapshot" snapshotOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -148,12 +152,14 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
+    snapshotOptInfo = OP.info (OP.helper <*> (CmdSnapshot <$> snapshotOptParser))
+        (OP.progDesc "Create snapshot files for package collections")
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
-                            <*> parseMakeMinimalPackage
+                            <*> parseMinimalOutput
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -173,7 +179,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
-                              <*> parseMakeMinimalPackage
+                              <*> parseMinimalOutput
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
@@ -213,3 +219,9 @@ validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseFullGeno
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates
+
+snapshotOptParser :: OP.Parser SnapshotOptions
+snapshotOptParser = SnapshotOptions <$> parseBasePaths
+                                    <*> parseSnapOutDir
+                                    <*> parseSnapWithGit
+                                    <*> parseMinimalOutput

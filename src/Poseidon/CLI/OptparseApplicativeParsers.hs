@@ -25,6 +25,15 @@ import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, 
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
 
+parseSnapOutDir :: OP.Parser FilePath
+parseSnapOutDir = OP.strOption (OP.long "outDir" <>
+    OP.short 'o' <>
+    OP.metavar "DIR" <>
+    OP.help "Directory where the resulting POSEIDON_SNAPSHOT.yml should be written.")
+
+parseSnapWithGit :: OP.Parser Bool
+parseSnapWithGit = OP.switch (OP.long "withGit" <> OP.help "Should the resulting snapshot file include git commit hashes (local head)?")
+
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
     OP.long "poseidonVersion" <>
@@ -345,9 +354,9 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.value Nothing
     )
 
-parseMakeMinimalPackage :: OP.Parser Bool
-parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
-    OP.help "should only a minimal output package be created?")
+parseMinimalOutput :: OP.Parser Bool
+parseMinimalOutput = OP.switch (OP.long "minimal" <>
+    OP.help "Should the output data be reduced to a necessary minimum and omit empty scaffolding?")
 
 parseOutOnlyGeno :: OP.Parser Bool
 parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>

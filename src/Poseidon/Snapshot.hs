@@ -16,6 +16,7 @@ import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import GitHash (getGitInfo, giHash)
 import           Control.Monad.IO.Class     (liftIO)
+import System.FilePath ((</>))
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
@@ -83,7 +84,10 @@ instance ToJSON PackageState where
         , "commit"  .= pacStateCommit x
         ]
 
-data SnapshotMode = Simple | WithGit
+data SnapshotMode = SimpleSnapshot | SnapshotWithGit
+
+writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()
+writeSnapshot p = encodeFilePretty (p </> "POSEIDON_SNAPSHOT.yml")
 
 makeSnapshot :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageSnapshot
 makeSnapshot snapMode pacs = do
@@ -115,8 +119,8 @@ snapshotPackages snapMode = mapM snapOne
         snapOne :: PoseidonPackage -> PoseidonIO PackageState
         snapOne pac = do
             commit <- case snapMode of
-                Simple -> do return Nothing
-                WithGit -> do getGitCommitHash $ posPacBaseDir pac
+                SimpleSnapshot  -> do return Nothing
+                SnapshotWithGit -> do getGitCommitHash $ posPacBaseDir pac -- doesn't really work yet: has to crawl up to find .git dir
             return $ PackageState {
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = posPacPackageVersion pac,
