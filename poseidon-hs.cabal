@@ -25,7 +25,7 @@ library
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
-                        vector, pipes-ordered-zip, table-layout, mtl,
+                        vector, pipes-ordered-zip, table-layout, mtl, githash,
                         cassava, pureMD5,
                         yaml-pretty-extras >= 0.0.2.2, http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
