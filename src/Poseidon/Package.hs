@@ -21,7 +21,8 @@ module Poseidon.Package (
     defaultPackageReadOptions,
     readPoseidonPackage,
     makePseudoPackageFromGenotypeData,
-    getJannoRowsFromPac
+    getJannoRowsFromPac,
+    dummyContributor
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -702,6 +703,13 @@ makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_
                then baseDirGeno
                else throwM $ PoseidonUnequalBaseDirException g s i
 
+dummyContributor :: ContributorSpec
+dummyContributor =
+    ContributorSpec
+        "Josiah Carberry"
+        "carberry@brown.edu"
+        (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
+
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
 -- the directory into which the YAML file will be written
@@ -718,12 +726,7 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
-        ,   posPacContributor = [
-                ContributorSpec
-                    "Josiah Carberry"
-                    "carberry@brown.edu"
-                    (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
-                ]
+        ,   posPacContributor = [dummyContributor]
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
