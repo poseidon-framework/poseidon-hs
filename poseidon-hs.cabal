@@ -15,12 +15,12 @@ extra-source-files:  README.md,
 library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes,
-                        Poseidon.PoseidonVersion,
-                        Poseidon.CLI.List, 
+                        Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Snapshot,
+                        Poseidon.CLI.List, Poseidon.CLI.Snapshot,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
-                        Poseidon.CLI.OptparseApplicativeParsers, Poseidon.SequencingSource
+                        Poseidon.CLI.OptparseApplicativeParsers
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
