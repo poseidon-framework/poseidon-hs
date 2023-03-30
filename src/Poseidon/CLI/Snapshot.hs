@@ -1,11 +1,12 @@
 module Poseidon.CLI.Snapshot where
 
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO)
-import Poseidon.Snapshot (makeSnapshot, SnapshotMode (..), writeSnapshot, makeMinimalSnapshot)
+import           Poseidon.Package  (PackageReadOptions (..),
+                                    PoseidonPackage (..),
+                                    defaultPackageReadOptions,
+                                    readPoseidonPackageCollection)
+import           Poseidon.Snapshot (SnapshotMode (..), makeMinimalSnapshot,
+                                    makeSnapshot, writeSnapshot)
+import           Poseidon.Utils    (PoseidonIO)
 
 -- | A datatype representing command line options for the summarise command
 data SnapshotOptions = SnapshotOptions

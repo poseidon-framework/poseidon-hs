@@ -2,22 +2,22 @@
 
 module Poseidon.Snapshot where
 
-import Poseidon.SecondaryTypes (ContributorSpec)
-import Poseidon.Package (PoseidonPackage (..), dummyContributor)
-import Poseidon.Utils (PoseidonIO, logDebug, logWarning)
+import           Poseidon.Package        (PoseidonPackage (..),
+                                          dummyContributor)
+import           Poseidon.SecondaryTypes (ContributorSpec)
+import           Poseidon.Utils          (PoseidonIO, logDebug, logWarning)
 
-import Data.Version (Version, makeVersion)
-import Data.Time (Day, UTCTime (..), getCurrentTime)
-import           Data.Aeson                 (FromJSON, ToJSON, object,
-                                             parseJSON, toJSON, withObject,
-                                             (.!=), (.:), (.:?), (.=))
-import           Data.Yaml                  (decodeEither')
-import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
-                                             encodeFilePretty)
-import GitHash (getGitInfo, giHash)
-import           Control.Monad.IO.Class     (liftIO)
-import System.FilePath ((</>), takeDirectory)
-import System.Directory (makeAbsolute)
+import           Control.Monad.IO.Class  (liftIO)
+import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
+                                          toJSON, withObject, (.!=), (.:),
+                                          (.:?), (.=))
+import           Data.Time               (Day, UTCTime (..), getCurrentTime)
+import           Data.Version            (Version, makeVersion)
+import           Data.Yaml               (decodeEither')
+import           Data.Yaml.Pretty.Extras (ToPrettyYaml (..), encodeFilePretty)
+import           GitHash                 (getGitInfo, giHash)
+import           System.Directory        (makeAbsolute)
+import           System.FilePath         (takeDirectory, (</>))
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
