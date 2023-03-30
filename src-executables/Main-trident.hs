@@ -223,6 +223,6 @@ validateOptParser = ValidateOptions <$> parseBasePaths
 
 snapshotOptParser :: OP.Parser SnapshotOptions
 snapshotOptParser = SnapshotOptions <$> parseBasePaths
-                                    <*> parseSnapOutDir
+                                    <*> parseSnapOperation
                                     <*> parseSnapWithGit
                                     <*> parseMinimalOutput

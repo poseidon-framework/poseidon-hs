@@ -16,7 +16,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
 import           Poseidon.Utils          (LogMode (..))
-
+import Poseidon.CLI.Snapshot (SnapOperation (..))
 
 import           Control.Applicative     ((<|>))
 import           Data.Version            (Version)
@@ -25,11 +25,20 @@ import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, 
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
 
+parseSnapOperation :: OP.Parser SnapOperation
+parseSnapOperation = (CreateSnap <$> parseSnapOutDir) <|> (UpdateSnap <$> parseSnapUpdate)
+
 parseSnapOutDir :: OP.Parser FilePath
-parseSnapOutDir = OP.strOption (OP.long "outDir" <>
+parseSnapOutDir = OP.strOption (OP.long "outFile" <>
     OP.short 'o' <>
-    OP.metavar "DIR" <>
-    OP.help "Directory where the resulting POSEIDON_SNAPSHOT.yml should be written.")
+    OP.metavar "PATH" <>
+    OP.help "Path to the resulting snapshot definition file.")
+
+parseSnapUpdate :: OP.Parser FilePath
+parseSnapUpdate = OP.strOption (OP.long "updateFile" <>
+    OP.short 'u' <>
+    OP.metavar "PATH" <>
+    OP.help "Path to the snapshot definition file that should be updated.")
 
 parseSnapWithGit :: OP.Parser Bool
 parseSnapWithGit = OP.switch (OP.long "withGit" <> OP.help "Should the resulting snapshot file include git commit hashes (local head)?")

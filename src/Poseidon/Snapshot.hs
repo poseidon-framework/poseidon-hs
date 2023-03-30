@@ -87,7 +87,7 @@ instance ToJSON PackageState where
 data SnapshotMode = SimpleSnapshot | SnapshotWithGit
 
 writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()
-writeSnapshot p = encodeFilePretty (p </> "POSEIDON_SNAPSHOT.yml")
+writeSnapshot p = encodeFilePretty p
 
 makeSnapshot :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageSnapshot
 makeSnapshot snapMode pacs = do

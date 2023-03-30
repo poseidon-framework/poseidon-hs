@@ -10,10 +10,12 @@ import           Poseidon.Utils    (PoseidonIO)
 -- | A datatype representing command line options for the summarise command
 data SnapshotOptions = SnapshotOptions
     { _snapshotBaseDirs        :: [FilePath]
-    , _snapshotOutputDirectory :: FilePath
+    , _snapshotOperation       :: SnapOperation
     , _snapshotWithGitCommits  :: Bool
     , _snapshotMinimal         :: Bool
     }
+
+data SnapOperation = CreateSnap FilePath | UpdateSnap FilePath
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -25,11 +27,14 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the janno command
 runSnapshot :: SnapshotOptions -> PoseidonIO ()
-runSnapshot (SnapshotOptions baseDirs outDir withGit minimal) = do
+runSnapshot (SnapshotOptions baseDirs operation withGit minimal) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let modeSetting = if withGit then SnapshotWithGit else SimpleSnapshot
     snapshot <- if minimal
                 then do makeMinimalSnapshot modeSetting allPackages
                 else do makeSnapshot modeSetting allPackages
-    writeSnapshot outDir snapshot
+    case operation of
+        CreateSnap p -> writeSnapshot p snapshot
+        UpdateSnap p -> error "huhu"
+    
 
