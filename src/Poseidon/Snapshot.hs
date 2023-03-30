@@ -5,7 +5,7 @@ module Poseidon.Snapshot where
 import           Poseidon.Package        (PoseidonPackage (..),
                                           dummyContributor)
 import           Poseidon.SecondaryTypes (ContributorSpec)
-import           Poseidon.Utils          (PoseidonIO, logDebug, logWarning)
+import           Poseidon.Utils          (PoseidonIO, logWarning)
 
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
@@ -13,7 +13,6 @@ import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
                                           (.:?), (.=))
 import           Data.Time               (Day, UTCTime (..), getCurrentTime)
 import           Data.Version            (Version, makeVersion)
-import           Data.Yaml               (decodeEither')
 import           Data.Yaml.Pretty.Extras (ToPrettyYaml (..), encodeFilePretty)
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (makeAbsolute)
@@ -131,7 +130,7 @@ snapshotPackages snapMode = mapM snapOne
         getGitCommitHash p = do
             eitherCommit <- liftIO $ getGitInfo p
             case eitherCommit of
-                Left e -> do
+                Left _ -> do
                     pAbsolute <- liftIO $ makeAbsolute p
                     let oneLevelUp = takeDirectory pAbsolute
                     if oneLevelUp == takeDirectory oneLevelUp

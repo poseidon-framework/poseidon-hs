@@ -1,7 +1,6 @@
 module Poseidon.CLI.Snapshot where
 
 import           Poseidon.Package  (PackageReadOptions (..),
-                                    PoseidonPackage (..),
                                     defaultPackageReadOptions,
                                     readPoseidonPackageCollection)
 import           Poseidon.Snapshot (SnapshotMode (..), makeMinimalSnapshot,
