@@ -16,7 +16,8 @@ import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
                                              encodeFilePretty)
 import GitHash (getGitInfo, giHash)
 import           Control.Monad.IO.Class     (liftIO)
-import System.FilePath ((</>))
+import System.FilePath ((</>), takeDirectory)
+import System.Directory (makeAbsolute)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
@@ -131,8 +132,13 @@ snapshotPackages snapMode = mapM snapOne
             eitherCommit <- liftIO $ getGitInfo p
             case eitherCommit of
                 Left e -> do
-                    logWarning $ show e
-                    return Nothing
+                    pAbsolute <- liftIO $ makeAbsolute p
+                    let oneLevelUp = takeDirectory pAbsolute
+                    if oneLevelUp == takeDirectory oneLevelUp
+                    then do
+                        logWarning $ "Did not find .git directory in or above " ++ show p
+                        return Nothing
+                    else getGitCommitHash oneLevelUp
                 Right info -> do
                     return $ Just $ giHash info
 
