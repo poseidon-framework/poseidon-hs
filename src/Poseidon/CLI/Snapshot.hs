@@ -2,9 +2,9 @@ module Poseidon.CLI.Snapshot where
 
 import           Poseidon.Package  (PackageReadOptions (..),
                                     defaultPackageReadOptions,
-                                    readPoseidonPackageCollection)
+                                    readPoseidonPackageCollection, PoseidonException (PoseidonEmptyForgeException))
 import           Poseidon.Snapshot (SnapshotMode (..), makeMinimalSnapshot,
-                                    makeSnapshot, writeSnapshot)
+                                    makeSnapshot, writeSnapshot, readSnapshot)
 import           Poseidon.Utils    (PoseidonIO)
 
 -- | A datatype representing command line options for the summarise command
@@ -15,7 +15,7 @@ data SnapshotOptions = SnapshotOptions
     , _snapshotMinimal         :: Bool
     }
 
-data SnapOperation = CreateSnap FilePath | UpdateSnap FilePath
+data SnapOperation = CreateSnap FilePath | UpdateSnap FilePath (Maybe FilePath)
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -30,11 +30,16 @@ runSnapshot :: SnapshotOptions -> PoseidonIO ()
 runSnapshot (SnapshotOptions baseDirs operation withGit minimal) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let modeSetting = if withGit then SnapshotWithGit else SimpleSnapshot
-    snapshot <- if minimal
-                then do makeMinimalSnapshot modeSetting allPackages
-                else do makeSnapshot modeSetting allPackages
+    newSnapshot <- if minimal
+                   then do makeMinimalSnapshot modeSetting allPackages
+                   else do makeSnapshot modeSetting allPackages
     case operation of
-        CreateSnap p -> writeSnapshot p snapshot
-        UpdateSnap p -> error "huhu"
-    
+        CreateSnap outPath -> writeSnapshot outPath newSnapshot
+        UpdateSnap inPath maybeOutPath -> do
+            oldSnapshot <- readSnapshot inPath
+            updatedSnapshot <- updateSnapshot oldSnapshot newSnapshot
+            case maybeOutPath of
+                Nothing      -> writeSnapshot inPath updatedSnapshot
+                Just outPath -> writeSnapshot outPath updatedSnapshot
 
+updateSnapshot = undefined

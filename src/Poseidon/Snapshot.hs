@@ -5,7 +5,7 @@ module Poseidon.Snapshot where
 import           Poseidon.Package        (PoseidonPackage (..),
                                           dummyContributor)
 import           Poseidon.SecondaryTypes (ContributorSpec)
-import           Poseidon.Utils          (PoseidonIO, logWarning)
+import           Poseidon.Utils          (PoseidonIO, logWarning, PoseidonException(..))
 
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
@@ -17,6 +17,9 @@ import           Data.Yaml.Pretty.Extras (ToPrettyYaml (..), encodeFilePretty)
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (makeAbsolute)
 import           System.FilePath         (takeDirectory, (</>))
+import Data.Yaml (decodeEither')
+import qualified Data.ByteString            as B
+import           Control.Monad.Catch        (throwM)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
@@ -86,8 +89,15 @@ instance ToJSON PackageState where
 
 data SnapshotMode = SimpleSnapshot | SnapshotWithGit
 
+readSnapshot :: FilePath -> PoseidonIO PoseidonPackageSnapshot
+readSnapshot p = do
+    bs <- liftIO $ B.readFile p
+    case decodeEither' bs of
+        Left err  -> throwM $ PoseidonYamlParseException p err
+        Right snap -> return snap
+
 writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()
-writeSnapshot p = encodeFilePretty p
+writeSnapshot = encodeFilePretty
 
 makeSnapshot :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageSnapshot
 makeSnapshot snapMode pacs = do

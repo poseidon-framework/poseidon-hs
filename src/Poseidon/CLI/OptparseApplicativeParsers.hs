@@ -26,19 +26,27 @@ import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
 
 parseSnapOperation :: OP.Parser SnapOperation
-parseSnapOperation = (CreateSnap <$> parseSnapOutDir) <|> (UpdateSnap <$> parseSnapUpdate)
+parseSnapOperation = (CreateSnap <$> parseSnapOutPath) <|> (UpdateSnap <$> parseSnapUpdatePath <*> parseSnapMaybeOutPath)
 
-parseSnapOutDir :: OP.Parser FilePath
-parseSnapOutDir = OP.strOption (OP.long "outFile" <>
+parseSnapOutPath :: OP.Parser FilePath
+parseSnapOutPath = OP.strOption (OP.long "outFile" <>
     OP.short 'o' <>
     OP.metavar "PATH" <>
     OP.help "Path to the resulting snapshot definition file.")
 
-parseSnapUpdate :: OP.Parser FilePath
-parseSnapUpdate = OP.strOption (OP.long "updateFile" <>
+parseSnapUpdatePath :: OP.Parser FilePath
+parseSnapUpdatePath = OP.strOption (OP.long "updateFile" <>
     OP.short 'u' <>
     OP.metavar "PATH" <>
     OP.help "Path to the snapshot definition file that should be updated.")
+
+parseSnapMaybeOutPath :: OP.Parser (Maybe FilePath)
+parseSnapMaybeOutPath = OP.option (Just <$> OP.str) (
+    OP.short 'o' <>
+    OP.long "updateOutFile" <>
+    OP.help "If this is set, then the input snapshot file will not be overwritten, but a new file will be created instead." <>
+    OP.value Nothing
+    )
 
 parseSnapWithGit :: OP.Parser Bool
 parseSnapWithGit = OP.switch (OP.long "withGit" <> OP.help "Should the resulting snapshot file include git commit hashes (local head)?")
