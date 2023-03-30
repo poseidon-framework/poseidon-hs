@@ -4,7 +4,9 @@ module Poseidon.Snapshot where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           dummyContributor)
-import           Poseidon.SecondaryTypes (ContributorSpec)
+import           Poseidon.SecondaryTypes (ContributorSpec,
+                                          VersionComponent (..),
+                                          updateThreeComponentVersion)
 import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
                                           logWarning)
 
@@ -99,25 +101,30 @@ data SnapshotMode = SimpleSnapshot | SnapshotWithGit
 
 updateSnapshot :: PoseidonPackageSnapshot -> PoseidonPackageSnapshot -> PoseidonPackageSnapshot
 updateSnapshot oldSnapshot newSnapshot =
-    let updatedPacList = updatePackageList (snapYamlPackages oldSnapshot) (snapYamlPackages newSnapshot)
+    let oldPackageSet = S.fromList $ snapYamlPackages oldSnapshot
+        newPackageSet = S.fromList $ snapYamlPackages newSnapshot
+        updatedPacSet = updatePackageSet oldPackageSet newPackageSet
+        oldVersion = snapYamlSnapshotVersion oldSnapshot
     in PoseidonPackageSnapshot {
       snapYamlTitle           = snapYamlTitle oldSnapshot
     , snapYamlDescription     = snapYamlDescription oldSnapshot
     , snapYamlContributor     = snapYamlContributor oldSnapshot
-    , snapYamlSnapshotVersion = Nothing -- if updatedPacList != snapYamlPackages oldSnapshot then ...
+    , snapYamlSnapshotVersion = if updatedPacSet /= oldPackageSet
+                                then case oldVersion of
+                                    Just v -> Just $ updateThreeComponentVersion Minor v
+                                    Nothing -> Nothing
+                                else oldVersion
     , snapYamlLastModified    = snapYamlLastModified newSnapshot
-    , snapYamlPackages        = updatedPacList
+    , snapYamlPackages        = S.toList updatedPacSet
     }
     where
         -- note that package comparison ignores git commits
-        updatePackageList :: [PackageState] -> [PackageState] -> [PackageState]
-        updatePackageList os ns =
-            let oldPacs = S.fromList os
-                newPacs = S.fromList ns
-                oldNotInNew = oldPacs S.\\ newPacs
+        updatePackageSet :: S.Set PackageState -> S.Set PackageState -> S.Set PackageState
+        updatePackageSet oldPacs newPacs =
+            let oldNotInNew = oldPacs S.\\ newPacs
                 goodOld = oldPacs S.\\ oldNotInNew
                 newNotInOld = newPacs S.\\ goodOld
-            in S.toList (goodOld <> newNotInOld)
+            in goodOld <> newNotInOld
 
 readSnapshot :: FilePath -> PoseidonIO PoseidonPackageSnapshot
 readSnapshot p = do
