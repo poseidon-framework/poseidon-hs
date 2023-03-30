@@ -4,6 +4,7 @@ module Poseidon.CLI.OptparseApplicativeParsers where
 
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
+import           Poseidon.CLI.Snapshot   (SnapOperation (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
                                           PoseidonEntity, SignedEntitiesList,
                                           SignedEntity, readEntitiesFromString)
@@ -16,7 +17,6 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
 import           Poseidon.Utils          (LogMode (..))
-import Poseidon.CLI.Snapshot (SnapOperation (..))
 
 import           Control.Applicative     ((<|>))
 import           Data.Version            (Version)

@@ -5,21 +5,23 @@ module Poseidon.Snapshot where
 import           Poseidon.Package        (PoseidonPackage (..),
                                           dummyContributor)
 import           Poseidon.SecondaryTypes (ContributorSpec)
-import           Poseidon.Utils          (PoseidonIO, logWarning, PoseidonException(..))
+import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
+                                          logWarning)
 
+import           Control.Monad.Catch     (throwM)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
                                           toJSON, withObject, (.!=), (.:),
                                           (.:?), (.=))
+import qualified Data.ByteString         as B
+import qualified Data.Set                as S
 import           Data.Time               (Day, UTCTime (..), getCurrentTime)
 import           Data.Version            (Version, makeVersion)
+import           Data.Yaml               (decodeEither')
 import           Data.Yaml.Pretty.Extras (ToPrettyYaml (..), encodeFilePretty)
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (makeAbsolute)
-import           System.FilePath         (takeDirectory, (</>))
-import Data.Yaml (decodeEither')
-import qualified Data.ByteString            as B
-import           Control.Monad.Catch        (throwM)
+import           System.FilePath         (takeDirectory)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
@@ -72,7 +74,13 @@ data PackageState = PackageState
     , pacStateCommit  :: Maybe String -- ^ the hash of a relevant commit where a package can be accessed in this version
                                     -- (only relevant) for our server-client architecture
     }
-    deriving (Show, Eq)
+    deriving (Show)
+
+instance Eq PackageState where
+    (PackageState t1 v1 _) == (PackageState t2 v2 _) = (t1 == t2) && (v1 == v2)
+
+instance Ord PackageState where
+    (PackageState t1 v1 _) `compare` (PackageState t2 v2 _) = (t1,v1) `compare` (t2,v2)
 
 instance FromJSON PackageState where
     parseJSON = withObject "packages" $ \v -> PackageState
@@ -89,11 +97,33 @@ instance ToJSON PackageState where
 
 data SnapshotMode = SimpleSnapshot | SnapshotWithGit
 
+updateSnapshot :: PoseidonPackageSnapshot -> PoseidonPackageSnapshot -> PoseidonPackageSnapshot
+updateSnapshot oldSnapshot newSnapshot =
+    let updatedPacList = updatePackageList (snapYamlPackages oldSnapshot) (snapYamlPackages newSnapshot)
+    in PoseidonPackageSnapshot {
+      snapYamlTitle           = snapYamlTitle oldSnapshot
+    , snapYamlDescription     = snapYamlDescription oldSnapshot
+    , snapYamlContributor     = snapYamlContributor oldSnapshot
+    , snapYamlSnapshotVersion = Nothing -- if updatedPacList != snapYamlPackages oldSnapshot then ...
+    , snapYamlLastModified    = snapYamlLastModified newSnapshot
+    , snapYamlPackages        = updatedPacList
+    }
+    where
+        -- note that package comparison ignores git commits
+        updatePackageList :: [PackageState] -> [PackageState] -> [PackageState]
+        updatePackageList os ns =
+            let oldPacs = S.fromList os
+                newPacs = S.fromList ns
+                oldNotInNew = oldPacs S.\\ newPacs
+                goodOld = oldPacs S.\\ oldNotInNew
+                newNotInOld = newPacs S.\\ goodOld
+            in S.toList (goodOld <> newNotInOld)
+
 readSnapshot :: FilePath -> PoseidonIO PoseidonPackageSnapshot
 readSnapshot p = do
     bs <- liftIO $ B.readFile p
     case decodeEither' bs of
-        Left err  -> throwM $ PoseidonYamlParseException p err
+        Left err   -> throwM $ PoseidonYamlParseException p err
         Right snap -> return snap
 
 writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()

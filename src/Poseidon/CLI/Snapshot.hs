@@ -2,17 +2,18 @@ module Poseidon.CLI.Snapshot where
 
 import           Poseidon.Package  (PackageReadOptions (..),
                                     defaultPackageReadOptions,
-                                    readPoseidonPackageCollection, PoseidonException (PoseidonEmptyForgeException))
+                                    readPoseidonPackageCollection)
 import           Poseidon.Snapshot (SnapshotMode (..), makeMinimalSnapshot,
-                                    makeSnapshot, writeSnapshot, readSnapshot)
+                                    makeSnapshot, readSnapshot, updateSnapshot,
+                                    writeSnapshot)
 import           Poseidon.Utils    (PoseidonIO)
 
 -- | A datatype representing command line options for the summarise command
 data SnapshotOptions = SnapshotOptions
-    { _snapshotBaseDirs        :: [FilePath]
-    , _snapshotOperation       :: SnapOperation
-    , _snapshotWithGitCommits  :: Bool
-    , _snapshotMinimal         :: Bool
+    { _snapshotBaseDirs       :: [FilePath]
+    , _snapshotOperation      :: SnapOperation
+    , _snapshotWithGitCommits :: Bool
+    , _snapshotMinimal        :: Bool
     }
 
 data SnapOperation = CreateSnap FilePath | UpdateSnap FilePath (Maybe FilePath)
@@ -37,9 +38,7 @@ runSnapshot (SnapshotOptions baseDirs operation withGit minimal) = do
         CreateSnap outPath -> writeSnapshot outPath newSnapshot
         UpdateSnap inPath maybeOutPath -> do
             oldSnapshot <- readSnapshot inPath
-            updatedSnapshot <- updateSnapshot oldSnapshot newSnapshot
+            let updatedSnapshot = updateSnapshot oldSnapshot newSnapshot
             case maybeOutPath of
                 Nothing      -> writeSnapshot inPath updatedSnapshot
                 Just outPath -> writeSnapshot outPath updatedSnapshot
-
-updateSnapshot = undefined
