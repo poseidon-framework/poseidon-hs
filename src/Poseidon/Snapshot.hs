@@ -121,10 +121,11 @@ updateSnapshot oldSnapshot newSnapshot =
         -- note that package comparison ignores git commits
         updatePackageSet :: S.Set PackageState -> S.Set PackageState -> S.Set PackageState
         updatePackageSet oldPacs newPacs =
+            -- this implementation makes sure that the entries for old packages are kept around
             let oldNotInNew = oldPacs S.\\ newPacs
                 goodOld = oldPacs S.\\ oldNotInNew
                 newNotInOld = newPacs S.\\ goodOld
-            in goodOld <> newNotInOld
+            in goodOld <> oldNotInNew <> newNotInOld
 
 readSnapshot :: FilePath -> PoseidonIO PoseidonPackageSnapshot
 readSnapshot p = do

@@ -3,7 +3,7 @@
 
 module Poseidon.SnapshotSpec (spec) where
 
-import Poseidon.Snapshot (PoseidonPackageSnapshot (..), PackageState (..), writeSnapshot, readSnapshot, makeSnapshot, SnapshotMode (..))
+import Poseidon.Snapshot (PoseidonPackageSnapshot (..), PackageState (..), writeSnapshot, readSnapshot, makeSnapshot, SnapshotMode (..), updateSnapshot)
 import Poseidon.Package (dummyContributor, PackageReadOptions (..), defaultPackageReadOptions, readPoseidonPackageCollection)
 import Poseidon.Utils (testLog)
 
@@ -20,6 +20,7 @@ spec = do
     testSnapshotFromYaml
     testEncodeDecodeSnapshotFile
     testMakeSnapshot
+    testUpdateSnapshot
 
 yamlExampleSnapshot :: B.ByteString
 yamlExampleSnapshot = [r|
@@ -73,6 +74,27 @@ exampleSnapshot = PoseidonPackageSnapshot {
         ]
     }
 
+newSnapshot :: PoseidonPackageSnapshot
+newSnapshot = PoseidonPackageSnapshot {
+      snapYamlTitle           = Nothing
+    , snapYamlDescription     = Nothing
+    , snapYamlContributor     = []
+    , snapYamlSnapshotVersion = Nothing
+    , snapYamlLastModified    = Just (fromGregorian 2099 04 02)
+    , snapYamlPackages        = [
+        PackageState {
+              pacStateTitle   = "Lamnidis_2018"
+            , pacStateVersion = Just $ makeVersion [2, 0, 0]
+            , pacStateCommit  = Just "test"
+        },
+        PackageState {
+              pacStateTitle   = "Zoro_2000"
+            , pacStateVersion = Just $ makeVersion [0, 1, 0]
+            , pacStateCommit  = Just "test2"
+        }
+        ]
+    }
+
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
       _readOptStopOnDuplicates = False
@@ -102,3 +124,47 @@ testMakeSnapshot = describe "Poseidon.Snapshot.makeSnapshot" $ do
         pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testDat/testPackages/ancient"]
         snap <- testLog $ makeSnapshot SimpleSnapshot pacs
         snap `shouldBe` exampleSnapshot
+
+testUpdateSnapshot :: Spec
+testUpdateSnapshot = describe "Poseidon.Snapshot.updateSnapshot" $ do
+    it "should correctly produce a new, merged snapshot" $ do
+        updateSnapshot exampleSnapshot newSnapshot `shouldBe`
+            PoseidonPackageSnapshot {
+                  snapYamlTitle           = Just "Snapshot title"
+                , snapYamlDescription     = Just "Snapshot description"
+                , snapYamlContributor     = [dummyContributor]
+                , snapYamlSnapshotVersion = Just $ makeVersion [0, 2, 0]
+                , snapYamlLastModified    = Just (fromGregorian 2099 04 02)
+                , snapYamlPackages        = [
+                    PackageState {
+                          pacStateTitle   = "Lamnidis_2018"
+                        , pacStateVersion = Just $ makeVersion [1, 0, 1]
+                        , pacStateCommit  = Nothing
+                    },
+                    PackageState {
+                          pacStateTitle   = "Lamnidis_2018"
+                        , pacStateVersion = Just $ makeVersion [2, 0, 0]
+                        , pacStateCommit  = Just "test"
+                    },
+                    PackageState {
+                          pacStateTitle   = "Schiffels_2016"
+                        , pacStateVersion = Just $ makeVersion [1, 0, 1]
+                        , pacStateCommit  = Nothing
+                    },
+                    PackageState {
+                          pacStateTitle   = "Schmid_2028"
+                        , pacStateVersion = Just $ makeVersion [1, 0, 0]
+                        , pacStateCommit  = Nothing
+                    },
+                    PackageState {
+                          pacStateTitle   = "Wang_Plink_test_2020"
+                        , pacStateVersion = Just $ makeVersion [0, 1, 0]
+                        , pacStateCommit  = Nothing
+                    },
+                    PackageState {
+                          pacStateTitle   = "Zoro_2000"
+                        , pacStateVersion = Just $ makeVersion [0, 1, 0]
+                        , pacStateCommit  = Just "test2"
+                    }
+                    ]
+                }
