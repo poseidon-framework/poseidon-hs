@@ -3,17 +3,24 @@
 
 module Poseidon.SnapshotSpec (spec) where
 
-import Poseidon.Snapshot (PoseidonPackageSnapshot (..), PackageState (..), writeSnapshot, readSnapshot, makeSnapshot, SnapshotMode (..), updateSnapshot)
-import Poseidon.Package (dummyContributor, PackageReadOptions (..), defaultPackageReadOptions, readPoseidonPackageCollection)
-import Poseidon.Utils (testLog)
+import           Poseidon.Package      (PackageReadOptions (..),
+                                        defaultPackageReadOptions,
+                                        dummyContributor,
+                                        readPoseidonPackageCollection)
+import           Poseidon.Snapshot     (PackageState (..),
+                                        PoseidonPackageSnapshot (..),
+                                        SnapshotMode (..), makeSnapshot,
+                                        readSnapshot, updateSnapshot,
+                                        writeSnapshot)
+import           Poseidon.Utils        (testLog)
 
+import qualified Data.ByteString.Char8 as B
+import           Data.Time             (fromGregorian)
+import           Data.Version          (makeVersion)
+import           Data.Yaml             (ParseException, decodeEither')
+import           System.Directory      (removeFile)
 import           Test.Hspec
 import           Text.RawString.QQ
-import qualified Data.ByteString.Char8      as B
-import Data.Yaml (ParseException, decodeEither')
-import Data.Version (makeVersion)
-import Data.Time (fromGregorian)
-import System.Directory (removeFile)
 
 spec :: Spec
 spec = do
