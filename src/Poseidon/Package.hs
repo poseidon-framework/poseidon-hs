@@ -68,8 +68,6 @@ import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
-import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
-                                             encodeFilePretty)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Pipe, Producer, cat, for,
                                              runEffect, yield, (>->))
@@ -156,35 +154,35 @@ instance ToJSON PoseidonYamlStruct where
         "changelogFile"   .= _posYamlChangelogFile x
         ]
 
-instance ToPrettyYaml PoseidonYamlStruct where
-    fieldOrder = const [
-        "poseidonVersion",
-        "title",
-        "description",
-        "contributor",
-        "name",
-        "email",
-        "orcid",
-        "packageVersion",
-        "lastModified",
-        "genotypeData",
-        "format",
-        "genoFile",
-        "genoFileChkSum",
-        "snpFile",
-        "snpFileChkSum",
-        "indFile",
-        "indFileChkSum",
-        "snpSet",
-        "jannoFile",
-        "jannoFileChkSum",
-        "sequencingSourceFile",
-        "sequencingSourceFileChkSum",
-        "bibFile",
-        "bibFileChkSum",
-        "readmeFile",
-        "changelogFile"
-        ]
+-- instance ToPrettyYaml PoseidonYamlStruct where
+--     fieldOrder = const [
+--         "poseidonVersion",
+--         "title",
+--         "description",
+--         "contributor",
+--         "name",
+--         "email",
+--         "orcid",
+--         "packageVersion",
+--         "lastModified",
+--         "genotypeData",
+--         "format",
+--         "genoFile",
+--         "genoFileChkSum",
+--         "snpFile",
+--         "snpFileChkSum",
+--         "indFile",
+--         "indFileChkSum",
+--         "snpSet",
+--         "jannoFile",
+--         "jannoFileChkSum",
+--         "sequencingSourceFile",
+--         "sequencingSourceFileChkSum",
+--         "bibFile",
+--         "bibFileChkSum",
+--         "readmeFile",
+--         "changelogFile"
+--         ]
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
