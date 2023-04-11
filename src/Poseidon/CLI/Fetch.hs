@@ -37,6 +37,7 @@ import           Network.HTTP.Types      (hContentLength)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
+import Data.Maybe (fromMaybe)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]
@@ -180,7 +181,7 @@ downloadPackage pathToRepo remote pacName = do
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     liftIO $ runResourceT $ do
         response <- http packageRequest downloadManager
-        let Just fileSize = lookup hContentLength (responseHeaders response)
+        let fileSize = fromMaybe "0" $ lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
         logWithEnv logA $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"
