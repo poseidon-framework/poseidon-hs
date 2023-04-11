@@ -29,6 +29,7 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
+import           Data.Maybe              (fromMaybe)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
@@ -37,7 +38,6 @@ import           Network.HTTP.Types      (hContentLength)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))
-import Data.Maybe (fromMaybe)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]

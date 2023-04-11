@@ -61,13 +61,17 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
 import qualified Data.ByteString            as B
 import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
+import           Data.Function              (on)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
-import           Data.Maybe                 (catMaybes, isNothing, mapMaybe, fromMaybe)
+import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
+                                             mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
+import           Data.Yaml.Pretty           (defConfig, encodePretty,
+                                             setConfCompare, setConfDropNull)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Pipe, Producer, cat, for,
                                              runEffect, yield, (>->))
@@ -85,8 +89,6 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
-import Data.Yaml.Pretty (encodePretty, setConfCompare, defConfig, setConfDropNull)
-import Data.Function (on)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
