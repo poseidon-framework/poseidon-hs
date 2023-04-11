@@ -1,3 +1,4 @@
+- V 1.1.11.2: Switch to stackage resolver LTS 20.17 for ghc-9.2.7. No user-facing changes in trident.
 - V 1.1.11.0: Implemented the changes and additions for the new schema release Poseidon v2.7.0: The sequencingSourceFile (.ssf) file, the new .janno columns (Country_ISO, Library_Names) and the small changes to existing columns (Library_Built).
 - V 1.1.10.2: Added a missing default (`asFamily`) for the `--outPlinkPopName` option
 - V 1.1.10.1: Internal refactoring. Introduced a newtype wrapper `JannoRows` for `[JannoRow]`, which is an instance of `Monoid`. This should encourage the use of a dedicated implementation of `mconcat` for `JannoRows`
