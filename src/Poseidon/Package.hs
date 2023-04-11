@@ -63,7 +63,7 @@ import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
-import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
+import           Data.Maybe                 (catMaybes, isNothing, mapMaybe, fromMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -85,6 +85,8 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
+import Data.Yaml.Pretty (encodePretty, setConfCompare, defConfig)
+import Data.Function (on)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -153,36 +155,6 @@ instance ToJSON PoseidonYamlStruct where
         "readmeFile"      .= _posYamlReadmeFile x,
         "changelogFile"   .= _posYamlChangelogFile x
         ]
-
--- instance ToPrettyYaml PoseidonYamlStruct where
---     fieldOrder = const [
---         "poseidonVersion",
---         "title",
---         "description",
---         "contributor",
---         "name",
---         "email",
---         "orcid",
---         "packageVersion",
---         "lastModified",
---         "genotypeData",
---         "format",
---         "genoFile",
---         "genoFileChkSum",
---         "snpFile",
---         "snpFileChkSum",
---         "indFile",
---         "indFileChkSum",
---         "snpSet",
---         "jannoFile",
---         "jannoFileChkSum",
---         "sequencingSourceFile",
---         "sequencingSourceFileChkSum",
---         "bibFile",
---         "bibFileChkSum",
---         "readmeFile",
---         "changelogFile"
---         ]
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -758,4 +730,35 @@ writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
     let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
-    encodeFilePretty outF yamlPac
+    B.writeFile outF (encodePretty opts yamlPac)
+    where
+        opts = setConfCompare (compare `on` fieldIndex) defConfig
+        fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields
+        fields = [
+          "poseidonVersion",
+          "title",
+          "description",
+          "contributor",
+          "name",
+          "email",
+          "orcid",
+          "packageVersion",
+          "lastModified",
+          "genotypeData",
+          "format",
+          "genoFile",
+          "genoFileChkSum",
+          "snpFile",
+          "snpFileChkSum",
+          "indFile",
+          "indFileChkSum",
+          "snpSet",
+          "jannoFile",
+          "jannoFileChkSum",
+          "sequencingSourceFile",
+          "sequencingSourceFileChkSum",
+          "bibFile",
+          "bibFileChkSum",
+          "readmeFile",
+          "changelogFile"
+         ]
