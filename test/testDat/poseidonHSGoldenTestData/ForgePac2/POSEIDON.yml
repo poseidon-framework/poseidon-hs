@@ -1,8 +1,0 @@
-poseidonVersion: 2.7.0
-title: ForgePac2
-genotypeData:
-  format: PLINK
-  genoFile: ForgePac2.bed
-  snpFile: ForgePac2.bim
-  indFile: ForgePac2.fam
-  snpSet: Other
