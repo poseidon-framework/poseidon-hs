@@ -85,7 +85,7 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
-import Data.Yaml.Pretty (encodePretty, setConfCompare, defConfig)
+import Data.Yaml.Pretty (encodePretty, setConfCompare, defConfig, setConfDropNull)
 import Data.Function (on)
 
 -- | Internal structure for YAML loading only
@@ -732,7 +732,7 @@ writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno j
         outF = baseDir </> "POSEIDON.yml"
     B.writeFile outF (encodePretty opts yamlPac)
     where
-        opts = setConfCompare (compare `on` fieldIndex) defConfig
+        opts = setConfDropNull True $ setConfCompare (compare `on` fieldIndex) defConfig
         fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields
         fields = [
           "poseidonVersion",
