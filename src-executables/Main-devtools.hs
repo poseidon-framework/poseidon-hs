@@ -35,7 +35,7 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
-        OP.command "updateGoldenTests" updateGoldenTestsOptInfo
+        OP.command "golden" updateGoldenTestsOptInfo
     )
   where
     updateGoldenTestsOptInfo = OP.info (OP.helper <*> (CmdUpdateGoldenTests <$> testOptParser))

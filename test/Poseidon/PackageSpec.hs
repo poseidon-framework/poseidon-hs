@@ -201,7 +201,7 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
     let dir = "test/testDat/testPackages/ancient"
     it "should discover packages correctly" $ do
         pac <- testLog $ readPoseidonPackageCollection testPacReadOpts [dir]
-        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_Plink_test_2020"]
+        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 5 20),
                                                       Just (fromGregorian 2021 11 9),
@@ -218,7 +218,7 @@ checksums :: [String]
 checksums = ["0332344057c0c4dce2ff7176f8e1103d",
              "d76e3e7a8fc0f1f5e435395424b5aeab",
              "f77dc756666dbfef3bb35191ae15a167",
-             "b38f0bce9f9f3a211f38a1d9951efb48",
+             "651ba9c7c2d096403f1b5c361fac2447",
              "70cd3d5801cee8a93fc2eb40a99c63fa"]
 
 testGetChecksum :: Spec
@@ -328,11 +328,11 @@ testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
         testLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should throw if Plink Setting is not correct" $ do
         let opts = defaultPackageReadOptions
-        let ymlPath = "test/testDat/testPackages/ancient/Wang_Plink_test_2020/POSEIDON.yml"
+        let ymlPath = "test/testDat/testPackages/ancient/Wang_2020/POSEIDON.yml"
         usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should not throw if Plink Setting is correct" $ do
         let opts = defaultPackageReadOptions
-        let ymlPath = "test/testDat/testPackages/ancient/Wang_Plink_test_2020/POSEIDON_otherPlinkEncoding.yml"
+        let ymlPath = "test/testDat/testPackages/ancient/Wang_2020/POSEIDON_otherPlinkEncoding.yml"
         _ <- usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath)
         return ()
   where

@@ -170,7 +170,7 @@ testFilterPackages =
     it "should select all relevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages goodEntities ps
-        map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_Plink_test_2020", "Schmid_2028", "Lamnidis_2018"]
+        map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_2020", "Schmid_2028", "Lamnidis_2018"]
     it "should drop all irrelevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterRelevantPackages badEntities ps
