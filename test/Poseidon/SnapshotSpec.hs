@@ -21,6 +21,7 @@ import           Data.Yaml             (ParseException, decodeEither')
 import           System.Directory      (removeFile)
 import           Test.Hspec
 import           Text.RawString.QQ
+import Data.Either (fromRight)
 
 spec :: Spec
 spec = do
@@ -46,7 +47,7 @@ packages:
   version: 1.0.1
 - title: Schmid_2028
   version: 1.0.0
-- title: Wang_Plink_test_2020
+- title: Wang_2020
   version: 0.1.0
 |]
 
@@ -74,7 +75,7 @@ exampleSnapshot = PoseidonPackageSnapshot {
             , pacStateCommit  = Nothing
         },
         PackageState {
-              pacStateTitle   = "Wang_Plink_test_2020"
+              pacStateTitle   = "Wang_2020"
             , pacStateVersion = Just $ makeVersion [0, 1, 0]
             , pacStateCommit  = Nothing
         }
@@ -112,7 +113,7 @@ testPacReadOpts = defaultPackageReadOptions {
 
 testSnapshotFromYaml :: Spec
 testSnapshotFromYaml = describe "Poseidon.Snapshot.fromYAML" $ do
-    let (Right p) = decodeEither' yamlExampleSnapshot :: Either ParseException PoseidonPackageSnapshot
+    let p = fromRight newSnapshot (decodeEither' yamlExampleSnapshot :: Either ParseException PoseidonPackageSnapshot)
     it "should parse correct YAML data" $
         p `shouldBe` exampleSnapshot
 
@@ -130,7 +131,7 @@ testMakeSnapshot = describe "Poseidon.Snapshot.makeSnapshot" $ do
     it "should make a snapshot as expected" $ do
         pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testDat/testPackages/ancient"]
         snap <- testLog $ makeSnapshot SimpleSnapshot pacs
-        snap `shouldBe` exampleSnapshot
+        snap {snapYamlLastModified = Just (fromGregorian 2023 04 02)} `shouldBe` exampleSnapshot
 
 testUpdateSnapshot :: Spec
 testUpdateSnapshot = describe "Poseidon.Snapshot.updateSnapshot" $ do
@@ -164,7 +165,7 @@ testUpdateSnapshot = describe "Poseidon.Snapshot.updateSnapshot" $ do
                         , pacStateCommit  = Nothing
                     },
                     PackageState {
-                          pacStateTitle   = "Wang_Plink_test_2020"
+                          pacStateTitle   = "Wang_2020"
                         , pacStateVersion = Just $ makeVersion [0, 1, 0]
                         , pacStateCommit  = Nothing
                     },
