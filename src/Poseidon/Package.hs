@@ -61,15 +61,17 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
 import qualified Data.ByteString            as B
 import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
+import           Data.Function              (on)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
-import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
+import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
+                                             mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
-import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
-                                             encodeFilePretty)
+import           Data.Yaml.Pretty           (defConfig, encodePretty,
+                                             setConfCompare, setConfDropNull)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Pipe, Producer, cat, for,
                                              runEffect, yield, (>->))
@@ -154,36 +156,6 @@ instance ToJSON PoseidonYamlStruct where
         "bibFileChkSum"   .= _posYamlBibFileChkSum x,
         "readmeFile"      .= _posYamlReadmeFile x,
         "changelogFile"   .= _posYamlChangelogFile x
-        ]
-
-instance ToPrettyYaml PoseidonYamlStruct where
-    fieldOrder = const [
-        "poseidonVersion",
-        "title",
-        "description",
-        "contributor",
-        "name",
-        "email",
-        "orcid",
-        "packageVersion",
-        "lastModified",
-        "genotypeData",
-        "format",
-        "genoFile",
-        "genoFileChkSum",
-        "snpFile",
-        "snpFileChkSum",
-        "indFile",
-        "indFileChkSum",
-        "snpSet",
-        "jannoFile",
-        "jannoFileChkSum",
-        "sequencingSourceFile",
-        "sequencingSourceFileChkSum",
-        "bibFile",
-        "bibFileChkSum",
-        "readmeFile",
-        "changelogFile"
         ]
 
 -- | A data type to represent a Poseidon Package
@@ -760,4 +732,35 @@ writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
     let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
-    encodeFilePretty outF yamlPac
+    B.writeFile outF (encodePretty opts yamlPac)
+    where
+        opts = setConfDropNull True $ setConfCompare (compare `on` fieldIndex) defConfig
+        fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields
+        fields = [
+          "poseidonVersion",
+          "title",
+          "description",
+          "contributor",
+          "name",
+          "email",
+          "orcid",
+          "packageVersion",
+          "lastModified",
+          "genotypeData",
+          "format",
+          "genoFile",
+          "genoFileChkSum",
+          "snpFile",
+          "snpFileChkSum",
+          "indFile",
+          "indFileChkSum",
+          "snpSet",
+          "jannoFile",
+          "jannoFileChkSum",
+          "sequencingSourceFile",
+          "sequencingSourceFileChkSum",
+          "bibFile",
+          "bibFileChkSum",
+          "readmeFile",
+          "changelogFile"
+         ]

@@ -167,9 +167,9 @@ runForge (
     logInfo $ "Writing to directory (will be created if missing): " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
-    let [outInd, outSnp, outGeno] = case outFormat of
-            GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
-            GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
+    let (outInd, outSnp, outGeno) = case outFormat of
+            GenotypeFormatEigenstrat -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
+            GenotypeFormatPlink -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
     -- output warning if any snpSet is set to Other
     snpSetList <- fillMissingSnpSets relevantPackages
     let newSNPSet = case
@@ -212,7 +212,7 @@ runForge (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logA intersect_ inPlinkPopMode relevantPackages maybeSnpFile
             let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
-            let [outG, outS, outI] = map (outPath </>) [outGeno, outSnp, outInd]
+            let (outG, outS, outI) = (outPath </> outGeno, outPath </> outSnp, outPath </> outInd)
             let outConsumer = case outFormat of
                     GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
                     GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
