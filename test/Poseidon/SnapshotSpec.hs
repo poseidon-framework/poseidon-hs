@@ -15,13 +15,13 @@ import           Poseidon.Snapshot     (PackageState (..),
 import           Poseidon.Utils        (testLog)
 
 import qualified Data.ByteString.Char8 as B
+import           Data.Either           (fromRight)
 import           Data.Time             (fromGregorian)
 import           Data.Version          (makeVersion)
 import           Data.Yaml             (ParseException, decodeEither')
 import           System.Directory      (removeFile)
 import           Test.Hspec
 import           Text.RawString.QQ
-import Data.Either (fromRight)
 
 spec :: Spec
 spec = do

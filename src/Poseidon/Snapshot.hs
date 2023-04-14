@@ -16,6 +16,9 @@ import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
                                           toJSON, withObject, (.!=), (.:),
                                           (.:?), (.=))
 import qualified Data.ByteString         as B
+import           Data.Function           (on)
+import           Data.List               (elemIndex)
+import           Data.Maybe              (fromMaybe)
 import qualified Data.Set                as S
 import           Data.Time               (Day, UTCTime (..), getCurrentTime)
 import           Data.Version            (Version, makeVersion)
@@ -25,9 +28,6 @@ import           Data.Yaml.Pretty        (defConfig, encodePretty,
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (makeAbsolute)
 import           System.FilePath         (takeDirectory)
-import           Data.Function              (on)
-import Data.Maybe (fromMaybe)
-import Data.List (elemIndex)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
