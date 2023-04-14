@@ -1,3 +1,4 @@
+- V 1.1.11.3: Re-implemented the `survey` subcommand with advanced type level magic to avoid hard to maintain boilerplate code. Again no user-facing changes in trident.
 - V 1.1.11.2: Switch to stackage resolver LTS 20.17 for ghc-9.2.7. No user-facing changes in trident.
 - V 1.1.11.1: Reworked the parts of the test infrastructure to make the golden tests structurally simpler and cleaner. No user-facing changes to trident.
 - V 1.1.11.0: Implemented the changes and additions for the new schema release Poseidon v2.7.0: The sequencingSourceFile (.ssf) file, the new .janno columns (Country_ISO, Library_Names) and the small changes to existing columns (Library_Built).
