@@ -1,5 +1,5 @@
 packages: ./*.cabal
 with-compiler: ghc-9.2.7
-
+allow-newer: table-layout:base
 package pandoc-citeproc
     flags: +embed_data_files
