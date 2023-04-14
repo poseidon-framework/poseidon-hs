@@ -31,7 +31,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04]
         cabal: ["3.6"]
-        ghc: ["8.10.7"]
+        ghc: ["9.2.7"]
 
     steps:
       - name: Check out code
@@ -91,7 +91,7 @@ jobs:
       matrix:
         os: [macOS-latest]
         cabal: ["3.6"]
-        ghc: ["8.10.7"]
+        ghc: ["9.2.7"]
 
     steps:
       - name: Check out code
@@ -156,7 +156,7 @@ jobs:
       matrix:
         os: [windows-latest]
         cabal: ["3.6"]
-        ghc: ["8.10.7"]
+        ghc: ["9.2.7"]
 
     steps:
       - name: Check out code

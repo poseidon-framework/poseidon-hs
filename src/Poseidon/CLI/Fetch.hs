@@ -29,6 +29,7 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
+import           Data.Maybe              (fromMaybe)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
@@ -180,7 +181,7 @@ downloadPackage pathToRepo remote pacName = do
     packageRequest <- parseRequest (remote ++ "/zip_file/" ++ pacName)
     liftIO $ runResourceT $ do
         response <- http packageRequest downloadManager
-        let Just fileSize = lookup hContentLength (responseHeaders response)
+        let fileSize = fromMaybe "0" $ lookup hContentLength (responseHeaders response)
         let fileSizeKB = (read $ B8.unpack fileSize) :: Int
         let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
         logWithEnv logA $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"

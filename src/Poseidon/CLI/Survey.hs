@@ -1,10 +1,15 @@
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
-import           Poseidon.Janno            (JannoRow (..), JannoRows (..))
+import           Poseidon.Janno            (CsvNamedRecord, JannoRows (..),
+                                            JannoSex, JannoStringList)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
@@ -14,8 +19,12 @@ import           Poseidon.Utils            (PoseidonIO, logInfo)
 import           Control.Monad             (forM)
 import           Control.Monad.IO.Class    (liftIO)
 import           Data.List                 (intercalate, unfoldr, zip5)
-import           Data.Maybe                (isJust)
 import           Data.Ratio                (Ratio, (%))
+import           Generics.SOP              (All, Generic (Code, from),
+                                            HCollapse (hcollapse),
+                                            HPure (hpure), I, K (K), NP,
+                                            Proxy (..), SListI, hcmap, hzipWith,
+                                            unI, unSOP, unZ)
 import           Poseidon.SequencingSource (SeqSourceRows (..))
 import           System.Directory          (doesFileExist)
 import           System.FilePath           ((</>))
@@ -82,62 +91,25 @@ renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSourc
         insertEveryN n y xs = intercalate [y] . groups n $ xs
             where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
--- this has to be in the same order as jannoHeader in the janno module
 renderJannoCompleteness :: JannoRows -> String
-renderJannoCompleteness jS =
-      '█'
-    : '█'
-    : '█'
-    : getColChar jS jAlternativeIDs
-    : getColChar jS jRelationTo
-    : getColChar jS jRelationDegree
-    : getColChar jS jRelationType
-    : getColChar jS jRelationNote
-    : getColChar jS jCollectionID
-    : getColChar jS jCountry
-    : getColChar jS jCountryISO
-    : getColChar jS jLocation
-    : getColChar jS jSite
-    : getColChar jS jLatitude
-    : getColChar jS jLongitude
-    : getColChar jS jDateType
-    : getColChar jS jDateC14Labnr
-    : getColChar jS jDateC14UncalBP
-    : getColChar jS jDateC14UncalBPErr
-    : getColChar jS jDateBCADStart
-    : getColChar jS jDateBCADMedian
-    : getColChar jS jDateBCADStop
-    : getColChar jS jDateNote
-    : getColChar jS jMTHaplogroup
-    : getColChar jS jYHaplogroup
-    : getColChar jS jSourceTissue
-    : getColChar jS jNrLibraries
-    : getColChar jS jLibraryNames
-    : getColChar jS jCaptureType
-    : getColChar jS jUDG
-    : getColChar jS jLibraryBuilt
-    : getColChar jS jGenotypePloidy
-    : getColChar jS jDataPreparationPipelineURL
-    : getColChar jS jEndogenous
-    : getColChar jS jNrSNPs
-    : getColChar jS jCoverageOnTargets
-    : getColChar jS jDamage
-    : getColChar jS jContamination
-    : getColChar jS jContaminationErr
-    : getColChar jS jContaminationMeas
-    : getColChar jS jContaminationNote
-    : getColChar jS jGeneticSourceAccessionIDs
-    : getColChar jS jPrimaryContact
-    : getColChar jS jPublication
-    : getColChar jS jComments
-    : getColChar jS jKeywords
-    : ""
+renderJannoCompleteness (JannoRows rows) =
+    let ratioString = map prop2Char $ getRatiosForEachField rows
+    in init ratioString -- remove last entry covering the additional columns (CsvNamedRecord)
     where
-        getColChar :: JannoRows -> (JannoRow -> Maybe a) -> Char
-        getColChar (JannoRows rows) column_ =
-            let nrRows = length rows
-                nrFilledValues = length $ filter (isJust . column_) rows
-            in prop2Char $ nrFilledValues % nrRows
+        -- the following magic was heavily inspired by https://stackoverflow.com/a/41524511/3216883
+        getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int]
+        getRatiosForEachField =
+            hcollapse
+          . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
+          . hunzip
+          . map (unZ . unSOP . from)
+        hunzip :: SListI xs => [NP I xs] -> NP [] xs
+        hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
+        measureFillState :: PresenceCountable a => [a] -> Ratio Int
+        measureFillState vals =
+            let nrValues = length vals
+                nrFilledValues = sum $ map countPresence vals
+            in nrFilledValues % nrValues
         prop2Char :: Ratio Int -> Char
         prop2Char r
             | r == 0    = '.'
@@ -146,3 +118,18 @@ renderJannoCompleteness jS =
             | r < 1     = '▓'
             | r == 1    = '█'
             | otherwise = '?'
+
+-- A typeclass to determine if a field in a .janno row is filled
+class PresenceCountable a where
+    countPresence :: a -> Int
+instance PresenceCountable (Maybe a) where
+    countPresence Nothing  = 0
+    countPresence (Just _) = 1
+instance PresenceCountable String where
+    countPresence _ = 1
+instance PresenceCountable JannoSex where
+    countPresence _ = 1
+instance PresenceCountable JannoStringList where
+    countPresence _ = 1
+instance PresenceCountable CsvNamedRecord where
+    countPresence _ = 0
