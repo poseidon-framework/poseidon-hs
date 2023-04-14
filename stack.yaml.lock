@@ -26,13 +26,6 @@ packages:
   original:
     hackage: sequence-formats-1.7.0
 - completed:
-    hackage: yaml-pretty-extras-0.0.2.2@sha256:9e7fefdf4146e84ad11856daa990f5a1b8d1ac2c6dbc0a76913f67480547d4d0,2728
-    pantry-tree:
-      sha256: edd7d1c004e05008b7c7ddb24845d6d769c508a09906623c65d5914e4ee2dbdf
-      size: 386
-  original:
-    hackage: yaml-pretty-extras-0.0.2.2
-- completed:
     hackage: pipes-ordered-zip-1.2.1@sha256:1bece0cde4315987da28b6a588dd3345dda8f61bb6894e4e4c9c3cd3a4646746,1453
     pantry-tree:
       sha256: 099f71b0cecdaee9feae0bbf165491c57082ee259f7b5a593f96cfbccd36ba49
@@ -40,22 +33,36 @@ packages:
   original:
     hackage: pipes-ordered-zip-1.2.1
 - completed:
-    hackage: co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
+    hackage: co-log-0.5.0.0@sha256:a7e84650eaef7eba2d59ee7664309e79317a7ca67011abedf971f0e6bd6475bb,5448
     pantry-tree:
-      sha256: e73165ff8f744709428e2e87984c9d60ca1cec43d8455c413181c7c466e7497c
-      size: 1126
+      sha256: 33b838c07c8b7e70b2e82bddc889bb1e6386d7e12a9d1593c0b4b263b1fcb925
+      size: 1043
   original:
-    hackage: co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
+    hackage: co-log-0.5.0.0
 - completed:
     hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
     pantry-tree:
       sha256: 02f05d52be3ffcf36c78876629cbab80b63420672685371aea4fd10e1c4aabb6
       size: 1461
   original:
-    hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
+    hackage: ansi-terminal-0.10.3
+- completed:
+    hackage: chronos-1.1.5@sha256:ca35be5fdbbb384414226b4467c6d1c8b44defe59a9c8a3af32c1c5fb250c781,3830
+    pantry-tree:
+      sha256: 329bf39a05362a9c1f507a4a529725c757208843b562c55e0b7c88538dc3160f
+      size: 581
+  original:
+    hackage: chronos-1.1.5
+- completed:
+    hackage: typerep-map-0.5.0.0@sha256:34f1ba9b268a6d52e26ae460011a5571e8099b50a3f4a7c8db25dd8efe3be8ee,4667
+    pantry-tree:
+      sha256: ca5565de307d260dc67f6dae0d4d33eee42a3238183461569b5142ceb909c91d
+      size: 1487
+  original:
+    hackage: typerep-map-0.5.0.0
 snapshots:
 - completed:
-    sha256: 428ec8d5ce932190d3cbe266b9eb3c175cd81e984babf876b64019e2cbe4ea68
-    size: 590100
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/28.yaml
-  original: lts-18.28
+    sha256: 14ca51a9a597c32dd7804c10d079feea3d0ae40c5fbbb346cbd67b3ae49f6d01
+    size: 649598
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/17.yaml
+  original: lts-20.17

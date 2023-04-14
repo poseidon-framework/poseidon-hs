@@ -74,9 +74,9 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
         ++ ":"
     -- compile file names paths
     let outName = posPacTitle pac
-    let [outInd, outSnp, outGeno] = case outFormat of
-            GenotypeFormatEigenstrat -> [outName <.> ".ind", outName <.> ".snp", outName <.> ".geno"]
-            GenotypeFormatPlink -> [outName <.> ".fam", outName <.> ".bim", outName <.> ".bed"]
+    let (outInd, outSnp, outGeno) = case outFormat of
+            GenotypeFormatEigenstrat -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
+            GenotypeFormatPlink -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
     -- check if genotype data needs conversion
     if format (posPacGenotypeData pac) == outFormat
     then logWarning "The genotype data is already in the requested format"
@@ -89,7 +89,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
                 liftIO $ createDirectoryIfMissing True (dropTrailingPathSeparator x)
                 return x
             Nothing -> return $ posPacBaseDir pac
-        let [outG, outS, outI] = map (newBaseDir </>) [outGeno, outSnp, outInd]
+        let (outG, outS, outI) = (newBaseDir </> outGeno, newBaseDir </> outSnp, newBaseDir </> outInd)
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
         then logWarning ("skipping genotype conversion for " ++ posPacTitle pac)
