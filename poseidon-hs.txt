@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.11.2
+@version 1.1.11.3
 
 module Poseidon.MathHelpers
 
@@ -242,49 +242,49 @@ module Poseidon.Janno
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv</a>
 --   for more details
 data JannoRow
-JannoRow :: String -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoCountry -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe JannoDateType -> Maybe String -> Maybe Int -> Maybe JannoStringList -> Maybe (JannoList JannoCaptureType) -> Maybe JannoGenotypePloidy -> JannoStringList -> JannoSex -> Maybe Int -> Maybe Double -> Maybe String -> Maybe String -> Maybe Percent -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe (JannoList AccessionID) -> Maybe JURI -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> CsvNamedRecord -> JannoRow
+JannoRow :: String -> JannoSex -> JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoRelationDegreeList -> Maybe JannoStringList -> Maybe String -> Maybe String -> Maybe String -> Maybe JannoCountry -> Maybe String -> Maybe String -> Maybe Latitude -> Maybe Longitude -> Maybe JannoDateType -> Maybe JannoStringList -> Maybe JannoIntList -> Maybe JannoIntList -> Maybe BCADAge -> Maybe BCADAge -> Maybe BCADAge -> Maybe String -> Maybe String -> Maybe String -> Maybe JannoStringList -> Maybe Int -> Maybe JannoStringList -> Maybe (JannoList JannoCaptureType) -> Maybe JannoUDG -> Maybe JannoLibraryBuilt -> Maybe JannoGenotypePloidy -> Maybe JURI -> Maybe Percent -> Maybe Int -> Maybe Double -> Maybe Percent -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe JannoStringList -> Maybe String -> Maybe (JannoList AccessionID) -> Maybe String -> Maybe JannoStringList -> Maybe String -> Maybe JannoStringList -> CsvNamedRecord -> JannoRow
 [jPoseidonID] :: JannoRow -> String
+[jGeneticSex] :: JannoRow -> JannoSex
+[jGroupName] :: JannoRow -> JannoStringList
 [jAlternativeIDs] :: JannoRow -> Maybe JannoStringList
 [jRelationTo] :: JannoRow -> Maybe JannoStringList
 [jRelationDegree] :: JannoRow -> Maybe JannoRelationDegreeList
 [jRelationType] :: JannoRow -> Maybe JannoStringList
 [jRelationNote] :: JannoRow -> Maybe String
 [jCollectionID] :: JannoRow -> Maybe String
-[jSourceTissue] :: JannoRow -> Maybe JannoStringList
 [jCountry] :: JannoRow -> Maybe String
 [jCountryISO] :: JannoRow -> Maybe JannoCountry
 [jLocation] :: JannoRow -> Maybe String
 [jSite] :: JannoRow -> Maybe String
 [jLatitude] :: JannoRow -> Maybe Latitude
 [jLongitude] :: JannoRow -> Maybe Longitude
+[jDateType] :: JannoRow -> Maybe JannoDateType
 [jDateC14Labnr] :: JannoRow -> Maybe JannoStringList
 [jDateC14UncalBP] :: JannoRow -> Maybe JannoIntList
 [jDateC14UncalBPErr] :: JannoRow -> Maybe JannoIntList
-[jDateBCADMedian] :: JannoRow -> Maybe BCADAge
 [jDateBCADStart] :: JannoRow -> Maybe BCADAge
+[jDateBCADMedian] :: JannoRow -> Maybe BCADAge
 [jDateBCADStop] :: JannoRow -> Maybe BCADAge
-[jDateType] :: JannoRow -> Maybe JannoDateType
 [jDateNote] :: JannoRow -> Maybe String
+[jMTHaplogroup] :: JannoRow -> Maybe String
+[jYHaplogroup] :: JannoRow -> Maybe String
+[jSourceTissue] :: JannoRow -> Maybe JannoStringList
 [jNrLibraries] :: JannoRow -> Maybe Int
 [jLibraryNames] :: JannoRow -> Maybe JannoStringList
 [jCaptureType] :: JannoRow -> Maybe (JannoList JannoCaptureType)
-[jGenotypePloidy] :: JannoRow -> Maybe JannoGenotypePloidy
-[jGroupName] :: JannoRow -> JannoStringList
-[jGeneticSex] :: JannoRow -> JannoSex
-[jNrSNPs] :: JannoRow -> Maybe Int
-[jCoverageOnTargets] :: JannoRow -> Maybe Double
-[jMTHaplogroup] :: JannoRow -> Maybe String
-[jYHaplogroup] :: JannoRow -> Maybe String
-[jEndogenous] :: JannoRow -> Maybe Percent
 [jUDG] :: JannoRow -> Maybe JannoUDG
 [jLibraryBuilt] :: JannoRow -> Maybe JannoLibraryBuilt
+[jGenotypePloidy] :: JannoRow -> Maybe JannoGenotypePloidy
+[jDataPreparationPipelineURL] :: JannoRow -> Maybe JURI
+[jEndogenous] :: JannoRow -> Maybe Percent
+[jNrSNPs] :: JannoRow -> Maybe Int
+[jCoverageOnTargets] :: JannoRow -> Maybe Double
 [jDamage] :: JannoRow -> Maybe Percent
 [jContamination] :: JannoRow -> Maybe JannoStringList
 [jContaminationErr] :: JannoRow -> Maybe JannoStringList
 [jContaminationMeas] :: JannoRow -> Maybe JannoStringList
 [jContaminationNote] :: JannoRow -> Maybe String
 [jGeneticSourceAccessionIDs] :: JannoRow -> Maybe (JannoList AccessionID)
-[jDataPreparationPipelineURL] :: JannoRow -> Maybe JURI
 [jPrimaryContact] :: JannoRow -> Maybe String
 [jPublication] :: JannoRow -> Maybe JannoStringList
 [jComments] :: JannoRow -> Maybe String
@@ -413,6 +413,8 @@ decodingOptions :: DecodeOptions
 --   with explicit "n/a"
 explicitNA :: ByteString -> ByteString
 removeUselessSuffix :: String -> String
+instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
+instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
 instance GHC.Generics.Generic Poseidon.Janno.BCADAge
 instance GHC.Classes.Ord Poseidon.Janno.BCADAge
@@ -1241,6 +1243,13 @@ pacReadOpts :: PackageReadOptions
 runSurvey :: SurveyOptions -> PoseidonIO ()
 renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
 renderJannoCompleteness :: JannoRows -> String
+class PresenceCountable a
+countPresence :: PresenceCountable a => a -> Int
+instance Poseidon.CLI.Survey.PresenceCountable (GHC.Maybe.Maybe a)
+instance Poseidon.CLI.Survey.PresenceCountable GHC.Base.String
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.JannoSex
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.JannoStringList
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.CsvNamedRecord
 
 module Poseidon.CLI.Init
 data InitOptions
