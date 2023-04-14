@@ -26,7 +26,7 @@ import           Data.Yaml               (decodeEither')
 import           Data.Yaml.Pretty        (defConfig, encodePretty,
                                           setConfCompare, setConfDropNull)
 import           GitHash                 (getGitInfo, giHash)
-import           System.Directory        (makeAbsolute)
+import           System.Directory        (makeAbsolute, createDirectoryIfMissing)
 import           System.FilePath         (takeDirectory)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
@@ -123,7 +123,9 @@ readSnapshot p = do
         Right snap -> return snap
 
 writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()
-writeSnapshot p snapShot = liftIO $ B.writeFile p (encodePretty opts snapShot)
+writeSnapshot p snapShot = do
+    liftIO $ createDirectoryIfMissing True $ takeDirectory p
+    liftIO $ B.writeFile p (encodePretty opts snapShot)
     where
         opts = setConfDropNull True $ setConfCompare (compare `on` fieldIndex) defConfig
         fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields

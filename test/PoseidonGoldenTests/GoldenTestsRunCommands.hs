@@ -38,6 +38,8 @@ import           System.Directory         (createDirectory, doesDirectoryExist,
 import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
+import Poseidon.CLI.Snapshot (SnapshotOptions(..), SnapOperation (..), runSnapshot)
+
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
 staticTestDir       :: FilePath
@@ -87,6 +89,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineUpdate testDir checkFilePath
     hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath
+    hPutStrLn stderr "--- snapshot"
+    testPipelineSnapshot testDir checkFilePath
     hPutStrLn stderr "--* test server interaction"
     hPutStrLn stderr "--- fetch"
     testPipelineFetch testDir checkFilePath
@@ -604,6 +608,18 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac11" </> "ForgePac11.geno"
         , "forge" </> "ForgePac11" </> "ForgePac11.janno"
         , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
+        ]
+
+testPipelineSnapshot :: FilePath -> FilePath -> IO ()
+testPipelineSnapshot testDir checkFilePath = do
+    let snapshotOpts1 = SnapshotOptions {
+          _snapshotBaseDirs       = [testPacsDir]
+        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot1.yml"
+        , _snapshotWithGitCommits = False
+        , _snapshotMinimal        = False
+    }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runSnapshot snapshotOpts1) "snapshot" [
+          "snapshot" </> "snapshot1.yml"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that

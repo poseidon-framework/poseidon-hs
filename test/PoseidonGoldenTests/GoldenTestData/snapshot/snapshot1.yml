@@ -1,0 +1,17 @@
+title: Snapshot title
+description: Snapshot description
+contributor:
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
+snapshotVersion: 0.1.0
+lastModified: 2023-04-14
+packages:
+- title: Lamnidis_2018
+  version: 1.0.1
+- title: Schiffels_2016
+  version: 1.0.1
+- title: Schmid_2028
+  version: 1.0.0
+- title: Wang_2020
+  version: 0.1.0
