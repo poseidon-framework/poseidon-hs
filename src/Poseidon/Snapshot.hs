@@ -26,7 +26,8 @@ import           Data.Yaml               (decodeEither')
 import           Data.Yaml.Pretty        (defConfig, encodePretty,
                                           setConfCompare, setConfDropNull)
 import           GitHash                 (getGitInfo, giHash)
-import           System.Directory        (makeAbsolute, createDirectoryIfMissing)
+import           System.Directory        (createDirectoryIfMissing,
+                                          makeAbsolute)
 import           System.FilePath         (takeDirectory)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot

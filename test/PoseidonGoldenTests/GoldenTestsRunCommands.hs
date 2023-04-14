@@ -32,13 +32,14 @@ import           Data.Either              (fromRight)
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
+import           Poseidon.CLI.Snapshot    (SnapOperation (..),
+                                           SnapshotOptions (..), runSnapshot)
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (createDirectory, doesDirectoryExist,
                                            removeDirectoryRecursive)
 import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
-import Poseidon.CLI.Snapshot (SnapshotOptions(..), SnapOperation (..), runSnapshot)
 
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
