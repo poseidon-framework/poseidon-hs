@@ -20,10 +20,14 @@ import qualified Data.Set                as S
 import           Data.Time               (Day, UTCTime (..), getCurrentTime)
 import           Data.Version            (Version, makeVersion)
 import           Data.Yaml               (decodeEither')
-import           Data.Yaml.Pretty.Extras (ToPrettyYaml (..), encodeFilePretty)
+import           Data.Yaml.Pretty        (defConfig, encodePretty,
+                                          setConfCompare, setConfDropNull)
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (makeAbsolute)
 import           System.FilePath         (takeDirectory)
+import           Data.Function              (on)
+import Data.Maybe (fromMaybe)
+import Data.List (elemIndex)
 
 data PoseidonPackageSnapshot = PoseidonPackageSnapshot
     { snapYamlTitle           :: Maybe String
@@ -52,22 +56,6 @@ instance ToJSON PoseidonPackageSnapshot where
         ["snapshotVersion" .= snapYamlSnapshotVersion x,
         "lastModified"     .= snapYamlLastModified x] ++
         (if not $ null (snapYamlPackages x) then ["packages" .= snapYamlPackages x] else [])
-
-instance ToPrettyYaml PoseidonPackageSnapshot where
-    fieldOrder = const [
-        "title",
-        "description",
-        "contributor",
-        "name",
-        "email",
-        "orcid",
-        "snapshotVersion",
-        "lastModified",
-        "packages",
-        "title",
-        "version",
-        "commit"
-        ]
 
 -- | A data type to represent a package state
 data PackageState = PackageState
@@ -135,7 +123,24 @@ readSnapshot p = do
         Right snap -> return snap
 
 writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()
-writeSnapshot = encodeFilePretty
+writeSnapshot p snapShot = liftIO $ B.writeFile p (encodePretty opts snapShot)
+    where
+        opts = setConfDropNull True $ setConfCompare (compare `on` fieldIndex) defConfig
+        fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields
+        fields = [
+            "title",
+            "description",
+            "contributor",
+            "name",
+            "email",
+            "orcid",
+            "snapshotVersion",
+            "lastModified",
+            "packages",
+            "title",
+            "version",
+            "commit"
+         ]
 
 makeSnapshot :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageSnapshot
 makeSnapshot snapMode pacs = do
