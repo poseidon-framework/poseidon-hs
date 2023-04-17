@@ -643,10 +643,33 @@ testPipelineSnapshot testDir checkFilePath = do
         , _snapshotMinimal        = False
     }
     let action3 = testLog (runSnapshot snapshotOpts3) >>
-           patchLastModified testDir ("snapshot" </> "snapshot3.yml") >>
-           patchGitHash testDir ("snapshot" </> "snapshot3.yml") -- commit hashes also have to be made static
+            patchLastModified testDir ("snapshot" </> "snapshot3.yml") >>
+            patchGitHash testDir ("snapshot" </> "snapshot3.yml") -- commit hashes also have to be made static
     runAndChecksumFiles checkFilePath testDir action3 "snapshot" [
           "snapshot" </> "snapshot3.yml"
+        ]
+    -- update snapshot
+    let snapshotOpts4 = SnapshotOptions {
+          _snapshotBaseDirs       = [testPacsDir]
+        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot4.yml"
+        , _snapshotWithGitCommits = False
+        , _snapshotMinimal        = False
+    }
+    let snapshotOpts5 = SnapshotOptions {
+          _snapshotBaseDirs       = [testPacsDir, testDir </> "init"]
+        , _snapshotOperation      = UpdateSnap (testDir </> "snapshot" </> "snapshot4.yml")
+                                               (Just $ testDir </> "snapshot" </> "snapshot5.yml")
+        , _snapshotWithGitCommits = True
+        , _snapshotMinimal        = False
+    }
+    let action4 = testLog (runSnapshot snapshotOpts4) >>
+            patchLastModified testDir ("snapshot" </> "snapshot4.yml") >>
+            testLog (runSnapshot snapshotOpts5) >>
+            patchLastModified testDir ("snapshot" </> "snapshot5.yml") >>
+            patchGitHash testDir ("snapshot" </> "snapshot5.yml")
+    runAndChecksumFiles checkFilePath testDir action4 "snapshot" [
+          "snapshot" </> "snapshot4.yml"
+        , "snapshot" </> "snapshot5.yml"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
