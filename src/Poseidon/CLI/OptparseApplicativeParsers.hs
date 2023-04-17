@@ -38,18 +38,27 @@ parseSnapUpdatePath :: OP.Parser FilePath
 parseSnapUpdatePath = OP.strOption (OP.long "updateFile" <>
     OP.short 'u' <>
     OP.metavar "PATH" <>
-    OP.help "Path to the snapshot definition file that should be updated.")
+    OP.help "Path to the snapshot definition file that should be updated. \
+            \The update procedure does not change the package entries \
+            \that are already in the snapshot definition file, but only \
+            \adds new entries. This feature was added for a very specific \
+            \usecase; for most applications it is better to just create a new snapshot.")
 
 parseSnapMaybeOutPath :: OP.Parser (Maybe FilePath)
 parseSnapMaybeOutPath = OP.option (Just <$> OP.str) (
     OP.short 'o' <>
     OP.long "updateOutFile" <>
-    OP.help "If this is set, then the input snapshot file will not be overwritten, but a new file will be created instead." <>
+    OP.help "If this is set, then the input snapshot file will not be overwritten with \
+            \--updateFile, but a new file will be created instead." <>
     OP.value Nothing
     )
 
 parseSnapWithGit :: OP.Parser Bool
-parseSnapWithGit = OP.switch (OP.long "withGit" <> OP.help "Should the resulting snapshot file include git commit hashes (local head)?")
+parseSnapWithGit = OP.switch (
+    OP.long "withGit" <>
+    OP.help "Should the resulting snapshot file include git commit hashes (local head)? \
+            \The .git dir search climbs the directory tree until it reaches the root directory."
+    )
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
