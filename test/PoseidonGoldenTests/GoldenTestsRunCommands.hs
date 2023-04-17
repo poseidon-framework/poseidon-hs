@@ -613,14 +613,40 @@ testPipelineForge testDir checkFilePath = do
 
 testPipelineSnapshot :: FilePath -> FilePath -> IO ()
 testPipelineSnapshot testDir checkFilePath = do
+    -- default snapshot
     let snapshotOpts1 = SnapshotOptions {
           _snapshotBaseDirs       = [testPacsDir]
         , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot1.yml"
         , _snapshotWithGitCommits = False
         , _snapshotMinimal        = False
     }
-    runAndChecksumFiles checkFilePath testDir (testLog $ runSnapshot snapshotOpts1) "snapshot" [
+    let action1 = testLog (runSnapshot snapshotOpts1) >> patchLastModified testDir ("snapshot" </> "snapshot1.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "snapshot" [
           "snapshot" </> "snapshot1.yml"
+        ]
+    -- minimal snapshot
+    let snapshotOpts2 = SnapshotOptions {
+          _snapshotBaseDirs       = [testPacsDir]
+        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot2.yml"
+        , _snapshotWithGitCommits = False
+        , _snapshotMinimal        = True
+    }
+    let action2 = testLog (runSnapshot snapshotOpts2) >> patchLastModified testDir ("snapshot" </> "snapshot2.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "snapshot" [
+          "snapshot" </> "snapshot2.yml"
+        ]
+    -- snapshot with git hashes
+    let snapshotOpts3 = SnapshotOptions {
+          _snapshotBaseDirs       = [testPacsDir]
+        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot3.yml"
+        , _snapshotWithGitCommits = True
+        , _snapshotMinimal        = False
+    }
+    let action3 = testLog (runSnapshot snapshotOpts3) >>
+           patchLastModified testDir ("snapshot" </> "snapshot3.yml") >>
+           patchGitHash testDir ("snapshot" </> "snapshot3.yml") -- commit hashes also have to be made static
+    runAndChecksumFiles checkFilePath testDir action3 "snapshot" [
+          "snapshot" </> "snapshot3.yml"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
@@ -675,6 +701,16 @@ patchLastModified testDir yamlFile = do
             l <- lines_
             if "lastModified" `T.isPrefixOf` l
                 then return "lastModified: 1970-01-01"
+                else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+patchGitHash :: FilePath -> FilePath -> IO ()
+patchGitHash testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "  commit" `T.isPrefixOf` l
+                then return "  commit: MyGitCommitHash"
                 else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
