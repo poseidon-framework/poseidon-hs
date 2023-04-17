@@ -82,8 +82,8 @@ d3d918088c5f23452063881643f9b2b8 forge forge/ForgePac11/ForgePac11.ssf
 f481a8b53ce3912cc91e863fc8ae6fd7 snapshot snapshot/snapshot1.yml
 92089a44f1e37ffdd3bcc5be4de200cb snapshot snapshot/snapshot2.yml
 6372b39acc06423f944e11a5ed3f6bd6 snapshot snapshot/snapshot3.yml
-f481a8b53ce3912cc91e863fc8ae6fd7 snapshot snapshot/snapshot4.yml
-2648e73a3a99e255a1218800d9a1a4aa snapshot snapshot/snapshot5.yml
+6372b39acc06423f944e11a5ed3f6bd6 snapshot snapshot/snapshot4.yml
+90052237af908e37d552ebe0446a333d snapshot snapshot/snapshot5.yml
 e95272d9a7dfd81afb125081479c96e1 fetch fetch/2019_Nikitin_LBK/POSEIDON.yml
 663d9358c94640fd56da3ff9bdf2e207 fetch fetch/2019_Nikitin_LBK/Nikitin_LBK.janno
 3abe2144e4f5aea3aa0b83395ba9b355 fetch fetch/2019_Nikitin_LBK/Nikitin_LBK.fam

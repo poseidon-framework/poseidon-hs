@@ -652,21 +652,23 @@ testPipelineSnapshot testDir checkFilePath = do
     let snapshotOpts4 = SnapshotOptions {
           _snapshotBaseDirs       = [testPacsDir]
         , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot4.yml"
-        , _snapshotWithGitCommits = False
+        , _snapshotWithGitCommits = True
         , _snapshotMinimal        = False
     }
     let snapshotOpts5 = SnapshotOptions {
           _snapshotBaseDirs       = [testPacsDir, testDir </> "init"]
         , _snapshotOperation      = UpdateSnap (testDir </> "snapshot" </> "snapshot4.yml")
                                                (Just $ testDir </> "snapshot" </> "snapshot5.yml")
-        , _snapshotWithGitCommits = True
+        , _snapshotWithGitCommits = False -- could not be set to true with the current test setup
+                                          -- because testDir is in /tmp/ for the test run, so not
+                                          -- in a git repo
         , _snapshotMinimal        = False
     }
     let action4 = testLog (runSnapshot snapshotOpts4) >>
             patchLastModified testDir ("snapshot" </> "snapshot4.yml") >>
+            patchGitHash testDir ("snapshot" </> "snapshot4.yml") >>
             testLog (runSnapshot snapshotOpts5) >>
-            patchLastModified testDir ("snapshot" </> "snapshot5.yml") >>
-            patchGitHash testDir ("snapshot" </> "snapshot5.yml")
+            patchLastModified testDir ("snapshot" </> "snapshot5.yml")
     runAndChecksumFiles checkFilePath testDir action4 "snapshot" [
           "snapshot" </> "snapshot4.yml"
         , "snapshot" </> "snapshot5.yml"
