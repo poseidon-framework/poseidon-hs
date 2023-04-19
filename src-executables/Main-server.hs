@@ -10,9 +10,11 @@ import           Poseidon.Package                        (PackageReadOptions (..
                                                           defaultPackageReadOptions,
                                                           getJannoRowsFromPac,
                                                           readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes                 (GroupInfo (..),
+import           Poseidon.SecondaryTypes                 (ApiReturnData (..),
+                                                          GroupInfo (..),
                                                           IndividualInfo (..),
-                                                          PackageInfo (..))
+                                                          PackageInfo (..),
+                                                          ServerApiReturnType (..))
 import           Poseidon.Utils                          (LogMode (..),
                                                           PoseidonIO, logInfo,
                                                           usePoseidonLogger)
@@ -22,14 +24,15 @@ import           Codec.Archive.Zip                       (Archive,
                                                           emptyArchive,
                                                           fromArchive, toEntry)
 import           Control.Applicative                     (optional)
-import           Control.Monad                           (forM, unless, when)
+import           Control.Monad                           (forM, when, unless)
 import           Control.Monad.IO.Class                  (liftIO)
 import qualified Data.ByteString.Lazy                    as B
 import           Data.List                               (group, nub, sortOn)
-import           Data.Text.Lazy                          (Text, intercalate,
+import           Data.Text.Lazy                          (Text,
                                                           pack, unpack)
 import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
-import           Data.Version                            (parseVersion,
+import           Data.Version                            (Version, makeVersion,
+                                                          parseVersion,
                                                           showVersion)
 import           Network.Wai.Handler.Warp                (defaultSettings, run,
                                                           setPort)
@@ -44,10 +47,10 @@ import           System.Directory                        (createDirectoryIfMissi
                                                           getModificationTime)
 import           System.FilePath                         ((<.>), (</>))
 import           Text.ParserCombinators.ReadP            (readP_to_S)
-import           Web.Scotty                              (ScottyM, file, get,
-                                                          html, json,
-                                                          middleware, notFound,
-                                                          param, raise,
+import           Web.Scotty                              (ActionM, ScottyM,
+                                                          get, json,
+                                                          middleware, file, notFound,
+                                                          param, raise, rescue,
                                                           scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
@@ -92,50 +95,29 @@ main = do
         runScotty $ do
             middleware simpleCors
 
-            -- API to check for compatibility between client and server. Currently a dummy, since all previous trident version should be happy with the API
-            -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
-            get "/compatibility/:client_version" $ do
-                vStr <- param "client_version"
-                let compat = (True, Nothing) :: (Bool, Maybe String)
-                _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
-                    [(v', "")] -> return v'
-                    _          -> raise . pack $ "cannot parse Version nr " ++ vStr
-                json compat
+            get "/server_version" $
+                text . pack . showVersion $ version
 
-            -- basic APIs for retreiving metadata
-            get "/janno_all" $
-                json (getAllPacJannoPairs allPackages)
-            get "/individuals_all" $
-                json (getAllIndividualInfo allPackages)
-            get "/groups_all" $
-                json (getAllGroupInfo allPackages)
-            get "/packages_all" $
-                (json . map packageToPackageInfo) allPackages
-
-        get "/packages" . conditionOnClientVersion $
-            let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
-            in  return $ ServerApiReturnType (Just retData) []
-        get "/groups" . conditionOnClientVersion $
-            let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
-            in  return $ ServerApiReturnType (Just retData) []
-        get "/individuals" $
-            let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
-            in  return $ ServerApiReturnType (Just retData) []
-        get "/janno" . conditionOnClientVersion $
-            let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
-            in  return $ ServerApiReturnType (Just retData) []
-
-            -- Ugly helper APIs for including package lists in docsify.
-            -- May not be needed when we switch to a "smarter" static site generator
-            get "/package_table" $
-                html . makeHTMLtable $ allPackages
-            get "/package_table_md.md" $
-                text . makeMDtable $ allPackages
-
-            -- Superseded by "/packages_all". I've kept this old API for backwards-compatibility only.
-            -- May get deprecated at some point
-            get "/packages" $
-                (json . map packageToPackageInfo) allPackages
+            get "/packages" . conditionOnClientVersion $ do
+                let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
+                return $ ServerApiReturnType [] (Just retData)
+            get "/groups" . conditionOnClientVersion $ do
+                let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
+                return $ ServerApiReturnType [] (Just retData)
+            get "/individuals" . conditionOnClientVersion $ do
+                let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
+                return $ ServerApiReturnType [] (Just retData)
+            get "/janno" . conditionOnClientVersion $ do
+                let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
+                return $ ServerApiReturnType [] (Just retData)
+            
+            -- API for retreiving package zip files
+            unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
+                p_ <- param "package_name"
+                let zipFN = lookup (unpack p_) zipDict
+                case zipFN of
+                    Just fn -> file fn
+                    Nothing -> raise ("unknown package " <> p_)
 
             notFound $ raise "Unknown request"
 
@@ -152,7 +134,7 @@ conditionOnClientVersion contentAction = do
                 "Please go to https://poseidon-framework.github.io/#/trident and update your trident installation."
         json $ ServerApiReturnType (versionWarnings ++ [msg]) Nothing
     else do
-        ServerApiReturnType content messages <- contentAction
+        ServerApiReturnType messages content <- contentAction
         json $ ServerApiReturnType (versionWarnings ++ messages) content
 
 minimalRequiredClientVersion :: Version
@@ -301,7 +283,7 @@ scottyHTTP port s = do
         app <- scottyApp s
         run port app
 
-getAllPacJannoPairs :: [PoseidonPackage] -> [(String, [JannoRow])]
+getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoRows)]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
 getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]

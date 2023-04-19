@@ -27,7 +27,7 @@ import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
 import           Data.Version       (Version (..), makeVersion)
 import           GHC.Generics       (Generic)
-import           Poseidon.Janno     (CsvNamedRecord, JannoRow)
+import           Poseidon.Janno     (JannoRows)
 import qualified Text.Parsec        as P
 import qualified Text.Parsec.String as P
 
@@ -61,7 +61,7 @@ instance FromJSON IndividualInfo where
 data PackageInfo = PackageInfo
     { pTitle         :: String
     , pVersion       :: Maybe Version
-    , pPosVersion    :: Maybe Version
+    , pPosVersion    :: Version
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
@@ -81,7 +81,7 @@ instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
         <$> v .:   "title"
         <*> v .:?  "version"
-        <*> v .:?  "poseidonVersion"
+        <*> v .:   "poseidonVersion"
         <*> v .:?  "description"
         <*> v .:?  "lastModified"
         <*> v .:   "nrIndividuals"
@@ -116,8 +116,8 @@ instance FromJSON ServerApiReturnType
 
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
-                   | ApiReturnIndividualInfo [IndividualInfo] CsvNamedRecord
-                   | ApiReturnJanno [(String, [JannoRow])] deriving (Generic)
+                   | ApiReturnIndividualInfo [IndividualInfo]
+                   | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
 
 instance ToJSON ApiReturnData where
     toEncoding = genericToEncoding defaultOptions
