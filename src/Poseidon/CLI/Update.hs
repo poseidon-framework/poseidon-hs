@@ -12,7 +12,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..))
-import           Poseidon.Utils          (PoseidonLogIO, getChecksum, logInfo,
+import           Poseidon.Utils          (PoseidonIO, getChecksum, logInfo,
                                           logWarning)
 
 import           Control.Monad.IO.Class  (liftIO)
@@ -44,8 +44,9 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = False
     }
 
-runUpdate :: UpdateOptions -> PoseidonLogIO ()
+runUpdate :: UpdateOptions -> PoseidonIO ()
 runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
+
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
         baseDirs
@@ -81,7 +82,7 @@ writeOrUpdateChangelogFile logText pac = do
     case posPacChangelogFile pac of
         Nothing -> do
             writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
-                "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
+                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
             return pac {
                 posPacChangelogFile = Just "CHANGELOG.md"
             }
@@ -89,7 +90,7 @@ writeOrUpdateChangelogFile logText pac = do
             changelogFile <- readFile (posPacBaseDir pac </> x)
             removeFile (posPacBaseDir pac </> x)
             writeFile (posPacBaseDir pac </> x) $
-                "V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
+                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
             return pac
 
 updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
@@ -115,11 +116,15 @@ updateChecksums ignoreGeno pac = do
     jannoChkSum <- case posPacJannoFile pac of
         Nothing -> return $ posPacJannoFileChkSum pac
         Just fn -> Just <$> getChecksum (d </> fn)
+    seqSourceChkSum <- case posPacSeqSourceFile pac of
+        Nothing -> return $ posPacSeqSourceFileChkSum pac
+        Just fn -> Just <$> getChecksum (d </> fn)
     bibChkSum <- case posPacBibFile pac of
         Nothing -> return $ posPacBibFileChkSum pac
         Just fn -> Just <$> getChecksum (d </> fn)
     let newPac1 = pac {
             posPacJannoFileChkSum = jannoChkSum,
+            posPacSeqSourceFileChkSum = seqSourceChkSum,
             posPacBibFileChkSum = bibChkSum
         }
     if ignoreGeno

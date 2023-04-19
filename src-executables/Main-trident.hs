@@ -24,9 +24,9 @@ import           Poseidon.Janno                          (jannoHeaderString)
 import           Poseidon.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
 import           Poseidon.Utils                          (LogMode (..),
+                                                          PlinkPopNameMode (..),
                                                           PoseidonException (..),
-                                                          PoseidonLogIO,
-                                                          logError,
+                                                          PoseidonIO, logError,
                                                           renderPoseidonException,
                                                           usePoseidonLogger)
 
@@ -42,6 +42,7 @@ import           System.IO                               (hPutStrLn, stderr)
 data Options = Options {
     _logMode    :: LogMode
   , _errLength  :: ErrorLength
+  , _plinkMode  :: PlinkPopNameMode
   , _subcommand :: Subcommand
   }
 
@@ -60,12 +61,12 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    (Options logMode errLength subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode $ runCmd subcommand) (handler logMode errLength)
+    (Options logMode errLength plinkMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode plinkMode $ runCmd subcommand) (handler logMode errLength plinkMode)
     where
-        handler :: LogMode -> ErrorLength -> PoseidonException -> IO ()
-        handler l len e = do
-            usePoseidonLogger l $ logError $ truncateErr len $ renderPoseidonException e
+        handler :: LogMode -> ErrorLength -> PlinkPopNameMode -> PoseidonException -> IO ()
+        handler l len pm e = do
+            usePoseidonLogger l pm $ logError $ truncateErr len $ renderPoseidonException e
             exitFailure
         truncateErr :: ErrorLength -> String -> String
         truncateErr CharInf         s = s
@@ -73,7 +74,7 @@ main = do
             | length s > len          = take len s ++ "... (see more with --errLength)"
             | otherwise               = s
 
-runCmd :: Subcommand -> PoseidonLogIO ()
+runCmd :: Subcommand -> PoseidonIO ()
 runCmd o = case o of
     CmdInit opts        -> runInit opts
     CmdList opts        -> runList opts
@@ -86,7 +87,8 @@ runCmd o = case o of
     CmdValidate opts    -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*> (Options <$> parseLogMode <*> parseErrorLength <*> subcommandParser)) (
+optParserInfo = OP.info (OP.helper <*> versionOption <*>
+        (Options <$> parseLogMode <*> parseErrorLength <*> parseInputPlinkPopMode <*> subcommandParser)) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -139,7 +141,7 @@ subcommandParser = OP.subparser (
         OP.footerDoc (Just $ string $
                "Output structure\n"
             ++ "Data coverage proportions - 0: ., <0.25: ░, <0.5: ▒, <1: ▓, 1: █\n"
-            ++ ".janno column order - G: Genotype data present, B: Bibliography file present, "
+            ++ ".janno column order - G: Genotype data present, S: .ssf file present, B: .bib file present, "
             ++ intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) ([1..] :: [Int]) jannoHeaderString)
             ))
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
@@ -176,6 +178,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
+                              <*> parseOutputPlinkPopMode
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
@@ -183,6 +186,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseOutOnlyGeno
                                           <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
+                                          <*> parseOutputPlinkPopMode
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -206,5 +210,6 @@ updateOptParser = UpdateOptions <$> parseBasePaths
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseIgnoreGeno
+                                    <*> parseFullGeno
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates

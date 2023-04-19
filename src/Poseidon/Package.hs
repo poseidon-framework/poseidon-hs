@@ -20,46 +20,58 @@ module Poseidon.Package (
     writePoseidonPackage,
     defaultPackageReadOptions,
     readPoseidonPackage,
-    makePseudoPackageFromGenotypeData
+    makePseudoPackageFromGenotypeData,
+    getJannoRowsFromPac
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
-                                             loadGenotypeData, loadIndividuals)
-import           Poseidon.Janno             (JannoList (..), JannoRow (..),
-                                             JannoSex (..), concatJannos,
-                                             createMinimalJanno, readJannoFile)
+                                             loadGenotypeData, loadIndividuals,
+                                             printSNPCopyProgress)
+import           Poseidon.Janno             (JannoLibraryBuilt (..),
+                                             JannoList (..), JannoRow (..),
+                                             JannoRows (..), JannoSex (..),
+                                             JannoUDG (..), createMinimalJanno,
+                                             readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..), ORCID (..))
-import           Poseidon.Utils             (LogEnv, PoseidonException (..),
-                                             PoseidonLogIO, checkFile, logDebug,
-                                             logInfo, logWarning, logWithEnv,
+import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
+                                             SeqSourceRow (..),
+                                             SeqSourceRows (..),
+                                             readSeqSourceFile)
+import           Poseidon.Utils             (LogA, PoseidonException (..),
+                                             PoseidonIO, checkFile,
+                                             envInputPlinkMode, envLogAction,
+                                             logDebug, logInfo, logWarning,
+                                             logWithEnv,
                                              renderPoseidonException)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (filterM, forM_, unless, void, when)
+import           Control.Monad              (filterM, forM, forM_, unless, void,
+                                             when)
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Control.Monad.Reader       (ask)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
 import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
+import           Data.Function              (on)
 import           Data.List                  (elemIndex, groupBy, intercalate,
                                              nub, sortOn, (\\))
-import           Data.Maybe                 (catMaybes, isNothing, mapMaybe)
+import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
+                                             mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
 import           Data.Yaml                  (decodeEither')
-import           Data.Yaml.Pretty.Extras    (ToPrettyYaml (..),
-                                             encodeFilePretty)
+import           Data.Yaml.Pretty           (defConfig, encodePretty,
+                                             setConfCompare, setConfDropNull)
 import           GHC.Generics               (Generic)
 import           Pipes                      (Pipe, Producer, cat, for,
                                              runEffect, yield, (>->))
@@ -71,7 +83,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
-import           SequenceFormats.Plink      (readBimFile)
+import           SequenceFormats.Plink      (PlinkPopNameMode (..), readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
@@ -80,24 +92,28 @@ import           System.IO                  (IOMode (ReadMode), hGetContents,
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
-    { _posYamlPoseidonVersion :: Version
-    , _posYamlTitle           :: String
-    , _posYamlDescription     :: Maybe String
-    , _posYamlContributor     :: [ContributorSpec]
-    , _posYamlPackageVersion  :: Maybe Version
-    , _posYamlLastModified    :: Maybe Day
-    , _posYamlGenotypeData    :: GenotypeDataSpec
-    , _posYamlJannoFile       :: Maybe FilePath
-    , _posYamlJannoFileChkSum :: Maybe String
-    , _posYamlBibFile         :: Maybe FilePath
-    , _posYamlBibFileChkSum   :: Maybe String
-    , _posYamlReadmeFile      :: Maybe FilePath
-    , _posYamlChangelogFile   :: Maybe FilePath
+    { _posYamlPoseidonVersion     :: Version
+    , _posYamlTitle               :: String
+    , _posYamlDescription         :: Maybe String
+    , _posYamlContributor         :: [ContributorSpec]
+    , _posYamlPackageVersion      :: Maybe Version
+    , _posYamlLastModified        :: Maybe Day
+    , _posYamlGenotypeData        :: GenotypeDataSpec
+    , _posYamlJannoFile           :: Maybe FilePath
+    , _posYamlJannoFileChkSum     :: Maybe String
+    , _posYamlSeqSourceFile       :: Maybe FilePath
+    , _posYamlSeqSourceFileChkSum :: Maybe String
+    , _posYamlBibFile             :: Maybe FilePath
+    , _posYamlBibFileChkSum       :: Maybe String
+    , _posYamlReadmeFile          :: Maybe FilePath
+    , _posYamlChangelogFile       :: Maybe FilePath
     }
     deriving (Show, Eq, Generic)
 
 poseidonJannoFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
 poseidonJannoFilePath baseDir yml = (baseDir </>) <$> _posYamlJannoFile yml
+poseidonSeqSourceFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
+poseidonSeqSourceFilePath baseDir yml = (baseDir </>) <$> _posYamlSeqSourceFile yml
 poseidonBibFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
 poseidonBibFilePath baseDir yml = (baseDir </>) <$> _posYamlBibFile yml
 poseidonReadmeFilePath :: FilePath -> PoseidonYamlStruct -> Maybe FilePath
@@ -116,6 +132,8 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:   "genotypeData"
         <*> v .:?  "jannoFile"
         <*> v .:?  "jannoFileChkSum"
+        <*> v .:?  "sequencingSourceFile"
+        <*> v .:?  "sequencingSourceFileChkSum"
         <*> v .:?  "bibFile"
         <*> v .:?  "bibFileChkSum"
         <*> v .:?  "readmeFile"
@@ -132,75 +150,55 @@ instance ToJSON PoseidonYamlStruct where
         "genotypeData"    .= _posYamlGenotypeData x,
         "jannoFile"       .= _posYamlJannoFile x,
         "jannoFileChkSum" .= _posYamlJannoFileChkSum x,
+        "sequencingSourceFile"       .= _posYamlSeqSourceFile x,
+        "sequencingSourceFileChkSum" .= _posYamlSeqSourceFileChkSum x,
         "bibFile"         .= _posYamlBibFile x,
         "bibFileChkSum"   .= _posYamlBibFileChkSum x,
         "readmeFile"      .= _posYamlReadmeFile x,
         "changelogFile"   .= _posYamlChangelogFile x
         ]
 
-instance ToPrettyYaml PoseidonYamlStruct where
-    fieldOrder = const [
-        "poseidonVersion",
-        "title",
-        "description",
-        "contributor",
-        "name",
-        "email",
-        "orcid",
-        "packageVersion",
-        "lastModified",
-        "genotypeData",
-        "format",
-        "genoFile",
-        "genoFileChkSum",
-        "snpFile",
-        "snpFileChkSum",
-        "indFile",
-        "indFileChkSum",
-        "snpSet",
-        "jannoFile",
-        "jannoFileChkSum",
-        "bibFile",
-        "bibFileChkSum",
-        "readmeFile",
-        "changelogFile"
-        ]
-
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
-    { posPacBaseDir         :: FilePath
+    { posPacBaseDir             :: FilePath
     -- ^ the base directory of the YAML file
-    , posPacPoseidonVersion :: Version
+    , posPacPoseidonVersion     :: Version
     -- ^ the version of the package
-    , posPacTitle           :: String
+    , posPacTitle               :: String
     -- ^ the title of the package
-    , posPacDescription     :: Maybe String
+    , posPacDescription         :: Maybe String
     -- ^ the optional description string of the package
-    , posPacContributor     :: [ContributorSpec]
+    , posPacContributor         :: [ContributorSpec]
     -- ^ the contributor(s) of the package
-    , posPacPackageVersion  :: Maybe Version
+    , posPacPackageVersion      :: Maybe Version
     -- ^ the optional version of the package
-    , posPacLastModified    :: Maybe Day
+    , posPacLastModified        :: Maybe Day
     -- ^ the optional date of last update
-    , posPacGenotypeData    :: GenotypeDataSpec
+    , posPacGenotypeData        :: GenotypeDataSpec
     -- ^ the paths to the genotype files
-    , posPacJannoFile       :: Maybe FilePath
+    , posPacJannoFile           :: Maybe FilePath
     -- ^ the path to the janno file
-    , posPacJanno           :: [JannoRow]
+    , posPacJanno               :: JannoRows
     -- ^ the loaded janno file
-    , posPacJannoFileChkSum :: Maybe String
+    , posPacJannoFileChkSum     :: Maybe String
     -- ^ the optional jannofile checksum
-    , posPacBibFile         :: Maybe FilePath
+    , posPacSeqSourceFile       :: Maybe FilePath
+    -- ^ the path to the seqSource file
+    , posPacSeqSource           :: SeqSourceRows
+    -- ^ the loaded seqSource file
+    , posPacSeqSourceFileChkSum :: Maybe String
+    -- ^ the optional seqSource file checksum
+    , posPacBibFile             :: Maybe FilePath
     -- ^ the path to the BibTeX file
-    , posPacBib             :: BibTeX
+    , posPacBib                 :: BibTeX
     -- ^ the loaded bibliography file
-    , posPacBibFileChkSum   :: Maybe String
+    , posPacBibFileChkSum       :: Maybe String
     -- ^ the optional bibfile chksum
-    , posPacReadmeFile      :: Maybe FilePath
+    , posPacReadmeFile          :: Maybe FilePath
     -- ^ the path to the README file
-    , posPacChangelogFile   :: Maybe FilePath
+    , posPacChangelogFile       :: Maybe FilePath
     -- ^ the path to the CHANGELOG file
-    , posPacDuplicate       :: Int
+    , posPacDuplicate           :: Int
     -- ^ how many packages of this name exist in the current collection
     }
     deriving (Show, Eq, Generic)
@@ -213,17 +211,23 @@ data PackageReadOptions = PackageReadOptions
     , _readOptIgnoreGeno       :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
     , _readOptGenoCheck        :: Bool
-    -- ^ whether to check the first 100 SNPs of the genotypes
+    -- ^ whether to check the SNPs of the genotypes
+    , _readOptFullGeno         :: Bool
+    -- ^ whether to check all SNPs or only the first 100
     , _readOptIgnorePosVersion :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
     }
 
+-- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
+-- from the client caller, since we typically get this as an option from the CLI, and it would be wrong not to explicitly
+-- pass it on to the package read system.
 defaultPackageReadOptions :: PackageReadOptions
 defaultPackageReadOptions = PackageReadOptions {
       _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
+    , _readOptFullGeno         = False
     , _readOptIgnorePosVersion = False
     }
 
@@ -232,7 +236,7 @@ defaultPackageReadOptions = PackageReadOptions {
 -- warnings
 readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
-                              -> PoseidonLogIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
+                              -> PoseidonIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
 readPoseidonPackageCollection opts baseDirs = do
     logInfo "Checking base directories... "
     goodDirs <- catMaybes <$> mapM checkIfBaseDirExists baseDirs
@@ -264,14 +268,15 @@ readPoseidonPackageCollection opts baseDirs = do
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
             \x -> logWarning x
     -- individual duplication check
-    individuals <- liftIO $ mapM (uncurry loadIndividuals . \x -> (posPacBaseDir x, posPacGenotypeData x)) finalPackageList
+    individuals <- forM finalPackageList $ \pac ->
+        loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac)
     checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
     -- report number of valid packages
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
     return finalPackageList
   where
-    checkIfBaseDirExists :: FilePath -> PoseidonLogIO (Maybe FilePath)
+    checkIfBaseDirExists :: FilePath -> PoseidonIO (Maybe FilePath)
     checkIfBaseDirExists p = do
         exists <- liftIO $ doesDirectoryExist p
         if exists
@@ -279,7 +284,7 @@ readPoseidonPackageCollection opts baseDirs = do
         else do
             logWarning $ "Base directory (-d) " ++ show p ++ " does not exist"
             return Nothing
-    filterByPoseidonVersion :: [FilePath] -> PoseidonLogIO [FilePath]
+    filterByPoseidonVersion :: [FilePath] -> PoseidonIO [FilePath]
     filterByPoseidonVersion posFiles = do
         eitherPaths <- liftIO $ mapM isInVersionRange posFiles
         mapM_ (logWarning . renderPoseidonException) $ lefts eitherPaths
@@ -305,7 +310,7 @@ readPoseidonPackageCollection opts baseDirs = do
             readFile' filename = withFile filename ReadMode $ \handle -> do
                 theContent <- hGetContents handle
                 mapM return theContent
-    tryDecodePoseidonPackage :: (Integer, FilePath) -> PoseidonLogIO (Either PoseidonException PoseidonPackage)
+    tryDecodePoseidonPackage :: (Integer, FilePath) -> PoseidonIO (Either PoseidonException PoseidonPackage)
     tryDecodePoseidonPackage (numberPackage, path) = do
         logDebug $ "Package " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
@@ -314,13 +319,13 @@ readPoseidonPackageCollection opts baseDirs = do
 -- make paths absolute.
 readPoseidonPackage :: PackageReadOptions
                     -> FilePath -- ^ the file path to the yaml file
-                    -> PoseidonLogIO PoseidonPackage -- ^ the returning package returned in the IO monad.
+                    -> PoseidonIO PoseidonPackage -- ^ the returning package returned in the IO monad.
 readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
     bs <- liftIO $ B.readFile ymlPath
 
     -- read yml files
-    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibC readF changeF) <- case decodeEither' bs of
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
 
@@ -328,7 +333,7 @@ readPoseidonPackage opts ymlPath = do
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
 
     -- read janno (or fill with empty dummy object)
-    indEntries <- liftIO $ loadIndividuals baseDir geno
+    indEntries <- loadIndividuals baseDir geno
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
@@ -337,21 +342,37 @@ readPoseidonPackage opts ymlPath = do
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries
             return loadedJanno
 
+    -- read seqSource
+    seqSource <- case poseidonSeqSourceFilePath baseDir yml of
+        Nothing -> return mempty
+        Just p  -> readSeqSourceFile p
+    checkSeqSourceJannoConsistency tit seqSource janno
+
     -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
         Just p  -> liftIO $ readBibTeXFile p
     liftIO $ checkJannoBibConsistency tit janno bib
 
+    when (_readOptFullGeno opts) $ do
+        logInfo $ "Trying to parse genotype data for package: " ++ tit
+
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC bibF bib bibC readF changeF 1
-    logEnv <- ask
+    let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
+    logA <- envLogAction
+    plinkMode <- envInputPlinkMode
     liftIO $ catch (
         when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            (_, eigenstratProd) <- getJointGenotypeData logEnv False [pac] Nothing
-            runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+            (_, eigenstratProd) <- getJointGenotypeData logA False plinkMode [pac] Nothing
+            -- check all or only the first 100 SNPs
+            if _readOptFullGeno opts
+            then do
+                currentTime <- liftIO getCurrentTime
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
+            else do
+                runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward)
     return pac
 
@@ -362,7 +383,7 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
     case poseidonReadmeFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> checkFile fn Nothing
-    -- Check README File
+    -- Check CHANGELOG File
     case poseidonChangelogFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> checkFile fn Nothing
@@ -378,6 +399,12 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
                    else checkFile fn $ _posYamlJannoFileChkSum yml
+    -- Check SeqSource File
+    case poseidonSeqSourceFilePath baseDir yml of
+        Nothing -> return ()
+        Just fn -> if ignoreChecksums
+                   then checkFile fn Nothing
+                   else checkFile fn $ _posYamlSeqSourceFileChkSum yml
     -- Check Genotype files
     unless ignoreGenotypeFilesMissing $ do
         let gd = _posYamlGenotypeData yml
@@ -392,14 +419,14 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
             checkFile (d </> snpFile gd) $ snpFileChkSum gd
             checkFile (d </> indFile gd) $ indFileChkSum gd
 
-checkJannoIndConsistency :: String -> [JannoRow] -> [EigenstratIndEntry] -> IO ()
-checkJannoIndConsistency pacName janno indEntries = do
+checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> IO ()
+checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jPoseidonID janno
-        jannoSexs       = map (sfSex . jGeneticSex) janno
-        jannoGroups     = map (head . getJannoList . jGroupName) janno
+    let jannoIDs        = map jPoseidonID rows
+        jannoSexs       = map (sfSex . jGeneticSex) rows
+        jannoGroups     = map (head . getJannoList . jGroupName) rows
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -410,9 +437,10 @@ checkJannoIndConsistency pacName janno indEntries = do
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
     when groupMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
-        "Individual GroupID mismatch between genotype data (left) and .janno files (right): " ++
+        "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
+        \that this could be due to a wrong Plink file population-name encoding \
+        \(see the --inPlinkPopName option). " ++
         renderMismatch genoGroups jannoGroups
-
 
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b =
@@ -427,17 +455,64 @@ zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
 zipWithPadding a _ []     ys     = zip (repeat a) ys
 zipWithPadding _ b xs     []     = zip xs (repeat b)
 
-checkJannoBibConsistency :: String -> [JannoRow] -> BibTeX -> IO ()
-checkJannoBibConsistency pacName janno bibtex = do
+checkSeqSourceJannoConsistency :: String -> SeqSourceRows -> JannoRows -> PoseidonIO ()
+checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) = do
+    checkPoseidonIDOverlap
+    checkUDGandLibraryBuiltOverlap
+    where
+        js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
+        ss = map (\r -> (getJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        checkPoseidonIDOverlap :: PoseidonIO ()
+        checkPoseidonIDOverlap = do
+            let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
+                misMatch = flatSeqSourceIDs \\ [a | (a,_,_) <- js]
+            unless (null misMatch) $ do
+                logWarning $ "The .ssf file in the package " ++ pacName ++
+                    " features Poseidon_IDs that are not in the package: " ++ intercalate ", " misMatch
+        checkUDGandLibraryBuiltOverlap :: PoseidonIO ()
+        checkUDGandLibraryBuiltOverlap = do
+            mapM_ checkOneIndividual js
+            where
+                checkOneIndividual :: (String, Maybe JannoUDG, Maybe JannoLibraryBuilt) -> PoseidonIO ()
+                checkOneIndividual (jannoPoseidonID, jannoUDG, jannoLibraryBuilt) = do
+                    let relevantSeqSourceRows = filter (\(seqSourcePoseidonID,_,_) -> jannoPoseidonID `elem` seqSourcePoseidonID) ss
+                        allSeqSourceUDGs = catMaybes $ [b | (_,b,_) <- relevantSeqSourceRows]
+                        allSeqSourceLibraryBuilts = catMaybes $ [c | (_,_,c) <- relevantSeqSourceRows]
+                    case jannoUDG of
+                        Nothing -> return ()
+                        Just j -> unless (all (compareU j) allSeqSourceUDGs) $
+                            throwM $ PoseidonCrossFileConsistencyException pacName $
+                            "The information on UDG treatment in .janno and .ssf do not match" ++
+                            " for the individual: " ++ jannoPoseidonID
+                    case jannoLibraryBuilt of
+                        Nothing -> return ()
+                        Just j -> unless (all (compareL j) allSeqSourceLibraryBuilts) $
+                            throwM $ PoseidonCrossFileConsistencyException pacName $
+                            "The information on library strandedness in .janno and .ssf do not match" ++
+                            " for the individual: " ++ jannoPoseidonID
+                compareU :: JannoUDG -> SSFUDG -> Bool
+                compareU Mixed _        = True
+                compareU Minus SSFMinus = True
+                compareU Half  SSFHalf  = True
+                compareU Plus  SSFPlus  = True
+                compareU _     _        = False
+                compareL :: JannoLibraryBuilt -> SSFLibraryBuilt -> Bool
+                compareL MixedSSDS _     = True
+                compareL DS        SSFDS = True
+                compareL SS        SSFSS = True
+                compareL _         _     = False
+
+checkJannoBibConsistency :: String -> JannoRows -> BibTeX -> IO ()
+checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ janno
+    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ rows
         literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
 
-checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonLogIO ()
+checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonIO ()
 checkIndividualsUnique stopOnDuplicates indEntries = do
     let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
     when (length genoIDs /= length (nub genoIDs)) $ do
@@ -452,7 +527,7 @@ checkIndividualsUnique stopOnDuplicates indEntries = do
             logWarning $
                 "Duplicate individuals in package collection (" ++
                 intercalate ", " (take 3 dups) ++
-                if length (nub $ dups) > 3
+                if length (nub dups) > 3
                 then ", ...)"
                 else ")"
 
@@ -487,20 +562,21 @@ filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ s
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m =>
-                        LogEnv -- ^ how messages should be logged
+                        LogA -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
+                     -> PlinkPopNameMode -- ^ how to read population labels from Plink
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logEnv intersect pacs maybeSnpFile = do
-    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
+getJointGenotypeData logA intersect popMode pacs maybeSnpFile = do
+    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) popMode | pac <- pacs]
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
         pacNames        = map posPacTitle pacs
         prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe logEnv nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -523,23 +599,26 @@ getJointGenotypeData logEnv intersect pacs maybeSnpFile = do
         (Just snp, Nothing) -> unless intersect $ yield (snp, V.replicate n Missing)
         _ ->  return ()
 
-getJointJanno :: [PoseidonPackage] -> [JannoRow]
-getJointJanno pacs = concatJannos $ map posPacJanno pacs
+getJointJanno :: [PoseidonPackage] -> JannoRows
+getJointJanno pacs = mconcat $ map posPacJanno pacs
 
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getJointIndividualInfo packages = do
     pac <- packages
-    jannoRow <- posPacJanno pac
+    jannoRow <- getJannoRowsFromPac pac
     return $ IndividualInfo (jPoseidonID jannoRow) ((getJannoList . jGroupName) jannoRow) (posPacTitle pac)
+
+getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
+getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
-joinEntryPipe :: (MonadIO m) => LogEnv -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe logEnv nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries logEnv nrInds pacNames maybeEntries
+joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe logA nrInds pacNames = for cat $ \maybeEntries -> do
+    eitherJE <- liftIO . try $ joinEntries logA nrInds pacNames maybeEntries
     case eitherJE of
         Left (PoseidonGenotypeException err) ->
-            logWithEnv logEnv . logDebug $ "Skipping SNP due to " ++ err
+            logWithEnv logA . logDebug $ "Skipping SNP due to " ++ err
         Left e -> liftIO . throwIO $ e
         Right (eigenstratSnpEntry, genoLine) -> yield (eigenstratSnpEntry, genoLine)
 
@@ -562,8 +641,11 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
     ,   posPacJannoFile = Nothing
-    ,   posPacJanno = []
+    ,   posPacJanno = mempty
     ,   posPacJannoFileChkSum = Nothing
+    ,   posPacSeqSourceFile = Nothing
+    ,   posPacSeqSource = mempty
+    ,   posPacSeqSourceFileChkSum = Nothing
     ,   posPacBibFile = Nothing
     ,   posPacBib = [] :: BibTeX
     ,   posPacBibFileChkSum = Nothing
@@ -572,7 +654,7 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacDuplicate = 1
     }
 
-makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> IO PoseidonPackage
+makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
 makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = do
     let baseDir      = getBaseDir genoFile_ snpFile_ indFile_
         outInd       = takeFileName indFile_
@@ -581,7 +663,7 @@ makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_
         genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
         pacName      = takeBaseName genoFile_
     inds <- loadIndividuals baseDir genotypeData
-    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) []
+    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) mempty []
     where
         getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
         getBaseDir g s i =
@@ -595,9 +677,16 @@ makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
 -- the directory into which the YAML file will be written
-newPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> Maybe (Either [EigenstratIndEntry] [JannoRow]) -> BibTeX -> IO PoseidonPackage
-newPackageTemplate baseDir name genoData indsOrJanno bib = do
-    (UTCTime today _) <- getCurrentTime
+newPackageTemplate ::
+       FilePath
+    -> String
+    -> GenotypeDataSpec
+    -> Maybe (Either [EigenstratIndEntry] JannoRows)
+    -> SeqSourceRows
+    -> BibTeX
+    -> PoseidonIO PoseidonPackage
+newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
+    (UTCTime today _) <- liftIO getCurrentTime
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
@@ -610,8 +699,9 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
         ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
         ,   posPacLastModified = Just today
         }
-        jannoFilledTemplate = completeJannoSpec name indsOrJanno fluffedUpTemplate
-        bibFilledTemplate = completeBibSpec name bib jannoFilledTemplate
+        jannoFilledTemplate     = completeJannoSpec name indsOrJanno fluffedUpTemplate
+        seqSourceFilledTemplate = completeSeqSourceSpec name seqSource jannoFilledTemplate
+        bibFilledTemplate       = completeBibSpec name bib seqSourceFilledTemplate
     return bibFilledTemplate
     where
         completeJannoSpec _ Nothing inTemplate = inTemplate
@@ -625,6 +715,12 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
                 posPacJannoFile = Just $ name_ ++ ".janno",
                 posPacJanno = b
             }
+        completeSeqSourceSpec _ (SeqSourceRows []) inTemplate = inTemplate
+        completeSeqSourceSpec name_ xs inTemplate =
+            inTemplate {
+                posPacSeqSourceFile = Just $ name_ ++ ".ssf",
+                posPacSeqSource = xs
+            }
         completeBibSpec _ [] inTemplate = inTemplate
         completeBibSpec name_ xs inTemplate =
             inTemplate {
@@ -633,7 +729,38 @@ newPackageTemplate baseDir name genoData indsOrJanno bib = do
             }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC bibF _ bibFC readF changeF _) = do
-    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC bibF bibFC readF changeF
+writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
+    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
-    encodeFilePretty outF yamlPac
+    B.writeFile outF (encodePretty opts yamlPac)
+    where
+        opts = setConfDropNull True $ setConfCompare (compare `on` fieldIndex) defConfig
+        fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields
+        fields = [
+          "poseidonVersion",
+          "title",
+          "description",
+          "contributor",
+          "name",
+          "email",
+          "orcid",
+          "packageVersion",
+          "lastModified",
+          "genotypeData",
+          "format",
+          "genoFile",
+          "genoFileChkSum",
+          "snpFile",
+          "snpFileChkSum",
+          "indFile",
+          "indFileChkSum",
+          "snpSet",
+          "jannoFile",
+          "jannoFileChkSum",
+          "sequencingSourceFile",
+          "sequencingSourceFileChkSum",
+          "bibFile",
+          "bibFileChkSum",
+          "readmeFile",
+          "changelogFile"
+         ]

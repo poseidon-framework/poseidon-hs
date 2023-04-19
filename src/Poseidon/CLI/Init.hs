@@ -9,7 +9,7 @@ import           Poseidon.Package       (PoseidonPackage (..),
                                          newMinimalPackageTemplate,
                                          newPackageTemplate,
                                          writePoseidonPackage)
-import           Poseidon.Utils         (PoseidonLogIO, checkFile,
+import           Poseidon.Utils         (PoseidonIO, checkFile,
                                          determinePackageOutName, logInfo)
 
 import           Control.Monad          (unless)
@@ -25,8 +25,9 @@ data InitOptions = InitOptions
     , _initMinimal  :: Bool
     }
 
-runInit :: InitOptions -> PoseidonLogIO ()
-runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) outPathRaw maybeOutName minimal) = do
+runInit :: InitOptions -> PoseidonIO ()
+runInit (InitOptions gd outPathRaw maybeOutName minimal) = do
+    let (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = gd
     -- create new directory
     let outPath = dropTrailingPathSeparator outPathRaw
     logInfo $ "Creating new package directory: " ++ outPath
@@ -47,10 +48,10 @@ runInit (InitOptions (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _
     -- create new package
     logInfo "Creating new package entity"
     outName <- liftIO $ determinePackageOutName maybeOutName outPath
-    inds <- liftIO $ loadIndividuals outPath genotypeData
+    inds <- loadIndividuals outPath genotypeData
     pac <- if minimal
            then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else liftIO $ newPackageTemplate outPath outName genotypeData (Just (Left inds)) [dummyBibEntry]
+           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) mempty [dummyBibEntry]
     -- POSEIDON.yml
     logInfo "Creating POSEIDON.yml"
     liftIO $ writePoseidonPackage pac

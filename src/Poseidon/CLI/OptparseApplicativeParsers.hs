@@ -21,6 +21,7 @@ import           Poseidon.Utils          (LogMode (..))
 import           Control.Applicative     ((<|>))
 import           Data.Version            (Version)
 import qualified Options.Applicative     as OP
+import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
 
@@ -391,6 +392,13 @@ parseIgnoreGeno = OP.switch (
     OP.hidden
     )
 
+parseFullGeno  :: OP.Parser Bool
+parseFullGeno = OP.switch (
+    OP.long "fullGeno" <>
+    OP.help "test parsing of all SNPs (by default only the first 100 SNPs are probed)" <>
+    OP.hidden
+    )
+
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
     OP.long "noExitCode" <>
@@ -418,3 +426,24 @@ parseUpgrade = OP.switch (
     OP.long "upgrade" <>  OP.short 'u' <>
     OP.help "overwrite outdated local package versions"
     )
+
+-- PlinkPopNameAsFamily always is the default
+parseInputPlinkPopMode :: OP.Parser PlinkPopNameMode
+parseInputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
+    OP.long "inPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
+    OP.help "Where to read the population/group name from the FAM file in Plink-format. \
+        \Three options are possible: asFamily (default) | asPhenotype | asBoth.")
+
+parseOutputPlinkPopMode :: OP.Parser PlinkPopNameMode
+parseOutputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
+    OP.long "outPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
+    OP.help "Where to write the population/group name \
+        \into the FAM file in Plink-format. Three options are possible: \
+        \asFamily (default) | asPhenotype | asBoth. See also --inPlinkPopName.")
+
+readPlinkPopName :: String -> Either String PlinkPopNameMode
+readPlinkPopName s = case s of
+    "asFamily"    -> Right PlinkPopNameAsFamily
+    "asPhenotype" -> Right PlinkPopNameAsPhenotype
+    "asBoth"      -> Right PlinkPopNameAsBoth
+    _             -> Left "must be asFamily, asPhenotype or asBoth"

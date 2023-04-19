@@ -7,55 +7,62 @@ packages:
 - completed:
     hackage: table-layout-0.9.1.0@sha256:172b8b3a06c992839a781b77e42bbce689ba87d92c260acb61d187f7e6aad7f2,7154
     pantry-tree:
-      size: 2216
       sha256: d3b20ca5e8342d24fa7cfb5e3d39853a14f572f0a95b7bc9d0fea82baa0a4c10
+      size: 2216
   original:
     hackage: table-layout-0.9.1.0
 - completed:
     hackage: data-default-instances-base-0.1.0.1@sha256:985a13d7103e45a65f06f277b735ef025636014f0d29dd6de998bc7628e09be9,509
     pantry-tree:
-      size: 242
       sha256: 92969ddf22c5f54123fb2bcfbe5917b59a7e6382473b0306bcd8fb7990d9aa1a
+      size: 242
   original:
     hackage: data-default-instances-base-0.1.0.1
 - completed:
-    hackage: sequence-formats-1.6.1@sha256:61ff6ab1e7381f362da8235b081216d81ff220d1f835e93664765900ee205279,2688
+    hackage: sequence-formats-1.7.0@sha256:d6f55f40e54a60edc718d44713014a1dd537bf7f5aed3e625c5947e78c97f1f0,2569
     pantry-tree:
-      size: 2264
-      sha256: 93896388c2087546113af5c151aba640fe183a27715661cd564daf0b56e79e9d
+      sha256: 67fbb5d136821bc3ce720db021106138912c45c2c4c95b44792f3048f582e96c
+      size: 2534
   original:
-    hackage: sequence-formats-1.6.1
-- completed:
-    hackage: yaml-pretty-extras-0.0.2.2@sha256:9e7fefdf4146e84ad11856daa990f5a1b8d1ac2c6dbc0a76913f67480547d4d0,2728
-    pantry-tree:
-      size: 386
-      sha256: edd7d1c004e05008b7c7ddb24845d6d769c508a09906623c65d5914e4ee2dbdf
-  original:
-    hackage: yaml-pretty-extras-0.0.2.2
+    hackage: sequence-formats-1.7.0
 - completed:
     hackage: pipes-ordered-zip-1.2.1@sha256:1bece0cde4315987da28b6a588dd3345dda8f61bb6894e4e4c9c3cd3a4646746,1453
     pantry-tree:
-      size: 446
       sha256: 099f71b0cecdaee9feae0bbf165491c57082ee259f7b5a593f96cfbccd36ba49
+      size: 446
   original:
     hackage: pipes-ordered-zip-1.2.1
 - completed:
-    hackage: co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
+    hackage: co-log-0.5.0.0@sha256:a7e84650eaef7eba2d59ee7664309e79317a7ca67011abedf971f0e6bd6475bb,5448
     pantry-tree:
-      size: 1126
-      sha256: e73165ff8f744709428e2e87984c9d60ca1cec43d8455c413181c7c466e7497c
+      sha256: 33b838c07c8b7e70b2e82bddc889bb1e6386d7e12a9d1593c0b4b263b1fcb925
+      size: 1043
   original:
-    hackage: co-log-0.4.0.1@sha256:3d4c17f37693c80d1aa2c41669bc3438fac3e89dc5f479e57d79bc3ddc4dfcc5,5087
+    hackage: co-log-0.5.0.0
 - completed:
     hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
     pantry-tree:
-      size: 1461
       sha256: 02f05d52be3ffcf36c78876629cbab80b63420672685371aea4fd10e1c4aabb6
+      size: 1461
   original:
-    hackage: ansi-terminal-0.10.3@sha256:e2fbcef5f980dc234c7ad8e2fa433b0e8109132c9e643bc40ea5608cd5697797,3226
+    hackage: ansi-terminal-0.10.3
+- completed:
+    hackage: chronos-1.1.5@sha256:ca35be5fdbbb384414226b4467c6d1c8b44defe59a9c8a3af32c1c5fb250c781,3830
+    pantry-tree:
+      sha256: 329bf39a05362a9c1f507a4a529725c757208843b562c55e0b7c88538dc3160f
+      size: 581
+  original:
+    hackage: chronos-1.1.5
+- completed:
+    hackage: typerep-map-0.5.0.0@sha256:34f1ba9b268a6d52e26ae460011a5571e8099b50a3f4a7c8db25dd8efe3be8ee,4667
+    pantry-tree:
+      sha256: ca5565de307d260dc67f6dae0d4d33eee42a3238183461569b5142ceb909c91d
+      size: 1487
+  original:
+    hackage: typerep-map-0.5.0.0
 snapshots:
 - completed:
-    size: 590100
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/28.yaml
-    sha256: 428ec8d5ce932190d3cbe266b9eb3c175cd81e984babf876b64019e2cbe4ea68
-  original: lts-18.28
+    sha256: 14ca51a9a597c32dd7804c10d079feea3d0ae40c5fbbb346cbd67b3ae49f6d01
+    size: 649598
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/17.yaml
+  original: lts-20.17

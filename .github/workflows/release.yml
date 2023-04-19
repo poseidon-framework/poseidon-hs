@@ -11,43 +11,31 @@ on:
 jobs:
   create_release:
     name: Create Github Release
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
           draft: true
-          prerelease: false
 
-      - name: Output Release URL File
-        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-      - name: Save Release URL File for publish
-        uses: actions/upload-artifact@v1
-        with:
-          name: release_url
-          path: release_url.txt
-
-  build_linux_mac_artifact:
+  build_linux_artifact:
     needs: [create_release]
-    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macOS-latest]
+        os: [ubuntu-20.04]
         cabal: ["3.6"]
-        ghc: ["8.10.7"]
+        ghc: ["9.2.7"]
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set tag name
         uses: olegtarasov/get-tag@v2.1
@@ -64,17 +52,7 @@ jobs:
           cabal-version: ${{ matrix.cabal }}
 
       - name: Freeze
-        run: |
-          : # simdutf doesn't build on macOS any more, so we need to set a flag to ignore it when building the text package
-          if [ "$RUNNER_OS" == "Linux" ]; then
-              cabal freeze
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-              cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
-          else
-              echo "$RUNNER_OS not supported"
-              exit 1
-          fi
-
+        run: cabal freeze
 
       - name: Build
         run: |
@@ -83,46 +61,106 @@ jobs:
 
       - name: Set binary path name
         id: binarypath
-        run: echo "BINARY_PATH=./dist/trident" >> $GITHUB_OUTPUT
+        run: |
+          currentEXE="./dist/trident"
+          newEXE="trident-$RUNNER_OS"
+          mv $currentEXE $newEXE
+          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
         with:
-          file: ${{ steps.binarypath.outputs.BINARY_PATH }}
-
-      - name: Load Release URL File from release job
-        uses: actions/download-artifact@v1
-        with:
-          name: release_url
-
-      - name: Get Release File Name & Upload URL
-        id: get_release_info
-        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_OUTPUT
+          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
       - name: Upload Release Asset
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
-          asset_name: trident-${{ runner.os }}
-          asset_content_type: application/octet-stream
+          name: Release ${{ github.ref_name }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          artifactContentType: application/octet-stream
+
+  build_mac_artifact:
+    needs: [create_release]
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest]
+        cabal: ["3.6"]
+        ghc: ["9.2.7"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set tag name
+        uses: olegtarasov/get-tag@v2.1
+        id: tagName
+        with:
+          tagRegex: "v(.*)"
+          tagRegexGroup: 1
+
+      - name: Install pkgconfig (for the dependency "digest")
+        run: brew install pkg-config
+
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
+        id: setup-haskell-cabal
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+
+      - name: Freeze
+        run: |
+          : # simdutf doesn't build on macOS any more, so we need to set a flag to ignore it when building the text package
+          cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
+
+      - name: Build
+        run: |
+          mkdir dist
+          cabal install exe:trident --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
+
+      - name: Set binary path name
+        id: binarypath
+        run: |
+          currentEXE="./dist/trident"
+          newEXE="trident-$RUNNER_OS"
+          mv $currentEXE $newEXE
+          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
+
+      - name: Compress binary
+        uses: svenstaro/upx-action@v2
+        with:
+          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: ncipollo/release-action@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          artifactContentType: application/octet-stream
 
   build_windows_artifact:
     needs: [create_release]
-    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-latest]
         cabal: ["3.6"]
-        ghc: ["8.10.7"]
+        ghc: ["9.2.7"]
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set tag name
         uses: olegtarasov/get-tag@v2.1
@@ -149,65 +187,50 @@ jobs:
 
       - name: Set binary path name
         id: binarypath
-        run: echo "BINARY_PATH=./dist/trident.exe" >> $env:GITHUB_OUTPUT
+        run: |
+          Rename-Item -Path "./dist/trident.exe" -NewName "trident-Windows.exe"
+          echo "BINARY_PATH=./dist/trident-Windows.exe" >> $env:GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
         with:
-          file: ${{ steps.binarypath.outputs.BINARY_PATH }}
-
-      - name: Load Release URL File from release job
-        uses: actions/download-artifact@v1
-        with:
-          name: release_url
-
-      - name: Get Release File Name & Upload URL
-        id: get_release_info
-        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $env:GITHUB_OUTPUT
+          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
       - name: Upload Release Asset
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
-          asset_name: trident-${{ runner.os }}.exe
-          asset_content_type: application/octet-stream
+          name: Release ${{ github.ref_name }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          artifactContentType: application/octet-stream
   
   build_centos_artifact:
     needs: [create_release]
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Build Docker image
-      run: docker build -t linux -f .github/workflows/Dockerfile.centos .
+      - name: Build Docker image
+        run: docker build -t linux -f .github/workflows/Dockerfile.centos .
 
-    - name: Create container
-      run: docker create --name linuxcontainer linux
+      - name: Create container
+        run: docker create --name linuxcontainer linux
 
-    - name: Copy executable
-      run: docker cp linuxcontainer:/root/.local/bin/trident trident-conda-linux
+      - name: Copy executable
+        run: docker cp linuxcontainer:/root/.local/bin/trident trident-conda-linux
 
-    - name: Load Release URL File from release job
-      uses: actions/download-artifact@v1
-      with:
-        name: release_url
-
-    - name: Get Release File Name & Upload URL
-      id: get_release_info
-      run: echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_OUTPUT
-
-    - name: Upload Release Asset
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-        asset_path: trident-conda-linux
-        asset_name: trident-conda-linux
-        asset_content_type: application/octet-stream
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: ncipollo/release-action@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: trident-conda-linux
+          artifactContentType: application/octet-stream

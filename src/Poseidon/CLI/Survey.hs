@@ -1,25 +1,36 @@
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Survey where
 
-import           Poseidon.BibFile       (BibTeX)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
-import           Poseidon.Janno         (JannoRow (..))
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonLogIO, logInfo)
+import           Poseidon.BibFile          (BibTeX)
+import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
+import           Poseidon.Janno            (CsvNamedRecord, JannoRows (..),
+                                            JannoSex, JannoStringList)
+import           Poseidon.Package          (PackageReadOptions (..),
+                                            PoseidonPackage (..),
+                                            defaultPackageReadOptions,
+                                            readPoseidonPackageCollection)
+import           Poseidon.Utils            (PoseidonIO, logInfo)
 
-import           Control.Monad          (forM)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (intercalate, unfoldr, zip4)
-import           Data.Maybe             (isJust)
-import           Data.Ratio             (Ratio, (%))
-import           System.Directory       (doesFileExist)
-import           System.FilePath        ((</>))
-import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
-                                         rowsG, tableString, titlesH)
+import           Control.Monad             (forM)
+import           Control.Monad.IO.Class    (liftIO)
+import           Data.List                 (intercalate, unfoldr, zip5)
+import           Data.Ratio                (Ratio, (%))
+import           Generics.SOP              (All, Generic (Code, from),
+                                            HCollapse (hcollapse),
+                                            HPure (hpure), I, K (K), NP,
+                                            Proxy (..), SListI, hcmap, hzipWith,
+                                            unI, unSOP, unZ)
+import           Poseidon.SequencingSource (SeqSourceRows (..))
+import           System.Directory          (doesFileExist)
+import           System.FilePath           ((</>))
+import           Text.Layout.Table         (asciiRoundS, column, def,
+                                            expandUntil, rowsG, tableString,
+                                            titlesH)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
@@ -36,8 +47,9 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runSurvey :: SurveyOptions -> PoseidonLogIO ()
+runSurvey :: SurveyOptions -> PoseidonIO ()
 runSurvey (SurveyOptions baseDirs rawOutput) = do
+
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacTitle allPackages
@@ -49,13 +61,15 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
     -- janno
     let jannos = map posPacJanno allPackages
+    -- ssf
+    let ssfs = map posPacSeqSource allPackages
     -- bib
     let bibs = map posPacBib allPackages
     -- print information
     (tableH, tableB) <- do
         let tableH = ["Package", "Survey"]
-        tableB <- forM (zip4 packageNames genoTypeDataExists jannos bibs) $ \pac -> do
-            return [extractFirst pac, renderPackageWithCompleteness pac]
+        tableB <- forM (zip5 packageNames genoTypeDataExists jannos ssfs bibs) $ \(p, g, j, s, b) -> do
+            return [p, renderPackageWithCompleteness p g j s b]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
     if rawOutput
@@ -64,12 +78,10 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- print help
     logInfo "see trident survey -h for a list of column names"
 
-extractFirst :: (a, b, c, d) -> a
-extractFirst (a,_,_,_) = a
-
-renderPackageWithCompleteness :: (String, Bool, [JannoRow], BibTeX) -> String
-renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
+renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
+renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSource) bib =
        (if genoTypeDataExists then "G" else ".")
+    ++ (if not (null seqSource) then "S" else ".")
     ++ (if not (null bib) then "B" else ".")
     ++ "|"
     ++ insertEveryN 5 '|' (renderJannoCompleteness janno)
@@ -79,60 +91,25 @@ renderPackageWithCompleteness (_,genoTypeDataExists,janno,bib) =
         insertEveryN n y xs = intercalate [y] . groups n $ xs
             where groups n_ xs_ = takeWhile (not . null) . unfoldr (Just . splitAt n_) $ xs_
 
--- this has to be in the same order as jannoHeader in the janno module
-renderJannoCompleteness :: [JannoRow] -> String
-renderJannoCompleteness jS =
-      '█'
-    : '█'
-    : '█'
-    : getColChar jS jAlternativeIDs
-    : getColChar jS jRelationTo
-    : getColChar jS jRelationDegree
-    : getColChar jS jRelationType
-    : getColChar jS jRelationNote
-    : getColChar jS jCollectionID
-    : getColChar jS jCountry
-    : getColChar jS jLocation
-    : getColChar jS jSite
-    : getColChar jS jLatitude
-    : getColChar jS jLongitude
-    : getColChar jS jDateType
-    : getColChar jS jDateC14Labnr
-    : getColChar jS jDateC14UncalBP
-    : getColChar jS jDateC14UncalBPErr
-    : getColChar jS jDateBCADStart
-    : getColChar jS jDateBCADMedian
-    : getColChar jS jDateBCADStop
-    : getColChar jS jDateNote
-    : getColChar jS jMTHaplogroup
-    : getColChar jS jYHaplogroup
-    : getColChar jS jSourceTissue
-    : getColChar jS jNrLibraries
-    : getColChar jS jCaptureType
-    : getColChar jS jUDG
-    : getColChar jS jLibraryBuilt
-    : getColChar jS jGenotypePloidy
-    : getColChar jS jDataPreparationPipelineURL
-    : getColChar jS jEndogenous
-    : getColChar jS jNrSNPs
-    : getColChar jS jCoverageOnTargets
-    : getColChar jS jDamage
-    : getColChar jS jContamination
-    : getColChar jS jContaminationErr
-    : getColChar jS jContaminationMeas
-    : getColChar jS jContaminationNote
-    : getColChar jS jGeneticSourceAccessionIDs
-    : getColChar jS jPrimaryContact
-    : getColChar jS jPublication
-    : getColChar jS jComments
-    : getColChar jS jKeywords
-    : ""
+renderJannoCompleteness :: JannoRows -> String
+renderJannoCompleteness (JannoRows rows) =
+    let ratioString = map prop2Char $ getRatiosForEachField rows
+    in init ratioString -- remove last entry covering the additional columns (CsvNamedRecord)
     where
-        nrRows = length jS
-        getColChar :: [JannoRow] -> (JannoRow -> Maybe a) -> Char
-        getColChar jannoRows column_ =
-             let nrFilledValues = length $ filter (isJust . column_) jannoRows
-             in prop2Char $ nrFilledValues % nrRows
+        -- the following magic was heavily inspired by https://stackoverflow.com/a/41524511/3216883
+        getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int]
+        getRatiosForEachField =
+            hcollapse
+          . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
+          . hunzip
+          . map (unZ . unSOP . from)
+        hunzip :: SListI xs => [NP I xs] -> NP [] xs
+        hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
+        measureFillState :: PresenceCountable a => [a] -> Ratio Int
+        measureFillState vals =
+            let nrValues = length vals
+                nrFilledValues = sum $ map countPresence vals
+            in nrFilledValues % nrValues
         prop2Char :: Ratio Int -> Char
         prop2Char r
             | r == 0    = '.'
@@ -141,3 +118,18 @@ renderJannoCompleteness jS =
             | r < 1     = '▓'
             | r == 1    = '█'
             | otherwise = '?'
+
+-- A typeclass to determine if a field in a .janno row is filled
+class PresenceCountable a where
+    countPresence :: a -> Int
+instance PresenceCountable (Maybe a) where
+    countPresence Nothing  = 0
+    countPresence (Just _) = 1
+instance PresenceCountable String where
+    countPresence _ = 1
+instance PresenceCountable JannoSex where
+    countPresence _ = 1
+instance PresenceCountable JannoStringList where
+    countPresence _ = 1
+instance PresenceCountable CsvNamedRecord where
+    countPresence _ = 0

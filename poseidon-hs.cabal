@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.1.8.5
+version:             1.1.11.3
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -20,16 +20,16 @@ library
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
-                        Poseidon.CLI.OptparseApplicativeParsers
+                        Poseidon.CLI.OptparseApplicativeParsers, Poseidon.SequencingSource
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout, mtl,
                         cassava, pureMD5,
-                        yaml-pretty-extras, http-conduit, conduit, http-types, zip-archive,
+                        http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific
+                        scientific, country, generics-sop
     default-language:   Haskell2010
 
 executable trident
@@ -44,7 +44,7 @@ executable poseidon-http-server
     main-is:            Main-server.hs
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, scotty, text, aeson, time, zip-archive,
-                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls, wai
+                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls, sequence-formats
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
@@ -61,13 +61,14 @@ Test-Suite poseidon-tools-tests
                         Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
-                        PoseidonGoldenTests.GoldenTestsRunCommands
+                        PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.SequencingSourceSpec
   default-language:     Haskell2010
 
 executable poseidon-devtools
     main-is:            Main-devtools.hs
     hs-source-dirs:     test, src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, directory,
-                        filepath, text, unordered-containers, bytestring
+                        filepath, text, unordered-containers, bytestring,
+                        sequence-formats
     other-modules:      Paths_poseidon_hs, PoseidonGoldenTests.GoldenTestsRunCommands
     default-language:   Haskell2010

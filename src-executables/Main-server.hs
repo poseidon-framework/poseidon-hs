@@ -1,48 +1,54 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
-import           Poseidon.Janno               (JannoList (..), JannoRow (..))
-import           Poseidon.Package             (PackageReadOptions (..),
-                                               PoseidonPackage (..),
-                                               defaultPackageReadOptions,
-                                               readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes      (GroupInfo (..),
-                                               IndividualInfo (..),
-                                               PackageInfo (..),
-                                               ServerApiReturnType(..),
-                                               ApiReturnData(..))
-import           Poseidon.Utils               (LogMode (..), PoseidonLogIO,
-                                               logInfo, usePoseidonLogger)
+import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
+import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
+import           Poseidon.Janno                          (JannoList (..),
+                                                          JannoRow (..),
+                                                          JannoRows (..))
+import           Poseidon.Package                        (PackageReadOptions (..),
+                                                          PoseidonPackage (..),
+                                                          defaultPackageReadOptions,
+                                                          getJannoRowsFromPac,
+                                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes                 (GroupInfo (..),
+                                                          IndividualInfo (..),
+                                                          PackageInfo (..))
+import           Poseidon.Utils                          (LogMode (..),
+                                                          PoseidonIO, logInfo,
+                                                          usePoseidonLogger)
 
-import           Codec.Archive.Zip            (Archive, addEntryToArchive,
-                                               emptyArchive, fromArchive,
-                                               toEntry)
-import           Control.Applicative          (optional)
-import           Control.Monad                (forM, unless, when)
-import           Control.Monad.IO.Class       (liftIO)
-import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (group, nub, sortOn)
-import Data.Maybe (maybeToList)
-import qualified Data.Text                    as TS
-import           Data.Text.Lazy               (Text, intercalate, pack, unpack)
-import           Data.Text.Lazy.Encoding      (decodeUtf8)
-import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
-import           Data.Version                 (parseVersion, showVersion, Version, makeVersion)
-import           Network.Wai                  (Request, pathInfo, queryString)
-import           Network.Wai.Handler.Warp     (defaultSettings, run, setPort)
-import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
-                                               tlsSettingsChain)
-import           Network.Wai.Middleware.Cors  (simpleCors)
-import qualified Options.Applicative          as OP
-import           Paths_poseidon_hs            (version)
-import           System.Directory             (createDirectoryIfMissing,
-                                               doesFileExist,
-                                               getModificationTime)
-import           System.FilePath              ((<.>), (</>))
-import           Text.ParserCombinators.ReadP (readP_to_S)
-import           Web.Scotty                   (ScottyM, file, get, html, json, ActionM,
-                                               middleware, notFound, param, function,
-                                               raise, scottyApp, text, Param, rescue, params)
+import           Codec.Archive.Zip                       (Archive,
+                                                          addEntryToArchive,
+                                                          emptyArchive,
+                                                          fromArchive, toEntry)
+import           Control.Applicative                     (optional)
+import           Control.Monad                           (forM, unless, when)
+import           Control.Monad.IO.Class                  (liftIO)
+import qualified Data.ByteString.Lazy                    as B
+import           Data.List                               (group, nub, sortOn)
+import           Data.Text.Lazy                          (Text, intercalate,
+                                                          pack, unpack)
+import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
+import           Data.Version                            (parseVersion,
+                                                          showVersion)
+import           Network.Wai.Handler.Warp                (defaultSettings, run,
+                                                          setPort)
+import           Network.Wai.Handler.WarpTLS             (runTLS, tlsSettings,
+                                                          tlsSettingsChain)
+import           Network.Wai.Middleware.Cors             (simpleCors)
+import qualified Options.Applicative                     as OP
+import           Paths_poseidon_hs                       (version)
+import           SequenceFormats.Plink                   (PlinkPopNameMode)
+import           System.Directory                        (createDirectoryIfMissing,
+                                                          doesFileExist,
+                                                          getModificationTime)
+import           System.FilePath                         ((<.>), (</>))
+import           Text.ParserCombinators.ReadP            (readP_to_S)
+import           Web.Scotty                              (ScottyM, file, get,
+                                                          html, json,
+                                                          middleware, notFound,
+                                                          param, raise,
+                                                          scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
@@ -51,48 +57,60 @@ data CommandLineOptions = CommandLineOptions
     , cliIgnoreGenoFiles :: Bool
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
+    , cliPlinkPopMode    :: PlinkPopNameMode
     }
     deriving (Show)
 
 main :: IO ()
-main = usePoseidonLogger VerboseLog $ do
-    logInfo "Server starting up. Loading packages..."
-    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles <- liftIO $
+main = do
+    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles plinkMode <-
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    let pacReadOpts = defaultPackageReadOptions {
-              _readOptStopOnDuplicates = True
-            , _readOptIgnoreChecksums  = ignoreChecksums
-            , _readOptGenoCheck        = ignoreGenoFiles
-        }
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    logInfo "Checking whether zip files are missing or outdated"
-    liftIO $ createDirectoryIfMissing True zipPath
-    zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
-        let fn = zipPath </> posPacTitle pac <.> "zip"
-        zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn ignoreGenoFiles
-        when zipFileOutdated $ do
-            logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
-            zip_ <- liftIO $ makeZipArchive pac ignoreGenoFiles
-            let zip_raw = fromArchive zip_
-            liftIO $ B.writeFile fn zip_raw
-        return (posPacTitle pac, fn))
-    let runScotty = case certFiles of
-            Nothing                              -> scottyHTTP  port
-            Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
-    runScotty $ do
-        middleware simpleCors
 
-        -- API for retreiving package zip files
-        unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
-            p_ <- param "package_name"
-            let zipFN = lookup (unpack p_) zipDict
-            case zipFN of
-                Just fn -> file fn
-                Nothing -> raise ("unknown package " <> p_)
+    usePoseidonLogger VerboseLog plinkMode $ do
+        let pacReadOpts = defaultPackageReadOptions {
+                _readOptStopOnDuplicates = True
+                , _readOptIgnoreChecksums  = ignoreChecksums
+                , _readOptGenoCheck        = ignoreGenoFiles
+            }
 
-        -- API for version output
-        get "/server_version" $
-            text . pack . showVersion $ version
+        logInfo "Server starting up. Loading packages..."
+        allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+        logInfo "Checking whether zip files are missing or outdated"
+        liftIO $ createDirectoryIfMissing True zipPath
+        zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
+            let fn = zipPath </> posPacTitle pac <.> "zip"
+            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn ignoreGenoFiles
+            when zipFileOutdated $ do
+                logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
+                zip_ <- liftIO $ makeZipArchive pac ignoreGenoFiles
+                let zip_raw = fromArchive zip_
+                liftIO $ B.writeFile fn zip_raw
+            return (posPacTitle pac, fn))
+        let runScotty = case certFiles of
+                Nothing                              -> scottyHTTP  port
+                Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
+        runScotty $ do
+            middleware simpleCors
+
+            -- API to check for compatibility between client and server. Currently a dummy, since all previous trident version should be happy with the API
+            -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
+            get "/compatibility/:client_version" $ do
+                vStr <- param "client_version"
+                let compat = (True, Nothing) :: (Bool, Maybe String)
+                _ <- case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
+                    [(v', "")] -> return v'
+                    _          -> raise . pack $ "cannot parse Version nr " ++ vStr
+                json compat
+
+            -- basic APIs for retreiving metadata
+            get "/janno_all" $
+                json (getAllPacJannoPairs allPackages)
+            get "/individuals_all" $
+                json (getAllIndividualInfo allPackages)
+            get "/groups_all" $
+                json (getAllGroupInfo allPackages)
+            get "/packages_all" $
+                (json . map packageToPackageInfo) allPackages
 
         get "/packages" . conditionOnClientVersion $
             let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
@@ -107,7 +125,19 @@ main = usePoseidonLogger VerboseLog $ do
             let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
             in  return $ ServerApiReturnType (Just retData) []
 
-        notFound $ raise "Unknown request"
+            -- Ugly helper APIs for including package lists in docsify.
+            -- May not be needed when we switch to a "smarter" static site generator
+            get "/package_table" $
+                html . makeHTMLtable $ allPackages
+            get "/package_table_md.md" $
+                text . makeMDtable $ allPackages
+
+            -- Superseded by "/packages_all". I've kept this old API for backwards-compatibility only.
+            -- May get deprecated at some point
+            get "/packages" $
+                (json . map packageToPackageInfo) allPackages
+
+            notFound $ raise "Unknown request"
 
 conditionOnClientVersion :: ActionM ServerApiReturnType -> ActionM ()
 conditionOnClientVersion contentAction = do
@@ -147,7 +177,8 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parseZipDir <*> parsePort <*> parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles
+optParser = CommandLineOptions <$> parseBasePaths <*> parseZipDir <*> parsePort <*>
+    parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles <*> parseInputPlinkPopMode
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -252,7 +283,7 @@ makeZipArchive pac ignoreGenoFiles =
         let zipEntry = toEntry fn modTime raw
         return (addEntryToArchive zipEntry a)
 
-scottyHTTPS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonLogIO ()
+scottyHTTPS :: Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonIO ()
 scottyHTTPS port cert chains key s = do
     -- this is just the same output as with scotty, to make it consistent whether or not using https
     logInfo $ "Server now listening via HTTPS on " ++ show port
@@ -263,7 +294,7 @@ scottyHTTPS port cert chains key s = do
         app <- liftIO $ scottyApp s
         runTLS tsls (setPort port defaultSettings) app
 
-scottyHTTP :: Int -> ScottyM () -> PoseidonLogIO ()
+scottyHTTP :: Int -> ScottyM () -> PoseidonIO ()
 scottyHTTP port s = do
     logInfo $ "Server now listening via HTTP on " ++ show port
     liftIO $ do
@@ -276,7 +307,7 @@ getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- pack
 getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getAllIndividualInfo packages = do
     pac <- packages
-    jannoRow <- posPacJanno pac
+    jannoRow <- getJannoRowsFromPac pac
     let name = jPoseidonID jannoRow
         groups = getJannoList . jGroupName $ jannoRow
         pacName = posPacTitle pac
@@ -295,7 +326,6 @@ getAllGroupInfo packages = do
         groupNrInds = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
-
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 packageToPackageInfo pac = PackageInfo {
     pTitle         = posPacTitle pac,
@@ -303,5 +333,5 @@ packageToPackageInfo pac = PackageInfo {
     pPosVersion    = posPacPoseidonVersion pac,
     pDescription   = posPacDescription pac,
     pLastModified  = posPacLastModified pac,
-    pNrIndividuals = (length . posPacJanno) pac
+    pNrIndividuals = (length . getJannoRowsFromPac) pac
 }

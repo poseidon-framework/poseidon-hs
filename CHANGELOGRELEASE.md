@@ -1,3 +1,36 @@
+### V 1.1.11.0
+
+This release implements the changes necessary to make `trident` capable of handling packages specified for the new Poseidon standard v2.7.0:
+
+- A Poseidon package can now include a .ssf file ("sequencing source file") as specified. `trident` considers it in `validate`, `update`, `survey` and, most importantly, `forge`, where .ssf files are compiled for new packages just as .janno files.
+- `trident` now understands and validates the new .janno columns `Country_ISO` and `Library_Names`.
+- `trident` now knows the possible value `mixed` for the .janno column `Library_Built`.
+
+The behaviour of `trident` for older package schema versions (v2.5.0 and v2.6.0) should be mostly unchanged. `forge` and `init` now return Poseidon v2.7.0 packages, though.
+
+### V 1.1.10.2
+
+This release bundles a number or minor changes, new minor command line options and some internal refactoring without immediate consequences for `trident`.
+
+#### Changes in command line options
+
+- By default `validate` only tests genotype data by parsing the first 100 SNPs. This limitation is necessary for performance reasons, but can hide issues outside of this tiny subset. We now added an option `--fullGeno` to `validate`, which forces parsing of the entire .bed/.geno file.
+- The .fam file of Plink-formatted genotype data is used inconsistently across different popular aDNA software tools to store group/population name information. See more on this issue in our discussion [here](https://github.com/poseidon-framework/poseidon-hs/issues/128). We now added the (global) option `--inPlinkPopName` and `--outPlinkPopName` with the arguments `asFamily` (default), `asPhenotype` and `asBoth` to control the reading and writing of the population name from and to Plink .fam files.
+- The `--no-extract` option for faster, package-wise data selection in `forge` was not working properly. We fixed it, renamed it to `--packagewise` and improved its command line help text.
+
+#### Bugfixes
+
+- As described [here](https://github.com/poseidon-framework/poseidon-hs/issues/213), our implementation of .janno file parsing struggled with some encodings of the `No-Break Space` unicode character. We now decided to delete these characters upon reading, following the assumption that they are generally not desired in a .janno file anyway. In this process we also decided **to trim all whitespaces around .janno file fields**.
+
+#### Other changes
+
+- The `-j` option of `list`, which allows to include additional .janno columns in the output with the `--individuals` flag now allows to access arbitrary, additional variables.
+- `update` writes messages to the CHANGELOG file now with a prefix `-`, to make it proper markdown.
+- The verbose debug-level (with `--logMode VerboseLog`) warnings about missing standard columns in the .janno file were turned off.
+- The important "schema version mismatch" error message was made more verbose and clear.
+- `trident` failes gracefully now if one or all `-d`/`--baseDir`s do not exist.
+- The important "broken lines" error message in the .janno reading process now reminds users to turn on `--logMode VerboseLog` to get more information.
+
 ### V 1.1.7.0
 
 This release clarifies a long standing uncertainty how trident treats individual ID duplicates. It adds a new feature to the forge language to specify individuals more precisely and thus resolve duplication conflicts.
