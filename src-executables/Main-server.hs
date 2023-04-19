@@ -24,12 +24,12 @@ import           Codec.Archive.Zip                       (Archive,
                                                           emptyArchive,
                                                           fromArchive, toEntry)
 import           Control.Applicative                     (optional)
-import           Control.Monad                           (forM, when, unless)
+import           Control.Monad                           (forM, unless, when)
 import           Control.Monad.IO.Class                  (liftIO)
 import qualified Data.ByteString.Lazy                    as B
 import           Data.List                               (group, nub, sortOn)
-import           Data.Text.Lazy                          (Text,
-                                                          pack, unpack)
+import           Data.Maybe                              (isJust)
+import           Data.Text.Lazy                          (Text, pack, unpack)
 import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
 import           Data.Version                            (Version, makeVersion,
                                                           parseVersion,
@@ -48,16 +48,15 @@ import           System.Directory                        (createDirectoryIfMissi
 import           System.FilePath                         ((<.>), (</>))
 import           Text.ParserCombinators.ReadP            (readP_to_S)
 import           Web.Scotty                              (ActionM, ScottyM,
-                                                          get, json,
-                                                          middleware, file, notFound,
+                                                          file, get, json,
+                                                          middleware, notFound,
                                                           param, raise, rescue,
                                                           scottyApp, text)
 
 data CommandLineOptions = CommandLineOptions
     { cliBaseDirs        :: [FilePath]
-    , cliZipDir          :: FilePath
+    , cliZipDir          :: Maybe FilePath
     , cliPort            :: Int
-    , cliIgnoreGenoFiles :: Bool
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
     , cliPlinkPopMode    :: PlinkPopNameMode
@@ -66,32 +65,37 @@ data CommandLineOptions = CommandLineOptions
 
 main :: IO ()
 main = do
-    CommandLineOptions baseDirs zipPath port ignoreGenoFiles ignoreChecksums certFiles plinkMode <-
+    CommandLineOptions baseDirs maybeZipPath port ignoreChecksums certFiles plinkMode <-
         OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
 
     usePoseidonLogger VerboseLog plinkMode $ do
         let pacReadOpts = defaultPackageReadOptions {
-                _readOptStopOnDuplicates = True
+                _readOptStopOnDuplicates = False
                 , _readOptIgnoreChecksums  = ignoreChecksums
-                , _readOptGenoCheck        = ignoreGenoFiles
+                , _readOptGenoCheck        = isJust maybeZipPath
             }
 
         logInfo "Server starting up. Loading packages..."
         allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-        logInfo "Checking whether zip files are missing or outdated"
-        liftIO $ createDirectoryIfMissing True zipPath
-        zipDict <- if ignoreGenoFiles then return [] else forM allPackages (\pac -> do
-            let fn = zipPath </> posPacTitle pac <.> "zip"
-            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn ignoreGenoFiles
-            when zipFileOutdated $ do
-                logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
-                zip_ <- liftIO $ makeZipArchive pac ignoreGenoFiles
-                let zip_raw = fromArchive zip_
-                liftIO $ B.writeFile fn zip_raw
-            return (posPacTitle pac, fn))
+        
+        zipDict <- case maybeZipPath of
+            Nothing -> return []
+            Just zipPath -> forM allPackages (\pac -> do
+                logInfo "Checking whether zip files are missing or outdated"
+                liftIO $ createDirectoryIfMissing True zipPath
+                let fn = zipPath </> posPacTitle pac <.> "zip"
+                zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
+                when zipFileOutdated $ do
+                    logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
+                    zip_ <- liftIO $ makeZipArchive pac
+                    let zip_raw = fromArchive zip_
+                    liftIO $ B.writeFile fn zip_raw
+                return (posPacTitle pac, fn))
+
         let runScotty = case certFiles of
                 Nothing                              -> scottyHTTP  port
                 Just (certFile, chainFiles, keyFile) -> scottyHTTPS port certFile chainFiles keyFile
+
         runScotty $ do
             middleware simpleCors
 
@@ -101,18 +105,21 @@ main = do
             get "/packages" . conditionOnClientVersion $ do
                 let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
                 return $ ServerApiReturnType [] (Just retData)
+
             get "/groups" . conditionOnClientVersion $ do
                 let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
                 return $ ServerApiReturnType [] (Just retData)
+
             get "/individuals" . conditionOnClientVersion $ do
                 let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
                 return $ ServerApiReturnType [] (Just retData)
+
             get "/janno" . conditionOnClientVersion $ do
                 let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
                 return $ ServerApiReturnType [] (Just retData)
-            
+
             -- API for retreiving package zip files
-            unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
+            unless (null zipDict) . get "/zip_file/:package_name" $ do
                 p_ <- param "package_name"
                 let zipFN = lookup (unpack p_) zipDict
                 case zipFN of
@@ -159,8 +166,8 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 optParser :: OP.Parser CommandLineOptions
-optParser = CommandLineOptions <$> parseBasePaths <*> parseZipDir <*> parsePort <*>
-    parseIgnoreGenoFiles <*> parseIgnoreChecksums <*> parseMaybeCertFiles <*> parseInputPlinkPopMode
+optParser = CommandLineOptions <$> parseBasePaths <*> parseMaybeZipDir <*> parsePort <*>
+    parseIgnoreChecksums <*> parseMaybeCertFiles <*> parseInputPlinkPopMode
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
@@ -168,20 +175,17 @@ parseBasePaths = OP.some (OP.strOption (OP.long "baseDir" <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages"))
 
-parseZipDir :: OP.Parser FilePath
-parseZipDir = OP.strOption (OP.long "zipDir" <>
+parseMaybeZipDir :: OP.Parser (Maybe FilePath)
+parseMaybeZipDir = OP.option (Just <$> OP.str) (OP.long "zipDir" <>
     OP.short 'z' <>
     OP.metavar "DIR" <>
-    OP.help "a directory to store Zip files in")
+    OP.help "a directory to store Zip files in. If not specified, do not generate zip files" <>
+    OP.value Nothing)
 
 parsePort :: OP.Parser Int
 parsePort = OP.option OP.auto (OP.long "port" <> OP.short 'p' <> OP.metavar "PORT" <>
     OP.value 3000 <> OP.showDefault <>
     OP.help "the port on which the server listens")
-
-parseIgnoreGenoFiles :: OP.Parser Bool
-parseIgnoreGenoFiles = OP.switch (OP.long "ignoreGenoFiles" <> OP.short 'i' <>
-    OP.help "whether to ignore the bed and SNP files. Useful for debugging")
 
 parseIgnoreChecksums :: OP.Parser Bool
 parseIgnoreChecksums = OP.switch (OP.long "ignoreChecksums" <> OP.short 'c' <>
@@ -204,8 +208,8 @@ parseCertFile :: OP.Parser FilePath
 parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
                               OP.help "The cert file of the TLS Certificate used for HTTPS")
 
-checkZipFileOutdated :: PoseidonPackage -> FilePath -> Bool -> IO Bool
-checkZipFileOutdated pac fn ignoreGenoFiles = do
+checkZipFileOutdated :: PoseidonPackage -> FilePath -> IO Bool
+checkZipFileOutdated pac fn = do
     zipFileExists <- doesFileExist fn
     if zipFileExists
     then do
@@ -224,17 +228,17 @@ checkZipFileOutdated pac fn ignoreGenoFiles = do
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
             Nothing  -> return False
         let gd = posPacGenotypeData pac
-        genoOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
-        snpOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
-        indOutdated <- if ignoreGenoFiles then return False else checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
+        genoOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
+        snpOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
+        indOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
         return $ or [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated, changelogOutdated, genoOutdated, snpOutdated, indOutdated]
     else
         return True
   where
     checkOutdated zipModTime fn_ = (> zipModTime) <$> getModificationTime fn_
 
-makeZipArchive :: PoseidonPackage -> Bool -> IO Archive
-makeZipArchive pac ignoreGenoFiles =
+makeZipArchive :: PoseidonPackage -> IO Archive
+makeZipArchive pac =
     addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno
   where
     addYaml = addFN "POSEIDON.yml" (posPacBaseDir pac)
@@ -251,12 +255,8 @@ makeZipArchive pac ignoreGenoFiles =
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
     addInd = addFN (indFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
-    addSnp = if ignoreGenoFiles
-             then return
-             else addFN (snpFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
-    addGeno = if ignoreGenoFiles
-              then return
-              else addFN (genoFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
+    addSnp = addFN (snpFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
+    addGeno = addFN (genoFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
     addFN :: FilePath -> FilePath -> Archive -> IO Archive
     addFN fn baseDir a = do
         let fullFN = baseDir </> fn
