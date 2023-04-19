@@ -61,6 +61,7 @@ instance FromJSON IndividualInfo where
 data PackageInfo = PackageInfo
     { pTitle         :: String
     , pVersion       :: Maybe Version
+    , pPosVersion    :: Maybe Version
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
@@ -79,9 +80,10 @@ instance ToJSON PackageInfo where
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
         <$> v .:   "title"
-        <*> v .:   "version"
+        <*> v .:?  "version"
+        <*> v .:?  "poseidonVersion"
         <*> v .:?  "description"
-        <*> v .:   "lastModified"
+        <*> v .:?  "lastModified"
         <*> v .:   "nrIndividuals"
 
 data GroupInfo = GroupInfo

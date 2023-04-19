@@ -82,26 +82,6 @@ main = usePoseidonLogger VerboseLog $ do
     runScotty $ do
         middleware simpleCors
 
-        -- API to check for compatibility between client and server. Currently a dummy, since all previous trident version should be happy with the API
-        -- Also returns an optional warning, to be used in the future in trident to display deprecation messages.
-        get "/compatibility/:client_version" $ do
-            vStr <- param "client_version"
-            _ <- case parseVersionString vStr of
-                Just v -> return ()
-                Nothing -> raise $ "cannot parse Version nr " <> vStr
-            let compat = (True, Nothing) :: (Bool, Maybe String)
-            json compat
-
-        -- basic APIs for retreiving metadata
-        get "/janno_all" $
-            json (getAllPacJannoPairs allPackages)
-        get "/individuals_all" $
-            json (getAllIndividualInfo allPackages)
-        get "/groups_all" $
-            json (getAllGroupInfo allPackages)
-        get "/packages_all" $
-            (json . map packageToPackageInfo) allPackages
-
         -- API for retreiving package zip files
         unless ignoreGenoFiles . get "/zip_file/:package_name" $ do
             p_ <- param "package_name"
@@ -114,21 +94,39 @@ main = usePoseidonLogger VerboseLog $ do
         get "/server_version" $
             text . pack . showVersion $ version
 
-        -- Ugly helper APIs for including package lists in docsify.
-        -- May not be needed when we switch to a "smarter" static site generator
-        get "/package_table" $
-            html . makeHTMLtable $ allPackages
-        get "/package_table_md.md" $
-            text . makeMDtable $ allPackages
-
-        -- Superseded by "/packages_all". I've kept this old API for backwards-compatibility only.
-        -- May get deprecated at some point
-        get "/packages" $
-            (json . map packageToPackageInfo) allPackages
-
-        respondToV2requests allPackages
+        get "/packages" . conditionOnClientVersion $
+            let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
+            in  return $ ServerApiReturnType (Just retData) []
+        get "/groups" . conditionOnClientVersion $
+            let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
+            in  return $ ServerApiReturnType (Just retData) []
+        get "/individuals" $
+            let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
+            in  return $ ServerApiReturnType (Just retData) []
+        get "/janno" . conditionOnClientVersion $
+            let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
+            in  return $ ServerApiReturnType (Just retData) []
 
         notFound $ raise "Unknown request"
+
+conditionOnClientVersion :: ActionM ServerApiReturnType -> ActionM ()
+conditionOnClientVersion contentAction = do
+    maybeClientVersion <- (Just <$> param "client_version") `rescue` (\_ -> return Nothing)
+    (clientVersion, versionWarnings) <- case maybeClientVersion of
+        Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
+        Just versionString -> case parseVersionString versionString of
+            Just v -> return (v, [])
+            Nothing -> return (version, ["Could not parse Client Version string " ++ unpack versionString ++ ", assuming latest version " ++ showVersion version])
+    if clientVersion < minimalRequiredClientVersion then do
+        let msg = "This Server API requires trident version at least " ++ show minimalRequiredClientVersion ++
+                "Please go to https://poseidon-framework.github.io/#/trident and update your trident installation."
+        json $ ServerApiReturnType (versionWarnings ++ [msg]) Nothing
+    else do
+        ServerApiReturnType content messages <- contentAction
+        json $ ServerApiReturnType (versionWarnings ++ messages) content
+
+minimalRequiredClientVersion :: Version
+minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]
 
 parseVersionString :: Text -> Maybe Version
 parseVersionString vText = case filter ((=="") . snd) $ readP_to_S parseVersion (unpack vText) of
@@ -272,38 +270,6 @@ scottyHTTP port s = do
         app <- scottyApp s
         run port app
 
-makeHTMLtable :: [PoseidonPackage] -> Text
-makeHTMLtable packages = "<table>" <> header <> body <> "</table>"
-  where
-    header :: Text
-    header = "<tr><th>Package Name</th><th>Description</th><th>Version</th><th>Last updated</th><th>Download</th></tr>"
-    body :: Text
-    body = intercalate "\n" $ do
-        pac <- packages
-        let (PackageInfo title version_ desc lastMod _) = packageToPackageInfo pac
-        let link = "<a href=\"https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> "\">" <> pack title <> "</a>"
-        return $ "<tr><td>" <> pack title <> "</td><td>" <>
-            maybe "n/a" pack desc <> "</td><td>" <>
-            maybe "n/a" (pack . showVersion) version_ <> "</td><td>" <>
-            maybe "n/a" (pack . show) lastMod <> "</td><td>" <>
-            link <> "</td></tr>"
-
-makeMDtable :: [PoseidonPackage] -> Text
-makeMDtable packages = header <> "\n" <> body <> "\n"
-  where
-    header :: Text
-    header = "| Package Name | Description | Version | Last updated | Download |\n| --- | --- | --- | --- | --- |"
-    body :: Text
-    body = intercalate "\n" $ do
-        pac <- packages
-        let (PackageInfo title version_ desc lastMod _) = packageToPackageInfo pac
-        let link = "[" <> pack title <> "](https://c107-224.cloud.gwdg.de/zip_file/" <> pack title <> ")"
-        return $ "| " <> pack title <> " | " <>
-            maybe "n/a" pack desc <> " | " <>
-            maybe "n/a" (pack . showVersion) version_ <> " | " <>
-            maybe "n/a" (pack . show) lastMod <> " | " <>
-            link <> " | "
-
 getAllPacJannoPairs :: [PoseidonPackage] -> [(String, [JannoRow])]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
@@ -334,38 +300,8 @@ packageToPackageInfo :: PoseidonPackage -> PackageInfo
 packageToPackageInfo pac = PackageInfo {
     pTitle         = posPacTitle pac,
     pVersion       = posPacPackageVersion pac,
+    pPosVersion    = posPacPoseidonVersion pac,
     pDescription   = posPacDescription pac,
     pLastModified  = posPacLastModified pac,
     pNrIndividuals = (length . posPacJanno) pac
 }
-
-respondToV2requests :: [PoseidonPackage] -> ScottyM ()
-respondToV2requests allPackages = do
-    get "/v2/packages" . conditionOnClientVersion $
-        let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
-        in  return (retData, [])
-    get "/v2/groups" . conditionOnClientVersion $
-        let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
-        in  return (retData, [])
-    -- get "/v2/individuals" $
-    --     let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
-    --     in  return (retData, [])
-    get "/v2/janno" . conditionOnClientVersion $
-        let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
-        in  return (retData, [])
-
-conditionOnClientVersion :: ActionM (ApiReturnData, [String]) -> ActionM ()
-conditionOnClientVersion contentAction = do
-    maybeClientVersion <- (Just <$> param "client_version") `rescue` (\_ -> return Nothing)
-    (clientVersion, versionWarnings) <- case maybeClientVersion of
-        Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
-        Just versionString -> case parseVersionString versionString of
-            Just v -> return (v, [])
-            Nothing -> return (version, ["Could not parse Client Version string " ++ unpack versionString ++ ", assuming latest version " ++ showVersion version])
-    if clientVersion < makeVersion [1, 1, 8, 5] then do
-        let msg = "The Server API requires trident versions at least 1.1.8.5. \
-            \Please go to https://poseidon-framework.github.io/#/trident and update your trident installation."
-        json $ ServerApiReturnType (versionWarnings ++ [msg]) Nothing
-    else do
-        (content, messages) <- contentAction
-        json $ ServerApiReturnType (versionWarnings ++ messages) (Just content)
