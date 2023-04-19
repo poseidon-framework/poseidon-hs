@@ -70,14 +70,13 @@ data PackageInfo = PackageInfo
     deriving (Show)
 
 instance ToJSON PackageInfo where
-    toJSON x = object . catMaybes [
+    toJSON x = object . catMaybes $ [
         "title"           .=! pTitle x,
         "version"         .=? pVersion x,
         "poseidonVersion" .=! pPosVersion x,
         "description"     .=? pDescription x,
         "lastModified"    .=? pLastModified x,
-        "nrIndividuals"   .=! pNrIndividuals x
-        ]
+        "nrIndividuals"   .=! pNrIndividuals x]
 
 -- the following are just two quick wrappers around Aesons (.=) which return Maybes. They make omitting Nothings easy, using catMaybes, see above.
 (.=?) :: (ToJSON v, KeyValue kv) => Key -> Maybe v -> Maybe kv
