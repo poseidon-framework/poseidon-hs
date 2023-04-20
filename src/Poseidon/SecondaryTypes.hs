@@ -17,13 +17,12 @@ module Poseidon.SecondaryTypes (
 ) where
 
 import           Control.Monad      (guard, mzero)
-import           Data.Aeson         (FromJSON, Key, KeyValue, ToJSON (..),
-                                     Value (String, Bool, Null), defaultOptions,
+import           Data.Aeson         (FromJSON, ToJSON (..),
+                                     Value (String), defaultOptions,
                                      genericToEncoding, object, parseJSON,
                                      toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Char          (digitToInt)
 import           Data.List          (intercalate)
-import           Data.Maybe         (catMaybes)
 import           Data.Text          (pack, unpack)
 import           Data.Time          (Day)
 import           Data.Version       (Version (..), makeVersion)

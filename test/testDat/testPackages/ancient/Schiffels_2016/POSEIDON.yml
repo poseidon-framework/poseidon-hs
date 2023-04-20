@@ -1,8 +1,11 @@
 poseidonVersion: 2.5.0
 title: Schiffels_2016
+description: Genetic data published in Schiffels et al. 2016
 contributor:
 - name: Stephan Schiffels
   email: schiffels@institute.org
+packageVersion: 1.0.1
+lastModified: 2021-11-09
 genotypeData:
   format: EIGENSTRAT
   genoFile: geno.txt

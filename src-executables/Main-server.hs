@@ -2,14 +2,14 @@
 
 import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
 import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
-import           Poseidon.Janno                          (JannoList (..),
-                                                          JannoRow (..),
+import           Poseidon.Janno                          (JannoRow (..),
                                                           JannoRows (..))
 import           Poseidon.Package                        (PackageReadOptions (..),
                                                           PoseidonPackage (..),
                                                           defaultPackageReadOptions,
                                                           getJannoRowsFromPac,
-                                                          readPoseidonPackageCollection)
+                                                          readPoseidonPackageCollection,
+                                                          getJointIndividualInfo)
 import           Poseidon.SecondaryTypes                 (ApiReturnData (..),
                                                           GroupInfo (..),
                                                           IndividualInfo (..),
@@ -26,7 +26,6 @@ import           Codec.Archive.Zip                       (Archive,
 import           Control.Applicative                     (optional)
 import           Control.Monad                           (forM, unless, when)
 import           Control.Monad.IO.Class                  (liftIO)
-import qualified Data.ByteString                         as BS
 import qualified Data.ByteString.Char8                   as BSC
 import qualified Data.ByteString.Lazy                    as B
 import           Data.Csv                                (NamedRecord,
@@ -35,7 +34,7 @@ import qualified Data.HashMap.Strict                     as HM
 import           Data.List                               (group, nub, sortOn)
 import           Data.List.Split                         (splitOn)
 import           Data.Maybe                              (isJust)
-import           Data.Text.Lazy                          (Text, pack, unpack)
+import           Data.Text.Lazy                          (pack)
 import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
 import           Data.Version                            (Version, makeVersion,
                                                           parseVersion,
@@ -130,7 +129,7 @@ main = do
                                 namedRecords = map toNamedRecord jannoRows :: [NamedRecord]
                             in  Just $ map getEntries namedRecords
                         Nothing -> Nothing
-                let retData = ApiReturnIndividualInfo (getAllIndividualInfo allPackages) additionalColumnEntries
+                let retData = ApiReturnIndividualInfo (getJointIndividualInfo allPackages) additionalColumnEntries
                 return $ ServerApiReturnType [] (Just retData)
 
             get "/janno" . conditionOnClientVersion $ do
@@ -148,13 +147,13 @@ main = do
                         Just v -> return $ Just v
                 case reverse . sortOn (snd . fst) . filter ((==packageName) . fst . fst) $ zipDict of
                     [] -> raise . pack $ "unknown package " ++ packageName
-                    [((pn, pv), fn)] -> case maybeVersion of
+                    [((_, pv), fn)] -> case maybeVersion of
                         Nothing -> file fn
-                        Just version -> if pv == Just version then file fn else raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion version
+                        Just v -> if pv == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
                     pl@((_, fnLatest) : _) -> case maybeVersion of
                         Nothing -> file fnLatest
-                        Just version -> case filter ((==Just version) . snd . fst) pl of
-                            [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion version
+                        Just v -> case filter ((==Just v) . snd . fst) pl of
+                            [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                             [(_, fn)] -> file fn
                             _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
             notFound $ raise "Unknown request"
@@ -317,26 +316,16 @@ scottyHTTP port s = do
 getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoRows)]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
 
-getAllIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
-getAllIndividualInfo packages = do
-    pac <- packages
-    jannoRow <- getJannoRowsFromPac pac
-    let name = jPoseidonID jannoRow
-        groups = getJannoList . jGroupName $ jannoRow
-        pacName = posPacTitle pac
-    return $ IndividualInfo name groups pacName
-
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
 getAllGroupInfo packages = do
     let unnestedPairs = do
-            IndividualInfo _ groups pacName <- getAllIndividualInfo packages
+            IndividualInfo _ groups pacName <- getJointIndividualInfo packages
             group_ <- groups
             return (group_, pacName)
-    let groupedPairs = group . sortOn fst $ unnestedPairs
-    group_ <- groupedPairs
-    let groupName = head . map fst $ group_
-        groupPacs = nub . map snd $ group_
-        groupNrInds = length group_
+    group_ <- group . sortOn fst $ unnestedPairs
+    let groupName     = head . map fst $ group_
+        groupPacs     = nub . map snd $ group_
+        groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
