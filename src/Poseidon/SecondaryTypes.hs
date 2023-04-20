@@ -18,7 +18,7 @@ module Poseidon.SecondaryTypes (
 
 import           Control.Monad      (guard, mzero)
 import           Data.Aeson         (FromJSON, Key, KeyValue, ToJSON (..),
-                                     Value (String), defaultOptions,
+                                     Value (String, Bool, Null), defaultOptions,
                                      genericToEncoding, object, parseJSON,
                                      toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Char          (digitToInt)
@@ -41,22 +41,15 @@ data IndividualInfo = IndividualInfo
     { indInfoName    :: String
     , indInfoGroups  :: [String]
     , indInfoPacName :: String
-    } deriving (Show, Ord)
+    } deriving (Show, Ord, Generic)
 
 instance Eq IndividualInfo where
     (==) (IndividualInfo a1 b1 c1) (IndividualInfo a2 b2 c2) = a1 == a2 && head b1 == head b2 && c1 == c2
 
 instance ToJSON IndividualInfo where
-    toJSON x = object [
-        "name"    .= indInfoName x,
-        "group"   .= indInfoGroups x,
-        "pacName" .= indInfoPacName x]
+    toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON IndividualInfo where
-    parseJSON = withObject "IndividualInfo" $ \v -> IndividualInfo
-        <$> v .:   "name"
-        <*> v .:   "group"
-        <*> v .:  "pacName"
+instance FromJSON IndividualInfo
 
 -- | Minimal package representation on Poseidon servers
 data PackageInfo = PackageInfo
@@ -67,54 +60,23 @@ data PackageInfo = PackageInfo
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
     }
-    deriving (Show)
+    deriving (Show, Generic)
 
 instance ToJSON PackageInfo where
-    toJSON x = object . catMaybes $ [
-        "title"           .=! pTitle x,
-        "version"         .=? pVersion x,
-        "poseidonVersion" .=! pPosVersion x,
-        "description"     .=? pDescription x,
-        "lastModified"    .=? pLastModified x,
-        "nrIndividuals"   .=! pNrIndividuals x]
+    toEncoding = genericToEncoding defaultOptions
 
--- the following are just two quick wrappers around Aesons (.=) which return Maybes. They make omitting Nothings easy, using catMaybes, see above.
-(.=?) :: (ToJSON v, KeyValue kv) => Key -> Maybe v -> Maybe kv
-(.=?) key maybeVal = case maybeVal of
-    Nothing  -> Nothing
-    Just val -> Just (key .= val)
-infixr 8 .=?
-
-(.=!) :: (ToJSON v, KeyValue kv) => Key -> v -> Maybe kv
-(.=!) key val = Just (key .= val)
-infixr 8 .=!
-
-instance FromJSON PackageInfo where
-    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-        <$> v .:   "title"
-        <*> v .:?  "version"
-        <*> v .:   "poseidonVersion"
-        <*> v .:?  "description"
-        <*> v .:?  "lastModified"
-        <*> v .:   "nrIndividuals"
+instance FromJSON PackageInfo
 
 data GroupInfo = GroupInfo
     { gName          :: String
     , gPackageNames  :: [String]
     , gNrIndividuals :: Int
-    }
+    } deriving (Generic)
 
 instance ToJSON GroupInfo where
-    toJSON x = object [
-        "name"          .= gName x,
-        "packages"      .= gPackageNames x,
-        "nrIndividuals" .= gNrIndividuals x]
+    toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON GroupInfo where
-    parseJSON = withObject "GroupInfo" $ \v -> GroupInfo
-        <$> v .: "name"
-        <*> v .: "packages"
-        <*> v .: "nrIndividuals"
+instance FromJSON GroupInfo
 
 data ServerApiReturnType = ServerApiReturnType {
     _apiMessages :: [String],
@@ -128,7 +90,7 @@ instance FromJSON ServerApiReturnType
 
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
-                   | ApiReturnIndividualInfo [IndividualInfo]
+                   | ApiReturnIndividualInfo [IndividualInfo] (Maybe [[(String, Maybe String)]])
                    | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
 
 instance ToJSON ApiReturnData where

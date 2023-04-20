@@ -26,8 +26,14 @@ import           Codec.Archive.Zip                       (Archive,
 import           Control.Applicative                     (optional)
 import           Control.Monad                           (forM, unless, when)
 import           Control.Monad.IO.Class                  (liftIO)
+import qualified Data.ByteString                         as BS
+import qualified Data.ByteString.Char8                   as BSC
 import qualified Data.ByteString.Lazy                    as B
+import           Data.Csv                                (NamedRecord,
+                                                          toNamedRecord)
+import qualified Data.HashMap.Strict                     as HM
 import           Data.List                               (group, nub, sortOn)
+import           Data.List.Split                         (splitOn)
 import           Data.Maybe                              (isJust)
 import           Data.Text.Lazy                          (Text, pack, unpack)
 import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
@@ -77,7 +83,7 @@ main = do
 
         logInfo "Server starting up. Loading packages..."
         allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-        
+
         zipDict <- case maybeZipPath of
             Nothing -> return []
             Just zipPath -> forM allPackages (\pac -> do
@@ -111,7 +117,16 @@ main = do
                 return $ ServerApiReturnType [] (Just retData)
 
             get "/individuals" . conditionOnClientVersion $ do
-                let retData = ApiReturnIndividualInfo . getAllIndividualInfo $ allPackages
+                maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
+                let additionalColumnEntries = case maybeAdditionalColumnsString of
+                        Just additionalColumnsString ->
+                            let additionalColumnNames = splitOn "," additionalColumnsString
+                                getEntries hm = [(k, BSC.unpack <$> hm HM.!? (BSC.pack k)) | k <- additionalColumnNames]
+                                jannoRows = (concat . map ((\(JannoRows jr) -> jr) . snd) . getAllPacJannoPairs $ allPackages) :: [JannoRow]
+                                namedRecords = map toNamedRecord jannoRows :: [NamedRecord]
+                            in  Just $ map getEntries namedRecords
+                        Nothing -> Nothing
+                let retData = ApiReturnIndividualInfo (getAllIndividualInfo allPackages) additionalColumnEntries
                 return $ ServerApiReturnType [] (Just retData)
 
             get "/janno" . conditionOnClientVersion $ do
