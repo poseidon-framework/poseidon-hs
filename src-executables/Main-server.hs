@@ -79,6 +79,7 @@ main = do
                 _readOptStopOnDuplicates = False
                 , _readOptIgnoreChecksums  = ignoreChecksums
                 , _readOptGenoCheck        = isJust maybeZipPath
+                , _readOptKeepMultipleVersions = True
             }
 
         logInfo "Server starting up. Loading packages..."
@@ -89,14 +90,17 @@ main = do
             Just zipPath -> forM allPackages (\pac -> do
                 logInfo "Checking whether zip files are missing or outdated"
                 liftIO $ createDirectoryIfMissing True zipPath
-                let fn = zipPath </> posPacTitle pac <.> "zip"
+                let combinedPackageVersionTitle = case posPacPackageVersion pac of
+                        Nothing -> posPacTitle pac
+                        Just v -> posPacTitle pac ++ "-" ++ showVersion v
+                let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
                 zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
                 when zipFileOutdated $ do
-                    logInfo ("Zip Archive for package " ++ posPacTitle pac ++ " missing or outdated. Zipping now")
+                    logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
                     zip_ <- liftIO $ makeZipArchive pac
                     let zip_raw = fromArchive zip_
                     liftIO $ B.writeFile fn zip_raw
-                return (posPacTitle pac, fn))
+                return ((posPacTitle pac, posPacPackageVersion pac), fn))
 
         let runScotty = case certFiles of
                 Nothing                              -> scottyHTTP  port
@@ -135,12 +139,24 @@ main = do
 
             -- API for retreiving package zip files
             unless (null zipDict) . get "/zip_file/:package_name" $ do
-                p_ <- param "package_name"
-                let zipFN = lookup (unpack p_) zipDict
-                case zipFN of
-                    Just fn -> file fn
-                    Nothing -> raise ("unknown package " <> p_)
-
+                packageName <- param "package_name"
+                maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
+                maybeVersion <- case maybeVersionString of
+                    Nothing -> return Nothing
+                    Just versionStr -> case parseVersionString versionStr of
+                        Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
+                        Just v -> return $ Just v
+                case reverse . sortOn (snd . fst) . filter ((==packageName) . fst . fst) $ zipDict of
+                    [] -> raise . pack $ "unknown package " ++ packageName
+                    [((pn, pv), fn)] -> case maybeVersion of
+                        Nothing -> file fn
+                        Just version -> if pv == Just version then file fn else raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion version
+                    pl@((_, fnLatest) : _) -> case maybeVersion of
+                        Nothing -> file fnLatest
+                        Just version -> case filter ((==Just version) . snd . fst) pl of
+                            [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion version
+                            [(_, fn)] -> file fn
+                            _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
             notFound $ raise "Unknown request"
 
 conditionOnClientVersion :: ActionM ServerApiReturnType -> ActionM ()
@@ -150,7 +166,7 @@ conditionOnClientVersion contentAction = do
         Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
         Just versionString -> case parseVersionString versionString of
             Just v -> return (v, [])
-            Nothing -> return (version, ["Could not parse Client Version string " ++ unpack versionString ++ ", assuming latest version " ++ showVersion version])
+            Nothing -> return (version, ["Could not parse Client Version string " ++ versionString ++ ", assuming latest version " ++ showVersion version])
     if clientVersion < minimalRequiredClientVersion then do
         let msg = "This Server API requires trident version at least " ++ show minimalRequiredClientVersion ++
                 "Please go to https://poseidon-framework.github.io/#/trident and update your trident installation."
@@ -162,8 +178,8 @@ conditionOnClientVersion contentAction = do
 minimalRequiredClientVersion :: Version
 minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]
 
-parseVersionString :: Text -> Maybe Version
-parseVersionString vText = case filter ((=="") . snd) $ readP_to_S parseVersion (unpack vText) of
+parseVersionString :: String -> Maybe Version
+parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
     [(v', "")] -> Just v'
     _          -> Nothing
 

@@ -63,7 +63,7 @@ import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import           Data.List                  (elemIndex, groupBy, intercalate,
-                                             nub, sortOn, (\\))
+                                             nub, singleton, sortOn, (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -204,18 +204,20 @@ data PoseidonPackage = PoseidonPackage
     deriving (Show, Eq, Generic)
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptStopOnDuplicates :: Bool
+    { _readOptStopOnDuplicates     :: Bool
     -- ^ whether to stop on duplicated individuals
-    , _readOptIgnoreChecksums  :: Bool
+    , _readOptIgnoreChecksums      :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno       :: Bool
+    , _readOptIgnoreGeno           :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck        :: Bool
+    , _readOptGenoCheck            :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno         :: Bool
+    , _readOptFullGeno             :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptIgnorePosVersion :: Bool
+    , _readOptIgnorePosVersion     :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
+    , _readOptKeepMultipleVersions :: Bool
+    -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
     }
 
 -- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
@@ -223,12 +225,13 @@ data PackageReadOptions = PackageReadOptions
 -- pass it on to the package read system.
 defaultPackageReadOptions :: PackageReadOptions
 defaultPackageReadOptions = PackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = False
-    , _readOptIgnoreGeno       = False
-    , _readOptGenoCheck        = True
-    , _readOptFullGeno         = False
-    , _readOptIgnorePosVersion = False
+      _readOptStopOnDuplicates     = False
+    , _readOptIgnoreChecksums      = False
+    , _readOptIgnoreGeno           = False
+    , _readOptGenoCheck            = True
+    , _readOptFullGeno             = False
+    , _readOptIgnorePosVersion     = False
+    , _readOptKeepMultipleVersions = False
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
@@ -262,7 +265,7 @@ readPoseidonPackageCollection opts baseDirs = do
     let loadedPackages = rights eitherPackages
     -- package duplication check
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    finalPackageList <- liftIO $ filterDuplicatePackages loadedPackages
+    finalPackageList <- liftIO $ filterDuplicatePackages (_readOptKeepMultipleVersions opts) loadedPackages
     when (length loadedPackages > length finalPackageList) $ do
         logWarning "Some packages were skipped as duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
@@ -540,20 +543,24 @@ findAllPoseidonYmlFiles baseDir = do
     return $ posFiles ++ morePosFiles
 
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
-filterDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
+filterDuplicatePackages :: (MonadThrow m) => Bool -- ^ whether to allow multiple versions of the same package to be included
+                        -> [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
                         -> m [PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
-filterDuplicatePackages pacs = mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
+filterDuplicatePackages keepMultipleVersions pacs = fmap concat . mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
     titleEq = \p1 p2 -> posPacTitle p1 == posPacTitle p2
-    checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m PoseidonPackage
-    checkDuplicatePackages [pac] = return pac
+    checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m [PoseidonPackage]
+    checkDuplicatePackages [pac] = return [pac]
     checkDuplicatePackages dupliPacs =
         let pacs_ = map (\x -> x { posPacDuplicate = length dupliPacs }) dupliPacs
             maybeVersions = map posPacPackageVersion pacs_
         in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all versions need to be given and be unique
             then
-                return . last . sortOn posPacPackageVersion $ pacs_
+                if keepMultipleVersions then
+                    return pacs_
+                else
+                    return . singleton . last . sortOn posPacPackageVersion $ pacs_
             else
                 let t   = posPacTitle $ head pacs_
 
