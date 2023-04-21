@@ -68,7 +68,7 @@ instance FromJSON PackageInfo
 
 data GroupInfo = GroupInfo
     { gName          :: String
-    , gPackageNames  :: [String]
+    , gPackageNames  :: [(String, Maybe Version)]
     , gNrIndividuals :: Int
     } deriving (Generic)
 

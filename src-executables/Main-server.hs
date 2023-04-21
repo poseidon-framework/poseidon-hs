@@ -318,15 +318,3 @@ scottyHTTP port s = do
 
 getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoRows)]
 getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
-
-getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
-getAllGroupInfo packages = do
-    let unnestedPairs = do
-            IndividualInfo _ groups pacName <- getJointIndividualInfo packages
-            group_ <- groups
-            return (group_, pacName)
-    group_ <- group . sortOn fst $ unnestedPairs
-    let groupName     = head . map fst $ group_
-        groupPacs     = nub . map snd $ group_
-        groupNrInds   = length group_
-    return $ GroupInfo groupName groupPacs groupNrInds

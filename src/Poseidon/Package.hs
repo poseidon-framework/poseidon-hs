@@ -22,7 +22,8 @@ module Poseidon.Package (
     readPoseidonPackage,
     makePseudoPackageFromGenotypeData,
     getJannoRowsFromPac,
-    packageToPackageInfo
+    packageToPackageInfo,
+    getAllGroupInfo
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -40,7 +41,8 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              IndividualInfo (..), ORCID (..),
-                                             PackageInfo(..))
+                                             PackageInfo(..),
+                                             GroupInfo(..))
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
@@ -783,3 +785,15 @@ packageToPackageInfo pac = PackageInfo {
     pLastModified  = posPacLastModified pac,
     pNrIndividuals = (length . getJannoRowsFromPac) pac
 }
+
+getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
+getAllGroupInfo packages = do
+    let unnestedPairs = do
+            IndividualInfo _ groups pacName <- getJointIndividualInfo packages
+            group_ <- groups
+            return (group_, pacName)
+    group_ <- group . sortOn fst $ unnestedPairs
+    let groupName     = head . map fst $ group_
+        groupPacs     = nub . map snd $ group_
+        groupNrInds   = length group_
+    return $ GroupInfo groupName groupPacs groupNrInds

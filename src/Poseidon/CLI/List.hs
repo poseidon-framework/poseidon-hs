@@ -59,17 +59,11 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
         ListPackages -> do
             packageInfo <- case repoLocation of
                 RepoRemote remoteURL -> do
-                    -- load remote samples list
-                    logInfo "Downloading package data from remote"
-                    remoteData <- simpleHttp (remoteURL ++ "/packages")
-                    ServerApiReturnType messages maybeReturn <- liftIO $ readApiReturnFromBS remoteData
-                    unless (null messages) $
-                        forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
-                    case maybeReturn of
-                        Just (ApiReturnPackageInfo pacInfo) -> return pacInfo
-                        _ -> do
-                            logError "The server request was unsuccessful"
-                            liftIO . throwIO $ PoseidonServerCommunicationException "Server error"
+                    logInfo "Downloading package data from server"
+                    apiReturn <- processApiResponse (remoteURL ++ "/packages")
+                    case apiReturn of
+                        ApiReturnPackageInfo pacInfo -> return pacInfo
+                        _ -> error "should not happen"
                 RepoLocal baseDirs ->
                     map packageToPackageInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Title", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
@@ -78,37 +72,40 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     return [t, showMaybe (showVersion <$> v), showVersion pv, showMaybe d, showMaybe (show <$> l), show i]
             return (tableH, tableB)
         _ -> undefined
-        -- ListGroups -> do
-        --     let tableH = ["Group", "Packages", "Nr Individuals"]
-        --         pacJannoPairs = do
-        --             (pacName, (JannoRows rows)) <- allSampleInfo
-        --             row <- rows
-        --             return (pacName, row)
-        --         tableB = do
-        --             let pacGroupPairsForIndividuals = unnestGroupNames pacJannoPairs
-        --             oneGroup <- group $ sortOn snd pacGroupPairsForIndividuals
-        --             let groupName = head $ map snd oneGroup
-        --                 groupPacs = head $ map fst oneGroup
-        --                 groupNrInds = show (length oneGroup)
-        --             return [groupName, groupPacs, groupNrInds]
-        --     logInfo $ "found " ++ show (length tableB) ++ " groups/populations"
-        --     return (tableH, tableB)
-        -- ListIndividuals moreJannoColumns -> do
-        --     -- warning in case -j does not exist in the entire janno dataset
-        --     let (JannoRows allJannoRows) = mconcat $ map snd allSampleInfo
-        --     unless (null allJannoRows) $ do
-        --         let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
-        --             requestedCols = map Bchs.pack moreJannoColumns
-        --             unknownCols = requestedCols \\ allAvailableCols
-        --         mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols
-        --     -- construct table
-        --     let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
-        --     tableB <- fmap concat . forM allSampleInfo $ \(pacName, JannoRows rows) ->
-        --         forM rows (\row -> do
-        --             let moreFields = extractAdditionalFields row moreJannoColumns
-        --             return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
-        --     logInfo $ "found " ++ show (length tableB) ++ " individuals/samples"
-        --     return (tableH, tableB)
+        ListGroups -> do
+            groupInfo <- case repoLocation of
+                RepoRemote remoteURL -> do
+                    logInfo "Downloading group data from server"
+                    apiReturn <- processApiResponse (remoteURL ++ "/groups")
+                    case apiReturn of
+                        ApiReturnGroupInfo groupInfo -> return groupInfo
+                        _ -> error "should not happen"
+                RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
+            let tableH = ["Group", "Packages", "Nr Individuals"]
+                tableB = do
+                    GroupInfo groupName pacs nrInds <- groupInfo
+                    let pacGroups = groupBy ((==) . fst) . sortBy fst $ pacs
+                        
+                        pacNames = map fst pacs
+                        pacMaybeVersions = map snd pacs
+
+            return (tableH, tableB)
+        ListIndividuals moreJannoColumns -> do
+            -- warning in case -j does not exist in the entire janno dataset
+            let (JannoRows allJannoRows) = mconcat $ map snd allSampleInfo
+            unless (null allJannoRows) $ do
+                let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
+                    requestedCols = map Bchs.pack moreJannoColumns
+                    unknownCols = requestedCols \\ allAvailableCols
+                mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols
+            -- construct table
+            let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
+            tableB <- fmap concat . forM allSampleInfo $ \(pacName, JannoRows rows) ->
+                forM rows (\row -> do
+                    let moreFields = extractAdditionalFields row moreJannoColumns
+                    return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
+            logInfo $ "found " ++ show (length tableB) ++ " individuals/samples"
+            return (tableH, tableB)
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
@@ -126,11 +123,20 @@ unnestGroupNames = concatMap unnestOne
             let groups = getJannoList . jGroupName $ jR
             in zip (repeat pac) groups
 
-readApiReturnFromBS :: LB.ByteString -> IO ServerApiReturnType
-readApiReturnFromBS bs = do
-    case eitherDecode' bs of
-        Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
+processApiResponse :: String -> PoseidonIO ApiReturnData
+processApiResponse url = do
+    remoteData <- simpleHttp url
+    ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
+        Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
         Right sam -> return sam
+    unless (null messages) $
+        forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
+    case maybeReturn of
+        Just apiReturn -> return apiReturn
+        Nothing -> do
+            logError "The server request was unsuccessful"
+            liftIO . throwIO $ PoseidonServerCommunicationException "Server error"
+
 
 extractAdditionalFields :: JannoRow -> [String] -> [String]
 extractAdditionalFields jannoRow =
