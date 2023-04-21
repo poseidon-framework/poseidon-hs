@@ -89,7 +89,7 @@ instance FromJSON ServerApiReturnType
 
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
-                   | ApiReturnIndividualInfo [IndividualInfo] (Maybe [[(String, Maybe String)]])
+                   | ApiReturnIndividualInfo [IndividualInfo] [Maybe Version] (Maybe [[(String, Maybe String)]])
                    | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
 
 instance ToJSON ApiReturnData where

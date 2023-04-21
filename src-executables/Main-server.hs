@@ -129,7 +129,9 @@ main = do
                                 namedRecords = map toNamedRecord jannoRows :: [NamedRecord]
                             in  Just $ map getEntries namedRecords
                         Nothing -> Nothing
-                let retData = ApiReturnIndividualInfo (getJointIndividualInfo allPackages) additionalColumnEntries
+                let packageVersions = map posPacPackageVersion allPackages
+                let indInfos = getJointIndividualInfo allPackages
+                let retData = ApiReturnIndividualInfo indInfos packageVersions additionalColumnEntries 
                 return $ ServerApiReturnType [] (Just retData)
 
             get "/janno" . conditionOnClientVersion $ do
