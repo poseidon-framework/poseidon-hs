@@ -9,7 +9,8 @@ import           Poseidon.Package                        (PackageReadOptions (..
                                                           defaultPackageReadOptions,
                                                           getJannoRowsFromPac,
                                                           readPoseidonPackageCollection,
-                                                          getJointIndividualInfo)
+                                                          getJointIndividualInfo,
+                                                          packageToPackageInfo)
 import           Poseidon.SecondaryTypes                 (ApiReturnData (..),
                                                           GroupInfo (..),
                                                           IndividualInfo (..),
@@ -329,13 +330,3 @@ getAllGroupInfo packages = do
         groupPacs     = nub . map snd $ group_
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
-
-packageToPackageInfo :: PoseidonPackage -> PackageInfo
-packageToPackageInfo pac = PackageInfo {
-    pTitle         = posPacTitle pac,
-    pVersion       = posPacPackageVersion pac,
-    pPosVersion    = posPacPoseidonVersion pac,
-    pDescription   = posPacDescription pac,
-    pLastModified  = posPacLastModified pac,
-    pNrIndividuals = (length . getJannoRowsFromPac) pac
-}

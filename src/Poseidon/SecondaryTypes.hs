@@ -17,10 +17,10 @@ module Poseidon.SecondaryTypes (
 ) where
 
 import           Control.Monad      (guard, mzero)
-import           Data.Aeson         (FromJSON, ToJSON (..),
-                                     Value (String), defaultOptions,
-                                     genericToEncoding, object, parseJSON,
-                                     toJSON, withObject, (.:), (.:?), (.=))
+import           Data.Aeson         (FromJSON, ToJSON (..), Value (String),
+                                     defaultOptions, genericToEncoding, object,
+                                     parseJSON, toJSON, withObject, (.:), (.:?),
+                                     (.=))
 import           Data.Char          (digitToInt)
 import           Data.List          (intercalate)
 import           Data.Text          (pack, unpack)

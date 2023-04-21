@@ -159,7 +159,6 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
-                            <*> parseIgnoreGeno
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths

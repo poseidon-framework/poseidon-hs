@@ -162,6 +162,7 @@ data PoseidonException =
     | PoseidonGenericException String -- ^ A catch-all for any other type of exception
     | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
     | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
+    | PoseidonServerCommunicationException String -- ^ An exception to mark server communication errors
     deriving (Show)
 
 instance Exception PoseidonException

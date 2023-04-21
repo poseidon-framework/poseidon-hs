@@ -21,7 +21,8 @@ module Poseidon.Package (
     defaultPackageReadOptions,
     readPoseidonPackage,
     makePseudoPackageFromGenotypeData,
-    getJannoRowsFromPac
+    getJannoRowsFromPac,
+    packageToPackageInfo
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -38,7 +39,8 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
-                                             IndividualInfo (..), ORCID (..))
+                                             IndividualInfo (..), ORCID (..),
+                                             PackageInfo(..))
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
@@ -771,3 +773,13 @@ writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno j
           "readmeFile",
           "changelogFile"
          ]
+
+packageToPackageInfo :: PoseidonPackage -> PackageInfo
+packageToPackageInfo pac = PackageInfo {
+    pTitle         = posPacTitle pac,
+    pVersion       = posPacPackageVersion pac,
+    pPosVersion    = posPacPoseidonVersion pac,
+    pDescription   = posPacDescription pac,
+    pLastModified  = posPacLastModified pac,
+    pNrIndividuals = (length . getJannoRowsFromPac) pac
+}
