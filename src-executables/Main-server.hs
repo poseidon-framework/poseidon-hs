@@ -69,6 +69,14 @@ data CommandLineOptions = CommandLineOptions
     }
     deriving (Show)
 
+-- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
+genericServerMessages :: [String]
+genericServerMessages = ["Greetings from the Poseidon Server, version " ++ showVersion version]
+
+-- this needs to be adapted in the future to mark the supported client versions
+minimalRequiredClientVersion :: Version
+minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]
+
 main :: IO ()
 main = do
     CommandLineOptions baseDirs maybeZipPath port ignoreChecksums certFiles plinkMode <-
@@ -121,7 +129,11 @@ main = do
                 return $ ServerApiReturnType [] (Just retData)
 
             get "/individuals" . conditionOnClientVersion $ do
+                let packageVersions = map posPacPackageVersion allPackages
+                let indInfos = getJointIndividualInfo allPackages
                 maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
+                extractJannoColumns 
+                let (indInfoAdditionalColumnEntries, additionalColumnWarnings) = getJannoColumnInfo allPackages
                 let additionalColumnEntries = case maybeAdditionalColumnsString of
                         Just additionalColumnsString ->
                             let additionalColumnNames = splitOn "," additionalColumnsString
@@ -130,10 +142,17 @@ main = do
                                 namedRecords = map toNamedRecord jannoRows :: [NamedRecord]
                             in  Just $ map getEntries namedRecords
                         Nothing -> Nothing
-                let packageVersions = map posPacPackageVersion allPackages
-                let indInfos = getJointIndividualInfo allPackages
+                -- warning in case the additional Columns do not exist in the entire janno dataset
+                let emptyColumnWarning = case additionalColumnEntries of
+                        Nothing -> []
+                        Just [] -> [] -- this should never happen (no individuals to return), but good practice to safeguard.
+                        Just entriesAllInds@(addColumnEntriesFirstIndividual : _) -> do -- use the first individual to get the additional column keys
+                            (i, columnKey) <- zip [0..] (map fst addColumnEntriesFirstIndividual) -- loop through the column keys
+                            -- check entries in all individuals for that key
+                            let nonEmptyEntries = catMaybes [snd (entriesForInd !! i)  | entriesForInd <- entriesAllInds]
+                            in  if null nonEmptyEntries then ["Column Name " ++ columnKey ++ " not present in any individual"] else []
                 let retData = ApiReturnIndividualInfo indInfos packageVersions additionalColumnEntries 
-                return $ ServerApiReturnType [] (Just retData)
+                return $ ServerApiReturnType emptyColumnWarnings (Just retData)
 
             get "/janno" . conditionOnClientVersion $ do
                 let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
@@ -172,13 +191,10 @@ conditionOnClientVersion contentAction = do
     if clientVersion < minimalRequiredClientVersion then do
         let msg = "This Server API requires trident version at least " ++ show minimalRequiredClientVersion ++
                 "Please go to https://poseidon-framework.github.io/#/trident and update your trident installation."
-        json $ ServerApiReturnType (versionWarnings ++ [msg]) Nothing
+        json $ ServerApiReturnType (genericServerMessages ++ versionWarnings ++ [msg]) Nothing
     else do
         ServerApiReturnType messages content <- contentAction
-        json $ ServerApiReturnType (versionWarnings ++ messages) content
-
-minimalRequiredClientVersion :: Version
-minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]
+        json $ ServerApiReturnType (genericServerMessages ++ versionWarnings ++ messages) content
 
 parseVersionString :: String -> Maybe Version
 parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion vStr of

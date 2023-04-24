@@ -797,3 +797,20 @@ getAllGroupInfo packages = do
         groupPacs     = nub . map snd $ group_
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
+
+-- | A function to extract Janno Columns. Returns a pair of an entryList and a list of warnings.
+-- The entryLlist gives a key-value list for every individual, with Nothings indicating that the column wasn't found for that individual.
+-- A list of warnings is generated in case keys weren't found anywhere.
+extractJannoColumns :: [PoseidonPackage] -> [String] -> ([[(String, Maybe String)]], [String])
+extractJannoColumns packages columnNames = 
+    let getEntries hm = [(k, BSC.unpack <$> hm HM.!? (BSC.pack k)) | k <- columnNames]
+        jannoRows = (concat . map ((\(JannoRows jr) -> jr) . snd) . getAllPacJannoPairs $ packages)
+        namedRecords = map toNamedRecord jannoRows
+        jannoEntries = map getEntries namedRecords
+
+        -- warning in case the additional Columns do not exist in the entire janno dataset
+        emptyColumnWarnings = do
+            (i, columnKey) <- zip [0..] columnNames -- loop through the column keys
+            -- check entries in all individuals for that key
+            let nonEmptyEntries = catMaybes [snd (entriesForInd !! i)  | entriesForInd <- entriesAllInds]
+            in  if null nonEmptyEntries then ["Column Name " ++ columnKey ++ " not present in any individual"] else []

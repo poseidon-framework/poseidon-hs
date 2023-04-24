@@ -83,14 +83,30 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Group", "Packages", "Nr Individuals"]
                 tableB = do
-                    GroupInfo groupName pacs nrInds <- groupInfo
-                    let pacGroups = groupBy ((==) . fst) . sortBy fst $ pacs
-                        
-                        pacNames = map fst pacs
-                        pacMaybeVersions = map snd pacs
-
+                    GroupInfo groupName pacsAndVersions nrInds <- groupInfo
+                    let pacString = intercalate ", " $ do
+                            pacGroup <- groupBy ((==) . fst) . sortBy fst $ pacsAndVersions
+                            let pacGroupNames = map fst pacGroup
+                                pacGroupMaybeVersions = map snd pacGroup
+                            case pacGroup of
+                                [(name, _)] -> return name -- just a single package with that name, print it
+                                multiplePacs -> do -- multiple packages with that name, add versions in brackets
+                                    (pacName, maybeVersion) <- multiplePacs
+                                    case maybeVersion of
+                                        Nothing -> error "should never happen" -- If there are multiple packages with the same name, all of them should have a version
+                                        Just v -> return $ pacName ++ "(" ++ showVersion v ++ ")"
+                    return [groupName, pacString, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
+            indInfo <- case repoLocation of
+                RepoRemote remoteURL -> do
+                    logInfo "Downloading individual data from server"
+                    apiReturn <- processApiResponse (remoteURL ++ "/individuals")
+                    case apiReturn of
+                        ApiReturnIndividualInfo indInfo pacVersions additionalColumns -> return (indInfo, pacVersions, additionalColumns)
+                        _ -> error "should not happen"
+                RepoLocal -> do
+                    
             -- warning in case -j does not exist in the entire janno dataset
             let (JannoRows allJannoRows) = mconcat $ map snd allSampleInfo
             unless (null allJannoRows) $ do
