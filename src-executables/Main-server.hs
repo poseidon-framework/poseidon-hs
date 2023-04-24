@@ -131,9 +131,8 @@ main = do
             get "/individuals" . conditionOnClientVersion $ do
                 let packageVersions = map posPacPackageVersion allPackages
                 let indInfos = getJointIndividualInfo allPackages
+
                 maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
-                extractJannoColumns 
-                let (indInfoAdditionalColumnEntries, additionalColumnWarnings) = getJannoColumnInfo allPackages
                 let additionalColumnEntries = case maybeAdditionalColumnsString of
                         Just additionalColumnsString ->
                             let additionalColumnNames = splitOn "," additionalColumnsString
