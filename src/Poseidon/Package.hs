@@ -67,7 +67,7 @@ import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import           Data.List                  (elemIndex, groupBy, intercalate,
-                                             nub, singleton, sortOn, (\\))
+                                             nub, singleton, sortOn, (\\), group)
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -788,11 +788,14 @@ packageToPackageInfo pac = PackageInfo {
 
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
 getAllGroupInfo packages = do
-    let unnestedPairs = do
-            IndividualInfo _ groups pacName <- getJointIndividualInfo packages
-            group_ <- groups
-            return (group_, pacName)
-    group_ <- group . sortOn fst $ unnestedPairs
+    let individualInfoUnnested = do
+            pac <- packages
+            jannoRow <- getJannoRowsFromPac pac
+            let groups = getJannoList . jGroupName $ jannoRow
+                pacName = posPacTitle pac
+                pacVersion = posPacPackageVersion pac
+            [(g, (pacName, pacVersion)) | g <- groups]
+    group_ <- group . sortOn fst $ individualInfoUnnested
     let groupName     = head . map fst $ group_
         groupPacs     = nub . map snd $ group_
         groupNrInds   = length group_

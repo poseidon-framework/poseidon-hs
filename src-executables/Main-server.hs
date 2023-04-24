@@ -137,21 +137,11 @@ main = do
                         Just additionalColumnsString ->
                             let additionalColumnNames = splitOn "," additionalColumnsString
                                 getEntries hm = [(k, BSC.unpack <$> hm HM.!? (BSC.pack k)) | k <- additionalColumnNames]
-                                jannoRows = (concat . map ((\(JannoRows jr) -> jr) . snd) . getAllPacJannoPairs $ allPackages) :: [JannoRow]
-                                namedRecords = map toNamedRecord jannoRows :: [NamedRecord]
+                                namedRecords = map Csv.toNamedRecord . (\(JannoRows r) -> r) . getJointJanno $ allPackages
                             in  Just $ map getEntries namedRecords
                         Nothing -> Nothing
-                -- warning in case the additional Columns do not exist in the entire janno dataset
-                let emptyColumnWarning = case additionalColumnEntries of
-                        Nothing -> []
-                        Just [] -> [] -- this should never happen (no individuals to return), but good practice to safeguard.
-                        Just entriesAllInds@(addColumnEntriesFirstIndividual : _) -> do -- use the first individual to get the additional column keys
-                            (i, columnKey) <- zip [0..] (map fst addColumnEntriesFirstIndividual) -- loop through the column keys
-                            -- check entries in all individuals for that key
-                            let nonEmptyEntries = catMaybes [snd (entriesForInd !! i)  | entriesForInd <- entriesAllInds]
-                            in  if null nonEmptyEntries then ["Column Name " ++ columnKey ++ " not present in any individual"] else []
                 let retData = ApiReturnIndividualInfo indInfos packageVersions additionalColumnEntries 
-                return $ ServerApiReturnType emptyColumnWarnings (Just retData)
+                return $ ServerApiReturnType [] (Just retData)
 
             get "/janno" . conditionOnClientVersion $ do
                 let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages

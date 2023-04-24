@@ -8,20 +8,26 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
                                           defaultPackageReadOptions,
                                           packageToPackageInfo,
-                                          readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (ApiReturnData (..), PackageInfo (..), ServerApiReturnType(..))
+                                          readPoseidonPackageCollection,
+                                          getJointJanno,
+                                          getAllGroupInfo,
+                                          getJointIndividualInfo)
+import           Poseidon.SecondaryTypes (ApiReturnData (..), GroupInfo (..),
+                                          PackageInfo (..),
+                                          ServerApiReturnType (..))
 import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
                                           logError, logInfo, logWarning)
 
 import           Control.Exception       (throwIO)
-import           Control.Monad           (forM, unless, when, forM_)
+import           Control.Monad           (forM, forM_, unless, when)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (FromJSON, eitherDecode')
 import qualified Data.ByteString.Char8   as Bchs
 import qualified Data.ByteString.Lazy    as LB
 import qualified Data.Csv                as Csv
 import qualified Data.HashMap.Strict     as HM
-import           Data.List               (group, intercalate, sortOn, (\\))
+import           Data.List               (group, intercalate, sortOn, (\\), sortBy, groupBy)
+import           Data.Maybe              (catMaybes)
 import qualified Data.Text               as T
 import qualified Data.Text.Encoding      as T
 import           Data.Version            (showVersion)
@@ -85,7 +91,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 tableB = do
                     GroupInfo groupName pacsAndVersions nrInds <- groupInfo
                     let pacString = intercalate ", " $ do
-                            pacGroup <- groupBy ((==) . fst) . sortBy fst $ pacsAndVersions
+                            pacGroup <- groupBy (\a b -> fst a == fst b) . sortOn fst $ pacsAndVersions
                             let pacGroupNames = map fst pacGroup
                                 pacGroupMaybeVersions = map snd pacGroup
                             case pacGroup of
@@ -98,23 +104,33 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     return [groupName, pacString, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
-            indInfo <- case repoLocation of
+            (indInfo, pacVersions, additionalColumns) <- case repoLocation of
                 RepoRemote remoteURL -> do
                     logInfo "Downloading individual data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/individuals")
+                    apiReturn <- processApiResponse (remoteURL ++ "/individuals?additionalJannoColumns=" ++ intercalate "," moreJannoColumns)
                     case apiReturn of
-                        ApiReturnIndividualInfo indInfo pacVersions additionalColumns -> return (indInfo, pacVersions, additionalColumns)
+                        ApiReturnIndividualInfo i p c -> return (i, p, c)
                         _ -> error "should not happen"
-                RepoLocal -> do
-                    
-            -- warning in case -j does not exist in the entire janno dataset
-            let (JannoRows allJannoRows) = mconcat $ map snd allSampleInfo
-            unless (null allJannoRows) $ do
-                let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
-                    requestedCols = map Bchs.pack moreJannoColumns
-                    unknownCols = requestedCols \\ allAvailableCols
-                mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols
-            -- construct table
+                RepoLocal baseDirs -> do
+                    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    let packageVersions = map posPacPackageVersion allPackages
+                        indInfos = getJointIndividualInfo allPackages
+                        additionalColumns = case additionalColumns of
+                            [] -> Nothing
+                            c ->
+                                let getEntries hm = [(k, Bchs.unpack <$> hm HM.!? (Bchs.pack k)) | k <- moreJannoColumns]
+                                    namedRecords = map Csv.toNamedRecord . (\(JannoRows r) -> r) . getJointJanno $ allPackages
+                                in  Just $ map getEntries namedRecords
+                    return (indInfos, packageVersions, additionalColumns)
+
+            -- warning in case the additional Columns do not exist in the entire janno dataset
+            case additionalColumns of
+                Just [] -> return ()
+                Just entriesAllInds -> forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
+                    -- check entries in all individuals for that key
+                    let nonEmptyEntries = catMaybes [snd (entriesForInd !! i) | entriesForInd <- entriesAllInds]
+                    when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
+            
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
             tableB <- fmap concat . forM allSampleInfo $ \(pacName, JannoRows rows) ->
                 forM rows (\row -> do
