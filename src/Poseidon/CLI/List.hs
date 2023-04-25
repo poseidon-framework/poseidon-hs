@@ -11,8 +11,8 @@ import           Poseidon.Package        (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes (ApiReturnData (..), GroupInfo (..),
                                           IndividualInfo (..), PackageInfo (..),
                                           processApiResponse)
-import           Poseidon.Utils          (PoseidonIO,
-                                          logInfo, logWarning, extendNameWithVersion)
+import           Poseidon.Utils          (PoseidonIO, extendNameWithVersion,
+                                          logInfo, logWarning)
 
 import           Control.Monad           (forM_, when)
 import           Control.Monad.IO.Class  (liftIO)

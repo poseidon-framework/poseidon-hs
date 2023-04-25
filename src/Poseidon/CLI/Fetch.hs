@@ -11,11 +11,14 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (IndividualInfo (..), PackageInfo (..), ApiReturnData (..), processApiResponse)
+import           Poseidon.SecondaryTypes (ApiReturnData (..),
+                                          IndividualInfo (..), PackageInfo (..),
+                                          processApiResponse)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
-                                          PoseidonIO, envLogAction, logInfo,
+                                          PoseidonIO, envLogAction,
+                                          extendNameWithVersion, logInfo,
                                           logWarning, logWithEnv, padLeft,
-                                          padRight, extendNameWithVersion)
+                                          padRight)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -79,14 +82,14 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
         r <- processApiResponse (remoteURL ++ "/individuals")
         case r of
             ApiReturnIndividualInfo i _ _ -> return i
-            _ -> error "should not happen"
+            _                             -> error "should not happen"
 
     logInfo "Downloading package list from remote"
     remotePacList <- do
         r <- processApiResponse (remoteURL ++ "/packages")
         case r of
             ApiReturnPackageInfo p -> return p
-            _ -> error "should not happen"
+            _                      -> error "should not happen"
 
     let nonExistentEntities = findNonExistentEntities entities remoteIndList
 

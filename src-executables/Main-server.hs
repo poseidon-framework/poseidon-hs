@@ -5,9 +5,9 @@ import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
 import           Poseidon.Package                        (PackageReadOptions (..),
                                                           PoseidonPackage (..),
                                                           defaultPackageReadOptions,
-                                                          packageToPackageInfo,
                                                           getAllGroupInfo,
                                                           getExtendedIndividualInfo,
+                                                          packageToPackageInfo,
                                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes                 (ApiReturnData (..),
                                                           ServerApiReturnType (..))
@@ -26,7 +26,7 @@ import qualified Data.ByteString.Lazy                    as B
 import           Data.List                               (sortOn)
 import           Data.List.Split                         (splitOn)
 import           Data.Maybe                              (isJust)
-import           Data.Ord                                (Down(..))
+import           Data.Ord                                (Down (..))
 import           Data.Text.Lazy                          (pack)
 import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
 import           Data.Version                            (Version, makeVersion,

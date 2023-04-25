@@ -41,7 +41,7 @@ import           Data.Digest.Pure.MD5   (md5)
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
-import           Data.Version           (showVersion, Version)
+import           Data.Version           (Version, showVersion)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
