@@ -23,7 +23,8 @@ module Poseidon.Package (
     makePseudoPackageFromGenotypeData,
     getJannoRowsFromPac,
     packageToPackageInfo,
-    getAllGroupInfo
+    getAllGroupInfo,
+    getExtendedIndividualInfo
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -40,9 +41,9 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
+                                             GroupInfo (..),
                                              IndividualInfo (..), ORCID (..),
-                                             PackageInfo(..),
-                                             GroupInfo(..))
+                                             PackageInfo (..))
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
@@ -63,11 +64,15 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
+import qualified Data.ByteString.Char8      as BSC
 import           Data.Char                  (isSpace)
+import           Data.Csv                   (toNamedRecord)
 import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
-import           Data.List                  (elemIndex, groupBy, intercalate,
-                                             nub, singleton, sortOn, (\\), group)
+import qualified Data.HashMap.Strict        as HM
+import           Data.List                  (elemIndex, group, groupBy,
+                                             intercalate, nub, singleton,
+                                             sortOn, (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -800,3 +805,17 @@ getAllGroupInfo packages = do
         groupPacs     = nub . map snd $ group_
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
+
+getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> ([IndividualInfo], [Maybe Version], Maybe [[Maybe String]])
+getExtendedIndividualInfo allPackages additionalJannoColumns =
+    let indInfo = getJointIndividualInfo allPackages
+        packageVersions = do
+            pac <- allPackages
+            _ <- getJannoRowsFromPac pac
+            return $ posPacPackageVersion pac
+        additionalColumnEntries = case additionalJannoColumns of
+            [] -> Nothing
+            colNames ->
+                let getEntriesFunc hm = [BSC.unpack <$> hm HM.!? BSC.pack k | k <- colNames]
+                in  Just . map (getEntriesFunc . toNamedRecord) . (\(JannoRows r) -> r) . getJointJanno $ allPackages
+    in  (indInfo, packageVersions, additionalColumnEntries)

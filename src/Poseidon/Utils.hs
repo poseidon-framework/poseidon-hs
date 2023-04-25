@@ -220,6 +220,7 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
     ++ " --genoFile: " ++ g
     ++ " --snpFile: "  ++ s
     ++ " --indFile: "  ++ i
+renderPoseidonException (PoseidonServerCommunicationException e) = e
 
 -- helper function to check if a file exists
 checkFile :: FilePath -> Maybe String -> IO ()

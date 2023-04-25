@@ -173,7 +173,6 @@ testPipelineList testDir checkFilePath = do
           _listRepoLocation  = RepoLocal [testPacsDir </> "Schiffels_2016", testPacsDir  </> "Wang_Wang_2020"]
         , _listListEntity    = ListPackages
         , _listRawOutput     = False
-        , _listIgnoreGeno    = False
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
@@ -634,7 +633,6 @@ testPipelineListRemote = do
           _listRepoLocation = RepoRemote "http://c107-224.cloud.gwdg.de:3000"
         , _listListEntity   = ListPackages
         , _listRawOutput    = False
-        , _listIgnoreGeno   = False
         }
     writeStdOutToFile "/dev/null" (testLog $ runList listOpts1)
     let listOpts2 = listOpts1 {

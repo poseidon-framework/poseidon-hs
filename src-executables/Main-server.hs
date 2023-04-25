@@ -2,19 +2,14 @@
 
 import           Poseidon.CLI.OptparseApplicativeParsers (parseInputPlinkPopMode)
 import           Poseidon.GenotypeData                   (GenotypeDataSpec (..))
-import           Poseidon.Janno                          (JannoRow (..),
-                                                          JannoRows (..))
 import           Poseidon.Package                        (PackageReadOptions (..),
                                                           PoseidonPackage (..),
                                                           defaultPackageReadOptions,
-                                                          getJannoRowsFromPac,
-                                                          readPoseidonPackageCollection,
-                                                          getJointIndividualInfo,
-                                                          packageToPackageInfo)
+                                                          packageToPackageInfo,
+                                                          getAllGroupInfo,
+                                                          getExtendedIndividualInfo,
+                                                          readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes                 (ApiReturnData (..),
-                                                          GroupInfo (..),
-                                                          IndividualInfo (..),
-                                                          PackageInfo (..),
                                                           ServerApiReturnType (..))
 import           Poseidon.Utils                          (LogMode (..),
                                                           PoseidonIO, logInfo,
@@ -27,14 +22,11 @@ import           Codec.Archive.Zip                       (Archive,
 import           Control.Applicative                     (optional)
 import           Control.Monad                           (forM, unless, when)
 import           Control.Monad.IO.Class                  (liftIO)
-import qualified Data.ByteString.Char8                   as BSC
 import qualified Data.ByteString.Lazy                    as B
-import           Data.Csv                                (NamedRecord,
-                                                          toNamedRecord)
-import qualified Data.HashMap.Strict                     as HM
-import           Data.List                               (group, nub, sortOn)
+import           Data.List                               (sortOn)
 import           Data.List.Split                         (splitOn)
 import           Data.Maybe                              (isJust)
+import           Data.Ord                                (Down(..))
 import           Data.Text.Lazy                          (pack)
 import           Data.Time.Clock.POSIX                   (utcTimeToPOSIXSeconds)
 import           Data.Version                            (Version, makeVersion,
@@ -100,7 +92,7 @@ main = do
                 liftIO $ createDirectoryIfMissing True zipPath
                 let combinedPackageVersionTitle = case posPacPackageVersion pac of
                         Nothing -> posPacTitle pac
-                        Just v -> posPacTitle pac ++ "-" ++ showVersion v
+                        Just v  -> posPacTitle pac ++ "-" ++ showVersion v
                 let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
                 zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
                 when zipFileOutdated $ do
@@ -130,22 +122,13 @@ main = do
 
             get "/individuals" . conditionOnClientVersion $ do
                 maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
-                let (indInfo, packageVersions, additionalColumnEntries) = getExtendedIndividualInfo allPackages
-                let packageVersions = map posPacPackageVersion allPackages
-                let indInfos = getJointIndividualInfo allPackages
 
-                let additionalColumnEntries = case maybeAdditionalColumnsString of
+                let (indInfo, pacVersions, additionalColumnEntries) = case maybeAdditionalColumnsString of
                         Just additionalColumnsString ->
                             let additionalColumnNames = splitOn "," additionalColumnsString
-                                getEntries hm = [(k, BSC.unpack <$> hm HM.!? (BSC.pack k)) | k <- additionalColumnNames]
-                                namedRecords = map Csv.toNamedRecord . (\(JannoRows r) -> r) . getJointJanno $ allPackages
-                            in  Just $ map getEntries namedRecords
-                        Nothing -> Nothing
-                let retData = ApiReturnIndividualInfo indInfos packageVersions additionalColumnEntries 
-                return $ ServerApiReturnType [] (Just retData)
-
-            get "/janno" . conditionOnClientVersion $ do
-                let retData = ApiReturnJanno . getAllPacJannoPairs $ allPackages
+                            in  getExtendedIndividualInfo allPackages additionalColumnNames
+                        Nothing -> getExtendedIndividualInfo allPackages []
+                let retData = ApiReturnIndividualInfo indInfo pacVersions additionalColumnEntries
                 return $ ServerApiReturnType [] (Just retData)
 
             -- API for retreiving package zip files
@@ -157,7 +140,7 @@ main = do
                     Just versionStr -> case parseVersionString versionStr of
                         Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
                         Just v -> return $ Just v
-                case reverse . sortOn (snd . fst) . filter ((==packageName) . fst . fst) $ zipDict of
+                case sortOn (Down . snd . fst) . filter ((==packageName) . fst . fst) $ zipDict of
                     [] -> raise . pack $ "unknown package " ++ packageName
                     [((_, pv), fn)] -> case maybeVersion of
                         Nothing -> file fn
@@ -321,6 +304,3 @@ scottyHTTP port s = do
     liftIO $ do
         app <- scottyApp s
         run port app
-
-getAllPacJannoPairs :: [PoseidonPackage] -> [(String, JannoRows)]
-getAllPacJannoPairs packages = [(posPacTitle pac, posPacJanno pac) | pac <- packages]
