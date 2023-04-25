@@ -129,10 +129,11 @@ main = do
                 return $ ServerApiReturnType [] (Just retData)
 
             get "/individuals" . conditionOnClientVersion $ do
+                maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
+                let (indInfo, packageVersions, additionalColumnEntries) = getExtendedIndividualInfo allPackages
                 let packageVersions = map posPacPackageVersion allPackages
                 let indInfos = getJointIndividualInfo allPackages
 
-                maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
                 let additionalColumnEntries = case maybeAdditionalColumnsString of
                         Just additionalColumnsString ->
                             let additionalColumnNames = splitOn "," additionalColumnsString
