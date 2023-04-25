@@ -13,23 +13,31 @@ module Poseidon.SecondaryTypes (
     P.runParser,
     ORCID (..),
     ServerApiReturnType(..),
-    ApiReturnData(..)
+    ApiReturnData(..),
+    processApiResponse
 ) where
 
-import           Control.Monad      (guard, mzero)
-import           Data.Aeson         (FromJSON, ToJSON (..), Value (String),
-                                     defaultOptions, genericToEncoding, object,
-                                     parseJSON, toJSON, withObject, (.:), (.:?),
-                                     (.=))
-import           Data.Char          (digitToInt)
-import           Data.List          (intercalate)
-import           Data.Text          (pack, unpack)
-import           Data.Time          (Day)
-import           Data.Version       (Version (..), makeVersion)
-import           GHC.Generics       (Generic)
-import           Poseidon.Janno     (JannoRows)
-import qualified Text.Parsec        as P
-import qualified Text.Parsec.String as P
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
+                                         logError, logInfo)
+
+import           Control.Exception      (throwIO)
+import           Control.Monad          (forM_, guard, mzero, unless)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
+                                         defaultOptions, eitherDecode',
+                                         genericToEncoding, object, parseJSON,
+                                         toJSON, withObject, (.:), (.:?), (.=))
+import           Data.Char              (digitToInt)
+import           Data.List              (intercalate)
+import           Data.Text              (pack, unpack)
+import           Data.Time              (Day)
+import           Data.Version           (Version (..), makeVersion)
+import           GHC.Generics           (Generic)
+import           Network.HTTP.Conduit   (simpleHttp)
+import           Poseidon.Janno         (JannoRows)
+import qualified Text.Parsec            as P
+import qualified Text.Parsec.String     as P
+
 
 data VersionComponent = Major
     | Minor
@@ -194,3 +202,17 @@ renderORCID (ORCID nums check) =
         chunks n xs =
             let (ys, zs) = splitAt n xs
             in  ys : chunks n zs
+
+processApiResponse :: String -> PoseidonIO ApiReturnData
+processApiResponse url = do
+    remoteData <- simpleHttp url
+    ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
+        Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
+        Right sam -> return sam
+    unless (null messages) $
+        forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
+    case maybeReturn of
+        Just apiReturn -> return apiReturn
+        Nothing -> do
+            logError "The server request was unsuccessful"
+            liftIO . throwIO . PoseidonServerCommunicationException $ "Server error upon URL " ++ url

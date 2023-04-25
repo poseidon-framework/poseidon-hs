@@ -10,18 +10,15 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..), GroupInfo (..),
                                           IndividualInfo (..), PackageInfo (..),
-                                          ServerApiReturnType (..))
-import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
-                                          logError, logInfo, logWarning)
+                                          processApiResponse)
+import           Poseidon.Utils          (PoseidonIO,
+                                          logInfo, logWarning, extendNameWithVersion)
 
-import           Control.Exception       (throwIO)
-import           Control.Monad           (forM_, unless, when)
+import           Control.Monad           (forM_, when)
 import           Control.Monad.IO.Class  (liftIO)
-import           Data.Aeson              (eitherDecode')
 import           Data.List               (intercalate, sortOn)
 import           Data.Maybe              (catMaybes, fromMaybe)
-import           Data.Version            (Version, showVersion)
-import           Network.HTTP.Conduit    (simpleHttp)
+import           Data.Version            (showVersion)
 import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
                                           rowsG, tableString, titlesH)
 
@@ -79,7 +76,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             let tableH = ["Group", "Packages", "Nr Individuals"]
                 tableB = do
                     GroupInfo groupName pacsAndVersions nrInds <- groupInfo
-                    let pacString = intercalate ", " [constructPackageString pacName maybePacVersion | (pacName, maybePacVersion) <- pacsAndVersions]
+                    let pacString = intercalate ", " [extendNameWithVersion pacName maybePacVersion | (pacName, maybePacVersion) <- pacsAndVersions]
                     return [groupName, pacString, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
@@ -106,11 +103,11 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 tableB = case additionalColumns of
                     Nothing -> do
                         (IndividualInfo name groups pac, maybePacVersion) <- zip indInfo pacVersions
-                        let pacString = constructPackageString pac maybePacVersion
+                        let pacString = extendNameWithVersion pac maybePacVersion
                         return [pacString, name, intercalate ", " groups]
                     Just c -> do
                         (IndividualInfo name groups pac, maybePacVersion, addColumns) <- zip3 indInfo pacVersions c
-                        let pacString = constructPackageString pac maybePacVersion
+                        let pacString = extendNameWithVersion pac maybePacVersion
                         return $ [pacString, name, intercalate ", " groups] ++ map (fromMaybe "n/a") addColumns
             return (tableH, tableB)
     if rawOutput then
@@ -121,22 +118,3 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
   where
     showMaybe :: Maybe String -> String
     showMaybe = maybe "n/a" id
-
-processApiResponse :: String -> PoseidonIO ApiReturnData
-processApiResponse url = do
-    remoteData <- simpleHttp url
-    ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
-        Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
-        Right sam -> return sam
-    unless (null messages) $
-        forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
-    case maybeReturn of
-        Just apiReturn -> return apiReturn
-        Nothing -> do
-            logError "The server request was unsuccessful"
-            liftIO . throwIO . PoseidonServerCommunicationException $ "Server error upon URL " ++ url
-
-constructPackageString :: String -> Maybe Version -> String
-constructPackageString pacName maybePacVersion = case maybePacVersion of
-    Nothing -> pacName
-    Just v  -> pacName ++ "-" ++ showVersion v
