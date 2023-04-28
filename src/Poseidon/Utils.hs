@@ -82,7 +82,7 @@ usePoseidonLogger VerboseLog plinkMode = flip runReaderT (Env verboseLog plinkMo
 
 testLog :: PoseidonIO a -> IO a
 testLog = usePoseidonLogger NoLog PlinkPopNameAsFamily
---testLog = usePoseidonLogger DefaultLog
+--testLog = usePoseidonLogger VerboseLog PlinkPopNameAsFamily
 
 noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
