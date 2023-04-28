@@ -133,12 +133,12 @@ data SeqSourceRow = SeqSourceRow
     , sInstrumentPlatform        :: Maybe String
     , sLibraryName               :: Maybe String
     , sLibraryStrategy           :: Maybe String
-    , sFastqFTP                  :: Maybe JURI
-    , sFastqASPERA               :: Maybe JURI
-    , sFastqBytes                :: Maybe Integer -- integer, not int, because it can be a very large number
-    , sFastqMD5                  :: Maybe String -- could be a dedicated md5 type
+    , sFastqFTP                  :: Maybe (JannoList JURI)
+    , sFastqASPERA               :: Maybe (JannoList JURI)
+    , sFastqBytes                :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
+    , sFastqMD5                  :: Maybe (JannoList String) -- could be a dedicated md5 type
     , sReadCount                 :: Maybe Integer -- integer, not int, because it can be a very large number
-    , sSubmittedFTP              :: Maybe JURI
+    , sSubmittedFTP              :: Maybe (JannoList JURI)
     , sAdditionalColumns         :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
