@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.11.3
+@version 1.1.11.4
 
 module Poseidon.MathHelpers
 
@@ -590,7 +590,7 @@ SeqSourceRows :: [SeqSourceRow] -> SeqSourceRows
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv</a>
 --   for more details
 data SeqSourceRow
-SeqSourceRow :: JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> AccessionID -> Maybe AccessionID -> Maybe AccessionID -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe JURI -> Maybe JURI -> Maybe Integer -> Maybe String -> Maybe Integer -> Maybe JURI -> CsvNamedRecord -> SeqSourceRow
+SeqSourceRow :: JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> AccessionID -> Maybe AccessionID -> Maybe AccessionID -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe (JannoList JURI) -> Maybe (JannoList JURI) -> Maybe (JannoList Integer) -> Maybe (JannoList String) -> Maybe Integer -> Maybe (JannoList JURI) -> CsvNamedRecord -> SeqSourceRow
 [sPoseidonID] :: SeqSourceRow -> JannoStringList
 [sUDG] :: SeqSourceRow -> Maybe SSFUDG
 [sLibraryBuilt] :: SeqSourceRow -> Maybe SSFLibraryBuilt
@@ -607,12 +607,12 @@ SeqSourceRow :: JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> Acce
 [sInstrumentPlatform] :: SeqSourceRow -> Maybe String
 [sLibraryName] :: SeqSourceRow -> Maybe String
 [sLibraryStrategy] :: SeqSourceRow -> Maybe String
-[sFastqFTP] :: SeqSourceRow -> Maybe JURI
-[sFastqASPERA] :: SeqSourceRow -> Maybe JURI
-[sFastqBytes] :: SeqSourceRow -> Maybe Integer
-[sFastqMD5] :: SeqSourceRow -> Maybe String
+[sFastqFTP] :: SeqSourceRow -> Maybe (JannoList JURI)
+[sFastqASPERA] :: SeqSourceRow -> Maybe (JannoList JURI)
+[sFastqBytes] :: SeqSourceRow -> Maybe (JannoList Integer)
+[sFastqMD5] :: SeqSourceRow -> Maybe (JannoList String)
 [sReadCount] :: SeqSourceRow -> Maybe Integer
-[sSubmittedFTP] :: SeqSourceRow -> Maybe JURI
+[sSubmittedFTP] :: SeqSourceRow -> Maybe (JannoList JURI)
 [sAdditionalColumns] :: SeqSourceRow -> CsvNamedRecord
 seqSourceHeader :: [ByteString]
 seqSourceHeaderString :: [String]
