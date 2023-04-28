@@ -40,7 +40,8 @@ module Poseidon.Janno (
     encodingOptions,
     decodingOptions,
     explicitNA,
-    removeUselessSuffix
+    removeUselessSuffix,
+    getMaybeJannoList
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -525,6 +526,10 @@ instance FromJSON AccessionID-- where
 -- | A general datatype for janno list columns
 newtype JannoList a = JannoList {getJannoList :: [a]}
     deriving (Eq, Ord, Generic, Show)
+
+getMaybeJannoList :: Maybe (JannoList a) -> [a]
+getMaybeJannoList Nothing  = []
+getMaybeJannoList (Just x) = getJannoList x
 
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int

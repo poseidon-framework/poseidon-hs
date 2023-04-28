@@ -18,7 +18,7 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
-                                              JannoRows (..), writeJannoFile)
+                                              JannoRows (..), writeJannoFile, getMaybeJannoList)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
@@ -255,7 +255,7 @@ filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
     where
         hasAPoseidonID :: [String] -> SeqSourceRow -> Bool
         hasAPoseidonID jIDs seqSourceRows =
-            let sIDs = getJannoList $ sPoseidonID seqSourceRows
+            let sIDs = getMaybeJannoList $ sPoseidonID seqSourceRows
             in any (`elem` jIDs) sIDs
 
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX

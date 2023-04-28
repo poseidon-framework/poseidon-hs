@@ -117,12 +117,12 @@ instance FromJSON SeqSourceRows
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
 data SeqSourceRow = SeqSourceRow
-    { sPoseidonID                :: JannoStringList
+    { sPoseidonID                :: Maybe JannoStringList
     , sUDG                       :: Maybe SSFUDG
     , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sGeneticSourceAccessionIDs :: AccessionID -- could be a specific AccessionID
+    , sGeneticSourceAccessionIDs :: Maybe AccessionID -- could be a specific AccessionID
     , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
-    , sRunAccession              :: Maybe AccessionID -- could be a specific AccessionID
+    , sRunAccession              :: AccessionID -- could be a specific AccessionID
     , sSampleAlias               :: Maybe String
     , sSecondarySampleAccession  :: Maybe String
     , sFirstPublic               :: Maybe String -- could be a date type
@@ -187,12 +187,12 @@ instance FromJSON SeqSourceRow
 
 instance Csv.FromNamedRecord SeqSourceRow where
     parseNamedRecord m = SeqSourceRow
-        <$> filterLookup m         "poseidon_IDs"
+        <$> filterLookupOptional m "poseidon_IDs"
         <*> filterLookupOptional m "udg"
         <*> filterLookupOptional m "library_built"
         <*> filterLookup m         "sample_accession"
         <*> filterLookupOptional m "study_accession"
-        <*> filterLookupOptional m "run_accession"
+        <*> filterLookup         m "run_accession"
         <*> filterLookupOptional m "sample_alias"
         <*> filterLookupOptional m "secondary_sample_accession"
         <*> filterLookupOptional m "first_public"
@@ -304,12 +304,8 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
 --checkSamplesUnique (SeqSourceRows rows) = length rows == length (nub $ map sGeneticSourceAccessionIDs rows)
 
 checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
-checkSeqSourceRowConsistency seqSourcePath row x
-    | not $ checkMandatoryNotEmpty x = Left $ PoseidonFileRowException seqSourcePath row
-        "The mandatory column Poseidon_ID contains empty values"
+checkSeqSourceRowConsistency _ _ x
+    -- | not $ checkMandatoryNotEmpty x = Left $ PoseidonFileRowException seqSourcePath row
+    --     "The mandatory column Poseidon_ID contains empty values"
     | otherwise = Right x
 
-checkMandatoryNotEmpty :: SeqSourceRow -> Bool
-checkMandatoryNotEmpty x =
-       (not . null . getJannoList . sPoseidonID $ x)
-    && (not . null . head . getJannoList . sPoseidonID $ x)

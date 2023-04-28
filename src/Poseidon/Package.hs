@@ -33,7 +33,7 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
-                                             readJannoFile)
+                                             readJannoFile, getMaybeJannoList)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
@@ -461,7 +461,7 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
     checkUDGandLibraryBuiltOverlap
     where
         js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
-        ss = map (\r -> (getJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        ss = map (\r -> (getMaybeJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
         checkPoseidonIDOverlap :: PoseidonIO ()
         checkPoseidonIDOverlap = do
             let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
