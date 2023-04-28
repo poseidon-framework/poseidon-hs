@@ -27,7 +27,7 @@ import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (foldl', nub, sort)
+import           Data.List                  (foldl', sort)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
@@ -276,7 +276,7 @@ readSeqSourceFile seqSourcePath = do
         mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
         liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines. See more details with --logMode VerboseLog"
     else do
-        let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
+        let consistentSeqSource = Right $ SeqSourceRows $ rights seqSourceRepresentation --checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
         case consistentSeqSource of
             Left e  -> do liftIO $ throwIO (e :: PoseidonException)
             Right x -> do return x
@@ -294,14 +294,14 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
 
 -- SeqSource consistency checks
 
-checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
-checkSeqSourceConsistency seqSourcePath xs
-    | not $ checkSamplesUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
-        "The values in the sample_accession column are not unique"
-    | otherwise = Right xs
+--checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
+--checkSeqSourceConsistency seqSourcePath xs
+--    | not $ checkSamplesUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
+--        "The values in the sample_accession column are not unique"
+--    | otherwise = Right xs
 
-checkSamplesUnique :: SeqSourceRows -> Bool
-checkSamplesUnique (SeqSourceRows rows) = length rows == length (nub $ map sGeneticSourceAccessionIDs rows)
+--checkSamplesUnique :: SeqSourceRows -> Bool
+--checkSamplesUnique (SeqSourceRows rows) = length rows == length (nub $ map sGeneticSourceAccessionIDs rows)
 
 checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
 checkSeqSourceRowConsistency seqSourcePath row x
