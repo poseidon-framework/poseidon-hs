@@ -1,3 +1,4 @@
+- V 1.1.11.4: Fixed an issue in the .ssf implementation: Multiple columns must be treated as list columns.
 - V 1.1.11.3: Re-implemented the `survey` subcommand with advanced type level magic to avoid hard to maintain boilerplate code. Again no user-facing changes in trident.
 - V 1.1.11.2: Switch to stackage resolver LTS 20.17 for ghc-9.2.7. No user-facing changes in trident.
 - V 1.1.11.1: Reworked the parts of the test infrastructure to make the golden tests structurally simpler and cleaner. No user-facing changes to trident.
