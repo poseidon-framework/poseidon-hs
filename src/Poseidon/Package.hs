@@ -483,13 +483,13 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
                         Just j -> unless (all (compareU j) allSeqSourceUDGs) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on UDG treatment in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID
+                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceUDGs ++ ")"
                     case jannoLibraryBuilt of
                         Nothing -> return ()
                         Just j -> unless (all (compareL j) allSeqSourceLibraryBuilts) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on library strandedness in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID
+                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceLibraryBuilts ++ ")"
                 compareU :: JannoUDG -> SSFUDG -> Bool
                 compareU Mixed _        = True
                 compareU Minus SSFMinus = True
