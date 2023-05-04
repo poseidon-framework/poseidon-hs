@@ -6,12 +6,12 @@ import           Poseidon.Janno            (AccessionID (..),
                                             CsvNamedRecord (..), JURI (..),
                                             JannoList (..))
 import           Poseidon.JannoSpec        (checkEnDe)
-import           Poseidon.SequencingSource (RunAccessionID (..), SSFDay (..),
-                                            SSFLibraryBuilt (..), SSFMD5 (..),
-                                            SSFUDG (..), SampleAccessionID (..),
+import           Poseidon.SequencingSource (AccessionIDRun (..), SimpleDate (..),
+                                            SSFLibraryBuilt (..), MD5 (..),
+                                            SSFUDG (..), AccessionIDSample (..),
                                             SeqSourceRow (..),
                                             SeqSourceRows (..),
-                                            StudyAccessionID (..),
+                                            AccessionIDStudy (..),
                                             readSeqSourceFile)
 import           Poseidon.Utils            (testLog)
 
@@ -51,27 +51,27 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
         map sPoseidonID s                `shouldBe` [Just $ JannoList ["Ash033.SG"], Just $ JannoList ["Ash002.SG"], Just $ JannoList ["Ash040.SG"]]
         map sUDG s                       `shouldBe` [Just SSFMinus, Just SSFHalf, Just SSFPlus]
         map sLibraryBuilt s              `shouldBe` [Just SSFSS, Just SSFDS, Just SSFDS]
-        map sSampleAccession s           `shouldBe` [ Just $ SampleAccessionID $ INSDCBioSample "SAMEA7050454"
-                                                    , Just $ SampleAccessionID $ INSDCBioSample "SAMEA7050404"
-                                                    , Just $ SampleAccessionID $ INSDCBioSample "SAMEA7050455"
+        map sSampleAccession s           `shouldBe` [ Just $ AccessionIDSample $ INSDCBioSample "SAMEA7050454"
+                                                    , Just $ AccessionIDSample $ INSDCBioSample "SAMEA7050404"
+                                                    , Just $ AccessionIDSample $ INSDCBioSample "SAMEA7050455"
                                                     ]
-        map sStudyAccession s            `shouldBe` [ Just $ StudyAccessionID $ INSDCProject "PRJEB39316"
-                                                    , Just $ StudyAccessionID $ INSDCProject "PRJEB39316"
-                                                    , Just $ StudyAccessionID $ INSDCProject "PRJEB39316"
+        map sStudyAccession s            `shouldBe` [ Just $ AccessionIDStudy $ INSDCProject "PRJEB39316"
+                                                    , Just $ AccessionIDStudy $ INSDCProject "PRJEB39316"
+                                                    , Just $ AccessionIDStudy $ INSDCProject "PRJEB39316"
                                                     ]
-        map sRunAccession s              `shouldBe` [ RunAccessionID $ INSDCRun "ERR4331996"
-                                                    , RunAccessionID $ INSDCRun "ERR4332592"
-                                                    , RunAccessionID $ INSDCRun "ERR4332593"
+        map sRunAccession s              `shouldBe` [ AccessionIDRun $ INSDCRun "ERR4331996"
+                                                    , AccessionIDRun $ INSDCRun "ERR4332592"
+                                                    , AccessionIDRun $ INSDCRun "ERR4332593"
                                                     ]
         map sSampleAlias s               `shouldBe` [Just "2", Just "1", Just "3"]
         map sSecondarySampleAccession s  `shouldBe` [Just "ERS4811084", Just "ERS4811035", Just "ERS4811085"]
-        map sFirstPublic s               `shouldBe` [ Just $ SSFDay $ fromGregorian 2021 4 12
-                                                    , Just $ SSFDay $ fromGregorian 2021 4 12
-                                                    , Just $ SSFDay $ fromGregorian 2021 4 12
+        map sFirstPublic s               `shouldBe` [ Just $ SimpleDate $ fromGregorian 2021 4 12
+                                                    , Just $ SimpleDate $ fromGregorian 2021 4 12
+                                                    , Just $ SimpleDate $ fromGregorian 2021 4 12
                                                     ]
-        map sLastUpdated s               `shouldBe` [ Just $ SSFDay $ fromGregorian 2020 7 9
-                                                    , Just $ SSFDay $ fromGregorian 2020 7 10
-                                                    , Just $ SSFDay $ fromGregorian 2020 7 10
+        map sLastUpdated s               `shouldBe` [ Just $ SimpleDate $ fromGregorian 2020 7 9
+                                                    , Just $ SimpleDate $ fromGregorian 2020 7 10
+                                                    , Just $ SimpleDate $ fromGregorian 2020 7 10
                                                     ]
         map sInstrumentModel s           `shouldBe` [Just "Illumina HiSeq 2500", Just "Illumina HiSeq 2500", Just "Illumina HiSeq 2500"]
         map sLibraryLayout s             `shouldBe` [Just "SINGLE", Just "SINGLE", Just "SINGLE"]
@@ -94,9 +94,12 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
                                                         ]
                                                     ]
         map sFastqBytes s                `shouldBe` [Just $ JannoList [649563861], Just $ JannoList [194164761], Just $ JannoList [276693447, 3]]
-        map sFastqMD5 s                  `shouldBe` [ Just $ JannoList [SSFMD5 "9bd0fceb5ab46cb894ea33765c122e83"]
-                                                    , Just $ JannoList [SSFMD5 "6d8831f5bb8ba9870cb55f834e98ab4d"]
-                                                    , Just $ JannoList [SSFMD5 "539852f3d7fb574b2a1e4f1c0059f163", SSFMD5 "539852f3d7fb574b2a1e4f1c0059f165"]
+        map sFastqMD5 s                  `shouldBe` [ Just $ JannoList [MD5 "9bd0fceb5ab46cb894ea33765c122e83"]
+                                                    , Just $ JannoList [MD5 "6d8831f5bb8ba9870cb55f834e98ab4d"]
+                                                    , Just $ JannoList [
+                                                          MD5 "539852f3d7fb574b2a1e4f1c0059f163"
+                                                        , MD5 "539852f3d7fb574b2a1e4f1c0059f165"
+                                                        ]
                                                     ]
         map sReadCount s                 `shouldBe` [Just 23386349, Just 6471092, Just 9442394]
         map sSubmittedFTP s              `shouldBe` [ Just $ JannoList [JURI "ftp.sra.ebi.ac.uk/vol1/run/ERR433/ERR4331996/Ash033_all.merged.hs37d5.fa.cons.90perc.bam"]

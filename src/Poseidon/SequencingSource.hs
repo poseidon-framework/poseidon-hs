@@ -120,120 +120,120 @@ instance ToJSON SeqSourceRows where
 instance FromJSON SeqSourceRows
 
 -- A data type to represent a run accession ID
-newtype RunAccessionID = RunAccessionID {getRunAccession :: AccessionID}
+newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}
     deriving (Eq, Generic)
 
-makeRunAccessionID :: MonadFail m => String -> m RunAccessionID
-makeRunAccessionID x = do
+makeAccessionIDRun :: MonadFail m => String -> m AccessionIDRun
+makeAccessionIDRun x = do
     accsID <- makeAccessionID x
     case accsID of
-        (INSDCRun y) -> pure $ RunAccessionID (INSDCRun y)
+        (INSDCRun y) -> pure $ AccessionIDRun (INSDCRun y)
         _            -> fail $ "Accession " ++ show x ++ " not a correct run accession"
 
-instance Show RunAccessionID where
-    show (RunAccessionID x) = show x
+instance Show AccessionIDRun where
+    show (AccessionIDRun x) = show x
 
-instance Csv.ToField RunAccessionID where
+instance Csv.ToField AccessionIDRun where
     toField x = Csv.toField $ show x
-instance Csv.FromField RunAccessionID where
-    parseField x = Csv.parseField x >>= makeRunAccessionID
-instance ToJSON RunAccessionID where
+instance Csv.FromField AccessionIDRun where
+    parseField x = Csv.parseField x >>= makeAccessionIDRun
+instance ToJSON AccessionIDRun where
     toEncoding x = text $ T.pack $ show x
-instance FromJSON RunAccessionID where
-    parseJSON = withText "RunAccessionID" (makeRunAccessionID . T.unpack)
+instance FromJSON AccessionIDRun where
+    parseJSON = withText "AccessionIDRun" (makeAccessionIDRun . T.unpack)
 
 -- A data type to represent a sample accession ID
-newtype SampleAccessionID = SampleAccessionID {getSampleAccession :: AccessionID}
+newtype AccessionIDSample = AccessionIDSample {getSampleAccession :: AccessionID}
     deriving (Eq, Generic)
 
-makeSampleAccessionID :: MonadFail m => String -> m SampleAccessionID
-makeSampleAccessionID x = do
+makeAccessionIDSample :: MonadFail m => String -> m AccessionIDSample
+makeAccessionIDSample x = do
     accsID <- makeAccessionID x
     case accsID of
-        (INSDCBioSample y) -> pure $ SampleAccessionID (INSDCBioSample y)
-        (INSDCSample y)    -> pure $ SampleAccessionID (INSDCSample y)
+        (INSDCBioSample y) -> pure $ AccessionIDSample (INSDCBioSample y)
+        (INSDCSample y)    -> pure $ AccessionIDSample (INSDCSample y)
         _                  -> fail $ "Accession " ++ show x ++ " not a correct biosample/sample accession"
 
-instance Show SampleAccessionID where
-    show (SampleAccessionID x) = show x
+instance Show AccessionIDSample where
+    show (AccessionIDSample x) = show x
 
-instance Csv.ToField SampleAccessionID where
+instance Csv.ToField AccessionIDSample where
     toField x = Csv.toField $ show x
-instance Csv.FromField SampleAccessionID where
-    parseField x = Csv.parseField x >>= makeSampleAccessionID
-instance ToJSON SampleAccessionID where
+instance Csv.FromField AccessionIDSample where
+    parseField x = Csv.parseField x >>= makeAccessionIDSample
+instance ToJSON AccessionIDSample where
     toEncoding x = text $ T.pack $ show x
-instance FromJSON SampleAccessionID where
-    parseJSON = withText "SampleAccessionID" (makeSampleAccessionID . T.unpack)
+instance FromJSON AccessionIDSample where
+    parseJSON = withText "AccessionIDSample" (makeAccessionIDSample . T.unpack)
 
 -- A data type to represent a study accession ID
-newtype StudyAccessionID = StudyAccessionID {getStudyAccession :: AccessionID}
+newtype AccessionIDStudy = AccessionIDStudy {getStudyAccession :: AccessionID}
     deriving (Eq, Generic)
 
-instance Show StudyAccessionID where
-    show (StudyAccessionID x) = show x
+instance Show AccessionIDStudy where
+    show (AccessionIDStudy x) = show x
 
-makeStudyAccessionID :: MonadFail m => String -> m StudyAccessionID
-makeStudyAccessionID x = do
+makeAccessionIDStudy :: MonadFail m => String -> m AccessionIDStudy
+makeAccessionIDStudy x = do
     accsID <- makeAccessionID x
     case accsID of
-        (INSDCProject y) -> pure $ StudyAccessionID (INSDCProject y)
-        (INSDCStudy y)   -> pure $ StudyAccessionID (INSDCStudy y)
+        (INSDCProject y) -> pure $ AccessionIDStudy (INSDCProject y)
+        (INSDCStudy y)   -> pure $ AccessionIDStudy (INSDCStudy y)
         _                -> fail $ "Accession " ++ show x ++ " not a correct project/study accession"
 
-instance Csv.ToField StudyAccessionID where
+instance Csv.ToField AccessionIDStudy where
     toField x = Csv.toField $ show x
-instance Csv.FromField StudyAccessionID where
-    parseField x = Csv.parseField x >>= makeStudyAccessionID
-instance ToJSON StudyAccessionID where
+instance Csv.FromField AccessionIDStudy where
+    parseField x = Csv.parseField x >>= makeAccessionIDStudy
+instance ToJSON AccessionIDStudy where
     toEncoding x = text $ T.pack $ show x
-instance FromJSON StudyAccessionID where
-    parseJSON = withText "StudyAccessionID" (makeStudyAccessionID . T.unpack)
+instance FromJSON AccessionIDStudy where
+    parseJSON = withText "AccessionIDStudy" (makeAccessionIDStudy . T.unpack)
 
 -- | A datatype for calendar dates
-newtype SSFDay = SSFDay Day
+newtype SimpleDate = SimpleDate Day
     deriving (Eq, Ord, Generic)
 
-instance Show SSFDay where
-    show (SSFDay x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+instance Show SimpleDate where
+    show (SimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
 
-makeSSFDay :: MonadFail m => String -> m SSFDay
-makeSSFDay x = do
+makeSimpleDate :: MonadFail m => String -> m SimpleDate
+makeSimpleDate x = do
     mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
-    pure (SSFDay mday)
+    pure (SimpleDate mday)
 
-instance Csv.ToField SSFDay where
-    toField (SSFDay x) = Csv.toField $ show x
-instance Csv.FromField SSFDay where
-    parseField x = Csv.parseField x >>= makeSSFDay
-instance ToJSON SSFDay where
+instance Csv.ToField SimpleDate where
+    toField (SimpleDate x) = Csv.toField $ show x
+instance Csv.FromField SimpleDate where
+    parseField x = Csv.parseField x >>= makeSimpleDate
+instance ToJSON SimpleDate where
     toEncoding x = text $ T.pack $ show x
-instance FromJSON SSFDay where
-    parseJSON = withText "SSFDay" (makeSSFDay . T.unpack)
+instance FromJSON SimpleDate where
+    parseJSON = withText "SimpleDate" (makeSimpleDate . T.unpack)
 
 -- | A datatype to represent MD5 hashes
-newtype SSFMD5 = SSFMD5 String
+newtype MD5 = MD5 String
     deriving (Eq, Ord, Generic)
 
-instance Show SSFMD5 where
-    show (SSFMD5 x) = x
+instance Show MD5 where
+    show (MD5 x) = x
 
-makeSSFMD5 :: MonadFail m => String -> m SSFMD5
-makeSSFMD5 x
-    | isMD5Hash x = pure $ SSFMD5 x
+makeMD5 :: MonadFail m => String -> m MD5
+makeMD5 x
+    | isMD5Hash x = pure $ MD5 x
     | otherwise   = fail $ "MD5 hash " ++ show x ++ " not well structured"
 
 isMD5Hash :: String -> Bool
 isMD5Hash x = length x == 32 && all isHexDigit x
 
-instance Csv.ToField SSFMD5 where
+instance Csv.ToField MD5 where
     toField x = Csv.toField $ show x
-instance Csv.FromField SSFMD5 where
-    parseField x = Csv.parseField x >>= makeSSFMD5
-instance ToJSON SSFMD5 where
+instance Csv.FromField MD5 where
+    parseField x = Csv.parseField x >>= makeMD5
+instance ToJSON MD5 where
     toEncoding x = text $ T.pack $ show x
-instance FromJSON SSFMD5 where
-    parseJSON = withText "SSFMD5" (makeSSFMD5 . T.unpack)
+instance FromJSON MD5 where
+    parseJSON = withText "MD5" (makeMD5 . T.unpack)
 
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
@@ -242,13 +242,13 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID               :: Maybe JannoStringList
     , sUDG                      :: Maybe SSFUDG
     , sLibraryBuilt             :: Maybe SSFLibraryBuilt
-    , sRunAccession             :: RunAccessionID
-    , sSampleAccession          :: Maybe SampleAccessionID
+    , sRunAccession             :: AccessionIDRun
+    , sSampleAccession          :: Maybe AccessionIDSample
     , sSecondarySampleAccession :: Maybe String
-    , sStudyAccession           :: Maybe StudyAccessionID
+    , sStudyAccession           :: Maybe AccessionIDStudy
     , sSampleAlias              :: Maybe String
-    , sFirstPublic              :: Maybe SSFDay
-    , sLastUpdated              :: Maybe SSFDay
+    , sFirstPublic              :: Maybe SimpleDate
+    , sLastUpdated              :: Maybe SimpleDate
     , sInstrumentModel          :: Maybe String
     , sLibraryLayout            :: Maybe String
     , sLibrarySource            :: Maybe String
@@ -258,7 +258,7 @@ data SeqSourceRow = SeqSourceRow
     , sFastqFTP                 :: Maybe (JannoList JURI)
     , sFastqASPERA              :: Maybe (JannoList JURI)
     , sFastqBytes               :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                 :: Maybe (JannoList SSFMD5)
+    , sFastqMD5                 :: Maybe (JannoList MD5)
     , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
     , sSubmittedFTP             :: Maybe (JannoList JURI)
     , sAdditionalColumns        :: CsvNamedRecord
