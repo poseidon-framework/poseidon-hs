@@ -34,6 +34,7 @@ import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
 import Data.Time (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
+import Data.Char (isHexDigit)
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -177,7 +178,7 @@ instance ToJSON StudyAccessionID where
 instance FromJSON StudyAccessionID where
     parseJSON = withText "StudyAccessionID" (makeStudyAccessionID . T.unpack)
 
--- | A datatype for Latitudes
+-- | A datatype for calendar dates
 newtype SSFDay = SSFDay Day
     deriving (Eq, Ord, Generic)
 
@@ -197,6 +198,30 @@ instance ToJSON SSFDay where
     toEncoding x = text $ T.pack $ show x
 instance FromJSON SSFDay where
     parseJSON = withText "SSFDay" (makeSSFDay . T.unpack)
+
+-- | A datatype to represent MD5 hashes
+newtype SSFMD5 = SSFMD5 String
+    deriving (Eq, Ord, Generic)
+
+instance Show SSFMD5 where
+    show (SSFMD5 x) = x
+
+makeSSFMD5 :: MonadFail m => String -> m SSFMD5
+makeSSFMD5 x
+    | isMD5Hash x = pure $ SSFMD5 x
+    | otherwise   = fail $ "MD5 hash " ++ show x ++ " not well structured"
+
+isMD5Hash :: String -> Bool
+isMD5Hash x = length x == 32 && all isHexDigit x
+
+instance Csv.ToField SSFMD5 where
+    toField x = Csv.toField $ show x
+instance Csv.FromField SSFMD5 where
+    parseField x = Csv.parseField x >>= makeSSFMD5
+instance ToJSON SSFMD5 where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON SSFMD5 where
+    parseJSON = withText "SSFMD5" (makeSSFMD5 . T.unpack)
 
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
@@ -221,8 +246,8 @@ data SeqSourceRow = SeqSourceRow
     , sFastqFTP                  :: Maybe (JannoList JURI)
     , sFastqASPERA               :: Maybe (JannoList JURI)
     , sFastqBytes                :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                  :: Maybe (JannoList String) -- could be a dedicated md5 type
-    , sReadCount                 :: Maybe Integer -- integer, not int, because it can be a very large number
+    , sFastqMD5                  :: Maybe (JannoList SSFMD5)
+    , sReadCount                 :: Maybe Integer             -- integer, not int, because it can be a very large number
     , sSubmittedFTP              :: Maybe (JannoList JURI)
     , sAdditionalColumns         :: CsvNamedRecord
     }
