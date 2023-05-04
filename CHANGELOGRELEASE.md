@@ -1,6 +1,6 @@
-### V 1.1.12.0
+### V 1.2.0.0
 
-This release implements the small changes for Poseidon v2.7.1.
+...
 
 ### V 1.1.11.4
 
