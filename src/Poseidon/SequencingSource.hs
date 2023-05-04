@@ -10,9 +10,11 @@ import           Poseidon.Janno             (AccessionID (..),
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
-                                             removeUselessSuffix, makeAccessionID)
+                                             makeAccessionID,
+                                             removeUselessSuffix)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
-                                             logDebug, renderPoseidonException, logError)
+                                             logDebug, logError,
+                                             renderPoseidonException)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (when)
@@ -24,17 +26,18 @@ import           Data.Aeson.Encoding        (text)
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
+import           Data.Char                  (isHexDigit)
 import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
 import qualified Data.Text                  as T
+import           Data.Time                  (Day)
+import           Data.Time.Format           (defaultTimeLocale, formatTime,
+                                             parseTimeM)
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
-import Data.Time (Day)
-import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
-import Data.Char (isHexDigit)
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -236,29 +239,29 @@ instance FromJSON SSFMD5 where
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
 data SeqSourceRow = SeqSourceRow
-    { sPoseidonID                :: Maybe JannoStringList
-    , sUDG                       :: Maybe SSFUDG
-    , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sRunAccession              :: RunAccessionID
-    , sSampleAccession           :: Maybe SampleAccessionID
-    , sSecondarySampleAccession  :: Maybe String
-    , sStudyAccession            :: Maybe StudyAccessionID
-    , sSampleAlias               :: Maybe String
-    , sFirstPublic               :: Maybe SSFDay
-    , sLastUpdated               :: Maybe SSFDay
-    , sInstrumentModel           :: Maybe String
-    , sLibraryLayout             :: Maybe String
-    , sLibrarySource             :: Maybe String
-    , sInstrumentPlatform        :: Maybe String
-    , sLibraryName               :: Maybe String
-    , sLibraryStrategy           :: Maybe String
-    , sFastqFTP                  :: Maybe (JannoList JURI)
-    , sFastqASPERA               :: Maybe (JannoList JURI)
-    , sFastqBytes                :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                  :: Maybe (JannoList SSFMD5)
-    , sReadCount                 :: Maybe Integer             -- integer, not int, because it can be a very large number
-    , sSubmittedFTP              :: Maybe (JannoList JURI)
-    , sAdditionalColumns         :: CsvNamedRecord
+    { sPoseidonID               :: Maybe JannoStringList
+    , sUDG                      :: Maybe SSFUDG
+    , sLibraryBuilt             :: Maybe SSFLibraryBuilt
+    , sRunAccession             :: RunAccessionID
+    , sSampleAccession          :: Maybe SampleAccessionID
+    , sSecondarySampleAccession :: Maybe String
+    , sStudyAccession           :: Maybe StudyAccessionID
+    , sSampleAlias              :: Maybe String
+    , sFirstPublic              :: Maybe SSFDay
+    , sLastUpdated              :: Maybe SSFDay
+    , sInstrumentModel          :: Maybe String
+    , sLibraryLayout            :: Maybe String
+    , sLibrarySource            :: Maybe String
+    , sInstrumentPlatform       :: Maybe String
+    , sLibraryName              :: Maybe String
+    , sLibraryStrategy          :: Maybe String
+    , sFastqFTP                 :: Maybe (JannoList JURI)
+    , sFastqASPERA              :: Maybe (JannoList JURI)
+    , sFastqBytes               :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
+    , sFastqMD5                 :: Maybe (JannoList SSFMD5)
+    , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
+    , sSubmittedFTP             :: Maybe (JannoList JURI)
+    , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
 

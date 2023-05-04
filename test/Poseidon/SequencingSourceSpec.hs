@@ -6,15 +6,18 @@ import           Poseidon.Janno            (AccessionID (..),
                                             CsvNamedRecord (..), JURI (..),
                                             JannoList (..))
 import           Poseidon.JannoSpec        (checkEnDe)
-import           Poseidon.SequencingSource (SSFLibraryBuilt (..), SSFUDG (..),
+import           Poseidon.SequencingSource (RunAccessionID (..), SSFDay (..),
+                                            SSFLibraryBuilt (..), SSFMD5 (..),
+                                            SSFUDG (..), SampleAccessionID (..),
                                             SeqSourceRow (..),
                                             SeqSourceRows (..),
-                                            readSeqSourceFile, StudyAccessionID (..), SampleAccessionID (..), RunAccessionID (..), SSFDay (..), SSFMD5 (..))
+                                            StudyAccessionID (..),
+                                            readSeqSourceFile)
 import           Poseidon.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
+import           Data.Time                 (fromGregorian)
 import           Test.Hspec                (Spec, describe, it, shouldBe)
-import Data.Time (fromGregorian)
 
 spec :: Spec
 spec = do
