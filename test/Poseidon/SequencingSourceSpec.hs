@@ -44,12 +44,12 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
     it "should read normal .ssf files correctly" $ do
         (SeqSourceRows s) <- testLog $ readSeqSourceFile normalFullSeqSourcePath
         length s `shouldBe` 3
-        map sPoseidonID s                `shouldBe` [JannoList ["Ash033.SG"], JannoList ["Ash002.SG"], JannoList ["Ash040.SG"]]
+        map sPoseidonID s                `shouldBe` [Just $ JannoList ["Ash033.SG"], Just $ JannoList ["Ash002.SG"], Just $ JannoList ["Ash040.SG"]]
         map sUDG s                       `shouldBe` [Just SSFMinus, Just SSFHalf, Just SSFPlus]
         map sLibraryBuilt s              `shouldBe` [Just SSFSS, Just SSFDS, Just SSFDS]
-        map sSampleAccession s           `shouldBe` [INSDCBioSample "SAMEA7050454", INSDCBioSample "SAMEA7050404", INSDCBioSample "SAMEA7050455"]
+        map sSampleAccession s           `shouldBe` [Just $ INSDCBioSample "SAMEA7050454", Just $ INSDCBioSample "SAMEA7050404", Just $ INSDCBioSample "SAMEA7050455"]
         map sStudyAccession s            `shouldBe` [Just $ INSDCProject "PRJEB39316", Just $ INSDCProject "PRJEB39316", Just $ INSDCProject "PRJEB39316"]
-        map sRunAccession s              `shouldBe` [Just $ INSDCRun "ERR4331996", Just $ INSDCRun "ERR4332592", Just $ INSDCRun "ERR4332593"]
+        map sRunAccession s              `shouldBe` [INSDCRun "ERR4331996", INSDCRun "ERR4332592", INSDCRun "ERR4332593"]
         map sSampleAlias s               `shouldBe` [Just "2", Just "1", Just "3"]
         map sSecondarySampleAccession s  `shouldBe` [Just "ERS4811084", Just "ERS4811035", Just "ERS4811085"]
         map sFirstPublic s               `shouldBe` [Just "2021-04-12", Just "2021-04-12", Just "2021-04-12"]

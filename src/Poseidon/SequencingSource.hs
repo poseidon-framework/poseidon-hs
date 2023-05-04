@@ -120,11 +120,11 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID                :: Maybe JannoStringList
     , sUDG                       :: Maybe SSFUDG
     , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sSampleAccession           :: Maybe AccessionID -- could be a specific AccessionID
-    , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
     , sRunAccession              :: AccessionID -- could be a specific AccessionID
-    , sSampleAlias               :: Maybe String
+    , sSampleAccession           :: Maybe AccessionID -- could be a specific AccessionID
     , sSecondarySampleAccession  :: Maybe String
+    , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
+    , sSampleAlias               :: Maybe String
     , sFirstPublic               :: Maybe String -- could be a date type
     , sLastUpdated               :: Maybe String -- could be a date type
     , sInstrumentModel           :: Maybe String
@@ -149,11 +149,11 @@ seqSourceHeader = [
       "poseidon_IDs"
     , "udg"
     , "library_built"
-    , "sample_accession"
-    , "study_accession"
     , "run_accession"
-    , "sample_alias"
+    , "sample_accession"
     , "secondary_sample_accession"
+    , "study_accession"
+    , "sample_alias"
     , "first_public"
     , "last_updated"
     , "instrument_model"
@@ -190,11 +190,11 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <$> filterLookupOptional m "poseidon_IDs"
         <*> filterLookupOptional m "udg"
         <*> filterLookupOptional m "library_built"
-        <*> filterLookupOptional m "sample_accession"
-        <*> filterLookupOptional m "study_accession"
         <*> filterLookup         m "run_accession"
-        <*> filterLookupOptional m "sample_alias"
+        <*> filterLookupOptional m "sample_accession"
         <*> filterLookupOptional m "secondary_sample_accession"
+        <*> filterLookupOptional m "study_accession"
+        <*> filterLookupOptional m "sample_alias"
         <*> filterLookupOptional m "first_public"
         <*> filterLookupOptional m "last_updated"
         <*> filterLookupOptional m "instrument_model"
@@ -218,11 +218,11 @@ instance Csv.ToNamedRecord SeqSourceRow where
           "poseidon_IDs"               Csv..= sPoseidonID s
         , "udg"                        Csv..= sUDG s
         , "library_built"              Csv..= sLibraryBuilt s
-        , "sample_accession"           Csv..= sSampleAccession s
-        , "study_accession"            Csv..= sStudyAccession s
         , "run_accession"              Csv..= sRunAccession s
-        , "sample_alias"               Csv..= sSampleAlias s
+        , "sample_accession"           Csv..= sSampleAccession s
         , "secondary_sample_accession" Csv..= sSecondarySampleAccession s
+        , "study_accession"            Csv..= sStudyAccession s
+        , "sample_alias"               Csv..= sSampleAlias s
         , "first_public"               Csv..= sFirstPublic s
         , "last_updated"               Csv..= sLastUpdated s
         , "instrument_model"           Csv..= sInstrumentModel s
