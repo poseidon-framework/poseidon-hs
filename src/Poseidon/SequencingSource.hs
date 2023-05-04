@@ -10,7 +10,7 @@ import           Poseidon.Janno             (AccessionID (..),
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
-                                             removeUselessSuffix)
+                                             removeUselessSuffix, makeAccessionID)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logDebug, renderPoseidonException)
 
@@ -113,6 +113,26 @@ instance ToJSON SeqSourceRows where
     toEncoding = genericToEncoding defaultOptions
 instance FromJSON SeqSourceRows
 
+-- A data type to represent a run accession ID
+newtype RunAccessionID = RunAccessionID {getRunAccession :: AccessionID}
+    deriving (Show, Eq, Generic)
+
+makeRunAccessionID :: MonadFail m => String -> m RunAccessionID
+makeRunAccessionID x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCRun y) -> pure $ RunAccessionID (INSDCRun y)
+        _            -> fail $ "Accession " ++ show x ++ " not a correct run accession"
+
+instance Csv.ToField RunAccessionID where
+    toField x = Csv.toField $ show x
+instance Csv.FromField RunAccessionID where
+    parseField x = Csv.parseField x >>= makeRunAccessionID
+instance ToJSON RunAccessionID where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON RunAccessionID where
+    parseJSON = withText "RunAccessionID" (makeRunAccessionID . T.unpack)
+
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
@@ -120,10 +140,10 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID                :: Maybe JannoStringList
     , sUDG                       :: Maybe SSFUDG
     , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sRunAccession              :: AccessionID -- could be a specific AccessionID
-    , sSampleAccession           :: Maybe AccessionID -- could be a specific AccessionID
+    , sRunAccession              :: RunAccessionID -- could be a specific AccessionID
+    , sSampleAccession           :: Maybe AccessionID--SampleAccessionID -- could be a specific AccessionID
     , sSecondarySampleAccession  :: Maybe String
-    , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
+    , sStudyAccession            :: Maybe AccessionID--StudyAccessionID -- could be a specific AccessionID
     , sSampleAlias               :: Maybe String
     , sFirstPublic               :: Maybe String -- could be a date type
     , sLastUpdated               :: Maybe String -- could be a date type
