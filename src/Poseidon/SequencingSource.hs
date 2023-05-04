@@ -118,7 +118,7 @@ instance FromJSON SeqSourceRows
 
 -- A data type to represent a run accession ID
 newtype RunAccessionID = RunAccessionID {getRunAccession :: AccessionID}
-    deriving (Show, Eq, Generic)
+    deriving (Eq, Generic)
 
 makeRunAccessionID :: MonadFail m => String -> m RunAccessionID
 makeRunAccessionID x = do
@@ -126,6 +126,9 @@ makeRunAccessionID x = do
     case accsID of
         (INSDCRun y) -> pure $ RunAccessionID (INSDCRun y)
         _            -> fail $ "Accession " ++ show x ++ " not a correct run accession"
+
+instance Show RunAccessionID where
+    show (RunAccessionID x) = show x
 
 instance Csv.ToField RunAccessionID where
     toField x = Csv.toField $ show x
@@ -138,7 +141,7 @@ instance FromJSON RunAccessionID where
 
 -- A data type to represent a sample accession ID
 newtype SampleAccessionID = SampleAccessionID {getSampleAccession :: AccessionID}
-    deriving (Show, Eq, Generic)
+    deriving (Eq, Generic)
 
 makeSampleAccessionID :: MonadFail m => String -> m SampleAccessionID
 makeSampleAccessionID x = do
@@ -147,6 +150,9 @@ makeSampleAccessionID x = do
         (INSDCBioSample y) -> pure $ SampleAccessionID (INSDCBioSample y)
         (INSDCSample y)    -> pure $ SampleAccessionID (INSDCSample y)
         _                  -> fail $ "Accession " ++ show x ++ " not a correct biosample/sample accession"
+
+instance Show SampleAccessionID where
+    show (SampleAccessionID x) = show x
 
 instance Csv.ToField SampleAccessionID where
     toField x = Csv.toField $ show x
@@ -159,7 +165,10 @@ instance FromJSON SampleAccessionID where
 
 -- A data type to represent a study accession ID
 newtype StudyAccessionID = StudyAccessionID {getStudyAccession :: AccessionID}
-    deriving (Show, Eq, Generic)
+    deriving (Eq, Generic)
+
+instance Show StudyAccessionID where
+    show (StudyAccessionID x) = show x
 
 makeStudyAccessionID :: MonadFail m => String -> m StudyAccessionID
 makeStudyAccessionID x = do
