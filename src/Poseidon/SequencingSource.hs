@@ -133,6 +133,48 @@ instance ToJSON RunAccessionID where
 instance FromJSON RunAccessionID where
     parseJSON = withText "RunAccessionID" (makeRunAccessionID . T.unpack)
 
+-- A data type to represent a sample accession ID
+newtype SampleAccessionID = SampleAccessionID {getSampleAccession :: AccessionID}
+    deriving (Show, Eq, Generic)
+
+makeSampleAccessionID :: MonadFail m => String -> m SampleAccessionID
+makeSampleAccessionID x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCBioSample y) -> pure $ SampleAccessionID (INSDCBioSample y)
+        (INSDCSample y)    -> pure $ SampleAccessionID (INSDCSample y)
+        _                  -> fail $ "Accession " ++ show x ++ " not a correct biosample/sample accession"
+
+instance Csv.ToField SampleAccessionID where
+    toField x = Csv.toField $ show x
+instance Csv.FromField SampleAccessionID where
+    parseField x = Csv.parseField x >>= makeSampleAccessionID
+instance ToJSON SampleAccessionID where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON SampleAccessionID where
+    parseJSON = withText "SampleAccessionID" (makeSampleAccessionID . T.unpack)
+
+-- A data type to represent a study accession ID
+newtype StudyAccessionID = StudyAccessionID {getStudyAccession :: AccessionID}
+    deriving (Show, Eq, Generic)
+
+makeStudyAccessionID :: MonadFail m => String -> m StudyAccessionID
+makeStudyAccessionID x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCProject y) -> pure $ StudyAccessionID (INSDCProject y)
+        (INSDCStudy y)   -> pure $ StudyAccessionID (INSDCStudy y)
+        _                -> fail $ "Accession " ++ show x ++ " not a correct project/study accession"
+
+instance Csv.ToField StudyAccessionID where
+    toField x = Csv.toField $ show x
+instance Csv.FromField StudyAccessionID where
+    parseField x = Csv.parseField x >>= makeStudyAccessionID
+instance ToJSON StudyAccessionID where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON StudyAccessionID where
+    parseJSON = withText "StudyAccessionID" (makeStudyAccessionID . T.unpack)
+
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
@@ -140,10 +182,10 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID                :: Maybe JannoStringList
     , sUDG                       :: Maybe SSFUDG
     , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sRunAccession              :: RunAccessionID -- could be a specific AccessionID
-    , sSampleAccession           :: Maybe AccessionID--SampleAccessionID -- could be a specific AccessionID
+    , sRunAccession              :: RunAccessionID
+    , sSampleAccession           :: Maybe SampleAccessionID
     , sSecondarySampleAccession  :: Maybe String
-    , sStudyAccession            :: Maybe AccessionID--StudyAccessionID -- could be a specific AccessionID
+    , sStudyAccession            :: Maybe StudyAccessionID
     , sSampleAlias               :: Maybe String
     , sFirstPublic               :: Maybe String -- could be a date type
     , sLastUpdated               :: Maybe String -- could be a date type
