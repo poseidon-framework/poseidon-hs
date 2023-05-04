@@ -32,6 +32,8 @@ import qualified Data.Text                  as T
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
+import Data.Time (Day)
+import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -175,6 +177,27 @@ instance ToJSON StudyAccessionID where
 instance FromJSON StudyAccessionID where
     parseJSON = withText "StudyAccessionID" (makeStudyAccessionID . T.unpack)
 
+-- | A datatype for Latitudes
+newtype SSFDay = SSFDay Day
+    deriving (Eq, Ord, Generic)
+
+instance Show SSFDay where
+    show (SSFDay x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+
+makeSSFDay :: MonadFail m => String -> m SSFDay
+makeSSFDay x = do
+    mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
+    pure (SSFDay mday)
+
+instance Csv.ToField SSFDay where
+    toField (SSFDay x) = Csv.toField $ show x
+instance Csv.FromField SSFDay where
+    parseField x = Csv.parseField x >>= makeSSFDay
+instance ToJSON SSFDay where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON SSFDay where
+    parseJSON = withText "SSFDay" (makeSSFDay . T.unpack)
+
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
@@ -187,8 +210,8 @@ data SeqSourceRow = SeqSourceRow
     , sSecondarySampleAccession  :: Maybe String
     , sStudyAccession            :: Maybe StudyAccessionID
     , sSampleAlias               :: Maybe String
-    , sFirstPublic               :: Maybe String -- could be a date type
-    , sLastUpdated               :: Maybe String -- could be a date type
+    , sFirstPublic               :: Maybe SSFDay
+    , sLastUpdated               :: Maybe SSFDay
     , sInstrumentModel           :: Maybe String
     , sLibraryLayout             :: Maybe String
     , sLibrarySource             :: Maybe String
