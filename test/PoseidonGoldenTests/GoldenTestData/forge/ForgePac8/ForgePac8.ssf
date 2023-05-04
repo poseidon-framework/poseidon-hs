@@ -1,3 +1,3 @@
-poseidon_IDs	udg	library_built	sample_accession	study_accession	run_accession	sample_alias	secondary_sample_accession	first_public	last_updated	instrument_model	library_layout	library_source	instrument_platform	library_name	library_strategy	fastq_ftp	fastq_aspera	fastq_bytes	fastq_md5	read_count	submitted_ftp	other_info_1	other_info_2
-XXX001;XXX002	n/a	n/a	SAMEA7050478	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	A	B
-XXX001	n/a	n/a	SAMEA7050481	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	G	H
+poseidon_IDs	udg	library_built	run_accession	sample_accession	secondary_sample_accession	study_accession	sample_alias	first_public	last_updated	instrument_model	library_layout	library_source	instrument_platform	library_name	library_strategy	fastq_ftp	fastq_aspera	fastq_bytes	fastq_md5	read_count	submitted_ftp	other_info_1	other_info_2
+XXX001;XXX002	n/a	n/a	ERR3518150	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	A	B
+XXX001	n/a	n/a	ERR3518153	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	G	H
