@@ -47,7 +47,7 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
         map sPoseidonID s                `shouldBe` [JannoList ["Ash033.SG"], JannoList ["Ash002.SG"], JannoList ["Ash040.SG"]]
         map sUDG s                       `shouldBe` [Just SSFMinus, Just SSFHalf, Just SSFPlus]
         map sLibraryBuilt s              `shouldBe` [Just SSFSS, Just SSFDS, Just SSFDS]
-        map sGeneticSourceAccessionIDs s `shouldBe` [INSDCBioSample "SAMEA7050454", INSDCBioSample "SAMEA7050404", INSDCBioSample "SAMEA7050455"]
+        map sSampleAccession s           `shouldBe` [INSDCBioSample "SAMEA7050454", INSDCBioSample "SAMEA7050404", INSDCBioSample "SAMEA7050455"]
         map sStudyAccession s            `shouldBe` [Just $ INSDCProject "PRJEB39316", Just $ INSDCProject "PRJEB39316", Just $ INSDCProject "PRJEB39316"]
         map sRunAccession s              `shouldBe` [Just $ INSDCRun "ERR4331996", Just $ INSDCRun "ERR4332592", Just $ INSDCRun "ERR4332593"]
         map sSampleAlias s               `shouldBe` [Just "2", Just "1", Just "3"]

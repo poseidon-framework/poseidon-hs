@@ -27,7 +27,7 @@ import qualified Data.ByteString.Lazy.Char8 as Bch
 import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (foldl', sort)
+import           Data.List                  (foldl', nub, sort)
 import qualified Data.Text                  as T
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
@@ -120,7 +120,7 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID                :: Maybe JannoStringList
     , sUDG                       :: Maybe SSFUDG
     , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sGeneticSourceAccessionIDs :: Maybe AccessionID -- could be a specific AccessionID
+    , sSampleAccession           :: Maybe AccessionID -- could be a specific AccessionID
     , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
     , sRunAccession              :: AccessionID -- could be a specific AccessionID
     , sSampleAlias               :: Maybe String
@@ -190,7 +190,7 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <$> filterLookupOptional m "poseidon_IDs"
         <*> filterLookupOptional m "udg"
         <*> filterLookupOptional m "library_built"
-        <*> filterLookup m         "sample_accession"
+        <*> filterLookupOptional m "sample_accession"
         <*> filterLookupOptional m "study_accession"
         <*> filterLookup         m "run_accession"
         <*> filterLookupOptional m "sample_alias"
@@ -218,7 +218,7 @@ instance Csv.ToNamedRecord SeqSourceRow where
           "poseidon_IDs"               Csv..= sPoseidonID s
         , "udg"                        Csv..= sUDG s
         , "library_built"              Csv..= sLibraryBuilt s
-        , "sample_accession"           Csv..= sGeneticSourceAccessionIDs s
+        , "sample_accession"           Csv..= sSampleAccession s
         , "study_accession"            Csv..= sStudyAccession s
         , "run_accession"              Csv..= sRunAccession s
         , "sample_alias"               Csv..= sSampleAlias s
@@ -276,7 +276,7 @@ readSeqSourceFile seqSourcePath = do
         mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
         liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines. See more details with --logMode VerboseLog"
     else do
-        let consistentSeqSource = Right $ SeqSourceRows $ rights seqSourceRepresentation --checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
+        let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
         case consistentSeqSource of
             Left e  -> do liftIO $ throwIO (e :: PoseidonException)
             Right x -> do return x
@@ -293,19 +293,17 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                 Right (pS :: SeqSourceRow) -> do return $ Right pS
 
 -- SeqSource consistency checks
+checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
+checkSeqSourceConsistency seqSourcePath xs
+    | not $ checkRunsUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
+        "The values in the run_accession column are not unique"
+    | otherwise = Right xs
 
---checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
---checkSeqSourceConsistency seqSourcePath xs
---    | not $ checkSamplesUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
---        "The values in the sample_accession column are not unique"
---    | otherwise = Right xs
-
---checkSamplesUnique :: SeqSourceRows -> Bool
---checkSamplesUnique (SeqSourceRows rows) = length rows == length (nub $ map sGeneticSourceAccessionIDs rows)
+checkRunsUnique :: SeqSourceRows -> Bool
+checkRunsUnique (SeqSourceRows rows) = length rows == length (nub $ map sRunAccession rows)
 
 checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
 checkSeqSourceRowConsistency _ _ x
-    -- | not $ checkMandatoryNotEmpty x = Left $ PoseidonFileRowException seqSourcePath row
-    --     "The mandatory column Poseidon_ID contains empty values"
+    -- | ... no tests implemented
     | otherwise = Right x
 

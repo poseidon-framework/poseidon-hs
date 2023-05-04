@@ -1,3 +1,7 @@
+### V 1.1.12.0
+
+This release implements the small changes for Poseidon v2.7.1.
+
 ### V 1.1.11.4
 
 This release fixes a core issue in the implementation of Poseidon v2.7.0, where multiple columns of the .ssf file where not defined correctly as list columns. Poseidon v2.7.0 is in itself deprecated, though, and will be replaced as soon as possible with an updated version. This trident release exists thus mainly to provide a working implementation of 2.7.0 for future reference.

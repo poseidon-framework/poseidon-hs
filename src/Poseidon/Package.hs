@@ -33,7 +33,7 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
-                                             readJannoFile, getMaybeJannoList)
+                                             getMaybeJannoList, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
