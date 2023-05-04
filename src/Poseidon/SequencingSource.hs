@@ -12,7 +12,7 @@ import           Poseidon.Janno             (AccessionID (..),
                                              filterLookupOptional, getCsvNR,
                                              removeUselessSuffix, makeAccessionID)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
-                                             logDebug, renderPoseidonException)
+                                             logDebug, renderPoseidonException, logError)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (when)
@@ -293,8 +293,8 @@ readSeqSourceFile seqSourcePath = do
     -- error case management
     if not (null (lefts seqSourceRepresentation))
     then do
-        mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
-        liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines. See more details with --logMode VerboseLog"
+        mapM_ (logError . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
+        liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines."
     else do
         let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
         case consistentSeqSource of

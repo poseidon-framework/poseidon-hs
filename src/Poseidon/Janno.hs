@@ -46,7 +46,7 @@ module Poseidon.Janno (
 
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
-                                                       renderPoseidonException)
+                                                       renderPoseidonException, logError)
 
 
 import           Control.Applicative                  (empty)
@@ -969,8 +969,8 @@ readJannoFile jannoPath = do
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
-        mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
-        liftIO $ throwIO $ PoseidonFileConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
+        mapM_ (logError . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
+        liftIO $ throwIO $ PoseidonFileConsistencyException jannoPath "Broken lines."
     else do
         let consistentJanno = checkJannoConsistency jannoPath $ JannoRows $ rights jannoRepresentation
         case consistentJanno of
