@@ -6,12 +6,12 @@ import           Poseidon.Janno            (AccessionID (..),
                                             CsvNamedRecord (..), JURI (..),
                                             JannoList (..))
 import           Poseidon.JannoSpec        (checkEnDe)
-import           Poseidon.SequencingSource (AccessionIDRun (..), SimpleDate (..),
-                                            SSFLibraryBuilt (..), MD5 (..),
-                                            SSFUDG (..), AccessionIDSample (..),
+import           Poseidon.SequencingSource (AccessionIDRun (..),
+                                            AccessionIDSample (..),
+                                            AccessionIDStudy (..), MD5 (..),
+                                            SSFLibraryBuilt (..), SSFUDG (..),
                                             SeqSourceRow (..),
-                                            SeqSourceRows (..),
-                                            AccessionIDStudy (..),
+                                            SeqSourceRows (..), SimpleDate (..),
                                             readSeqSourceFile)
 import           Poseidon.Utils            (testLog)
 
