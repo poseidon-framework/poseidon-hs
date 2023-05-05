@@ -13,11 +13,11 @@ import           Poseidon.Janno             (AccessionID (..),
                                              makeAccessionID,
                                              removeUselessSuffix)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
-                                             logDebug, logError,
+                                             logDebug, logError, logWarning,
                                              renderPoseidonException)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (when)
+import           Control.Monad              (unless, when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, Options (..), ToJSON,
                                              defaultOptions, genericToEncoding,
@@ -31,6 +31,7 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
+import           Data.Maybe                 (mapMaybe)
 import qualified Data.Text                  as T
 import           Data.Time                  (Day)
 import           Data.Time.Format           (defaultTimeLocale, formatTime,
@@ -242,7 +243,7 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID               :: Maybe JannoStringList
     , sUDG                      :: Maybe SSFUDG
     , sLibraryBuilt             :: Maybe SSFLibraryBuilt
-    , sRunAccession             :: AccessionIDRun
+    , sRunAccession             :: Maybe AccessionIDRun
     , sSampleAccession          :: Maybe AccessionIDSample
     , sSecondarySampleAccession :: Maybe String
     , sStudyAccession           :: Maybe AccessionIDStudy
@@ -401,7 +402,11 @@ readSeqSourceFile seqSourcePath = do
         let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
         case consistentSeqSource of
             Left e  -> do liftIO $ throwIO (e :: PoseidonException)
-            Right x -> do return x
+            Right x -> do
+                -- warnings
+                warnSeqSourceConsistency seqSourcePath x
+                -- finally return the good ones
+                return x
 
 -- | A function to read one row of a seqSourceFile
 readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
@@ -416,16 +421,22 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
 
 -- SeqSource consistency checks
 checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
-checkSeqSourceConsistency seqSourcePath xs
-    | not $ checkRunsUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
-        "The values in the run_accession column are not unique"
+checkSeqSourceConsistency _ xs
+    -- | ... no tests implemented
     | otherwise = Right xs
-
-checkRunsUnique :: SeqSourceRows -> Bool
-checkRunsUnique (SeqSourceRows rows) = length rows == length (nub $ map sRunAccession rows)
 
 checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
 checkSeqSourceRowConsistency _ _ x
     -- | ... no tests implemented
     | otherwise = Right x
 
+warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
+warnSeqSourceConsistency seqSourcePath xs = do
+    unless (checkRunsUnique xs) $
+        logWarning $ "Potential consistency issues in file " ++ seqSourcePath ++ ": " ++
+                     "The values in the run_accession column are not unique"
+
+checkRunsUnique :: SeqSourceRows -> Bool
+checkRunsUnique (SeqSourceRows rows) =
+    let justRunAccessions = mapMaybe sRunAccession rows
+    in justRunAccessions == nub justRunAccessions

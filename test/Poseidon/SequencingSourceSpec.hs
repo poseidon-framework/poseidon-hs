@@ -59,9 +59,9 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
                                                     , Just $ AccessionIDStudy $ INSDCProject "PRJEB39316"
                                                     , Just $ AccessionIDStudy $ INSDCProject "PRJEB39316"
                                                     ]
-        map sRunAccession s              `shouldBe` [ AccessionIDRun $ INSDCRun "ERR4331996"
-                                                    , AccessionIDRun $ INSDCRun "ERR4332592"
-                                                    , AccessionIDRun $ INSDCRun "ERR4332593"
+        map sRunAccession s              `shouldBe` [ Just $ AccessionIDRun $ INSDCRun "ERR4331996"
+                                                    , Just $ AccessionIDRun $ INSDCRun "ERR4332592"
+                                                    , Just $ AccessionIDRun $ INSDCRun "ERR4332593"
                                                     ]
         map sSampleAlias s               `shouldBe` [Just "2", Just "1", Just "3"]
         map sSecondarySampleAccession s  `shouldBe` [Just "ERS4811084", Just "ERS4811035", Just "ERS4811085"]
