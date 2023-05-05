@@ -243,11 +243,11 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID               :: Maybe JannoStringList
     , sUDG                      :: Maybe SSFUDG
     , sLibraryBuilt             :: Maybe SSFLibraryBuilt
-    , sRunAccession             :: Maybe AccessionIDRun
     , sSampleAccession          :: Maybe AccessionIDSample
-    , sSecondarySampleAccession :: Maybe String
     , sStudyAccession           :: Maybe AccessionIDStudy
+    , sRunAccession             :: Maybe AccessionIDRun
     , sSampleAlias              :: Maybe String
+    , sSecondarySampleAccession :: Maybe String
     , sFirstPublic              :: Maybe SimpleDate
     , sLastUpdated              :: Maybe SimpleDate
     , sInstrumentModel          :: Maybe String
@@ -272,11 +272,11 @@ seqSourceHeader = [
       "poseidon_IDs"
     , "udg"
     , "library_built"
-    , "run_accession"
     , "sample_accession"
-    , "secondary_sample_accession"
     , "study_accession"
+    , "run_accession"
     , "sample_alias"
+    , "secondary_sample_accession"
     , "first_public"
     , "last_updated"
     , "instrument_model"
@@ -313,11 +313,11 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <$> filterLookupOptional m "poseidon_IDs"
         <*> filterLookupOptional m "udg"
         <*> filterLookupOptional m "library_built"
-        <*> filterLookup         m "run_accession"
         <*> filterLookupOptional m "sample_accession"
-        <*> filterLookupOptional m "secondary_sample_accession"
         <*> filterLookupOptional m "study_accession"
+        <*> filterLookup         m "run_accession"
         <*> filterLookupOptional m "sample_alias"
+        <*> filterLookupOptional m "secondary_sample_accession"
         <*> filterLookupOptional m "first_public"
         <*> filterLookupOptional m "last_updated"
         <*> filterLookupOptional m "instrument_model"
@@ -341,11 +341,11 @@ instance Csv.ToNamedRecord SeqSourceRow where
           "poseidon_IDs"               Csv..= sPoseidonID s
         , "udg"                        Csv..= sUDG s
         , "library_built"              Csv..= sLibraryBuilt s
-        , "run_accession"              Csv..= sRunAccession s
         , "sample_accession"           Csv..= sSampleAccession s
-        , "secondary_sample_accession" Csv..= sSecondarySampleAccession s
         , "study_accession"            Csv..= sStudyAccession s
+        , "run_accession"              Csv..= sRunAccession s
         , "sample_alias"               Csv..= sSampleAlias s
+        , "secondary_sample_accession" Csv..= sSecondarySampleAccession s
         , "first_public"               Csv..= sFirstPublic s
         , "last_updated"               Csv..= sLastUpdated s
         , "instrument_model"           Csv..= sInstrumentModel s
