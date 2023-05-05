@@ -31,7 +31,7 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
-import           Data.Maybe                 (mapMaybe)
+import           Data.Maybe                 (isJust, mapMaybe)
 import qualified Data.Text                  as T
 import           Data.Time                  (Day)
 import           Data.Time.Format           (defaultTimeLocale, formatTime,
@@ -435,8 +435,15 @@ warnSeqSourceConsistency seqSourcePath xs = do
     unless (checkRunsUnique xs) $
         logWarning $ "Potential consistency issues in file " ++ seqSourcePath ++ ": " ++
                      "The values in the run_accession column are not unique"
+    unless (checkAtLeastOnePoseidonID xs) $
+        logWarning $ "Potential consistency issues in file " ++ seqSourcePath ++ ": " ++
+                     "The poseidon_IDs column is completely empty. Package and .ssf file are not linked"
 
 checkRunsUnique :: SeqSourceRows -> Bool
 checkRunsUnique (SeqSourceRows rows) =
     let justRunAccessions = mapMaybe sRunAccession rows
     in justRunAccessions == nub justRunAccessions
+
+checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
+checkAtLeastOnePoseidonID (SeqSourceRows rows) =
+    any (isJust . sPoseidonID) rows
