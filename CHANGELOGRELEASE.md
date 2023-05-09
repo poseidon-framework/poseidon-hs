@@ -1,6 +1,14 @@
 ### V 1.1.12.0
 
-...
+This release implements the changes necessary for the Poseidon schema v2.7.1. That mostly means that the constraints on several .ssf file columns previously considered mandatory and unique were lifted.
+
+Beyond that a number of type constraints specified already in Poseidon v2.7.0 for the .ssf file were finally implemented in poseidon-hs. A broken file will, thus actually be flagged upon reading if it violates the following requirements:
+
+- .ssf columns that include Accession_IDs have to feature the correct and valid Accession_IDs according to INSDC specification.
+- .ssf columns with dates have to be valid dates of the form `YYYY-MM-DD`.
+- .ssf columns featuring MD5 hashes require entries with exactly 32 hex-digits.
+
+Both for the .janno and the .ssf file we elevated the log level of the common `broken lines` error from debug to error. This makes these errors more prominent and more easy to resolve.
 
 ### V 1.1.11.4
 
