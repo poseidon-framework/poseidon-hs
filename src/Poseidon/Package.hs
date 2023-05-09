@@ -33,7 +33,7 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
-                                             readJannoFile)
+                                             getMaybeJannoList, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
@@ -461,7 +461,7 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
     checkUDGandLibraryBuiltOverlap
     where
         js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
-        ss = map (\r -> (getJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        ss = map (\r -> (getMaybeJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
         checkPoseidonIDOverlap :: PoseidonIO ()
         checkPoseidonIDOverlap = do
             let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
@@ -483,13 +483,13 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
                         Just j -> unless (all (compareU j) allSeqSourceUDGs) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on UDG treatment in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID
+                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceUDGs ++ ")"
                     case jannoLibraryBuilt of
                         Nothing -> return ()
                         Just j -> unless (all (compareL j) allSeqSourceLibraryBuilts) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on library strandedness in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID
+                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceLibraryBuilts ++ ")"
                 compareU :: JannoUDG -> SSFUDG -> Bool
                 compareU Mixed _        = True
                 compareU Minus SSFMinus = True

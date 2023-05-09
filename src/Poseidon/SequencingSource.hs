@@ -10,12 +10,14 @@ import           Poseidon.Janno             (AccessionID (..),
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
+                                             makeAccessionID,
                                              removeUselessSuffix)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
-                                             logDebug, renderPoseidonException)
+                                             logDebug, logError, logWarning,
+                                             renderPoseidonException)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (when)
+import           Control.Monad              (unless, when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (FromJSON, Options (..), ToJSON,
                                              defaultOptions, genericToEncoding,
@@ -24,11 +26,16 @@ import           Data.Aeson.Encoding        (text)
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
+import           Data.Char                  (isHexDigit)
 import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
+import           Data.Maybe                 (isJust, mapMaybe)
 import qualified Data.Text                  as T
+import           Data.Time                  (Day)
+import           Data.Time.Format           (defaultTimeLocale, formatTime,
+                                             parseTimeM)
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
@@ -113,33 +120,149 @@ instance ToJSON SeqSourceRows where
     toEncoding = genericToEncoding defaultOptions
 instance FromJSON SeqSourceRows
 
+-- A data type to represent a run accession ID
+newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}
+    deriving (Eq, Generic)
+
+makeAccessionIDRun :: MonadFail m => String -> m AccessionIDRun
+makeAccessionIDRun x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCRun y) -> pure $ AccessionIDRun (INSDCRun y)
+        _            -> fail $ "Accession " ++ show x ++ " not a correct run accession"
+
+instance Show AccessionIDRun where
+    show (AccessionIDRun x) = show x
+
+instance Csv.ToField AccessionIDRun where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionIDRun where
+    parseField x = Csv.parseField x >>= makeAccessionIDRun
+instance ToJSON AccessionIDRun where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON AccessionIDRun where
+    parseJSON = withText "AccessionIDRun" (makeAccessionIDRun . T.unpack)
+
+-- A data type to represent a sample accession ID
+newtype AccessionIDSample = AccessionIDSample {getSampleAccession :: AccessionID}
+    deriving (Eq, Generic)
+
+makeAccessionIDSample :: MonadFail m => String -> m AccessionIDSample
+makeAccessionIDSample x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCBioSample y) -> pure $ AccessionIDSample (INSDCBioSample y)
+        (INSDCSample y)    -> pure $ AccessionIDSample (INSDCSample y)
+        _                  -> fail $ "Accession " ++ show x ++ " not a correct biosample/sample accession"
+
+instance Show AccessionIDSample where
+    show (AccessionIDSample x) = show x
+
+instance Csv.ToField AccessionIDSample where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionIDSample where
+    parseField x = Csv.parseField x >>= makeAccessionIDSample
+instance ToJSON AccessionIDSample where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON AccessionIDSample where
+    parseJSON = withText "AccessionIDSample" (makeAccessionIDSample . T.unpack)
+
+-- A data type to represent a study accession ID
+newtype AccessionIDStudy = AccessionIDStudy {getStudyAccession :: AccessionID}
+    deriving (Eq, Generic)
+
+instance Show AccessionIDStudy where
+    show (AccessionIDStudy x) = show x
+
+makeAccessionIDStudy :: MonadFail m => String -> m AccessionIDStudy
+makeAccessionIDStudy x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCProject y) -> pure $ AccessionIDStudy (INSDCProject y)
+        (INSDCStudy y)   -> pure $ AccessionIDStudy (INSDCStudy y)
+        _                -> fail $ "Accession " ++ show x ++ " not a correct project/study accession"
+
+instance Csv.ToField AccessionIDStudy where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionIDStudy where
+    parseField x = Csv.parseField x >>= makeAccessionIDStudy
+instance ToJSON AccessionIDStudy where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON AccessionIDStudy where
+    parseJSON = withText "AccessionIDStudy" (makeAccessionIDStudy . T.unpack)
+
+-- | A datatype for calendar dates
+newtype SimpleDate = SimpleDate Day
+    deriving (Eq, Ord, Generic)
+
+instance Show SimpleDate where
+    show (SimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+
+makeSimpleDate :: MonadFail m => String -> m SimpleDate
+makeSimpleDate x = do
+    mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
+    pure (SimpleDate mday)
+
+instance Csv.ToField SimpleDate where
+    toField (SimpleDate x) = Csv.toField $ show x
+instance Csv.FromField SimpleDate where
+    parseField x = Csv.parseField x >>= makeSimpleDate
+instance ToJSON SimpleDate where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON SimpleDate where
+    parseJSON = withText "SimpleDate" (makeSimpleDate . T.unpack)
+
+-- | A datatype to represent MD5 hashes
+newtype MD5 = MD5 String
+    deriving (Eq, Ord, Generic)
+
+instance Show MD5 where
+    show (MD5 x) = x
+
+makeMD5 :: MonadFail m => String -> m MD5
+makeMD5 x
+    | isMD5Hash x = pure $ MD5 x
+    | otherwise   = fail $ "MD5 hash " ++ show x ++ " not well structured"
+
+isMD5Hash :: String -> Bool
+isMD5Hash x = length x == 32 && all isHexDigit x
+
+instance Csv.ToField MD5 where
+    toField x = Csv.toField $ show x
+instance Csv.FromField MD5 where
+    parseField x = Csv.parseField x >>= makeMD5
+instance ToJSON MD5 where
+    toEncoding x = text $ T.pack $ show x
+instance FromJSON MD5 where
+    parseJSON = withText "MD5" (makeMD5 . T.unpack)
+
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
 data SeqSourceRow = SeqSourceRow
-    { sPoseidonID                :: JannoStringList
-    , sUDG                       :: Maybe SSFUDG
-    , sLibraryBuilt              :: Maybe SSFLibraryBuilt
-    , sGeneticSourceAccessionIDs :: AccessionID -- could be a specific AccessionID
-    , sStudyAccession            :: Maybe AccessionID -- could be a specific AccessionID
-    , sRunAccession              :: Maybe AccessionID -- could be a specific AccessionID
-    , sSampleAlias               :: Maybe String
-    , sSecondarySampleAccession  :: Maybe String
-    , sFirstPublic               :: Maybe String -- could be a date type
-    , sLastUpdated               :: Maybe String -- could be a date type
-    , sInstrumentModel           :: Maybe String
-    , sLibraryLayout             :: Maybe String
-    , sLibrarySource             :: Maybe String
-    , sInstrumentPlatform        :: Maybe String
-    , sLibraryName               :: Maybe String
-    , sLibraryStrategy           :: Maybe String
-    , sFastqFTP                  :: Maybe (JannoList JURI)
-    , sFastqASPERA               :: Maybe (JannoList JURI)
-    , sFastqBytes                :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                  :: Maybe (JannoList String) -- could be a dedicated md5 type
-    , sReadCount                 :: Maybe Integer -- integer, not int, because it can be a very large number
-    , sSubmittedFTP              :: Maybe (JannoList JURI)
-    , sAdditionalColumns         :: CsvNamedRecord
+    { sPoseidonID               :: Maybe JannoStringList
+    , sUDG                      :: Maybe SSFUDG
+    , sLibraryBuilt             :: Maybe SSFLibraryBuilt
+    , sSampleAccession          :: Maybe AccessionIDSample
+    , sStudyAccession           :: Maybe AccessionIDStudy
+    , sRunAccession             :: Maybe AccessionIDRun
+    , sSampleAlias              :: Maybe String
+    , sSecondarySampleAccession :: Maybe String
+    , sFirstPublic              :: Maybe SimpleDate
+    , sLastUpdated              :: Maybe SimpleDate
+    , sInstrumentModel          :: Maybe String
+    , sLibraryLayout            :: Maybe String
+    , sLibrarySource            :: Maybe String
+    , sInstrumentPlatform       :: Maybe String
+    , sLibraryName              :: Maybe String
+    , sLibraryStrategy          :: Maybe String
+    , sFastqFTP                 :: Maybe (JannoList JURI)
+    , sFastqASPERA              :: Maybe (JannoList JURI)
+    , sFastqBytes               :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
+    , sFastqMD5                 :: Maybe (JannoList MD5)
+    , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
+    , sSubmittedFTP             :: Maybe (JannoList JURI)
+    , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
 
@@ -187,12 +310,12 @@ instance FromJSON SeqSourceRow
 
 instance Csv.FromNamedRecord SeqSourceRow where
     parseNamedRecord m = SeqSourceRow
-        <$> filterLookup m         "poseidon_IDs"
+        <$> filterLookupOptional m "poseidon_IDs"
         <*> filterLookupOptional m "udg"
         <*> filterLookupOptional m "library_built"
-        <*> filterLookup m         "sample_accession"
+        <*> filterLookupOptional m "sample_accession"
         <*> filterLookupOptional m "study_accession"
-        <*> filterLookupOptional m "run_accession"
+        <*> filterLookup         m "run_accession"
         <*> filterLookupOptional m "sample_alias"
         <*> filterLookupOptional m "secondary_sample_accession"
         <*> filterLookupOptional m "first_public"
@@ -218,7 +341,7 @@ instance Csv.ToNamedRecord SeqSourceRow where
           "poseidon_IDs"               Csv..= sPoseidonID s
         , "udg"                        Csv..= sUDG s
         , "library_built"              Csv..= sLibraryBuilt s
-        , "sample_accession"           Csv..= sGeneticSourceAccessionIDs s
+        , "sample_accession"           Csv..= sSampleAccession s
         , "study_accession"            Csv..= sStudyAccession s
         , "run_accession"              Csv..= sRunAccession s
         , "sample_alias"               Csv..= sSampleAlias s
@@ -258,13 +381,14 @@ readSeqSourceFile seqSourcePath = do
     seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
     let seqSourceFileRows = Bch.lines seqSourceFile
     when (length seqSourceFileRows < 2) $ liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "File has less than two lines"
-    logDebug $ show (length seqSourceFileRows - 1) ++ " Accession IDs in this file"
+    logDebug $ show (length seqSourceFileRows - 1) ++ " sequencing entities in this file"
     -- tupel with row number and row bytestring
     let seqSourceFileRowsWithNumber = zip [1..(length seqSourceFileRows)] seqSourceFileRows
     -- filter out empty lines
         seqSourceFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) seqSourceFileRowsWithNumber
     -- create header + individual line combination
         headerOnlyPotentiallyWithQuotes = snd $ head seqSourceFileRowsWithNumberFiltered
+        -- removing the quotes like this might cause issues in edge cases
         headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
         rowsOnly = tail seqSourceFileRowsWithNumberFiltered
         seqSourceFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
@@ -273,13 +397,17 @@ readSeqSourceFile seqSourcePath = do
     -- error case management
     if not (null (lefts seqSourceRepresentation))
     then do
-        mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
-        liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines. See more details with --logMode VerboseLog"
+        mapM_ (logError . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
+        liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines."
     else do
         let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
         case consistentSeqSource of
             Left e  -> do liftIO $ throwIO (e :: PoseidonException)
-            Right x -> do return x
+            Right x -> do
+                -- warnings
+                warnSeqSourceConsistency seqSourcePath x
+                -- finally return the good ones
+                return x
 
 -- | A function to read one row of a seqSourceFile
 readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
@@ -293,23 +421,30 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                 Right (pS :: SeqSourceRow) -> do return $ Right pS
 
 -- SeqSource consistency checks
-
 checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
-checkSeqSourceConsistency seqSourcePath xs
-    | not $ checkSamplesUnique xs = Left $ PoseidonFileConsistencyException seqSourcePath
-        "The values in the sample_accession column are not unique"
+checkSeqSourceConsistency _ xs
+    -- | ... no tests implemented
     | otherwise = Right xs
 
-checkSamplesUnique :: SeqSourceRows -> Bool
-checkSamplesUnique (SeqSourceRows rows) = length rows == length (nub $ map sGeneticSourceAccessionIDs rows)
-
 checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
-checkSeqSourceRowConsistency seqSourcePath row x
-    | not $ checkMandatoryNotEmpty x = Left $ PoseidonFileRowException seqSourcePath row
-        "The mandatory column Poseidon_ID contains empty values"
+checkSeqSourceRowConsistency _ _ x
+    -- | ... no tests implemented
     | otherwise = Right x
 
-checkMandatoryNotEmpty :: SeqSourceRow -> Bool
-checkMandatoryNotEmpty x =
-       (not . null . getJannoList . sPoseidonID $ x)
-    && (not . null . head . getJannoList . sPoseidonID $ x)
+warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
+warnSeqSourceConsistency seqSourcePath xs = do
+    unless (checkRunsUnique xs) $
+        logWarning $ "Potential consistency issues in file " ++ seqSourcePath ++ ": " ++
+                     "The values in the run_accession column are not unique"
+    unless (checkAtLeastOnePoseidonID xs) $
+        logWarning $ "Potential consistency issues in file " ++ seqSourcePath ++ ": " ++
+                     "The poseidon_IDs column is completely empty. Package and .ssf file are not linked"
+
+checkRunsUnique :: SeqSourceRows -> Bool
+checkRunsUnique (SeqSourceRows rows) =
+    let justRunAccessions = mapMaybe sRunAccession rows
+    in justRunAccessions == nub justRunAccessions
+
+checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
+checkAtLeastOnePoseidonID (SeqSourceRows rows) =
+    any (isJust . sPoseidonID) rows
