@@ -255,8 +255,8 @@ filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
     in SeqSourceRows $ filter (hasAPoseidonID desiredPoseidonIDs) sRows
     where
         hasAPoseidonID :: [String] -> SeqSourceRow -> Bool
-        hasAPoseidonID jIDs seqSourceRows =
-            let sIDs = getMaybeJannoList $ sPoseidonID seqSourceRows
+        hasAPoseidonID jIDs seqSourceRow =
+            let sIDs = getMaybeJannoList $ sPoseidonID seqSourceRow
             in any (`elem` jIDs) sIDs
 
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
