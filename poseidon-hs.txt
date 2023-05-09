@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.11.4
+@version 1.1.12.0
 
 module Poseidon.MathHelpers
 
@@ -413,6 +413,7 @@ decodingOptions :: DecodeOptions
 --   with explicit "n/a"
 explicitNA :: ByteString -> ByteString
 removeUselessSuffix :: String -> String
+getMaybeJannoList :: Maybe (JannoList a) -> [a]
 instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoSex
@@ -585,22 +586,45 @@ makeSSFLibraryBuilt :: MonadFail m => String -> m SSFLibraryBuilt
 newtype SeqSourceRows
 SeqSourceRows :: [SeqSourceRow] -> SeqSourceRows
 [getSeqSourceRowList] :: SeqSourceRows -> [SeqSourceRow]
+newtype AccessionIDRun
+AccessionIDRun :: AccessionID -> AccessionIDRun
+[getRunAccession] :: AccessionIDRun -> AccessionID
+makeAccessionIDRun :: MonadFail m => String -> m AccessionIDRun
+newtype AccessionIDSample
+AccessionIDSample :: AccessionID -> AccessionIDSample
+[getSampleAccession] :: AccessionIDSample -> AccessionID
+makeAccessionIDSample :: MonadFail m => String -> m AccessionIDSample
+newtype AccessionIDStudy
+AccessionIDStudy :: AccessionID -> AccessionIDStudy
+[getStudyAccession] :: AccessionIDStudy -> AccessionID
+makeAccessionIDStudy :: MonadFail m => String -> m AccessionIDStudy
+
+-- | A datatype for calendar dates
+newtype SimpleDate
+SimpleDate :: Day -> SimpleDate
+makeSimpleDate :: MonadFail m => String -> m SimpleDate
+
+-- | A datatype to represent MD5 hashes
+newtype MD5
+MD5 :: String -> MD5
+makeMD5 :: MonadFail m => String -> m MD5
+isMD5Hash :: String -> Bool
 
 -- | A data type to represent a row in the seqSourceFile See
 --   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv</a>
 --   for more details
 data SeqSourceRow
-SeqSourceRow :: JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> AccessionID -> Maybe AccessionID -> Maybe AccessionID -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe (JannoList JURI) -> Maybe (JannoList JURI) -> Maybe (JannoList Integer) -> Maybe (JannoList String) -> Maybe Integer -> Maybe (JannoList JURI) -> CsvNamedRecord -> SeqSourceRow
-[sPoseidonID] :: SeqSourceRow -> JannoStringList
+SeqSourceRow :: Maybe JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> Maybe AccessionIDSample -> Maybe AccessionIDStudy -> Maybe AccessionIDRun -> Maybe String -> Maybe String -> Maybe SimpleDate -> Maybe SimpleDate -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe (JannoList JURI) -> Maybe (JannoList JURI) -> Maybe (JannoList Integer) -> Maybe (JannoList MD5) -> Maybe Integer -> Maybe (JannoList JURI) -> CsvNamedRecord -> SeqSourceRow
+[sPoseidonID] :: SeqSourceRow -> Maybe JannoStringList
 [sUDG] :: SeqSourceRow -> Maybe SSFUDG
 [sLibraryBuilt] :: SeqSourceRow -> Maybe SSFLibraryBuilt
-[sGeneticSourceAccessionIDs] :: SeqSourceRow -> AccessionID
-[sStudyAccession] :: SeqSourceRow -> Maybe AccessionID
-[sRunAccession] :: SeqSourceRow -> Maybe AccessionID
+[sSampleAccession] :: SeqSourceRow -> Maybe AccessionIDSample
+[sStudyAccession] :: SeqSourceRow -> Maybe AccessionIDStudy
+[sRunAccession] :: SeqSourceRow -> Maybe AccessionIDRun
 [sSampleAlias] :: SeqSourceRow -> Maybe String
 [sSecondarySampleAccession] :: SeqSourceRow -> Maybe String
-[sFirstPublic] :: SeqSourceRow -> Maybe String
-[sLastUpdated] :: SeqSourceRow -> Maybe String
+[sFirstPublic] :: SeqSourceRow -> Maybe SimpleDate
+[sLastUpdated] :: SeqSourceRow -> Maybe SimpleDate
 [sInstrumentModel] :: SeqSourceRow -> Maybe String
 [sLibraryLayout] :: SeqSourceRow -> Maybe String
 [sLibrarySource] :: SeqSourceRow -> Maybe String
@@ -610,7 +634,7 @@ SeqSourceRow :: JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> Acce
 [sFastqFTP] :: SeqSourceRow -> Maybe (JannoList JURI)
 [sFastqASPERA] :: SeqSourceRow -> Maybe (JannoList JURI)
 [sFastqBytes] :: SeqSourceRow -> Maybe (JannoList Integer)
-[sFastqMD5] :: SeqSourceRow -> Maybe (JannoList String)
+[sFastqMD5] :: SeqSourceRow -> Maybe (JannoList MD5)
 [sReadCount] :: SeqSourceRow -> Maybe Integer
 [sSubmittedFTP] :: SeqSourceRow -> Maybe (JannoList JURI)
 [sAdditionalColumns] :: SeqSourceRow -> CsvNamedRecord
@@ -627,9 +651,10 @@ readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
 -- | A function to read one row of a seqSourceFile
 readSeqSourceFileRow :: FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
 checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
-checkSamplesUnique :: SeqSourceRows -> Bool
 checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
-checkMandatoryNotEmpty :: SeqSourceRow -> Bool
+warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
+checkRunsUnique :: SeqSourceRows -> Bool
+checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
 instance GHC.Enum.Bounded Poseidon.SequencingSource.SSFUDG
 instance GHC.Enum.Enum Poseidon.SequencingSource.SSFUDG
 instance GHC.Generics.Generic Poseidon.SequencingSource.SSFUDG
@@ -640,6 +665,18 @@ instance GHC.Enum.Enum Poseidon.SequencingSource.SSFLibraryBuilt
 instance GHC.Generics.Generic Poseidon.SequencingSource.SSFLibraryBuilt
 instance GHC.Classes.Ord Poseidon.SequencingSource.SSFLibraryBuilt
 instance GHC.Classes.Eq Poseidon.SequencingSource.SSFLibraryBuilt
+instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionIDRun
+instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionIDRun
+instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionIDSample
+instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionIDSample
+instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionIDStudy
+instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionIDStudy
+instance GHC.Generics.Generic Poseidon.SequencingSource.SimpleDate
+instance GHC.Classes.Ord Poseidon.SequencingSource.SimpleDate
+instance GHC.Classes.Eq Poseidon.SequencingSource.SimpleDate
+instance GHC.Generics.Generic Poseidon.SequencingSource.MD5
+instance GHC.Classes.Ord Poseidon.SequencingSource.MD5
+instance GHC.Classes.Eq Poseidon.SequencingSource.MD5
 instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRow
 instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRow
 instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRow
@@ -655,6 +692,31 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SeqSourceRow
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SeqSourceRow
 instance Data.Csv.Conversion.FromNamedRecord Poseidon.SequencingSource.SeqSourceRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Show.Show Poseidon.SequencingSource.MD5
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.MD5
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.MD5
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.MD5
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.MD5
+instance GHC.Show.Show Poseidon.SequencingSource.SimpleDate
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SimpleDate
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SimpleDate
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SimpleDate
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SimpleDate
+instance GHC.Show.Show Poseidon.SequencingSource.AccessionIDStudy
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionIDStudy
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionIDStudy
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.AccessionIDStudy
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.AccessionIDStudy
+instance GHC.Show.Show Poseidon.SequencingSource.AccessionIDSample
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionIDSample
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionIDSample
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.AccessionIDSample
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.AccessionIDSample
+instance GHC.Show.Show Poseidon.SequencingSource.AccessionIDRun
+instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionIDRun
+instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionIDRun
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.AccessionIDRun
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.AccessionIDRun
 instance GHC.Show.Show Poseidon.SequencingSource.SSFLibraryBuilt
 instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SSFLibraryBuilt
 instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFLibraryBuilt
