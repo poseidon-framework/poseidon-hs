@@ -388,6 +388,7 @@ readSeqSourceFile seqSourcePath = do
         seqSourceFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) seqSourceFileRowsWithNumber
     -- create header + individual line combination
         headerOnlyPotentiallyWithQuotes = snd $ head seqSourceFileRowsWithNumberFiltered
+        -- removing the quotes like this might cause issues in edge cases
         headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
         rowsOnly = tail seqSourceFileRowsWithNumberFiltered
         seqSourceFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly

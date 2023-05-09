@@ -951,6 +951,7 @@ readJannoFile jannoPath = do
         jannoFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- create header + individual line combination
         headerOnlyPotentiallyWithQuotes = snd $ head jannoFileRowsWithNumberFiltered
+        -- removing the quotes like this might cause issues in edge cases
         headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
         rowsOnly = tail jannoFileRowsWithNumberFiltered
         jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
