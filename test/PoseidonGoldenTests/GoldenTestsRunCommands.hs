@@ -94,7 +94,7 @@ runCLICommands interactive testDir checkFilePath = do
     hPutStrLn stderr "--- fetch"
     testPipelineFetch testDir checkFilePath
     hPutStrLn stderr "--- list --remote"
-    testPipelineListRemote
+    testPipelineListRemote testDir checkFilePath
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -631,8 +631,8 @@ testPipelineFetch testDir checkFilePath = return ()
 -- this tests only if the commands run without an error
 -- the results are not stored like for the other golden tests,
 -- because the data available on the server changes
-testPipelineListRemote :: IO ()
-testPipelineListRemote = do
+testPipelineListRemote :: FilePath -> FilePath -> IO ()
+testPipelineListRemote testDir checkFilePath = do
     let serverOpts = CommandLineOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing PlinkPopNameAsFamily
 
     -- we prepare an empty MVar, which is filled as soon as the server is ready
@@ -649,17 +649,16 @@ testPipelineListRemote = do
         , _listListEntity   = ListPackages
         , _listRawOutput    = False
         }
-    writeStdOutToFile "/dev/null" (testLog $ runList listOpts1)
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
     let listOpts2 = listOpts1 {
           _listListEntity    = ListGroups
         }
-    writeStdOutToFile "/dev/null" (testLog $ runList listOpts2)
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
     let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals jannoHeaderString
+          _listListEntity    = ListIndividuals ["Publication"]
         , _listRawOutput     = True
         }
-    writeStdOutToFile "/dev/null" (testLog $ runList listOpts3)
-
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
 
 
 -- helper functions --

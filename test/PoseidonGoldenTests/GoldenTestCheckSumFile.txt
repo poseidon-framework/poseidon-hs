@@ -11,10 +11,10 @@ d41d8cd98f00b204e9800998ecf8427e validate validate/validate1
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate2
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate3
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate4
-1cc5e853d64c364e763b19be56e2000c list list/list1
-2c5d1335d000d8dd0d8a939c705b8e1e list list/list2
-808135e3531d63979a84ecb76a89ff44 list list/list3
-5bb5e3d81163d446d4cbd4097f44b4c3 list list/list4
+653fc34f35209b374cde0df33315afd3 list list/list1
+1013b9e42b01bf799568ea8e43ea15a6 list list/list2
+368b8b94a396dd1c122df297fc24eb24 list list/list3
+a291c74d620c047c72979b189bc206c2 list list/list4
 00ae066b93bc11fd5ad0dd76096da8b5 summarise summarise/summarise1
 9209f877ea2f6f398e16765eba5dc3da summarise summarise/summarise2
 5c0e40c4b301d523466077bd9c83d450 survey survey/survey1
@@ -79,6 +79,6 @@ ad9e95d36a9f9d5ab3d6e13100d0adaf forge forge/ForgePac10/ForgePac10.bib
 0332344057c0c4dce2ff7176f8e1103d forge forge/ForgePac11/ForgePac11.geno
 f7e7449562656b713aa8b6256b078930 forge forge/ForgePac11/ForgePac11.janno
 0aef7781caa017fa2b888dfa64b60cf3 forge forge/ForgePac11/ForgePac11.ssf
-e95272d9a7dfd81afb125081479c96e1 fetch fetch/2019_Nikitin_LBK/POSEIDON.yml
-663d9358c94640fd56da3ff9bdf2e207 fetch fetch/2019_Nikitin_LBK/Nikitin_LBK.janno
-3abe2144e4f5aea3aa0b83395ba9b355 fetch fetch/2019_Nikitin_LBK/Nikitin_LBK.fam
+3cfc1ab0d5c2b65b38bdf892f532bdfc listRemote listRemote/listRemote1
+320583dba6ebe5c3ebf098cf3ea39ca4 listRemote listRemote/listRemote2
+a50bcf6609d4224371cbbb53d89f126e listRemote listRemote/listRemote3
