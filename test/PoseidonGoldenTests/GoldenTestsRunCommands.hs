@@ -615,7 +615,7 @@ testPipelineForge testDir checkFilePath = do
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
- 
+
     let serverOpts = CommandLineOptions ["test/testDat/testPackages"] (Just "/tmp/zip_dir") 3000 True Nothing PlinkPopNameAsFamily
 
     -- we prepare an empty MVar, which is filled as soon as the server is ready

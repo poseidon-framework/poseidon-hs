@@ -17,7 +17,7 @@ import           Poseidon.Utils               (PoseidonIO, logInfo)
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
-import           Control.Concurrent.MVar      (MVar, putMVar, newEmptyMVar)
+import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (forM, unless, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
@@ -29,7 +29,8 @@ import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
 import           Data.Version                 (Version, makeVersion,
                                                parseVersion, showVersion)
-import           Network.Wai.Handler.Warp     (defaultSettings, runSettings, setPort, setBeforeMainLoop)
+import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
+                                               setBeforeMainLoop, setPort)
 import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
                                                tlsSettingsChain)
 import           Network.Wai.Middleware.Cors  (simpleCors)
