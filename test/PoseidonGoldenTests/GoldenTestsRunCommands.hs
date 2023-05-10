@@ -614,26 +614,9 @@ testPipelineForge testDir checkFilePath = do
  -- we adopt the policy to run experimental builds on the test server in order to test features
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
-testPipelineFetch testDir checkFilePath = return ()
--- do
---     let fetchOpts1 = FetchOptions {
---           _jaBaseDirs   = [testDir </> "fetch"]
---         , _entityInput  = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
---         , _remoteURL    = "http://c107-224.cloud.gwdg.de:3000"
---         , _upgrade      = True
---         }
---     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
---           "fetch" </> "2019_Nikitin_LBK" </> "POSEIDON.yml"
---         , "fetch" </> "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
---         , "fetch" </> "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
---         ]
-
--- this tests only if the commands run without an error
--- the results are not stored like for the other golden tests,
--- because the data available on the server changes
-testPipelineListRemote :: FilePath -> FilePath -> IO ()
-testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = CommandLineOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing PlinkPopNameAsFamily
+testPipelineFetch testDir checkFilePath = do
+ 
+    let serverOpts = CommandLineOptions ["test/testDat/testPackages"] (Just "/tmp/zip_dir") 3000 True Nothing PlinkPopNameAsFamily
 
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
@@ -642,6 +625,27 @@ testPipelineListRemote testDir checkFilePath = do
     _ <- forkIO (testLog $ runServer serverOpts serverReady)
 
     -- takeMVar will block the main thread until the server is ready
+    _ <- takeMVar serverReady
+
+    let fetchOpts1 = FetchOptions {
+          _jaBaseDirs   = [testDir </> "fetch"]
+        , _entityInput  = [EntitiesDirect [Pac "Schmid_2028"]]
+        , _remoteURL    = "http://localhost:3000"
+        , _upgrade      = True
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
+          "fetch" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+        , "fetch" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
+        , "fetch" </> "Schmid_2028-1.0.0" </> "geno.txt"
+        ]
+
+testPipelineListRemote :: FilePath -> FilePath -> IO ()
+testPipelineListRemote testDir checkFilePath = do
+    let serverOpts = CommandLineOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing PlinkPopNameAsFamily
+
+    -- see above
+    serverReady <- newEmptyMVar
+    _ <- forkIO (testLog $ runServer serverOpts serverReady)
     _ <- takeMVar serverReady
 
     let listOpts1 = ListOptions {
