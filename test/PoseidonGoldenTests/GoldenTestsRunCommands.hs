@@ -23,13 +23,12 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.Janno           (jannoHeaderString)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (getChecksum, testLog)
 
 import           Control.Concurrent       (forkIO, newEmptyMVar)
-import           Control.Concurrent.MVar  (newEmptyMVar, takeMVar)
+import           Control.Concurrent.MVar  (takeMVar)
 import           Control.Monad            (unless, when)
 import           Data.Either              (fromRight)
 import qualified Data.Text                as T
