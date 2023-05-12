@@ -417,7 +417,7 @@ parseRemoteURL :: OP.Parser String
 parseRemoteURL = OP.strOption (
     OP.long "remoteURL" <>
     OP.help "URL of the remote Poseidon server" <>
-    OP.value "https://c107-224.cloud.gwdg.de" <>
+    OP.value "https://server.poseidon-adna.org" <>
     OP.showDefault
     )
 
