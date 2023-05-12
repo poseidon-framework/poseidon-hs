@@ -27,7 +27,7 @@ import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (getChecksum, testLog)
 
-import           Control.Concurrent       (forkIO, newEmptyMVar)
+import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)
 import           Control.Monad            (unless, when)
 import           Data.Either              (fromRight)
@@ -621,7 +621,7 @@ testPipelineFetch testDir checkFilePath = do
     serverReady <- newEmptyMVar
 
     -- this will start the server on another thread
-    _ <- forkIO (testLog $ runServer serverOpts serverReady)
+    threadID <- forkIO (testLog $ runServer serverOpts serverReady)
 
     -- takeMVar will block the main thread until the server is ready
     _ <- takeMVar serverReady
@@ -638,13 +638,16 @@ testPipelineFetch testDir checkFilePath = do
         , "fetch" </> "Schmid_2028-1.0.0" </> "geno.txt"
         ]
 
+    -- kill server thread
+    killThread threadID
+
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
     let serverOpts = CommandLineOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing PlinkPopNameAsFamily
 
     -- see above
     serverReady <- newEmptyMVar
-    _ <- forkIO (testLog $ runServer serverOpts serverReady)
+    threadID <- forkIO (testLog $ runServer serverOpts serverReady)
     _ <- takeMVar serverReady
 
     let listOpts1 = ListOptions {
@@ -663,6 +666,7 @@ testPipelineListRemote testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
 
+    killThread threadID
 
 -- helper functions --
 
