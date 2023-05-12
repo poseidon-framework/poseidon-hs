@@ -1,8 +1,8 @@
 .----------------.-----------------.------------------.--------------------------------------------------------------.---------------.----------------.
 |     Title      | Package Version | Poseidon Version |                         Description                          | Last modified | Nr Individuals |
 :================:=================:==================:==============================================================:===============:================:
-| Lamnidis_2018  | 1.0.1           | 2.5.0            | Genetic data published in Lamnidis et al. 2018               | 2020-02-20    | 10             |
 | Lamnidis_2018  | 1.0.0           | 2.5.0            | Genetic data published in Lamnidis et al. 2018 - updated ve… | 2019-01-15    | 10             |
+| Lamnidis_2018  | 1.0.1           | 2.5.0            | Genetic data published in Lamnidis et al. 2018               | 2020-02-20    | 10             |
 | Schiffels_2016 | 1.0.1           | 2.7.1            | Genetic data published in Schiffels et al. 2016              | 2021-11-09    | 10             |
 | Schmid_2028    | 1.0.0           | 2.6.0            | Genetic data that will never be published in Schmid et al. … | 2023-01-12    | 2              |
 | Wang_2020      | 0.1.0           | 2.7.1            | Genetic data published in Wang et al. 2020, Plink test       | 2020-05-20    | 5              |

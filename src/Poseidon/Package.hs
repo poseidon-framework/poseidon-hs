@@ -71,10 +71,11 @@ import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (elemIndex, group, groupBy,
-                                             intercalate, nub, singleton,
+                                             intercalate, nub, singleton, sort,
                                              sortOn, (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
+import           Data.Ord                   (comparing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -212,6 +213,9 @@ data PoseidonPackage = PoseidonPackage
     }
     deriving (Show, Eq, Generic)
 
+instance Ord PoseidonPackage where
+    compare = comparing posPacTitle <> comparing posPacPackageVersion
+
 data PackageReadOptions = PackageReadOptions
     { _readOptStopOnDuplicates     :: Bool
     -- ^ whether to stop on duplicated individuals
@@ -274,7 +278,8 @@ readPoseidonPackageCollection opts baseDirs = do
     let loadedPackages = rights eitherPackages
     -- package duplication check
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    finalPackageList <- liftIO $ filterDuplicatePackages (_readOptKeepMultipleVersions opts) loadedPackages
+    filteredPackageList <- liftIO $ filterDuplicatePackages (_readOptKeepMultipleVersions opts) loadedPackages
+    let finalPackageList = sort filteredPackageList
     when (length loadedPackages > length finalPackageList) $ do
         logWarning "Some packages were skipped as duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
@@ -555,7 +560,8 @@ findAllPoseidonYmlFiles baseDir = do
 filterDuplicatePackages :: (MonadThrow m) => Bool -- ^ whether to allow multiple versions of the same package to be included
                         -> [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
                         -> m [PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
-filterDuplicatePackages keepMultipleVersions pacs = fmap concat . mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
+filterDuplicatePackages keepMultipleVersions pacs =
+    fmap concat . mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
     titleEq = \p1 p2 -> posPacTitle p1 == posPacTitle p2
@@ -564,7 +570,8 @@ filterDuplicatePackages keepMultipleVersions pacs = fmap concat . mapM checkDupl
     checkDuplicatePackages dupliPacs =
         let pacs_ = map (\x -> x { posPacDuplicate = length dupliPacs }) dupliPacs
             maybeVersions = map posPacPackageVersion pacs_
-        in  if (length . nub . catMaybes) maybeVersions == length maybeVersions -- all versions need to be given and be unique
+        -- all versions need to be given and be unique
+        in  if (length . nub . catMaybes) maybeVersions == length maybeVersions
             then
                 if keepMultipleVersions then
                     return pacs_
