@@ -20,7 +20,7 @@ module Poseidon.SecondaryTypes (
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)
 
-import           Control.Exception      (throwIO)
+import           Control.Exception      (catch, throwIO)
 import           Control.Monad          (forM_, guard, mzero, unless)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
@@ -33,7 +33,7 @@ import           Data.Text              (pack, unpack)
 import           Data.Time              (Day)
 import           Data.Version           (Version (..), makeVersion)
 import           GHC.Generics           (Generic)
-import           Network.HTTP.Conduit   (simpleHttp)
+import           Network.HTTP.Conduit   (HttpException, simpleHttp)
 import           Poseidon.Janno         (JannoRows)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
@@ -205,7 +205,7 @@ renderORCID (ORCID nums check) =
 
 processApiResponse :: String -> PoseidonIO ApiReturnData
 processApiResponse url = do
-    remoteData <- simpleHttp url
+    remoteData <- liftIO $ catch (simpleHttp url) (throwIO . PoseidonHttpExceptionForward)
     ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
         Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
         Right sam -> return sam
