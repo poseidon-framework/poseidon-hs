@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Server (runServer, runServerMainThread, CommandLineOptions(..)) where
+module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
@@ -35,7 +35,6 @@ import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
                                                tlsSettingsChain)
 import           Network.Wai.Middleware.Cors  (simpleCors)
 import           Paths_poseidon_hs            (version)
-import           SequenceFormats.Plink        (PlinkPopNameMode)
 import           System.Directory             (createDirectoryIfMissing,
                                                doesFileExist,
                                                getModificationTime)
@@ -45,25 +44,24 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
                                                param, raise, rescue, scottyApp,
                                                text)
-data CommandLineOptions = CommandLineOptions
+data ServeOptions = ServeOptions
     { cliBaseDirs        :: [FilePath]
     , cliZipDir          :: Maybe FilePath
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
-    , cliPlinkPopMode    :: PlinkPopNameMode
     }
     deriving (Show)
 
-runServerMainThread :: CommandLineOptions -> PoseidonIO ()
+runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
     -- the MVar is used as a signal from the server to the calling thread that it is ready.
     -- It is used for testing. Here we just use it as a dummy.
     dummy <- liftIO newEmptyMVar
     runServer opts dummy
 
-runServer :: CommandLineOptions -> MVar () -> PoseidonIO ()
-runServer (CommandLineOptions baseDirs maybeZipPath port ignoreChecksums certFiles _) serverReady = do
+runServer :: ServeOptions -> MVar () -> PoseidonIO ()
+runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
     let pacReadOpts = defaultPackageReadOptions {
             _readOptStopOnDuplicates = False
             , _readOptIgnoreChecksums  = ignoreChecksums

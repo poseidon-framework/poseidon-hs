@@ -16,7 +16,7 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes,
                         Poseidon.PoseidonVersion,
-                        Poseidon.CLI.List, Poseidon.CLI.Server,
+                        Poseidon.CLI.List, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
@@ -37,15 +37,6 @@ executable trident
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring,
                         filepath, co-log
-    other-modules:      Paths_poseidon_hs
-    default-language:   Haskell2010
-
-executable poseidon-http-server
-    main-is:            Main-server.hs
-    hs-source-dirs:     src-executables
-    build-depends:      base, poseidon-hs, optparse-applicative, text, aeson, time, zip-archive,
-                        bytestring, filepath, directory, time, sequence-formats,
-                        unordered-containers, cassava
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 

@@ -11,7 +11,7 @@ import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
 import           Poseidon.CLI.Init        (InitOptions (..), runInit)
 import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
                                            RepoLocationSpec (..), runList)
-import           Poseidon.CLI.Server      (CommandLineOptions (..), runServer)
+import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
 import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
@@ -615,7 +615,7 @@ testPipelineForge testDir checkFilePath = do
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
 
-    let serverOpts = CommandLineOptions ["test/testDat/testPackages"] (Just "/tmp/zip_dir") 3000 True Nothing PlinkPopNameAsFamily
+    let serverOpts = ServeOptions ["test/testDat/testPackages"] (Just "/tmp/zip_dir") 3000 True Nothing
 
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
@@ -643,7 +643,7 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = CommandLineOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing PlinkPopNameAsFamily
+    let serverOpts = ServeOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing
 
     -- see above
     serverReady <- newEmptyMVar
