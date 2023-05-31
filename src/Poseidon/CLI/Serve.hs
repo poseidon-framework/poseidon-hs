@@ -29,7 +29,7 @@ import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
 import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
-import           Data.Version                 (Version, makeVersion,
+import           Data.Version                 (Version,
                                                parseVersion, showVersion)
 import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
                                                setBeforeMainLoop, setPort)

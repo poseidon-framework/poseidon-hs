@@ -2,7 +2,8 @@ module Poseidon.PoseidonVersion (
     validPoseidonVersions,
     showPoseidonVersion,
     latestPoseidonVersion,
-    asVersion
+    asVersion,
+    minimalRequiredClientVersion
 ) where
 
 import           Data.Version (Version (..), makeVersion, showVersion)
