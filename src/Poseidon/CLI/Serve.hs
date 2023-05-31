@@ -188,11 +188,16 @@ checkZipFileOutdated pac fn = do
         changelogOutdated <- case posPacChangelogFile pac of
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
             Nothing  -> return False
+        ssfOutdated <- case posPacSeqSourceFile pac of
+            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
+            Nothing -> return False
         let gd = posPacGenotypeData pac
         genoOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
         snpOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
         indOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
-        return $ or [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated, changelogOutdated, genoOutdated, snpOutdated, indOutdated]
+        return $ or [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated,
+                     changelogOutdated, genoOutdated, snpOutdated, indOutdated,
+                     ssfOutdated]
     else
         return True
   where
