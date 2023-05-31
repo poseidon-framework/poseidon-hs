@@ -10,9 +10,11 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                getExtendedIndividualInfo,
                                                packageToPackageInfo,
                                                readPoseidonPackageCollection)
+import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.SecondaryTypes      (ApiReturnData (..),
                                                ServerApiReturnType (..))
-import           Poseidon.Utils               (PoseidonIO, logInfo, extendNameWithVersion)
+import           Poseidon.Utils               (PoseidonIO,
+                                               extendNameWithVersion, logInfo)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -142,10 +144,6 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
 genericServerMessages :: [String]
 genericServerMessages = ["Greetings from the Poseidon Server, version " ++ showVersion version]
 
--- this needs to be adapted in the future to mark the supported client versions
-minimalRequiredClientVersion :: Version
-minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]
-
 parseVersionString :: String -> Maybe Version
 parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
     [(v', "")] -> Just v'
@@ -188,7 +186,7 @@ checkZipFileOutdated pac fn = do
             Nothing  -> return False
         ssfOutdated <- case posPacSeqSourceFile pac of
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing -> return False
+            Nothing  -> return False
         let gd = posPacGenotypeData pac
         genoOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
         snpOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
