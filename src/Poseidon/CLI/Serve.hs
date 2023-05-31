@@ -205,7 +205,7 @@ checkZipFileOutdated pac fn = do
 
 makeZipArchive :: PoseidonPackage -> IO Archive
 makeZipArchive pac =
-    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno
+    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno >>= addSSF
   where
     addYaml = addFN "POSEIDON.yml" (posPacBaseDir pac)
     addJanno = case posPacJannoFile pac of
@@ -218,6 +218,9 @@ makeZipArchive pac =
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
     addChangelog = case posPacChangelogFile pac of
+        Nothing -> return
+        Just fn -> addFN fn (posPacBaseDir pac)
+    addSSF = case posPacSeqSourceFile of
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
     addInd = addFN (indFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
