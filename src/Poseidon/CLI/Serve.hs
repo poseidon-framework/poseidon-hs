@@ -12,7 +12,7 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes      (ApiReturnData (..),
                                                ServerApiReturnType (..))
-import           Poseidon.Utils               (PoseidonIO, logInfo)
+import           Poseidon.Utils               (PoseidonIO, logInfo, extendNameWithVersion)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -77,9 +77,7 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
         Just zipPath -> forM allPackages (\pac -> do
             logInfo "Checking whether zip files are missing or outdated"
             liftIO $ createDirectoryIfMissing True zipPath
-            let combinedPackageVersionTitle = case posPacPackageVersion pac of
-                    Nothing -> posPacTitle pac
-                    Just v  -> posPacTitle pac ++ "-" ++ showVersion v
+            let combinedPackageVersionTitle = extendNameWithVersion (posPacTitle pac) (posPacPackageVersion pac)
             let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
             zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
             when zipFileOutdated $ do
@@ -220,7 +218,7 @@ makeZipArchive pac =
     addChangelog = case posPacChangelogFile pac of
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
-    addSSF = case posPacSeqSourceFile of
+    addSSF = case posPacSeqSourceFile pac of
         Nothing -> return
         Just fn -> addFN fn (posPacBaseDir pac)
     addInd = addFN (indFile . posPacGenotypeData $ pac) (posPacBaseDir pac)

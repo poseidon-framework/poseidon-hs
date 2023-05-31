@@ -33,7 +33,7 @@ import           Data.Text              (pack, unpack)
 import           Data.Time              (Day)
 import           Data.Version           (Version (..), makeVersion)
 import           GHC.Generics           (Generic)
-import           Network.HTTP.Conduit   (HttpException, simpleHttp)
+import           Network.HTTP.Conduit   (simpleHttp)
 import           Poseidon.Janno         (JannoRows)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
