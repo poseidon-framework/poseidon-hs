@@ -12,6 +12,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
+                                          ExtendedIndividualInfo (ExtendedIndividualInfo),
                                           IndividualInfo (..), PackageInfo (..),
                                           processApiResponse)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
@@ -81,7 +82,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals")
         case r of
-            ApiReturnIndividualInfo i _ _ -> return i
+            ApiReturnExtIndividualInfo extIndInfo -> return [IndividualInfo i g p | ExtendedIndividualInfo i g p _ _ <- extIndInfo]
             _                             -> error "should not happen"
 
     logInfo "Downloading package list from remote"
@@ -119,7 +120,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
 
     logInfo "Done"
 
-readServerIndInfo :: LB.ByteString -> IO [IndividualInfo]
+readServerIndInfo :: LB.ByteString -> IO [ExtendedIndividualInfo]
 readServerIndInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err

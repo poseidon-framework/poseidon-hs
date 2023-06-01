@@ -29,8 +29,8 @@ import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
 import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
-import           Data.Version                 (Version,
-                                               parseVersion, showVersion)
+import           Data.Version                 (Version, parseVersion,
+                                               showVersion)
 import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
                                                setBeforeMainLoop, setPort)
 import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
@@ -110,12 +110,12 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
         get "/individuals" . conditionOnClientVersion $ do
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
 
-            let (indInfo, pacVersions, additionalColumnEntries) = case maybeAdditionalColumnsString of
+            let extIndInfo = case maybeAdditionalColumnsString of
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
                         in  getExtendedIndividualInfo allPackages additionalColumnNames
                     Nothing -> getExtendedIndividualInfo allPackages []
-            let retData = ApiReturnIndividualInfo indInfo pacVersions additionalColumnEntries
+            let retData = ApiReturnExtIndividualInfo extIndInfo
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files

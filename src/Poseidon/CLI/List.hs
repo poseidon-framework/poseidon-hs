@@ -8,8 +8,9 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           getExtendedIndividualInfo,
                                           packageToPackageInfo,
                                           readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (ApiReturnData (..), GroupInfo (..),
-                                          IndividualInfo (..), PackageInfo (..),
+import           Poseidon.SecondaryTypes (ApiReturnData (..),
+                                          ExtendedIndividualInfo (ExtendedIndividualInfo),
+                                          GroupInfo (..), PackageInfo (..),
                                           processApiResponse)
 import           Poseidon.Utils          (PoseidonIO, extendNameWithVersion,
                                           logInfo, logWarning)
@@ -80,35 +81,28 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     return [groupName, pacString, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
-            (indInfo, pacVersions, additionalColumns) <- case repoLocation of
+            extIndInfo <- case repoLocation of
                 RepoRemote remoteURL -> do
                     logInfo "Downloading individual data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals?additionalJannoColumns=" ++ intercalate "," moreJannoColumns)
                     case apiReturn of
-                        ApiReturnIndividualInfo i p c -> return (i, p, c)
+                        ApiReturnExtIndividualInfo extIndInfo -> return extIndInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
                     return $ getExtendedIndividualInfo allPackages moreJannoColumns
 
             -- warning in case the additional Columns do not exist in the entire janno dataset
-            case additionalColumns of
-                Just entriesAllInds -> forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
-                    -- check entries in all individuals for that key
-                    let nonEmptyEntries = catMaybes [entriesForInd !! i | entriesForInd <- entriesAllInds]
-                    when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
-                _ -> return ()
+            forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
+                -- check entries in all individuals for that key
+                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfo]
+                when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
-                tableB = case additionalColumns of
-                    Nothing -> do
-                        (IndividualInfo name groups pac, maybePacVersion) <- zip indInfo pacVersions
-                        let pacString = extendNameWithVersion pac maybePacVersion
-                        return [pacString, name, intercalate ", " groups]
-                    Just c -> do
-                        (IndividualInfo name groups pac, maybePacVersion, addColumns) <- zip3 indInfo pacVersions c
-                        let pacString = extendNameWithVersion pac maybePacVersion
-                        return $ [pacString, name, intercalate ", " groups] ++ map (fromMaybe "n/a") addColumns
+                tableB = do
+                    (ExtendedIndividualInfo name groups pac maybePacVersion addColumnEntries) <- extIndInfo
+                    let pacString = extendNameWithVersion pac maybePacVersion
+                    return $ [pacString, name, intercalate ", " groups] ++ map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]

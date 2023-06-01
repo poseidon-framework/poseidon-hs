@@ -41,6 +41,7 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
+                                             ExtendedIndividualInfo (..),
                                              GroupInfo (..),
                                              IndividualInfo (..), ORCID (..),
                                              PackageInfo (..))
@@ -813,16 +814,16 @@ getAllGroupInfo packages = do
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
-getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> ([IndividualInfo], [Maybe Version], Maybe [[Maybe String]])
-getExtendedIndividualInfo allPackages additionalJannoColumns =
-    let indInfo = getJointIndividualInfo allPackages
-        packageVersions = do
-            pac <- allPackages
-            _ <- getJannoRowsFromPac pac
-            return $ posPacPackageVersion pac
+getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
+getExtendedIndividualInfo allPackages additionalJannoColumns = do
+    pac <- allPackages
+    jannoRow <- getJannoRowsFromPac pac
+    let name = jPoseidonID jannoRow
+        groups = getJannoList . jGroupName $ jannoRow
+        pacName = posPacTitle pac
+        version = posPacPackageVersion pac
         additionalColumnEntries = case additionalJannoColumns of
-            [] -> Nothing
-            colNames ->
-                let getEntriesFunc hm = [BSC.unpack <$> hm HM.!? BSC.pack k | k <- colNames]
-                in  Just . map (getEntriesFunc . toNamedRecord) . (\(JannoRows r) -> r) . getJointJanno $ allPackages
-    in  (indInfo, packageVersions, additionalColumnEntries)
+            [] -> []
+            colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+    return $ ExtendedIndividualInfo name groups pacName version additionalColumnEntries
+

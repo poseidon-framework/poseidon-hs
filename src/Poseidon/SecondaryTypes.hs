@@ -14,6 +14,7 @@ module Poseidon.SecondaryTypes (
     ORCID (..),
     ServerApiReturnType(..),
     ApiReturnData(..),
+    ExtendedIndividualInfo(..),
     processApiResponse
 ) where
 
@@ -24,8 +25,7 @@ import           Control.Exception      (catch, throwIO)
 import           Control.Monad          (forM_, guard, mzero, unless)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
-                                         defaultOptions, eitherDecode',
-                                         genericToEncoding, object, parseJSON,
+                                         eitherDecode', object, parseJSON,
                                          toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Char              (digitToInt)
 import           Data.List              (intercalate)
@@ -38,7 +38,152 @@ import           Poseidon.Janno         (JannoRows)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
 
+---  Client Server Communication types and functions
+data ExtendedIndividualInfo = ExtendedIndividualInfo
+    {
+      extIndInfoName    :: String
+    , extIndInfoGroups  :: [String]
+    , extIndInfoPacName :: String
+    , extIndInfoVersion :: Maybe Version
+    , extIndInfoAddCols :: [(String, Maybe String)]
+    }
 
+instance ToJSON ExtendedIndividualInfo where
+    toJSON e =
+        object [
+            "Poseidon_ID" .= extIndInfoName e, -- following Janno column names
+            "Group_Names" .= extIndInfoGroups e,
+            "packageTitle" .= extIndInfoPacName e, -- following mostly the Poseidon YAML definition where possible
+            "packageVersion" .= extIndInfoVersion e,
+            "additionalJannoColumns" .= extIndInfoAddCols e]
+
+instance FromJSON ExtendedIndividualInfo where
+    parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
+            <$> v .: "Poseidon_ID"
+            <*> v .: "Group_Names"
+            <*> v .: "packageTitle"
+            <*> v .: "packageVersion"
+            <*> v .: "additionalJannoColumns"
+
+data PackageInfo = PackageInfo
+    { pTitle         :: String
+    , pVersion       :: Maybe Version
+    , pPosVersion    :: Version
+    , pDescription   :: Maybe String
+    , pLastModified  :: Maybe Day
+    , pNrIndividuals :: Int
+    }
+
+instance ToJSON PackageInfo where
+    toJSON (PackageInfo title version posVersion description lastModified nrIndividuals) =
+        object [
+            "title" .= title,
+            "packageVersion" .= version,
+            "poseidonVersion" .= posVersion,
+            "description" .= description,
+            "lastModified" .= lastModified,
+            "nrIndividuals" .= nrIndividuals
+        ]
+
+instance FromJSON PackageInfo where
+    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
+            <$> v .: "title"
+            <*> v .: "packageVersion"
+            <*> v .: "poseidonVersion"
+            <*> v .: "description"
+            <*> v .: "lastModified"
+            <*> v .: "nrIndividuals"
+
+data GroupInfo = GroupInfo
+    { gName          :: String
+    , gPackageNames  :: [(String, Maybe Version)]
+    , gNrIndividuals :: Int
+    }
+
+instance ToJSON GroupInfo where
+    toJSON (GroupInfo name pacNames nrIndividuals) =
+        object [
+            "groupName" .= name,
+            "packageNames" .= pacNames,
+            "nrIndividuals" .= nrIndividuals
+        ]
+
+instance FromJSON GroupInfo where
+    parseJSON = withObject "GroupInfo" $ \v -> GroupInfo
+            <$> v .: "groupName"
+            <*> v .: "packageNames"
+            <*> v .: "nrIndividuals"
+
+data ServerApiReturnType = ServerApiReturnType {
+    _apiMessages :: [String],
+    _apiResponse :: Maybe ApiReturnData
+}
+
+instance ToJSON ServerApiReturnType where
+    toJSON (ServerApiReturnType messages response) =
+        object [
+            "serverMessages" .= messages,
+            "serverResponse" .= response
+        ]
+
+instance FromJSON ServerApiReturnType where
+    parseJSON = withObject "ServerApiReturnType" $ \v -> ServerApiReturnType
+            <$> v .: "serverMessages"
+            <*> v .: "serverResponse"
+
+data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
+                   | ApiReturnGroupInfo [GroupInfo]
+                   | ApiReturnExtIndividualInfo [ExtendedIndividualInfo]
+                   | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
+
+instance ToJSON ApiReturnData where
+    toJSON (ApiReturnPackageInfo pacInfo) =
+        object [
+            "constructor" .= String "ApiReturnPackageInfo",
+            "packageInfo" .= pacInfo
+        ]
+    toJSON (ApiReturnGroupInfo groupInfo) =
+        object [
+            "constructor" .= String "ApiReturnGroupInfo",
+            "groupInfo" .= groupInfo
+        ]
+    toJSON (ApiReturnExtIndividualInfo extIndInfo) =
+        object [
+            "constructor" .= String "ApiReturnExtIndividualInfo",
+            "extIndInfo" .= extIndInfo
+        ]
+    toJSON (ApiReturnJanno janno) =
+        object [
+            "constructor" .= String "ApiReturnJanno",
+            "janno" .= janno
+        ]
+
+instance FromJSON ApiReturnData where
+    parseJSON = withObject "ApiReturnData" $ \v -> do
+        constr <- v .: "constructor"
+        case constr of
+            "ApiReturnPackageInfo" -> ApiReturnPackageInfo <$> v .: "packageInfo"
+            "ApiReturnGroupInfo" -> ApiReturnGroupInfo <$> v .: "groupInfo"
+            "ApiReturnExtIndividualInfo" -> ApiReturnExtIndividualInfo <$> v .: "extIndInfo"
+            "ApiReturnJanno" -> ApiReturnJanno <$> v .: "janno"
+            _ -> error $ "cannot parse ApiReturnType with constructor " ++ constr
+
+processApiResponse :: String -> PoseidonIO ApiReturnData
+processApiResponse url = do
+    remoteData <- liftIO $ catch (simpleHttp url) (throwIO . PoseidonHttpExceptionForward)
+    ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
+        Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
+        Right sam -> return sam
+    unless (null messages) $
+        forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
+    case maybeReturn of
+        Just apiReturn -> return apiReturn
+        Nothing -> do
+            logError "The server request was unsuccessful"
+            liftIO . throwIO . PoseidonServerCommunicationException $ "Server error upon URL " ++ url
+
+
+--- Other types and functions not exclusively used for Client-Server Comm
 data VersionComponent = Major
     | Minor
     | Patch
@@ -53,57 +198,6 @@ data IndividualInfo = IndividualInfo
 instance Eq IndividualInfo where
     (==) (IndividualInfo a1 b1 c1) (IndividualInfo a2 b2 c2) = a1 == a2 && head b1 == head b2 && c1 == c2
 
-instance ToJSON IndividualInfo where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON IndividualInfo
-
--- | Minimal package representation on Poseidon servers
-data PackageInfo = PackageInfo
-    { pTitle         :: String
-    , pVersion       :: Maybe Version
-    , pPosVersion    :: Version
-    , pDescription   :: Maybe String
-    , pLastModified  :: Maybe Day
-    , pNrIndividuals :: Int
-    }
-    deriving (Show, Generic)
-
-instance ToJSON PackageInfo where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON PackageInfo
-
-data GroupInfo = GroupInfo
-    { gName          :: String
-    , gPackageNames  :: [(String, Maybe Version)]
-    , gNrIndividuals :: Int
-    } deriving (Generic)
-
-instance ToJSON GroupInfo where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON GroupInfo
-
-data ServerApiReturnType = ServerApiReturnType {
-    _apiMessages :: [String],
-    _apiResponse :: Maybe ApiReturnData
-} deriving (Generic)
-
-instance ToJSON ServerApiReturnType where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON ServerApiReturnType
-
-data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
-                   | ApiReturnGroupInfo [GroupInfo]
-                   | ApiReturnIndividualInfo [IndividualInfo] [Maybe Version] (Maybe [[Maybe String]])
-                   | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
-
-instance ToJSON ApiReturnData where
-    toEncoding = genericToEncoding defaultOptions
-
-instance FromJSON ApiReturnData
 
 poseidonVersionParser :: P.Parser Version
 poseidonVersionParser = do
@@ -203,16 +297,3 @@ renderORCID (ORCID nums check) =
             let (ys, zs) = splitAt n xs
             in  ys : chunks n zs
 
-processApiResponse :: String -> PoseidonIO ApiReturnData
-processApiResponse url = do
-    remoteData <- liftIO $ catch (simpleHttp url) (throwIO . PoseidonHttpExceptionForward)
-    ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
-        Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
-        Right sam -> return sam
-    unless (null messages) $
-        forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
-    case maybeReturn of
-        Just apiReturn -> return apiReturn
-        Nothing -> do
-            logError "The server request was unsuccessful"
-            liftIO . throwIO . PoseidonServerCommunicationException $ "Server error upon URL " ++ url

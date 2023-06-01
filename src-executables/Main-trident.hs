@@ -12,6 +12,8 @@ import           Poseidon.CLI.Init                       (InitOptions (..),
 import           Poseidon.CLI.List                       (ListOptions (..),
                                                           runList)
 import           Poseidon.CLI.OptparseApplicativeParsers
+import           Poseidon.CLI.Serve                      (ServeOptions (..),
+                                                          runServerMainThread)
 import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),
@@ -20,7 +22,6 @@ import           Poseidon.CLI.Update                     (UpdateOptions (..),
                                                           runUpdate)
 import           Poseidon.CLI.Validate                   (ValidateOptions (..),
                                                           runValidate)
-import           Poseidon.CLI.Serve                      (ServeOptions(..), runServerMainThread)
 import           Poseidon.Janno                          (jannoHeaderString)
 import           Poseidon.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
