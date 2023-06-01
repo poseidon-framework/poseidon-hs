@@ -40,6 +40,7 @@ import           Network.HTTP.Conduit    (http, newManager, parseRequest,
                                           responseBody, responseHeaders,
                                           tlsManagerSettings)
 import           Network.HTTP.Types      (hContentLength)
+import           Paths_poseidon_hs       (version)
 import           System.Directory        (createDirectoryIfMissing,
                                           removeDirectory, removeFile)
 import           System.FilePath         ((</>))

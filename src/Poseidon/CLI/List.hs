@@ -20,6 +20,7 @@ import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (intercalate, sortOn)
 import           Data.Maybe              (catMaybes, fromMaybe)
 import           Data.Version            (showVersion)
+import           Paths_poseidon_hs       (version)
 import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
                                           rowsG, tableString, titlesH)
 
@@ -69,7 +70,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             groupInfo <- case repoLocation of
                 RepoRemote remoteURL -> do
                     logInfo "Downloading group data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/groups?client_version=" ++  ++ showVersion version)
+                    apiReturn <- processApiResponse (remoteURL ++ "/groups?client_version=" ++ showVersion version)
                     case apiReturn of
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
