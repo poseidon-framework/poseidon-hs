@@ -81,14 +81,14 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
     -- load remote package list
     logInfo "Downloading individual list from remote"
     remoteIndList <- do
-        r <- processApiResponse (remoteURL ++ "/individuals")
+        r <- processApiResponse (remoteURL ++ "/individuals?client_version=" ++ showVersion version)
         case r of
             ApiReturnExtIndividualInfo extIndInfo -> return [IndividualInfo i g p | ExtendedIndividualInfo i g p _ _ <- extIndInfo]
             _                             -> error "should not happen"
 
     logInfo "Downloading package list from remote"
     remotePacList <- do
-        r <- processApiResponse (remoteURL ++ "/packages")
+        r <- processApiResponse (remoteURL ++ "/packages?client_version=" ++ showVersion version)
         case r of
             ApiReturnPackageInfo p -> return p
             _                      -> error "should not happen"
