@@ -15,7 +15,10 @@ module Poseidon.SecondaryTypes (
     ServerApiReturnType(..),
     ApiReturnData(..),
     ExtendedIndividualInfo(..),
-    processApiResponse
+    processApiResponse,
+    makeNameWithVersion,
+    HasNameAndVersion (..),
+    PacNameAndVersion(..)
 ) where
 
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
@@ -31,7 +34,7 @@ import           Data.Char              (digitToInt)
 import           Data.List              (intercalate)
 import           Data.Text              (pack, unpack)
 import           Data.Time              (Day)
-import           Data.Version           (Version (..), makeVersion)
+import           Data.Version           (Version (..), makeVersion, showVersion)
 import           GHC.Generics           (Generic)
 import           Network.HTTP.Conduit   (simpleHttp)
 import           Poseidon.Janno         (JannoRows)
@@ -39,6 +42,31 @@ import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
 
 ---  Client Server Communication types and functions
+
+class HasNameAndVersion a where
+    getPacName :: a -> String
+    getPacVersion :: a -> Maybe Version
+
+makeNameWithVersion :: (HasNameAndVersion a) => a -> String
+makeNameWithVersion a = case getPacVersion a of
+    Nothing -> getPacName a
+    Just v  -> getPacName a ++ "-" ++ showVersion v
+
+newtype PacNameAndVersion = PacNameAndVersion (String, Maybe Version) deriving (Eq)
+
+instance HasNameAndVersion PacNameAndVersion where
+    getPacName (PacNameAndVersion (n, _)) = n
+    getPacVersion (PacNameAndVersion (_, v)) = v
+
+instance ToJSON PacNameAndVersion where
+    toJSON (PacNameAndVersion (n, v)) = object ["packageTitle" .= n, "packageVersion" .= v]
+
+instance FromJSON PacNameAndVersion where
+    parseJSON = withObject "PacNameAndVersion" $ \v -> do
+        n <- v .: "packageTitle"
+        vr <- v .: "packageVersion"
+        return $ PacNameAndVersion (n, vr)
+
 data ExtendedIndividualInfo = ExtendedIndividualInfo
     {
       extIndInfoName    :: String
@@ -47,6 +75,10 @@ data ExtendedIndividualInfo = ExtendedIndividualInfo
     , extIndInfoVersion :: Maybe Version
     , extIndInfoAddCols :: [(String, Maybe String)]
     }
+
+instance HasNameAndVersion ExtendedIndividualInfo where
+    getPacName = extIndInfoPacName
+    getPacVersion = extIndInfoVersion
 
 instance ToJSON ExtendedIndividualInfo where
     toJSON e =
@@ -74,6 +106,10 @@ data PackageInfo = PackageInfo
     , pNrIndividuals :: Int
     }
 
+instance HasNameAndVersion PackageInfo where
+    getPacName = pTitle
+    getPacVersion = pVersion
+
 instance ToJSON PackageInfo where
     toJSON (PackageInfo title version posVersion description lastModified nrIndividuals) =
         object [
@@ -96,7 +132,7 @@ instance FromJSON PackageInfo where
 
 data GroupInfo = GroupInfo
     { gName          :: String
-    , gPackageNames  :: [(String, Maybe Version)]
+    , gPackageNames  :: [PacNameAndVersion]
     , gNrIndividuals :: Int
     }
 

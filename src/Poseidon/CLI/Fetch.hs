@@ -13,11 +13,12 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                          IndividualInfo (..), PackageInfo (..),
+                                          IndividualInfo (..),
+                                          PacNameAndVersion (..),
+                                          PackageInfo (..), makeNameWithVersion,
                                           processApiResponse)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
-                                          PoseidonIO, envLogAction,
-                                          extendNameWithVersion, logInfo,
+                                          PoseidonIO, envLogAction, logInfo,
                                           logWarning, logWithEnv, padLeft,
                                           padRight)
 
@@ -113,7 +114,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL upgrade) = do
             liftIO $ createDirectoryIfMissing False tempDir
             forM_ desiredRemotePackages $ \pac -> do
                 -- perform package download depending on local-remote state
-                logInfo $ "Comparing local and remote package " ++ extendNameWithVersion (pTitle pac) (pVersion pac)
+                logInfo $ "Comparing local and remote package " ++ makeNameWithVersion pac
                 let packageState = determinePackageState allLocalPackages pac
                 handlePackageByState downloadDir tempDir remote upgrade packageState
             liftIO $ removeDirectory tempDir
@@ -153,14 +154,14 @@ determinePackageState localPacs desiredRemotePac
         localVersionOfDesired = snd $ head $ filter (\x -> fst x == desiredRemotePacTitle) localPacsSimple
 
 handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
-handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, removeV, _) = do
-    downloadAndUnzipPackage downloadDir tempDir remote pac removeV
+handlePackageByState downloadDir tempDir remote _ (NotLocal, pac, remoteV, _) = do
+    downloadAndUnzipPackage downloadDir tempDir remote (PacNameAndVersion (pac, remoteV))
 handlePackageByState _ _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
     logInfo $ padRight 40 pac ++
         " local " ++ printV localV ++ " = remote " ++ printV remoteV
 handlePackageByState downloadDir tempDir remote upgrade (LaterRemote, pac, remoteV, localV) = do
     if upgrade
-    then downloadAndUnzipPackage downloadDir tempDir remote pac remoteV
+    then downloadAndUnzipPackage downloadDir tempDir remote (PacNameAndVersion (pac, remoteV))
     else logInfo $ padRight 40 pac ++
         " local " ++ printV localV ++ " < remote " ++ printV remoteV ++
         " (overwrite with --upgrade)"
@@ -172,12 +173,13 @@ printV :: Maybe Version -> String
 printV Nothing  = "?.?.?"
 printV (Just x) = showVersion x
 
-downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> Maybe Version -> PoseidonIO ()
-downloadAndUnzipPackage baseDir tempDir remote pacName maybePackageVersion = do
+downloadAndUnzipPackage :: FilePath -> FilePath -> String -> PacNameAndVersion -> PoseidonIO ()
+downloadAndUnzipPackage baseDir tempDir remote pacNameAndVersion = do
+    let PacNameAndVersion (pacName, _) = pacNameAndVersion
     logInfo $ padRight 40 pacName ++ " now downloading"
     downloadPackage tempDir remote pacName
     liftIO $ do
-        unzipPackage (tempDir </> pacName) (baseDir </> extendNameWithVersion pacName maybePackageVersion)
+        unzipPackage (tempDir </> pacName) (baseDir </> makeNameWithVersion pacNameAndVersion)
         removeFile (tempDir </> pacName)
 
 unzipPackage :: FilePath -> FilePath -> IO ()

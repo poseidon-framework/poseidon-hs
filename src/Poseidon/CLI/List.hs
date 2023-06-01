@@ -11,9 +11,9 @@ import           Poseidon.Package        (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           ExtendedIndividualInfo (ExtendedIndividualInfo),
                                           GroupInfo (..), PackageInfo (..),
+                                          makeNameWithVersion,
                                           processApiResponse)
-import           Poseidon.Utils          (PoseidonIO, extendNameWithVersion,
-                                          logInfo, logWarning)
+import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad           (forM_, when)
 import           Control.Monad.IO.Class  (liftIO)
@@ -77,7 +77,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             let tableH = ["Group", "Packages", "Nr Individuals"]
                 tableB = do
                     GroupInfo groupName pacsAndVersions nrInds <- groupInfo
-                    let pacString = intercalate ", " [extendNameWithVersion pacName maybePacVersion | (pacName, maybePacVersion) <- pacsAndVersions]
+                    let pacString = intercalate ", " $ map makeNameWithVersion pacsAndVersions
                     return [groupName, pacString, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
@@ -100,8 +100,8 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
 
             let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
                 tableB = do
-                    (ExtendedIndividualInfo name groups pac maybePacVersion addColumnEntries) <- extIndInfo
-                    let pacString = extendNameWithVersion pac maybePacVersion
+                    e@(ExtendedIndividualInfo name groups _ _ addColumnEntries) <- extIndInfo
+                    let pacString = makeNameWithVersion e
                     return $ [pacString, name, intercalate ", " groups] ++ map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then

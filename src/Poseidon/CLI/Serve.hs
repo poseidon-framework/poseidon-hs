@@ -12,9 +12,9 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.SecondaryTypes      (ApiReturnData (..),
-                                               ServerApiReturnType (..))
-import           Poseidon.Utils               (PoseidonIO,
-                                               extendNameWithVersion, logInfo)
+                                               ServerApiReturnType (..),
+                                               makeNameWithVersion)
+import           Poseidon.Utils               (PoseidonIO, logInfo)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -79,7 +79,7 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
         Just zipPath -> forM allPackages (\pac -> do
             logInfo "Checking whether zip files are missing or outdated"
             liftIO $ createDirectoryIfMissing True zipPath
-            let combinedPackageVersionTitle = extendNameWithVersion (posPacTitle pac) (posPacPackageVersion pac)
+            let combinedPackageVersionTitle = makeNameWithVersion pac
             let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
             zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
             when zipFileOutdated $ do

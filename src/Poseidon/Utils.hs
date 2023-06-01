@@ -20,8 +20,7 @@ module Poseidon.Utils (
     logWithEnv,
     padRight, padLeft,
     determinePackageOutName,
-    PlinkPopNameMode(..),
-    extendNameWithVersion
+    PlinkPopNameMode(..)
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -41,7 +40,7 @@ import           Data.Digest.Pure.MD5   (md5)
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
-import           Data.Version           (Version, showVersion)
+import           Data.Version           (showVersion)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           Network.HTTP.Conduit   (HttpException)
@@ -268,8 +267,3 @@ determinePackageOutName maybeOutName outPath = do
             Nothing -> case takeBaseName outPath of -- check if outPath is empty
                 "" -> throwIO PoseidonEmptyOutPacNameException
                 y  -> return y
-
-extendNameWithVersion :: String -> Maybe Version -> String
-extendNameWithVersion pacName maybePacVersion = case maybePacVersion of
-    Nothing -> pacName
-    Just v  -> pacName ++ "-" ++ showVersion v

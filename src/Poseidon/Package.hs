@@ -43,7 +43,9 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
                                              ExtendedIndividualInfo (..),
                                              GroupInfo (..),
+                                             HasNameAndVersion (..),
                                              IndividualInfo (..), ORCID (..),
+                                             PacNameAndVersion (PacNameAndVersion),
                                              PackageInfo (..))
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
@@ -216,6 +218,10 @@ data PoseidonPackage = PoseidonPackage
 
 instance Ord PoseidonPackage where
     compare = comparing posPacTitle <> comparing posPacPackageVersion
+
+instance HasNameAndVersion PoseidonPackage where
+    getPacName = posPacTitle
+    getPacVersion = posPacPackageVersion
 
 data PackageReadOptions = PackageReadOptions
     { _readOptStopOnDuplicates     :: Bool
@@ -807,7 +813,7 @@ getAllGroupInfo packages = do
             let groups = getJannoList . jGroupName $ jannoRow
                 pacName = posPacTitle pac
                 pacVersion = posPacPackageVersion pac
-            [(g, (pacName, pacVersion)) | g <- groups]
+            [(g, PacNameAndVersion (pacName, pacVersion)) | g <- groups]
     group_ <- group . sortOn fst $ individualInfoUnnested
     let groupName     = head . map fst $ group_
         groupPacs     = nub . map snd $ group_
