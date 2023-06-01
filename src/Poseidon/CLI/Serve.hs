@@ -72,6 +72,7 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
         }
 
     logInfo "Server starting up. Loading packages..."
+    logInfo $ "Serving from trident version " ++ showVersion version
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
 
     zipDict <- case maybeZipPath of
