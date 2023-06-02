@@ -55,7 +55,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             packageInfo <- case repoLocation of
                 RepoRemote remoteURL -> do
                     logInfo "Downloading package data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/packages?client_version=" ++ showVersion version)
+                    apiReturn <- processApiResponse (remoteURL ++ "/packages?client_version=" ++ showVersion version) False
                     case apiReturn of
                         ApiReturnPackageInfo pacInfo -> return pacInfo
                         _ -> error "should not happen"
@@ -70,7 +70,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             groupInfo <- case repoLocation of
                 RepoRemote remoteURL -> do
                     logInfo "Downloading group data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/groups?client_version=" ++ showVersion version)
+                    apiReturn <- processApiResponse (remoteURL ++ "/groups?client_version=" ++ showVersion version) False
                     case apiReturn of
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
@@ -85,7 +85,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             extIndInfo <- case repoLocation of
                 RepoRemote remoteURL -> do
                     logInfo "Downloading individual data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/individuals?client_version=" ++ showVersion version ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns)
+                    apiReturn <- processApiResponse (remoteURL ++ "/individuals?client_version=" ++ showVersion version ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo extIndInfo -> return extIndInfo
                         _ -> error "should not happen"

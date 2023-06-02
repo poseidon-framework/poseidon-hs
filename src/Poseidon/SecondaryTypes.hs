@@ -204,13 +204,13 @@ instance FromJSON ApiReturnData where
             "ApiReturnJanno" -> ApiReturnJanno <$> v .: "janno"
             _ -> error $ "cannot parse ApiReturnType with constructor " ++ constr
 
-processApiResponse :: String -> PoseidonIO ApiReturnData
-processApiResponse url = do
+processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData
+processApiResponse url quiet = do
     remoteData <- liftIO $ catch (simpleHttp url) (throwIO . PoseidonHttpExceptionForward)
     ServerApiReturnType messages maybeReturn <- case eitherDecode' remoteData of
         Left err  -> liftIO . throwIO $ PoseidonRemoteJSONParsingException err
         Right sam -> return sam
-    unless (null messages) $
+    unless (null messages || quiet) $
         forM_ messages (\msg -> logInfo $ "Message from the Server: " ++ msg)
     case maybeReturn of
         Just apiReturn -> return apiReturn
