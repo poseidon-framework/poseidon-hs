@@ -104,7 +104,7 @@ data PackageInfo = PackageInfo
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
-    }
+    } deriving (Eq)
 
 instance HasNameAndVersion PackageInfo where
     getPacName = pTitle

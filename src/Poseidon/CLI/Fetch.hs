@@ -34,6 +34,7 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
+import           Data.List               (nub, groupBy, sortBy)
 import           Data.Maybe              (fromMaybe)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
@@ -106,7 +107,11 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL) = do
         let desiredPacTitles =
                 if null entities then remotePacTitles else indInfoFindRelevantPackageNames entities remoteIndList
 
-        let desiredRemotePackages = filter (\x -> pTitle x `elem` desiredPacTitles) remotePacList
+        let desiredRemotePackages =
+                map last . 
+                groupBy (\x y -> pTitle x == pTitle y) .
+                sortBy (\x y -> compare (pTitle x, pVersion x) (pTitle y, pVersion y)) .
+                filter (\x -> pTitle x `elem` desiredPacTitles) $ remotePacList
 
         logInfo $ show (length desiredPacTitles) ++ " requested"
         unless (null desiredRemotePackages) $ do
@@ -156,7 +161,7 @@ handlePackageByState downloadDir tempDir remote (NotLocal, pac, remoteV, _) = do
     downloadAndUnzipPackage downloadDir tempDir remote (PacNameAndVersion (pac, remoteV))
 handlePackageByState _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
     logInfo $ padRight 40 pac ++
-        " local " ++ printV localV ++ " = remote " ++ printV remoteV
+        " local " ++ printV localV ++ " = remote " ++ printV remoteV ++ " (will not download)"
 handlePackageByState downloadDir tempDir remote (LaterRemote, pac, remoteV, localV) = do
     logInfo $ padRight 40 pac ++
         " local " ++ printV localV ++ " < remote " ++ printV remoteV ++
