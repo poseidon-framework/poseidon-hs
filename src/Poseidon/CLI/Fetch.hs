@@ -34,7 +34,7 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Char8   as B8 (unpack)
 import qualified Data.ByteString.Lazy    as LB
 import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
-import           Data.List               (nub, groupBy, sortBy)
+import           Data.List               (groupBy, nub, sortBy)
 import           Data.Maybe              (fromMaybe)
 import           Data.Version            (Version, showVersion)
 import           Network.HTTP.Conduit    (http, newManager, parseRequest,
@@ -108,7 +108,7 @@ runFetch (FetchOptions baseDirs entityInputs remoteURL) = do
                 if null entities then remotePacTitles else indInfoFindRelevantPackageNames entities remoteIndList
 
         let desiredRemotePackages =
-                map last . 
+                map last .
                 groupBy (\x y -> pTitle x == pTitle y) .
                 sortBy (\x y -> compare (pTitle x, pVersion x) (pTitle y, pVersion y)) .
                 filter (\x -> pTitle x `elem` desiredPacTitles) $ remotePacList
