@@ -12,6 +12,8 @@ import           Poseidon.CLI.Init                       (InitOptions (..),
 import           Poseidon.CLI.List                       (ListOptions (..),
                                                           runList)
 import           Poseidon.CLI.OptparseApplicativeParsers
+import           Poseidon.CLI.Serve                      (ServeOptions (..),
+                                                          runServerMainThread)
 import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),
@@ -56,6 +58,7 @@ data Subcommand =
     | CmdSurvey SurveyOptions
     | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
+    | CmdServe ServeOptions
 
 main :: IO ()
 main = do
@@ -85,6 +88,7 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
+    CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*>
@@ -120,6 +124,10 @@ subcommandParser = OP.subparser (
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
+    ) <|>
+    OP.subparser (
+        OP.command "serve" serveOptInfo <>
+        OP.commandGroup "Poseidon HTTP Server" <> OP.internal
     )
   where
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
@@ -148,6 +156,8 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
+    serveOptInfo    = OP.info (OP.helper <*> (CmdServe <$> serveOptParser))
+        (OP.progDesc "Serve Poseidon packages via HTTP or HTTPS")
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeDataset
@@ -159,13 +169,11 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
-                            <*> parseIgnoreGeno
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
                               <*> parseRemoteURL
-                              <*> parseUpgrade
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
@@ -213,3 +221,10 @@ validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseFullGeno
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates
+
+serveOptParser :: OP.Parser ServeOptions
+serveOptParser = ServeOptions <$> parseBasePaths
+                                    <*> parseMaybeZipDir
+                                    <*> parsePort
+                                    <*> parseIgnoreChecksums
+                                    <*> parseMaybeCertFiles

@@ -2,36 +2,33 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Janno         (JannoList (..), JannoRow (..),
-                                         JannoRows (..))
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
-                                         logInfo, logWarning)
+import           Poseidon.Package        (PackageReadOptions (..),
+                                          defaultPackageReadOptions,
+                                          getAllGroupInfo,
+                                          getExtendedIndividualInfo,
+                                          packageToPackageInfo,
+                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes (ApiReturnData (..),
+                                          ExtendedIndividualInfo (ExtendedIndividualInfo),
+                                          GroupInfo (..),
+                                          PacNameAndVersion (PacNameAndVersion),
+                                          PackageInfo (..), processApiResponse)
+import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
 
-import           Control.Exception      (throwIO)
-import           Control.Monad          (forM, unless)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Aeson             (eitherDecode')
-import qualified Data.ByteString.Char8  as Bchs
-import qualified Data.ByteString.Lazy   as LB
-import qualified Data.Csv               as Csv
-import qualified Data.HashMap.Strict    as HM
-import           Data.List              (group, intercalate, sortOn, (\\))
-import qualified Data.Text              as T
-import qualified Data.Text.Encoding     as T
-import           Network.HTTP.Conduit   (simpleHttp)
-import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
-                                         rowsG, tableString, titlesH)
+import           Control.Monad           (forM_, when)
+import           Control.Monad.IO.Class  (liftIO)
+import           Data.List               (intercalate, sortOn)
+import           Data.Maybe              (catMaybes, fromMaybe)
+import           Data.Version            (Version, showVersion)
+import           Paths_poseidon_hs       (version)
+import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
+                                          rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions
     { _listRepoLocation :: RepoLocationSpec -- ^ the list of base directories to search for packages
     , _listListEntity   :: ListEntity -- ^ what to list
     , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
-    , _listIgnoreGeno   :: Bool
     }
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
@@ -46,80 +43,73 @@ pacReadOpts = defaultPackageReadOptions {
       _readOptStopOnDuplicates = False
     , _readOptIgnoreChecksums  = True
     , _readOptGenoCheck        = False
+    , _readOptKeepMultipleVersions = True
+    , _readOptIgnoreGeno = True
 }
 
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonIO ()
-runList (ListOptions repoLocation listEntity rawOutput ignoreGeno) = do
-
-    allSampleInfo <- case repoLocation of
-        RepoRemote remoteURL -> do
-            -- load remote samples list
-            logInfo "Downloading sample list from remote"
-            remoteOverviewJSONByteString <- simpleHttp (remoteURL ++ "/janno_all")
-            liftIO $ readSampleInfo remoteOverviewJSONByteString
-        RepoLocal baseDirs -> do
-            allPackages <- readPoseidonPackageCollection pacReadOpts {_readOptIgnoreGeno = ignoreGeno} baseDirs
-            return [(posPacTitle pac, posPacJanno pac) | pac <- allPackages]
-    -- construct output
-    logInfo "Preparing output table"
+runList (ListOptions repoLocation listEntity rawOutput) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
-            let tableH = ["Title", "Nr Individuals"]
-                tableB = [[name, show (length rows)] | (name, JannoRows rows) <- sortOn fst allSampleInfo]
-            logInfo $ "found " ++ show (length tableB) ++ " packages"
+            packageInfo <- case repoLocation of
+                RepoRemote remoteURL -> do
+                    logInfo "Downloading package data from server"
+                    apiReturn <- processApiResponse (remoteURL ++ "/packages?client_version=" ++ showVersion version) False
+                    case apiReturn of
+                        ApiReturnPackageInfo pacInfo -> return pacInfo
+                        _ -> error "should not happen"
+                RepoLocal baseDirs ->
+                    map packageToPackageInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
+            let tableH = ["Package", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
+                tableB = sortOn head $ do
+                    PackageInfo t v pv d l i <- packageInfo
+                    return [t, showMaybe (showVersion <$> v), showVersion pv, showMaybe d, showMaybe (show <$> l), show i]
             return (tableH, tableB)
         ListGroups -> do
-            let tableH = ["Group", "Packages", "Nr Individuals"]
-                pacJannoPairs = do
-                    (pacName, (JannoRows rows)) <- allSampleInfo
-                    row <- rows
-                    return (pacName, row)
+            groupInfo <- case repoLocation of
+                RepoRemote remoteURL -> do
+                    logInfo "Downloading group data from server"
+                    apiReturn <- processApiResponse (remoteURL ++ "/groups?client_version=" ++ showVersion version) False
+                    case apiReturn of
+                        ApiReturnGroupInfo groupInfo -> return groupInfo
+                        _ -> error "should not happen"
+                RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
+            let tableH = ["Group", "Package", "Package Version", "Nr Individuals"]
                 tableB = do
-                    let pacGroupPairsForIndividuals = unnestGroupNames pacJannoPairs
-                    oneGroup <- group $ sortOn snd pacGroupPairsForIndividuals
-                    let groupName = head $ map snd oneGroup
-                        groupPacs = head $ map fst oneGroup
-                        groupNrInds = show (length oneGroup)
-                    return [groupName, groupPacs, groupNrInds]
-            logInfo $ "found " ++ show (length tableB) ++ " groups/populations"
+                    GroupInfo groupName (PacNameAndVersion (pacName, pacVersion)) nrInds <- groupInfo
+                    return [groupName, pacName, showMaybeVersion pacVersion, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
-            -- warning in case -j does not exist in the entire janno dataset
-            let (JannoRows allJannoRows) = mconcat $ map snd allSampleInfo
-            unless (null allJannoRows) $ do
-                let allAvailableCols = HM.keys $ Csv.toNamedRecord $ head allJannoRows
-                    requestedCols = map Bchs.pack moreJannoColumns
-                    unknownCols = requestedCols \\ allAvailableCols
-                mapM_ (\x -> logWarning $ "The column requested with -j does not exist: " ++ Bchs.unpack x) unknownCols
-            -- construct table
-            let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
-            tableB <- fmap concat . forM allSampleInfo $ \(pacName, JannoRows rows) ->
-                forM rows (\row -> do
-                    let moreFields = extractAdditionalFields row moreJannoColumns
-                    return ([pacName, jPoseidonID row, head . getJannoList . jGroupName $ row] ++ moreFields))
-            logInfo $ "found " ++ show (length tableB) ++ " individuals/samples"
+            extIndInfo <- case repoLocation of
+                RepoRemote remoteURL -> do
+                    logInfo "Downloading individual data from server"
+                    apiReturn <- processApiResponse (remoteURL ++ "/individuals?client_version=" ++ showVersion version ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
+                    case apiReturn of
+                        ApiReturnExtIndividualInfo extIndInfo -> return extIndInfo
+                        _ -> error "should not happen"
+                RepoLocal baseDirs -> do
+                    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    return $ getExtendedIndividualInfo allPackages moreJannoColumns
+
+            -- warning in case the additional Columns do not exist in the entire janno dataset
+            forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
+                -- check entries in all individuals for that key
+                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfo]
+                when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
+
+            let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns
+                tableB = do
+                    (ExtendedIndividualInfo name groups pacName pacVersion addColumnEntries) <- extIndInfo
+                    return $ [name, intercalate ", " groups, pacName, showMaybeVersion pacVersion] ++ map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
         let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
         liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
-
-unnestGroupNames :: [(String, JannoRow)] -> [(String, String)]
-unnestGroupNames = concatMap unnestOne
-    where
-        unnestOne :: (String, JannoRow) -> [(String, String)]
-        unnestOne (pac, jR) =
-            let groups = getJannoList . jGroupName $ jR
-            in zip (repeat pac) groups
-
-readSampleInfo :: LB.ByteString -> IO [(String, JannoRows)]
-readSampleInfo bs = do
-    case eitherDecode' bs of
-        Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
-        Right sam -> return sam
-
-extractAdditionalFields :: JannoRow -> [String] -> [String]
-extractAdditionalFields jannoRow =
-    map (\j -> T.unpack $ T.decodeUtf8 $ HM.findWithDefault "" (Bchs.pack j) (Csv.toNamedRecord jannoRow))
+  where
+    showMaybe :: Maybe String -> String
+    showMaybe = fromMaybe "n/a"
+    showMaybeVersion :: Maybe Version -> String
+    showMaybeVersion = maybe "n/a" showVersion

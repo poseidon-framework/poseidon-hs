@@ -43,6 +43,7 @@ import           Data.Time              (defaultTimeLocale, formatTime,
 import           Data.Version           (showVersion)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
+import           Network.HTTP.Conduit   (HttpException)
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
@@ -146,6 +147,7 @@ data PoseidonException =
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
     | PoseidonGenotypeExceptionForward SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
+    | PoseidonHttpExceptionForward HttpException -- ^ An exception to represent errors in the remote data loading forwarded from simpleHttp
     | PoseidonFileRowException FilePath Int String -- ^ An exception to represent errors when trying to parse the janno or seqSource file
     | PoseidonFileConsistencyException FilePath String -- ^ An exception to represent consistency errors in janno or seqSource files
     | PoseidonCrossFileConsistencyException String String -- ^ An exception to represent inconsistencies across multiple files in a package
@@ -162,6 +164,7 @@ data PoseidonException =
     | PoseidonGenericException String -- ^ A catch-all for any other type of exception
     | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
     | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
+    | PoseidonServerCommunicationException String -- ^ An exception to mark server communication errors
     deriving (Show)
 
 instance Exception PoseidonException
@@ -185,6 +188,8 @@ renderPoseidonException (PoseidonGenotypeException s) =
     "Genotype data structurally inconsistent: " ++ show s
 renderPoseidonException (PoseidonGenotypeExceptionForward e) =
     "Issues in genotype data parsing: " ++ show e
+renderPoseidonException (PoseidonHttpExceptionForward e) =
+    "Issues in HTTP-communication with server: " ++ show e
 renderPoseidonException (PoseidonFileRowException f i s) =
     "Can't read sample in " ++ f ++ " in line " ++ show i ++ ": " ++ s
 renderPoseidonException (PoseidonFileConsistencyException f s) =
@@ -219,6 +224,7 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
     ++ " --genoFile: " ++ g
     ++ " --snpFile: "  ++ s
     ++ " --indFile: "  ++ i
+renderPoseidonException (PoseidonServerCommunicationException e) = e
 
 -- helper function to check if a file exists
 checkFile :: FilePath -> Maybe String -> IO ()

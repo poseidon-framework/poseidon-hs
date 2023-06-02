@@ -2,7 +2,8 @@ module Poseidon.PoseidonVersion (
     validPoseidonVersions,
     showPoseidonVersion,
     latestPoseidonVersion,
-    asVersion
+    asVersion,
+    minimalRequiredClientVersion
 ) where
 
 import           Data.Version (Version (..), makeVersion, showVersion)
@@ -21,3 +22,7 @@ asVersion (PoseidonVersion x) = x
 
 showPoseidonVersion :: PoseidonVersion -> String
 showPoseidonVersion (PoseidonVersion x) = showVersion x
+
+-- this is for the server
+minimalRequiredClientVersion :: Version
+minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]

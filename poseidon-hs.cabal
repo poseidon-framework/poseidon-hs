@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.1.12.0
+version:             1.2.0.0
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -16,7 +16,7 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes,
                         Poseidon.PoseidonVersion,
-                        Poseidon.CLI.List, 
+                        Poseidon.CLI.List, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
@@ -25,8 +25,8 @@ library
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
-                        vector, pipes-ordered-zip, table-layout, mtl,
-                        cassava, pureMD5,
+                        vector, pipes-ordered-zip, table-layout, mtl, split, warp, warp-tls, wai-cors,
+                        scotty, cassava, pureMD5,
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
                         scientific, country, generics-sop
@@ -37,14 +37,6 @@ executable trident
     hs-source-dirs:     src-executables
     build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats>=1.6.1, bytestring,
                         filepath, co-log
-    other-modules:      Paths_poseidon_hs
-    default-language:   Haskell2010
-
-executable poseidon-http-server
-    main-is:            Main-server.hs
-    hs-source-dirs:     src-executables
-    build-depends:      base, poseidon-hs, optparse-applicative, scotty, text, aeson, time, zip-archive,
-                        bytestring, filepath, directory, time, wai-cors, warp, warp-tls, sequence-formats
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
 
