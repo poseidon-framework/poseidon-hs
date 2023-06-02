@@ -127,7 +127,7 @@ subcommandParser = OP.subparser (
     ) <|>
     OP.subparser (
         OP.command "serve" serveOptInfo <>
-        OP.commandGroup "Poseidon HTTP Server"
+        OP.commandGroup "Poseidon HTTP Server" <> OP.internal
     )
   where
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
