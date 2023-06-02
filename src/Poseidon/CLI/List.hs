@@ -10,16 +10,16 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                          GroupInfo (..), PackageInfo (..),
-                                          makeNameWithVersion,
-                                          processApiResponse)
+                                          GroupInfo (..),
+                                          PacNameAndVersion (PacNameAndVersion),
+                                          PackageInfo (..), processApiResponse)
 import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad           (forM_, when)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (intercalate, sortOn)
 import           Data.Maybe              (catMaybes, fromMaybe)
-import           Data.Version            (showVersion)
+import           Data.Version            (Version, showVersion)
 import           Paths_poseidon_hs       (version)
 import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
                                           rowsG, tableString, titlesH)
@@ -61,7 +61,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                         _ -> error "should not happen"
                 RepoLocal baseDirs ->
                     map packageToPackageInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
-            let tableH = ["Title", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
+            let tableH = ["Package", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
                 tableB = sortOn head $ do
                     PackageInfo t v pv d l i <- packageInfo
                     return [t, showMaybe (showVersion <$> v), showVersion pv, showMaybe d, showMaybe (show <$> l), show i]
@@ -75,11 +75,10 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
-            let tableH = ["Group", "Packages", "Nr Individuals"]
+            let tableH = ["Group", "Package", "Package Version", "Nr Individuals"]
                 tableB = do
-                    GroupInfo groupName pacsAndVersions nrInds <- groupInfo
-                    let pacString = intercalate ", " $ map makeNameWithVersion pacsAndVersions
-                    return [groupName, pacString, show nrInds]
+                    GroupInfo groupName (PacNameAndVersion (pacName, pacVersion)) nrInds <- groupInfo
+                    return [groupName, pacName, showMaybeVersion pacVersion, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             extIndInfo <- case repoLocation of
@@ -99,11 +98,10 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfo]
                 when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
-            let tableH = ["Package", "Individual", "Group"] ++ moreJannoColumns
+            let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns
                 tableB = do
-                    e@(ExtendedIndividualInfo name groups _ _ addColumnEntries) <- extIndInfo
-                    let pacString = makeNameWithVersion e
-                    return $ [pacString, name, intercalate ", " groups] ++ map (fromMaybe "n/a" . snd) addColumnEntries
+                    (ExtendedIndividualInfo name groups pacName pacVersion addColumnEntries) <- extIndInfo
+                    return $ [name, intercalate ", " groups, pacName, showMaybeVersion pacVersion] ++ map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
@@ -113,3 +111,5 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
   where
     showMaybe :: Maybe String -> String
     showMaybe = fromMaybe "n/a"
+    showMaybeVersion :: Maybe Version -> String
+    showMaybeVersion = maybe "n/a" showVersion

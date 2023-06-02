@@ -52,7 +52,7 @@ makeNameWithVersion a = case getPacVersion a of
     Nothing -> getPacName a
     Just v  -> getPacName a ++ "-" ++ showVersion v
 
-newtype PacNameAndVersion = PacNameAndVersion (String, Maybe Version) deriving (Eq)
+newtype PacNameAndVersion = PacNameAndVersion (String, Maybe Version) deriving (Eq, Ord)
 
 instance HasNameAndVersion PacNameAndVersion where
     getPacName (PacNameAndVersion (n, _)) = n
@@ -132,7 +132,7 @@ instance FromJSON PackageInfo where
 
 data GroupInfo = GroupInfo
     { gName          :: String
-    , gPackageNames  :: [PacNameAndVersion]
+    , gPackageNames  :: PacNameAndVersion
     , gNrIndividuals :: Int
     }
 
@@ -140,14 +140,14 @@ instance ToJSON GroupInfo where
     toJSON (GroupInfo name pacNames nrIndividuals) =
         object [
             "groupName" .= name,
-            "packageNames" .= pacNames,
+            "packageName" .= pacNames,
             "nrIndividuals" .= nrIndividuals
         ]
 
 instance FromJSON GroupInfo where
     parseJSON = withObject "GroupInfo" $ \v -> GroupInfo
             <$> v .: "groupName"
-            <*> v .: "packageNames"
+            <*> v .: "packageName"
             <*> v .: "nrIndividuals"
 
 data ServerApiReturnType = ServerApiReturnType {
