@@ -1,3 +1,22 @@
+### V 1.2.0.0
+
+This release comes with a massive rewrite of the server-client infrastructure, so the code behind the API to download and list packages from our public data archives.
+
+The server is now implemented as a (hidden) subcommand of trident: `serve`. It returns helpful error messages, if an incompatible version of trident tries to connect to it. And it is now capable of serving multiple (so not just the latest, but also older) versions of one package, which is an important step towards computational reproducibility of Poseidon-based pipelines.
+
+The new API interface looks like this:
+
+...
+
+The client subcommands `fetch` and `list` can not yet make full use of this new API in this release, because they lack an interface to request specific package versions. This will be added in a future release. But the output of both subcommands already differs from the previous implementation:
+
+- `fetch` now appends the package version to the directory name when downloading a package. Previously `trident fetch -d . -f "*2010_RasmussenNature*"` yielded a directory named `2010_RasmussenNature` with the package data, but now it creates `2010_RasmussenNature-2.0.1` (or whatever is the latest version of this package in the archive).
+- `list` lists not just data (package, groups, individuals) for the latest version of a package, but for all versions. The package version became an explicit output column.
+
+As before, `forge` and the other subcommands keep ignoring multiple package versions for now, and only read the latest.
+
+The new server is available at a new URL (https://server.poseidon-adna.org), but the old version at (https://c107-224.cloud.gwdg.de) will also keep running for now. New releases of trident (v1.2.0.0+) will by default use the new server, while older versions must connect to the old one.
+
 ### V 1.1.12.0
 
 This release implements the changes necessary for the Poseidon schema v2.7.1. That mostly means that the constraints on several .ssf file columns previously considered mandatory and unique were lifted.
