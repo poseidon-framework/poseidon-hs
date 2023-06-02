@@ -814,9 +814,9 @@ getAllGroupInfo packages = do
                 pacName = posPacTitle pac
                 pacVersion = posPacPackageVersion pac
             [(g, PacNameAndVersion (pacName, pacVersion)) | g <- groups]
-    group_ <- group . sortOn fst $ individualInfoUnnested
+    group_ <- group . sort $ individualInfoUnnested
     let groupName     = head . map fst $ group_
-        groupPacs     = nub . map snd $ group_
+        groupPacs     = head . map snd $ group_
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
