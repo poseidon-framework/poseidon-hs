@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.1.12.0
+@version 1.2.0.0
 
 module Poseidon.MathHelpers
 
@@ -38,91 +38,10 @@ validPoseidonVersions :: [PoseidonVersion]
 showPoseidonVersion :: PoseidonVersion -> String
 latestPoseidonVersion :: PoseidonVersion
 asVersion :: PoseidonVersion -> Version
+minimalRequiredClientVersion :: Version
 instance GHC.Classes.Ord Poseidon.PoseidonVersion.PoseidonVersion
 instance GHC.Classes.Eq Poseidon.PoseidonVersion.PoseidonVersion
 instance GHC.Show.Show Poseidon.PoseidonVersion.PoseidonVersion
-
-module Poseidon.SecondaryTypes
-poseidonVersionParser :: Parser Version
-
--- | A data type to represent a contributor
-data ContributorSpec
-ContributorSpec :: String -> String -> Maybe ORCID -> ContributorSpec
-
--- | the name of a contributor
-[contributorName] :: ContributorSpec -> String
-
--- | the email address of a contributor
-[contributorEmail] :: ContributorSpec -> String
-
--- | the ORCID of a contributor
-[contributorORCID] :: ContributorSpec -> Maybe ORCID
-contributorSpecParser :: Parser [ContributorSpec]
-data IndividualInfo
-IndividualInfo :: String -> [String] -> String -> IndividualInfo
-[indInfoName] :: IndividualInfo -> String
-[indInfoGroups] :: IndividualInfo -> [String]
-[indInfoPacName] :: IndividualInfo -> String
-data GroupInfo
-GroupInfo :: String -> [String] -> Int -> GroupInfo
-[gName] :: GroupInfo -> String
-[gPackageNames] :: GroupInfo -> [String]
-[gNrIndividuals] :: GroupInfo -> Int
-data VersionComponent
-Major :: VersionComponent
-Minor :: VersionComponent
-Patch :: VersionComponent
-
--- | Minimal package representation on Poseidon servers
-data PackageInfo
-PackageInfo :: String -> Maybe Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
-[pTitle] :: PackageInfo -> String
-[pVersion] :: PackageInfo -> Maybe Version
-[pDescription] :: PackageInfo -> Maybe String
-[pLastModified] :: PackageInfo -> Maybe Day
-[pNrIndividuals] :: PackageInfo -> Int
-
--- | The most general way to run a parser over the Identity monad.
---   <tt>runParser p state filePath input</tt> runs parser <tt>p</tt> on
---   the input list of tokens <tt>input</tt>, obtained from source
---   <tt>filePath</tt> with the initial user state <tt>st</tt>. The
---   <tt>filePath</tt> is only used in error messages and may be the empty
---   string. Returns either a <a>ParseError</a> (<a>Left</a>) or a value of
---   type <tt>a</tt> (<a>Right</a>).
---   
---   <pre>
---   parseFromFile p fname
---     = do{ input &lt;- readFile fname
---         ; return (runParser p () fname input)
---         }
---   </pre>
-runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Either ParseError a
-
--- | A data type to represent an ORCID see
---   <a>https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier</a>
-data ORCID
-ORCID :: [Char] -> Char -> ORCID
-[_orcidNums] :: ORCID -> [Char]
-[_orcidChecksum] :: ORCID -> Char
-instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
-instance GHC.Classes.Ord Poseidon.SecondaryTypes.IndividualInfo
-instance GHC.Show.Show Poseidon.SecondaryTypes.IndividualInfo
-instance GHC.Show.Show Poseidon.SecondaryTypes.PackageInfo
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.ORCID
-instance GHC.Show.Show Poseidon.SecondaryTypes.ORCID
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.ContributorSpec
-instance GHC.Show.Show Poseidon.SecondaryTypes.ContributorSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ContributorSpec
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ContributorSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ORCID
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ORCID
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.GroupInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.GroupInfo
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PackageInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PackageInfo
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.IndividualInfo
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.IndividualInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.IndividualInfo
 
 module Poseidon.Utils
 
@@ -151,6 +70,10 @@ PoseidonGenotypeException :: String -> PoseidonException
 -- | An exception to represent errors in the genotype data forwarded from
 --   the sequence-formats library
 PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
+
+-- | An exception to represent errors in the remote data loading forwarded
+--   from simpleHttp
+PoseidonHttpExceptionForward :: HttpException -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the janno or
 --   seqSource file
@@ -204,6 +127,9 @@ PoseidonEmptyOutPacNameException :: PoseidonException
 -- | An exception to throw if genotype data files don't share a common base
 --   directory
 PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
+
+-- | An exception to mark server communication errors
+PoseidonServerCommunicationException :: String -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
@@ -728,6 +654,123 @@ instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFUDG
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SSFUDG
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SSFUDG
 
+module Poseidon.SecondaryTypes
+poseidonVersionParser :: Parser Version
+
+-- | A data type to represent a contributor
+data ContributorSpec
+ContributorSpec :: String -> String -> Maybe ORCID -> ContributorSpec
+
+-- | the name of a contributor
+[contributorName] :: ContributorSpec -> String
+
+-- | the email address of a contributor
+[contributorEmail] :: ContributorSpec -> String
+
+-- | the ORCID of a contributor
+[contributorORCID] :: ContributorSpec -> Maybe ORCID
+contributorSpecParser :: Parser [ContributorSpec]
+data IndividualInfo
+IndividualInfo :: String -> [String] -> String -> IndividualInfo
+[indInfoName] :: IndividualInfo -> String
+[indInfoGroups] :: IndividualInfo -> [String]
+[indInfoPacName] :: IndividualInfo -> String
+data GroupInfo
+GroupInfo :: String -> PacNameAndVersion -> Int -> GroupInfo
+[gName] :: GroupInfo -> String
+[gPackageNames] :: GroupInfo -> PacNameAndVersion
+[gNrIndividuals] :: GroupInfo -> Int
+data VersionComponent
+Major :: VersionComponent
+Minor :: VersionComponent
+Patch :: VersionComponent
+data PackageInfo
+PackageInfo :: String -> Maybe Version -> Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
+[pTitle] :: PackageInfo -> String
+[pVersion] :: PackageInfo -> Maybe Version
+[pPosVersion] :: PackageInfo -> Version
+[pDescription] :: PackageInfo -> Maybe String
+[pLastModified] :: PackageInfo -> Maybe Day
+[pNrIndividuals] :: PackageInfo -> Int
+
+-- | The most general way to run a parser over the Identity monad.
+--   <tt>runParser p state filePath input</tt> runs parser <tt>p</tt> on
+--   the input list of tokens <tt>input</tt>, obtained from source
+--   <tt>filePath</tt> with the initial user state <tt>st</tt>. The
+--   <tt>filePath</tt> is only used in error messages and may be the empty
+--   string. Returns either a <a>ParseError</a> (<a>Left</a>) or a value of
+--   type <tt>a</tt> (<a>Right</a>).
+--   
+--   <pre>
+--   parseFromFile p fname
+--     = do{ input &lt;- readFile fname
+--         ; return (runParser p () fname input)
+--         }
+--   </pre>
+runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Either ParseError a
+
+-- | A data type to represent an ORCID see
+--   <a>https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier</a>
+data ORCID
+ORCID :: [Char] -> Char -> ORCID
+[_orcidNums] :: ORCID -> [Char]
+[_orcidChecksum] :: ORCID -> Char
+data ServerApiReturnType
+ServerApiReturnType :: [String] -> Maybe ApiReturnData -> ServerApiReturnType
+[_apiMessages] :: ServerApiReturnType -> [String]
+[_apiResponse] :: ServerApiReturnType -> Maybe ApiReturnData
+data ApiReturnData
+ApiReturnPackageInfo :: [PackageInfo] -> ApiReturnData
+ApiReturnGroupInfo :: [GroupInfo] -> ApiReturnData
+ApiReturnExtIndividualInfo :: [ExtendedIndividualInfo] -> ApiReturnData
+ApiReturnJanno :: [(String, JannoRows)] -> ApiReturnData
+data ExtendedIndividualInfo
+ExtendedIndividualInfo :: String -> [String] -> String -> Maybe Version -> [(String, Maybe String)] -> ExtendedIndividualInfo
+[extIndInfoName] :: ExtendedIndividualInfo -> String
+[extIndInfoGroups] :: ExtendedIndividualInfo -> [String]
+[extIndInfoPacName] :: ExtendedIndividualInfo -> String
+[extIndInfoVersion] :: ExtendedIndividualInfo -> Maybe Version
+[extIndInfoAddCols] :: ExtendedIndividualInfo -> [(String, Maybe String)]
+processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData
+makeNameWithVersion :: HasNameAndVersion a => a -> String
+class HasNameAndVersion a
+getPacName :: HasNameAndVersion a => a -> String
+getPacVersion :: HasNameAndVersion a => a -> Maybe Version
+newtype PacNameAndVersion
+PacNameAndVersion :: (String, Maybe Version) -> PacNameAndVersion
+instance GHC.Classes.Ord Poseidon.SecondaryTypes.PacNameAndVersion
+instance GHC.Classes.Eq Poseidon.SecondaryTypes.PacNameAndVersion
+instance GHC.Classes.Eq Poseidon.SecondaryTypes.PackageInfo
+instance GHC.Generics.Generic Poseidon.SecondaryTypes.ApiReturnData
+instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
+instance GHC.Generics.Generic Poseidon.SecondaryTypes.IndividualInfo
+instance GHC.Classes.Ord Poseidon.SecondaryTypes.IndividualInfo
+instance GHC.Show.Show Poseidon.SecondaryTypes.IndividualInfo
+instance GHC.Classes.Eq Poseidon.SecondaryTypes.ORCID
+instance GHC.Show.Show Poseidon.SecondaryTypes.ORCID
+instance GHC.Classes.Eq Poseidon.SecondaryTypes.ContributorSpec
+instance GHC.Show.Show Poseidon.SecondaryTypes.ContributorSpec
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ContributorSpec
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ContributorSpec
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ORCID
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ORCID
+instance GHC.Classes.Eq Poseidon.SecondaryTypes.IndividualInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ServerApiReturnType
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ServerApiReturnType
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ApiReturnData
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ApiReturnData
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.GroupInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.GroupInfo
+instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.PackageInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PackageInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PackageInfo
+instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.ExtendedIndividualInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ExtendedIndividualInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ExtendedIndividualInfo
+instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.PacNameAndVersion
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PacNameAndVersion
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PacNameAndVersion
+
 module Poseidon.GenotypeData
 data GenoDataSource
 PacBaseDir :: FilePath -> GenoDataSource
@@ -923,6 +966,10 @@ PoseidonGenotypeException :: String -> PoseidonException
 --   the sequence-formats library
 PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
 
+-- | An exception to represent errors in the remote data loading forwarded
+--   from simpleHttp
+PoseidonHttpExceptionForward :: HttpException -> PoseidonException
+
 -- | An exception to represent errors when trying to parse the janno or
 --   seqSource file
 PoseidonFileRowException :: FilePath -> Int -> String -> PoseidonException
@@ -975,8 +1022,11 @@ PoseidonEmptyOutPacNameException :: PoseidonException
 -- | An exception to throw if genotype data files don't share a common base
 --   directory
 PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonException
+
+-- | An exception to mark server communication errors
+PoseidonServerCommunicationException :: String -> PoseidonException
 data PackageReadOptions
-PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
+PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
 -- | whether to stop on duplicated individuals
 [_readOptStopOnDuplicates] :: PackageReadOptions -> Bool
@@ -997,9 +1047,13 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageRea
 -- | whether to ignore the Poseidon version of an input package.
 [_readOptIgnorePosVersion] :: PackageReadOptions -> Bool
 
+-- | whether to keep multiple versions of the same package (True) or just
+--   the latest one (False)
+[_readOptKeepMultipleVersions] :: PackageReadOptions -> Bool
+
 -- | A helper function to detect packages with duplicate names and select
 --   the most up-to-date ones.
-filterDuplicatePackages :: MonadThrow m => [PoseidonPackage] -> m [PoseidonPackage]
+filterDuplicatePackages :: MonadThrow m => Bool -> [PoseidonPackage] -> m [PoseidonPackage]
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 
 -- | a utility function to load all poseidon packages found recursively in
@@ -1031,12 +1085,17 @@ defaultPackageReadOptions :: PackageReadOptions
 readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonIO PoseidonPackage
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
+packageToPackageInfo :: PoseidonPackage -> PackageInfo
+getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
+getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
 instance GHC.Generics.Generic Poseidon.Package.PoseidonPackage
 instance GHC.Classes.Eq Poseidon.Package.PoseidonPackage
 instance GHC.Show.Show Poseidon.Package.PoseidonPackage
+instance GHC.Classes.Ord Poseidon.Package.PoseidonPackage
+instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.Package.PoseidonPackage
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PoseidonYamlStruct
 
@@ -1166,6 +1225,18 @@ printFrequencyMaybeString :: String -> [(Maybe String, Int)] -> String
 -- | As maybeShow, but without additional quoting of strings
 maybeShowString :: Maybe String -> String
 
+module Poseidon.CLI.Serve
+runServer :: ServeOptions -> MVar () -> PoseidonIO ()
+runServerMainThread :: ServeOptions -> PoseidonIO ()
+data ServeOptions
+ServeOptions :: [FilePath] -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
+[cliBaseDirs] :: ServeOptions -> [FilePath]
+[cliZipDir] :: ServeOptions -> Maybe FilePath
+[cliPort] :: ServeOptions -> Int
+[cliIgnoreChecksums] :: ServeOptions -> Bool
+[cliCertFiles] :: ServeOptions -> Maybe (FilePath, [FilePath], FilePath)
+instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
+
 module Poseidon.CLI.List
 
 -- | The main function running the list command
@@ -1173,7 +1244,7 @@ runList :: ListOptions -> PoseidonIO ()
 
 -- | A datatype representing command line options for the list command
 data ListOptions
-ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> Bool -> ListOptions
+ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> ListOptions
 
 -- | the list of base directories to search for packages
 [_listRepoLocation] :: ListOptions -> RepoLocationSpec
@@ -1183,7 +1254,6 @@ ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> Bool -> ListOptions
 
 -- | whether to output raw TSV instead of a nicely formatted table
 [_listRawOutput] :: ListOptions -> Bool
-[_listIgnoreGeno] :: ListOptions -> Bool
 
 -- | A datatype to represent the options what to list
 data ListEntity
@@ -1249,6 +1319,13 @@ parseUpgrade :: Parser Bool
 parseInputPlinkPopMode :: Parser PlinkPopNameMode
 parseOutputPlinkPopMode :: Parser PlinkPopNameMode
 readPlinkPopName :: String -> Either String PlinkPopNameMode
+parseMaybeZipDir :: Parser (Maybe FilePath)
+parsePort :: Parser Int
+parseIgnoreChecksums :: Parser Bool
+parseMaybeCertFiles :: Parser (Maybe (FilePath, [FilePath], FilePath))
+parseKeyFile :: Parser FilePath
+parseChainFile :: Parser FilePath
+parseCertFile :: Parser FilePath
 instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
 
 module Poseidon.CLI.Genoconvert
@@ -1268,11 +1345,10 @@ convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPo
 
 module Poseidon.CLI.Fetch
 data FetchOptions
-FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> String -> Bool -> FetchOptions
+FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> String -> FetchOptions
 [_jaBaseDirs] :: FetchOptions -> [FilePath]
 [_entityInput] :: FetchOptions -> [EntityInput PoseidonEntity]
 [_remoteURL] :: FetchOptions -> String
-[_upgrade] :: FetchOptions -> Bool
 data PackageState
 NotLocal :: PackageState
 EqualLocalRemote :: PackageState
@@ -1282,12 +1358,12 @@ pacReadOpts :: PackageReadOptions
 
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> PoseidonIO ()
-readServerIndInfo :: ByteString -> IO [IndividualInfo]
+readServerIndInfo :: ByteString -> IO [ExtendedIndividualInfo]
 readServerPackageInfo :: ByteString -> IO [PackageInfo]
 determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
-handlePackageByState :: FilePath -> FilePath -> String -> Bool -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
+handlePackageByState :: FilePath -> FilePath -> String -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
 printV :: Maybe Version -> String
-downloadAndUnzipPackage :: FilePath -> FilePath -> String -> String -> PoseidonIO ()
+downloadAndUnzipPackage :: FilePath -> FilePath -> String -> PacNameAndVersion -> PoseidonIO ()
 unzipPackage :: FilePath -> FilePath -> IO ()
 downloadPackage :: FilePath -> String -> String -> PoseidonIO ()
 printDownloadProgress :: LogA -> Double -> ConduitT ByteString ByteString (ResourceT IO) ()
