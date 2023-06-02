@@ -630,7 +630,6 @@ testPipelineFetch testDir checkFilePath = do
           _jaBaseDirs   = [testDir </> "fetch"]
         , _entityInput  = [EntitiesDirect [Pac "Schmid_2028"]]
         , _remoteURL    = "http://localhost:3000"
-        , _upgrade      = True
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
           "fetch" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"

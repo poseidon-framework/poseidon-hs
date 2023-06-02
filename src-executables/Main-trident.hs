@@ -174,7 +174,6 @@ fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
                               <*> parseRemoteURL
-                              <*> parseUpgrade
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
