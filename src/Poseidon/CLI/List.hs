@@ -112,4 +112,4 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
         liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
     showMaybe :: Maybe String -> String
-    showMaybe = maybe "n/a" id
+    showMaybe = fromMaybe "n/a"
