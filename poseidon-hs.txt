@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.0.0
+@version 1.2.0.1
 
 module Poseidon.MathHelpers
 
@@ -130,6 +130,9 @@ PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonE
 
 -- | An exception to mark server communication errors
 PoseidonServerCommunicationException :: String -> PoseidonException
+
+-- | An exception for unzipping issues in fetch
+PoseidonUnzipException :: SomeException -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
@@ -1025,6 +1028,9 @@ PoseidonUnequalBaseDirException :: FilePath -> FilePath -> FilePath -> PoseidonE
 
 -- | An exception to mark server communication errors
 PoseidonServerCommunicationException :: String -> PoseidonException
+
+-- | An exception for unzipping issues in fetch
+PoseidonUnzipException :: SomeException -> PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
