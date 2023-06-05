@@ -26,7 +26,7 @@ import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
 import           Conduit                 (ResourceT, await, runResourceT,
                                           sinkFile, yield)
-import           Control.Exception       (throwIO)
+import           Control.Exception       (catch, throwIO)
 import           Control.Monad           (forM_, unless, when)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Aeson              (eitherDecode')
@@ -188,7 +188,7 @@ unzipPackage :: FilePath -> FilePath -> IO ()
 unzipPackage zip_ outDir = do
     archiveBS <- LB.readFile zip_
     let archive = toArchive archiveBS
-    extractFilesFromArchive [OptRecursive, OptDestination outDir] archive
+    catch (extractFilesFromArchive [OptRecursive, OptDestination outDir] archive) (throwIO . PoseidonUnzipException)
 
 downloadPackage :: FilePath -> String -> String -> PoseidonIO ()
 downloadPackage pathToRepo remote pacName = do
