@@ -14,7 +14,8 @@ import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.SecondaryTypes      (ApiReturnData (..),
                                                ServerApiReturnType (..),
                                                makeNameWithVersion)
-import           Poseidon.Utils               (PoseidonIO, logInfo)
+import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
+                                               logDebug, logInfo, logWithEnv)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -31,6 +32,7 @@ import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
 import           Data.Version                 (Version, parseVersion,
                                                showVersion)
+import           Network.Wai                  (pathInfo, queryString)
 import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
                                                setBeforeMainLoop, setPort)
 import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
@@ -44,8 +46,8 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
-                                               param, raise, rescue, scottyApp,
-                                               text)
+                                               param, raise, request, rescue,
+                                               scottyApp, text)
 data ServeOptions = ServeOptions
     { cliBaseDirs        :: [FilePath]
     , cliZipDir          :: Maybe FilePath
@@ -93,21 +95,26 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
             Nothing                              -> scottyHTTP  serverReady port
             Just (certFile, chainFiles, keyFile) -> scottyHTTPS serverReady port certFile chainFiles keyFile
 
+    logA <- envLogAction
     runScotty $ do
         middleware simpleCors
 
-        get "/server_version" $
+        get "/server_version" $ do
+            logRequest logA
             text . pack . showVersion $ version
 
         get "/packages" . conditionOnClientVersion $ do
+            logRequest logA
             let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
             return $ ServerApiReturnType [] (Just retData)
 
         get "/groups" . conditionOnClientVersion $ do
+            logRequest logA
             let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
             return $ ServerApiReturnType [] (Just retData)
 
         get "/individuals" . conditionOnClientVersion $ do
+            logRequest logA
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
 
             let extIndInfo = case maybeAdditionalColumnsString of
@@ -120,6 +127,7 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
 
         -- API for retreiving package zip files
         unless (null zipDict) . get "/zip_file/:package_name" $ do
+            logRequest logA
             packageName <- param "package_name"
             maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
             maybeVersion <- case maybeVersionString of
@@ -249,3 +257,10 @@ scottyHTTP serverReady port s = do
     liftIO $ do
         app <- scottyApp s
         runSettings settings app
+
+logRequest :: LogA -> ActionM ()
+logRequest logA = do
+    req <- request
+    let p = pathInfo req
+        q = queryString req
+    liftIO . logWithEnv logA . logDebug $ "Request: Path=" ++ show p ++ ", qstring=" ++ show q
