@@ -108,7 +108,7 @@ compileLogMsg severity time = cmapM prepareMessage logTextStderr
             textTime <- if time
                     then do
                         zonedTime <- getCurrentTime >>= utcToLocalZonedTime
-                        return $ pack $ "[" ++ formatTime defaultTimeLocale "%T" zonedTime ++ "] "
+                        return $ pack $ "[" ++ formatTime defaultTimeLocale "%F %T" zonedTime ++ "] "
                     else mempty
             return $ textSeverity <> textTime <> textMessage
 
