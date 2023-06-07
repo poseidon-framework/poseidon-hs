@@ -4,17 +4,17 @@ chronicleVersion: 0.1.0
 lastModified: 1970-01-01
 packages:
 - title: Lamnidis_2018
-  version: 0.0.0
+  version: 1.0.0
   commit: MyGitCommitHash
 - title: Lamnidis_2018
-  version: 0.0.0
+  version: 1.0.1
   commit: MyGitCommitHash
 - title: Schiffels_2016
-  version: 0.0.0
+  version: 1.0.1
   commit: MyGitCommitHash
 - title: Schmid_2028
-  version: 0.0.0
+  version: 1.0.0
   commit: MyGitCommitHash
 - title: Wang_2020
-  version: 0.0.0
+  version: 0.1.0
   commit: MyGitCommitHash

@@ -160,13 +160,14 @@ chroniclePackages testMode = mapM snapOne
 
 getPackageVersion :: Bool -> PoseidonPackage -> PoseidonIO Version
 getPackageVersion testMode pac =
-    if testMode
-    then return $ makeVersion [0, 0, 0]
-    else do
-        case posPacPackageVersion pac of
-            Just v -> return v
-            Nothing -> throwM $ PoseidonChronicleException $
-                "Package " ++ show (posPacTitle pac) ++ " has no version."
+    case posPacPackageVersion pac of
+        Just v -> return v
+        Nothing -> do
+            if testMode
+            then return $ makeVersion [0, 0, 0]
+            else do
+                throwM $ PoseidonChronicleException $
+                    "Package " ++ show (posPacTitle pac) ++ " has no version."
 
 getGitCommitHash :: Bool -> FilePath -> IO String
 getGitCommitHash testMode p =
