@@ -1,3 +1,7 @@
+- V 1.2.0.1: Proper logging for unzipping issues in `fetch`
+- V 1.2.0.0: Massive rework of the server client infrastructure: The server is now a (hidden) subcommand of trident, is capable of serving multiple versions of one package, and returns proper error messages in case of client version incompatibility. The server-client golden tests are running locally now without querying the production setup. These changes required significant refactoring in the code for the subcommands `fetch` and `list`, as well as in the internal modules `Package.hs`, `SecondaryTypes.hs`, with effects for the whole project.
+- V 1.1.12.0: Implemented the changes for Poseidon v2.7.1, added stricter validation for the .ssf file, elevated the log level of broken lines from debug to error and switched to a new stylish-haskell version for linting.
+- V 1.1.11.4: Fixed an issue in the .ssf implementation: Multiple columns must be treated as list columns.
 - V 1.1.11.3: Re-implemented the `survey` subcommand with advanced type level magic to avoid hard to maintain boilerplate code. Again no user-facing changes in trident.
 - V 1.1.11.2: Switch to stackage resolver LTS 20.17 for ghc-9.2.7. No user-facing changes in trident.
 - V 1.1.11.1: Reworked the parts of the test infrastructure to make the golden tests structurally simpler and cleaner. No user-facing changes to trident.

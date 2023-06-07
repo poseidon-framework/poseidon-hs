@@ -40,11 +40,13 @@ module Poseidon.Janno (
     encodingOptions,
     decodingOptions,
     explicitNA,
-    removeUselessSuffix
+    removeUselessSuffix,
+    getMaybeJannoList
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
+                                                       logError,
                                                        renderPoseidonException)
 
 
@@ -76,8 +78,8 @@ import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
-import           GHC.Generics                         (Generic)
 import           Generics.SOP.TH                      (deriveGeneric)
+import           GHC.Generics                         (Generic)
 import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
@@ -526,6 +528,10 @@ instance FromJSON AccessionID-- where
 newtype JannoList a = JannoList {getJannoList :: [a]}
     deriving (Eq, Ord, Generic, Show)
 
+getMaybeJannoList :: Maybe (JannoList a) -> [a]
+getMaybeJannoList Nothing  = []
+getMaybeJannoList (Just x) = getJannoList x
+
 type JannoStringList = JannoList String
 type JannoIntList = JannoList Int
 
@@ -945,6 +951,7 @@ readJannoFile jannoPath = do
         jannoFileRowsWithNumberFiltered = filter (\(_, y) -> y /= Bch.empty) jannoFileRowsWithNumber
     -- create header + individual line combination
         headerOnlyPotentiallyWithQuotes = snd $ head jannoFileRowsWithNumberFiltered
+        -- removing the quotes like this might cause issues in edge cases
         headerOnly = Bch.filter (/= '"') headerOnlyPotentiallyWithQuotes
         rowsOnly = tail jannoFileRowsWithNumberFiltered
         jannoFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
@@ -964,8 +971,8 @@ readJannoFile jannoPath = do
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
-        mapM_ (logDebug . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
-        liftIO $ throwIO $ PoseidonFileConsistencyException jannoPath "Broken lines. See more details with --logMode VerboseLog"
+        mapM_ (logError . renderPoseidonException) $ take 5 $ lefts jannoRepresentation
+        liftIO $ throwIO $ PoseidonFileConsistencyException jannoPath "Broken lines."
     else do
         let consistentJanno = checkJannoConsistency jannoPath $ JannoRows $ rights jannoRepresentation
         case consistentJanno of

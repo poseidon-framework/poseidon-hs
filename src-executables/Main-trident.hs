@@ -14,6 +14,8 @@ import           Poseidon.CLI.List                       (ListOptions (..),
 import           Poseidon.CLI.OptparseApplicativeParsers
 import           Poseidon.CLI.Snapshot                   (SnapshotOptions (..),
                                                           runSnapshot)
+import           Poseidon.CLI.Serve                      (ServeOptions (..),
+                                                          runServerMainThread)
 import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),
@@ -59,6 +61,7 @@ data Subcommand =
     | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
     | CmdSnapshot SnapshotOptions
+    | CmdServe ServeOptions
 
 main :: IO ()
 main = do
@@ -89,6 +92,7 @@ runCmd o = case o of
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
     CmdSnapshot opts    -> runSnapshot opts
+    CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*>
@@ -125,6 +129,10 @@ subcommandParser = OP.subparser (
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
+    ) <|>
+    OP.subparser (
+        OP.command "serve" serveOptInfo <>
+        OP.commandGroup "Poseidon HTTP Server" <> OP.internal
     )
   where
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
@@ -155,6 +163,8 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
     snapshotOptInfo = OP.info (OP.helper <*> (CmdSnapshot <$> snapshotOptParser))
         (OP.progDesc "Create snapshot files for package collections")
+    serveOptInfo    = OP.info (OP.helper <*> (CmdServe <$> serveOptParser))
+        (OP.progDesc "Serve Poseidon packages via HTTP or HTTPS")
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeDataset
@@ -166,13 +176,11 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
-                            <*> parseIgnoreGeno
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
                               <*> parseRemoteURL
-                              <*> parseUpgrade
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
@@ -226,3 +234,10 @@ snapshotOptParser = SnapshotOptions <$> parseBasePaths
                                     <*> parseSnapOperation
                                     <*> parseSnapWithGit
                                     <*> parseMinimalOutput
+
+serveOptParser :: OP.Parser ServeOptions
+serveOptParser = ServeOptions <$> parseBasePaths
+                                    <*> parseMaybeZipDir
+                                    <*> parsePort
+                                    <*> parseIgnoreChecksums
+                                    <*> parseMaybeCertFiles

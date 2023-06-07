@@ -11,6 +11,7 @@ import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
 import           Poseidon.CLI.Init        (InitOptions (..), runInit)
 import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
                                            RepoLocationSpec (..), runList)
+import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
 import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
@@ -22,11 +23,12 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.Janno           (jannoHeaderString)
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (getChecksum, testLog)
 
+import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
+import           Control.Concurrent.MVar  (takeMVar)
 import           Control.Monad            (unless, when)
 import           Data.Either              (fromRight)
 import qualified Data.Text                as T
@@ -96,7 +98,7 @@ runCLICommands interactive testDir checkFilePath = do
     hPutStrLn stderr "--- fetch"
     testPipelineFetch testDir checkFilePath
     hPutStrLn stderr "--- list --remote"
-    testPipelineListRemote
+    testPipelineListRemote testDir checkFilePath
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -178,7 +180,6 @@ testPipelineList testDir checkFilePath = do
           _listRepoLocation  = RepoLocal [testPacsDir </> "Schiffels_2016", testPacsDir  </> "Wang_Wang_2020"]
         , _listListEntity    = ListPackages
         , _listRawOutput     = False
-        , _listIgnoreGeno    = False
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
@@ -681,41 +682,58 @@ testPipelineSnapshot testDir checkFilePath = do
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
+
+    let serverOpts = ServeOptions ["test/testDat/testPackages"] (Just "/tmp/zip_dir") 3000 True Nothing
+
+    -- we prepare an empty MVar, which is filled as soon as the server is ready
+    serverReady <- newEmptyMVar
+
+    -- this will start the server on another thread
+    threadID <- forkIO (testLog $ runServer serverOpts serverReady)
+
+    -- takeMVar will block the main thread until the server is ready
+    _ <- takeMVar serverReady
+
     let fetchOpts1 = FetchOptions {
           _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac "2019_Nikitin_LBK"]]
-        , _remoteURL    = "http://c107-224.cloud.gwdg.de:3000"
-        , _upgrade      = True
+        , _entityInput  = [EntitiesDirect [Pac "Schmid_2028"]]
+        , _remoteURL    = "http://localhost:3000"
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
-          "fetch" </> "2019_Nikitin_LBK" </> "POSEIDON.yml"
-        , "fetch" </> "2019_Nikitin_LBK" </> "Nikitin_LBK.janno"
-        , "fetch" </> "2019_Nikitin_LBK" </> "Nikitin_LBK.fam"
+          "fetch" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+        , "fetch" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
+        , "fetch" </> "Schmid_2028-1.0.0" </> "geno.txt"
         ]
 
--- this tests only if the commands run without an error
--- the results are not stored like for the other golden tests,
--- because the data available on the server changes
-testPipelineListRemote :: IO ()
-testPipelineListRemote = do
+    -- kill server thread
+    killThread threadID
+
+testPipelineListRemote :: FilePath -> FilePath -> IO ()
+testPipelineListRemote testDir checkFilePath = do
+    let serverOpts = ServeOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing
+
+    -- see above
+    serverReady <- newEmptyMVar
+    threadID <- forkIO (testLog $ runServer serverOpts serverReady)
+    _ <- takeMVar serverReady
+
     let listOpts1 = ListOptions {
-          _listRepoLocation = RepoRemote "http://c107-224.cloud.gwdg.de:3000"
+          _listRepoLocation = RepoRemote "http://localhost:3000"
         , _listListEntity   = ListPackages
         , _listRawOutput    = False
-        , _listIgnoreGeno   = False
         }
-    writeStdOutToFile "/dev/null" (testLog $ runList listOpts1)
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
     let listOpts2 = listOpts1 {
           _listListEntity    = ListGroups
         }
-    writeStdOutToFile "/dev/null" (testLog $ runList listOpts2)
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
     let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals jannoHeaderString
+          _listListEntity    = ListIndividuals ["Publication"]
         , _listRawOutput     = True
         }
-    writeStdOutToFile "/dev/null" (testLog $ runList listOpts3)
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
 
-
+    killThread threadID
 
 -- helper functions --
 
