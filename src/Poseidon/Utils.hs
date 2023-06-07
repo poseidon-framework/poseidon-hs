@@ -166,6 +166,7 @@ data PoseidonException =
     | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
     | PoseidonServerCommunicationException String -- ^ An exception to mark server communication errors
     | PoseidonUnzipException SomeException -- ^ An exception for unzipping issues in fetch
+    | PoseidonGitException String -- ^ An exception for git related issues
     deriving (Show)
 
 instance Exception PoseidonException
@@ -228,6 +229,8 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
 renderPoseidonException (PoseidonServerCommunicationException e) = e
 renderPoseidonException (PoseidonUnzipException e) =
     "Error during unzipping: " ++ show e
+renderPoseidonException (PoseidonGitException s) =
+    "Error when working with Git: "  ++ s
 
 -- helper function to check if a file exists
 checkFile :: FilePath -> Maybe String -> IO ()

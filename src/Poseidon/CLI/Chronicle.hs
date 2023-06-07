@@ -1,7 +1,6 @@
 module Poseidon.CLI.Chronicle where
 
-import           Poseidon.Chronicle (ChronicleMode (..), makeChronicle,
-                                     makeMinimalChronicle, readChronicle,
+import           Poseidon.Chronicle (makeChronicle, readChronicle,
                                      updateChronicle, writeChronicle)
 import           Poseidon.Package   (PackageReadOptions (..),
                                      defaultPackageReadOptions,
@@ -12,28 +11,24 @@ import           Poseidon.Utils     (PoseidonIO)
 data ChronicleOptions = ChronicleOptions
     { _chronicleBaseDirs       :: [FilePath]
     , _chronicleOperation      :: SnapOperation
-    , _chronicleWithGitCommits :: Bool
-    , _chronicleMinimal        :: Bool
     }
 
 data SnapOperation = CreateSnap FilePath | UpdateSnap FilePath (Maybe FilePath)
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
+      _readOptIgnoreChecksums      = True
+    , _readOptIgnoreGeno           = True
+    , _readOptGenoCheck            = False
+    , _readOptIgnorePosVersion     = True
+    , _readOptKeepMultipleVersions = True
     }
 
 -- | The main function running the janno command
 runChronicle :: ChronicleOptions -> PoseidonIO ()
-runChronicle (ChronicleOptions baseDirs operation withGit minimal) = do
+runChronicle (ChronicleOptions baseDirs operation) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    let modeSetting = if withGit then ChronicleWithGit else SimpleChronicle
-    newChronicle <- if minimal
-                   then do makeMinimalChronicle modeSetting allPackages
-                   else do makeChronicle modeSetting allPackages
+    newChronicle <- makeChronicle allPackages
     case operation of
         CreateSnap outPath -> writeChronicle outPath newChronicle
         UpdateSnap inPath maybeOutPath -> do

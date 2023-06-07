@@ -2,13 +2,10 @@
 
 module Poseidon.Chronicle where
 
-import           Poseidon.Package        (PoseidonPackage (..),
-                                          dummyContributor)
-import           Poseidon.SecondaryTypes (ContributorSpec,
-                                          VersionComponent (..),
+import           Poseidon.Package        (PoseidonPackage (..))
+import           Poseidon.SecondaryTypes (VersionComponent (..),
                                           updateThreeComponentVersion)
-import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
-                                          logWarning)
+import           Poseidon.Utils          (PoseidonException (..), PoseidonIO)
 
 import           Control.Monad.Catch     (throwM)
 import           Control.Monad.IO.Class  (liftIO)
@@ -33,7 +30,6 @@ import           System.FilePath         (takeDirectory)
 data PoseidonPackageChronicle = PoseidonPackageChronicle
     { snapYamlTitle            :: Maybe String
     , snapYamlDescription      :: Maybe String
-    , snapYamlContributor      :: [ContributorSpec]
     , snapYamlChronicleVersion :: Maybe Version
     , snapYamlLastModified     :: Maybe Day
     , snapYamlPackages         :: [PackageState]
@@ -44,7 +40,6 @@ instance FromJSON PoseidonPackageChronicle where
     parseJSON = withObject "PoseidonYamlStruct" $ \v -> PoseidonPackageChronicle
         <$> v .:? "title"
         <*> v .:? "description"
-        <*> v .:? "contributor" .!= []
         <*> v .:? "chronicleVersion"
         <*> v .:? "lastModified"
         <*> v .:? "packages" .!= []
@@ -53,17 +48,15 @@ instance ToJSON PoseidonPackageChronicle where
     toJSON x = object $ [
         "title"            .= snapYamlTitle x,
         "description"      .= snapYamlDescription x] ++
-        (if not $ null (snapYamlContributor x) then ["contributor" .= snapYamlContributor x] else []) ++
         ["chronicleVersion" .= snapYamlChronicleVersion x,
         "lastModified"     .= snapYamlLastModified x] ++
-        (if not $ null (snapYamlPackages x) then ["packages" .= snapYamlPackages x] else [])
+        if not $ null (snapYamlPackages x) then ["packages" .= snapYamlPackages x] else []
 
 -- | A data type to represent a package state
 data PackageState = PackageState
-    { pacStateTitle   :: String -- ^ the title of the package
+    { pacStateTitle   :: String        -- ^ the title of the package
     , pacStateVersion :: Maybe Version -- ^ the version of the package
-    , pacStateCommit  :: Maybe String -- ^ the hash of a relevant commit where a package can be accessed in this version
-                                    -- (only relevant) for our server-client architecture
+    , pacStateCommit  :: String        -- ^ the hash of a relevant commit where a package can be accessed in this version
     }
     deriving (Show)
 
@@ -77,7 +70,7 @@ instance FromJSON PackageState where
     parseJSON = withObject "packages" $ \v -> PackageState
         <$> v .:  "title"
         <*> v .:? "version"
-        <*> v .:? "commit"
+        <*> v .:  "commit"
 
 instance ToJSON PackageState where
     toJSON x = object [
@@ -85,8 +78,6 @@ instance ToJSON PackageState where
         , "version" .= pacStateVersion x
         , "commit"  .= pacStateCommit x
         ]
-
-data ChronicleMode = SimpleChronicle | ChronicleWithGit
 
 updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
 updateChronicle oldChronicle newChronicle =
@@ -97,7 +88,6 @@ updateChronicle oldChronicle newChronicle =
     in PoseidonPackageChronicle {
       snapYamlTitle           = snapYamlTitle oldChronicle
     , snapYamlDescription     = snapYamlDescription oldChronicle
-    , snapYamlContributor     = snapYamlContributor oldChronicle
     , snapYamlChronicleVersion = if updatedPacSet /= oldPackageSet
                                 then case oldVersion of
                                     Just v -> Just $ updateThreeComponentVersion Minor v
@@ -145,44 +135,40 @@ writeChronicle p snapShot = do
             "commit"
          ]
 
-makeChronicle :: ChronicleMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
-makeChronicle snapMode pacs = do
-    snap <- makeMinimalChronicle snapMode pacs
+makeChronicle :: [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+makeChronicle pacs = do
+    snap <- makeMinimalChronicle pacs
     (UTCTime today _) <- liftIO getCurrentTime
     return $ snap {
       snapYamlTitle           = Just "Chronicle title"
     , snapYamlDescription     = Just "Chronicle description"
-    , snapYamlContributor     = [dummyContributor]
     , snapYamlChronicleVersion = Just $ makeVersion [0, 1, 0]
     , snapYamlLastModified    = Just today
     }
 
-makeMinimalChronicle :: ChronicleMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
-makeMinimalChronicle snapMode pacs = do
-    pacChronicles <- chroniclePackages snapMode pacs
+makeMinimalChronicle :: [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+makeMinimalChronicle pacs = do
+    pacChronicles <- chroniclePackages pacs
     return $ PoseidonPackageChronicle {
       snapYamlTitle           = Nothing
     , snapYamlDescription     = Nothing
-    , snapYamlContributor     = []
     , snapYamlChronicleVersion = Nothing
     , snapYamlLastModified    = Nothing
     , snapYamlPackages        = pacChronicles
     }
 
-chroniclePackages :: ChronicleMode -> [PoseidonPackage] -> PoseidonIO [PackageState]
-chroniclePackages snapMode = mapM snapOne
+chroniclePackages :: [PoseidonPackage] -> PoseidonIO [PackageState]
+chroniclePackages = mapM snapOne
     where
         snapOne :: PoseidonPackage -> PoseidonIO PackageState
         snapOne pac = do
-            commit <- case snapMode of
-                SimpleChronicle  -> do return Nothing
-                ChronicleWithGit -> do getGitCommitHash $ posPacBaseDir pac -- doesn't really work yet: has to crawl up to find .git dir
+            commit <- getGitCommitHash $ posPacBaseDir pac
             return $ PackageState {
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = posPacPackageVersion pac,
                 pacStateCommit  = commit
             }
-        getGitCommitHash :: FilePath -> PoseidonIO (Maybe String)
+        getGitCommitHash :: FilePath -> PoseidonIO String
         getGitCommitHash p = do
             eitherCommit <- liftIO $ getGitInfo p
             case eitherCommit of
@@ -191,9 +177,8 @@ chroniclePackages snapMode = mapM snapOne
                     let oneLevelUp = takeDirectory pAbsolute
                     if oneLevelUp == takeDirectory oneLevelUp
                     then do
-                        logWarning $ "Did not find .git directory in or above " ++ show p
-                        return Nothing
+                        throwM $ PoseidonGitException $ "Did not find .git directory in or above " ++ show p
                     else getGitCommitHash oneLevelUp
                 Right info -> do
-                    return $ Just $ giHash info
+                    return $ giHash info
 

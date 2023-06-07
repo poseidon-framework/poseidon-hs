@@ -119,7 +119,6 @@ subcommandParser = OP.subparser (
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
         OP.command "update" updateOptInfo <>
-        OP.command "chronicle" chronicleOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -131,6 +130,7 @@ subcommandParser = OP.subparser (
         OP.commandGroup "Inspection commands:"
     ) <|>
     OP.subparser (
+        OP.command "chronicle" chronicleOptInfo <>
         OP.command "serve" serveOptInfo <>
         OP.commandGroup "Poseidon HTTP Server" <> OP.internal
     )
@@ -232,8 +232,6 @@ validateOptParser = ValidateOptions <$> parseBasePaths
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths
                                     <*> parseSnapOperation
-                                    <*> parseSnapWithGit
-                                    <*> parseMinimalOutput
 
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseBasePaths
