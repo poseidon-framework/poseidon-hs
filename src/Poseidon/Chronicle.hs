@@ -83,26 +83,17 @@ updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> Posei
 updateChronicle oldChronicle newChronicle =
     let oldPackageSet = S.fromList $ snapYamlPackages oldChronicle
         newPackageSet = S.fromList $ snapYamlPackages newChronicle
-        updatedPacSet = updatePackageSet oldPackageSet newPackageSet
-        oldVersion = snapYamlChronicleVersion oldChronicle
+        mergedPacSet = S.union oldPackageSet newPackageSet
+        oldChronicleVersion = snapYamlChronicleVersion oldChronicle
     in PoseidonPackageChronicle {
-      snapYamlTitle           = snapYamlTitle oldChronicle
-    , snapYamlDescription     = snapYamlDescription oldChronicle
-    , snapYamlChronicleVersion = if updatedPacSet /= oldPackageSet
-                                 then updateThreeComponentVersion Minor oldVersion
-                                 else oldVersion
-    , snapYamlLastModified    = snapYamlLastModified newChronicle
-    , snapYamlPackages        = S.toList updatedPacSet
+      snapYamlTitle            = snapYamlTitle oldChronicle
+    , snapYamlDescription      = snapYamlDescription oldChronicle
+    , snapYamlChronicleVersion = if mergedPacSet /= oldPackageSet
+                                 then updateThreeComponentVersion Minor oldChronicleVersion
+                                 else oldChronicleVersion
+    , snapYamlLastModified     = snapYamlLastModified newChronicle
+    , snapYamlPackages         = S.toList mergedPacSet
     }
-    where
-        -- note that package comparison ignores git commits
-        updatePackageSet :: S.Set PackageState -> S.Set PackageState -> S.Set PackageState
-        updatePackageSet oldPacs newPacs =
-            -- this implementation makes sure that the entries for old packages are kept around
-            let oldNotInNew = oldPacs S.\\ newPacs
-                goodOld = oldPacs S.\\ oldNotInNew
-                newNotInOld = newPacs S.\\ goodOld
-            in goodOld <> oldNotInNew <> newNotInOld
 
 readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
 readChronicle p = do
@@ -121,10 +112,6 @@ writeChronicle p snapShot = do
         fields = [
             "title",
             "description",
-            "contributor",
-            "name",
-            "email",
-            "orcid",
             "chronicleVersion",
             "lastModified",
             "packages",
@@ -181,8 +168,8 @@ getGitCommitHash testMode p =
                 let oneLevelUp = takeDirectory pAbsolute
                 if oneLevelUp == takeDirectory oneLevelUp
                 then do
-                    throwM $ PoseidonChronicleException $ "Did not find .git directory in or above " ++ show p
+                    throwM $ PoseidonChronicleException $
+                        "Did not find .git directory in or above " ++ show p
                 else getGitCommitHash False oneLevelUp
             Right info -> do
                 return $ giHash info
-

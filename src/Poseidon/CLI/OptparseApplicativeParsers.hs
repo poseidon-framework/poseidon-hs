@@ -41,8 +41,7 @@ parseChronUpdatePath = OP.strOption (OP.long "updateFile" <>
     OP.help "Path to the chronicle definition file that should be updated. \
             \The update procedure does not change the package entries \
             \that are already in the chronicle definition file, but only \
-            \adds new entries. This feature was added for a very specific \
-            \usecase; for most applications it is better to just create a new chronicle.")
+            \adds new entries.")
 
 parseChronMaybeOutPath :: OP.Parser (Maybe FilePath)
 parseChronMaybeOutPath = OP.option (Just <$> OP.str) (
