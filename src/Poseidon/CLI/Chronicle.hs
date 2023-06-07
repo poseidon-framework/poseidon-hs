@@ -9,11 +9,11 @@ import           Poseidon.Utils     (PoseidonIO)
 
 -- | A datatype representing command line options for the summarise command
 data ChronicleOptions = ChronicleOptions
-    { _chronicleBaseDirs       :: [FilePath]
-    , _chronicleOperation      :: SnapOperation
+    { _chronicleBaseDirs  :: [FilePath]
+    , _chronicleOperation :: ChronOperation
     }
 
-data SnapOperation = CreateSnap FilePath | UpdateSnap FilePath (Maybe FilePath)
+data ChronOperation = CreateChron FilePath | UpdateChron FilePath (Maybe FilePath)
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -25,13 +25,13 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 -- | The main function running the janno command
-runChronicle :: ChronicleOptions -> PoseidonIO ()
-runChronicle (ChronicleOptions baseDirs operation) = do
+runChronicle :: Bool -> ChronicleOptions -> PoseidonIO ()
+runChronicle testMode (ChronicleOptions baseDirs operation) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    newChronicle <- makeChronicle allPackages
+    newChronicle <- makeChronicle testMode allPackages
     case operation of
-        CreateSnap outPath -> writeChronicle outPath newChronicle
-        UpdateSnap inPath maybeOutPath -> do
+        CreateChron outPath -> writeChronicle outPath newChronicle
+        UpdateChron inPath maybeOutPath -> do
             oldChronicle <- readChronicle inPath
             let updatedChronicle = updateChronicle oldChronicle newChronicle
             case maybeOutPath of

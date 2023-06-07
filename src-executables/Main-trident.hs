@@ -91,7 +91,7 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
-    CmdChronicle opts   -> runChronicle opts
+    CmdChronicle opts   -> runChronicle False opts -- the bool controls a test mode
     CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -231,7 +231,7 @@ validateOptParser = ValidateOptions <$> parseBasePaths
 
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths
-                                    <*> parseSnapOperation
+                                    <*> parseChronOperation
 
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseBasePaths

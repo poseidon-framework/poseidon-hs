@@ -3,13 +3,12 @@
 
 module Poseidon.ChronicleSpec (spec) where
 
-import           Poseidon.Chronicle    (ChronicleMode (..), PackageState (..),
+import           Poseidon.Chronicle    (PackageState (..),
                                         PoseidonPackageChronicle (..),
                                         makeChronicle, readChronicle,
                                         updateChronicle, writeChronicle)
 import           Poseidon.Package      (PackageReadOptions (..),
                                         defaultPackageReadOptions,
-                                        dummyContributor,
                                         readPoseidonPackageCollection)
 import           Poseidon.Utils        (testLog)
 
@@ -33,71 +32,69 @@ yamlExampleChronicle :: B.ByteString
 yamlExampleChronicle = [r|
 title: Chronicle title
 description: Chronicle description
-contributor:
-- name: Josiah Carberry
-  email: carberry@brown.edu
-  orcid: 0000-0002-1825-0097
 chronicleVersion: 0.1.0
 lastModified: 2023-04-02
 packages:
 - title: Lamnidis_2018
   version: 1.0.1
+  commit: MyGitCommitHash
 - title: Schiffels_2016
   version: 1.0.1
+  commit: MyGitCommitHash
 - title: Schmid_2028
   version: 1.0.0
+  commit: MyGitCommitHash
 - title: Wang_2020
   version: 0.1.0
+  commit: MyGitCommitHash
 |]
 
 exampleChronicle :: PoseidonPackageChronicle
 exampleChronicle = PoseidonPackageChronicle {
-      snapYamlTitle           = Just "Chronicle title"
+      snapYamlTitle           = "Chronicle title"
     , snapYamlDescription     = Just "Chronicle description"
-    , snapYamlContributor     = [dummyContributor]
-    , snapYamlChronicleVersion = Just $ makeVersion [0, 1, 0]
-    , snapYamlLastModified    = Just (fromGregorian 2023 04 02)
+    , snapYamlChronicleVersion = makeVersion [0, 1, 0]
+    , snapYamlLastModified    = fromGregorian 2023 04 02
     , snapYamlPackages        = [
         PackageState {
               pacStateTitle   = "Lamnidis_2018"
-            , pacStateVersion = Just $ makeVersion [1, 0, 1]
-            , pacStateCommit  = Nothing
+            , pacStateVersion = makeVersion [1, 0, 1]
+            , pacStateCommit  = "MyGitCommitHash"
         },
         PackageState {
               pacStateTitle   = "Schiffels_2016"
-            , pacStateVersion = Just $ makeVersion [1, 0, 1]
-            , pacStateCommit  = Nothing
+            , pacStateVersion = makeVersion [1, 0, 1]
+            , pacStateCommit  = "MyGitCommitHash"
         },
         PackageState {
               pacStateTitle   = "Schmid_2028"
-            , pacStateVersion = Just $ makeVersion [1, 0, 0]
-            , pacStateCommit  = Nothing
+            , pacStateVersion = makeVersion [1, 0, 0]
+            , pacStateCommit  = "MyGitCommitHash"
         },
         PackageState {
               pacStateTitle   = "Wang_2020"
-            , pacStateVersion = Just $ makeVersion [0, 1, 0]
-            , pacStateCommit  = Nothing
+            , pacStateVersion = makeVersion [0, 1, 0]
+            , pacStateCommit  = "MyGitCommitHash"
         }
         ]
     }
 
 newChronicle :: PoseidonPackageChronicle
 newChronicle = PoseidonPackageChronicle {
-      snapYamlTitle           = Nothing
-    , snapYamlDescription     = Nothing
-    , snapYamlContributor     = []
-    , snapYamlChronicleVersion = Nothing
-    , snapYamlLastModified    = Just (fromGregorian 2099 04 02)
-    , snapYamlPackages        = [
+      snapYamlTitle            = ""
+    , snapYamlDescription      = Nothing
+    , snapYamlChronicleVersion = makeVersion [1, 0, 0]
+    , snapYamlLastModified     = fromGregorian 2099 04 02
+    , snapYamlPackages         = [
         PackageState {
-              pacStateTitle   = "Lamnidis_2018"
-            , pacStateVersion = Just $ makeVersion [2, 0, 0]
-            , pacStateCommit  = Just "test"
+              pacStateTitle    = "Lamnidis_2018"
+            , pacStateVersion  = makeVersion [2, 0, 0]
+            , pacStateCommit   = "test"
         },
         PackageState {
-              pacStateTitle   = "Zoro_2000"
-            , pacStateVersion = Just $ makeVersion [0, 1, 0]
-            , pacStateCommit  = Just "test2"
+              pacStateTitle    = "Zoro_2000"
+            , pacStateVersion  = makeVersion [0, 1, 0]
+            , pacStateCommit   = "test2"
         }
         ]
     }
@@ -129,49 +126,48 @@ testMakeChronicle :: Spec
 testMakeChronicle = describe "Poseidon.Chronicle.makeChronicle" $ do
     it "should make a chronicle as expected" $ do
         pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testDat/testPackages/ancient"]
-        snap <- testLog $ makeChronicle SimpleChronicle pacs
-        snap {snapYamlLastModified = Just (fromGregorian 2023 04 02)} `shouldBe` exampleChronicle
+        snap <- testLog $ makeChronicle True pacs
+        snap {snapYamlLastModified = fromGregorian 2023 04 02} `shouldBe` exampleChronicle
 
 testUpdateChronicle :: Spec
 testUpdateChronicle = describe "Poseidon.Chronicle.updateChronicle" $ do
     it "should correctly produce a new, merged chronicle" $ do
         updateChronicle exampleChronicle newChronicle `shouldBe`
             PoseidonPackageChronicle {
-                  snapYamlTitle           = Just "Chronicle title"
-                , snapYamlDescription     = Just "Chronicle description"
-                , snapYamlContributor     = [dummyContributor]
-                , snapYamlChronicleVersion = Just $ makeVersion [0, 2, 0]
-                , snapYamlLastModified    = Just (fromGregorian 2099 04 02)
-                , snapYamlPackages        = [
+                  snapYamlTitle            = "Chronicle title"
+                , snapYamlDescription      = Just "Chronicle description"
+                , snapYamlChronicleVersion = makeVersion [0, 2, 0]
+                , snapYamlLastModified     = fromGregorian 2099 04 02
+                , snapYamlPackages         = [
                     PackageState {
-                          pacStateTitle   = "Lamnidis_2018"
-                        , pacStateVersion = Just $ makeVersion [1, 0, 1]
-                        , pacStateCommit  = Nothing
+                          pacStateTitle    = "Lamnidis_2018"
+                        , pacStateVersion  = makeVersion [1, 0, 1]
+                        , pacStateCommit   = "MyGitCommitHash"
                     },
                     PackageState {
-                          pacStateTitle   = "Lamnidis_2018"
-                        , pacStateVersion = Just $ makeVersion [2, 0, 0]
-                        , pacStateCommit  = Just "test"
+                          pacStateTitle    = "Lamnidis_2018"
+                        , pacStateVersion  = makeVersion [2, 0, 0]
+                        , pacStateCommit   = "test"
                     },
                     PackageState {
-                          pacStateTitle   = "Schiffels_2016"
-                        , pacStateVersion = Just $ makeVersion [1, 0, 1]
-                        , pacStateCommit  = Nothing
+                          pacStateTitle    = "Schiffels_2016"
+                        , pacStateVersion  = makeVersion [1, 0, 1]
+                        , pacStateCommit   = "MyGitCommitHash"
                     },
                     PackageState {
-                          pacStateTitle   = "Schmid_2028"
-                        , pacStateVersion = Just $ makeVersion [1, 0, 0]
-                        , pacStateCommit  = Nothing
+                          pacStateTitle    = "Schmid_2028"
+                        , pacStateVersion  = makeVersion [1, 0, 0]
+                        , pacStateCommit   = "MyGitCommitHash"
                     },
                     PackageState {
-                          pacStateTitle   = "Wang_2020"
-                        , pacStateVersion = Just $ makeVersion [0, 1, 0]
-                        , pacStateCommit  = Nothing
+                          pacStateTitle    = "Wang_2020"
+                        , pacStateVersion  = makeVersion [0, 1, 0]
+                        , pacStateCommit   = "MyGitCommitHash"
                     },
                     PackageState {
-                          pacStateTitle   = "Zoro_2000"
-                        , pacStateVersion = Just $ makeVersion [0, 1, 0]
-                        , pacStateCommit  = Just "test2"
+                          pacStateTitle    = "Zoro_2000"
+                        , pacStateVersion  = makeVersion [0, 1, 0]
+                        , pacStateCommit   = "test2"
                     }
                     ]
                 }

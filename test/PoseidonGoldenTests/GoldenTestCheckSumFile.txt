@@ -79,11 +79,9 @@ ad9e95d36a9f9d5ab3d6e13100d0adaf forge forge/ForgePac10/ForgePac10.bib
 0332344057c0c4dce2ff7176f8e1103d forge forge/ForgePac11/ForgePac11.geno
 f7e7449562656b713aa8b6256b078930 forge forge/ForgePac11/ForgePac11.janno
 0aef7781caa017fa2b888dfa64b60cf3 forge forge/ForgePac11/ForgePac11.ssf
-b5fb0632ab3a48cece3a3092c0ad5bf3 chronicle chronicle/chronicle1.yml
-92089a44f1e37ffdd3bcc5be4de200cb chronicle chronicle/chronicle2.yml
-150cf962a9694dfa97a203e4fc188b8b chronicle chronicle/chronicle3.yml
-150cf962a9694dfa97a203e4fc188b8b chronicle chronicle/chronicle4.yml
-06f80953e4f70807bc816c3dfc19a2cf chronicle chronicle/chronicle5.yml
+c3cb8c952362128cbbcbbf60e06b8612 chronicle chronicle/chronicle1.yml
+c3cb8c952362128cbbcbbf60e06b8612 chronicle chronicle/chronicle2.yml
+228a8b44dfc4e5c1c5f11b1d78d62efc chronicle chronicle/chronicle3.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 fetch fetch/Schmid_2028-1.0.0/POSEIDON.yml
 ea9d00246c9064ea8f1f35d4b30acb49 fetch fetch/Schmid_2028-1.0.0/Schmid_2028.janno
 70547a0bdb20d07dc8e708a1a8f055e4 fetch fetch/Schmid_2028-1.0.0/geno.txt

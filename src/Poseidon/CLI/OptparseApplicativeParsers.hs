@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.OptparseApplicativeParsers where
 
-import           Poseidon.CLI.Chronicle  (SnapOperation (..))
+import           Poseidon.CLI.Chronicle  (ChronOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
@@ -25,17 +25,17 @@ import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, 
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
 
-parseSnapOperation :: OP.Parser SnapOperation
-parseSnapOperation = (CreateSnap <$> parseSnapOutPath) <|> (UpdateSnap <$> parseSnapUpdatePath <*> parseSnapMaybeOutPath)
+parseChronOperation :: OP.Parser ChronOperation
+parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath <*> parseChronMaybeOutPath)
 
-parseSnapOutPath :: OP.Parser FilePath
-parseSnapOutPath = OP.strOption (OP.long "outFile" <>
+parseChronOutPath :: OP.Parser FilePath
+parseChronOutPath = OP.strOption (OP.long "outFile" <>
     OP.short 'o' <>
     OP.metavar "PATH" <>
     OP.help "Path to the resulting chronicle definition file.")
 
-parseSnapUpdatePath :: OP.Parser FilePath
-parseSnapUpdatePath = OP.strOption (OP.long "updateFile" <>
+parseChronUpdatePath :: OP.Parser FilePath
+parseChronUpdatePath = OP.strOption (OP.long "updateFile" <>
     OP.short 'u' <>
     OP.metavar "PATH" <>
     OP.help "Path to the chronicle definition file that should be updated. \
@@ -44,20 +44,13 @@ parseSnapUpdatePath = OP.strOption (OP.long "updateFile" <>
             \adds new entries. This feature was added for a very specific \
             \usecase; for most applications it is better to just create a new chronicle.")
 
-parseSnapMaybeOutPath :: OP.Parser (Maybe FilePath)
-parseSnapMaybeOutPath = OP.option (Just <$> OP.str) (
+parseChronMaybeOutPath :: OP.Parser (Maybe FilePath)
+parseChronMaybeOutPath = OP.option (Just <$> OP.str) (
     OP.short 'o' <>
     OP.long "updateOutFile" <>
     OP.help "If this is set, then the input chronicle file will not be overwritten with \
             \--updateFile, but a new file will be created instead." <>
     OP.value Nothing
-    )
-
-parseSnapWithGit :: OP.Parser Bool
-parseSnapWithGit = OP.switch (
-    OP.long "withGit" <>
-    OP.help "Should the resulting chronicle file include git commit hashes (local head)? \
-            \The .git dir search climbs the directory tree until it reaches the root directory."
     )
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
