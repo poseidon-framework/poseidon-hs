@@ -620,8 +620,7 @@ testPipelineChronicle testDir checkFilePath = do
         , _chronicleOperation      = CreateChron $ testDir </> "chronicle" </> "chronicle1.yml"
     }
     let action1 = testLog (runChronicle True chronicleOpts1) >>
-            patchLastModified testDir ("chronicle" </> "chronicle1.yml") >>
-            patchGitHash testDir ("chronicle" </> "chronicle1.yml")
+            patchLastModified testDir ("chronicle" </> "chronicle1.yml")
     runAndChecksumFiles checkFilePath testDir action1 "chronicle" [
           "chronicle" </> "chronicle1.yml"
         ]
@@ -637,10 +636,8 @@ testPipelineChronicle testDir checkFilePath = do
     }
     let action4 = testLog (runChronicle True chronicleOpts2) >>
             patchLastModified testDir ("chronicle" </> "chronicle2.yml") >>
-            patchGitHash testDir ("chronicle" </> "chronicle2.yml") >>
             testLog (runChronicle True chronicleOpts3) >>
-            patchLastModified testDir ("chronicle" </> "chronicle3.yml") >>
-            patchGitHash testDir ("chronicle" </> "chronicle3.yml")
+            patchLastModified testDir ("chronicle" </> "chronicle3.yml")
     runAndChecksumFiles checkFilePath testDir action4 "chronicle" [
           "chronicle" </> "chronicle2.yml"
         , "chronicle" </> "chronicle3.yml"
@@ -715,16 +712,6 @@ patchLastModified testDir yamlFile = do
             l <- lines_
             if "lastModified" `T.isPrefixOf` l
                 then return "lastModified: 1970-01-01"
-                else return l
-    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
-
-patchGitHash :: FilePath -> FilePath -> IO ()
-patchGitHash testDir yamlFile = do
-    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = do
-            l <- lines_
-            if "  commit" `T.isPrefixOf` l
-                then return "  commit: MyGitCommitHash"
                 else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
