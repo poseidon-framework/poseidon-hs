@@ -34,8 +34,8 @@ import           Data.Either              (fromRight)
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
-import           Poseidon.CLI.Snapshot    (SnapOperation (..),
-                                           SnapshotOptions (..), runSnapshot)
+import           Poseidon.CLI.Chronicle   (ChronicleOptions (..),
+                                           SnapOperation (..), runChronicle)
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (createDirectory, doesDirectoryExist,
                                            removeDirectoryRecursive)
@@ -92,8 +92,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineUpdate testDir checkFilePath
     hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath
-    hPutStrLn stderr "--- snapshot"
-    testPipelineSnapshot testDir checkFilePath
+    hPutStrLn stderr "--- chronicle"
+    testPipelineChronicle testDir checkFilePath
     hPutStrLn stderr "--* test server interaction"
     hPutStrLn stderr "--- fetch"
     testPipelineFetch testDir checkFilePath
@@ -612,67 +612,67 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
         ]
 
-testPipelineSnapshot :: FilePath -> FilePath -> IO ()
-testPipelineSnapshot testDir checkFilePath = do
-    -- default snapshot
-    let snapshotOpts1 = SnapshotOptions {
-          _snapshotBaseDirs       = [testPacsDir]
-        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot1.yml"
-        , _snapshotWithGitCommits = False
-        , _snapshotMinimal        = False
+testPipelineChronicle :: FilePath -> FilePath -> IO ()
+testPipelineChronicle testDir checkFilePath = do
+    -- default chronicle
+    let chronicleOpts1 = ChronicleOptions {
+          _chronicleBaseDirs       = [testPacsDir]
+        , _chronicleOperation      = CreateSnap $ testDir </> "chronicle" </> "chronicle1.yml"
+        , _chronicleWithGitCommits = False
+        , _chronicleMinimal        = False
     }
-    let action1 = testLog (runSnapshot snapshotOpts1) >> patchLastModified testDir ("snapshot" </> "snapshot1.yml")
-    runAndChecksumFiles checkFilePath testDir action1 "snapshot" [
-          "snapshot" </> "snapshot1.yml"
+    let action1 = testLog (runChronicle chronicleOpts1) >> patchLastModified testDir ("chronicle" </> "chronicle1.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "chronicle" [
+          "chronicle" </> "chronicle1.yml"
         ]
-    -- minimal snapshot
-    let snapshotOpts2 = SnapshotOptions {
-          _snapshotBaseDirs       = [testPacsDir]
-        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot2.yml"
-        , _snapshotWithGitCommits = False
-        , _snapshotMinimal        = True
+    -- minimal chronicle
+    let chronicleOpts2 = ChronicleOptions {
+          _chronicleBaseDirs       = [testPacsDir]
+        , _chronicleOperation      = CreateSnap $ testDir </> "chronicle" </> "chronicle2.yml"
+        , _chronicleWithGitCommits = False
+        , _chronicleMinimal        = True
     }
-    let action2 = testLog (runSnapshot snapshotOpts2) >> patchLastModified testDir ("snapshot" </> "snapshot2.yml")
-    runAndChecksumFiles checkFilePath testDir action2 "snapshot" [
-          "snapshot" </> "snapshot2.yml"
+    let action2 = testLog (runChronicle chronicleOpts2) >> patchLastModified testDir ("chronicle" </> "chronicle2.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "chronicle" [
+          "chronicle" </> "chronicle2.yml"
         ]
-    -- snapshot with git hashes
-    let snapshotOpts3 = SnapshotOptions {
-          _snapshotBaseDirs       = [testPacsDir]
-        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot3.yml"
-        , _snapshotWithGitCommits = True
-        , _snapshotMinimal        = False
+    -- chronicle with git hashes
+    let chronicleOpts3 = ChronicleOptions {
+          _chronicleBaseDirs       = [testPacsDir]
+        , _chronicleOperation      = CreateSnap $ testDir </> "chronicle" </> "chronicle3.yml"
+        , _chronicleWithGitCommits = True
+        , _chronicleMinimal        = False
     }
-    let action3 = testLog (runSnapshot snapshotOpts3) >>
-            patchLastModified testDir ("snapshot" </> "snapshot3.yml") >>
-            patchGitHash testDir ("snapshot" </> "snapshot3.yml") -- commit hashes also have to be made static
-    runAndChecksumFiles checkFilePath testDir action3 "snapshot" [
-          "snapshot" </> "snapshot3.yml"
+    let action3 = testLog (runChronicle chronicleOpts3) >>
+            patchLastModified testDir ("chronicle" </> "chronicle3.yml") >>
+            patchGitHash testDir ("chronicle" </> "chronicle3.yml") -- commit hashes also have to be made static
+    runAndChecksumFiles checkFilePath testDir action3 "chronicle" [
+          "chronicle" </> "chronicle3.yml"
         ]
-    -- update snapshot
-    let snapshotOpts4 = SnapshotOptions {
-          _snapshotBaseDirs       = [testPacsDir]
-        , _snapshotOperation      = CreateSnap $ testDir </> "snapshot" </> "snapshot4.yml"
-        , _snapshotWithGitCommits = True
-        , _snapshotMinimal        = False
+    -- update chronicle
+    let chronicleOpts4 = ChronicleOptions {
+          _chronicleBaseDirs       = [testPacsDir]
+        , _chronicleOperation      = CreateSnap $ testDir </> "chronicle" </> "chronicle4.yml"
+        , _chronicleWithGitCommits = True
+        , _chronicleMinimal        = False
     }
-    let snapshotOpts5 = SnapshotOptions {
-          _snapshotBaseDirs       = [testPacsDir, testDir </> "init"]
-        , _snapshotOperation      = UpdateSnap (testDir </> "snapshot" </> "snapshot4.yml")
-                                               (Just $ testDir </> "snapshot" </> "snapshot5.yml")
-        , _snapshotWithGitCommits = False -- could not be set to true with the current test setup
+    let chronicleOpts5 = ChronicleOptions {
+          _chronicleBaseDirs       = [testPacsDir, testDir </> "init"]
+        , _chronicleOperation      = UpdateSnap (testDir </> "chronicle" </> "chronicle4.yml")
+                                               (Just $ testDir </> "chronicle" </> "chronicle5.yml")
+        , _chronicleWithGitCommits = False -- could not be set to true with the current test setup
                                           -- because testDir is in /tmp/ for the test run, so not
                                           -- in a git repo
-        , _snapshotMinimal        = False
+        , _chronicleMinimal        = False
     }
-    let action4 = testLog (runSnapshot snapshotOpts4) >>
-            patchLastModified testDir ("snapshot" </> "snapshot4.yml") >>
-            patchGitHash testDir ("snapshot" </> "snapshot4.yml") >>
-            testLog (runSnapshot snapshotOpts5) >>
-            patchLastModified testDir ("snapshot" </> "snapshot5.yml")
-    runAndChecksumFiles checkFilePath testDir action4 "snapshot" [
-          "snapshot" </> "snapshot4.yml"
-        , "snapshot" </> "snapshot5.yml"
+    let action4 = testLog (runChronicle chronicleOpts4) >>
+            patchLastModified testDir ("chronicle" </> "chronicle4.yml") >>
+            patchGitHash testDir ("chronicle" </> "chronicle4.yml") >>
+            testLog (runChronicle chronicleOpts5) >>
+            patchLastModified testDir ("chronicle" </> "chronicle5.yml")
+    runAndChecksumFiles checkFilePath testDir action4 "chronicle" [
+          "chronicle" </> "chronicle4.yml"
+        , "chronicle" </> "chronicle5.yml"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that

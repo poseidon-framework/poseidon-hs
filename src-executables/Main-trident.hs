@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Paths_poseidon_hs                       (version)
+import           Poseidon.CLI.Chronicle                  (ChronicleOptions (..),
+                                                          runChronicle)
 import           Poseidon.CLI.Fetch                      (FetchOptions (..),
                                                           runFetch)
 import           Poseidon.CLI.Forge                      (ForgeOptions (..),
@@ -14,8 +16,6 @@ import           Poseidon.CLI.List                       (ListOptions (..),
 import           Poseidon.CLI.OptparseApplicativeParsers
 import           Poseidon.CLI.Serve                      (ServeOptions (..),
                                                           runServerMainThread)
-import           Poseidon.CLI.Snapshot                   (SnapshotOptions (..),
-                                                          runSnapshot)
 import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),
@@ -60,7 +60,7 @@ data Subcommand =
     | CmdSurvey SurveyOptions
     | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
-    | CmdSnapshot SnapshotOptions
+    | CmdChronicle ChronicleOptions
     | CmdServe ServeOptions
 
 main :: IO ()
@@ -91,7 +91,7 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
-    CmdSnapshot opts    -> runSnapshot opts
+    CmdChronicle opts   -> runChronicle opts
     CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -119,7 +119,7 @@ subcommandParser = OP.subparser (
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
         OP.command "update" updateOptInfo <>
-        OP.command "snapshot" snapshotOptInfo <>
+        OP.command "chronicle" chronicleOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -161,8 +161,8 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
-    snapshotOptInfo = OP.info (OP.helper <*> (CmdSnapshot <$> snapshotOptParser))
-        (OP.progDesc "Create snapshot files for package collections")
+    chronicleOptInfo = OP.info (OP.helper <*> (CmdChronicle <$> chronicleOptParser))
+        (OP.progDesc "Create chronicle files for package collections")
     serveOptInfo    = OP.info (OP.helper <*> (CmdServe <$> serveOptParser))
         (OP.progDesc "Serve Poseidon packages via HTTP or HTTPS")
 
@@ -229,8 +229,8 @@ validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates
 
-snapshotOptParser :: OP.Parser SnapshotOptions
-snapshotOptParser = SnapshotOptions <$> parseBasePaths
+chronicleOptParser :: OP.Parser ChronicleOptions
+chronicleOptParser = ChronicleOptions <$> parseBasePaths
                                     <*> parseSnapOperation
                                     <*> parseSnapWithGit
                                     <*> parseMinimalOutput

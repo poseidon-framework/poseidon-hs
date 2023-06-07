@@ -1,17 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
-module Poseidon.SnapshotSpec (spec) where
+module Poseidon.ChronicleSpec (spec) where
 
+import           Poseidon.Chronicle    (ChronicleMode (..), PackageState (..),
+                                        PoseidonPackageChronicle (..),
+                                        makeChronicle, readChronicle,
+                                        updateChronicle, writeChronicle)
 import           Poseidon.Package      (PackageReadOptions (..),
                                         defaultPackageReadOptions,
                                         dummyContributor,
                                         readPoseidonPackageCollection)
-import           Poseidon.Snapshot     (PackageState (..),
-                                        PoseidonPackageSnapshot (..),
-                                        SnapshotMode (..), makeSnapshot,
-                                        readSnapshot, updateSnapshot,
-                                        writeSnapshot)
 import           Poseidon.Utils        (testLog)
 
 import qualified Data.ByteString.Char8 as B
@@ -25,20 +24,20 @@ import           Text.RawString.QQ
 
 spec :: Spec
 spec = do
-    testSnapshotFromYaml
-    testEncodeDecodeSnapshotFile
-    testMakeSnapshot
-    testUpdateSnapshot
+    testChronicleFromYaml
+    testEncodeDecodeChronicleFile
+    testMakeChronicle
+    testUpdateChronicle
 
-yamlExampleSnapshot :: B.ByteString
-yamlExampleSnapshot = [r|
-title: Snapshot title
-description: Snapshot description
+yamlExampleChronicle :: B.ByteString
+yamlExampleChronicle = [r|
+title: Chronicle title
+description: Chronicle description
 contributor:
 - name: Josiah Carberry
   email: carberry@brown.edu
   orcid: 0000-0002-1825-0097
-snapshotVersion: 0.1.0
+chronicleVersion: 0.1.0
 lastModified: 2023-04-02
 packages:
 - title: Lamnidis_2018
@@ -51,12 +50,12 @@ packages:
   version: 0.1.0
 |]
 
-exampleSnapshot :: PoseidonPackageSnapshot
-exampleSnapshot = PoseidonPackageSnapshot {
-      snapYamlTitle           = Just "Snapshot title"
-    , snapYamlDescription     = Just "Snapshot description"
+exampleChronicle :: PoseidonPackageChronicle
+exampleChronicle = PoseidonPackageChronicle {
+      snapYamlTitle           = Just "Chronicle title"
+    , snapYamlDescription     = Just "Chronicle description"
     , snapYamlContributor     = [dummyContributor]
-    , snapYamlSnapshotVersion = Just $ makeVersion [0, 1, 0]
+    , snapYamlChronicleVersion = Just $ makeVersion [0, 1, 0]
     , snapYamlLastModified    = Just (fromGregorian 2023 04 02)
     , snapYamlPackages        = [
         PackageState {
@@ -82,12 +81,12 @@ exampleSnapshot = PoseidonPackageSnapshot {
         ]
     }
 
-newSnapshot :: PoseidonPackageSnapshot
-newSnapshot = PoseidonPackageSnapshot {
+newChronicle :: PoseidonPackageChronicle
+newChronicle = PoseidonPackageChronicle {
       snapYamlTitle           = Nothing
     , snapYamlDescription     = Nothing
     , snapYamlContributor     = []
-    , snapYamlSnapshotVersion = Nothing
+    , snapYamlChronicleVersion = Nothing
     , snapYamlLastModified    = Just (fromGregorian 2099 04 02)
     , snapYamlPackages        = [
         PackageState {
@@ -111,37 +110,37 @@ testPacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = False
     }
 
-testSnapshotFromYaml :: Spec
-testSnapshotFromYaml = describe "Poseidon.Snapshot.fromYAML" $ do
-    let p = fromRight newSnapshot (decodeEither' yamlExampleSnapshot :: Either ParseException PoseidonPackageSnapshot)
+testChronicleFromYaml :: Spec
+testChronicleFromYaml = describe "Poseidon.Chronicle.fromYAML" $ do
+    let p = fromRight newChronicle (decodeEither' yamlExampleChronicle :: Either ParseException PoseidonPackageChronicle)
     it "should parse correct YAML data" $
-        p `shouldBe` exampleSnapshot
+        p `shouldBe` exampleChronicle
 
-testEncodeDecodeSnapshotFile :: Spec
-testEncodeDecodeSnapshotFile = describe "Poseidon.Snapshot.writeSnapshot+readSnapshot" $ do
-    let tmpFile = "/tmp/poseidonTestSnapshotFile"
+testEncodeDecodeChronicleFile :: Spec
+testEncodeDecodeChronicleFile = describe "Poseidon.Chronicle.writeChronicle+readChronicle" $ do
+    let tmpFile = "/tmp/poseidonTestChronicleFile"
     it "should write and read again correctly" $ do
-        testLog $ writeSnapshot tmpFile exampleSnapshot
-        res <- testLog $ readSnapshot tmpFile
+        testLog $ writeChronicle tmpFile exampleChronicle
+        res <- testLog $ readChronicle tmpFile
         removeFile tmpFile
-        res `shouldBe` exampleSnapshot
+        res `shouldBe` exampleChronicle
 
-testMakeSnapshot :: Spec
-testMakeSnapshot = describe "Poseidon.Snapshot.makeSnapshot" $ do
-    it "should make a snapshot as expected" $ do
+testMakeChronicle :: Spec
+testMakeChronicle = describe "Poseidon.Chronicle.makeChronicle" $ do
+    it "should make a chronicle as expected" $ do
         pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testDat/testPackages/ancient"]
-        snap <- testLog $ makeSnapshot SimpleSnapshot pacs
-        snap {snapYamlLastModified = Just (fromGregorian 2023 04 02)} `shouldBe` exampleSnapshot
+        snap <- testLog $ makeChronicle SimpleChronicle pacs
+        snap {snapYamlLastModified = Just (fromGregorian 2023 04 02)} `shouldBe` exampleChronicle
 
-testUpdateSnapshot :: Spec
-testUpdateSnapshot = describe "Poseidon.Snapshot.updateSnapshot" $ do
-    it "should correctly produce a new, merged snapshot" $ do
-        updateSnapshot exampleSnapshot newSnapshot `shouldBe`
-            PoseidonPackageSnapshot {
-                  snapYamlTitle           = Just "Snapshot title"
-                , snapYamlDescription     = Just "Snapshot description"
+testUpdateChronicle :: Spec
+testUpdateChronicle = describe "Poseidon.Chronicle.updateChronicle" $ do
+    it "should correctly produce a new, merged chronicle" $ do
+        updateChronicle exampleChronicle newChronicle `shouldBe`
+            PoseidonPackageChronicle {
+                  snapYamlTitle           = Just "Chronicle title"
+                , snapYamlDescription     = Just "Chronicle description"
                 , snapYamlContributor     = [dummyContributor]
-                , snapYamlSnapshotVersion = Just $ makeVersion [0, 2, 0]
+                , snapYamlChronicleVersion = Just $ makeVersion [0, 2, 0]
                 , snapYamlLastModified    = Just (fromGregorian 2099 04 02)
                 , snapYamlPackages        = [
                     PackageState {

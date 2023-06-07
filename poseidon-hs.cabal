@@ -15,8 +15,8 @@ extra-source-files:  README.md,
 library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes,
-                        Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Snapshot,
-                        Poseidon.CLI.List, Poseidon.CLI.Snapshot, Poseidon.CLI.Serve,
+                        Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Chronicle,
+                        Poseidon.CLI.List, Poseidon.CLI.Chronicle, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
@@ -53,7 +53,7 @@ Test-Suite poseidon-tools-tests
                         Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
-                        PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.SnapshotSpec,
+                        PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.ChronicleSpec,
                         Poseidon.SequencingSourceSpec
   default-language:     Haskell2010
 

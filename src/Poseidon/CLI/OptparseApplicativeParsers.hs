@@ -2,9 +2,9 @@
 
 module Poseidon.CLI.OptparseApplicativeParsers where
 
+import           Poseidon.CLI.Chronicle  (SnapOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
-import           Poseidon.CLI.Snapshot   (SnapOperation (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
                                           PoseidonEntity, SignedEntitiesList,
                                           SignedEntity, readEntitiesFromString)
@@ -32,23 +32,23 @@ parseSnapOutPath :: OP.Parser FilePath
 parseSnapOutPath = OP.strOption (OP.long "outFile" <>
     OP.short 'o' <>
     OP.metavar "PATH" <>
-    OP.help "Path to the resulting snapshot definition file.")
+    OP.help "Path to the resulting chronicle definition file.")
 
 parseSnapUpdatePath :: OP.Parser FilePath
 parseSnapUpdatePath = OP.strOption (OP.long "updateFile" <>
     OP.short 'u' <>
     OP.metavar "PATH" <>
-    OP.help "Path to the snapshot definition file that should be updated. \
+    OP.help "Path to the chronicle definition file that should be updated. \
             \The update procedure does not change the package entries \
-            \that are already in the snapshot definition file, but only \
+            \that are already in the chronicle definition file, but only \
             \adds new entries. This feature was added for a very specific \
-            \usecase; for most applications it is better to just create a new snapshot.")
+            \usecase; for most applications it is better to just create a new chronicle.")
 
 parseSnapMaybeOutPath :: OP.Parser (Maybe FilePath)
 parseSnapMaybeOutPath = OP.option (Just <$> OP.str) (
     OP.short 'o' <>
     OP.long "updateOutFile" <>
-    OP.help "If this is set, then the input snapshot file will not be overwritten with \
+    OP.help "If this is set, then the input chronicle file will not be overwritten with \
             \--updateFile, but a new file will be created instead." <>
     OP.value Nothing
     )
@@ -56,7 +56,7 @@ parseSnapMaybeOutPath = OP.option (Just <$> OP.str) (
 parseSnapWithGit :: OP.Parser Bool
 parseSnapWithGit = OP.switch (
     OP.long "withGit" <>
-    OP.help "Should the resulting snapshot file include git commit hashes (local head)? \
+    OP.help "Should the resulting chronicle file include git commit hashes (local head)? \
             \The .git dir search climbs the directory tree until it reaches the root directory."
     )
 

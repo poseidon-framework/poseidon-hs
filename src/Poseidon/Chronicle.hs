@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Snapshot where
+module Poseidon.Chronicle where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           dummyContributor)
@@ -30,31 +30,31 @@ import           System.Directory        (createDirectoryIfMissing,
                                           makeAbsolute)
 import           System.FilePath         (takeDirectory)
 
-data PoseidonPackageSnapshot = PoseidonPackageSnapshot
-    { snapYamlTitle           :: Maybe String
-    , snapYamlDescription     :: Maybe String
-    , snapYamlContributor     :: [ContributorSpec]
-    , snapYamlSnapshotVersion :: Maybe Version
-    , snapYamlLastModified    :: Maybe Day
-    , snapYamlPackages        :: [PackageState]
+data PoseidonPackageChronicle = PoseidonPackageChronicle
+    { snapYamlTitle            :: Maybe String
+    , snapYamlDescription      :: Maybe String
+    , snapYamlContributor      :: [ContributorSpec]
+    , snapYamlChronicleVersion :: Maybe Version
+    , snapYamlLastModified     :: Maybe Day
+    , snapYamlPackages         :: [PackageState]
     }
     deriving (Show, Eq)
 
-instance FromJSON PoseidonPackageSnapshot where
-    parseJSON = withObject "PoseidonYamlStruct" $ \v -> PoseidonPackageSnapshot
+instance FromJSON PoseidonPackageChronicle where
+    parseJSON = withObject "PoseidonYamlStruct" $ \v -> PoseidonPackageChronicle
         <$> v .:? "title"
         <*> v .:? "description"
         <*> v .:? "contributor" .!= []
-        <*> v .:? "snapshotVersion"
+        <*> v .:? "chronicleVersion"
         <*> v .:? "lastModified"
         <*> v .:? "packages" .!= []
 
-instance ToJSON PoseidonPackageSnapshot where
+instance ToJSON PoseidonPackageChronicle where
     toJSON x = object $ [
         "title"            .= snapYamlTitle x,
         "description"      .= snapYamlDescription x] ++
         (if not $ null (snapYamlContributor x) then ["contributor" .= snapYamlContributor x] else []) ++
-        ["snapshotVersion" .= snapYamlSnapshotVersion x,
+        ["chronicleVersion" .= snapYamlChronicleVersion x,
         "lastModified"     .= snapYamlLastModified x] ++
         (if not $ null (snapYamlPackages x) then ["packages" .= snapYamlPackages x] else [])
 
@@ -86,24 +86,24 @@ instance ToJSON PackageState where
         , "commit"  .= pacStateCommit x
         ]
 
-data SnapshotMode = SimpleSnapshot | SnapshotWithGit
+data ChronicleMode = SimpleChronicle | ChronicleWithGit
 
-updateSnapshot :: PoseidonPackageSnapshot -> PoseidonPackageSnapshot -> PoseidonPackageSnapshot
-updateSnapshot oldSnapshot newSnapshot =
-    let oldPackageSet = S.fromList $ snapYamlPackages oldSnapshot
-        newPackageSet = S.fromList $ snapYamlPackages newSnapshot
+updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
+updateChronicle oldChronicle newChronicle =
+    let oldPackageSet = S.fromList $ snapYamlPackages oldChronicle
+        newPackageSet = S.fromList $ snapYamlPackages newChronicle
         updatedPacSet = updatePackageSet oldPackageSet newPackageSet
-        oldVersion = snapYamlSnapshotVersion oldSnapshot
-    in PoseidonPackageSnapshot {
-      snapYamlTitle           = snapYamlTitle oldSnapshot
-    , snapYamlDescription     = snapYamlDescription oldSnapshot
-    , snapYamlContributor     = snapYamlContributor oldSnapshot
-    , snapYamlSnapshotVersion = if updatedPacSet /= oldPackageSet
+        oldVersion = snapYamlChronicleVersion oldChronicle
+    in PoseidonPackageChronicle {
+      snapYamlTitle           = snapYamlTitle oldChronicle
+    , snapYamlDescription     = snapYamlDescription oldChronicle
+    , snapYamlContributor     = snapYamlContributor oldChronicle
+    , snapYamlChronicleVersion = if updatedPacSet /= oldPackageSet
                                 then case oldVersion of
                                     Just v -> Just $ updateThreeComponentVersion Minor v
                                     Nothing -> Nothing
                                 else oldVersion
-    , snapYamlLastModified    = snapYamlLastModified newSnapshot
+    , snapYamlLastModified    = snapYamlLastModified newChronicle
     , snapYamlPackages        = S.toList updatedPacSet
     }
     where
@@ -116,15 +116,15 @@ updateSnapshot oldSnapshot newSnapshot =
                 newNotInOld = newPacs S.\\ goodOld
             in goodOld <> oldNotInNew <> newNotInOld
 
-readSnapshot :: FilePath -> PoseidonIO PoseidonPackageSnapshot
-readSnapshot p = do
+readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
+readChronicle p = do
     bs <- liftIO $ B.readFile p
     case decodeEither' bs of
         Left err   -> throwM $ PoseidonYamlParseException p err
         Right snap -> return snap
 
-writeSnapshot :: FilePath -> PoseidonPackageSnapshot -> PoseidonIO ()
-writeSnapshot p snapShot = do
+writeChronicle :: FilePath -> PoseidonPackageChronicle -> PoseidonIO ()
+writeChronicle p snapShot = do
     liftIO $ createDirectoryIfMissing True $ takeDirectory p
     liftIO $ B.writeFile p (encodePretty opts snapShot)
     where
@@ -137,7 +137,7 @@ writeSnapshot p snapShot = do
             "name",
             "email",
             "orcid",
-            "snapshotVersion",
+            "chronicleVersion",
             "lastModified",
             "packages",
             "title",
@@ -145,38 +145,38 @@ writeSnapshot p snapShot = do
             "commit"
          ]
 
-makeSnapshot :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageSnapshot
-makeSnapshot snapMode pacs = do
-    snap <- makeMinimalSnapshot snapMode pacs
+makeChronicle :: ChronicleMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+makeChronicle snapMode pacs = do
+    snap <- makeMinimalChronicle snapMode pacs
     (UTCTime today _) <- liftIO getCurrentTime
     return $ snap {
-      snapYamlTitle           = Just "Snapshot title"
-    , snapYamlDescription     = Just "Snapshot description"
+      snapYamlTitle           = Just "Chronicle title"
+    , snapYamlDescription     = Just "Chronicle description"
     , snapYamlContributor     = [dummyContributor]
-    , snapYamlSnapshotVersion = Just $ makeVersion [0, 1, 0]
+    , snapYamlChronicleVersion = Just $ makeVersion [0, 1, 0]
     , snapYamlLastModified    = Just today
     }
 
-makeMinimalSnapshot :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageSnapshot
-makeMinimalSnapshot snapMode pacs = do
-    pacSnapshots <- snapshotPackages snapMode pacs
-    return $ PoseidonPackageSnapshot {
+makeMinimalChronicle :: ChronicleMode -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+makeMinimalChronicle snapMode pacs = do
+    pacChronicles <- chroniclePackages snapMode pacs
+    return $ PoseidonPackageChronicle {
       snapYamlTitle           = Nothing
     , snapYamlDescription     = Nothing
     , snapYamlContributor     = []
-    , snapYamlSnapshotVersion = Nothing
+    , snapYamlChronicleVersion = Nothing
     , snapYamlLastModified    = Nothing
-    , snapYamlPackages        = pacSnapshots
+    , snapYamlPackages        = pacChronicles
     }
 
-snapshotPackages :: SnapshotMode -> [PoseidonPackage] -> PoseidonIO [PackageState]
-snapshotPackages snapMode = mapM snapOne
+chroniclePackages :: ChronicleMode -> [PoseidonPackage] -> PoseidonIO [PackageState]
+chroniclePackages snapMode = mapM snapOne
     where
         snapOne :: PoseidonPackage -> PoseidonIO PackageState
         snapOne pac = do
             commit <- case snapMode of
-                SimpleSnapshot  -> do return Nothing
-                SnapshotWithGit -> do getGitCommitHash $ posPacBaseDir pac -- doesn't really work yet: has to crawl up to find .git dir
+                SimpleChronicle  -> do return Nothing
+                ChronicleWithGit -> do getGitCommitHash $ posPacBaseDir pac -- doesn't really work yet: has to crawl up to find .git dir
             return $ PackageState {
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = posPacPackageVersion pac,
