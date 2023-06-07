@@ -12,10 +12,10 @@ import           Poseidon.CLI.Init                       (InitOptions (..),
 import           Poseidon.CLI.List                       (ListOptions (..),
                                                           runList)
 import           Poseidon.CLI.OptparseApplicativeParsers
-import           Poseidon.CLI.Snapshot                   (SnapshotOptions (..),
-                                                          runSnapshot)
 import           Poseidon.CLI.Serve                      (ServeOptions (..),
                                                           runServerMainThread)
+import           Poseidon.CLI.Snapshot                   (SnapshotOptions (..),
+                                                          runSnapshot)
 import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),

@@ -22,7 +22,7 @@ module Poseidon.Package (
     readPoseidonPackage,
     makePseudoPackageFromGenotypeData,
     getJannoRowsFromPac,
-    dummyContributor
+    dummyContributor,
     packageToPackageInfo,
     getAllGroupInfo,
     getExtendedIndividualInfo
