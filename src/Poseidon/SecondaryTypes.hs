@@ -58,15 +58,6 @@ instance HasNameAndVersion PacNameAndVersion where
     getPacName (PacNameAndVersion (n, _)) = n
     getPacVersion (PacNameAndVersion (_, v)) = v
 
-instance ToJSON PacNameAndVersion where
-    toJSON (PacNameAndVersion (n, v)) = object ["packageTitle" .= n, "packageVersion" .= v]
-
-instance FromJSON PacNameAndVersion where
-    parseJSON = withObject "PacNameAndVersion" $ \v -> do
-        n <- v .: "packageTitle"
-        vr <- v .: "packageVersion"
-        return $ PacNameAndVersion (n, vr)
-
 data ExtendedIndividualInfo = ExtendedIndividualInfo
     {
       extIndInfoName    :: String
@@ -83,16 +74,16 @@ instance HasNameAndVersion ExtendedIndividualInfo where
 instance ToJSON ExtendedIndividualInfo where
     toJSON e =
         object [
-            "Poseidon_ID" .= extIndInfoName e, -- following Janno column names
-            "Group_Names" .= extIndInfoGroups e,
+            "poseidonID" .= extIndInfoName e, -- following Janno column names
+            "groupNames" .= extIndInfoGroups e,
             "packageTitle" .= extIndInfoPacName e, -- following mostly the Poseidon YAML definition where possible
             "packageVersion" .= extIndInfoVersion e,
             "additionalJannoColumns" .= extIndInfoAddCols e]
 
 instance FromJSON ExtendedIndividualInfo where
     parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
-            <$> v .: "Poseidon_ID"
-            <*> v .: "Group_Names"
+            <$> v .: "poseidonID"
+            <*> v .: "groupNames"
             <*> v .: "packageTitle"
             <*> v .: "packageVersion"
             <*> v .: "additionalJannoColumns"
@@ -113,7 +104,7 @@ instance HasNameAndVersion PackageInfo where
 instance ToJSON PackageInfo where
     toJSON (PackageInfo title version posVersion description lastModified nrIndividuals) =
         object [
-            "title" .= title,
+            "packageTitle" .= title,
             "packageVersion" .= version,
             "poseidonVersion" .= posVersion,
             "description" .= description,
@@ -123,7 +114,7 @@ instance ToJSON PackageInfo where
 
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-            <$> v .: "title"
+            <$> v .: "packageTitle"
             <*> v .: "packageVersion"
             <*> v .: "poseidonVersion"
             <*> v .: "description"
@@ -137,18 +128,21 @@ data GroupInfo = GroupInfo
     }
 
 instance ToJSON GroupInfo where
-    toJSON (GroupInfo name pacNames nrIndividuals) =
+    toJSON (GroupInfo name (PacNameAndVersion (pacTitle, pacVersion)) nrIndividuals) =
         object [
             "groupName" .= name,
-            "packageName" .= pacNames,
+            "packageTitle" .= pacTitle,
+            "packageVersion" .= pacVersion,
             "nrIndividuals" .= nrIndividuals
         ]
 
 instance FromJSON GroupInfo where
-    parseJSON = withObject "GroupInfo" $ \v -> GroupInfo
-            <$> v .: "groupName"
-            <*> v .: "packageName"
-            <*> v .: "nrIndividuals"
+    parseJSON = withObject "GroupInfo" $ \v -> do
+        groupName <- v .: "groupName"
+        packageTitle <- v .: "packageTitle"
+        packageVersion <- v .: "packageVersion"
+        nrIndividuals <- v .: "nrIndividuals"
+        return $ GroupInfo groupName (PacNameAndVersion (packageTitle, packageVersion)) nrIndividuals
 
 data ServerApiReturnType = ServerApiReturnType {
     _apiMessages :: [String],
