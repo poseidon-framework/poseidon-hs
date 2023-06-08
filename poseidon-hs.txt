@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.0.1
+@version 1.2.0.0
 
 module Poseidon.MathHelpers
 
@@ -771,8 +771,6 @@ instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.Exten
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ExtendedIndividualInfo
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ExtendedIndividualInfo
 instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.PacNameAndVersion
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PacNameAndVersion
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PacNameAndVersion
 
 module Poseidon.GenotypeData
 data GenoDataSource
