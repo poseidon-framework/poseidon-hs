@@ -58,15 +58,6 @@ instance HasNameAndVersion PacNameAndVersion where
     getPacName (PacNameAndVersion (n, _)) = n
     getPacVersion (PacNameAndVersion (_, v)) = v
 
-instance ToJSON PacNameAndVersion where
-    toJSON (PacNameAndVersion (n, v)) = object ["packageTitle" .= n, "packageVersion" .= v]
-
-instance FromJSON PacNameAndVersion where
-    parseJSON = withObject "PacNameAndVersion" $ \v -> do
-        n <- v .: "packageTitle"
-        vr <- v .: "packageVersion"
-        return $ PacNameAndVersion (n, vr)
-
 data ExtendedIndividualInfo = ExtendedIndividualInfo
     {
       extIndInfoName    :: String
