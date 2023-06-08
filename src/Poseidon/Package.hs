@@ -288,7 +288,7 @@ readPoseidonPackageCollection opts baseDirs = do
     filteredPackageList <- liftIO $ filterDuplicatePackages (_readOptKeepMultipleVersions opts) loadedPackages
     let finalPackageList = sort filteredPackageList
     when (length loadedPackages > length finalPackageList) $ do
-        logWarning "Some packages were skipped as duplicates:"
+        logWarning "Some packages were skipped as old versions or duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
             \x -> logWarning x
     -- individual duplication check
