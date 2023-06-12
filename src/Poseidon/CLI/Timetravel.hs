@@ -20,3 +20,6 @@ pacReadOpts = defaultPackageReadOptions {
 runTimetravel :: TimetravelOptions -> PoseidonIO ()
 runTimetravel (TimetravelOptions baseDirs) = do
     logInfo $ show baseDirs
+    -- That would be exactly the logic we need:
+    -- https://hackage.haskell.org/package/git-0.3.0/docs/Data-Git-Monad.html#v:withCommit
+    -- Unfortunately the git library is not maintained any more.
