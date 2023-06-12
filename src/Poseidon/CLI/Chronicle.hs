@@ -7,7 +7,6 @@ import           Poseidon.Package   (PackageReadOptions (..),
                                      readPoseidonPackageCollection)
 import           Poseidon.Utils     (PoseidonIO)
 
--- | A datatype representing command line options for the summarise command
 data ChronicleOptions = ChronicleOptions
     { _chronicleBaseDirs  :: [FilePath]
     , _chronicleOperation :: ChronOperation
@@ -24,7 +23,6 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptKeepMultipleVersions = True
     }
 
--- | The main function running the janno command
 runChronicle :: Bool -> ChronicleOptions -> PoseidonIO ()
 runChronicle testMode (ChronicleOptions baseDirs operation) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs

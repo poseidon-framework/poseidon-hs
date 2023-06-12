@@ -20,6 +20,8 @@ import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),
                                                           runSurvey)
+import           Poseidon.CLI.Timetravel                 (TimetravelOptions (..),
+                                                          runTimetravel)
 import           Poseidon.CLI.Update                     (UpdateOptions (..),
                                                           runUpdate)
 import           Poseidon.CLI.Validate                   (ValidateOptions (..),
@@ -33,6 +35,7 @@ import           Poseidon.Utils                          (LogMode (..),
                                                           PoseidonIO, logError,
                                                           renderPoseidonException,
                                                           usePoseidonLogger)
+
 
 import           Control.Applicative                     ((<|>))
 import           Control.Exception                       (catch)
@@ -61,6 +64,7 @@ data Subcommand =
     | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
     | CmdChronicle ChronicleOptions
+    | CmdTimetravel TimetravelOptions
     | CmdServe ServeOptions
 
 main :: IO ()
@@ -92,6 +96,7 @@ runCmd o = case o of
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
     CmdChronicle opts   -> runChronicle False opts -- the bool controls a test mode
+    CmdTimetravel opts  -> runTimetravel opts
     CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
@@ -131,6 +136,7 @@ subcommandParser = OP.subparser (
     ) <|>
     OP.subparser (
         OP.command "chronicle" chronicleOptInfo <>
+        OP.command "timetravel" timetravelOptInfo <>
         OP.command "serve" serveOptInfo <>
         OP.commandGroup "Poseidon HTTP Server" <> OP.internal
     )
@@ -163,6 +169,8 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
     chronicleOptInfo = OP.info (OP.helper <*> (CmdChronicle <$> chronicleOptParser))
         (OP.progDesc "Create chronicle files for package collections")
+    timetravelOptInfo = OP.info (OP.helper <*> (CmdTimetravel <$> timetravelOptParser))
+        (OP.progDesc "Construct package directories from chronicle files")
     serveOptInfo    = OP.info (OP.helper <*> (CmdServe <$> serveOptParser))
         (OP.progDesc "Serve Poseidon packages via HTTP or HTTPS")
 
@@ -232,6 +240,9 @@ validateOptParser = ValidateOptions <$> parseBasePaths
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths
                                     <*> parseChronOperation
+
+timetravelOptParser :: OP.Parser TimetravelOptions
+timetravelOptParser = TimetravelOptions <$> parseBasePaths
 
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseBasePaths
