@@ -40,16 +40,18 @@ runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
     pacsInBaseDirs <- chroniclePackages True allPackages
     chronicle <- readChronicle chroniclePath
     let pacsInChronicle = snapYamlPackages chronicle
-    let pacStatesToAdd = S.difference pacsInChronicle pacsInBaseDirs
-    --logInfo $ show pacStatesToAdd
-    let srcDir = takeDirectory chroniclePath
-    eitherGit <- liftIO $ getGitInfo srcDir
-    case eitherGit of
-        Left _ -> do
-            throwM $ PoseidonChronicleException $ "Did not find .git directory in " ++ show srcDir
-        Right info -> do
-            let startCommit = giHash info
-            mapM_ (recoverPacIter srcDir startCommit (head baseDirs)) $ S.toList pacStatesToAdd
+    case S.toList $ S.difference pacsInChronicle pacsInBaseDirs of
+        []             -> do logInfo "All packages already there, nothing to add"
+        pacStatesToAdd -> do
+            --logInfo $ show pacStatesToAdd
+            let srcDir = takeDirectory chroniclePath
+            eitherGit <- liftIO $ getGitInfo srcDir
+            case eitherGit of
+                Left _ -> do
+                    throwM $ PoseidonChronicleException $ "Did not find .git directory in " ++ show srcDir
+                Right info -> do
+                    let startCommit = giHash info
+                    mapM_ (recoverPacIter srcDir startCommit (head baseDirs)) pacStatesToAdd
     where
         recoverPacIter :: FilePath -> String -> FilePath -> PackageIteration -> PoseidonIO ()
         recoverPacIter srcDir startCommit destDir (PackageIteration title version commit path) = do
