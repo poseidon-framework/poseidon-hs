@@ -239,14 +239,15 @@ validateOptParser = ValidateOptions <$> parseBasePaths
 
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths
-                                    <*> parseChronOperation
+                                      <*> parseChronOperation
 
 timetravelOptParser :: OP.Parser TimetravelOptions
 timetravelOptParser = TimetravelOptions <$> parseBasePaths
+                                        <*> parseChronInPath
 
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseBasePaths
-                                    <*> parseMaybeZipDir
-                                    <*> parsePort
-                                    <*> parseIgnoreChecksums
-                                    <*> parseMaybeCertFiles
+                              <*> parseMaybeZipDir
+                              <*> parsePort
+                              <*> parseIgnoreChecksums
+                              <*> parseMaybeCertFiles

@@ -28,6 +28,12 @@ import           Text.Read               (readMaybe)
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath <*> parseChronMaybeOutPath)
 
+parseChronInPath :: OP.Parser FilePath
+parseChronInPath = OP.strOption (OP.long "chronFile" <>
+    OP.short 'o' <>
+    OP.metavar "PATH" <>
+    OP.help "Path to the chronicle definition file.")
+
 parseChronOutPath :: OP.Parser FilePath
 parseChronOutPath = OP.strOption (OP.long "outFile" <>
     OP.short 'o' <>
