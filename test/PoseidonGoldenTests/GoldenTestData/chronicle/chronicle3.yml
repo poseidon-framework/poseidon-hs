@@ -6,21 +6,28 @@ packages:
 - title: Lamnidis_2018
   version: 1.0.0
   commit: MyGitCommitHash
+  path: test/testDat/testPackages/ancient/Lamnidis_2018
 - title: Lamnidis_2018
   version: 1.0.1
   commit: MyGitCommitHash
+  path: test/testDat/testPackages/ancient/Lamnidis_2018_newVersion
 - title: Schiffels
   version: 1.0.0
   commit: MyGitCommitHash
+  path: ./test/PoseidonGoldenTests/GoldenTestData/init/Schiffels
 - title: Schiffels_2016
   version: 1.0.1
   commit: MyGitCommitHash
+  path: test/testDat/testPackages/ancient/Schiffels_2016
 - title: Schmid_2028
   version: 1.0.0
   commit: MyGitCommitHash
+  path: test/testDat/testPackages/ancient/Schmid_2028
 - title: Wang
   version: 0.0.0
   commit: MyGitCommitHash
+  path: ./test/PoseidonGoldenTests/GoldenTestData/init/Wang
 - title: Wang_2020
   version: 0.1.0
   commit: MyGitCommitHash
+  path: test/testDat/testPackages/ancient/Wang_2020

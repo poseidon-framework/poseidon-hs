@@ -48,7 +48,7 @@ Test-Suite poseidon-tools-tests
                         raw-strings-qq, yaml, time, vector,
                         text, QuickCheck, directory, sequence-formats,
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
-                        unordered-containers, cassava
+                        unordered-containers, cassava, containers
     other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
                         Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,

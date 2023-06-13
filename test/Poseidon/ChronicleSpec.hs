@@ -3,7 +3,7 @@
 
 module Poseidon.ChronicleSpec (spec) where
 
-import           Poseidon.Chronicle    (PackageState (..),
+import           Poseidon.Chronicle    (PackageIteration (..),
                                         PoseidonPackageChronicle (..),
                                         makeChronicle, readChronicle,
                                         updateChronicle, writeChronicle)
@@ -14,6 +14,7 @@ import           Poseidon.Utils        (testLog)
 
 import qualified Data.ByteString.Char8 as B
 import           Data.Either           (fromRight)
+import qualified Data.Set              as S
 import           Data.Time             (fromGregorian)
 import           Data.Version          (makeVersion)
 import           Data.Yaml             (ParseException, decodeEither')
@@ -38,15 +39,19 @@ packages:
 - title: Lamnidis_2018
   version: 1.0.1
   commit: MyGitCommitHash
+  path: ./Lamnidis_2018
 - title: Schiffels_2016
   version: 1.0.1
   commit: MyGitCommitHash
+  path: ./Schiffels_2016
 - title: Schmid_2028
   version: 1.0.0
   commit: MyGitCommitHash
+  path: ./Schmid_2028
 - title: Wang_2020
   version: 0.1.0
   commit: MyGitCommitHash
+  path: ./Wang_2020
 |]
 
 exampleChronicle :: PoseidonPackageChronicle
@@ -55,26 +60,30 @@ exampleChronicle = PoseidonPackageChronicle {
     , snapYamlDescription     = Just "Chronicle description"
     , snapYamlChronicleVersion = makeVersion [0, 1, 0]
     , snapYamlLastModified    = fromGregorian 2023 04 02
-    , snapYamlPackages        = [
-        PackageState {
+    , snapYamlPackages        = S.fromList [
+        PackageIteration {
               pacStateTitle   = "Lamnidis_2018"
             , pacStateVersion = makeVersion [1, 0, 1]
             , pacStateCommit  = "MyGitCommitHash"
+            , pacStatePath    = "./Lamnidis_2018"
         },
-        PackageState {
+        PackageIteration {
               pacStateTitle   = "Schiffels_2016"
             , pacStateVersion = makeVersion [1, 0, 1]
             , pacStateCommit  = "MyGitCommitHash"
+            , pacStatePath    = "./Schiffels_2016"
         },
-        PackageState {
+        PackageIteration {
               pacStateTitle   = "Schmid_2028"
             , pacStateVersion = makeVersion [1, 0, 0]
             , pacStateCommit  = "MyGitCommitHash"
+            , pacStatePath    = "./Schmid_2028"
         },
-        PackageState {
+        PackageIteration {
               pacStateTitle   = "Wang_2020"
             , pacStateVersion = makeVersion [0, 1, 0]
             , pacStateCommit  = "MyGitCommitHash"
+            , pacStatePath    = "./Wang_2020"
         }
         ]
     }
@@ -85,16 +94,18 @@ newChronicle = PoseidonPackageChronicle {
     , snapYamlDescription      = Nothing
     , snapYamlChronicleVersion = makeVersion [1, 0, 0]
     , snapYamlLastModified     = fromGregorian 2099 04 02
-    , snapYamlPackages         = [
-        PackageState {
+    , snapYamlPackages         = S.fromList [
+        PackageIteration {
               pacStateTitle    = "Lamnidis_2018"
             , pacStateVersion  = makeVersion [2, 0, 0]
             , pacStateCommit   = "test"
+            , pacStatePath    = ""
         },
-        PackageState {
+        PackageIteration {
               pacStateTitle    = "Zoro_2000"
             , pacStateVersion  = makeVersion [0, 1, 0]
             , pacStateCommit   = "test2"
+            , pacStatePath    = ""
         }
         ]
     }
@@ -138,36 +149,42 @@ testUpdateChronicle = describe "Poseidon.Chronicle.updateChronicle" $ do
                 , snapYamlDescription      = Just "Chronicle description"
                 , snapYamlChronicleVersion = makeVersion [0, 2, 0]
                 , snapYamlLastModified     = fromGregorian 2099 04 02
-                , snapYamlPackages         = [
-                    PackageState {
+                , snapYamlPackages         = S.fromList [
+                    PackageIteration {
                           pacStateTitle    = "Lamnidis_2018"
                         , pacStateVersion  = makeVersion [1, 0, 1]
                         , pacStateCommit   = "MyGitCommitHash"
+                        , pacStatePath     = ""
                     },
-                    PackageState {
+                    PackageIteration {
                           pacStateTitle    = "Lamnidis_2018"
                         , pacStateVersion  = makeVersion [2, 0, 0]
                         , pacStateCommit   = "test"
+                        , pacStatePath     = ""
                     },
-                    PackageState {
+                    PackageIteration {
                           pacStateTitle    = "Schiffels_2016"
                         , pacStateVersion  = makeVersion [1, 0, 1]
                         , pacStateCommit   = "MyGitCommitHash"
+                        , pacStatePath     = ""
                     },
-                    PackageState {
+                    PackageIteration {
                           pacStateTitle    = "Schmid_2028"
                         , pacStateVersion  = makeVersion [1, 0, 0]
                         , pacStateCommit   = "MyGitCommitHash"
+                        , pacStatePath     = ""
                     },
-                    PackageState {
+                    PackageIteration {
                           pacStateTitle    = "Wang_2020"
                         , pacStateVersion  = makeVersion [0, 1, 0]
                         , pacStateCommit   = "MyGitCommitHash"
+                        , pacStatePath     = ""
                     },
-                    PackageState {
+                    PackageIteration {
                           pacStateTitle    = "Zoro_2000"
                         , pacStateVersion  = makeVersion [0, 1, 0]
                         , pacStateCommit   = "test2"
+                        , pacStatePath     = ""
                     }
                     ]
                 }

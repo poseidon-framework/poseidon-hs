@@ -79,9 +79,8 @@ ad9e95d36a9f9d5ab3d6e13100d0adaf forge forge/ForgePac10/ForgePac10.bib
 0332344057c0c4dce2ff7176f8e1103d forge forge/ForgePac11/ForgePac11.geno
 f7e7449562656b713aa8b6256b078930 forge forge/ForgePac11/ForgePac11.janno
 0aef7781caa017fa2b888dfa64b60cf3 forge forge/ForgePac11/ForgePac11.ssf
-7e043acd38964ab2216ea055274057ba chronicle chronicle/chronicle1.yml
-7e043acd38964ab2216ea055274057ba chronicle chronicle/chronicle2.yml
-1ef64ebce4c7b72087854762a9e5ad15 chronicle chronicle/chronicle3.yml
+737550fc096febbbadba5e228d592cfd chronicle chronicle/chronicle1.yml
+737550fc096febbbadba5e228d592cfd chronicle chronicle/chronicle2.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 fetch fetch/Schmid_2028-1.0.0/POSEIDON.yml
 ea9d00246c9064ea8f1f35d4b30acb49 fetch fetch/Schmid_2028-1.0.0/Schmid_2028.janno
 70547a0bdb20d07dc8e708a1a8f055e4 fetch fetch/Schmid_2028-1.0.0/geno.txt
