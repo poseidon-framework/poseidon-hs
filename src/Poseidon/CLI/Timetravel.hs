@@ -8,12 +8,12 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonIO, logInfo)
 
-import           Control.Monad          (filterM, forM_)
+import           Control.Monad          (forM_)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.Set               as S
 import           Data.Version           (showVersion)
 import           System.Directory       (copyFile, createDirectoryIfMissing,
-                                         doesFileExist, listDirectory)
+                                         listDirectory)
 import           System.FilePath        (takeDirectory, (</>))
 import           System.Process         (callCommand)
 
