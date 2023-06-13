@@ -4,7 +4,9 @@ import           Poseidon.Utils   (PoseidonIO, logInfo)
 import           Poseidon.Package (PackageReadOptions (..),
                                    defaultPackageReadOptions,
                                    readPoseidonPackageCollection)
-import Poseidon.Chronicle (readChronicle)
+import Poseidon.Chronicle (readChronicle, PoseidonPackageChronicle (..), chroniclePackages)
+
+import Data.Set as S
 
 data TimetravelOptions = TimetravelOptions
     { _timetravelBaseDirs      :: [FilePath]
@@ -24,9 +26,12 @@ runTimetravel :: TimetravelOptions -> PoseidonIO ()
 runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
     
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    chronicle <- readChronicle chroniclePath
+    pacsInBaseDirs <- chroniclePackages True allPackages
 
-    logInfo "done"
+    chronicle <- readChronicle chroniclePath
+    let pacsInChronicle = snapYamlPackages chronicle
+
+    logInfo $ show (S.difference pacsInChronicle pacsInBaseDirs)
 
 
 
