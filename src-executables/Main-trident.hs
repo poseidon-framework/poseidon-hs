@@ -42,7 +42,7 @@ import           Control.Exception                       (catch)
 import           Data.List                               (intercalate)
 import           Data.Version                            (showVersion)
 import qualified Options.Applicative                     as OP
-import           Options.Applicative.Help.Pretty         (string)
+import           Options.Applicative.Help                (pretty)
 import           System.Exit                             (exitFailure)
 import           System.IO                               (hPutStrLn, stderr)
 
@@ -157,7 +157,7 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Synonym for summarise")
     surveyOptInfo = OP.info (OP.helper <*> (CmdSurvey <$> surveyOptParser))
         (OP.progDesc "Survey the degree of context information completeness for Poseidon packages" <>
-        OP.footerDoc (Just $ string $
+        OP.footerDoc (Just $ pretty $
                "Output structure\n"
             ++ "Data coverage proportions - 0: ., <0.25: ░, <0.5: ▒, <1: ▓, 1: █\n"
             ++ ".janno column order - G: Genotype data present, S: .ssf file present, B: .bib file present, "
