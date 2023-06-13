@@ -4,9 +4,15 @@ import           Poseidon.Utils   (PoseidonIO, logInfo)
 import           Poseidon.Package (PackageReadOptions (..),
                                    defaultPackageReadOptions,
                                    readPoseidonPackageCollection)
-import Poseidon.Chronicle (readChronicle, PoseidonPackageChronicle (..), chroniclePackages, PackageIteration)
+import Poseidon.Chronicle (readChronicle, PoseidonPackageChronicle (..), chroniclePackages, PackageIteration (..))
 
-import Data.Set as S
+import qualified Data.Set as S
+import System.FilePath (takeDirectory, (</>))
+import System.Process (callCommand)
+import System.Directory (createDirectoryIfMissing, doesFileExist, copyFile, listDirectory)
+import Control.Monad (forM_, filterM)
+import           Control.Monad.IO.Class  (liftIO)
+import Data.Version (showVersion)
 
 data TimetravelOptions = TimetravelOptions
     { _timetravelBaseDirs      :: [FilePath]
@@ -32,15 +38,32 @@ runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
     let pacsInChronicle = snapYamlPackages chronicle
 
     let pacStatesToAdd = S.difference pacsInChronicle pacsInBaseDirs
+    --logInfo $ show pacStatesToAdd
 
-    mapM_ recoverPacState $ S.toList pacStatesToAdd
+    mapM_ (recoverPacIter (takeDirectory chroniclePath) (head baseDirs)) $ S.toList pacStatesToAdd
 
-    logInfo $ show pacStatesToAdd
-
-
-    -- That would be exactly the logic we need:
+recoverPacIter :: FilePath -> FilePath -> PackageIteration -> PoseidonIO ()
+recoverPacIter sourceDir destDir (PackageIteration title version commit path) = do
+    let pacIterName = title ++ "-" ++ showVersion version 
+    logInfo $ "Recovering package " ++ pacIterName
+    
+    logInfo $ "Checking out commit " ++ commit ++ " in " ++ sourceDir
+    liftIO $ callCommand ("git -C " ++ sourceDir ++ " checkout " ++ commit ++ " --quiet")
+    -- Instead of this nasty system call we could do something like this:
     -- https://hackage.haskell.org/package/git-0.3.0/docs/Data-Git-Monad.html#v:withCommit
-    -- Unfortunately the git library is not maintained any more.
+    -- Unfortunately this library is not maintained any more.
+    
+    logInfo $ "Copying dir " ++ path ++ " to " ++ destDir
+    liftIO $ copyDirectory (sourceDir </> path) (destDir </> pacIterName)
+    
+    logInfo $ "Checking out master branch " ++ commit ++ " in " ++ sourceDir
+    liftIO $ callCommand ("git -C " ++ sourceDir ++ " checkout master --quiet")
 
-recoverPacState :: PackageIteration -> PoseidonIO ()
-recoverPacState = undefined
+copyDirectory :: FilePath -> FilePath -> IO ()
+copyDirectory srcDir destDir = do
+  createDirectoryIfMissing True destDir
+  files <- listDirectory srcDir
+  forM_ files $ \file -> do
+    let srcFile = srcDir </> file
+        destFile = destDir </> file
+    copyFile srcFile destFile

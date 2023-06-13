@@ -54,29 +54,32 @@ instance ToJSON PoseidonPackageChronicle where
 
 -- | A data type to represent a package state
 data PackageIteration = PackageIteration
-    { pacStateTitle   :: String  -- ^ the title of the package
-    , pacStateVersion :: Version -- ^ the version of the package
-    , pacStateCommit  :: String  -- ^ the hash of a relevant commit where a package can be accessed in this version
+    { pacStateTitle   :: String   -- ^ the title of the package
+    , pacStateVersion :: Version  -- ^ the version of the package
+    , pacStateCommit  :: String   -- ^ the hash of a relevant commit where a package can be accessed in this version
+    , pacStatePath    :: FilePath -- ^ the file path where the POSEIDON.yml file is stored
     }
     deriving (Show)
 
 instance Eq PackageIteration where
-    (PackageIteration t1 v1 _) == (PackageIteration t2 v2 _) = (t1 == t2) && (v1 == v2)
+    (PackageIteration t1 v1 _ _) == (PackageIteration t2 v2 _ _) = (t1 == t2) && (v1 == v2)
 
 instance Ord PackageIteration where
-    (PackageIteration t1 v1 _) `compare` (PackageIteration t2 v2 _) = (t1,v1) `compare` (t2,v2)
+    (PackageIteration t1 v1 _ _) `compare` (PackageIteration t2 v2 _ _) = (t1,v1) `compare` (t2,v2)
 
 instance FromJSON PackageIteration where
     parseJSON = withObject "packages" $ \v -> PackageIteration
         <$> v .: "title"
         <*> v .: "version"
         <*> v .: "commit"
+        <*> v .: "path"
 
 instance ToJSON PackageIteration where
     toJSON x = object [
           "title"   .= pacStateTitle x
         , "version" .= pacStateVersion x
         , "commit"  .= pacStateCommit x
+        , "path"    .= pacStatePath x
         ]
 
 updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
@@ -144,7 +147,8 @@ chroniclePackages testMode pacs = do
             return $ PackageIteration {
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = version,
-                pacStateCommit  = commit
+                pacStateCommit  = commit,
+                pacStatePath    = posPacBaseDir pac
             }
 
 getPackageVersion :: Bool -> PoseidonPackage -> PoseidonIO Version
