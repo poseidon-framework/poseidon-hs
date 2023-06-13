@@ -3,7 +3,8 @@
 module Poseidon.Chronicle where
 
 import           Poseidon.Package        (PoseidonPackage (..))
-import           Poseidon.SecondaryTypes (VersionComponent (..),
+import           Poseidon.SecondaryTypes (HasNameAndVersion (..),
+                                          VersionComponent (..),
                                           updateThreeComponentVersion)
 import           Poseidon.Utils          (PoseidonException (..), PoseidonIO)
 
@@ -81,6 +82,10 @@ instance ToJSON PackageIteration where
         , "commit"  .= pacStateCommit x
         , "path"    .= pacStatePath x
         ]
+
+instance HasNameAndVersion PackageIteration where
+    getPacName (PackageIteration t _ _ _) = t
+    getPacVersion (PackageIteration _ v _ _) = Just v
 
 updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
 updateChronicle oldChronicle newChronicle =

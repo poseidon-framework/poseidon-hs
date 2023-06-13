@@ -1,24 +1,24 @@
 module Poseidon.CLI.Timetravel where
 
-import           Poseidon.Chronicle     (PackageIteration (..),
-                                         PoseidonPackageChronicle (..),
-                                         chroniclePackages, readChronicle)
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO, logInfo)
+import           Poseidon.Chronicle      (PackageIteration (..),
+                                          PoseidonPackageChronicle (..),
+                                          chroniclePackages, readChronicle)
+import           Poseidon.Package        (PackageReadOptions (..),
+                                          defaultPackageReadOptions,
+                                          readPoseidonPackageCollection)
+import           Poseidon.SecondaryTypes (makeNameWithVersion)
+import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
+                                          logDebug, logInfo)
 
-import           Control.Monad          (forM_)
-import           Control.Monad.Catch    (throwM)
-import           Control.Monad.IO.Class (liftIO)
-import qualified Data.Set               as S
-import           Data.Version           (showVersion)
-import           GitHash                (getGitInfo, giHash)
-import           Poseidon.Utils         (PoseidonException (..), logDebug)
-import           System.Directory       (copyFile, createDirectoryIfMissing,
-                                         listDirectory)
-import           System.FilePath        (takeDirectory, (</>))
-import           System.Process         (callCommand)
+import           Control.Monad           (forM_)
+import           Control.Monad.Catch     (throwM)
+import           Control.Monad.IO.Class  (liftIO)
+import qualified Data.Set                as S
+import           GitHash                 (getGitInfo, giHash)
+import           System.Directory        (copyFile, createDirectoryIfMissing,
+                                          listDirectory)
+import           System.FilePath         (takeDirectory, (</>))
+import           System.Process          (callCommand)
 
 data TimetravelOptions = TimetravelOptions
     { _timetravelBaseDirs      :: [FilePath]
@@ -54,8 +54,8 @@ runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
                     mapM_ (recoverPacIter srcDir startCommit (head baseDirs)) pacStatesToAdd
     where
         recoverPacIter :: FilePath -> String -> FilePath -> PackageIteration -> PoseidonIO ()
-        recoverPacIter srcDir startCommit destDir (PackageIteration title version commit path) = do
-            let pacIterName = title ++ "-" ++ showVersion version
+        recoverPacIter srcDir startCommit destDir pacIter@(PackageIteration _ _ commit path) = do
+            let pacIterName = makeNameWithVersion pacIter
             logInfo $ "Recovering package " ++ pacIterName
             gitCheckout srcDir commit
             copyDirectory (srcDir </> path) (destDir </> pacIterName)
