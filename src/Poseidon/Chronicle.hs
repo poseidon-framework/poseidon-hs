@@ -58,10 +58,10 @@ data PackageState = PackageState
     , pacStateVersion :: Version -- ^ the version of the package
     , pacStateCommit  :: String  -- ^ the hash of a relevant commit where a package can be accessed in this version
     }
-    deriving (Show, Eq)
+    deriving (Show)
 
---instance Eq PackageState where
---    (PackageState t1 v1 _) == (PackageState t2 v2 _) = (t1 == t2) && (v1 == v2)
+instance Eq PackageState where
+    (PackageState t1 v1 _) == (PackageState t2 v2 _) = (t1 == t2) && (v1 == v2)
 
 instance Ord PackageState where
     (PackageState t1 v1 _) `compare` (PackageState t2 v2 _) = (t1,v1) `compare` (t2,v2)
