@@ -9,9 +9,12 @@ import           Poseidon.Package       (PackageReadOptions (..),
 import           Poseidon.Utils         (PoseidonIO, logInfo)
 
 import           Control.Monad          (forM_)
+import           Control.Monad.Catch    (throwM)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.Set               as S
 import           Data.Version           (showVersion)
+import           GitHash                (getGitInfo, giHash)
+import           Poseidon.Utils         (PoseidonException (..), logDebug)
 import           System.Directory       (copyFile, createDirectoryIfMissing,
                                          listDirectory)
 import           System.FilePath        (takeDirectory, (</>))
@@ -33,41 +36,46 @@ pacReadOpts = defaultPackageReadOptions {
 
 runTimetravel :: TimetravelOptions -> PoseidonIO ()
 runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
-
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     pacsInBaseDirs <- chroniclePackages True allPackages
-
     chronicle <- readChronicle chroniclePath
     let pacsInChronicle = snapYamlPackages chronicle
-
     let pacStatesToAdd = S.difference pacsInChronicle pacsInBaseDirs
     --logInfo $ show pacStatesToAdd
+    let srcDir = takeDirectory chroniclePath
+    eitherGit <- liftIO $ getGitInfo srcDir
+    case eitherGit of
+        Left _ -> do
+            throwM $ PoseidonChronicleException $ "Did not find .git directory in " ++ show srcDir
+        Right info -> do
+            let startCommit = giHash info
+            mapM_ (recoverPacIter srcDir startCommit (head baseDirs)) $ S.toList pacStatesToAdd
+    where
+        recoverPacIter :: FilePath -> String -> FilePath -> PackageIteration -> PoseidonIO ()
+        recoverPacIter srcDir startCommit destDir (PackageIteration title version commit path) = do
+            let pacIterName = title ++ "-" ++ showVersion version
+            logInfo $ "Recovering package " ++ pacIterName
+            gitCheckout srcDir commit
+            copyDirectory (srcDir </> path) (destDir </> pacIterName)
+            gitCheckout srcDir startCommit
 
-    mapM_ (recoverPacIter (takeDirectory chroniclePath) (head baseDirs)) $ S.toList pacStatesToAdd
-
-recoverPacIter :: FilePath -> FilePath -> PackageIteration -> PoseidonIO ()
-recoverPacIter sourceDir destDir (PackageIteration title version commit path) = do
-    let pacIterName = title ++ "-" ++ showVersion version
-    logInfo $ "Recovering package " ++ pacIterName
-
-    logInfo $ "Checking out commit " ++ commit ++ " in " ++ sourceDir
-    liftIO $ callCommand ("git -C " ++ sourceDir ++ " checkout " ++ commit ++ " --quiet")
-    -- Instead of this nasty system call we could do something like this:
+gitCheckout :: FilePath -> String -> PoseidonIO ()
+gitCheckout path commit = do
+    logInfo $ "Checking out commit " ++ commit ++ " in " ++ path
+    liftIO $ callCommand ("git -C " ++ path ++ " checkout " ++ commit ++ " --quiet")
+    -- Instead of this nasty system call and changing the world with the checkout
+    -- we could do something like this:
     -- https://hackage.haskell.org/package/git-0.3.0/docs/Data-Git-Monad.html#v:withCommit
     -- Unfortunately this library is not maintained any more.
+    -- And I'm also not entirely sure how git lfs integrates with that...
 
-    logInfo $ "Copying dir " ++ path ++ " to " ++ destDir
-    liftIO $ copyDirectory (sourceDir </> path) (destDir </> pacIterName)
-
-    logInfo $ "Checking out master branch " ++ commit ++ " in " ++ sourceDir
-    liftIO $ callCommand ("git -C " ++ sourceDir ++ " checkout master --quiet")
-    -- master must of course be changed - it should instead go back to the initial revision
-
-copyDirectory :: FilePath -> FilePath -> IO ()
+copyDirectory :: FilePath -> FilePath -> PoseidonIO ()
 copyDirectory srcDir destDir = do
-  createDirectoryIfMissing True destDir
-  files <- listDirectory srcDir
+  logInfo $ "Copying dir " ++ srcDir ++ " to " ++ destDir
+  liftIO $ createDirectoryIfMissing True destDir
+  files <- liftIO $ listDirectory srcDir
   forM_ files $ \file -> do
     let srcFile = srcDir </> file
         destFile = destDir </> file
-    copyFile srcFile destFile
+    logDebug $ "Copying: " ++ srcFile ++ " -> " ++ destFile
+    liftIO $ copyFile srcFile destFile
