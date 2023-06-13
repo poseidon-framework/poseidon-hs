@@ -4,7 +4,7 @@ import           Poseidon.Utils   (PoseidonIO, logInfo)
 import           Poseidon.Package (PackageReadOptions (..),
                                    defaultPackageReadOptions,
                                    readPoseidonPackageCollection)
-import Poseidon.Chronicle (readChronicle, PoseidonPackageChronicle (..), chroniclePackages, PackageState)
+import Poseidon.Chronicle (readChronicle, PoseidonPackageChronicle (..), chroniclePackages, PackageIteration)
 
 import Data.Set as S
 
@@ -42,5 +42,5 @@ runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
     -- https://hackage.haskell.org/package/git-0.3.0/docs/Data-Git-Monad.html#v:withCommit
     -- Unfortunately the git library is not maintained any more.
 
-recoverPacState :: PackageState -> PoseidonIO ()
+recoverPacState :: PackageIteration -> PoseidonIO ()
 recoverPacState = undefined

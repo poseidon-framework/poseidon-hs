@@ -32,7 +32,7 @@ data PoseidonPackageChronicle = PoseidonPackageChronicle
     , snapYamlDescription      :: Maybe String
     , snapYamlChronicleVersion :: Version
     , snapYamlLastModified     :: Day
-    , snapYamlPackages         :: S.Set PackageState
+    , snapYamlPackages         :: S.Set PackageIteration
     }
     deriving (Show, Eq)
 
@@ -53,26 +53,26 @@ instance ToJSON PoseidonPackageChronicle where
         if not $ null (snapYamlPackages x) then ["packages" .= snapYamlPackages x] else []
 
 -- | A data type to represent a package state
-data PackageState = PackageState
+data PackageIteration = PackageIteration
     { pacStateTitle   :: String  -- ^ the title of the package
     , pacStateVersion :: Version -- ^ the version of the package
     , pacStateCommit  :: String  -- ^ the hash of a relevant commit where a package can be accessed in this version
     }
     deriving (Show)
 
-instance Eq PackageState where
-    (PackageState t1 v1 _) == (PackageState t2 v2 _) = (t1 == t2) && (v1 == v2)
+instance Eq PackageIteration where
+    (PackageIteration t1 v1 _) == (PackageIteration t2 v2 _) = (t1 == t2) && (v1 == v2)
 
-instance Ord PackageState where
-    (PackageState t1 v1 _) `compare` (PackageState t2 v2 _) = (t1,v1) `compare` (t2,v2)
+instance Ord PackageIteration where
+    (PackageIteration t1 v1 _) `compare` (PackageIteration t2 v2 _) = (t1,v1) `compare` (t2,v2)
 
-instance FromJSON PackageState where
-    parseJSON = withObject "packages" $ \v -> PackageState
+instance FromJSON PackageIteration where
+    parseJSON = withObject "packages" $ \v -> PackageIteration
         <$> v .: "title"
         <*> v .: "version"
         <*> v .: "commit"
 
-instance ToJSON PackageState where
+instance ToJSON PackageIteration where
     toJSON x = object [
           "title"   .= pacStateTitle x
         , "version" .= pacStateVersion x
@@ -132,16 +132,16 @@ makeChronicle testMode pacs = do
     , snapYamlPackages         = pacChronicles
     }
 
-chroniclePackages :: Bool -> [PoseidonPackage] -> PoseidonIO (S.Set PackageState)
+chroniclePackages :: Bool -> [PoseidonPackage] -> PoseidonIO (S.Set PackageIteration)
 chroniclePackages testMode pacs = do
     pacStateList <- mapM snapOne pacs
     return $ S.fromList pacStateList
     where
-        snapOne :: PoseidonPackage -> PoseidonIO PackageState
+        snapOne :: PoseidonPackage -> PoseidonIO PackageIteration
         snapOne pac = do
             version <- getPackageVersion testMode pac
             commit <- liftIO $ getGitCommitHash testMode $ posPacBaseDir pac
-            return $ PackageState {
+            return $ PackageIteration {
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = version,
                 pacStateCommit  = commit
