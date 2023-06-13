@@ -32,7 +32,7 @@ data PoseidonPackageChronicle = PoseidonPackageChronicle
     , snapYamlDescription      :: Maybe String
     , snapYamlChronicleVersion :: Version
     , snapYamlLastModified     :: Day
-    , snapYamlPackages         :: [PackageState]
+    , snapYamlPackages         :: S.Set PackageState
     }
     deriving (Show, Eq)
 
@@ -42,7 +42,7 @@ instance FromJSON PoseidonPackageChronicle where
         <*> v .:? "description"
         <*> v .:  "chronicleVersion"
         <*> v .:  "lastModified"
-        <*> v .:? "packages" .!= []
+        <*> v .:? "packages" .!= S.empty
 
 instance ToJSON PoseidonPackageChronicle where
     toJSON x = object $ [
@@ -81,8 +81,8 @@ instance ToJSON PackageState where
 
 updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
 updateChronicle oldChronicle newChronicle =
-    let oldPackageSet = S.fromList $ snapYamlPackages oldChronicle
-        newPackageSet = S.fromList $ snapYamlPackages newChronicle
+    let oldPackageSet = snapYamlPackages oldChronicle
+        newPackageSet = snapYamlPackages newChronicle
         mergedPacSet = S.union oldPackageSet newPackageSet
         oldChronicleVersion = snapYamlChronicleVersion oldChronicle
     in PoseidonPackageChronicle {
@@ -92,7 +92,7 @@ updateChronicle oldChronicle newChronicle =
                                  then updateThreeComponentVersion Minor oldChronicleVersion
                                  else oldChronicleVersion
     , snapYamlLastModified     = snapYamlLastModified newChronicle
-    , snapYamlPackages         = S.toList mergedPacSet
+    , snapYamlPackages         = mergedPacSet
     }
 
 readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
@@ -132,8 +132,10 @@ makeChronicle testMode pacs = do
     , snapYamlPackages         = pacChronicles
     }
 
-chroniclePackages :: Bool -> [PoseidonPackage] -> PoseidonIO [PackageState]
-chroniclePackages testMode = mapM snapOne
+chroniclePackages :: Bool -> [PoseidonPackage] -> PoseidonIO (S.Set PackageState)
+chroniclePackages testMode pacs = do
+    pacStateList <- mapM snapOne pacs
+    return $ S.fromList pacStateList
     where
         snapOne :: PoseidonPackage -> PoseidonIO PackageState
         snapOne pac = do
