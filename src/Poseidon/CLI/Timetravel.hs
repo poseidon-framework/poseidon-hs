@@ -56,14 +56,21 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
         recoverPacIter startCommit destDir pacIter@(PackageIteration _ _ commit path) = do
             let pacIterName = makeNameWithVersion pacIter
             logInfo $ "Recovering package " ++ pacIterName
-            gitCheckout srcDir commit
-            copyDirectory (srcDir </> path) (destDir </> pacIterName)
-            gitCheckout srcDir startCommit
+            if startCommit == commit
+            then do
+                logInfo $ "Already at the right commit " ++ commit ++ " in " ++ srcDir
+                copyDirectory (srcDir </> path) (destDir </> pacIterName)
+            else do
+                gitCheckout srcDir commit
+                copyDirectory (srcDir </> path) (destDir </> pacIterName)
+                gitCheckout srcDir startCommit
+                -- Depending on the state of the chronicle file, the srcDir and the destDir,
+                -- it could be more efficient not to switch back...
 
 gitCheckout :: FilePath -> String -> PoseidonIO ()
-gitCheckout path commit = do
-    logInfo $ "Checking out commit " ++ commit ++ " in " ++ path
-    liftIO $ callCommand ("git -C " ++ path ++ " checkout " ++ commit ++ " --quiet")
+gitCheckout srcDir commit = do
+    logInfo $ "Checking out commit " ++ commit ++ " in " ++ srcDir
+    liftIO $ callCommand ("git -C " ++ srcDir ++ " checkout " ++ commit ++ " --quiet")
     -- Instead of this nasty system call and changing the world with the checkout
     -- we could do something like this:
     -- https://hackage.haskell.org/package/git-0.3.0/docs/Data-Git-Monad.html#v:withCommit
