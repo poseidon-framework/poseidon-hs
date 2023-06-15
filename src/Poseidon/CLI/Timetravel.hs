@@ -14,7 +14,7 @@ import           Control.Monad           (forM_)
 import           Control.Monad.Catch     (throwM)
 import           Control.Monad.IO.Class  (liftIO)
 import qualified Data.Set                as S
-import           GitHash                 (getGitInfo, giHash)
+import           GitHash                 (getGitInfo, giBranch, giHash)
 import           System.Directory        (copyFile, createDirectoryIfMissing,
                                           listDirectory)
 import           System.FilePath         ((</>))
@@ -46,30 +46,35 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
         pacStatesToAdd -> do
             eitherGit <- liftIO $ getGitInfo srcDir
             case eitherGit of
-                Left _ -> do
-                    throwM $ PoseidonChronicleException $ "Did not find .git directory in " ++ show srcDir
-                Right info -> do
-                    let startCommit = giHash info
-                    mapM_ (recoverPacIter startCommit (head baseDirs)) pacStatesToAdd
+                Left _ -> do throwM $ PoseidonGitException srcDir
+                Right gitRef -> do
+                    let currentBranch = giBranch gitRef
+                    logInfo $ "Starting at branch " ++ currentBranch ++ " in " ++ srcDir
+                    mapM_ (recoverPacIter (head baseDirs)) pacStatesToAdd
+                    gitCheckout srcDir currentBranch
+                    logInfo "Done"
     where
-        recoverPacIter :: String -> FilePath -> PackageIteration -> PoseidonIO ()
-        recoverPacIter startCommit destDir pacIter@(PackageIteration _ _ commit path) = do
+        recoverPacIter :: FilePath -> PackageIteration -> PoseidonIO ()
+        recoverPacIter destDir pacIter@(PackageIteration _ _ commit path) = do
             let pacIterName = makeNameWithVersion pacIter
             logInfo $ "Recovering package " ++ pacIterName
-            if startCommit == commit
-            then do
-                logInfo $ "Already at the right commit " ++ commit ++ " in " ++ srcDir
-                copyDirectory (srcDir </> path) (destDir </> pacIterName)
-            else do
-                gitCheckout srcDir commit
-                copyDirectory (srcDir </> path) (destDir </> pacIterName)
-                gitCheckout srcDir startCommit
-                -- Depending on the state of the chronicle file, the srcDir and the destDir,
-                -- it could be more efficient not to switch back...
+            -- this exists to reduce the number of checkouts
+            eitherGit <- liftIO $ getGitInfo srcDir
+            case eitherGit of
+                Left _ -> do throwM $ PoseidonGitException srcDir
+                Right gitRef -> do
+                    let currentCommit = giHash gitRef
+                    if currentCommit == commit
+                    then do
+                        logInfo $ "Already at the right commit " ++ commit ++ " in " ++ srcDir
+                        copyDirectory (srcDir </> path) (destDir </> pacIterName)
+                    else do
+                        gitCheckout srcDir commit
+                        copyDirectory (srcDir </> path) (destDir </> pacIterName)
 
 gitCheckout :: FilePath -> String -> PoseidonIO ()
 gitCheckout srcDir commit = do
-    logInfo $ "Checking out commit " ++ commit ++ " in " ++ srcDir
+    logInfo $ "Checking out " ++ commit ++ " in " ++ srcDir
     liftIO $ callCommand ("git -C " ++ srcDir ++ " checkout " ++ commit ++ " --quiet")
     -- Instead of this nasty system call and changing the world with the checkout
     -- we could do something like this:

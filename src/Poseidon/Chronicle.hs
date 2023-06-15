@@ -178,9 +178,7 @@ getGitCommitHash testMode p =
                 pAbsolute <- liftIO $ makeAbsolute p
                 let oneLevelUp = takeDirectory pAbsolute
                 if oneLevelUp == takeDirectory oneLevelUp
-                then do
-                    throwM $ PoseidonChronicleException $
-                        "Did not find .git directory in or above " ++ show p
+                then do throwM $ PoseidonGitException p
                 else getGitCommitHash False oneLevelUp
             Right info -> do
                 return $ giHash info
