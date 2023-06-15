@@ -50,12 +50,12 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
                 Right gitRef -> do
                     let currentBranch = giBranch gitRef
                     logInfo $ "Starting at branch " ++ currentBranch ++ " in " ++ srcDir
-                    mapM_ (recoverPacIter (head baseDirs)) pacStatesToAdd
+                    mapM_ recoverPacIter pacStatesToAdd
                     gitCheckout srcDir currentBranch
                     logInfo "Done"
     where
-        recoverPacIter :: FilePath -> PackageIteration -> PoseidonIO ()
-        recoverPacIter destDir pacIter@(PackageIteration _ _ commit path) = do
+        recoverPacIter :: PackageIteration -> PoseidonIO ()
+        recoverPacIter pacIter@(PackageIteration _ _ commit path) = do
             let pacIterName = makeNameWithVersion pacIter
             logInfo $ "Recovering package " ++ pacIterName
             -- this exists to reduce the number of checkouts
@@ -67,10 +67,10 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
                     if currentCommit == commit
                     then do
                         logInfo $ "Already at the right commit " ++ commit ++ " in " ++ srcDir
-                        copyDirectory (srcDir </> path) (destDir </> pacIterName)
+                        copyDirectory (srcDir </> path) (head baseDirs </> pacIterName)
                     else do
                         gitCheckout srcDir commit
-                        copyDirectory (srcDir </> path) (destDir </> pacIterName)
+                        copyDirectory (srcDir </> path) (head baseDirs </> pacIterName)
 
 gitCheckout :: FilePath -> String -> PoseidonIO ()
 gitCheckout srcDir commit = do
