@@ -26,7 +26,7 @@ import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
 
 parseChronOperation :: OP.Parser ChronOperation
-parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath <*> parseChronMaybeOutPath)
+parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
 
 parseChronInPath :: OP.Parser FilePath
 parseChronInPath = OP.strOption (OP.long "chronFile" <>
@@ -45,18 +45,10 @@ parseChronUpdatePath = OP.strOption (OP.long "updateFile" <>
     OP.short 'u' <>
     OP.metavar "PATH" <>
     OP.help "Path to the chronicle definition file that should be updated. \
-            \The update procedure does not change the package entries \
-            \that are already in the chronicle definition file, but only \
-            \adds new entries.")
-
-parseChronMaybeOutPath :: OP.Parser (Maybe FilePath)
-parseChronMaybeOutPath = OP.option (Just <$> OP.str) (
-    OP.short 'o' <>
-    OP.long "updateOutFile" <>
-    OP.help "If this is set, then the input chronicle file will not be overwritten with \
-            \--updateFile, but a new file will be created instead." <>
-    OP.value Nothing
-    )
+            \This file will be overwritten! \
+            \But the update procedure does not change the package entries \
+            \that are already in the chronicle definition file. \
+            \It only adds new entries.")
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (

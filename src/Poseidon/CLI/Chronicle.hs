@@ -12,7 +12,7 @@ data ChronicleOptions = ChronicleOptions
     , _chronicleOperation :: ChronOperation
     }
 
-data ChronOperation = CreateChron FilePath | UpdateChron FilePath (Maybe FilePath)
+data ChronOperation = CreateChron FilePath | UpdateChron FilePath
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -28,10 +28,9 @@ runChronicle testMode (ChronicleOptions baseDirs operation) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     newChronicle <- makeChronicle testMode allPackages
     case operation of
-        CreateChron outPath -> writeChronicle outPath newChronicle
-        UpdateChron inPath maybeOutPath -> do
+        CreateChron outPath -> do
+            writeChronicle outPath newChronicle
+        UpdateChron inPath -> do
             oldChronicle <- readChronicle inPath
             let updatedChronicle = updateChronicle oldChronicle newChronicle
-            case maybeOutPath of
-                Nothing      -> writeChronicle inPath updatedChronicle
-                Just outPath -> writeChronicle outPath updatedChronicle
+            writeChronicle inPath updatedChronicle

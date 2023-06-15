@@ -632,15 +632,13 @@ testPipelineChronicle testDir checkFilePath = do
     let chronicleOpts3 = ChronicleOptions {
           _chronicleBaseDirs       = [testPacsDir, testDir </> "init"]
         , _chronicleOperation      = UpdateChron (testDir </> "chronicle" </> "chronicle2.yml")
-                                               (Just $ testDir </> "chronicle" </> "chronicle3.yml")
     }
-    let action4 = testLog (runChronicle True chronicleOpts2) >>
-            patchLastModified testDir ("chronicle" </> "chronicle2.yml") >>
+    let action2 = testLog (runChronicle True chronicleOpts2) >>
             testLog (runChronicle True chronicleOpts3) >>
-            patchLastModified testDir ("chronicle" </> "chronicle3.yml")
-    runAndChecksumFiles checkFilePath testDir action4 "chronicle" [
-          "chronicle" </> "chronicle2.yml"
-        --, "chronicle" </> "chronicle3.yml" -- test infrastructure needs rework
+            patchLastModified testDir ("chronicle" </> "chronicle2.yml") >>
+            patchTempFilePath testDir ("chronicle" </> "chronicle2.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "chronicle" [
+            "chronicle" </> "chronicle2.yml"
         ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
@@ -704,6 +702,12 @@ testPipelineListRemote testDir checkFilePath = do
     killThread threadID
 
 -- helper functions --
+
+patchTempFilePath :: FilePath -> FilePath -> IO ()
+patchTempFilePath testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = map (T.replace "/tmp/poseidonHSGoldenTestData/" "./test/PoseidonGoldenTests/GoldenTestData/") lines_
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
 patchLastModified :: FilePath -> FilePath -> IO ()
 patchLastModified testDir yamlFile = do
