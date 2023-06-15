@@ -243,7 +243,8 @@ chronicleOptParser = ChronicleOptions <$> parseBasePaths
 
 timetravelOptParser :: OP.Parser TimetravelOptions
 timetravelOptParser = TimetravelOptions <$> parseBasePaths
-                                        <*> parseChronInPath
+                                        <*> parseTimetravelSourcePath
+                                        <*> parseTimetravelChronPath
 
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseBasePaths

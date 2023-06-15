@@ -17,11 +17,12 @@ import qualified Data.Set                as S
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (copyFile, createDirectoryIfMissing,
                                           listDirectory)
-import           System.FilePath         (takeDirectory, (</>))
+import           System.FilePath         ((</>))
 import           System.Process          (callCommand)
 
 data TimetravelOptions = TimetravelOptions
     { _timetravelBaseDirs      :: [FilePath]
+    , _timetravelSourceDir     :: FilePath
     , _timetravelChronicleFile :: FilePath
     }
 
@@ -35,7 +36,7 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runTimetravel :: TimetravelOptions -> PoseidonIO ()
-runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
+runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     pacsInBaseDirs <- chroniclePackages True allPackages
     chronicle <- readChronicle chroniclePath
@@ -43,18 +44,16 @@ runTimetravel (TimetravelOptions baseDirs chroniclePath) = do
     case S.toList $ S.difference pacsInChronicle pacsInBaseDirs of
         []             -> do logInfo "All packages already there, nothing to add"
         pacStatesToAdd -> do
-            --logInfo $ show pacStatesToAdd
-            let srcDir = takeDirectory chroniclePath
             eitherGit <- liftIO $ getGitInfo srcDir
             case eitherGit of
                 Left _ -> do
                     throwM $ PoseidonChronicleException $ "Did not find .git directory in " ++ show srcDir
                 Right info -> do
                     let startCommit = giHash info
-                    mapM_ (recoverPacIter srcDir startCommit (head baseDirs)) pacStatesToAdd
+                    mapM_ (recoverPacIter startCommit (head baseDirs)) pacStatesToAdd
     where
-        recoverPacIter :: FilePath -> String -> FilePath -> PackageIteration -> PoseidonIO ()
-        recoverPacIter srcDir startCommit destDir pacIter@(PackageIteration _ _ commit path) = do
+        recoverPacIter :: String -> FilePath -> PackageIteration -> PoseidonIO ()
+        recoverPacIter startCommit destDir pacIter@(PackageIteration _ _ commit path) = do
             let pacIterName = makeNameWithVersion pacIter
             logInfo $ "Recovering package " ++ pacIterName
             gitCheckout srcDir commit

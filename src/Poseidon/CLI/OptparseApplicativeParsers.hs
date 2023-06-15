@@ -28,20 +28,30 @@ import           Text.Read               (readMaybe)
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
 
-parseChronInPath :: OP.Parser FilePath
-parseChronInPath = OP.strOption (OP.long "chronFile" <>
-    OP.short 'o' <>
+parseTimetravelSourcePath :: OP.Parser FilePath
+parseTimetravelSourcePath = OP.strOption (
+    OP.long "srcDir" <>
+    OP.short 's' <>
+    OP.metavar "DIR" <>
+    OP.help "Path to the Git-versioned source directory where the chronFile applies.")
+
+parseTimetravelChronPath :: OP.Parser FilePath
+parseTimetravelChronPath = OP.strOption (
+    OP.long "chronFile" <>
+    OP.short 'c' <>
     OP.metavar "PATH" <>
     OP.help "Path to the chronicle definition file.")
 
 parseChronOutPath :: OP.Parser FilePath
-parseChronOutPath = OP.strOption (OP.long "outFile" <>
+parseChronOutPath = OP.strOption (
+    OP.long "outFile" <>
     OP.short 'o' <>
     OP.metavar "PATH" <>
     OP.help "Path to the resulting chronicle definition file.")
 
 parseChronUpdatePath :: OP.Parser FilePath
-parseChronUpdatePath = OP.strOption (OP.long "updateFile" <>
+parseChronUpdatePath = OP.strOption (
+    OP.long "updateFile" <>
     OP.short 'u' <>
     OP.metavar "PATH" <>
     OP.help "Path to the chronicle definition file that should be updated. \
