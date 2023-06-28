@@ -627,7 +627,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
     -- initialize this chronicle dir with Git
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " init --quiet"
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
-    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"first commit\" --quiet"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"first commit\""
     -- test the creation of a chronicle file
     let chronicleOpts1 = ChronicleOptions {
           _chronicleBaseDirs  = [testDir </> "chronicle"]
