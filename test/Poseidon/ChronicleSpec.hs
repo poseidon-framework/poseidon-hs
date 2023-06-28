@@ -56,34 +56,34 @@ packages:
 
 exampleChronicle :: PoseidonPackageChronicle
 exampleChronicle = PoseidonPackageChronicle {
-      snapYamlTitle           = "Chronicle title"
-    , snapYamlDescription     = Just "Chronicle description"
+      snapYamlTitle            = "Chronicle title"
+    , snapYamlDescription      = Just "Chronicle description"
     , snapYamlChronicleVersion = makeVersion [0, 1, 0]
-    , snapYamlLastModified    = fromGregorian 2023 04 02
-    , snapYamlPackages        = S.fromList [
+    , snapYamlLastModified     = fromGregorian 2023 04 02
+    , snapYamlPackages         = S.fromList [
         PackageIteration {
-              pacStateTitle   = "Lamnidis_2018"
-            , pacStateVersion = makeVersion [1, 0, 1]
-            , pacStateCommit  = "MyGitCommitHash"
-            , pacStatePath    = "./Lamnidis_2018"
+              pacStateTitle    = "Lamnidis_2018"
+            , pacStateVersion  = makeVersion [1, 0, 1]
+            , pacStateCommit   = "MyGitCommitHash"
+            , pacStatePath     = "./Lamnidis_2018"
         },
         PackageIteration {
-              pacStateTitle   = "Schiffels_2016"
-            , pacStateVersion = makeVersion [1, 0, 1]
-            , pacStateCommit  = "MyGitCommitHash"
-            , pacStatePath    = "./Schiffels_2016"
+              pacStateTitle    = "Schiffels_2016"
+            , pacStateVersion  = makeVersion [1, 0, 1]
+            , pacStateCommit   = "MyGitCommitHash"
+            , pacStatePath     = "./Schiffels_2016"
         },
         PackageIteration {
-              pacStateTitle   = "Schmid_2028"
-            , pacStateVersion = makeVersion [1, 0, 0]
-            , pacStateCommit  = "MyGitCommitHash"
-            , pacStatePath    = "./Schmid_2028"
+              pacStateTitle    = "Schmid_2028"
+            , pacStateVersion  = makeVersion [1, 0, 0]
+            , pacStateCommit   = "MyGitCommitHash"
+            , pacStatePath     = "./Schmid_2028"
         },
         PackageIteration {
-              pacStateTitle   = "Wang_2020"
-            , pacStateVersion = makeVersion [0, 1, 0]
-            , pacStateCommit  = "MyGitCommitHash"
-            , pacStatePath    = "./Wang_2020"
+              pacStateTitle    = "Wang_2020"
+            , pacStateVersion  = makeVersion [0, 1, 0]
+            , pacStateCommit   = "MyGitCommitHash"
+            , pacStatePath     = "./Wang_2020"
         }
         ]
     }
@@ -99,13 +99,13 @@ newChronicle = PoseidonPackageChronicle {
               pacStateTitle    = "Lamnidis_2018"
             , pacStateVersion  = makeVersion [2, 0, 0]
             , pacStateCommit   = "test"
-            , pacStatePath    = ""
+            , pacStatePath     = ""
         },
         PackageIteration {
               pacStateTitle    = "Zoro_2000"
             , pacStateVersion  = makeVersion [0, 1, 0]
             , pacStateCommit   = "test2"
-            , pacStatePath    = ""
+            , pacStatePath     = ""
         }
         ]
     }
@@ -120,7 +120,8 @@ testPacReadOpts = defaultPackageReadOptions {
 
 testChronicleFromYaml :: Spec
 testChronicleFromYaml = describe "Poseidon.Chronicle.fromYAML" $ do
-    let p = fromRight newChronicle (decodeEither' yamlExampleChronicle :: Either ParseException PoseidonPackageChronicle)
+    let p = fromRight newChronicle -- will fail with newChronicle
+            (decodeEither' yamlExampleChronicle :: Either ParseException PoseidonPackageChronicle)
     it "should parse correct YAML data" $
         p `shouldBe` exampleChronicle
 
@@ -136,7 +137,8 @@ testEncodeDecodeChronicleFile = describe "Poseidon.Chronicle.writeChronicle+read
 testMakeChronicle :: Spec
 testMakeChronicle = describe "Poseidon.Chronicle.makeChronicle" $ do
     it "should make a chronicle as expected" $ do
-        pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testDat/testPackages/ancient"]
+        pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts
+                          ["test/testDat/testPackages/ancient"]
         snap <- testLog $ makeChronicle True "test/testDat/testPackages/ancient" pacs
         snap {snapYamlLastModified = fromGregorian 2023 04 02} `shouldBe` exampleChronicle
 
