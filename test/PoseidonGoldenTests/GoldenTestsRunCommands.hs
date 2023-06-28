@@ -42,7 +42,6 @@ import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (copyFile, createDirectory,
                                            createDirectoryIfMissing,
                                            doesDirectoryExist, listDirectory,
-                                           removeDirectory,
                                            removeDirectoryRecursive)
 import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
@@ -621,56 +620,65 @@ testPipelineForge testDir checkFilePath = do
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
     -- create relevant test directories
-    createDirectory $ testDir </> "chronicle"
-    createDirectory $ testDir </> "timetravel"
+    createDirectoryIfMissing False $ testDir </> "chronicle"
+    createDirectoryIfMissing False $ testDir </> "timetravel"
     -- copy packages into the chronicle dir
-    copyDirectory testPacsDir (testDir </> "chronicle")
+    copyDirectoryRecursive testPacsDir (testDir </> "chronicle")
     -- initialize this chronicle dir with Git
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " init --quiet"
-    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all --quiet"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"first commit\" --quiet"
     -- test the creation of a chronicle file
     let chronicleOpts1 = ChronicleOptions {
-          _chronicleBaseDirs       = [testDir </> "chronicle"]
-        , _chronicleOperation      = CreateChron $ testDir </> "chronicle" </> "chronicle1.yml"
+          _chronicleBaseDirs  = [testDir </> "chronicle"]
+        , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle1.yml"
     }
     let action1 = testLog (runChronicle True chronicleOpts1) >>
             patchLastModified testDir ("chronicle" </> "chronicle1.yml")
     runAndChecksumFiles checkFilePath testDir action1 "chronicle" [
           "chronicle" </> "chronicle1.yml"
         ]
-    -- copy the just created chronicle file to test update below
-    copyFile (testDir </> "chronicle" </> "chronicle1.yml") (testDir </> "chronicle" </> "chronicle2.yml")
+    -- make another, identical chronicle file to test update below
+    let chronicleOpts2 = ChronicleOptions {
+          _chronicleBaseDirs  = [testDir </> "chronicle"]
+        , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle2.yml"
+    }
+    testLog (runChronicle False chronicleOpts2)
     -- add an additional poseidon package from the init directory
-    copyDirectory (testDir </> "init" </> "Schiffels") (testDir </> "chronicle" </> "Schiffels")
+    copyDirectoryRecursive (testDir </> "init" </> "Schiffels") (testDir </> "chronicle" </> "Schiffels")
     -- delete a poseidon package
-    removeDirectory (testDir </> "chronicle" </> "Schmid_2028")
-    -- make another git commit with the changes data
-    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all --quiet"
+    removeDirectoryRecursive (testDir </> "chronicle" </> "Schmid_2028")
+    -- make another git commit with the changed data
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"second commit\" --quiet"
     -- update the chronicle file
-    let chronicleOpts2 = ChronicleOptions {
-          _chronicleBaseDirs       = [testPacsDir, testDir </> "init"]
-        , _chronicleOperation      = UpdateChron (testDir </> "chronicle" </> "chronicle2.yml")
+    let chronicleOpts3 = ChronicleOptions {
+          _chronicleBaseDirs  = [testDir </> "chronicle"]
+        , _chronicleOperation = UpdateChron $ testDir </> "chronicle" </> "chronicle2.yml"
     }
-    let action2 = testLog (runChronicle True chronicleOpts2) >>
-            patchLastModified testDir ("chronicle" </> "chronicle2.yml") >>
-            patchTempFilePath testDir ("chronicle" </> "chronicle2.yml")
-    runAndChecksumFiles checkFilePath testDir action2 "chronicle" [
-            "chronicle" </> "chronicle2.yml"
-        ]
+    testLog (runChronicle False chronicleOpts3)
+    -- and a final git commit to tie everything together
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"third commit\" --quiet"
     -- use timetravel to reconstruct the archive described by chronicle2.yml
     let timetravelOpts1 = TimetravelOptions {
-          _timetravelBaseDirs      = [testDir </> "timetravel"]
-        , _timetravelSourceDir     = testDir </> "chronicle"
-        , _timetravelChronicleFile = testDir </> "chronicle" </> "chronicle2.yml"
+           _timetravelBaseDirs      = [testDir </> "timetravel"]
+         , _timetravelSourceDir     = testDir </> "chronicle"
+         , _timetravelChronicleFile = testDir </> "chronicle" </> "chronicle2.yml"
     }
-    let action3 = testLog (runTimetravel timetravelOpts1)
-    runAndChecksumFiles checkFilePath testDir action3 "timetravel" [
-          "timetravel" </> "Schiffels" </> "POSEIDON.yml"
+    let action2 = testLog (runTimetravel timetravelOpts1)
+    runAndChecksumFiles checkFilePath testDir action2 "timetravel" [
+            -- normal package in version A
+            "timetravel" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            -- normal package in version B
+          , "timetravel" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            -- package added in new commit
+          , "timetravel" </> "Schiffels-1.0.0" </> "POSEIDON.yml"
+            -- package removed in last commit, real timetravel necessary
+          , "timetravel" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
         ]
-    -- delete .git directory in chronicle in the end
-    removeDirectory (testDir </> "chronicle" </> ".git")
+    -- delete .git directory in chronicle to clean up in the end
+    removeDirectoryRecursive (testDir </> "chronicle" </> ".git")
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
  -- sometimes we would like to implement new features that affect the communication
@@ -734,20 +742,17 @@ testPipelineListRemote testDir checkFilePath = do
 
 -- helper functions --
 
-copyDirectory :: FilePath -> FilePath -> IO ()
-copyDirectory srcDir destDir = do
+copyDirectoryRecursive :: FilePath -> FilePath -> IO ()
+copyDirectoryRecursive srcDir destDir = do
   createDirectoryIfMissing True destDir
-  files <- listDirectory srcDir
-  forM_ files $ \file -> do
-    let srcFile = srcDir </> file
-        destFile = destDir </> file
-    copyFile srcFile destFile
-
-patchTempFilePath :: FilePath -> FilePath -> IO ()
-patchTempFilePath testDir yamlFile = do
-    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = map (T.replace "/tmp/poseidonHSGoldenTestData/" "./test/PoseidonGoldenTests/GoldenTestData/") lines_
-    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+  entries <- listDirectory srcDir
+  forM_ entries $ \entry -> do
+    let srcPath = srcDir </> entry
+        destPath = destDir </> entry
+    isDir <- doesDirectoryExist srcPath
+    if isDir
+    then do copyDirectoryRecursive srcPath destPath
+    else do copyFile srcPath destPath
 
 patchLastModified :: FilePath -> FilePath -> IO ()
 patchLastModified testDir yamlFile = do

@@ -26,11 +26,12 @@ pacReadOpts = defaultPackageReadOptions {
 runChronicle :: Bool -> ChronicleOptions -> PoseidonIO ()
 runChronicle testMode (ChronicleOptions baseDirs operation) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    newChronicle <- makeChronicle testMode allPackages
     case operation of
         CreateChron outPath -> do
+            newChronicle <- makeChronicle testMode outPath allPackages
             writeChronicle outPath newChronicle
         UpdateChron inPath -> do
+            newChronicle <- makeChronicle testMode inPath allPackages
             oldChronicle <- readChronicle inPath
             let updatedChronicle = updateChronicle oldChronicle newChronicle
             writeChronicle inPath updatedChronicle

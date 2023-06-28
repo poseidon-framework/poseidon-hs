@@ -26,7 +26,7 @@ import           Data.Yaml.Pretty        (defConfig, encodePretty,
 import           GitHash                 (getGitInfo, giHash)
 import           System.Directory        (createDirectoryIfMissing,
                                           makeAbsolute)
-import           System.FilePath         (takeDirectory)
+import           System.FilePath         (makeRelative, takeDirectory)
 
 data PoseidonPackageChronicle = PoseidonPackageChronicle
     { snapYamlTitle            :: String
@@ -128,9 +128,9 @@ writeChronicle p snapShot = do
             "commit"
          ]
 
-makeChronicle :: Bool -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
-makeChronicle testMode pacs = do
-    pacChronicles <- chroniclePackages testMode pacs
+makeChronicle :: Bool -> FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+makeChronicle testMode pathToChronicleFile pacs = do
+    pacChronicles <- chroniclePackages testMode pathToChronicleFile pacs
     (UTCTime today _) <- liftIO getCurrentTime
     return $ PoseidonPackageChronicle {
       snapYamlTitle            = "Chronicle title"
@@ -140,8 +140,8 @@ makeChronicle testMode pacs = do
     , snapYamlPackages         = pacChronicles
     }
 
-chroniclePackages :: Bool -> [PoseidonPackage] -> PoseidonIO (S.Set PackageIteration)
-chroniclePackages testMode pacs = do
+chroniclePackages :: Bool -> FilePath -> [PoseidonPackage] -> PoseidonIO (S.Set PackageIteration)
+chroniclePackages testMode pathToChronicleFile pacs = do
     pacStateList <- mapM snapOne pacs
     return $ S.fromList pacStateList
     where
@@ -153,7 +153,7 @@ chroniclePackages testMode pacs = do
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = version,
                 pacStateCommit  = commit,
-                pacStatePath    = posPacBaseDir pac
+                pacStatePath    = makeRelative (takeDirectory pathToChronicleFile) $ posPacBaseDir pac
             }
 
 getPackageVersion :: Bool -> PoseidonPackage -> PoseidonIO Version

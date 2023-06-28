@@ -1,33 +1,29 @@
 title: Chronicle title
 description: Chronicle description
 chronicleVersion: 0.2.0
-lastModified: 1970-01-01
+lastModified: 2023-06-28
 packages:
 - title: Lamnidis_2018
   version: 1.0.0
-  commit: MyGitCommitHash
-  path: test/testDat/testPackages/ancient/Lamnidis_2018
+  commit: 1f44cde393fc5f0bd0b244eb6ab353d4d36b7850
+  path: Lamnidis_2018
 - title: Lamnidis_2018
   version: 1.0.1
-  commit: MyGitCommitHash
-  path: test/testDat/testPackages/ancient/Lamnidis_2018_newVersion
+  commit: 1f44cde393fc5f0bd0b244eb6ab353d4d36b7850
+  path: Lamnidis_2018_newVersion
 - title: Schiffels
   version: 1.0.0
-  commit: MyGitCommitHash
-  path: ./test/PoseidonGoldenTests/GoldenTestData/init/Schiffels
+  commit: 2f1177685f22056dcd477061a5caa142c0f62fbf
+  path: Schiffels
 - title: Schiffels_2016
   version: 1.0.1
-  commit: MyGitCommitHash
-  path: test/testDat/testPackages/ancient/Schiffels_2016
+  commit: 1f44cde393fc5f0bd0b244eb6ab353d4d36b7850
+  path: Schiffels_2016
 - title: Schmid_2028
   version: 1.0.0
-  commit: MyGitCommitHash
-  path: test/testDat/testPackages/ancient/Schmid_2028
-- title: Wang
-  version: 0.0.0
-  commit: MyGitCommitHash
-  path: ./test/PoseidonGoldenTests/GoldenTestData/init/Wang
+  commit: 1f44cde393fc5f0bd0b244eb6ab353d4d36b7850
+  path: Schmid_2028
 - title: Wang_2020
   version: 0.1.0
-  commit: MyGitCommitHash
-  path: test/testDat/testPackages/ancient/Wang_2020
+  commit: 1f44cde393fc5f0bd0b244eb6ab353d4d36b7850
+  path: Wang_2020

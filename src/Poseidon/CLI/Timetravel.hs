@@ -38,7 +38,7 @@ pacReadOpts = defaultPackageReadOptions {
 runTimetravel :: TimetravelOptions -> PoseidonIO ()
 runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    pacsInBaseDirs <- chroniclePackages True allPackages
+    pacsInBaseDirs <- chroniclePackages True chroniclePath allPackages
     chronicle <- readChronicle chroniclePath
     let pacsInChronicle = snapYamlPackages chronicle
     case S.toList $ S.difference pacsInChronicle pacsInBaseDirs of
