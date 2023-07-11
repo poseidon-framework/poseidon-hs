@@ -174,7 +174,7 @@ getGitCommitHash :: FilePath -> PoseidonIO String
 getGitCommitHash p = do
     testMode <- asks _envTestMode
     case testMode of
-        Testing -> return "MyGitCommitHash"
+        Testing -> return "TestMode Git hash"
         Production -> do
             eitherGit <- liftIO $ getGitInfo p
             case eitherGit of
@@ -182,7 +182,7 @@ getGitCommitHash p = do
                     pAbsolute <- liftIO $ makeAbsolute p
                     let oneLevelUp = takeDirectory pAbsolute
                     if oneLevelUp == takeDirectory oneLevelUp
-                    then do throwM $ PoseidonGitException p
+                    then do return "No Git repository found"
                     else getGitCommitHash oneLevelUp
                 Right info -> do
                     return $ giHash info

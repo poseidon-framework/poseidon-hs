@@ -79,7 +79,7 @@ ad9e95d36a9f9d5ab3d6e13100d0adaf forge forge/ForgePac10/ForgePac10.bib
 0332344057c0c4dce2ff7176f8e1103d forge forge/ForgePac11/ForgePac11.geno
 f7e7449562656b713aa8b6256b078930 forge forge/ForgePac11/ForgePac11.janno
 0aef7781caa017fa2b888dfa64b60cf3 forge forge/ForgePac11/ForgePac11.ssf
-90dc35d4cf22282814821fa7ddf077be chronicle chronicle/chronicle1.yml
+d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
 d0d463f313cac456c8edc69634f8bbcc timetravel timetravel/Schiffels-1.0.0/POSEIDON.yml

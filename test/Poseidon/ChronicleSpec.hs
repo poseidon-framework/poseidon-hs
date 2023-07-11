@@ -38,19 +38,19 @@ lastModified: 2023-04-02
 packages:
 - title: Lamnidis_2018
   version: 1.0.1
-  commit: MyGitCommitHash
+  commit: TestMode Git hash
   path: ./Lamnidis_2018
 - title: Schiffels_2016
   version: 1.0.1
-  commit: MyGitCommitHash
+  commit: TestMode Git hash
   path: ./Schiffels_2016
 - title: Schmid_2028
   version: 1.0.0
-  commit: MyGitCommitHash
+  commit: TestMode Git hash
   path: ./Schmid_2028
 - title: Wang_2020
   version: 0.1.0
-  commit: MyGitCommitHash
+  commit: TestMode Git hash
   path: ./Wang_2020
 |]
 
@@ -64,25 +64,25 @@ exampleChronicle = PoseidonPackageChronicle {
         PackageIteration {
               pacStateTitle    = "Lamnidis_2018"
             , pacStateVersion  = makeVersion [1, 0, 1]
-            , pacStateCommit   = "MyGitCommitHash"
+            , pacStateCommit   = "TestMode Git hash"
             , pacStatePath     = "./Lamnidis_2018"
         },
         PackageIteration {
               pacStateTitle    = "Schiffels_2016"
             , pacStateVersion  = makeVersion [1, 0, 1]
-            , pacStateCommit   = "MyGitCommitHash"
+            , pacStateCommit   = "TestMode Git hash"
             , pacStatePath     = "./Schiffels_2016"
         },
         PackageIteration {
               pacStateTitle    = "Schmid_2028"
             , pacStateVersion  = makeVersion [1, 0, 0]
-            , pacStateCommit   = "MyGitCommitHash"
+            , pacStateCommit   = "TestMode Git hash"
             , pacStatePath     = "./Schmid_2028"
         },
         PackageIteration {
               pacStateTitle    = "Wang_2020"
             , pacStateVersion  = makeVersion [0, 1, 0]
-            , pacStateCommit   = "MyGitCommitHash"
+            , pacStateCommit   = "TestMode Git hash"
             , pacStatePath     = "./Wang_2020"
         }
         ]
@@ -155,7 +155,7 @@ testUpdateChronicle = describe "Poseidon.Chronicle.updateChronicle" $ do
                     PackageIteration {
                           pacStateTitle    = "Lamnidis_2018"
                         , pacStateVersion  = makeVersion [1, 0, 1]
-                        , pacStateCommit   = "MyGitCommitHash"
+                        , pacStateCommit   = "TestMode Git hash"
                         , pacStatePath     = ""
                     },
                     PackageIteration {
@@ -167,19 +167,19 @@ testUpdateChronicle = describe "Poseidon.Chronicle.updateChronicle" $ do
                     PackageIteration {
                           pacStateTitle    = "Schiffels_2016"
                         , pacStateVersion  = makeVersion [1, 0, 1]
-                        , pacStateCommit   = "MyGitCommitHash"
+                        , pacStateCommit   = "TestMode Git hash"
                         , pacStatePath     = ""
                     },
                     PackageIteration {
                           pacStateTitle    = "Schmid_2028"
                         , pacStateVersion  = makeVersion [1, 0, 0]
-                        , pacStateCommit   = "MyGitCommitHash"
+                        , pacStateCommit   = "TestMode Git hash"
                         , pacStatePath     = ""
                     },
                     PackageIteration {
                           pacStateTitle    = "Wang_2020"
                         , pacStateVersion  = makeVersion [0, 1, 0]
-                        , pacStateCommit   = "MyGitCommitHash"
+                        , pacStateCommit   = "TestMode Git hash"
                         , pacStatePath     = ""
                     },
                     PackageIteration {
