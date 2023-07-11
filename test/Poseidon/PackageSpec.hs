@@ -16,8 +16,8 @@ import           Poseidon.Package           (PackageReadOptions (..),
 import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
 import           Poseidon.Utils             (LogMode (..),
                                              PoseidonException (..),
-                                             getChecksum, noLog, testLog,
-                                             usePoseidonLogger)
+                                             TestMode (..), getChecksum, noLog,
+                                             testLog, usePoseidonLogger)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.Either                (fromLeft, fromRight)
@@ -329,11 +329,11 @@ testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
     it "should throw if Plink Setting is not correct" $ do
         let opts = defaultPackageReadOptions
         let ymlPath = "test/testDat/testPackages/ancient/Wang_2020/POSEIDON.yml"
-        usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
+        usePoseidonLogger NoLog Testing PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should not throw if Plink Setting is correct" $ do
         let opts = defaultPackageReadOptions
         let ymlPath = "test/testDat/testPackages/ancient/Wang_2020/POSEIDON_otherPlinkEncoding.yml"
-        _ <- usePoseidonLogger NoLog PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath)
+        _ <- usePoseidonLogger NoLog Testing PlinkPopNameAsPhenotype (readPoseidonPackage opts ymlPath)
         return ()
   where
     isPoseidonCrossFileConsistencyException :: Selector PoseidonException

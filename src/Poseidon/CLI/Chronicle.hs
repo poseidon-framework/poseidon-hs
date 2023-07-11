@@ -7,6 +7,7 @@ import           Poseidon.Package   (PackageReadOptions (..),
                                      readPoseidonPackageCollection)
 import           Poseidon.Utils     (PoseidonIO)
 
+
 data ChronicleOptions = ChronicleOptions
     { _chronicleBaseDirs  :: [FilePath]
     , _chronicleOperation :: ChronOperation
@@ -23,15 +24,15 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptKeepMultipleVersions = True
     }
 
-runChronicle :: Bool -> ChronicleOptions -> PoseidonIO ()
-runChronicle testMode (ChronicleOptions baseDirs operation) = do
+runChronicle :: ChronicleOptions -> PoseidonIO ()
+runChronicle (ChronicleOptions baseDirs operation) = do
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     case operation of
         CreateChron outPath -> do
-            newChronicle <- makeChronicle testMode outPath allPackages
+            newChronicle <- makeChronicle outPath allPackages
             writeChronicle outPath newChronicle
         UpdateChron inPath -> do
-            newChronicle <- makeChronicle testMode inPath allPackages
+            newChronicle <- makeChronicle inPath allPackages
             oldChronicle <- readChronicle inPath
             let updatedChronicle = updateChronicle oldChronicle newChronicle
             writeChronicle inPath updatedChronicle

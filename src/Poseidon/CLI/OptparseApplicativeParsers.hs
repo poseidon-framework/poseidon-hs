@@ -16,7 +16,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
-import           Poseidon.Utils          (LogMode (..))
+import           Poseidon.Utils          (LogMode (..), TestMode (..))
 
 import           Control.Applicative     ((<|>))
 import           Data.Version            (Version)
@@ -91,6 +91,22 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
             "ServerLog"  -> Right ServerLog
             "VerboseLog" -> Right VerboseLog
             _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
+
+parseTestMode :: OP.Parser TestMode
+parseTestMode = OP.option (OP.eitherReader readTestMode) (
+    OP.long "testMode" <>
+    OP.help "\"Testing\" activates a test mode; relevant only \
+            \for developers in very specific edge cases" <>
+    OP.value Production <>
+    OP.showDefault <>
+    OP.internal
+    )
+    where
+        readTestMode :: String -> Either String TestMode
+        readTestMode s = case s of
+            "Testing"    -> Right Testing
+            "Production" -> Right Production
+            _            -> Left "must be Testing or Production"
 
 data ErrorLength = CharInf | CharCount Int deriving Show
 

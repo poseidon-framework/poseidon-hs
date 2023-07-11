@@ -6,10 +6,12 @@ import           Poseidon.Package        (PoseidonPackage (..))
 import           Poseidon.SecondaryTypes (HasNameAndVersion (..),
                                           VersionComponent (..),
                                           updateThreeComponentVersion)
-import           Poseidon.Utils          (PoseidonException (..), PoseidonIO)
+import           Poseidon.Utils          (Env (..), PoseidonException (..),
+                                          PoseidonIO, TestMode (..))
 
 import           Control.Monad.Catch     (throwM)
 import           Control.Monad.IO.Class  (liftIO)
+import           Control.Monad.Reader    (asks)
 import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
                                           toJSON, withObject, (.!=), (.:),
                                           (.:?), (.=))
@@ -128,9 +130,9 @@ writeChronicle p snapShot = do
             "commit"
          ]
 
-makeChronicle :: Bool -> FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
-makeChronicle testMode pathToChronicleFile pacs = do
-    pacChronicles <- chroniclePackages testMode pathToChronicleFile pacs
+makeChronicle :: FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+makeChronicle pathToChronicleFile pacs = do
+    pacChronicles <- chroniclePackages pathToChronicleFile pacs
     (UTCTime today _) <- liftIO getCurrentTime
     return $ PoseidonPackageChronicle {
       snapYamlTitle            = "Chronicle title"
@@ -140,15 +142,15 @@ makeChronicle testMode pathToChronicleFile pacs = do
     , snapYamlPackages         = pacChronicles
     }
 
-chroniclePackages :: Bool -> FilePath -> [PoseidonPackage] -> PoseidonIO (S.Set PackageIteration)
-chroniclePackages testMode pathToChronicleFile pacs = do
+chroniclePackages :: FilePath -> [PoseidonPackage] -> PoseidonIO (S.Set PackageIteration)
+chroniclePackages pathToChronicleFile pacs = do
     pacStateList <- mapM snapOne pacs
     return $ S.fromList pacStateList
     where
         snapOne :: PoseidonPackage -> PoseidonIO PackageIteration
         snapOne pac = do
-            version <- getPackageVersion testMode pac
-            commit <- liftIO $ getGitCommitHash testMode $ posPacBaseDir pac
+            version <- getPackageVersion pac
+            commit <- getGitCommitHash $ posPacBaseDir pac
             return $ PackageIteration {
                 pacStateTitle   = posPacTitle pac,
                 pacStateVersion = version,
@@ -156,29 +158,31 @@ chroniclePackages testMode pathToChronicleFile pacs = do
                 pacStatePath    = makeRelative (takeDirectory pathToChronicleFile) $ posPacBaseDir pac
             }
 
-getPackageVersion :: Bool -> PoseidonPackage -> PoseidonIO Version
-getPackageVersion testMode pac =
+getPackageVersion :: PoseidonPackage -> PoseidonIO Version
+getPackageVersion pac =
     case posPacPackageVersion pac of
         Just v -> return v
         Nothing -> do
-            if testMode
-            then return $ makeVersion [0, 0, 0]
-            else do
-                throwM $ PoseidonChronicleException $
-                    "Package " ++ show (posPacTitle pac) ++ " has no version."
+            testMode <- asks _envTestMode
+            case testMode of
+                Testing -> return $ makeVersion [0, 0, 0]
+                Production -> do
+                    throwM $ PoseidonChronicleException $
+                        "Package " ++ show (posPacTitle pac) ++ " has no version."
 
-getGitCommitHash :: Bool -> FilePath -> IO String
-getGitCommitHash testMode p =
-    if testMode
-    then return "MyGitCommitHash"
-    else do
-        eitherGit <- liftIO $ getGitInfo p
-        case eitherGit of
-            Left _ -> do
-                pAbsolute <- liftIO $ makeAbsolute p
-                let oneLevelUp = takeDirectory pAbsolute
-                if oneLevelUp == takeDirectory oneLevelUp
-                then do throwM $ PoseidonGitException p
-                else getGitCommitHash False oneLevelUp
-            Right info -> do
-                return $ giHash info
+getGitCommitHash :: FilePath -> PoseidonIO String
+getGitCommitHash p = do
+    testMode <- asks _envTestMode
+    case testMode of
+        Testing -> return "MyGitCommitHash"
+        Production -> do
+            eitherGit <- liftIO $ getGitInfo p
+            case eitherGit of
+                Left _ -> do
+                    pAbsolute <- liftIO $ makeAbsolute p
+                    let oneLevelUp = takeDirectory pAbsolute
+                    if oneLevelUp == takeDirectory oneLevelUp
+                    then do throwM $ PoseidonGitException p
+                    else getGitCommitHash oneLevelUp
+                Right info -> do
+                    return $ giHash info

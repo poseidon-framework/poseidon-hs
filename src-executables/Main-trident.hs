@@ -32,7 +32,8 @@ import           Poseidon.PoseidonVersion                (showPoseidonVersion,
 import           Poseidon.Utils                          (LogMode (..),
                                                           PlinkPopNameMode (..),
                                                           PoseidonException (..),
-                                                          PoseidonIO, logError,
+                                                          PoseidonIO, TestMode,
+                                                          logError,
                                                           renderPoseidonException,
                                                           usePoseidonLogger)
 
@@ -48,6 +49,7 @@ import           System.IO                               (hPutStrLn, stderr)
 
 data Options = Options {
     _logMode    :: LogMode
+  , _testMode   :: TestMode
   , _errLength  :: ErrorLength
   , _plinkMode  :: PlinkPopNameMode
   , _subcommand :: Subcommand
@@ -71,12 +73,12 @@ main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    (Options logMode errLength plinkMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode plinkMode $ runCmd subcommand) (handler logMode errLength plinkMode)
+    (Options logMode testMode errLength plinkMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode testMode plinkMode $ runCmd subcommand) (handler logMode testMode errLength plinkMode)
     where
-        handler :: LogMode -> ErrorLength -> PlinkPopNameMode -> PoseidonException -> IO ()
-        handler l len pm e = do
-            usePoseidonLogger l pm $ logError $ truncateErr len $ renderPoseidonException e
+        handler :: LogMode -> TestMode -> ErrorLength -> PlinkPopNameMode -> PoseidonException -> IO ()
+        handler l t len pm e = do
+            usePoseidonLogger l t pm $ logError $ truncateErr len $ renderPoseidonException e
             exitFailure
         truncateErr :: ErrorLength -> String -> String
         truncateErr CharInf         s = s
@@ -95,13 +97,19 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
-    CmdChronicle opts   -> runChronicle False opts -- the bool controls a test mode
+    CmdChronicle opts   -> runChronicle opts
     CmdTimetravel opts  -> runTimetravel opts
     CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*>
-        (Options <$> parseLogMode <*> parseErrorLength <*> parseInputPlinkPopMode <*> subcommandParser)) (
+optParserInfo = OP.info (
+    OP.helper <*> versionOption <*>
+        (Options <$> parseLogMode
+                 <*> parseTestMode
+                 <*> parseErrorLength
+                 <*> parseInputPlinkPopMode
+                 <*> subcommandParser)
+        ) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \

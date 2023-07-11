@@ -27,7 +27,9 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            SNPSetSpec (..))
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
-import           Poseidon.Utils           (getChecksum, testLog)
+import           Poseidon.Utils           (LogMode (..), TestMode (..),
+                                           getChecksum, testLog,
+                                           usePoseidonLogger)
 
 import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)
@@ -633,7 +635,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
           _chronicleBaseDirs  = [testDir </> "chronicle"]
         , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle1.yml"
     }
-    let action1 = testLog (runChronicle True chronicleOpts1) >>
+    let action1 = testLog (runChronicle chronicleOpts1) >>
             patchLastModified testDir ("chronicle" </> "chronicle1.yml")
     runAndChecksumFiles checkFilePath testDir action1 "chronicle" [
           "chronicle" </> "chronicle1.yml"
@@ -643,7 +645,8 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
           _chronicleBaseDirs  = [testDir </> "chronicle"]
         , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle2.yml"
     }
-    testLog (runChronicle False chronicleOpts2)
+    -- here we don't want testLog, but a custom environment with TestMode Production
+    usePoseidonLogger NoLog Production PlinkPopNameAsFamily (runChronicle chronicleOpts2)
     -- add an additional poseidon package from the init directory
     copyDirectoryRecursive (testDir </> "init" </> "Schiffels") (testDir </> "chronicle" </> "Schiffels")
     -- delete a poseidon package
@@ -656,7 +659,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
           _chronicleBaseDirs  = [testDir </> "chronicle"]
         , _chronicleOperation = UpdateChron $ testDir </> "chronicle" </> "chronicle2.yml"
     }
-    testLog (runChronicle False chronicleOpts3)
+    usePoseidonLogger NoLog Production PlinkPopNameAsFamily  (runChronicle chronicleOpts3)
     -- and a final git commit to tie everything together
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"third commit\" --quiet"

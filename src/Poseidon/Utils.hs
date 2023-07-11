@@ -20,7 +20,9 @@ module Poseidon.Utils (
     logWithEnv,
     padRight, padLeft,
     determinePackageOutName,
-    PlinkPopNameMode(..)
+    PlinkPopNameMode(..),
+    TestMode(..),
+    Env(..)
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -50,13 +52,16 @@ import           System.FilePath.Posix  (takeBaseName)
 
 type LogA = LogAction IO Message
 
+data TestMode = Testing | Production deriving Show
+
 data Env = Env {
     _envLogAction      :: LogA,
+    _envTestMode       :: TestMode,
     _envInputPlinkMode :: PlinkPopNameMode
 }
 
 defaultEnv :: LogA -> Env
-defaultEnv logA = Env logA PlinkPopNameAsFamily
+defaultEnv logA = Env logA Production PlinkPopNameAsFamily
 
 type PoseidonIO = ReaderT Env IO
 
@@ -74,16 +79,16 @@ data LogMode = NoLog
     | VerboseLog
     deriving Show
 
-usePoseidonLogger :: LogMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
-usePoseidonLogger NoLog      plinkMode = flip runReaderT (Env noLog plinkMode)
-usePoseidonLogger SimpleLog  plinkMode = flip runReaderT (Env simpleLog plinkMode)
-usePoseidonLogger DefaultLog plinkMode = flip runReaderT (Env defaultLog plinkMode)
-usePoseidonLogger ServerLog  plinkMode = flip runReaderT (Env serverLog plinkMode)
-usePoseidonLogger VerboseLog plinkMode = flip runReaderT (Env verboseLog plinkMode)
+usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
+usePoseidonLogger NoLog      testMode plinkMode = flip runReaderT (Env noLog testMode plinkMode)
+usePoseidonLogger SimpleLog  testMode plinkMode = flip runReaderT (Env simpleLog testMode plinkMode)
+usePoseidonLogger DefaultLog testMode plinkMode = flip runReaderT (Env defaultLog testMode plinkMode)
+usePoseidonLogger ServerLog  testMode plinkMode = flip runReaderT (Env serverLog testMode plinkMode)
+usePoseidonLogger VerboseLog testMode plinkMode = flip runReaderT (Env verboseLog testMode plinkMode)
 
 testLog :: PoseidonIO a -> IO a
-testLog = usePoseidonLogger NoLog PlinkPopNameAsFamily
---testLog = usePoseidonLogger VerboseLog PlinkPopNameAsFamily
+testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily
+--testLog = usePoseidonLogger VerboseLog Testing PlinkPopNameAsFamily
 
 noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
