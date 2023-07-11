@@ -127,7 +127,8 @@ writeChronicle p snapShot = do
             "packages",
             "title",
             "version",
-            "commit"
+            "commit",
+            "path"
          ]
 
 makeChronicle :: FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
