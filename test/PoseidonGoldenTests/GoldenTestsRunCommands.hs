@@ -14,6 +14,8 @@ import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
+import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
+                                           runTimetravel)
 import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Validate    (ValidateOptions (..), runValidate)
 import           Poseidon.EntitiesList    (EntityInput (..),
@@ -25,21 +27,29 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            SNPSetSpec (..))
 import           Poseidon.SecondaryTypes  (ContributorSpec (..),
                                            VersionComponent (..))
-import           Poseidon.Utils           (getChecksum, testLog)
+import           Poseidon.Utils           (LogMode (..), TestMode (..),
+                                           getChecksum, testLog,
+                                           usePoseidonLogger)
 
 import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)
-import           Control.Monad            (unless, when)
+import           Control.Monad            (forM_, unless, when)
 import           Data.Either              (fromRight)
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
+import           Poseidon.CLI.Chronicle   (ChronOperation (..),
+                                           ChronicleOptions (..), runChronicle)
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
-import           System.Directory         (createDirectory, doesDirectoryExist,
+import           System.Directory         (copyFile, createDirectory,
+                                           createDirectoryIfMissing,
+                                           doesDirectoryExist, listDirectory,
                                            removeDirectoryRecursive)
 import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
+import           System.Process           (callCommand)
+
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
 staticTestDir       :: FilePath
@@ -89,6 +99,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineUpdate testDir checkFilePath
     hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath
+    hPutStrLn stderr "--- chronicle & timetravel"
+    testPipelineChronicleAndTimetravel testDir checkFilePath
     hPutStrLn stderr "--* test server interaction"
     hPutStrLn stderr "--- fetch"
     testPipelineFetch testDir checkFilePath
@@ -607,6 +619,70 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
         ]
 
+testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
+testPipelineChronicleAndTimetravel testDir checkFilePath = do
+    -- create relevant test directories
+    createDirectoryIfMissing False $ testDir </> "chronicle"
+    createDirectoryIfMissing False $ testDir </> "timetravel"
+    -- copy packages into the chronicle dir
+    copyDirectoryRecursive testPacsDir (testDir </> "chronicle")
+    -- initialize this chronicle dir with Git
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " init --quiet"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"first commit\" --quiet"
+    -- test the creation of a chronicle file
+    let chronicleOpts1 = ChronicleOptions {
+          _chronicleBaseDirs  = [testDir </> "chronicle"]
+        , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle1.yml"
+    }
+    let action1 = testLog (runChronicle chronicleOpts1) >>
+            patchLastModified testDir ("chronicle" </> "chronicle1.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "chronicle" [
+          "chronicle" </> "chronicle1.yml"
+        ]
+    -- make another, identical chronicle file to test update below
+    let chronicleOpts2 = ChronicleOptions {
+          _chronicleBaseDirs  = [testDir </> "chronicle"]
+        , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle2.yml"
+    }
+    -- here we don't want testLog, but a custom environment with TestMode Production
+    usePoseidonLogger NoLog Production PlinkPopNameAsFamily (runChronicle chronicleOpts2)
+    -- add an additional poseidon package from the init directory
+    copyDirectoryRecursive (testDir </> "init" </> "Schiffels") (testDir </> "chronicle" </> "Schiffels")
+    -- delete a poseidon package
+    removeDirectoryRecursive (testDir </> "chronicle" </> "Schmid_2028")
+    -- make another git commit with the changed data
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"second commit\" --quiet"
+    -- update the chronicle file
+    let chronicleOpts3 = ChronicleOptions {
+          _chronicleBaseDirs  = [testDir </> "chronicle"]
+        , _chronicleOperation = UpdateChron $ testDir </> "chronicle" </> "chronicle2.yml"
+    }
+    usePoseidonLogger NoLog Production PlinkPopNameAsFamily  (runChronicle chronicleOpts3)
+    -- and a final git commit to tie everything together
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
+    callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"third commit\" --quiet"
+    -- use timetravel to reconstruct the archive described by chronicle2.yml
+    let timetravelOpts1 = TimetravelOptions {
+           _timetravelBaseDirs      = [testDir </> "timetravel"]
+         , _timetravelSourceDir     = testDir </> "chronicle"
+         , _timetravelChronicleFile = testDir </> "chronicle" </> "chronicle2.yml"
+    }
+    let action2 = testLog (runTimetravel timetravelOpts1)
+    runAndChecksumFiles checkFilePath testDir action2 "timetravel" [
+            -- normal package in version A
+            "timetravel" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            -- normal package in version B
+          , "timetravel" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            -- package added in new commit
+          , "timetravel" </> "Schiffels-1.0.0" </> "POSEIDON.yml"
+            -- package removed in last commit, real timetravel necessary
+          , "timetravel" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+        ]
+    -- delete .git directory in chronicle to clean up in the end
+    removeDirectoryRecursive (testDir </> "chronicle" </> ".git")
+
  -- Note: We here use our test server (no SSL and different port). The reason is that
  -- sometimes we would like to implement new features that affect the communication
  -- between server and client, and we need tests succeeding before Pull Requests are merged, so
@@ -668,6 +744,18 @@ testPipelineListRemote testDir checkFilePath = do
     killThread threadID
 
 -- helper functions --
+
+copyDirectoryRecursive :: FilePath -> FilePath -> IO ()
+copyDirectoryRecursive srcDir destDir = do
+  createDirectoryIfMissing True destDir
+  entries <- listDirectory srcDir
+  forM_ entries $ \entry -> do
+    let srcPath = srcDir </> entry
+        destPath = destDir </> entry
+    isDir <- doesDirectoryExist srcPath
+    if isDir
+    then do copyDirectoryRecursive srcPath destPath
+    else do copyFile srcPath destPath
 
 patchLastModified :: FilePath -> FilePath -> IO ()
 patchLastModified testDir yamlFile = do

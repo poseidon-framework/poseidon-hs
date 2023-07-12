@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Paths_poseidon_hs                       (version)
+import           Poseidon.CLI.Chronicle                  (ChronicleOptions (..),
+                                                          runChronicle)
 import           Poseidon.CLI.Fetch                      (FetchOptions (..),
                                                           runFetch)
 import           Poseidon.CLI.Forge                      (ForgeOptions (..),
@@ -18,6 +20,8 @@ import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
 import           Poseidon.CLI.Survey                     (SurveyOptions (..),
                                                           runSurvey)
+import           Poseidon.CLI.Timetravel                 (TimetravelOptions (..),
+                                                          runTimetravel)
 import           Poseidon.CLI.Update                     (UpdateOptions (..),
                                                           runUpdate)
 import           Poseidon.CLI.Validate                   (ValidateOptions (..),
@@ -28,9 +32,11 @@ import           Poseidon.PoseidonVersion                (showPoseidonVersion,
 import           Poseidon.Utils                          (LogMode (..),
                                                           PlinkPopNameMode (..),
                                                           PoseidonException (..),
-                                                          PoseidonIO, logError,
+                                                          PoseidonIO, TestMode,
+                                                          logError,
                                                           renderPoseidonException,
                                                           usePoseidonLogger)
+
 
 import           Control.Applicative                     ((<|>))
 import           Control.Exception                       (catch)
@@ -43,6 +49,7 @@ import           System.IO                               (hPutStrLn, stderr)
 
 data Options = Options {
     _logMode    :: LogMode
+  , _testMode   :: TestMode
   , _errLength  :: ErrorLength
   , _plinkMode  :: PlinkPopNameMode
   , _subcommand :: Subcommand
@@ -58,18 +65,20 @@ data Subcommand =
     | CmdSurvey SurveyOptions
     | CmdUpdate UpdateOptions
     | CmdValidate ValidateOptions
+    | CmdChronicle ChronicleOptions
+    | CmdTimetravel TimetravelOptions
     | CmdServe ServeOptions
 
 main :: IO ()
 main = do
     hPutStrLn stderr renderVersion
     hPutStrLn stderr ""
-    (Options logMode errLength plinkMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
-    catch (usePoseidonLogger logMode plinkMode $ runCmd subcommand) (handler logMode errLength plinkMode)
+    (Options logMode testMode errLength plinkMode subcommand) <- OP.customExecParser (OP.prefs OP.showHelpOnEmpty) optParserInfo
+    catch (usePoseidonLogger logMode testMode plinkMode $ runCmd subcommand) (handler logMode testMode errLength plinkMode)
     where
-        handler :: LogMode -> ErrorLength -> PlinkPopNameMode -> PoseidonException -> IO ()
-        handler l len pm e = do
-            usePoseidonLogger l pm $ logError $ truncateErr len $ renderPoseidonException e
+        handler :: LogMode -> TestMode -> ErrorLength -> PlinkPopNameMode -> PoseidonException -> IO ()
+        handler l t len pm e = do
+            usePoseidonLogger l t pm $ logError $ truncateErr len $ renderPoseidonException e
             exitFailure
         truncateErr :: ErrorLength -> String -> String
         truncateErr CharInf         s = s
@@ -88,11 +97,19 @@ runCmd o = case o of
     CmdSurvey opts      -> runSurvey opts
     CmdUpdate opts      -> runUpdate opts
     CmdValidate opts    -> runValidate opts
+    CmdChronicle opts   -> runChronicle opts
+    CmdTimetravel opts  -> runTimetravel opts
     CmdServe opts       -> runServerMainThread opts
 
 optParserInfo :: OP.ParserInfo Options
-optParserInfo = OP.info (OP.helper <*> versionOption <*>
-        (Options <$> parseLogMode <*> parseErrorLength <*> parseInputPlinkPopMode <*> subcommandParser)) (
+optParserInfo = OP.info (
+    OP.helper <*> versionOption <*>
+        (Options <$> parseLogMode
+                 <*> parseTestMode
+                 <*> parseErrorLength
+                 <*> parseInputPlinkPopMode
+                 <*> subcommandParser)
+        ) (
     OP.briefDesc <>
     OP.progDesc "trident is a management and analysis tool for Poseidon packages. \
                 \Report issues here: \
@@ -126,6 +143,8 @@ subcommandParser = OP.subparser (
         OP.commandGroup "Inspection commands:"
     ) <|>
     OP.subparser (
+        OP.command "chronicle" chronicleOptInfo <>
+        OP.command "timetravel" timetravelOptInfo <>
         OP.command "serve" serveOptInfo <>
         OP.commandGroup "Poseidon HTTP Server" <> OP.internal
     )
@@ -156,6 +175,10 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
+    chronicleOptInfo = OP.info (OP.helper <*> (CmdChronicle <$> chronicleOptParser))
+        (OP.progDesc "Create chronicle files for package collections")
+    timetravelOptInfo = OP.info (OP.helper <*> (CmdTimetravel <$> timetravelOptParser))
+        (OP.progDesc "Construct package directories from chronicle files")
     serveOptInfo    = OP.info (OP.helper <*> (CmdServe <$> serveOptParser))
         (OP.progDesc "Serve Poseidon packages via HTTP or HTTPS")
 
@@ -163,7 +186,7 @@ initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
-                            <*> parseMakeMinimalPackage
+                            <*> parseMinimalOutput
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -181,7 +204,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
-                              <*> parseMakeMinimalPackage
+                              <*> parseMinimalOutput
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
@@ -222,9 +245,18 @@ validateOptParser = ValidateOptions <$> parseBasePaths
                                     <*> parseNoExitCode
                                     <*> parseIgnoreDuplicates
 
+chronicleOptParser :: OP.Parser ChronicleOptions
+chronicleOptParser = ChronicleOptions <$> parseBasePaths
+                                      <*> parseChronOperation
+
+timetravelOptParser :: OP.Parser TimetravelOptions
+timetravelOptParser = TimetravelOptions <$> parseBasePaths
+                                        <*> parseTimetravelSourcePath
+                                        <*> parseTimetravelChronPath
+
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseBasePaths
-                                    <*> parseMaybeZipDir
-                                    <*> parsePort
-                                    <*> parseIgnoreChecksums
-                                    <*> parseMaybeCertFiles
+                              <*> parseMaybeZipDir
+                              <*> parsePort
+                              <*> parseIgnoreChecksums
+                              <*> parseMaybeCertFiles

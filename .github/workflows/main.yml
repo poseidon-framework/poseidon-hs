@@ -31,6 +31,11 @@ jobs:
     - name: Cache ~/.stack
       uses: freckle/stack-cache-action@v2
 
+    - name: Set Git user identity for chronicle/timetravel tests
+      run: |
+        git config --global user.name "Test Name"
+        git config --global user.email "test@email.com"
+
     - name: Build
       run: |
         stack build \

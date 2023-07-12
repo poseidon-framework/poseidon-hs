@@ -2,6 +2,7 @@
 
 module Poseidon.CLI.OptparseApplicativeParsers where
 
+import           Poseidon.CLI.Chronicle  (ChronOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
@@ -15,8 +16,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
-import           Poseidon.Utils          (LogMode (..))
-
+import           Poseidon.Utils          (LogMode (..), TestMode (..))
 
 import           Control.Applicative     ((<|>))
 import           Data.Version            (Version)
@@ -24,6 +24,41 @@ import qualified Options.Applicative     as OP
 import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
+
+parseChronOperation :: OP.Parser ChronOperation
+parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
+
+parseTimetravelSourcePath :: OP.Parser FilePath
+parseTimetravelSourcePath = OP.strOption (
+    OP.long "srcDir" <>
+    OP.short 's' <>
+    OP.metavar "DIR" <>
+    OP.help "Path to the Git-versioned source directory where the chronFile applies.")
+
+parseTimetravelChronPath :: OP.Parser FilePath
+parseTimetravelChronPath = OP.strOption (
+    OP.long "chronFile" <>
+    OP.short 'c' <>
+    OP.metavar "PATH" <>
+    OP.help "Path to the chronicle definition file.")
+
+parseChronOutPath :: OP.Parser FilePath
+parseChronOutPath = OP.strOption (
+    OP.long "outFile" <>
+    OP.short 'o' <>
+    OP.metavar "PATH" <>
+    OP.help "Path to the resulting chronicle definition file.")
+
+parseChronUpdatePath :: OP.Parser FilePath
+parseChronUpdatePath = OP.strOption (
+    OP.long "updateFile" <>
+    OP.short 'u' <>
+    OP.metavar "PATH" <>
+    OP.help "Path to the chronicle definition file that should be updated. \
+            \This file will be overwritten! \
+            \But the update procedure does not change the package entries \
+            \that are already in the chronicle definition file. \
+            \It only adds new entries.")
 
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
@@ -56,6 +91,22 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
             "ServerLog"  -> Right ServerLog
             "VerboseLog" -> Right VerboseLog
             _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
+
+parseTestMode :: OP.Parser TestMode
+parseTestMode = OP.option (OP.eitherReader readTestMode) (
+    OP.long "testMode" <>
+    OP.help "\"Testing\" activates a test mode; relevant only \
+            \for developers in very specific edge cases" <>
+    OP.value Production <>
+    OP.showDefault <>
+    OP.internal
+    )
+    where
+        readTestMode :: String -> Either String TestMode
+        readTestMode s = case s of
+            "Testing"    -> Right Testing
+            "Production" -> Right Production
+            _            -> Left "must be Testing or Production"
 
 data ErrorLength = CharInf | CharCount Int deriving Show
 
@@ -345,9 +396,9 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.value Nothing
     )
 
-parseMakeMinimalPackage :: OP.Parser Bool
-parseMakeMinimalPackage = OP.switch (OP.long "minimal" <>
-    OP.help "should only a minimal output package be created?")
+parseMinimalOutput :: OP.Parser Bool
+parseMinimalOutput = OP.switch (OP.long "minimal" <>
+    OP.help "Should the output data be reduced to a necessary minimum and omit empty scaffolding?")
 
 parseOutOnlyGeno :: OP.Parser Bool
 parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>

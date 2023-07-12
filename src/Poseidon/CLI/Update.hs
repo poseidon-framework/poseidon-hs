@@ -11,7 +11,8 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection,
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
-                                          VersionComponent (..))
+                                          VersionComponent (..),
+                                          updateThreeComponentVersion)
 import           Poseidon.Utils          (PoseidonIO, getChecksum, logInfo,
                                           logWarning)
 
@@ -97,18 +98,11 @@ updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage ->
 updateMeta versionComponent date newContributors pac =
     pac { posPacPackageVersion =
         maybe (Just $ makeVersion [0, 1, 0])
-            (Just . makeVersion . updateVersionInt versionComponent . versionBranch)
+            (Just . updateThreeComponentVersion versionComponent)
             (posPacPackageVersion pac)
         , posPacLastModified = Just date
         , posPacContributor = nub $ posPacContributor pac ++ newContributors
     }
-    where
-        updateVersionInt :: VersionComponent -> [Int] -> [Int]
-        updateVersionInt component v =
-            case component of
-                Patch -> [v !! 0, v !! 1, (v !! 2) + 1]
-                Minor -> [v !! 0, (v !! 1) + 1, 0]
-                Major -> [(v !! 0) + 1, 0, 0]
 
 updateChecksums :: Bool -> PoseidonPackage -> IO PoseidonPackage
 updateChecksums ignoreGeno pac = do
