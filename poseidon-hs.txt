@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.0.0
+@version 1.2.1.0
 
 module Poseidon.MathHelpers
 
@@ -133,8 +133,14 @@ PoseidonServerCommunicationException :: String -> PoseidonException
 
 -- | An exception for unzipping issues in fetch
 PoseidonUnzipException :: SomeException -> PoseidonException
+
+-- | An exception for issues in chronicle
+PoseidonChronicleException :: String -> PoseidonException
+
+-- | An exception for issues with git
+PoseidonGitException :: FilePath -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
-usePoseidonLogger :: LogMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
+usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
 type PoseidonIO = ReaderT Env IO
 envLogAction :: PoseidonIO LogA
@@ -161,6 +167,15 @@ data PlinkPopNameMode
 PlinkPopNameAsFamily :: PlinkPopNameMode
 PlinkPopNameAsPhenotype :: PlinkPopNameMode
 PlinkPopNameAsBoth :: PlinkPopNameMode
+data TestMode
+Testing :: TestMode
+Production :: TestMode
+data Env
+Env :: LogA -> TestMode -> PlinkPopNameMode -> Env
+[_envLogAction] :: Env -> LogA
+[_envTestMode] :: Env -> TestMode
+[_envInputPlinkMode] :: Env -> PlinkPopNameMode
+instance GHC.Show.Show Poseidon.Utils.TestMode
 instance GHC.Show.Show Poseidon.Utils.LogMode
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
@@ -687,6 +702,7 @@ data VersionComponent
 Major :: VersionComponent
 Minor :: VersionComponent
 Patch :: VersionComponent
+updateThreeComponentVersion :: VersionComponent -> Version -> Version
 data PackageInfo
 PackageInfo :: String -> Maybe Version -> Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
 [pTitle] :: PackageInfo -> String
@@ -1029,6 +1045,12 @@ PoseidonServerCommunicationException :: String -> PoseidonException
 
 -- | An exception for unzipping issues in fetch
 PoseidonUnzipException :: SomeException -> PoseidonException
+
+-- | An exception for issues in chronicle
+PoseidonChronicleException :: String -> PoseidonException
+
+-- | An exception for issues with git
+PoseidonGitException :: FilePath -> PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
@@ -1089,6 +1111,7 @@ defaultPackageReadOptions :: PackageReadOptions
 readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonIO PoseidonPackage
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
+dummyContributor :: ContributorSpec
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
 getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
@@ -1159,6 +1182,49 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntitiesList.PoseidonEntity
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.PoseidonEntity
 instance GHC.Show.Show Poseidon.EntitiesList.PoseidonIndividual
 
+module Poseidon.Chronicle
+data PoseidonPackageChronicle
+PoseidonPackageChronicle :: String -> Maybe String -> Version -> Day -> Set PackageIteration -> PoseidonPackageChronicle
+[snapYamlTitle] :: PoseidonPackageChronicle -> String
+[snapYamlDescription] :: PoseidonPackageChronicle -> Maybe String
+[snapYamlChronicleVersion] :: PoseidonPackageChronicle -> Version
+[snapYamlLastModified] :: PoseidonPackageChronicle -> Day
+[snapYamlPackages] :: PoseidonPackageChronicle -> Set PackageIteration
+
+-- | A data type to represent a package state
+data PackageIteration
+PackageIteration :: String -> Version -> String -> FilePath -> PackageIteration
+
+-- | the title of the package
+[pacStateTitle] :: PackageIteration -> String
+
+-- | the version of the package
+[pacStateVersion] :: PackageIteration -> Version
+
+-- | the hash of a relevant commit where a package can be accessed in this
+--   version
+[pacStateCommit] :: PackageIteration -> String
+
+-- | the file path where the POSEIDON.yml file is stored
+[pacStatePath] :: PackageIteration -> FilePath
+updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
+readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
+writeChronicle :: FilePath -> PoseidonPackageChronicle -> PoseidonIO ()
+makeChronicle :: FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+chroniclePackages :: FilePath -> [PoseidonPackage] -> PoseidonIO (Set PackageIteration)
+getPackageVersion :: PoseidonPackage -> PoseidonIO Version
+getGitCommitHash :: FilePath -> PoseidonIO String
+instance GHC.Show.Show Poseidon.Chronicle.PackageIteration
+instance GHC.Classes.Eq Poseidon.Chronicle.PoseidonPackageChronicle
+instance GHC.Show.Show Poseidon.Chronicle.PoseidonPackageChronicle
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PoseidonPackageChronicle
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PoseidonPackageChronicle
+instance GHC.Classes.Eq Poseidon.Chronicle.PackageIteration
+instance GHC.Classes.Ord Poseidon.Chronicle.PackageIteration
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PackageIteration
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PackageIteration
+instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.Chronicle.PackageIteration
+
 module Poseidon.CLI.Validate
 
 -- | A datatype representing command line options for the validate command
@@ -1184,6 +1250,17 @@ UpdateOptions :: [FilePath] -> Maybe Version -> Bool -> VersionComponent -> Bool
 [_updateNewContributors] :: UpdateOptions -> [ContributorSpec]
 [_updateLog] :: UpdateOptions -> String
 [_updateForce] :: UpdateOptions -> Bool
+
+module Poseidon.CLI.Timetravel
+data TimetravelOptions
+TimetravelOptions :: [FilePath] -> FilePath -> FilePath -> TimetravelOptions
+[_timetravelBaseDirs] :: TimetravelOptions -> [FilePath]
+[_timetravelSourceDir] :: TimetravelOptions -> FilePath
+[_timetravelChronicleFile] :: TimetravelOptions -> FilePath
+pacReadOpts :: PackageReadOptions
+runTimetravel :: TimetravelOptions -> PoseidonIO ()
+gitCheckout :: FilePath -> String -> PoseidonIO ()
+copyDirectory :: FilePath -> FilePath -> PoseidonIO ()
 
 module Poseidon.CLI.Summarise
 
@@ -1268,70 +1345,6 @@ data RepoLocationSpec
 RepoLocal :: [FilePath] -> RepoLocationSpec
 RepoRemote :: String -> RepoLocationSpec
 
-module Poseidon.CLI.OptparseApplicativeParsers
-parsePoseidonVersion :: Parser (Maybe Version)
-parseLogMode :: Parser LogMode
-data ErrorLength
-CharInf :: ErrorLength
-CharCount :: Int -> ErrorLength
-parseErrorLength :: Parser ErrorLength
-parseRemoveOld :: Parser Bool
-parseVersionComponent :: Parser VersionComponent
-parseNoChecksumUpdate :: Parser Bool
-parseContributors :: Parser [ContributorSpec]
-parseLog :: Parser String
-parseForce :: Parser Bool
-parseForgeEntityInputs :: Parser [EntityInput SignedEntity]
-parseFetchEntityInputs :: Parser [EntityInput PoseidonEntity]
-parseIgnorePoseidonVersion :: Parser Bool
-parseForgeEntitiesDirect :: Parser SignedEntitiesList
-parseFetchEntitiesDirect :: Parser EntitiesList
-parseForgeEntitiesFromFile :: Parser FilePath
-parseFetchEntitiesFromFile :: Parser FilePath
-parseIntersect :: Parser Bool
-parseRemoteDummy :: Parser ()
-parseOutGenotypeFormat :: Bool -> Parser GenotypeFormatSpec
-parseGenoDataSources :: Parser [GenoDataSource]
-parseGenoDataSource :: Parser GenoDataSource
-parseRepoLocation :: Parser RepoLocationSpec
-parseBasePaths :: Parser [FilePath]
-parseBasePath :: Parser FilePath
-parseInGenotypeDataset :: Parser GenotypeDataSpec
-type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
-parseInGenoOne :: Parser GenoInput
-parseInGenoSep :: Parser GenoInput
-parseInGenotypeFormat :: Parser GenotypeFormatSpec
-parseInGenoFile :: Parser FilePath
-parseInSnpFile :: Parser FilePath
-parseInIndFile :: Parser FilePath
-parseGenotypeSNPSet :: Parser (Maybe SNPSetSpec)
-parseOutPackagePath :: Parser FilePath
-parseMaybeOutPackagePath :: Parser (Maybe FilePath)
-parseMaybeOutPackageName :: Parser (Maybe String)
-parseMakeMinimalPackage :: Parser Bool
-parseOutOnlyGeno :: Parser Bool
-parsePackageWise :: Parser Bool
-parseMaybeSnpFile :: Parser (Maybe FilePath)
-parseListEntity :: Parser ListEntity
-parseRawOutput :: Parser Bool
-parseIgnoreGeno :: Parser Bool
-parseFullGeno :: Parser Bool
-parseNoExitCode :: Parser Bool
-parseIgnoreDuplicates :: Parser Bool
-parseRemoteURL :: Parser String
-parseUpgrade :: Parser Bool
-parseInputPlinkPopMode :: Parser PlinkPopNameMode
-parseOutputPlinkPopMode :: Parser PlinkPopNameMode
-readPlinkPopName :: String -> Either String PlinkPopNameMode
-parseMaybeZipDir :: Parser (Maybe FilePath)
-parsePort :: Parser Int
-parseIgnoreChecksums :: Parser Bool
-parseMaybeCertFiles :: Parser (Maybe (FilePath, [FilePath], FilePath))
-parseKeyFile :: Parser FilePath
-parseChainFile :: Parser FilePath
-parseCertFile :: Parser FilePath
-instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
-
 module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
@@ -1371,6 +1384,87 @@ downloadAndUnzipPackage :: FilePath -> FilePath -> String -> PacNameAndVersion -
 unzipPackage :: FilePath -> FilePath -> IO ()
 downloadPackage :: FilePath -> String -> String -> PoseidonIO ()
 printDownloadProgress :: LogA -> Double -> ConduitT ByteString ByteString (ResourceT IO) ()
+
+module Poseidon.CLI.Chronicle
+data ChronicleOptions
+ChronicleOptions :: [FilePath] -> ChronOperation -> ChronicleOptions
+[_chronicleBaseDirs] :: ChronicleOptions -> [FilePath]
+[_chronicleOperation] :: ChronicleOptions -> ChronOperation
+data ChronOperation
+CreateChron :: FilePath -> ChronOperation
+UpdateChron :: FilePath -> ChronOperation
+pacReadOpts :: PackageReadOptions
+runChronicle :: ChronicleOptions -> PoseidonIO ()
+
+module Poseidon.CLI.OptparseApplicativeParsers
+parseChronOperation :: Parser ChronOperation
+parseTimetravelSourcePath :: Parser FilePath
+parseTimetravelChronPath :: Parser FilePath
+parseChronOutPath :: Parser FilePath
+parseChronUpdatePath :: Parser FilePath
+parsePoseidonVersion :: Parser (Maybe Version)
+parseLogMode :: Parser LogMode
+parseTestMode :: Parser TestMode
+data ErrorLength
+CharInf :: ErrorLength
+CharCount :: Int -> ErrorLength
+parseErrorLength :: Parser ErrorLength
+parseRemoveOld :: Parser Bool
+parseVersionComponent :: Parser VersionComponent
+parseNoChecksumUpdate :: Parser Bool
+parseContributors :: Parser [ContributorSpec]
+parseLog :: Parser String
+parseForce :: Parser Bool
+parseForgeEntityInputs :: Parser [EntityInput SignedEntity]
+parseFetchEntityInputs :: Parser [EntityInput PoseidonEntity]
+parseIgnorePoseidonVersion :: Parser Bool
+parseForgeEntitiesDirect :: Parser SignedEntitiesList
+parseFetchEntitiesDirect :: Parser EntitiesList
+parseForgeEntitiesFromFile :: Parser FilePath
+parseFetchEntitiesFromFile :: Parser FilePath
+parseIntersect :: Parser Bool
+parseRemoteDummy :: Parser ()
+parseOutGenotypeFormat :: Bool -> Parser GenotypeFormatSpec
+parseGenoDataSources :: Parser [GenoDataSource]
+parseGenoDataSource :: Parser GenoDataSource
+parseRepoLocation :: Parser RepoLocationSpec
+parseBasePaths :: Parser [FilePath]
+parseBasePath :: Parser FilePath
+parseInGenotypeDataset :: Parser GenotypeDataSpec
+type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
+parseInGenoOne :: Parser GenoInput
+parseInGenoSep :: Parser GenoInput
+parseInGenotypeFormat :: Parser GenotypeFormatSpec
+parseInGenoFile :: Parser FilePath
+parseInSnpFile :: Parser FilePath
+parseInIndFile :: Parser FilePath
+parseGenotypeSNPSet :: Parser (Maybe SNPSetSpec)
+parseOutPackagePath :: Parser FilePath
+parseMaybeOutPackagePath :: Parser (Maybe FilePath)
+parseMaybeOutPackageName :: Parser (Maybe String)
+parseMinimalOutput :: Parser Bool
+parseOutOnlyGeno :: Parser Bool
+parsePackageWise :: Parser Bool
+parseMaybeSnpFile :: Parser (Maybe FilePath)
+parseListEntity :: Parser ListEntity
+parseRawOutput :: Parser Bool
+parseIgnoreGeno :: Parser Bool
+parseFullGeno :: Parser Bool
+parseNoExitCode :: Parser Bool
+parseIgnoreDuplicates :: Parser Bool
+parseRemoteURL :: Parser String
+parseUpgrade :: Parser Bool
+parseInputPlinkPopMode :: Parser PlinkPopNameMode
+parseOutputPlinkPopMode :: Parser PlinkPopNameMode
+readPlinkPopName :: String -> Either String PlinkPopNameMode
+parseMaybeZipDir :: Parser (Maybe FilePath)
+parsePort :: Parser Int
+parseIgnoreChecksums :: Parser Bool
+parseMaybeCertFiles :: Parser (Maybe (FilePath, [FilePath], FilePath))
+parseKeyFile :: Parser FilePath
+parseChainFile :: Parser FilePath
+parseCertFile :: Parser FilePath
+instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
 
 module Poseidon.CLI.Survey
 
