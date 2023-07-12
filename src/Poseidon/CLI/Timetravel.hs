@@ -7,9 +7,11 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (makeNameWithVersion)
-import           Poseidon.Utils          (PoseidonException (..), PoseidonIO,
-                                          logDebug, logInfo)
+import           Poseidon.Utils          (LogA, PoseidonException (..),
+                                          PoseidonIO, envLogAction, logDebug,
+                                          logInfo, logWithEnv)
 
+import           Control.Exception       (finally)
 import           Control.Monad           (forM_)
 import           Control.Monad.Catch     (throwM)
 import           Control.Monad.IO.Class  (liftIO)
@@ -50,10 +52,18 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
                 Right gitRef -> do
                     let currentBranch = giBranch gitRef
                     logInfo $ "Starting at branch " ++ currentBranch ++ " in " ++ srcDir
-                    mapM_ recoverPacIter pacStatesToAdd
-                    gitCheckout srcDir currentBranch
+                    logAction <- envLogAction
+                    liftIO $ finally
+                        (recoverPacsIO logAction pacStatesToAdd)
+                        (gitCheckoutIO logAction currentBranch)
                     logInfo "Done"
     where
+        -- these IO actions are only necessary to wrap the computation
+        -- in Control.Exception.finally, which runs in IO, not PoseidonIO
+        recoverPacsIO :: LogA -> [PackageIteration] -> IO ()
+        recoverPacsIO logA pacIters = logWithEnv logA $ mapM_ recoverPacIter pacIters
+        gitCheckoutIO :: LogA -> String -> IO ()
+        gitCheckoutIO logA s = logWithEnv logA $ gitCheckout srcDir s
         recoverPacIter :: PackageIteration -> PoseidonIO ()
         recoverPacIter pacIter@(PackageIteration _ _ commit path) = do
             let pacIterName = makeNameWithVersion pacIter
