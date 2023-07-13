@@ -1,3 +1,11 @@
+### V 1.2.1.0
+
+This release does not include changes for trident end users. 
+
+It adds two new subcommands for (public) archive management, but they are only relevant from a developer's perspective: `chronicle` creates or updates a dedicated .yml file to document version iterations of Poseidon packages in a Git-managed archive, and `timetravel` recovers package iterations based on this file to (re)construct said archive from the source repository.
+
+Just as `serve`, both new subcommands will be omitted in the command line help.
+
 ### V 1.2.0.0
 
 This release comes with a massive rewrite of the server-client infrastructure, so the code behind the API to download and list packages from our public data archives.
