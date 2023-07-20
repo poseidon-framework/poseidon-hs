@@ -24,7 +24,7 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (forM, unless, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (sortOn)
+import           Data.List                    (sortOn, nub)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
@@ -49,13 +49,15 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                param, raise, request, rescue,
                                                scottyApp, text)
 data ServeOptions = ServeOptions
-    { cliBaseDirs        :: [FilePath]
+    { cliArchiveBaseDirs        :: [(String, FilePath)]
     , cliZipDir          :: Maybe FilePath
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
     }
     deriving (Show)
+
+type ArchiveStore = [(String, [PoseidonPackage])]
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
@@ -65,7 +67,7 @@ runServerMainThread opts = do
     runServer opts dummy
 
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
-runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
+runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
     let pacReadOpts = defaultPackageReadOptions {
             _readOptStopOnDuplicates = False
             , _readOptIgnoreChecksums  = ignoreChecksums
@@ -74,22 +76,28 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
         }
 
     logInfo "Server starting up. Loading packages..."
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    archiveStore <- readArchiveStore archBaseDirs pacReadOpts
 
-    zipDict <- case maybeZipPath of
-        Nothing -> return []
-        Just zipPath -> forM allPackages (\pac -> do
-            logInfo "Checking whether zip files are missing or outdated"
-            liftIO $ createDirectoryIfMissing True zipPath
-            let combinedPackageVersionTitle = makeNameWithVersion pac
-            let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
-            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
-            when zipFileOutdated $ do
-                logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
-                zip_ <- liftIO $ makeZipArchive pac
-                let zip_raw = fromArchive zip_
-                liftIO $ B.writeFile fn zip_raw
-            return ((posPacTitle pac, posPacPackageVersion pac), fn))
+    logInfo $ "Using " ++ (fst . head) archiveStore ++ " as the default archive"
+
+    archiveZipDict <- forM archiveStore $ \(archiveName, packages) -> do
+        logInfo $ "Zipping packages in archive " ++ archiveName
+        case maybeZipPath of
+            Nothing -> return (archiveName, [])
+            Just zipPath -> do
+                pacDict <- forM packages (\pac -> do
+                    logInfo "Checking whether zip files are missing or outdated"
+                    liftIO $ createDirectoryIfMissing True zipPath
+                    let combinedPackageVersionTitle = makeNameWithVersion pac
+                    let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
+                    zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
+                    when zipFileOutdated $ do
+                        logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
+                        zip_ <- liftIO $ makeZipArchive pac
+                        let zip_raw = fromArchive zip_
+                        liftIO $ B.writeFile fn zip_raw
+                    return ((posPacTitle pac, posPacPackageVersion pac), fn))
+                return (archiveName, pacDict)
 
     let runScotty = case certFiles of
             Nothing                              -> scottyHTTP  serverReady port
@@ -105,28 +113,31 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
 
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
-            let retData = ApiReturnPackageInfo . map packageToPackageInfo $ allPackages
+            pacs <- getItemFromArchiveStore archiveStore
+            let retData = ApiReturnPackageInfo . map packageToPackageInfo $ pacs
             return $ ServerApiReturnType [] (Just retData)
 
         get "/groups" . conditionOnClientVersion $ do
             logRequest logA
-            let retData = ApiReturnGroupInfo . getAllGroupInfo $ allPackages
+            pacs <- getItemFromArchiveStore archiveStore
+            let retData = ApiReturnGroupInfo . getAllGroupInfo $ pacs
             return $ ServerApiReturnType [] (Just retData)
 
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
+            pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
 
             let extIndInfo = case maybeAdditionalColumnsString of
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
-                        in  getExtendedIndividualInfo allPackages additionalColumnNames
-                    Nothing -> getExtendedIndividualInfo allPackages []
+                        in  getExtendedIndividualInfo pacs additionalColumnNames
+                    Nothing -> getExtendedIndividualInfo pacs []
             let retData = ApiReturnExtIndividualInfo extIndInfo
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
-        unless (null zipDict) . get "/zip_file/:package_name" $ do
+        unless (isJust maybeZipPath) . get "/zip_file/:package_name" $ do
             logRequest logA
             packageName <- param "package_name"
             maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
@@ -135,6 +146,7 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
                 Just versionStr -> case parseVersionString versionStr of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
+            zipDict <- getItemFromArchiveStore archiveZipDict
             case sortOn (Down . snd . fst) . filter ((==packageName) . fst . fst) $ zipDict of
                 [] -> raise . pack $ "unknown package " ++ packageName
                 [((_, pv), fn)] -> case maybeVersion of
@@ -147,6 +159,15 @@ runServer (ServeOptions baseDirs maybeZipPath port ignoreChecksums certFiles) se
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
         notFound $ raise "Unknown request"
+
+readArchiveStore :: [(String, FilePath)] -> PackageReadOptions -> PoseidonIO ArchiveStore
+readArchiveStore archBaseDirs pacReadOpts = do
+    let archiveNames = nub . map fst $ archBaseDirs
+    forM archiveNames $ \archiveName -> do
+        logInfo $ "Loading packages for archive " ++ archiveName
+        let relevantDirs = map snd . filter ((==archiveName) . fst) $ archBaseDirs
+        pacs <- readPoseidonPackageCollection pacReadOpts relevantDirs
+        return (archiveName, pacs)
 
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]
@@ -264,3 +285,15 @@ logRequest logA = do
     let p = pathInfo req
         q = queryString req
     liftIO . logWithEnv logA . logDebug $ "Request: Path=" ++ show p ++ ", qstring=" ++ show q
+
+getItemFromArchiveStore :: [(String, a)] -> ActionM a
+getItemFromArchiveStore store = do
+    maybeArchiveName <- (Just <$> param "archive") `rescue` (\_ -> return Nothing)
+    case maybeArchiveName of
+        Nothing -> return . snd . head $ store
+        Just a -> case lookup a store of
+            Nothing -> raise . pack $
+                "The requested archive named " ++ a ++ " does not exist. Possible archives are " ++
+                show (map fst store)
+            Just pacs -> return pacs
+
