@@ -57,7 +57,11 @@ data ServeOptions = ServeOptions
     }
     deriving (Show)
 
-type ArchiveStore = [(String, [PoseidonPackage])]
+type ZipStore = [((String, Version), FilePath)] -- maps PackageName+Version to a zipfile-path
+
+type ArchiveName = String
+
+type ArchiveStore a = [(ArchiveName, a)]
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
@@ -80,12 +84,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
     logInfo $ "Using " ++ (fst . head) archiveStore ++ " as the default archive"
 
-    archiveZipDict <- forM archiveStore $ \(archiveName, packages) -> do
+    zipArchiveStore <- forM archiveStore $ \(archiveName, packages) -> do
         logInfo $ "Zipping packages in archive " ++ archiveName
-        case maybeZipPath of
-            Nothing -> return (archiveName, [])
+        zipStore <- case maybeZipPath of
+            Nothing -> return []
             Just zipPath -> do
-                pacDict <- forM packages (\pac -> do
+                forM packages (\pac -> do
                     logInfo "Checking whether zip files are missing or outdated"
                     liftIO $ createDirectoryIfMissing True zipPath
                     let combinedPackageVersionTitle = makeNameWithVersion pac
@@ -97,7 +101,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         let zip_raw = fromArchive zip_
                         liftIO $ B.writeFile fn zip_raw
                     return ((posPacTitle pac, posPacPackageVersion pac), fn))
-                return (archiveName, pacDict)
+        return (archiveName, zipStore)
 
     let runScotty = case certFiles of
             Nothing                              -> scottyHTTP  serverReady port
@@ -146,8 +150,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 Just versionStr -> case parseVersionString versionStr of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
-            zipDict <- getItemFromArchiveStore archiveZipDict
-            case sortOn (Down . snd . fst) . filter ((==packageName) . fst . fst) $ zipDict of
+            case sortOn (Down . snd . fst) . filter (\((a, p, v), fp) -> a == archName && p ==packageName) $ zipStore of
                 [] -> raise . pack $ "unknown package " ++ packageName
                 [((_, pv), fn)] -> case maybeVersion of
                     Nothing -> file fn
@@ -160,7 +163,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
         notFound $ raise "Unknown request"
 
-readArchiveStore :: [(String, FilePath)] -> PackageReadOptions -> PoseidonIO ArchiveStore
+
+readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO ArchiveStore
 readArchiveStore archBaseDirs pacReadOpts = do
     let archiveNames = nub . map fst $ archBaseDirs
     forM archiveNames $ \archiveName -> do
@@ -286,7 +290,7 @@ logRequest logA = do
         q = queryString req
     liftIO . logWithEnv logA . logDebug $ "Request: Path=" ++ show p ++ ", qstring=" ++ show q
 
-getItemFromArchiveStore :: [(String, a)] -> ActionM a
+getItemFromArchiveStore :: ArchiveStore a -> ActionM a
 getItemFromArchiveStore store = do
     maybeArchiveName <- (Just <$> param "archive") `rescue` (\_ -> return Nothing)
     case maybeArchiveName of
