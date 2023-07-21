@@ -19,6 +19,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
 import           Poseidon.Utils          (LogMode (..), TestMode (..))
 
 import           Control.Applicative     ((<|>))
+import           Data.List.Split         (splitOn)
 import           Data.Version            (Version)
 import qualified Options.Applicative     as OP
 import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
@@ -531,3 +532,19 @@ parseChainFile = OP.strOption (OP.long "chainFile" <> OP.metavar "CHAINFILE" <>
 parseCertFile :: OP.Parser FilePath
 parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
                               OP.help "The cert file of the TLS Certificate used for HTTPS")
+
+parseArchiveBasePaths :: OP.Parser [(String, FilePath)]
+parseArchiveBasePaths = OP.some parseArchiveBasePath
+  where
+    parseArchiveBasePath :: OP.Parser (String, FilePath)
+    parseArchiveBasePath = OP.option (OP.eitherReader parseArchiveNameAndPath) (OP.long "baseDir" <> OP.short 'd' <> OP.metavar "ARCH=PATH" <>
+        OP.help "a base path, prepended by the corresponding archive name under which \
+            \packages in this path are being served. Example: arch1=/path/to/basepath. Can \
+            \be given multiple times. Multiple paths for the same archive are combined internally. \
+            \The very first named archive is considered to be the default archive on the server")
+    parseArchiveNameAndPath :: String -> Either String (String, FilePath)
+    parseArchiveNameAndPath str =
+        let parts = splitOn "=" str
+        in  case parts of
+                [name, fp] -> return (name, fp)
+                _ -> Left $ "could not parse archive and base directory " ++ str ++ ". Please use format name=path "

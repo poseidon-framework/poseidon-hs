@@ -691,7 +691,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
 
-    let serverOpts = ServeOptions ["test/testDat/testPackages"] (Just "/tmp/zip_dir") 3000 True Nothing
+    let serverOpts = ServeOptions [("testArchive", "test/testDat/testPackages")] (Just "/tmp/zip_dir") 3000 True Nothing
 
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
@@ -718,7 +718,7 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = ServeOptions ["test/testDat/testPackages"] Nothing 3000 True Nothing
+    let serverOpts = ServeOptions [("testArchive", "test/testDat/testPackages")] Nothing 3000 True Nothing
 
     -- see above
     serverReady <- newEmptyMVar

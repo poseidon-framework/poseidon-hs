@@ -255,7 +255,7 @@ timetravelOptParser = TimetravelOptions <$> parseBasePaths
                                         <*> parseTimetravelChronPath
 
 serveOptParser :: OP.Parser ServeOptions
-serveOptParser = ServeOptions <$> parseBasePaths
+serveOptParser = ServeOptions <$> parseArchiveBasePaths
                               <*> parseMaybeZipDir
                               <*> parsePort
                               <*> parseIgnoreChecksums

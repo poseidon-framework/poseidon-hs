@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
@@ -21,10 +21,10 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                (forM, unless, when)
+import           Control.Monad                (forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (sortOn, nub)
+import           Data.List                    (nub, sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
@@ -49,7 +49,7 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                param, raise, request, rescue,
                                                scottyApp, text)
 data ServeOptions = ServeOptions
-    { cliArchiveBaseDirs        :: [(String, FilePath)]
+    { cliArchiveBaseDirs :: [(String, FilePath)]
     , cliZipDir          :: Maybe FilePath
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
@@ -57,11 +57,12 @@ data ServeOptions = ServeOptions
     }
     deriving (Show)
 
-type ZipStore = [((String, Version), FilePath)] -- maps PackageName+Version to a zipfile-path
+type ZipStore = [((String, Maybe Version), FilePath)] -- maps PackageName+Version to a zipfile-path
 
 type ArchiveName = String
 
-type ArchiveStore a = [(ArchiveName, a)]
+type ArchiveStore a = [(ArchiveName, a)] -- a generic lookup table from an archive name to an item
+-- we have two concrete ones: ArchiveStore [PoseidonPackage]   and     ArchiveStore ZipStore
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
@@ -84,24 +85,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
     logInfo $ "Using " ++ (fst . head) archiveStore ++ " as the default archive"
 
-    zipArchiveStore <- forM archiveStore $ \(archiveName, packages) -> do
-        logInfo $ "Zipping packages in archive " ++ archiveName
-        zipStore <- case maybeZipPath of
-            Nothing -> return []
-            Just zipPath -> do
-                forM packages (\pac -> do
-                    logInfo "Checking whether zip files are missing or outdated"
-                    liftIO $ createDirectoryIfMissing True zipPath
-                    let combinedPackageVersionTitle = makeNameWithVersion pac
-                    let fn = zipPath </> combinedPackageVersionTitle <.> "zip"
-                    zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
-                    when zipFileOutdated $ do
-                        logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
-                        zip_ <- liftIO $ makeZipArchive pac
-                        let zip_raw = fromArchive zip_
-                        liftIO $ B.writeFile fn zip_raw
-                    return ((posPacTitle pac, posPacPackageVersion pac), fn))
-        return (archiveName, zipStore)
+    zipArchiveStore <- case maybeZipPath of
+        Nothing -> return []
+        Just z  -> createZipArchiveStore archiveStore z
 
     let runScotty = case certFiles of
             Nothing                              -> scottyHTTP  serverReady port
@@ -141,8 +127,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
-        unless (isJust maybeZipPath) . get "/zip_file/:package_name" $ do
+        when (isJust maybeZipPath) . get "/zip_file/:package_name" $ do
             logRequest logA
+            zipStore <- getItemFromArchiveStore zipArchiveStore
             packageName <- param "package_name"
             maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
             maybeVersion <- case maybeVersionString of
@@ -150,7 +137,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 Just versionStr -> case parseVersionString versionStr of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
-            case sortOn (Down . snd . fst) . filter (\((a, p, v), fp) -> a == archName && p ==packageName) $ zipStore of
+            case sortOn (Down . snd . fst) . filter ((==packageName) . fst . fst) $ zipStore of
                 [] -> raise . pack $ "unknown package " ++ packageName
                 [((_, pv), fn)] -> case maybeVersion of
                     Nothing -> file fn
@@ -164,7 +151,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         notFound $ raise "Unknown request"
 
 
-readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO ArchiveStore
+readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
     let archiveNames = nub . map fst $ archBaseDirs
     forM archiveNames $ \archiveName -> do
@@ -172,6 +159,23 @@ readArchiveStore archBaseDirs pacReadOpts = do
         let relevantDirs = map snd . filter ((==archiveName) . fst) $ archBaseDirs
         pacs <- readPoseidonPackageCollection pacReadOpts relevantDirs
         return (archiveName, pacs)
+
+createZipArchiveStore :: ArchiveStore [PoseidonPackage] -> FilePath -> PoseidonIO (ArchiveStore ZipStore)
+createZipArchiveStore archiveStore zipPath =
+    forM archiveStore $ \(archiveName, packages) -> do
+        logInfo $ "Zipping packages in archive " ++ archiveName
+        (archiveName,) <$> forM packages (\pac -> do
+            logInfo "Checking whether zip files are missing or outdated"
+            liftIO $ createDirectoryIfMissing True (zipPath </> archiveName)
+            let combinedPackageVersionTitle = makeNameWithVersion pac
+            let fn = zipPath </> archiveName </> combinedPackageVersionTitle <.> "zip"
+            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
+            when zipFileOutdated $ do
+                logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
+                zip_ <- liftIO $ makeZipArchive pac
+                let zip_raw = fromArchive zip_
+                liftIO $ B.writeFile fn zip_raw
+            return ((posPacTitle pac, posPacPackageVersion pac), fn))
 
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]
