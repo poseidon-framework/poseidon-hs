@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.1.0
+@version 1.2.2.0
 
 module Poseidon.MathHelpers
 
@@ -757,6 +757,12 @@ getPacName :: HasNameAndVersion a => a -> String
 getPacVersion :: HasNameAndVersion a => a -> Maybe Version
 newtype PacNameAndVersion
 PacNameAndVersion :: (String, Maybe Version) -> PacNameAndVersion
+data ArchiveEndpoint
+ArchiveEndpoint :: String -> Maybe String -> ArchiveEndpoint
+[_aeServerURL] :: ArchiveEndpoint -> String
+[_aeArchiveName] :: ArchiveEndpoint -> Maybe String
+qDefault :: Maybe String -> String
+qArchive :: Maybe String -> String
 instance GHC.Classes.Ord Poseidon.SecondaryTypes.PacNameAndVersion
 instance GHC.Classes.Eq Poseidon.SecondaryTypes.PacNameAndVersion
 instance GHC.Classes.Eq Poseidon.SecondaryTypes.PackageInfo
@@ -1310,8 +1316,8 @@ module Poseidon.CLI.Serve
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 data ServeOptions
-ServeOptions :: [FilePath] -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
-[cliBaseDirs] :: ServeOptions -> [FilePath]
+ServeOptions :: [(String, FilePath)] -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
+[cliArchiveBaseDirs] :: ServeOptions -> [(String, FilePath)]
 [cliZipDir] :: ServeOptions -> Maybe FilePath
 [cliPort] :: ServeOptions -> Int
 [cliIgnoreChecksums] :: ServeOptions -> Bool
@@ -1343,7 +1349,7 @@ ListGroups :: ListEntity
 ListIndividuals :: [String] -> ListEntity
 data RepoLocationSpec
 RepoLocal :: [FilePath] -> RepoLocationSpec
-RepoRemote :: String -> RepoLocationSpec
+RepoRemote :: ArchiveEndpoint -> RepoLocationSpec
 
 module Poseidon.CLI.Genoconvert
 
@@ -1362,10 +1368,10 @@ convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPo
 
 module Poseidon.CLI.Fetch
 data FetchOptions
-FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> String -> FetchOptions
+FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> ArchiveEndpoint -> FetchOptions
 [_jaBaseDirs] :: FetchOptions -> [FilePath]
 [_entityInput] :: FetchOptions -> [EntityInput PoseidonEntity]
-[_remoteURL] :: FetchOptions -> String
+[_archiveEnd] :: FetchOptions -> ArchiveEndpoint
 data PackageState
 NotLocal :: PackageState
 EqualLocalRemote :: PackageState
@@ -1378,11 +1384,11 @@ runFetch :: FetchOptions -> PoseidonIO ()
 readServerIndInfo :: ByteString -> IO [ExtendedIndividualInfo]
 readServerPackageInfo :: ByteString -> IO [PackageInfo]
 determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
-handlePackageByState :: FilePath -> FilePath -> String -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
+handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
 printV :: Maybe Version -> String
-downloadAndUnzipPackage :: FilePath -> FilePath -> String -> PacNameAndVersion -> PoseidonIO ()
+downloadAndUnzipPackage :: FilePath -> FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
 unzipPackage :: FilePath -> FilePath -> IO ()
-downloadPackage :: FilePath -> String -> String -> PoseidonIO ()
+downloadPackage :: FilePath -> ArchiveEndpoint -> String -> PoseidonIO ()
 printDownloadProgress :: LogA -> Double -> ConduitT ByteString ByteString (ResourceT IO) ()
 
 module Poseidon.CLI.Chronicle
@@ -1428,6 +1434,7 @@ parseOutGenotypeFormat :: Bool -> Parser GenotypeFormatSpec
 parseGenoDataSources :: Parser [GenoDataSource]
 parseGenoDataSource :: Parser GenoDataSource
 parseRepoLocation :: Parser RepoLocationSpec
+parseArchiveEndpoint :: Parser ArchiveEndpoint
 parseBasePaths :: Parser [FilePath]
 parseBasePath :: Parser FilePath
 parseInGenotypeDataset :: Parser GenotypeDataSpec
@@ -1464,6 +1471,8 @@ parseMaybeCertFiles :: Parser (Maybe (FilePath, [FilePath], FilePath))
 parseKeyFile :: Parser FilePath
 parseChainFile :: Parser FilePath
 parseCertFile :: Parser FilePath
+parseArchiveBasePaths :: Parser [(String, FilePath)]
+parseMaybeArchiveName :: Parser (Maybe String)
 instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
 
 module Poseidon.CLI.Survey
