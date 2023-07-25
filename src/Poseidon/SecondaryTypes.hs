@@ -19,9 +19,12 @@ module Poseidon.SecondaryTypes (
     processApiResponse,
     makeNameWithVersion,
     HasNameAndVersion (..),
-    PacNameAndVersion(..)
+    PacNameAndVersion(..),
+    ArchiveEndpoint(..),
+    qVersion, qArchive
 ) where
 
+import           Paths_poseidon_hs      (version)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)
 
@@ -43,6 +46,18 @@ import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
 
 ---  Client Server Communication types and functions
+
+qVersion :: String
+qVersion = "?client_version=" ++ showVersion version
+
+qArchive :: Maybe String -> String
+qArchive Nothing     = ""
+qArchive (Just name) = "?archive=" ++ name
+
+data ArchiveEndpoint = ArchiveEndpoint {
+      _aeServerURL   :: String
+    , _aeArchiveName :: Maybe String
+}
 
 class HasNameAndVersion a where
     getPacName :: a -> String
@@ -103,10 +118,10 @@ instance HasNameAndVersion PackageInfo where
     getPacVersion = pVersion
 
 instance ToJSON PackageInfo where
-    toJSON (PackageInfo title version posVersion description lastModified nrIndividuals) =
+    toJSON (PackageInfo title pacVersion posVersion description lastModified nrIndividuals) =
         object [
             "packageTitle" .= title,
-            "packageVersion" .= version,
+            "packageVersion" .= pacVersion,
             "poseidonVersion" .= posVersion,
             "description" .= description,
             "lastModified" .= lastModified,

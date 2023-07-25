@@ -196,7 +196,7 @@ listOptParser = ListOptions <$> parseRepoLocation
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
-                              <*> parseRemoteURL
+                              <*> parseArchiveEndpoint
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources

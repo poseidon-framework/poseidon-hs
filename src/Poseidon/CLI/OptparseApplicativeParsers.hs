@@ -12,7 +12,8 @@ import           Poseidon.GenotypeData   (GenoDataSource (..),
                                           GenotypeDataSpec (..),
                                           GenotypeFormatSpec (..),
                                           SNPSetSpec (..))
-import           Poseidon.SecondaryTypes (ContributorSpec (..),
+import           Poseidon.SecondaryTypes (ArchiveEndpoint (..),
+                                          ContributorSpec (..),
                                           VersionComponent (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
@@ -290,7 +291,10 @@ parseGenoDataSource :: OP.Parser GenoDataSource
 parseGenoDataSource = (PacBaseDir <$> parseBasePath) <|> (GenoDirect <$> parseInGenotypeDataset)
 
 parseRepoLocation :: OP.Parser RepoLocationSpec
-parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseRemoteURL))
+parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (RepoRemote <$> parseArchiveEndpoint))
+
+parseArchiveEndpoint :: OP.Parser ArchiveEndpoint
+parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveName
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some parseBasePath
@@ -538,7 +542,7 @@ parseArchiveBasePaths = OP.some parseArchiveBasePath
   where
     parseArchiveBasePath :: OP.Parser (String, FilePath)
     parseArchiveBasePath = OP.option (OP.eitherReader parseArchiveNameAndPath) (OP.long "baseDir" <> OP.short 'd' <> OP.metavar "ARCH=PATH" <>
-        OP.help "a base path, prepended by the corresponding archive name under which \
+        OP.help "A base path, prepended by the corresponding archive name under which \
             \packages in this path are being served. Example: arch1=/path/to/basepath. Can \
             \be given multiple times. Multiple paths for the same archive are combined internally. \
             \The very first named archive is considered to be the default archive on the server")
@@ -548,3 +552,15 @@ parseArchiveBasePaths = OP.some parseArchiveBasePath
         in  case parts of
                 [name, fp] -> return (name, fp)
                 _ -> Left $ "could not parse archive and base directory " ++ str ++ ". Please use format name=path "
+
+parseMaybeArchiveName :: OP.Parser (Maybe String)
+parseMaybeArchiveName = OP.option (Just <$> OP.str) (
+    OP.short 'n' <>
+    OP.long "archive" <>
+    OP.help "The name of the Poseidon package archive that should be queried. \
+            \If not given, the query falls back to the default archive of the \
+            \server selected with --remoteURL. \
+            \See the archive documentation at https://www.poseidon-adna.org/#/archive_overview \
+            \for a list of archives currently available from the official Web API." <>
+    OP.value Nothing
+    )
