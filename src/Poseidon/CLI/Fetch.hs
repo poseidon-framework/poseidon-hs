@@ -18,7 +18,7 @@ import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           PacNameAndVersion (..),
                                           PackageInfo (..), makeNameWithVersion,
                                           processApiResponse, qArchive,
-                                          qVersion)
+                                          qDefault)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
                                           PoseidonIO, envLogAction, logInfo,
                                           logWarning, logWithEnv, padLeft,
@@ -82,14 +82,14 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     -- load remote package list
     logInfo "Downloading individual list from remote"
     remoteIndList <- do
-        r <- processApiResponse (remoteURL ++ "/individuals" ++ qVersion ++ qArchive archive) False
+        r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
             ApiReturnExtIndividualInfo extIndInfo -> return [IndividualInfo i g p | ExtendedIndividualInfo i g p _ _ <- extIndInfo]
             _                             -> error "should not happen"
 
     logInfo "Downloading package list from remote"
     remotePacList <- do
-        r <- processApiResponse (remoteURL ++ "/packages" ++ qVersion ++ qArchive archive) True
+        r <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) True
         case r of
             ApiReturnPackageInfo p -> return p
             _                      -> error "should not happen"

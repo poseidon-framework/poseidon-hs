@@ -14,7 +14,7 @@ import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           GroupInfo (..),
                                           PacNameAndVersion (PacNameAndVersion),
                                           PackageInfo (..), processApiResponse,
-                                          qArchive, qVersion)
+                                          qDefault)
 import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad           (forM_, when)
@@ -56,7 +56,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             packageInfo <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading package data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/packages" ++ qVersion ++ qArchive archive) False
+                    apiReturn <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) False
                     case apiReturn of
                         ApiReturnPackageInfo pacInfo -> return pacInfo
                         _ -> error "should not happen"
@@ -71,7 +71,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             groupInfo <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading group data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/groups" ++ qVersion ++ qArchive archive) False
+                    apiReturn <- processApiResponse (remoteURL ++ "/groups" ++ qDefault archive) False
                     case apiReturn of
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
@@ -85,7 +85,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             extIndInfo <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qVersion ++ qArchive archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
+                    apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo extIndInfo -> return extIndInfo
                         _ -> error "should not happen"

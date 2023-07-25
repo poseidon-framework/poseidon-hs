@@ -21,7 +21,7 @@ module Poseidon.SecondaryTypes (
     HasNameAndVersion (..),
     PacNameAndVersion(..),
     ArchiveEndpoint(..),
-    qVersion, qArchive
+    qDefault, qArchive
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -46,6 +46,13 @@ import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
 
 ---  Client Server Communication types and functions
+
+qDefault :: Maybe String -> String
+qDefault archive = qVersion +&+ qArchive archive
+
+(+&+) :: String -> String -> String
+(+&+) a ('?':b) = a ++ "&" ++ b
+(+&+) a b       = a ++ "&" ++ b
 
 qVersion :: String
 qVersion = "?client_version=" ++ showVersion version
