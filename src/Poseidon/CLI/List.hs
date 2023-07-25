@@ -9,10 +9,12 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           packageToPackageInfo,
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
+                                          ArchiveEndpoint (..),
                                           ExtendedIndividualInfo (ExtendedIndividualInfo),
                                           GroupInfo (..),
                                           PacNameAndVersion (PacNameAndVersion),
-                                          PackageInfo (..), processApiResponse)
+                                          PackageInfo (..), processApiResponse,
+                                          qDefault)
 import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad           (forM_, when)
@@ -20,7 +22,6 @@ import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (intercalate, sortOn)
 import           Data.Maybe              (catMaybes, fromMaybe)
 import           Data.Version            (Version, showVersion)
-import           Paths_poseidon_hs       (version)
 import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
                                           rowsG, tableString, titlesH)
 
@@ -31,7 +32,7 @@ data ListOptions = ListOptions
     , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
     }
 
-data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote String
+data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
 
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
@@ -53,9 +54,9 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             packageInfo <- case repoLocation of
-                RepoRemote remoteURL -> do
+                RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading package data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/packages?client_version=" ++ showVersion version) False
+                    apiReturn <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) False
                     case apiReturn of
                         ApiReturnPackageInfo pacInfo -> return pacInfo
                         _ -> error "should not happen"
@@ -68,9 +69,9 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             return (tableH, tableB)
         ListGroups -> do
             groupInfo <- case repoLocation of
-                RepoRemote remoteURL -> do
+                RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading group data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/groups?client_version=" ++ showVersion version) False
+                    apiReturn <- processApiResponse (remoteURL ++ "/groups" ++ qDefault archive) False
                     case apiReturn of
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
@@ -82,9 +83,9 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             extIndInfo <- case repoLocation of
-                RepoRemote remoteURL -> do
+                RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
-                    apiReturn <- processApiResponse (remoteURL ++ "/individuals?client_version=" ++ showVersion version ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
+                    apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo extIndInfo -> return extIndInfo
                         _ -> error "should not happen"

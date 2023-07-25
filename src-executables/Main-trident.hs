@@ -196,7 +196,7 @@ listOptParser = ListOptions <$> parseRepoLocation
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths
                               <*> parseFetchEntityInputs
-                              <*> parseRemoteURL
+                              <*> parseArchiveEndpoint
 
 forgeOptParser :: OP.Parser ForgeOptions
 forgeOptParser = ForgeOptions <$> parseGenoDataSources
@@ -255,7 +255,7 @@ timetravelOptParser = TimetravelOptions <$> parseBasePaths
                                         <*> parseTimetravelChronPath
 
 serveOptParser :: OP.Parser ServeOptions
-serveOptParser = ServeOptions <$> parseBasePaths
+serveOptParser = ServeOptions <$> parseArchiveBasePaths
                               <*> parseMaybeZipDir
                               <*> parsePort
                               <*> parseIgnoreChecksums
