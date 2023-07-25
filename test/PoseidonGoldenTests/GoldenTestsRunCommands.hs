@@ -25,7 +25,8 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.SecondaryTypes  (ContributorSpec (..),
+import           Poseidon.SecondaryTypes  (ArchiveEndpoint (ArchiveEndpoint),
+                                           ContributorSpec (..),
                                            VersionComponent (..))
 import           Poseidon.Utils           (LogMode (..), TestMode (..),
                                            getChecksum, testLog,
@@ -683,6 +684,14 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
     -- delete .git directory in chronicle to clean up in the end
     removeDirectoryRecursive (testDir </> "chronicle" </> ".git")
 
+archives :: [(String, FilePath)]
+archives = [
+      ("testArchive1", "test/testDat/testPackages/ancient/Lamnidis_2018")
+    , ("testArchive2", "test/testDat/testPackages/ancient/Schiffels_2016")
+    , ("testArchive1", "test/testDat/testPackages/ancient/Wang_2020")
+    , ("testArchive2", "test/testDat/testPackages/ancient/Schmid_2028")
+    ]
+
  -- Note: We here use our test server (no SSL and different port). The reason is that
  -- sometimes we would like to implement new features that affect the communication
  -- between server and client, and we need tests succeeding before Pull Requests are merged, so
@@ -691,7 +700,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
 
-    let serverOpts = ServeOptions [("testArchive", "test/testDat/testPackages")] (Just "/tmp/zip_dir") 3000 True Nothing
+    let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing
 
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
@@ -704,10 +713,19 @@ testPipelineFetch testDir checkFilePath = do
 
     let fetchOpts1 = FetchOptions {
           _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac "Schmid_2028"]]
-        , _remoteURL    = "http://localhost:3000"
+        , _entityInput  = [EntitiesDirect [Pac "Lamnidis_2018"]]
+        , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
+          "fetch" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+        ]
+
+    let fetchOpts2 = FetchOptions {
+          _jaBaseDirs   = [testDir </> "fetch"]
+        , _entityInput  = [EntitiesDirect [Pac "Schmid_2028"]]
+        , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts2) "fetch" [
           "fetch" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
         , "fetch" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
         , "fetch" </> "Schmid_2028-1.0.0" </> "geno.txt"
@@ -718,15 +736,17 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = ServeOptions [("testArchive", "test/testDat/testPackages")] Nothing 3000 True Nothing
+
+    let serverOpts = ServeOptions archives Nothing 3000 True Nothing
 
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
     _ <- takeMVar serverReady
 
+    -- list from default archive
     let listOpts1 = ListOptions {
-          _listRepoLocation = RepoRemote "http://localhost:3000"
+          _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
         , _listListEntity   = ListPackages
         , _listRawOutput    = False
         }
@@ -740,6 +760,14 @@ testPipelineListRemote testDir checkFilePath = do
         , _listRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
+
+    -- list from alternative archive
+    let listOpts4 = ListOptions {
+          _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
+        , _listListEntity   = ListPackages
+        , _listRawOutput    = False
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
 
     killThread threadID
 
