@@ -555,12 +555,11 @@ parseArchiveBasePaths = OP.some parseArchiveBasePath
 
 parseMaybeArchiveName :: OP.Parser (Maybe String)
 parseMaybeArchiveName = OP.option (Just <$> OP.str) (
-    OP.short 'n' <>
     OP.long "archive" <>
     OP.help "The name of the Poseidon package archive that should be queried. \
-            \If not given, the query falls back to the default archive of the \
+            \If not given, then the query falls back to the default archive of the \
             \server selected with --remoteURL. \
             \See the archive documentation at https://www.poseidon-adna.org/#/archive_overview \
-            \for a list of archives currently available from the official Web API." <>
+            \for a list of archives currently available from the official Poseidon Web API." <>
     OP.value Nothing
     )
