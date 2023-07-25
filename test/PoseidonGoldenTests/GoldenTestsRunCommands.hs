@@ -687,6 +687,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
 archives :: [(String, FilePath)]
 archives = [
       ("testArchive1", "test/testDat/testPackages/ancient/Lamnidis_2018")
+    , ("testArchive1", "test/testDat/testPackages/ancient/Lamnidis_2018_newVersion")
     , ("testArchive2", "test/testDat/testPackages/ancient/Schiffels_2016")
     , ("testArchive1", "test/testDat/testPackages/ancient/Wang_2020")
     , ("testArchive2", "test/testDat/testPackages/ancient/Schmid_2028")
@@ -717,7 +718,7 @@ testPipelineFetch testDir checkFilePath = do
         , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
-          "fetch" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+          "fetch" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
         ]
 
     let fetchOpts2 = FetchOptions {
