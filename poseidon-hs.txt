@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.2.0
+@version 1.2.3.0
 
 module Poseidon.MathHelpers
 
@@ -1121,6 +1121,7 @@ dummyContributor :: ContributorSpec
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
 getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
+validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -1230,18 +1231,6 @@ instance GHC.Classes.Ord Poseidon.Chronicle.PackageIteration
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PackageIteration
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PackageIteration
 instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.Chronicle.PackageIteration
-
-module Poseidon.CLI.Validate
-
--- | A datatype representing command line options for the validate command
-data ValidateOptions
-ValidateOptions :: [FilePath] -> Bool -> Bool -> Bool -> Bool -> ValidateOptions
-[_validateBaseDirs] :: ValidateOptions -> [FilePath]
-[_validateIgnoreGeno] :: ValidateOptions -> Bool
-[_validateFullGeno] :: ValidateOptions -> Bool
-[_validateNoExitCode] :: ValidateOptions -> Bool
-[_validateIgnoreDuplicates] :: ValidateOptions -> Bool
-runValidate :: ValidateOptions -> PoseidonIO ()
 
 module Poseidon.CLI.Update
 runUpdate :: UpdateOptions -> PoseidonIO ()
@@ -1402,6 +1391,27 @@ UpdateChron :: FilePath -> ChronOperation
 pacReadOpts :: PackageReadOptions
 runChronicle :: ChronicleOptions -> PoseidonIO ()
 
+module Poseidon.CLI.Validate
+
+-- | A datatype representing command line options for the validate command
+data ValidateOptions
+ValidateOptions :: ValidatePlan -> Bool -> ValidateOptions
+[_validatePlan] :: ValidateOptions -> ValidatePlan
+[_validateNoExitCode] :: ValidateOptions -> Bool
+data ValidatePlan
+ValPlanBaseDirs :: [FilePath] -> Bool -> Bool -> Bool -> ValidatePlan
+[_valPlanBaseDirs] :: ValidatePlan -> [FilePath]
+[_valPlanIgnoreGeno] :: ValidatePlan -> Bool
+[_valPlanFullGeno] :: ValidatePlan -> Bool
+[_valPlanIgnoreDuplicates] :: ValidatePlan -> Bool
+ValPlanPoseidonYaml :: FilePath -> ValidatePlan
+ValPlanGeno :: GenotypeDataSpec -> ValidatePlan
+ValPlanJanno :: FilePath -> ValidatePlan
+ValPlanSSF :: FilePath -> ValidatePlan
+ValPlanBib :: FilePath -> ValidatePlan
+runValidate :: ValidateOptions -> PoseidonIO ()
+conclude :: Bool -> Bool -> PoseidonIO ()
+
 module Poseidon.CLI.OptparseApplicativeParsers
 parseChronOperation :: Parser ChronOperation
 parseTimetravelSourcePath :: Parser FilePath
@@ -1435,8 +1445,14 @@ parseGenoDataSources :: Parser [GenoDataSource]
 parseGenoDataSource :: Parser GenoDataSource
 parseRepoLocation :: Parser RepoLocationSpec
 parseArchiveEndpoint :: Parser ArchiveEndpoint
+parseValidatePlan :: Parser ValidatePlan
+parseInPoseidonYamlFile :: Parser FilePath
+parseInJannoFile :: Parser FilePath
+parseInSSFile :: Parser FilePath
+parseInBibFile :: Parser FilePath
 parseBasePaths :: Parser [FilePath]
 parseBasePath :: Parser FilePath
+parseInGenoWithoutSNPSet :: Parser GenotypeDataSpec
 parseInGenotypeDataset :: Parser GenotypeDataSpec
 type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
 parseInGenoOne :: Parser GenoInput
