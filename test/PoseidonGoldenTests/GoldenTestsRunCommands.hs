@@ -37,6 +37,7 @@ import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)
 import           Control.Monad            (forM_, unless, when)
 import           Data.Either              (fromRight)
+import           Data.Function            ((&))
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
@@ -170,35 +171,60 @@ testPipelineValidate testDir checkFilePath = do
             }
         , _validateNoExitCode          = True
     }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts1) "validate" 1
-    let validateOpts2 = validateOpts1 {
+    run 1 validateOpts1
+    validateOpts1 {
           _validatePlan = ValPlanBaseDirs {
               _valPlanBaseDirs         = [testPacsDir]
             , _valPlanIgnoreGeno       = True
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
             }
-    }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts2) "validate" 2
-    let validateOpts3 = validateOpts1 {
+    } & run 2
+    validateOpts1 {
           _validatePlan = ValPlanBaseDirs {
               _valPlanBaseDirs         = [testPacsDir]
             , _valPlanIgnoreGeno       = False
             , _valPlanFullGeno         = True
             , _valPlanIgnoreDuplicates = True
             }
-    }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts3) "validate" 3
+    } & run 3
     -- validate packages generated with init
-    let validateOpts4 = validateOpts1 {
+    validateOpts1 {
           _validatePlan = ValPlanBaseDirs {
               _valPlanBaseDirs = [testDir </> "init"]
             , _valPlanIgnoreGeno       = False
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
             }
-    }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts4) "validate" 4
+    } & run 4
+    -- validate individual files
+    validateOpts1 {
+          _validatePlan = ValPlanPoseidonYaml $ testPacsDir </> "Schiffels_2016" </> "POSEIDON.yml"
+    } & run 5
+    validateOpts1 {
+          _validatePlan = ValPlanGeno $ GenotypeDataSpec {
+              format         = GenotypeFormatEigenstrat
+            , genoFile       = testPacsDir </> "Schiffels_2016" </> "geno.txt"
+            , genoFileChkSum = Nothing
+            , snpFile        = testPacsDir </> "Schiffels_2016" </> "snp.txt"
+            , snpFileChkSum  = Nothing
+            , indFile        = testPacsDir </> "Schiffels_2016" </> "ind.txt"
+            , indFileChkSum  = Nothing
+            , snpSet         = Nothing
+            }
+    } & run 6
+    validateOpts1 {
+          _validatePlan = ValPlanJanno $ testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno"
+    } & run 7
+    validateOpts1 {
+          _validatePlan = ValPlanSSF $ testPacsDir </> "Schiffels_2016" </> "ena_table.ssf"
+    } & run 8
+    validateOpts1 {
+          _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
+    } & run 9
+    where
+        run :: Integer -> ValidateOptions -> IO ()
+        run nr opts = runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate opts) "validate" nr
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
