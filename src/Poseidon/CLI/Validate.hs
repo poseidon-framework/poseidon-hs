@@ -9,6 +9,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          findAllPoseidonYmlFiles,
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonIO, logError, logInfo)
+import Poseidon.GenotypeData (GenotypeDataSpec)
 
 import           Control.Monad          (unless)
 import           Control.Monad.IO.Class (liftIO)
@@ -20,15 +21,25 @@ import           System.Exit            (exitFailure, exitSuccess)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
-    { _validateBaseDirs         :: [FilePath]
-    , _validateIgnoreGeno       :: Bool
-    , _validateFullGeno         :: Bool
-    , _validateNoExitCode       :: Bool
-    , _validateIgnoreDuplicates :: Bool
+    { _validatePlan       :: ValidatePlan
+    , _validateNoExitCode :: Bool
     }
 
+data ValidatePlan =
+      ValPlanBaseDirs { 
+          _valPlanBaseDirs         :: [FilePath]
+        , _valPlanIgnoreGeno       :: Bool
+        , _valPlanFullGeno         :: Bool
+        , _valPlanIgnoreDuplicates :: Bool
+      }
+    | ValPlanPoseidonYaml FilePath
+    | ValPlanGeno GenotypeDataSpec
+    | ValPlanJanno FilePath
+    | ValPlanSSF FilePath
+    | ValPlanBib FilePath
+
 runValidate :: ValidateOptions -> PoseidonIO ()
-runValidate (ValidateOptions baseDirs ignoreGeno fullGeno noExitCode ignoreDup) = do
+runValidate (ValidateOptions (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup) noExitCode) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = False
         , _readOptGenoCheck        = True
@@ -41,10 +52,22 @@ runValidate (ValidateOptions baseDirs ignoreGeno fullGeno noExitCode ignoreDup) 
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
-    if numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates
-    then do
-        logInfo "Validation passed"
-        unless noExitCode $ liftIO exitSuccess
-    else do
-        logError "Validation failed"
-        unless noExitCode $ liftIO exitFailure
+    conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates) noExitCode
+runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
+    undefined
+runValidate (ValidateOptions (ValPlanGeno geno) noExitCode) = do
+    undefined
+runValidate (ValidateOptions (ValPlanJanno path) noExitCode) = do
+    undefined
+runValidate (ValidateOptions (ValPlanSSF path) noExitCode) = do
+    undefined
+runValidate (ValidateOptions (ValPlanBib path) noExitCode) = do
+    undefined
+
+conclude :: Bool -> Bool -> PoseidonIO ()
+conclude True noExitCode = do
+    logInfo "Validation passed"
+    unless noExitCode $ liftIO exitSuccess
+conclude False noExitCode = do
+    logError "Validation failed"
+    unless noExitCode $ liftIO exitFailure

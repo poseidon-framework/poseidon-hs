@@ -18,6 +18,7 @@ import           Poseidon.SecondaryTypes (ArchiveEndpoint (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
 import           Poseidon.Utils          (LogMode (..), TestMode (..))
+import Poseidon.CLI.Validate (ValidatePlan(..))
 
 import           Control.Applicative     ((<|>))
 import           Data.List.Split         (splitOn)
@@ -26,6 +27,7 @@ import qualified Options.Applicative     as OP
 import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
+
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -295,6 +297,39 @@ parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (Rep
 
 parseArchiveEndpoint :: OP.Parser ArchiveEndpoint
 parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveName
+
+parseValidatePlan :: OP.Parser ValidatePlan
+parseValidatePlan = 
+        (ValPlanBaseDirs <$> parseBasePaths <*> parseIgnoreGeno <*> parseFullGeno <*> parseIgnoreDuplicates)
+    <|> (ValPlanGeno <$> parseInGenotypeDataset)
+    <|> (ValPlanPoseidonYaml <$> parseInPoseidonYamlFile)
+    <|> (ValPlanJanno <$> parseInJannoFile)
+    <|> (ValPlanSSF <$> parseInSSFile)
+    <|> (ValPlanBib <$> parseInBibFile)
+
+parseInPoseidonYamlFile :: OP.Parser FilePath
+parseInPoseidonYamlFile = OP.strOption (
+    OP.long "pyml" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a POSEIDON.yml file")
+
+parseInJannoFile :: OP.Parser FilePath
+parseInJannoFile = OP.strOption (
+    OP.long "janno" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a .janno file")
+
+parseInSSFile :: OP.Parser FilePath
+parseInSSFile = OP.strOption (
+    OP.long "ssf" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a .ssf file")
+
+parseInBibFile :: OP.Parser FilePath
+parseInBibFile = OP.strOption (
+    OP.long "bib" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a .bib file")
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some parseBasePath

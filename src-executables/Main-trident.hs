@@ -239,11 +239,8 @@ updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parseForce
 
 validateOptParser :: OP.Parser ValidateOptions
-validateOptParser = ValidateOptions <$> parseBasePaths
-                                    <*> parseIgnoreGeno
-                                    <*> parseFullGeno
+validateOptParser = ValidateOptions <$> parseValidatePlan
                                     <*> parseNoExitCode
-                                    <*> parseIgnoreDuplicates
 
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths

@@ -17,7 +17,7 @@ import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
 import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
                                            runTimetravel)
 import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
-import           Poseidon.CLI.Validate    (ValidateOptions (..), runValidate)
+import           Poseidon.CLI.Validate    (ValidateOptions (..), runValidate, ValidatePlan (..))
 import           Poseidon.EntitiesList    (EntityInput (..),
                                            PoseidonEntity (..),
                                            readEntitiesFromString)
@@ -160,25 +160,28 @@ testPipelineInit testDir checkFilePath = do
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
+    let valPlan = ValPlanBaseDirs {
+          _valPlanBaseDirs         = [testPacsDir]
+        , _valPlanIgnoreGeno       = False
+        , _valPlanFullGeno         = False
+        , _valPlanIgnoreDuplicates = True
+        }
     let validateOpts1 = ValidateOptions {
-          _validateBaseDirs     = [testPacsDir]
-        , _validateIgnoreGeno   = False
-        , _validateFullGeno     = False
+          _validatePlan = valPlan
         , _validateNoExitCode   = True
-        , _validateIgnoreDuplicates = True
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts1) "validate" 1
     let validateOpts2 = validateOpts1 {
-          _validateIgnoreGeno   = True
+          _validatePlan = valPlan { _valPlanIgnoreGeno = True }
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts2) "validate" 2
     let validateOpts3 = validateOpts1 {
-          _validateFullGeno     = True
+          _validatePlan = valPlan { _valPlanFullGeno = True }
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts3) "validate" 3
     -- validate packages generated with init
     let validateOpts4 = validateOpts1 {
-          _validateBaseDirs     = [testDir </> "init"]
+          _validatePlan = valPlan { _valPlanBaseDirs = [testDir </> "init"] }
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts4) "validate" 4
 
