@@ -161,28 +161,42 @@ testPipelineInit testDir checkFilePath = do
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
-    let valPlan = ValPlanBaseDirs {
-          _valPlanBaseDirs         = [testPacsDir]
-        , _valPlanIgnoreGeno       = False
-        , _valPlanFullGeno         = False
-        , _valPlanIgnoreDuplicates = True
-        }
     let validateOpts1 = ValidateOptions {
-          _validatePlan = valPlan
-        , _validateNoExitCode   = True
+          _validatePlan = ValPlanBaseDirs {
+              _valPlanBaseDirs         = [testPacsDir]
+            , _valPlanIgnoreGeno       = False
+            , _valPlanFullGeno         = False
+            , _valPlanIgnoreDuplicates = True
+            }
+        , _validateNoExitCode          = True
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts1) "validate" 1
     let validateOpts2 = validateOpts1 {
-          _validatePlan = valPlan { _valPlanIgnoreGeno = True }
+          _validatePlan = ValPlanBaseDirs {
+              _valPlanBaseDirs         = [testPacsDir]
+            , _valPlanIgnoreGeno       = True
+            , _valPlanFullGeno         = False
+            , _valPlanIgnoreDuplicates = True
+            }
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts2) "validate" 2
     let validateOpts3 = validateOpts1 {
-          _validatePlan = valPlan { _valPlanFullGeno = True }
+          _validatePlan = ValPlanBaseDirs {
+              _valPlanBaseDirs         = [testPacsDir]
+            , _valPlanIgnoreGeno       = False
+            , _valPlanFullGeno         = True
+            , _valPlanIgnoreDuplicates = True
+            }
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts3) "validate" 3
     -- validate packages generated with init
     let validateOpts4 = validateOpts1 {
-          _validatePlan = valPlan { _valPlanBaseDirs = [testDir </> "init"] }
+          _validatePlan = ValPlanBaseDirs {
+              _valPlanBaseDirs = [testDir </> "init"]
+            , _valPlanIgnoreGeno       = False
+            , _valPlanFullGeno         = False
+            , _valPlanIgnoreDuplicates = True
+            }
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate validateOpts4) "validate" 4
 
