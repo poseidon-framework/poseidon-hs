@@ -174,7 +174,7 @@ subcommandParser = OP.subparser (
     updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
         (OP.progDesc "Update POSEIDON.yml files automatically")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
-        (OP.progDesc "Check one or multiple Poseidon packages for structural correctness")
+        (OP.progDesc "Check Poseidon packages or package components for structural correctness")
     chronicleOptInfo = OP.info (OP.helper <*> (CmdChronicle <$> chronicleOptParser))
         (OP.progDesc "Create chronicle files for package collections")
     timetravelOptInfo = OP.info (OP.helper <*> (CmdTimetravel <$> timetravelOptParser))
@@ -239,11 +239,8 @@ updateOptParser = UpdateOptions <$> parseBasePaths
                                 <*> parseForce
 
 validateOptParser :: OP.Parser ValidateOptions
-validateOptParser = ValidateOptions <$> parseBasePaths
-                                    <*> parseIgnoreGeno
-                                    <*> parseFullGeno
+validateOptParser = ValidateOptions <$> parseValidatePlan
                                     <*> parseNoExitCode
-                                    <*> parseIgnoreDuplicates
 
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths

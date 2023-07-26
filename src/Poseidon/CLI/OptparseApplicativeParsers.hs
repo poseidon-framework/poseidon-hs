@@ -5,6 +5,7 @@ module Poseidon.CLI.OptparseApplicativeParsers where
 import           Poseidon.CLI.Chronicle  (ChronOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
+import           Poseidon.CLI.Validate   (ValidatePlan (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
                                           PoseidonEntity, SignedEntitiesList,
                                           SignedEntity, readEntitiesFromString)
@@ -26,6 +27,7 @@ import qualified Options.Applicative     as OP
 import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath         (dropExtension, takeExtension, (<.>))
 import           Text.Read               (readMaybe)
+
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -296,6 +298,39 @@ parseRepoLocation = (RepoLocal <$> parseBasePaths) <|> (parseRemoteDummy *> (Rep
 parseArchiveEndpoint :: OP.Parser ArchiveEndpoint
 parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveName
 
+parseValidatePlan :: OP.Parser ValidatePlan
+parseValidatePlan =
+        (ValPlanBaseDirs <$> parseBasePaths <*> parseIgnoreGeno <*> parseFullGeno <*> parseIgnoreDuplicates)
+    <|> (ValPlanPoseidonYaml <$> parseInPoseidonYamlFile)
+    <|> (ValPlanGeno <$> parseInGenoWithoutSNPSet)
+    <|> (ValPlanJanno <$> parseInJannoFile)
+    <|> (ValPlanSSF <$> parseInSSFile)
+    <|> (ValPlanBib <$> parseInBibFile)
+
+parseInPoseidonYamlFile :: OP.Parser FilePath
+parseInPoseidonYamlFile = OP.strOption (
+    OP.long "pyml" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a POSEIDON.yml file")
+
+parseInJannoFile :: OP.Parser FilePath
+parseInJannoFile = OP.strOption (
+    OP.long "janno" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a .janno file")
+
+parseInSSFile :: OP.Parser FilePath
+parseInSSFile = OP.strOption (
+    OP.long "ssf" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a .ssf file")
+
+parseInBibFile :: OP.Parser FilePath
+parseInBibFile = OP.strOption (
+    OP.long "bib" <>
+    OP.metavar "FILE" <>
+    OP.help "File path to a .bib file")
+
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some parseBasePath
 
@@ -304,6 +339,12 @@ parseBasePath = OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)")
+
+parseInGenoWithoutSNPSet :: OP.Parser GenotypeDataSpec
+parseInGenoWithoutSNPSet = createGeno <$> (parseInGenoOne <|> parseInGenoSep)
+    where
+        createGeno :: GenoInput -> GenotypeDataSpec
+        createGeno (a,b,c,d) = GenotypeDataSpec a b Nothing c Nothing d Nothing Nothing
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
 parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
