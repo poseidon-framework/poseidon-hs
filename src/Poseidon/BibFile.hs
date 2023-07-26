@@ -21,7 +21,13 @@ data BibEntry = BibEntry
     , bibEntryId     :: String
     , bibEntryFields :: [(String, String)]
     }
-    deriving (Show, Eq)
+    deriving (Show)
+
+instance Eq BibEntry where
+    (BibEntry t1 i1 _) == (BibEntry t2 i2 _) = (t1 == t2) && (i1 == i2)
+
+instance Ord BibEntry where
+    (BibEntry _ i1 _) `compare` (BibEntry _ i2 _) = i1 `compare` i2
 
 type BibTeX = [BibEntry]
 
@@ -60,7 +66,6 @@ writeBibTeXFile path entries = withFile path WriteMode $ \outH -> do
     forM_ entries $ \bibEntry -> do
         let entryString = writeEntry bibEntry
         hPutStrLn outH entryString
-        hPutStrLn outH ""
   where
     writeEntry :: BibEntry -> String
     writeEntry (BibEntry entryType bibId items) =
