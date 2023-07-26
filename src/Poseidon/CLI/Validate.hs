@@ -3,21 +3,29 @@
 
 module Poseidon.CLI.Validate where
 
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         findAllPoseidonYmlFiles,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO, logError, logInfo)
-import Poseidon.GenotypeData (GenotypeDataSpec)
+import           Poseidon.BibFile          (BibTeX (..), readBibTeXFile)
+import           Poseidon.GenotypeData     (GenotypeDataSpec)
+import           Poseidon.Janno            (JannoRows (..), readJannoFile)
+import           Poseidon.Package          (PackageReadOptions (..),
+                                            PoseidonException (..),
+                                            PoseidonPackage (..),
+                                            PoseidonYamlStruct (..),
+                                            defaultPackageReadOptions,
+                                            findAllPoseidonYmlFiles,
+                                            readPoseidonPackageCollection)
+import           Poseidon.SequencingSource (SeqSourceRows (..),
+                                            readSeqSourceFile)
+import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
 
-import           Control.Monad          (unless)
-import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.List     (filterM)
-import           Data.List              (foldl')
-import           System.Directory       (doesDirectoryExist)
-import           System.Exit            (exitFailure, exitSuccess)
-
+import           Control.Monad             (unless)
+import           Control.Monad.Catch       (throwM)
+import           Control.Monad.IO.Class    (liftIO)
+import           Control.Monad.List        (filterM)
+import qualified Data.ByteString           as B
+import           Data.List                 (foldl', intercalate)
+import           Data.Yaml                 (decodeEither')
+import           System.Directory          (doesDirectoryExist)
+import           System.Exit               (exitFailure, exitSuccess)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -26,7 +34,7 @@ data ValidateOptions = ValidateOptions
     }
 
 data ValidatePlan =
-      ValPlanBaseDirs { 
+      ValPlanBaseDirs {
           _valPlanBaseDirs         :: [FilePath]
         , _valPlanIgnoreGeno       :: Bool
         , _valPlanFullGeno         :: Bool
@@ -40,6 +48,7 @@ data ValidatePlan =
 
 runValidate :: ValidateOptions -> PoseidonIO ()
 runValidate (ValidateOptions (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup) noExitCode) = do
+    logInfo $ "Validating: " ++ intercalate ", " baseDirs
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = False
         , _readOptGenoCheck        = True
@@ -54,15 +63,30 @@ runValidate (ValidateOptions (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignor
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
     conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates) noExitCode
 runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
-    undefined
+    logInfo $ "Validating: " ++ path
+    bs <- liftIO $ B.readFile path
+    yml <- case decodeEither' bs of
+        Left err  -> throwM $ PoseidonYamlParseException path err
+        Right pac -> return (pac :: PoseidonYamlStruct)
+    logInfo $ "Read .yml file of package " ++ _posYamlTitle yml
+    conclude True noExitCode
 runValidate (ValidateOptions (ValPlanGeno geno) noExitCode) = do
     undefined
 runValidate (ValidateOptions (ValPlanJanno path) noExitCode) = do
-    undefined
+    logInfo $ "Validating: " ++ path
+    (JannoRows entries) <- readJannoFile path
+    logInfo $ "All " ++ show (length entries) ++ " entries are valid"
+    conclude True noExitCode
 runValidate (ValidateOptions (ValPlanSSF path) noExitCode) = do
-    undefined
+    logInfo $ "Validating: " ++ path
+    (SeqSourceRows entries) <- readSeqSourceFile path
+    logInfo $ "All " ++ show (length entries) ++ " entries are valid"
+    conclude True noExitCode
 runValidate (ValidateOptions (ValPlanBib path) noExitCode) = do
-    undefined
+    logInfo $ "Validating: " ++ path
+    entries <- liftIO $ readBibTeXFile path
+    logInfo $ "All " ++ show (length entries) ++ " entries are valid"
+    conclude True noExitCode
 
 conclude :: Bool -> Bool -> PoseidonIO ()
 conclude True noExitCode = do

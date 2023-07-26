@@ -5,6 +5,7 @@ module Poseidon.CLI.OptparseApplicativeParsers where
 import           Poseidon.CLI.Chronicle  (ChronOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
+import           Poseidon.CLI.Validate   (ValidatePlan (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
                                           PoseidonEntity, SignedEntitiesList,
                                           SignedEntity, readEntitiesFromString)
@@ -18,7 +19,6 @@ import           Poseidon.SecondaryTypes (ArchiveEndpoint (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
 import           Poseidon.Utils          (LogMode (..), TestMode (..))
-import Poseidon.CLI.Validate (ValidatePlan(..))
 
 import           Control.Applicative     ((<|>))
 import           Data.List.Split         (splitOn)
@@ -299,7 +299,7 @@ parseArchiveEndpoint :: OP.Parser ArchiveEndpoint
 parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveName
 
 parseValidatePlan :: OP.Parser ValidatePlan
-parseValidatePlan = 
+parseValidatePlan =
         (ValPlanBaseDirs <$> parseBasePaths <*> parseIgnoreGeno <*> parseFullGeno <*> parseIgnoreDuplicates)
     <|> (ValPlanGeno <$> parseInGenotypeDataset)
     <|> (ValPlanPoseidonYaml <$> parseInPoseidonYamlFile)
