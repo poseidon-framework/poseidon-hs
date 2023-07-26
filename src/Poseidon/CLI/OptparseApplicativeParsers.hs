@@ -301,8 +301,8 @@ parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveN
 parseValidatePlan :: OP.Parser ValidatePlan
 parseValidatePlan =
         (ValPlanBaseDirs <$> parseBasePaths <*> parseIgnoreGeno <*> parseFullGeno <*> parseIgnoreDuplicates)
-    <|> (ValPlanGeno <$> parseInGenotypeDataset)
     <|> (ValPlanPoseidonYaml <$> parseInPoseidonYamlFile)
+    <|> (ValPlanGeno <$> parseInGenoWithoutSNPSet)
     <|> (ValPlanJanno <$> parseInJannoFile)
     <|> (ValPlanSSF <$> parseInSSFile)
     <|> (ValPlanBib <$> parseInBibFile)
@@ -339,6 +339,12 @@ parseBasePath = OP.strOption (OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
     OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)")
+
+parseInGenoWithoutSNPSet :: OP.Parser GenotypeDataSpec
+parseInGenoWithoutSNPSet = createGeno <$> (parseInGenoOne <|> parseInGenoSep)
+    where
+        createGeno :: GenoInput -> GenotypeDataSpec
+        createGeno (a,b,c,d) = GenotypeDataSpec a b Nothing c Nothing d Nothing Nothing
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
 parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
