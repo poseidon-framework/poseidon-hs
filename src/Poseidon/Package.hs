@@ -25,7 +25,8 @@ module Poseidon.Package (
     dummyContributor,
     packageToPackageInfo,
     getAllGroupInfo,
-    getExtendedIndividualInfo
+    getExtendedIndividualInfo,
+    validateGeno
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -384,22 +385,31 @@ readPoseidonPackage opts ymlPath = do
 
     -- create PoseidonPackage
     let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
+
+    -- validate genotype data
+    when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
+        validateGeno pac (_readOptFullGeno opts)
+
+    -- return complete, valid package
+    return pac
+
+validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
+validateGeno pac checkFullGeno = do
     logA <- envLogAction
     plinkMode <- envInputPlinkMode
     liftIO $ catch (
-        when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) . runSafeT $ do
+        runSafeT $ do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
             (_, eigenstratProd) <- getJointGenotypeData logA False plinkMode [pac] Nothing
             -- check all or only the first 100 SNPs
-            if _readOptFullGeno opts
+            if checkFullGeno
             then do
                 currentTime <- liftIO getCurrentTime
                 runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else do
                 runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward)
-    return pac
 
 -- throws exception if any file is missing or checksum is incorrect
 checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
