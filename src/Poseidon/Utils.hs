@@ -22,7 +22,8 @@ module Poseidon.Utils (
     determinePackageOutName,
     PlinkPopNameMode(..),
     TestMode(..),
-    Env(..)
+    Env(..),
+    uniquePO, uniqueRO
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -39,6 +40,7 @@ import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
 import qualified Data.ByteString.Lazy   as LB
 import           Data.Digest.Pure.MD5   (md5)
+import qualified Data.Set               as Set
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
@@ -281,3 +283,19 @@ determinePackageOutName maybeOutName outPath = do
             Nothing -> case takeBaseName outPath of -- check if outPath is empty
                 "" -> throwIO PoseidonEmptyOutPacNameException
                 y  -> return y
+
+-- two helper functions to reduce a lists to the unique elements in it
+-- see https://github.com/nh2/haskell-ordnub#dont-use-nub
+-- preserves the original order
+uniquePO :: (Ord a) => [a] -> [a]
+uniquePO = go Set.empty
+  where
+    go _ [] = []
+    go s (x:xs) =
+        if x `Set.member` s
+        then go s xs
+        else x : go (Set.insert x s) xs
+
+-- reorderes the list according to the Ord instance of a
+uniqueRO :: (Ord a) => [a] -> [a]
+uniqueRO = Set.toList . Set.fromList

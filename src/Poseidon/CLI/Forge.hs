@@ -39,13 +39,13 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logError, logInfo, logWarning)
+                                              logError, logInfo, logWarning,
+                                              uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
 import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
-import qualified Data.Set                    as Set
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
@@ -159,7 +159,7 @@ runForge (
         relevantSeqSourceRows = filterSeqSourceRows newJanno seqSourceRows
 
     -- bib
-    let bibEntries = Set.toList $ Set.fromList $ concatMap posPacBib relevantPackages
+    let bibEntries = uniqueRO $ concatMap posPacBib relevantPackages
         relevantBibEntries = filterBibEntries newJanno bibEntries
 
     -- create new package --
