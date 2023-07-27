@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.3.1
+@version 1.2.3.4
 
 module Poseidon.MathHelpers
 
@@ -175,6 +175,8 @@ Env :: LogA -> TestMode -> PlinkPopNameMode -> Env
 [_envLogAction] :: Env -> LogA
 [_envTestMode] :: Env -> TestMode
 [_envInputPlinkMode] :: Env -> PlinkPopNameMode
+uniquePO :: Ord a => [a] -> [a]
+uniqueRO :: Ord a => [a] -> [a]
 instance GHC.Show.Show Poseidon.Utils.TestMode
 instance GHC.Show.Show Poseidon.Utils.LogMode
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
@@ -1277,6 +1279,7 @@ summariseJannoRows :: JannoRows -> Bool -> IO ()
 -- | A helper function to concat the first N elements of a string list in a
 --   nice way
 paste :: [String] -> String
+uniqueNumber :: Ord a => [a] -> String
 
 -- | A helper function to determine the frequency of objects in a list
 --   (similar to the table function in R)
