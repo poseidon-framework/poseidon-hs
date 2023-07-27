@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.3.0
+@version 1.2.3.1
 
 module Poseidon.MathHelpers
 
@@ -875,8 +875,9 @@ BibEntry :: String -> String -> [(String, String)] -> BibEntry
 [bibEntryType] :: BibEntry -> String
 [bibEntryId] :: BibEntry -> String
 [bibEntryFields] :: BibEntry -> [(String, String)]
-instance GHC.Classes.Eq Poseidon.BibFile.BibEntry
 instance GHC.Show.Show Poseidon.BibFile.BibEntry
+instance GHC.Classes.Eq Poseidon.BibFile.BibEntry
+instance GHC.Classes.Ord Poseidon.BibFile.BibEntry
 
 module Poseidon.Package
 
