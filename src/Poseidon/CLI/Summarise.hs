@@ -8,10 +8,10 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO)
+import           Poseidon.Utils         (PoseidonIO, uniquePO)
 
 import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (group, intercalate, nub, sort, sortBy)
+import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
@@ -45,24 +45,42 @@ summariseJannoRows (JannoRows rows) rawOutput = do
     (tableH, tableB) <- do
         let tableH = ["Summary", "Value"]
             tableB = [
-                ["Nr Individuals", show (length rows)],
-                ["Individuals", paste $ sort $ map jPoseidonID rows],
-                ["Nr Groups", show $ length $ nub $ map jGroupName rows],
-                ["Groups", printFrequencyString ", " $ frequency $ map (head . getJannoList . jGroupName) rows],
-                ["Nr Publications", show $ length $ nub $ map jPublication rows],
-                ["Publications", paste . nub . concatMap getJannoList . mapMaybe jPublication $ rows],
-                ["Nr Countries", show $ length $ nub $ map jCountry rows],
-                ["Countries", printFrequencyMaybeString ", " $ frequency $ map jCountry rows],
-                ["Mean age BC/AD", meanAndSdInteger $ map (\(BCADAge x) -> fromIntegral x) $ mapMaybe jDateBCADMedian rows],
-                ["Dating type", printFrequencyMaybe ", " $ frequency $ map jDateType rows],
-                ["Sex distribution", printFrequency ", " $ frequency $ map jGeneticSex rows],
-                ["MT haplogroups", printFrequencyMaybeString ", " $ frequency $ map jMTHaplogroup rows],
-                ["Y haplogroups",printFrequencyMaybeString ", " $ frequency $ map jYHaplogroup rows],
-                ["% endogenous human DNA", meanAndSdRoundTo 2 $ map (\(Percent x) -> x) $ mapMaybe jEndogenous rows],
-                ["Nr of SNPs", meanAndSdInteger $ map fromIntegral $ mapMaybe jNrSNPs rows],
-                ["Coverage on target SNPs", meanAndSdRoundTo 2 $ mapMaybe jCoverageOnTargets rows],
-                ["Library type", printFrequencyMaybe ", " $ frequency $ map jLibraryBuilt rows],
-                ["UDG treatment", printFrequencyMaybe ", " $ frequency $ map jUDG rows]
+                ["Nr Samples"
+                , show (length rows)],
+                ["Samples"
+                , paste . sort . map jPoseidonID $ rows],
+                ["Nr Primary Groups"
+                , uniqueNumber . map (head . getJannoList . jGroupName) $ rows],
+                ["Primary Groups"
+                , printFrequencyString ", " . frequency . map (head . getJannoList . jGroupName) $ rows],
+                ["Nr Publications"
+                , uniqueNumber . concatMap getJannoList . mapMaybe jPublication $ rows],
+                ["Publications"
+                , paste . uniquePO . concatMap getJannoList . mapMaybe jPublication $ rows],
+                ["Nr Countries"
+                , uniqueNumber . mapMaybe jCountry $ rows],
+                ["Countries"
+                , printFrequencyMaybeString ", " . frequency . map jCountry $ rows],
+                ["Mean age BC/AD"
+                , meanAndSdInteger . map (\(BCADAge x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
+                ["Dating type"
+                , printFrequencyMaybe ", " . frequency . map jDateType $ rows],
+                ["Sex distribution"
+                , printFrequency ", " . frequency . map jGeneticSex $ rows],
+                ["MT haplogroups"
+                , printFrequencyMaybeString ", " . frequency . map jMTHaplogroup $ rows],
+                ["Y haplogroups"
+                , printFrequencyMaybeString ", " . frequency . map jYHaplogroup $ rows],
+                ["% endogenous DNA"
+                , meanAndSdRoundTo 2 . map (\(Percent x) -> x) . mapMaybe jEndogenous $ rows],
+                ["Nr of SNPs"
+                , meanAndSdInteger . map fromIntegral . mapMaybe jNrSNPs $ rows],
+                ["Coverage on target"
+                , meanAndSdRoundTo 2 . mapMaybe jCoverageOnTargets $ rows],
+                ["Library type"
+                , printFrequencyMaybe ", " . frequency . map jLibraryBuilt $ rows],
+                ["UDG treatment"
+                , printFrequencyMaybe ", " . frequency . map jUDG $ rows]
                 ]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
@@ -74,6 +92,9 @@ summariseJannoRows (JannoRows rows) rawOutput = do
 paste :: [String] -> String
 paste [] = "no values"
 paste xs = intercalate ", " xs
+
+uniqueNumber :: Ord a => [a] -> String
+uniqueNumber = show . length . uniquePO
 
 -- | A helper function to determine the frequency of objects in a list
 -- (similar to the table function in R)

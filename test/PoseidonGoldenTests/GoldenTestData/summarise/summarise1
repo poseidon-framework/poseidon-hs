@@ -1,22 +1,22 @@
-.-------------------------.--------------------------------------------------------------.
-|         Summary         |                            Value                             |
-:=========================:==============================================================:
-| Nr Individuals          | 27                                                           |
-| Individuals             | SAMPLE0, SAMPLE1, SAMPLE2, SAMPLE3, SAMPLE4, XXX001, XXX001… |
-| Nr Groups               | 8                                                            |
-| Groups                  | POP1: 9, POP2: 9, POP3: 4, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1      |
-| Nr Publications         | 10                                                           |
-| Publications            | Lamnidis2018, Schiffels2016, TestPaper1, TestBook1, Wang202… |
-| Nr Countries            | 1                                                            |
-| Countries               | n/a: 27                                                      |
-| Mean age BC/AD          | no values                                                    |
-| Dating type             | n/a: 27                                                      |
-| Sex distribution        | F: 15, M: 12                                                 |
-| MT haplogroups          | n/a: 27                                                      |
-| Y haplogroups           | n/a: 27                                                      |
-| % endogenous human DNA  | no values                                                    |
-| Nr of SNPs              | no values                                                    |
-| Coverage on target SNPs | no values                                                    |
-| Library type            | n/a: 27                                                      |
-| UDG treatment           | n/a: 27                                                      |
-'-------------------------'--------------------------------------------------------------'
+.--------------------.--------------------------------------------------------------.
+|      Summary       |                            Value                             |
+:====================:==============================================================:
+| Nr Samples         | 27                                                           |
+| Samples            | SAMPLE0, SAMPLE1, SAMPLE2, SAMPLE3, SAMPLE4, XXX001, XXX001… |
+| Nr Primary Groups  | 8                                                            |
+| Primary Groups     | POP1: 9, POP2: 9, POP3: 4, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1      |
+| Nr Publications    | 6                                                            |
+| Publications       | Lamnidis2018, Schiffels2016, TestPaper1, TestBook1, Wang202… |
+| Nr Countries       | 0                                                            |
+| Countries          | n/a: 27                                                      |
+| Mean age BC/AD     | no values                                                    |
+| Dating type        | n/a: 27                                                      |
+| Sex distribution   | F: 15, M: 12                                                 |
+| MT haplogroups     | n/a: 27                                                      |
+| Y haplogroups      | n/a: 27                                                      |
+| % endogenous DNA   | no values                                                    |
+| Nr of SNPs         | no values                                                    |
+| Coverage on target | no values                                                    |
+| Library type       | n/a: 27                                                      |
+| UDG treatment      | n/a: 27                                                      |
+'--------------------'--------------------------------------------------------------'
