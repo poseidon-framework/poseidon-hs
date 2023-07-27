@@ -43,21 +43,21 @@ parseTimetravelChronPath :: OP.Parser FilePath
 parseTimetravelChronPath = OP.strOption (
     OP.long "chronFile" <>
     OP.short 'c' <>
-    OP.metavar "PATH" <>
+    OP.metavar "FILE" <>
     OP.help "Path to the chronicle definition file.")
 
 parseChronOutPath :: OP.Parser FilePath
 parseChronOutPath = OP.strOption (
     OP.long "outFile" <>
     OP.short 'o' <>
-    OP.metavar "PATH" <>
+    OP.metavar "FILE" <>
     OP.help "Path to the resulting chronicle definition file.")
 
 parseChronUpdatePath :: OP.Parser FilePath
 parseChronUpdatePath = OP.strOption (
     OP.long "updateFile" <>
     OP.short 'u' <>
-    OP.metavar "PATH" <>
+    OP.metavar "FILE" <>
     OP.help "Path to the chronicle definition file that should be updated. \
             \This file will be overwritten! \
             \But the update procedure does not change the package entries \
@@ -67,8 +67,9 @@ parseChronUpdatePath = OP.strOption (
 parsePoseidonVersion :: OP.Parser (Maybe Version)
 parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
     OP.long "poseidonVersion" <>
+    OP.metavar "?.?.?" <>
     OP.help "Poseidon version the packages should be updated to: \
-            \e.g. \"2.5.3\"" <>
+            \e.g. \"2.5.3\"." <>
     OP.value Nothing <>
     OP.showDefault
     )
@@ -81,8 +82,9 @@ parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionSt
 parseLogMode :: OP.Parser LogMode
 parseLogMode = OP.option (OP.eitherReader readLogMode) (
     OP.long "logMode" <>
+    OP.metavar "MODE" <>
     OP.help "How information should be reported: \
-            \NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog" <>
+            \NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog." <>
     OP.value DefaultLog <>
     OP.showDefault
     )
@@ -99,8 +101,9 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
 parseTestMode :: OP.Parser TestMode
 parseTestMode = OP.option (OP.eitherReader readTestMode) (
     OP.long "testMode" <>
+    OP.metavar "MODE" <>
     OP.help "\"Testing\" activates a test mode; relevant only \
-            \for developers in very specific edge cases" <>
+            \for developers in very specific edge cases." <>
     OP.value Production <>
     OP.showDefault <>
     OP.internal
@@ -117,7 +120,9 @@ data ErrorLength = CharInf | CharCount Int deriving Show
 parseErrorLength :: OP.Parser ErrorLength
 parseErrorLength = OP.option (OP.eitherReader readErrorLengthString) (
     OP.long "errLength" <>
-    OP.help "After how many characters should a potential error message be truncated. \"Inf\" for no truncation." <>
+    OP.metavar "INT" <>
+    OP.help "After how many characters should a potential error \
+            \message be truncated. \"Inf\" for no truncation." <>
     OP.value (CharCount 1500) <>
     OP.showDefault
     ) where
@@ -130,14 +135,18 @@ parseErrorLength = OP.option (OP.eitherReader readErrorLengthString) (
                 Nothing -> Left "must be either \"Inf\" or an integer number"
 
 parseRemoveOld :: OP.Parser Bool
-parseRemoveOld = OP.switch (OP.long "removeOld" <> OP.help "Remove the old genotype files when creating the new ones")
+parseRemoveOld = OP.switch (
+    OP.long "removeOld" <>
+    OP.help "Remove the old genotype files when creating the new ones."
+    )
 
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
     OP.long "versionComponent" <>
+    OP.metavar "COMPONENT" <>
     OP.help "Part of the package version number in the POSEIDON.yml file \
             \that should be updated: \
-            \Major, Minor or Patch (see https://semver.org)" <>
+            \Major, Minor or Patch (see https://semver.org)." <>
     OP.value Patch <>
     OP.showDefault
     )
@@ -152,14 +161,15 @@ parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
 parseNoChecksumUpdate :: OP.Parser Bool
 parseNoChecksumUpdate = OP.switch (
     OP.long "noChecksumUpdate" <>
-    OP.help "Should update of checksums in the POSEIDON.yml file be skipped"
+    OP.help "Should the update of checksums in the POSEIDON.yml file be skipped?"
     )
 
 parseContributors :: OP.Parser [ContributorSpec]
 parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
+    OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\""
+            \ in the form \"[Firstname Lastname](Email address);...\"."
     ))
     where
         readContributorString :: String -> Either String [ContributorSpec]
@@ -171,7 +181,8 @@ parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContribut
 parseLog :: OP.Parser String
 parseLog = OP.strOption (
     OP.long "logText" <>
-    OP.help "Log text for this version jump in the CHANGELOG file" <>
+    OP.metavar "STRING" <>
+    OP.help "Log text for this version in the CHANGELOG file." <>
     OP.value "not specified" <>
     OP.showDefault
     )
@@ -198,7 +209,7 @@ parseFetchEntityInputs = parseDownloadAll <|> OP.some parseEntityInput
   where
     parseDownloadAll = OP.flag' [] (
         OP.long "downloadAll" <>
-        OP.help "download all packages the server is offering"
+        OP.help "Download all packages the server is offering."
         )
     parseEntityInput = (EntitiesFromFile <$> parseFetchEntitiesFromFile) <|> (EntitiesDirect <$> parseFetchEntitiesDirect)
 
@@ -212,8 +223,10 @@ parseIgnorePoseidonVersion = OP.switch (
     )
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
-parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.long "forgeString" <>
+parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (
+    OP.long "forgeString" <>
     OP.short 'f' <>
+    OP.metavar "DSL" <>
     OP.help "List of packages, groups or individual samples to be combined in the output package. \
         \Packages follow the syntax *package_title*, populations/groups are simply group_id and individuals \
         \<individual_id>. You can combine multiple values with comma, so for example: \
@@ -232,8 +245,10 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (OP.lo
         Right e -> Right e
 
 parseFetchEntitiesDirect :: OP.Parser EntitiesList
-parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (OP.long "fetchString" <>
+parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (
+    OP.long "fetchString" <>
     OP.short 'f' <>
+    OP.metavar "DSL" <>
     OP.help "List of packages to be downloaded from the remote server. \
         \Package names should be wrapped in asterisks: *package_title*. \
         \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
@@ -245,7 +260,9 @@ parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (OP.long "fe
         Right e -> Right e
 
 parseForgeEntitiesFromFile :: OP.Parser FilePath
-parseForgeEntitiesFromFile = OP.strOption (OP.long "forgeFile" <>
+parseForgeEntitiesFromFile = OP.strOption (
+    OP.long "forgeFile" <>
+    OP.metavar "FILE" <>
     OP.help "A file with a list of packages, groups or individual samples. \
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
         \Empty lines are ignored and comments start with \"#\", so everything after \"#\" is ignored \
@@ -254,20 +271,25 @@ parseForgeEntitiesFromFile = OP.strOption (OP.long "forgeFile" <>
         \input order on the command line.")
 
 parseFetchEntitiesFromFile :: OP.Parser FilePath
-parseFetchEntitiesFromFile = OP.strOption (OP.long "fetchFile" <>
+parseFetchEntitiesFromFile = OP.strOption (
+    OP.long "fetchFile" <>
+    OP.metavar "FILE" <>
     OP.help "A file with a list of packages. \
         \Works just as -f, but multiple values can also be separated by newline, not just by comma. \
         \-f and --fetchFile can be combined.")
 
 parseIntersect :: OP.Parser Bool
-parseIntersect = OP.switch (OP.long "intersect" <>
+parseIntersect = OP.switch (
+    OP.long "intersect" <>
     OP.help "Whether to output the intersection of the genotype files to be forged. \
         \The default (if this option is not set) is to output the union of all SNPs, with genotypes \
         \defined as missing in those packages which do not have a SNP that is present in another package. \
         \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
 
 parseRemoteDummy :: OP.Parser ()
-parseRemoteDummy = OP.flag' () (OP.long "remote" <> OP.help "list packages from a remote server instead the local file system")
+parseRemoteDummy = OP.flag' () (
+    OP.long "remote" <>
+    OP.help "List packages from a remote server instead the local file system.")
 
 parseOutGenotypeFormat :: Bool -> OP.Parser GenotypeFormatSpec
 parseOutGenotypeFormat withDefault =
@@ -275,11 +297,16 @@ parseOutGenotypeFormat withDefault =
   then OP.option (OP.eitherReader readGenotypeFormat) settingsWithDefault
   else OP.option (OP.eitherReader readGenotypeFormat) settingsWithoutDefault
   where
-    settingsWithDefault = OP.long "outFormat" <>
-        OP.help "the format of the output genotype data: EIGENSTRAT or PLINK. Default: PLINK" <>
-        OP.value GenotypeFormatPlink
-    settingsWithoutDefault = OP.long "outFormat" <>
-      OP.help "the format of the output genotype data: EIGENSTRAT or PLINK."
+    settingsWithDefault =
+        OP.long "outFormat" <>
+        OP.metavar "FORMAT" <>
+        OP.help "The format of the output genotype data: EIGENSTRAT or PLINK." <>
+        OP.value GenotypeFormatPlink <>
+        OP.showDefault
+    settingsWithoutDefault =
+        OP.long "outFormat" <>
+        OP.metavar "FORMAT" <>
+        OP.help "the format of the output genotype data: EIGENSTRAT or PLINK."
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of
         "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
@@ -311,34 +338,35 @@ parseInPoseidonYamlFile :: OP.Parser FilePath
 parseInPoseidonYamlFile = OP.strOption (
     OP.long "pyml" <>
     OP.metavar "FILE" <>
-    OP.help "File path to a POSEIDON.yml file")
+    OP.help "Path to a POSEIDON.yml file.")
 
 parseInJannoFile :: OP.Parser FilePath
 parseInJannoFile = OP.strOption (
     OP.long "janno" <>
     OP.metavar "FILE" <>
-    OP.help "File path to a .janno file")
+    OP.help "Path to a .janno file.")
 
 parseInSSFile :: OP.Parser FilePath
 parseInSSFile = OP.strOption (
     OP.long "ssf" <>
     OP.metavar "FILE" <>
-    OP.help "File path to a .ssf file")
+    OP.help "Path to a .ssf file.")
 
 parseInBibFile :: OP.Parser FilePath
 parseInBibFile = OP.strOption (
     OP.long "bib" <>
     OP.metavar "FILE" <>
-    OP.help "File path to a .bib file")
+    OP.help "Path to a .bib file.")
 
 parseBasePaths :: OP.Parser [FilePath]
 parseBasePaths = OP.some parseBasePath
 
 parseBasePath :: OP.Parser FilePath
-parseBasePath = OP.strOption (OP.long "baseDir" <>
+parseBasePath = OP.strOption (
+    OP.long "baseDir" <>
     OP.short 'd' <>
     OP.metavar "DIR" <>
-    OP.help "a base directory to search for Poseidon Packages (could be a Poseidon repository)")
+    OP.help "A base directory to search for Poseidon packages.")
 
 parseInGenoWithoutSNPSet :: OP.Parser GenotypeDataSpec
 parseInGenoWithoutSNPSet = createGeno <$> (parseInGenoOne <|> parseInGenoSep)
@@ -356,11 +384,14 @@ type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
 
 parseInGenoOne :: OP.Parser GenoInput
 parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
-        OP.short 'p' <> OP.long "genoOne" <> OP.help
-            "one of the input genotype data files. Expects\
-            \ .bed  or .bim or .fam for PLINK and\
-            \ .geno or .snp or .ind for EIGENSTRAT.\
-            \ The other files must be in the same directory and must have the same base name")
+        OP.long "genoOne" <>
+        OP.short 'p' <>
+        OP.metavar "FILE" <>
+        OP.help "One of the input genotype data files. \
+                \Expects .bed, .bim or .fam for PLINK and \
+                \.geno, .snp or .ind for EIGENSTRAT. \
+                \The other files must be in the same directory \
+                \and must have the same base name.")
     where
         readGenoInput :: FilePath -> Either String GenoInput
         readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
@@ -377,8 +408,9 @@ parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseIn
 parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
 parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
     OP.long "inFormat" <>
-    OP.help "the format of the input genotype data: EIGENSTRAT or PLINK\
-            \ (only necessary for data input with --genoFile + --snpFile + --indFile)")
+    OP.metavar "FORMAT" <>
+    OP.help "The format of the input genotype data: EIGENSTRAT or PLINK. \
+            \Only necessary for data input with --genoFile + --snpFile + --indFile.")
   where
     readGenotypeFormat :: String -> Either String GenotypeFormatSpec
     readGenotypeFormat s = case s of
@@ -389,24 +421,29 @@ parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
 parseInGenoFile :: OP.Parser FilePath
 parseInGenoFile = OP.strOption (
     OP.long "genoFile" <>
-    OP.help "the input geno file path")
+    OP.metavar "FILE" <>
+    OP.help "Path to the input geno file.")
 
 parseInSnpFile :: OP.Parser FilePath
 parseInSnpFile = OP.strOption (
     OP.long "snpFile" <>
-    OP.help "the input snp file path")
+    OP.metavar "FILE" <>
+    OP.help "Path to the input snp file.")
 
 parseInIndFile :: OP.Parser FilePath
 parseInIndFile = OP.strOption (
     OP.long "indFile" <>
-    OP.help "the input ind file path")
+    OP.metavar "FILE" <>
+    OP.help "Path to the input ind file.")
 
 parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
-parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "snpSet" <>
-    OP.help "the snpSet of the package: 1240K, HumanOrigins or Other. \
-            \(only relevant for data input with -p|--genoOne or --genoFile + --snpFile + --indFile, \
+parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (
+    OP.long "snpSet" <>
+    OP.metavar "SET" <>
+    OP.help "The snpSet of the package: 1240K, HumanOrigins or Other. \
+            \Only relevant for data input with -p|--genoOne or --genoFile + --snpFile + --indFile, \
             \because the packages in a -d|--baseDir already have this information in their respective \
-            \POSEIDON.yml files) Default: Other" <>
+            \POSEIDON.yml files. (default: Other)" <>
     OP.value (Just SNPSetOther))
   where
     readSnpSet :: String -> Either String SNPSetSpec
@@ -418,125 +455,158 @@ parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (OP.long "
                                 \\"HumanOrigins\" or \"Other\""
 
 parseOutPackagePath :: OP.Parser FilePath
-parseOutPackagePath = OP.strOption (OP.long "outPackagePath" <>
+parseOutPackagePath = OP.strOption (
+    OP.long "outPackagePath" <>
     OP.short 'o' <>
-    OP.help "the output package directory path")
+    OP.metavar "DIR" <>
+    OP.help "Path to the output package directory.")
 
 parseMaybeOutPackagePath :: OP.Parser (Maybe FilePath)
 parseMaybeOutPackagePath = OP.option (Just <$> OP.str) (
     OP.short 'o' <>
     OP.long "outPackagePath" <>
-    OP.help "the output package directory path - this is optional: If no path is provided, \
+    OP.metavar "DIR" <>
+    OP.help "Path to the output package directory. This is optional: If no path is provided, \
             \then the output is written to the directories where the input genotype data file \
-            \(.bed/.geno) is stored" <>
-    OP.value Nothing
+            \(.bed/.geno) is stored." <>
+    OP.value Nothing <>
+    OP.showDefault
     )
 
 parseMaybeOutPackageName :: OP.Parser (Maybe String)
 parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.short 'n' <>
     OP.long "outPackageName" <>
-    OP.help "the output package name - this is optional: If no name is provided, \
+    OP.metavar "STRING" <>
+    OP.help "The output package name. This is optional: If no name is provided, \
             \then the package name defaults to the basename of the (mandatory) \
-            \--outPackagePath argument" <>
-    OP.value Nothing
+            \--outPackagePath argument." <>
+    OP.value Nothing <>
+    OP.showDefault
     )
 
 parseMinimalOutput :: OP.Parser Bool
-parseMinimalOutput = OP.switch (OP.long "minimal" <>
+parseMinimalOutput = OP.switch (
+    OP.long "minimal" <>
     OP.help "Should the output data be reduced to a necessary minimum and omit empty scaffolding?")
 
 parseOutOnlyGeno :: OP.Parser Bool
-parseOutOnlyGeno = OP.switch (OP.long "onlyGeno" <>
-    OP.help "should only the resulting genotype data be returned? This means the output will not be a Poseidon package")
+parseOutOnlyGeno = OP.switch (
+    OP.long "onlyGeno" <>
+    OP.help "Should only the resulting genotype data be returned? This means the output will not \
+            \be a Poseidon package.")
 
 parsePackageWise :: OP.Parser Bool
-parsePackageWise = OP.switch (OP.long "packagewise" <> OP.help "Skip the within-package selection step in forge. \
-    \This will result in \
-    \outputting all individuals in the relevant packages, and hence a superset of the requested \
-    \individuals/groups. It may result in better performance in cases where one wants to forge entire packages or \
-    \almost entire packages. Details: Forge conceptually performs two types of selection: First, it identifies which packages in the supplied base directories are relevant to the requested forge, i.e. whether they are either explicitly listed using *PackageName*, or because they contain selected individuals or groups. Second, within each relevant package, individuals which are not requested are removed. This option skips only the second step, but still performs the first.")
+parsePackageWise = OP.switch (
+    OP.long "packagewise" <>
+    OP.help "Skip the within-package selection step in forge. This will result in \
+            \outputting all individuals in the relevant packages, and hence a superset of the requested \
+            \individuals/groups. It may result in better performance in cases where one wants to forge \
+            \entire packages or almost entire packages. Details: Forge conceptually performs two types \
+            \of selection: First, it identifies which packages in the supplied base directories are \
+            \relevant to the requested forge, i.e. whether they are either explicitly listed using \
+            \*PackageName*, or because they contain selected individuals or groups. Second, within each \
+            \relevant package, individuals which are not requested are removed. This option skips only \
+            \the second step, but still performs the first.")
 
 parseMaybeSnpFile :: OP.Parser (Maybe FilePath)
-parseMaybeSnpFile = OP.option (Just <$> OP.str) (OP.value Nothing <> OP.long "selectSnps" <>
+parseMaybeSnpFile = OP.option (Just <$> OP.str) (
+    OP.long "selectSnps" <>
+    OP.metavar "FILE" <>
     OP.help "To extract specific SNPs during this forge operation, provide a Snp file. \
-    \Can be either Eigenstrat (file ending must be '.snp') or Plink (file ending must be '.bim'). \
-    \When this option is set, the output package will have exactly the SNPs listed in this file. Any SNP not \
-    \listed in the file will be excluded. If option '--intersect' is also set, only the SNPs overlapping between the SNP file \
-    \and the forged packages are output.")
+            \Can be either Eigenstrat (file ending must be '.snp') or Plink (file ending must be '.bim'). \
+            \When this option is set, the output package will have exactly the SNPs listed in this file. \
+            \Any SNP not listed in the file will be excluded. If option '--intersect' is also set, only \
+            \the SNPs overlapping between the SNP file and the forged packages are output." <>
+    OP.showDefault <>
+    OP.value Nothing)
 
 parseListEntity :: OP.Parser ListEntity
 parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividualsDummy *> parseListIndividualsExtraCols)
   where
-    parseListPackages = OP.flag' ListPackages (OP.long "packages" <> OP.help "list all packages")
-    parseListGroups = OP.flag' ListGroups (OP.long "groups" <> OP.help "list all groups, ignoring any group names after the first as specified in the Janno-file")
-    parseListIndividualsDummy = OP.flag' () (OP.long "individuals" <> OP.help "list individuals")
+    parseListPackages = OP.flag' ListPackages (
+        OP.long "packages" <>
+        OP.help "List all packages."
+        )
+    parseListGroups = OP.flag' ListGroups (
+        OP.long "groups" <>
+        OP.help "List all groups, ignoring any group names after the first as specified in the .janno-file.")
+    parseListIndividualsDummy = OP.flag' () (
+        OP.long "individuals" <>
+        OP.help "List all individuals/samples.")
     parseListIndividualsExtraCols = ListIndividuals <$> OP.many parseExtraCol
-    parseExtraCol = OP.strOption (OP.short 'j' <> OP.long "jannoColumn" <> OP.metavar "JANNO_HEADER" <>
-        OP.help "list additional fields from the janno files, using the Janno column heading name, such as \
-        \Country, Site, Date_C14_Uncal_BP, Endogenous, ...")
+    parseExtraCol = OP.strOption (
+        OP.short 'j' <>
+        OP.long "jannoColumn" <>
+        OP.metavar "COLNAME" <>
+        OP.help "List additional fields from the janno files, using the .janno column heading name, such as \
+        \\"Country\", \"Site\", \"Date_C14_Uncal_BP\", etc..")
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
     OP.long "raw" <>
-    OP.help "output table as tsv without header. Useful for piping into grep or awk"
+    OP.help "Return the output table as tab-separated values without header. \
+    \This is useful for piping into grep or awk."
     )
 
 parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <>
-    OP.help "ignore SNP and GenoFile" <>
-    OP.hidden
+    OP.help "Ignore snp and geno file."
     )
 
 parseFullGeno  :: OP.Parser Bool
 parseFullGeno = OP.switch (
     OP.long "fullGeno" <>
-    OP.help "test parsing of all SNPs (by default only the first 100 SNPs are probed)" <>
-    OP.hidden
+    OP.help "Test parsing of all SNPs (by default only the first 100 SNPs are probed)."
     )
 
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
     OP.long "noExitCode" <>
-    OP.help "do not produce an explicit exit code" <>
-    OP.hidden
+    OP.help "Do not produce an explicit exit code."
     )
 
 parseIgnoreDuplicates :: OP.Parser Bool
 parseIgnoreDuplicates = OP.switch (
     OP.long "ignoreDuplicates" <>
-    OP.help "do not stop on duplicated individual names in the package collection" <>
-    OP.hidden
+    OP.help "Do not stop on duplicated individual names in the package collection."
     )
 
 parseRemoteURL :: OP.Parser String
 parseRemoteURL = OP.strOption (
     OP.long "remoteURL" <>
-    OP.help "URL of the remote Poseidon server" <>
+    OP.metavar "URL" <>
+    OP.help "URL of the remote Poseidon server." <>
     OP.value "https://server.poseidon-adna.org" <>
     OP.showDefault
     )
 
 parseUpgrade :: OP.Parser Bool
 parseUpgrade = OP.switch (
-    OP.long "upgrade" <>  OP.short 'u' <>
-    OP.help "overwrite outdated local package versions"
+    OP.long "upgrade" <>
+    OP.short 'u' <>
+    OP.help "Overwrite outdated local package versions."
     )
 
 -- PlinkPopNameAsFamily always is the default
 parseInputPlinkPopMode :: OP.Parser PlinkPopNameMode
 parseInputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
-    OP.long "inPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
+    OP.long "inPlinkPopName" <>
+    OP.metavar "MODE" <>
     OP.help "Where to read the population/group name from the FAM file in Plink-format. \
-        \Three options are possible: asFamily (default) | asPhenotype | asBoth.")
+            \Three options are possible: asFamily (default) | asPhenotype | asBoth." <>
+    OP.value PlinkPopNameAsFamily
+    )
 
 parseOutputPlinkPopMode :: OP.Parser PlinkPopNameMode
 parseOutputPlinkPopMode = OP.option (OP.eitherReader readPlinkPopName) (
-    OP.long "outPlinkPopName" <> OP.value PlinkPopNameAsFamily <>
-    OP.help "Where to write the population/group name \
-        \into the FAM file in Plink-format. Three options are possible: \
-        \asFamily (default) | asPhenotype | asBoth. See also --inPlinkPopName.")
+    OP.long "outPlinkPopName" <>
+    OP.metavar "MODE" <>
+    OP.help "Where to write the population/group name into the FAM file in Plink-format. \
+            \Three options are possible: asFamily (default) | asPhenotype | asBoth. \
+            \See also --inPlinkPopName." <>
+    OP.value PlinkPopNameAsFamily)
 
 readPlinkPopName :: String -> Either String PlinkPopNameMode
 readPlinkPopName s = case s of
@@ -546,20 +616,29 @@ readPlinkPopName s = case s of
     _             -> Left "must be asFamily, asPhenotype or asBoth"
 
 parseMaybeZipDir :: OP.Parser (Maybe FilePath)
-parseMaybeZipDir = OP.option (Just <$> OP.str) (OP.long "zipDir" <>
+parseMaybeZipDir = OP.option (Just <$> OP.str) (
+    OP.long "zipDir" <>
     OP.short 'z' <>
     OP.metavar "DIR" <>
-    OP.help "a directory to store Zip files in. If not specified, do not generate zip files" <>
-    OP.value Nothing)
+    OP.help "A directory to store .zip files in. If not specified, do not generate .zip files." <>
+    OP.value Nothing <>
+    OP.showDefault
+    )
 
 parsePort :: OP.Parser Int
-parsePort = OP.option OP.auto (OP.long "port" <> OP.short 'p' <> OP.metavar "PORT" <>
-    OP.value 3000 <> OP.showDefault <>
-    OP.help "the port on which the server listens")
+parsePort = OP.option OP.auto (
+    OP.long "port" <>
+    OP.short 'p' <>
+    OP.metavar "PORT" <>
+    OP.help "The port on which the server listens." <>
+    OP.value 3000 <>
+    OP.showDefault)
 
 parseIgnoreChecksums :: OP.Parser Bool
-parseIgnoreChecksums = OP.switch (OP.long "ignoreChecksums" <> OP.short 'c' <>
-    OP.help "whether to ignore checksums. Useful for speedup in debugging")
+parseIgnoreChecksums = OP.switch (
+    OP.long "ignoreChecksums" <>
+    OP.short 'c' <>
+    OP.help "Whether to ignore checksums. Useful for speedup in debugging.")
 
 parseMaybeCertFiles :: OP.Parser (Maybe (FilePath, [FilePath], FilePath))
 parseMaybeCertFiles = OP.optional parseFiles
@@ -567,26 +646,36 @@ parseMaybeCertFiles = OP.optional parseFiles
     parseFiles = (,,) <$> parseCertFile <*> OP.many parseChainFile <*> parseKeyFile
 
 parseKeyFile :: OP.Parser FilePath
-parseKeyFile = OP.strOption (OP.long "keyFile" <> OP.metavar "KEYFILE" <>
-                             OP.help "The key file of the TLS Certificate used for HTTPS")
+parseKeyFile = OP.strOption (
+    OP.long "keyFile" <>
+    OP.metavar "FILE" <>
+    OP.help "The key file of the TLS Certificate used for HTTPS.")
 
 parseChainFile :: OP.Parser FilePath
-parseChainFile = OP.strOption (OP.long "chainFile" <> OP.metavar "CHAINFILE" <>
-                               OP.help "The chain file of the TLS Certificate used for HTTPS. Can be given multiple times")
+parseChainFile = OP.strOption (
+    OP.long "chainFile" <>
+    OP.metavar "FILE" <>
+    OP.help "The chain file of the TLS Certificate used for HTTPS. Can be given multiple times.")
 
 parseCertFile :: OP.Parser FilePath
-parseCertFile = OP.strOption (OP.long "certFile" <> OP.metavar "CERTFILE" <>
-                              OP.help "The cert file of the TLS Certificate used for HTTPS")
+parseCertFile = OP.strOption (
+    OP.long "certFile" <>
+    OP.metavar "FILE" <>
+    OP.help "The cert file of the TLS Certificate used for HTTPS."
+    )
 
 parseArchiveBasePaths :: OP.Parser [(String, FilePath)]
 parseArchiveBasePaths = OP.some parseArchiveBasePath
   where
     parseArchiveBasePath :: OP.Parser (String, FilePath)
-    parseArchiveBasePath = OP.option (OP.eitherReader parseArchiveNameAndPath) (OP.long "baseDir" <> OP.short 'd' <> OP.metavar "ARCH=PATH" <>
+    parseArchiveBasePath = OP.option (OP.eitherReader parseArchiveNameAndPath) (
+        OP.long "baseDir" <>
+        OP.short 'd' <>
+        OP.metavar "DSL" <>
         OP.help "A base path, prepended by the corresponding archive name under which \
-            \packages in this path are being served. Example: arch1=/path/to/basepath. Can \
-            \be given multiple times. Multiple paths for the same archive are combined internally. \
-            \The very first named archive is considered to be the default archive on the server")
+                \packages in this path are being served. Example: arch1=/path/to/basepath. Can \
+                \be given multiple times. Multiple paths for the same archive are combined internally. \
+                \The very first named archive is considered to be the default archive on the server.")
     parseArchiveNameAndPath :: String -> Either String (String, FilePath)
     parseArchiveNameAndPath str =
         let parts = splitOn "=" str
@@ -597,10 +686,12 @@ parseArchiveBasePaths = OP.some parseArchiveBasePath
 parseMaybeArchiveName :: OP.Parser (Maybe String)
 parseMaybeArchiveName = OP.option (Just <$> OP.str) (
     OP.long "archive" <>
+    OP.metavar "STRING" <>
     OP.help "The name of the Poseidon package archive that should be queried. \
             \If not given, then the query falls back to the default archive of the \
             \server selected with --remoteURL. \
             \See the archive documentation at https://www.poseidon-adna.org/#/archive_overview \
             \for a list of archives currently available from the official Poseidon Web API." <>
-    OP.value Nothing
+    OP.value Nothing <>
+    OP.showDefault
     )

@@ -95,7 +95,7 @@ updateChronicle oldChronicle newChronicle =
         newPackageSet = snapYamlPackages newChronicle
         mergedPacSet  = S.union oldPackageSet newPackageSet
         oldChronicleVersion = snapYamlChronicleVersion oldChronicle
-    in 
+    in
         if mergedPacSet == oldPackageSet
         then oldChronicle
         else PoseidonPackageChronicle {

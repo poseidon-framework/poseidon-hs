@@ -137,7 +137,6 @@ subcommandParser = OP.subparser (
     OP.subparser (
         OP.command "list" listOptInfo <>
         OP.command "summarise" summariseOptInfo <>
-        OP.command "summarize" summarizeOptInfo <>
         OP.command "survey" surveyOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
@@ -146,7 +145,9 @@ subcommandParser = OP.subparser (
         OP.command "chronicle" chronicleOptInfo <>
         OP.command "timetravel" timetravelOptInfo <>
         OP.command "serve" serveOptInfo <>
-        OP.commandGroup "Poseidon HTTP Server" <> OP.internal
+        OP.command "summarize" summarizeOptInfo <>
+        OP.commandGroup "Hidden commands:" <>
+        OP.internal
     )
   where
     initOptInfo = OP.info (OP.helper <*> (CmdInit <$> initOptParser))
