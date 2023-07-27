@@ -93,17 +93,18 @@ updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> Posei
 updateChronicle oldChronicle newChronicle =
     let oldPackageSet = snapYamlPackages oldChronicle
         newPackageSet = snapYamlPackages newChronicle
-        mergedPacSet = S.union oldPackageSet newPackageSet
+        mergedPacSet  = S.union oldPackageSet newPackageSet
         oldChronicleVersion = snapYamlChronicleVersion oldChronicle
-    in PoseidonPackageChronicle {
-      snapYamlTitle            = snapYamlTitle oldChronicle
-    , snapYamlDescription      = snapYamlDescription oldChronicle
-    , snapYamlChronicleVersion = if mergedPacSet /= oldPackageSet
-                                 then updateThreeComponentVersion Minor oldChronicleVersion
-                                 else oldChronicleVersion
-    , snapYamlLastModified     = snapYamlLastModified newChronicle
-    , snapYamlPackages         = mergedPacSet
-    }
+    in 
+        if mergedPacSet == oldPackageSet
+        then oldChronicle
+        else PoseidonPackageChronicle {
+              snapYamlTitle            = snapYamlTitle oldChronicle
+            , snapYamlDescription      = snapYamlDescription oldChronicle
+            , snapYamlChronicleVersion = updateThreeComponentVersion Minor oldChronicleVersion
+            , snapYamlLastModified     = snapYamlLastModified newChronicle
+            , snapYamlPackages         = mergedPacSet
+            }
 
 readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
 readChronicle p = do
