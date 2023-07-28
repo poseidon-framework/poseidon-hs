@@ -21,8 +21,7 @@ import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           qDefault)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
                                           PoseidonIO, envLogAction, logInfo,
-                                          logWarning, logWithEnv, padLeft,
-                                          padRight)
+                                          logWarning, logWithEnv, padLeft)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)
@@ -115,11 +114,12 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
                 filter (\x -> pTitle x `elem` desiredPacTitles) $ remotePacList
 
         logInfo $ show (length desiredPacTitles) ++ " requested"
+        logInfo $ "Comparing local and remote packages..."
+
         unless (null desiredRemotePackages) $ do
             liftIO $ createDirectoryIfMissing False tempDir
             forM_ desiredRemotePackages $ \pac -> do
                 -- perform package download depending on local-remote state
-                logInfo $ "Comparing local and remote package " ++ makeNameWithVersion pac
                 let packageState = determinePackageState allLocalPackages pac
                 handlePackageByState downloadDir tempDir archiveE packageState
             liftIO $ removeDirectory tempDir
@@ -159,18 +159,15 @@ determinePackageState localPacs desiredRemotePac
 
 handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
 handlePackageByState downloadDir tempDir archiveE (NotLocal, pac, remoteV, _) = do
+    logInfo $ "[local _._._" ++ " x remote " ++ printV remoteV ++ "] " ++ pac
     downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion (pac, remoteV))
 handlePackageByState _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
-    logInfo $ padRight 40 pac ++
-        " local " ++ printV localV ++ " = remote " ++ printV remoteV ++ " (will not download)"
+    logInfo $ "[local " ++ printV localV ++ " = remote " ++ printV remoteV ++ "] " ++ pac
 handlePackageByState downloadDir tempDir archiveE (LaterRemote, pac, remoteV, localV) = do
-    logInfo $ padRight 40 pac ++
-        " local " ++ printV localV ++ " < remote " ++ printV remoteV ++
-        " (will download new version into new directory)"
+    logInfo $ "[local " ++ printV localV ++ " < remote " ++ printV remoteV ++ "] " ++ pac
     downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion (pac, remoteV))
 handlePackageByState _ _ _ (LaterLocal, pac, remoteV, localV) = do
-    logInfo $ padRight 40 pac ++
-        " local " ++ printV localV ++ " > remote " ++ printV remoteV ++ " (will not download)"
+    logInfo $ "[local " ++ printV localV ++ " > remote " ++ printV remoteV ++ "] " ++ pac
 
 printV :: Maybe Version -> String
 printV Nothing  = "?.?.?"
@@ -179,7 +176,7 @@ printV (Just x) = showVersion x
 downloadAndUnzipPackage :: FilePath -> FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
 downloadAndUnzipPackage baseDir tempDir archiveE pacNameAndVersion = do
     let PacNameAndVersion (pacName, _) = pacNameAndVersion
-    logInfo $ padRight 40 pacName ++ " now downloading"
+    logInfo $ "Downloading: " ++ pacName
     downloadPackage tempDir archiveE pacName
     liftIO $ do
         unzipPackage (tempDir </> pacName) (baseDir </> makeNameWithVersion pacNameAndVersion)
