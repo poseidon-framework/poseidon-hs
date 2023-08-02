@@ -12,14 +12,14 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..),
-                                          updateThreeComponentVersion)
+                                          updateThreeComponentVersion, makeNameWithVersion)
 import           Poseidon.Utils          (PoseidonIO, getChecksum, logInfo,
-                                          logWarning)
+                                          logDebug)
 
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (nub)
-import           Data.Maybe              (fromJust, fromMaybe, isNothing)
-import           Data.Time               (Day, UTCTime (..), getCurrentTime)
+import           Data.Maybe              (fromJust)
+import           Data.Time               (UTCTime (..), getCurrentTime)
 import           Data.Version            (Version (..), makeVersion,
                                           showVersion)
 import           System.Directory        (doesFileExist, removeFile)
@@ -57,106 +57,135 @@ pacReadOpts = defaultPackageReadOptions {
     }
 
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify x = do
-    undefined
-    -- allPackages <- readPoseidonPackageCollection
-    --     pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
-    --     baseDirs
-    -- -- updating poseidon version
-    -- let updatedPacsPoseidonVersion = if isNothing poseidonVersion
-    --     then allPackages
-    --     else map (updatePoseidonVersion poseidonVersion) allPackages
-    -- -- updating checksums
-    -- logInfo "Calculating checksums"
-    -- updatedPacsChecksums <-
-    --     if noChecksumUpdate
-    --     then return updatedPacsPoseidonVersion
-    --     else liftIO $ mapM (updateChecksums ignoreGeno) updatedPacsPoseidonVersion
-    -- -- see which packages were changed and need to be updated formally
-    -- let updatedPacsChanged = if force
-    --     then updatedPacsChecksums
-    --     else map fst $ filter (uncurry (/=)) $ zip updatedPacsChecksums allPackages
-    -- if null updatedPacsChanged
-    -- then logWarning "No packages changed"
-    -- else do
-    --     -- update yml files
-    --     (UTCTime today _) <- liftIO getCurrentTime
-    --     let updatedPacsMeta = map (updateMeta versionComponent today newContributors) updatedPacsChanged
-    --     -- write/update CHANGELOG files
-    --     logInfo "Updating CHANGELOG files"
-    --     updatedPacsWithChangelog <- liftIO $ mapM (writeOrUpdateChangelogFile logText) updatedPacsMeta
-    --     -- write yml files with all changes
-    --     logInfo "Writing modified POSEIDON.yml files"
-    --     liftIO $ mapM_ writePoseidonPackage updatedPacsWithChangelog
+runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors) = do
+    allPackages <- readPoseidonPackageCollection
+        pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
+        baseDirs
+    logInfo "Starting per-package update procedure"
+    mapM_ rectifyOnePackage allPackages
+    logInfo "Done"
+    where
+        rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
+        rectifyOnePackage inPac = do
+            logInfo $ "Rectifying package: " ++ makeNameWithVersion inPac
+            updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
+            updatedPacContri <- addContributors newContributors updatedPacPosVer
+            updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
+            completeAndWritePackage pacVerUpdate updatedPacChecksums
 
-writeOrUpdateChangelogFile :: String -> PoseidonPackage -> IO PoseidonPackage
-writeOrUpdateChangelogFile logText pac = do
+updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
+updatePoseidonVersion Nothing    pac = return pac
+updatePoseidonVersion (Just ver) pac = do
+    logDebug "Updating Poseidon version"
+    return pac { posPacPoseidonVersion = ver }
+
+addContributors :: Maybe [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
+addContributors Nothing pac = return pac
+addContributors (Just cs) pac = do
+    logDebug "Updating list of contributors"
+    return pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+
+updateChecksums :: ChecksumsToRectify -> PoseidonPackage -> PoseidonIO PoseidonPackage
+updateChecksums checksumSetting pac = do
+    case checksumSetting of
+        ChecksumAll             -> update True True True True
+        ChecksumsDetail g j s b -> update g j s b
+    where
+        update :: Bool -> Bool -> Bool -> Bool -> PoseidonIO PoseidonPackage
+        update g j s b = do
+            let d = posPacBaseDir pac
+            newGenotypeDataSection <-
+                if g
+                then do
+                    logDebug "Updating genotype data checksums"
+                    let gd = posPacGenotypeData pac
+                    genoExists <- liftIO $ doesFileExist (d </> genoFile gd)
+                    genoChkSum <- if genoExists
+                        then Just <$> (liftIO . getChecksum) (d </> genoFile gd)
+                        else return $ genoFileChkSum gd
+                    snpExists <-  liftIO $ doesFileExist (d </> snpFile gd)
+                    snpChkSum <-  if snpExists
+                        then Just <$> (liftIO . getChecksum) (d </> snpFile gd)
+                        else return $ snpFileChkSum gd
+                    indExists <-  liftIO $ doesFileExist (d </> indFile gd)
+                    indChkSum <-  if indExists
+                        then Just <$> (liftIO . getChecksum) (d </> indFile gd)
+                        else return $ indFileChkSum gd
+                    return $ gd {
+                        genoFileChkSum = genoChkSum,
+                        snpFileChkSum  = snpChkSum,
+                        indFileChkSum  = indChkSum
+                    }
+                else return $ posPacGenotypeData pac
+            newJannoChkSum <-
+                if j
+                then do
+                    logDebug "Updating .janno file checksums"
+                    case posPacJannoFile pac of
+                        Nothing -> return $ posPacJannoFileChkSum pac
+                        Just fn -> Just <$> (liftIO . getChecksum) (d </> fn)
+                else return $ posPacJannoFileChkSum pac
+            newSeqSourceChkSum <-
+                if s
+                then do
+                    logDebug "Updating .ssf file checksums"
+                    case posPacSeqSourceFile pac of
+                        Nothing -> return $ posPacSeqSourceFileChkSum pac
+                        Just fn -> Just <$> (liftIO . getChecksum) (d </> fn)
+                else return $ posPacSeqSourceFileChkSum pac
+            newBibChkSum <-
+                if b
+                then do
+                    logDebug "Updating .bib file checksums"
+                    case posPacBibFile pac of
+                        Nothing -> return $ posPacBibFileChkSum pac
+                        Just fn -> Just <$> (liftIO . getChecksum) (d </> fn)
+                else return $ posPacBibFileChkSum pac
+            return $ pac {
+                    posPacGenotypeData = newGenotypeDataSection,
+                    posPacJannoFileChkSum = newJannoChkSum,
+                    posPacSeqSourceFileChkSum = newSeqSourceChkSum,
+                    posPacBibFileChkSum = newBibChkSum
+                }
+
+completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
+completeAndWritePackage Nothing pac = do
+    logDebug "Writing POSEIDON.yml file"
+    liftIO $ writePoseidonPackage pac
+completeAndWritePackage (Just (PackageVersionUpdate component logText)) pac = do
+    updatedPacPacVer <- updatePackageVersion component pac
+    updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
+    logDebug "Writing POSEIDON.yml file"
+    liftIO $ writePoseidonPackage updatePacChangeLog
+
+updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO PoseidonPackage
+updatePackageVersion component pac = do
+    logDebug "Updating package version"
+    (UTCTime today _) <- liftIO getCurrentTime
+    let outPac = pac {
+        posPacPackageVersion =
+            maybe (Just $ makeVersion [0, 1, 0])
+                (Just . updateThreeComponentVersion component)
+                (posPacPackageVersion pac)
+        , posPacLastModified = Just today
+        }
+    return outPac
+
+writeOrUpdateChangelogFile :: Maybe String -> PoseidonPackage -> PoseidonIO PoseidonPackage
+writeOrUpdateChangelogFile Nothing pac = return pac
+writeOrUpdateChangelogFile (Just logText) pac = do
     case posPacChangelogFile pac of
         Nothing -> do
-            writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
-                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n"
-            return pac {
-                posPacChangelogFile = Just "CHANGELOG.md"
-            }
+            logDebug "Creating CHANGELOG.md"
+            liftIO $ writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
+                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++
+                logText ++ "\n"
+            return pac { posPacChangelogFile = Just "CHANGELOG.md" }
         Just x -> do
-            changelogFile <- readFile (posPacBaseDir pac </> x)
-            removeFile (posPacBaseDir pac </> x)
-            writeFile (posPacBaseDir pac </> x) $
-                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++ logText ++ "\n" ++ changelogFile
+            logDebug "Updating CHANGELOG.md"
+            changelogFile <- liftIO $ readFile (posPacBaseDir pac </> x)
+            liftIO $ removeFile (posPacBaseDir pac </> x)
+            liftIO $ writeFile (posPacBaseDir pac </> x) $
+                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": "
+                ++ logText ++ "\n" ++ changelogFile
             return pac
-
-updateMeta :: VersionComponent -> Day -> [ContributorSpec] -> PoseidonPackage -> PoseidonPackage
-updateMeta versionComponent date newContributors pac =
-    pac { posPacPackageVersion =
-        maybe (Just $ makeVersion [0, 1, 0])
-            (Just . updateThreeComponentVersion versionComponent)
-            (posPacPackageVersion pac)
-        , posPacLastModified = Just date
-        , posPacContributor = nub $ posPacContributor pac ++ newContributors
-    }
-
-updateChecksums :: Bool -> PoseidonPackage -> IO PoseidonPackage
-updateChecksums ignoreGeno pac = do
-    let d = posPacBaseDir pac
-    jannoChkSum <- case posPacJannoFile pac of
-        Nothing -> return $ posPacJannoFileChkSum pac
-        Just fn -> Just <$> getChecksum (d </> fn)
-    seqSourceChkSum <- case posPacSeqSourceFile pac of
-        Nothing -> return $ posPacSeqSourceFileChkSum pac
-        Just fn -> Just <$> getChecksum (d </> fn)
-    bibChkSum <- case posPacBibFile pac of
-        Nothing -> return $ posPacBibFileChkSum pac
-        Just fn -> Just <$> getChecksum (d </> fn)
-    let newPac1 = pac {
-            posPacJannoFileChkSum = jannoChkSum,
-            posPacSeqSourceFileChkSum = seqSourceChkSum,
-            posPacBibFileChkSum = bibChkSum
-        }
-    if ignoreGeno
-    then return newPac1
-    else do
-        let gd = posPacGenotypeData newPac1
-        genoExists <- doesFileExist (d </> genoFile gd)
-        genoChkSum <- if genoExists
-                    then Just <$> getChecksum (d </> genoFile gd)
-                    else return $ genoFileChkSum gd
-        snpExists <-  doesFileExist (d </> snpFile gd)
-        snpChkSum <-  if snpExists
-                    then Just <$> getChecksum (d </> snpFile gd)
-                    else return $ snpFileChkSum gd
-        indExists <-  doesFileExist (d </> indFile gd)
-        indChkSum <-  if indExists
-                    then Just <$> getChecksum (d </> indFile gd)
-                    else return $ indFileChkSum gd
-        return $ newPac1 {
-            posPacGenotypeData = gd {
-                genoFileChkSum = genoChkSum,
-                snpFileChkSum = snpChkSum,
-                indFileChkSum = indChkSum
-            }
-        }
-
-updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonPackage
-updatePoseidonVersion maybeNewPoseidonVersion pac = pac {
-        posPacPoseidonVersion = fromMaybe (posPacPoseidonVersion pac) maybeNewPoseidonVersion
-    }
