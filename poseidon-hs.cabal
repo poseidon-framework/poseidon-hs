@@ -19,7 +19,7 @@ library
                         Poseidon.CLI.List, Poseidon.CLI.Chronicle, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
-                        Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
+                        Poseidon.CLI.Rectify, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
                         Poseidon.CLI.OptparseApplicativeParsers, Poseidon.CLI.Timetravel
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src

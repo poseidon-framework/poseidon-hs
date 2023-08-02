@@ -16,7 +16,7 @@ import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
 import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
                                            runTimetravel)
-import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
+import           Poseidon.CLI.Rectify      (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Validate    (ValidateOptions (..),
                                            ValidatePlan (..), runValidate)
 import           Poseidon.EntitiesList    (EntityInput (..),

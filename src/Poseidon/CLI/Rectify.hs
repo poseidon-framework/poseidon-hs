@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Update (
+module Poseidon.CLI.Rectify (
     runUpdate, UpdateOptions (..)
     ) where
 

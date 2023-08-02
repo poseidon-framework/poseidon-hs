@@ -22,7 +22,7 @@ import           Poseidon.CLI.Survey                     (SurveyOptions (..),
                                                           runSurvey)
 import           Poseidon.CLI.Timetravel                 (TimetravelOptions (..),
                                                           runTimetravel)
-import           Poseidon.CLI.Update                     (UpdateOptions (..),
+import           Poseidon.CLI.Rectify                     (UpdateOptions (..),
                                                           runUpdate)
 import           Poseidon.CLI.Validate                   (ValidateOptions (..),
                                                           runValidate)
