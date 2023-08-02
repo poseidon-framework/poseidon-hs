@@ -5,14 +5,23 @@ contributor:
 - name: Josiah Carberry
   email: carberry@brown.edu
   orcid: 0000-0002-1825-0097
-packageVersion: 1.0.0
+- name: Berta Testfrau
+  email: berta@testfrau.org
+- name: Herbert Testmann
+  email: herbert@testmann.tw
+packageVersion: 1.1.1
 lastModified: 1970-01-01
 genotypeData:
   format: EIGENSTRAT
   genoFile: geno.txt
+  genoFileChkSum: 0332344057c0c4dce2ff7176f8e1103d
   snpFile: snp.txt
+  snpFileChkSum: d76e3e7a8fc0f1f5e435395424b5aeab
   indFile: ind.txt
+  indFileChkSum: f77dc756666dbfef3bb35191ae15a167
   snpSet: Other
 jannoFile: Schiffels.janno
+jannoFileChkSum: fd632717ecaf337a39cfd7a828a54e99
 bibFile: Schiffels.bib
+bibFileChkSum: 9edc4a757f785a8ecb59c54d16c5690a
 changelogFile: CHANGELOG.md

@@ -11,7 +11,7 @@ import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
 import           Poseidon.CLI.Init        (InitOptions (..), runInit)
 import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
                                            RepoLocationSpec (..), runList)
-import           Poseidon.CLI.Rectify     (RectifyOptions (..), runRectify)
+import           Poseidon.CLI.Rectify     (RectifyOptions (..), runRectify, PackageVersionUpdate (..), ChecksumsToRectify (..))
 import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
@@ -52,6 +52,7 @@ import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
+import Data.Version (makeVersion)
 
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
@@ -98,8 +99,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- genoconvert"
     testPipelineGenoconvert testDir checkFilePath
-    --hPutStrLn stderr "--- update"
-    --testPipelineUpdate testDir checkFilePath
+    hPutStrLn stderr "--- rectify"
+    testPipelineRectify testDir checkFilePath
     hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath
     hPutStrLn stderr "--- chronicle & timetravel"
@@ -341,60 +342,50 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.fam"
         ]
 
--- testPipelineUpdate :: FilePath -> FilePath -> IO ()
--- testPipelineUpdate testDir checkFilePath = do
---     -- in-place conversion
---     let updateOpts1 = RectifyOptions {
---           _updateBaseDirs = [testDir </> "init" </> "Schiffels"]
---         , _updatePoseidonVersion = Nothing
---         , _updateIgnorePoseidonVersion = False
---         , _updateVersionUpdate = Major
---         , _updateNoChecksumUpdate = True
---         , _updateIgnoreGeno = True
---         , _updateNewContributors = []
---         , _updateLog = "test1"
---         , _updateForce = True
---         }
---     let action1 = testLog (runUpdate updateOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
---     runAndChecksumFiles checkFilePath testDir action1 "update" [
---           "init" </> "Schiffels" </> "POSEIDON.yml"
---         , "init" </> "Schiffels" </> "CHANGELOG.md"
---         ]
---     let updateOpts2 = RectifyOptions {
---           _updateBaseDirs = [testDir </> "Schiffels"]
---         , _updatePoseidonVersion = Nothing
---         , _updateIgnorePoseidonVersion = False
---         , _updateVersionUpdate = Minor
---         , _updateNoChecksumUpdate = False
---         , _updateIgnoreGeno = False
---         , _updateNewContributors = []
---         , _updateLog = "test2"
---         , _updateForce = False
---         }
---     let action2 = testLog (runUpdate updateOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
---     runAndChecksumFiles checkFilePath testDir action2 "update" [
---           "init" </> "Schiffels" </> "POSEIDON.yml"
---         , "init" </> "Schiffels" </> "CHANGELOG.md"
---         ]
---     let updateOpts3 = RectifyOptions {
---           _updateBaseDirs = [testDir </> "Schiffels"]
---         , _updatePoseidonVersion = Nothing
---         , _updateIgnorePoseidonVersion = False
---         , _updateVersionUpdate = Patch
---         , _updateNoChecksumUpdate = False
---         , _updateIgnoreGeno = False
---         , _updateNewContributors = [
---             ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing,
---             ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
---             ]
---         , _updateLog = "test3"
---         , _updateForce = True
---         }
---     let action3 = testLog (runUpdate updateOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
---     runAndChecksumFiles checkFilePath testDir action3 "update" [
---           "init" </> "Schiffels" </> "POSEIDON.yml"
---         , "init" </> "Schiffels" </> "CHANGELOG.md"
---         ]
+testPipelineRectify :: FilePath -> FilePath -> IO ()
+testPipelineRectify testDir checkFilePath = do
+    let rectifyOpts1 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Nothing
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
+        , _rectifyChecksums = ChecksumNone
+        , _rectifyNewContributors = Nothing
+        }
+    let action1 = testLog (runRectify rectifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "rectify" [
+          "init" </> "Schiffels" </> "POSEIDON.yml"
+        , "init" </> "Schiffels" </> "CHANGELOG.md"
+        ]
+    let rectifyOpts2 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Just $ makeVersion [2,7,1]
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
+        , _rectifyChecksums = ChecksumAll
+        , _rectifyNewContributors = Nothing
+        }
+    let action2 = testLog (runRectify rectifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "rectify" [
+          "init" </> "Schiffels" </> "POSEIDON.yml"
+        , "init" </> "Schiffels" </> "CHANGELOG.md"
+        ]
+    let rectifyOpts3 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Nothing
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
+        , _rectifyChecksums = ChecksumNone
+        , _rectifyNewContributors = Just [
+              ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing
+            , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
+            ]
+        }
+    let action3 = testLog (runRectify rectifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action3 "rectify" [
+          "init" </> "Schiffels" </> "POSEIDON.yml"
+        , "init" </> "Schiffels" </> "CHANGELOG.md"
+        ]
 
 testPipelineForge :: FilePath -> FilePath -> IO ()
 testPipelineForge testDir checkFilePath = do
@@ -721,7 +712,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
             -- normal package in version B
           , "timetravel" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
             -- package added in new commit
-          , "timetravel" </> "Schiffels-1.0.0" </> "POSEIDON.yml"
+          , "timetravel" </> "Schiffels-1.1.1" </> "POSEIDON.yml"
             -- package removed in last commit, real timetravel necessary
           , "timetravel" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
         ]
