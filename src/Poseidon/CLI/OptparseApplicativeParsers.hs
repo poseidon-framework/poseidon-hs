@@ -80,6 +80,12 @@ parseMaybePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVers
             Left p  -> Left (show p)
             Right x -> Right x
 
+parseDebugMode :: OP.Parser LogMode
+parseDebugMode = OP.flag' VerboseLog (
+    OP.long "debug" <>
+    OP.help "Short for --logMode VerboseLog."
+    )
+
 parseLogMode :: OP.Parser LogMode
 parseLogMode = OP.option (OP.eitherReader readLogMode) (
     OP.long "logMode" <>
