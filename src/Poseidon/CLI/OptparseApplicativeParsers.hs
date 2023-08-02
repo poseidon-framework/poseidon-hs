@@ -5,6 +5,8 @@ module Poseidon.CLI.OptparseApplicativeParsers where
 import           Poseidon.CLI.Chronicle  (ChronOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
+import           Poseidon.CLI.Rectify    (ChecksumsToRectify (..),
+                                          PackageVersionUpdate (..))
 import           Poseidon.CLI.Validate   (ValidatePlan (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
                                           PoseidonEntity, SignedEntitiesList,
@@ -19,7 +21,6 @@ import           Poseidon.SecondaryTypes (ArchiveEndpoint (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
 import           Poseidon.Utils          (LogMode (..), TestMode (..))
-import Poseidon.CLI.Rectify (PackageVersionUpdate (..), ChecksumsToRectify (..))
 
 import           Control.Applicative     ((<|>))
 import           Data.List.Split         (splitOn)

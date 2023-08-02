@@ -11,12 +11,12 @@ import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
 import           Poseidon.CLI.Init        (InitOptions (..), runInit)
 import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
                                            RepoLocationSpec (..), runList)
+import           Poseidon.CLI.Rectify     (RectifyOptions (..), runRectify)
 import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
 import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
                                            runTimetravel)
-import           Poseidon.CLI.Rectify      (RectifyOptions (..), runRectify)
 import           Poseidon.CLI.Validate    (ValidateOptions (..),
                                            ValidatePlan (..), runValidate)
 import           Poseidon.EntitiesList    (EntityInput (..),

@@ -12,9 +12,10 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..),
-                                          updateThreeComponentVersion, makeNameWithVersion)
-import           Poseidon.Utils          (PoseidonIO, getChecksum, logInfo,
-                                          logDebug)
+                                          makeNameWithVersion,
+                                          updateThreeComponentVersion)
+import           Poseidon.Utils          (PoseidonIO, getChecksum, logDebug,
+                                          logInfo)
 
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (nub)

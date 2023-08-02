@@ -14,6 +14,8 @@ import           Poseidon.CLI.Init                       (InitOptions (..),
 import           Poseidon.CLI.List                       (ListOptions (..),
                                                           runList)
 import           Poseidon.CLI.OptparseApplicativeParsers
+import           Poseidon.CLI.Rectify                    (RectifyOptions (..),
+                                                          runRectify)
 import           Poseidon.CLI.Serve                      (ServeOptions (..),
                                                           runServerMainThread)
 import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
@@ -22,8 +24,6 @@ import           Poseidon.CLI.Survey                     (SurveyOptions (..),
                                                           runSurvey)
 import           Poseidon.CLI.Timetravel                 (TimetravelOptions (..),
                                                           runTimetravel)
-import           Poseidon.CLI.Rectify                    (RectifyOptions (..),
-                                                          runRectify)
 import           Poseidon.CLI.Validate                   (ValidateOptions (..),
                                                           runValidate)
 import           Poseidon.Janno                          (jannoHeaderString)
