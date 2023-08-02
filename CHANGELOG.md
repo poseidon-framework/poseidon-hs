@@ -1,3 +1,4 @@
+- V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.
 - V 1.3.0.1: Added a global option `--debug`, which is short for `--logMode VerboseLog`.
 - V 1.3.0.0: Replaced `update` with `rectify`.
 - V 1.2.3.4: Some cleaning of the `trident` command line documentation. Added meaningful meta variables to the subcommand arguments. Shortened `fetch` command logInfo output.

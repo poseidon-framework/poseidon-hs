@@ -385,7 +385,11 @@ parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveN
 
 parseValidatePlan :: OP.Parser ValidatePlan
 parseValidatePlan =
-        (ValPlanBaseDirs <$> parseBasePaths <*> parseIgnoreGeno <*> parseFullGeno <*> parseIgnoreDuplicates)
+        (ValPlanBaseDirs <$> parseBasePaths
+                         <*> parseIgnoreGeno
+                         <*> parseFullGeno
+                         <*> parseIgnoreDuplicates
+                         <*> parseIgnoreChecksums)
     <|> (ValPlanPoseidonYaml <$> parseInPoseidonYamlFile)
     <|> (ValPlanGeno <$> parseInGenoWithoutSNPSet)
     <|> (ValPlanJanno <$> parseInJannoFile)
