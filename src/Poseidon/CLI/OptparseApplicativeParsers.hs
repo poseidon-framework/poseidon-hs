@@ -71,8 +71,7 @@ parseMaybePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVers
     OP.metavar "?.?.?" <>
     OP.help "Poseidon version the packages should be updated to: \
             \e.g. \"2.5.3\"." <>
-    OP.value Nothing <>
-    OP.showDefault
+    OP.value Nothing
     )
     where
         readPoseidonVersionString :: String -> Either String Version
@@ -148,7 +147,7 @@ parseChecksumsToRectify = parseChecksumAll <|> parseChecksumsDetail
         parseChecksumAll = ChecksumAll <$
             OP.flag' () (
                 OP.long "checksumAll" <>
-                OP.help "...")
+                OP.help "Update all checksums.")
         parseChecksumsDetail :: OP.Parser ChecksumsToRectify
         parseChecksumsDetail = ChecksumsDetail <$>
             parseChecksumGeno <*>
@@ -158,38 +157,38 @@ parseChecksumsToRectify = parseChecksumAll <|> parseChecksumsDetail
         parseChecksumGeno :: OP.Parser Bool
         parseChecksumGeno = OP.switch (
             OP.long "checksumGeno" <>
-            OP.help "...")
+            OP.help "Update genotype data checksums.")
         parseChecksumJanno :: OP.Parser Bool
         parseChecksumJanno = OP.switch (
             OP.long "checksumJanno" <>
-            OP.help "...")
+            OP.help "Update .janno file checksum.")
         parseChecksumSSF :: OP.Parser Bool
         parseChecksumSSF = OP.switch (
             OP.long "checksumSSF" <>
-            OP.help "...")
+            OP.help "Update .ssf file checksum")
         parseChecksumBib :: OP.Parser Bool
         parseChecksumBib = OP.switch (
             OP.long "checksumBib" <>
-            OP.help "...")
+            OP.help "Update .bib file checksum.")
 
 parseMaybePackageVersionUpdate :: OP.Parser (Maybe PackageVersionUpdate)
-parseMaybePackageVersionUpdate = Just <$> (PackageVersionUpdate <$> parseVersionComponent <*> parseMaybeLog)
+parseMaybePackageVersionUpdate = OP.optional $ PackageVersionUpdate <$> parseVersionComponent <*> parseMaybeLog
 
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
-    OP.long "versionComponent" <>
-    OP.metavar "COMPONENT" <>
+    OP.long "packageVersion" <>
+    OP.metavar "VPART" <>
     OP.help "Part of the package version number in the POSEIDON.yml file \
             \that should be updated: \
             \Major, Minor or Patch (see https://semver.org)."
     )
-
-readVersionComponent :: String -> Either String VersionComponent
-readVersionComponent s = case s of
-    "Major" -> Right Major
-    "Minor" -> Right Minor
-    "Patch" -> Right Patch
-    _       -> Left "must be Major, Minor or Patch"
+    where
+        readVersionComponent :: String -> Either String VersionComponent
+        readVersionComponent s = case s of
+            "Major" -> Right Major
+            "Minor" -> Right Minor
+            "Patch" -> Right Patch
+            _       -> Left "must be Major, Minor or Patch"
 
 parseNoChecksumUpdate :: OP.Parser Bool
 parseNoChecksumUpdate = OP.switch (
@@ -203,8 +202,7 @@ parseMaybeContributors = OP.option (Just <$> OP.eitherReader readContributorStri
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
             \ in the form \"[Firstname Lastname](Email address);...\"." <>
-    OP.value Nothing <>
-    OP.showDefault
+    OP.value Nothing
     )
 
 parseContributors :: OP.Parser [ContributorSpec]
@@ -226,8 +224,7 @@ parseMaybeLog = OP.option (Just <$> OP.str) (
     OP.long "logText" <>
     OP.metavar "STRING" <>
     OP.help "Log text for this version in the CHANGELOG file." <>
-    OP.value Nothing <>
-    OP.showDefault
+    OP.value Nothing
     )
 
 parseLog :: OP.Parser String
