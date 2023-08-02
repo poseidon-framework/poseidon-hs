@@ -17,6 +17,7 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
 import           Poseidon.Utils          (PoseidonIO, getChecksum, logDebug,
                                           logInfo)
 
+import           Control.DeepSeq         ((<$!!>))
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (nub)
 import           Data.Maybe              (fromJust)
@@ -104,15 +105,15 @@ updateChecksums checksumSetting pac = do
                     let gd = posPacGenotypeData pac
                     genoExists <- exists (d </> genoFile gd)
                     genoChkSum <- if genoExists
-                        then Just <$> getChk (d </> genoFile gd)
+                        then Just <$!!> getChk (d </> genoFile gd)
                         else return $ genoFileChkSum gd
                     snpExists <-  exists (d </> snpFile gd)
                     snpChkSum <-  if snpExists
-                        then Just <$> getChk (d </> snpFile gd)
+                        then Just <$!!> getChk (d </> snpFile gd)
                         else return $ snpFileChkSum gd
                     indExists <-  exists (d </> indFile gd)
                     indChkSum <-  if indExists
-                        then Just <$> getChk (d </> indFile gd)
+                        then Just <$!!> getChk (d </> indFile gd)
                         else return $ indFileChkSum gd
                     return $ gd {
                         genoFileChkSum = genoChkSum,
@@ -126,7 +127,7 @@ updateChecksums checksumSetting pac = do
                     logDebug "Updating .janno file checksums"
                     case posPacJannoFile pac of
                         Nothing -> return $ posPacJannoFileChkSum pac
-                        Just fn -> Just <$> getChk (d </> fn)
+                        Just fn -> Just <$!!> getChk (d </> fn)
                 else return $ posPacJannoFileChkSum pac
             newSeqSourceChkSum <-
                 if s
@@ -134,7 +135,7 @@ updateChecksums checksumSetting pac = do
                     logDebug "Updating .ssf file checksums"
                     case posPacSeqSourceFile pac of
                         Nothing -> return $ posPacSeqSourceFileChkSum pac
-                        Just fn -> Just <$> getChk (d </> fn)
+                        Just fn -> Just <$!!> getChk (d </> fn)
                 else return $ posPacSeqSourceFileChkSum pac
             newBibChkSum <-
                 if b
@@ -142,7 +143,7 @@ updateChecksums checksumSetting pac = do
                     logDebug "Updating .bib file checksums"
                     case posPacBibFile pac of
                         Nothing -> return $ posPacBibFileChkSum pac
-                        Just fn -> Just <$> getChk (d </> fn)
+                        Just fn -> Just <$!!> getChk (d </> fn)
                 else return $ posPacBibFileChkSum pac
             return $ pac {
                     posPacGenotypeData = newGenotypeDataSection,

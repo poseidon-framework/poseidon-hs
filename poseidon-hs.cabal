@@ -29,7 +29,7 @@ library
                         scotty, cassava, pureMD5, wai, githash,
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific, country, generics-sop, containers, process
+                        scientific, country, generics-sop, containers, process, deepseq
     default-language:   Haskell2010
 
 executable trident
