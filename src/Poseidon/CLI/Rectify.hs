@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Rectify (
-    runUpdate, UpdateOptions (..)
+    runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
     ) where
 
 import           Poseidon.GenotypeData   (GenotypeDataSpec (..))
@@ -25,16 +25,27 @@ import           Data.Version            (Version (..), makeVersion,
 import           System.Directory        (doesFileExist, removeFile)
 import           System.FilePath         ((</>))
 
-data UpdateOptions = UpdateOptions
-    { _updateBaseDirs              :: [FilePath]
-    , _updatePoseidonVersion       :: Maybe Version
-    , _updateIgnorePoseidonVersion :: Bool
-    , _updateVersionUpdate         :: VersionComponent
-    , _updateNoChecksumUpdate      :: Bool
-    , _updateIgnoreGeno            :: Bool
-    , _updateNewContributors       :: [ContributorSpec]
-    , _updateLog                   :: String
-    , _updateForce                 :: Bool
+data RectifyOptions = RectifyOptions
+    { _rectifyBaseDirs              :: [FilePath]
+    , _rectifyIgnorePoseidonVersion :: Bool
+    , _rectifyPoseidonVersion       :: Maybe Version
+    , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
+    , _rectifyChecksums             :: ChecksumsToRectify
+    , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    }
+
+data PackageVersionUpdate = PackageVersionUpdate
+    { _pacVerUpVersionComponent :: VersionComponent
+    , _pacVerUpLog              :: Maybe String
+    }
+
+data ChecksumsToRectify =
+    ChecksumAll |
+    ChecksumsDetail
+    { _rectifyChecksumGeno  :: Bool
+    , _rectifyChecksumJanno :: Bool
+    , _rectifyChecksumSSF   :: Bool
+    , _rectifyChecksumBib   :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -45,38 +56,38 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptGenoCheck        = False
     }
 
-runUpdate :: UpdateOptions -> PoseidonIO ()
-runUpdate (UpdateOptions baseDirs poseidonVersion ignorePoseidonVersion versionComponent noChecksumUpdate ignoreGeno newContributors logText force) = do
-
-    allPackages <- readPoseidonPackageCollection
-        pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
-        baseDirs
-    -- updating poseidon version
-    let updatedPacsPoseidonVersion = if isNothing poseidonVersion
-        then allPackages
-        else map (updatePoseidonVersion poseidonVersion) allPackages
-    -- updating checksums
-    logInfo "Calculating checksums"
-    updatedPacsChecksums <-
-        if noChecksumUpdate
-        then return updatedPacsPoseidonVersion
-        else liftIO $ mapM (updateChecksums ignoreGeno) updatedPacsPoseidonVersion
-    -- see which packages were changed and need to be updated formally
-    let updatedPacsChanged = if force
-        then updatedPacsChecksums
-        else map fst $ filter (uncurry (/=)) $ zip updatedPacsChecksums allPackages
-    if null updatedPacsChanged
-    then logWarning "No packages changed"
-    else do
-        -- update yml files
-        (UTCTime today _) <- liftIO getCurrentTime
-        let updatedPacsMeta = map (updateMeta versionComponent today newContributors) updatedPacsChanged
-        -- write/update CHANGELOG files
-        logInfo "Updating CHANGELOG files"
-        updatedPacsWithChangelog <- liftIO $ mapM (writeOrUpdateChangelogFile logText) updatedPacsMeta
-        -- write yml files with all changes
-        logInfo "Writing modified POSEIDON.yml files"
-        liftIO $ mapM_ writePoseidonPackage updatedPacsWithChangelog
+runRectify :: RectifyOptions -> PoseidonIO ()
+runRectify x = do
+    undefined
+    -- allPackages <- readPoseidonPackageCollection
+    --     pacReadOpts {_readOptIgnorePosVersion = ignorePoseidonVersion}
+    --     baseDirs
+    -- -- updating poseidon version
+    -- let updatedPacsPoseidonVersion = if isNothing poseidonVersion
+    --     then allPackages
+    --     else map (updatePoseidonVersion poseidonVersion) allPackages
+    -- -- updating checksums
+    -- logInfo "Calculating checksums"
+    -- updatedPacsChecksums <-
+    --     if noChecksumUpdate
+    --     then return updatedPacsPoseidonVersion
+    --     else liftIO $ mapM (updateChecksums ignoreGeno) updatedPacsPoseidonVersion
+    -- -- see which packages were changed and need to be updated formally
+    -- let updatedPacsChanged = if force
+    --     then updatedPacsChecksums
+    --     else map fst $ filter (uncurry (/=)) $ zip updatedPacsChecksums allPackages
+    -- if null updatedPacsChanged
+    -- then logWarning "No packages changed"
+    -- else do
+    --     -- update yml files
+    --     (UTCTime today _) <- liftIO getCurrentTime
+    --     let updatedPacsMeta = map (updateMeta versionComponent today newContributors) updatedPacsChanged
+    --     -- write/update CHANGELOG files
+    --     logInfo "Updating CHANGELOG files"
+    --     updatedPacsWithChangelog <- liftIO $ mapM (writeOrUpdateChangelogFile logText) updatedPacsMeta
+    --     -- write yml files with all changes
+    --     logInfo "Writing modified POSEIDON.yml files"
+    --     liftIO $ mapM_ writePoseidonPackage updatedPacsWithChangelog
 
 writeOrUpdateChangelogFile :: String -> PoseidonPackage -> IO PoseidonPackage
 writeOrUpdateChangelogFile logText pac = do

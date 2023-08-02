@@ -19,6 +19,7 @@ import           Poseidon.SecondaryTypes (ArchiveEndpoint (..),
                                           contributorSpecParser,
                                           poseidonVersionParser, runParser)
 import           Poseidon.Utils          (LogMode (..), TestMode (..))
+import Poseidon.CLI.Rectify (PackageVersionUpdate (..), ChecksumsToRectify (..))
 
 import           Control.Applicative     ((<|>))
 import           Data.List.Split         (splitOn)
@@ -64,8 +65,8 @@ parseChronUpdatePath = OP.strOption (
             \that are already in the chronicle definition file. \
             \It only adds new entries.")
 
-parsePoseidonVersion :: OP.Parser (Maybe Version)
-parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
+parseMaybePoseidonVersion :: OP.Parser (Maybe Version)
+parseMaybePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
     OP.long "poseidonVersion" <>
     OP.metavar "?.?.?" <>
     OP.help "Poseidon version the packages should be updated to: \
@@ -140,23 +141,55 @@ parseRemoveOld = OP.switch (
     OP.help "Remove the old genotype files when creating the new ones."
     )
 
+parseChecksumsToRectify :: OP.Parser ChecksumsToRectify
+parseChecksumsToRectify = parseChecksumAll <|> parseChecksumsDetail
+    where
+        parseChecksumAll :: OP.Parser ChecksumsToRectify
+        parseChecksumAll = ChecksumAll <$
+            OP.flag' () (
+                OP.long "checksumAll" <>
+                OP.help "...")
+        parseChecksumsDetail :: OP.Parser ChecksumsToRectify
+        parseChecksumsDetail = ChecksumsDetail <$>
+            parseChecksumGeno <*>
+            parseChecksumJanno <*>
+            parseChecksumSSF <*>
+            parseChecksumBib
+        parseChecksumGeno :: OP.Parser Bool
+        parseChecksumGeno = OP.switch (
+            OP.long "checksumGeno" <>
+            OP.help "...")
+        parseChecksumJanno :: OP.Parser Bool
+        parseChecksumJanno = OP.switch (
+            OP.long "checksumJanno" <>
+            OP.help "...")
+        parseChecksumSSF :: OP.Parser Bool
+        parseChecksumSSF = OP.switch (
+            OP.long "checksumSSF" <>
+            OP.help "...")
+        parseChecksumBib :: OP.Parser Bool
+        parseChecksumBib = OP.switch (
+            OP.long "checksumBib" <>
+            OP.help "...")
+
+parseMaybePackageVersionUpdate :: OP.Parser (Maybe PackageVersionUpdate)
+parseMaybePackageVersionUpdate = Just <$> (PackageVersionUpdate <$> parseVersionComponent <*> parseMaybeLog)
+
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
     OP.long "versionComponent" <>
     OP.metavar "COMPONENT" <>
     OP.help "Part of the package version number in the POSEIDON.yml file \
             \that should be updated: \
-            \Major, Minor or Patch (see https://semver.org)." <>
-    OP.value Patch <>
-    OP.showDefault
+            \Major, Minor or Patch (see https://semver.org)."
     )
-    where
-        readVersionComponent :: String -> Either String VersionComponent
-        readVersionComponent s = case s of
-            "Major" -> Right Major
-            "Minor" -> Right Minor
-            "Patch" -> Right Patch
-            _       -> Left "must be Major, Minor or Patch"
+
+readVersionComponent :: String -> Either String VersionComponent
+readVersionComponent s = case s of
+    "Major" -> Right Major
+    "Minor" -> Right Minor
+    "Patch" -> Right Patch
+    _       -> Left "must be Major, Minor or Patch"
 
 parseNoChecksumUpdate :: OP.Parser Bool
 parseNoChecksumUpdate = OP.switch (
@@ -164,19 +197,38 @@ parseNoChecksumUpdate = OP.switch (
     OP.help "Should the update of checksums in the POSEIDON.yml file be skipped?"
     )
 
+parseMaybeContributors :: OP.Parser (Maybe [ContributorSpec])
+parseMaybeContributors = OP.option (Just <$> OP.eitherReader readContributorString) (
+    OP.long "newContributors" <>
+    OP.metavar "DSL" <>
+    OP.help "Contributors to add to the POSEIDON.yml file \
+            \ in the form \"[Firstname Lastname](Email address);...\"." <>
+    OP.value Nothing <>
+    OP.showDefault
+    )
+
 parseContributors :: OP.Parser [ContributorSpec]
-parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (
+parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
             \ in the form \"[Firstname Lastname](Email address);...\"."
-    ))
-    where
-        readContributorString :: String -> Either String [ContributorSpec]
-        readContributorString s = case runParser contributorSpecParser () "" s of
-            Left p  -> Left (show p)
-            Right x -> Right x
+    )
 
+readContributorString :: String -> Either String [ContributorSpec]
+readContributorString s = case runParser contributorSpecParser () "" s of
+    Left p  -> Left (show p)
+    Right x -> Right x
+
+
+parseMaybeLog :: OP.Parser (Maybe String)
+parseMaybeLog = OP.option (Just <$> OP.str) (
+    OP.long "logText" <>
+    OP.metavar "STRING" <>
+    OP.help "Log text for this version in the CHANGELOG file." <>
+    OP.value Nothing <>
+    OP.showDefault
+    )
 
 parseLog :: OP.Parser String
 parseLog = OP.strOption (

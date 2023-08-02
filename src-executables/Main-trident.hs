@@ -22,8 +22,8 @@ import           Poseidon.CLI.Survey                     (SurveyOptions (..),
                                                           runSurvey)
 import           Poseidon.CLI.Timetravel                 (TimetravelOptions (..),
                                                           runTimetravel)
-import           Poseidon.CLI.Rectify                     (UpdateOptions (..),
-                                                          runUpdate)
+import           Poseidon.CLI.Rectify                    (RectifyOptions (..),
+                                                          runRectify)
 import           Poseidon.CLI.Validate                   (ValidateOptions (..),
                                                           runValidate)
 import           Poseidon.Janno                          (jannoHeaderString)
@@ -63,7 +63,7 @@ data Subcommand =
     | CmdGenoconvert GenoconvertOptions
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
-    | CmdUpdate UpdateOptions
+    | CmdRectify RectifyOptions
     | CmdValidate ValidateOptions
     | CmdChronicle ChronicleOptions
     | CmdTimetravel TimetravelOptions
@@ -95,7 +95,7 @@ runCmd o = case o of
     CmdGenoconvert opts -> runGenoconvert opts
     CmdSummarise opts   -> runSummarise opts
     CmdSurvey opts      -> runSurvey opts
-    CmdUpdate opts      -> runUpdate opts
+    CmdRectify opts     -> runRectify opts
     CmdValidate opts    -> runValidate opts
     CmdChronicle opts   -> runChronicle opts
     CmdTimetravel opts  -> runTimetravel opts
@@ -131,7 +131,7 @@ subcommandParser = OP.subparser (
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
-        OP.command "update" updateOptInfo <>
+        OP.command "rectify" rectifyOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -172,8 +172,8 @@ subcommandParser = OP.subparser (
             ++ ".janno column order - G: Genotype data present, S: .ssf file present, B: .bib file present, "
             ++ intercalate ", " (zipWith (\x y -> show x ++ ": " ++ y) ([1..] :: [Int]) jannoHeaderString)
             ))
-    updateOptInfo = OP.info (OP.helper <*> (CmdUpdate <$> updateOptParser))
-        (OP.progDesc "Update POSEIDON.yml files automatically")
+    rectifyOptInfo = OP.info (OP.helper <*> (CmdRectify <$> rectifyOptParser))
+        (OP.progDesc "Adjust POSEIDON.yml files automatically to package changes")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check Poseidon packages or package components for structural correctness")
     chronicleOptInfo = OP.info (OP.helper <*> (CmdChronicle <$> chronicleOptParser))
@@ -228,16 +228,13 @@ surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
 
-updateOptParser :: OP.Parser UpdateOptions
-updateOptParser = UpdateOptions <$> parseBasePaths
-                                <*> parsePoseidonVersion
-                                <*> parseIgnorePoseidonVersion
-                                <*> parseVersionComponent
-                                <*> parseNoChecksumUpdate
-                                <*> parseIgnoreGeno
-                                <*> parseContributors
-                                <*> parseLog
-                                <*> parseForce
+rectifyOptParser :: OP.Parser RectifyOptions
+rectifyOptParser = RectifyOptions <$> parseBasePaths
+                                  <*> parseIgnorePoseidonVersion
+                                  <*> parseMaybePoseidonVersion
+                                  <*> parseMaybePackageVersionUpdate
+                                  <*> parseChecksumsToRectify
+                                  <*> parseMaybeContributors
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseValidatePlan
