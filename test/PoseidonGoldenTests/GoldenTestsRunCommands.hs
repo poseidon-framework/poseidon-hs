@@ -11,7 +11,9 @@ import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
 import           Poseidon.CLI.Init        (InitOptions (..), runInit)
 import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
                                            RepoLocationSpec (..), runList)
-import           Poseidon.CLI.Rectify     (RectifyOptions (..), runRectify, PackageVersionUpdate (..), ChecksumsToRectify (..))
+import           Poseidon.CLI.Rectify     (ChecksumsToRectify (..),
+                                           PackageVersionUpdate (..),
+                                           RectifyOptions (..), runRectify)
 import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
@@ -40,6 +42,7 @@ import           Data.Either              (fromRight)
 import           Data.Function            ((&))
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
+import           Data.Version             (makeVersion)
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle   (ChronOperation (..),
                                            ChronicleOptions (..), runChronicle)
@@ -52,7 +55,6 @@ import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
-import Data.Version (makeVersion)
 
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
