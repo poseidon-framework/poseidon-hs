@@ -141,8 +141,10 @@ parseRemoveOld = OP.switch (
     )
 
 parseChecksumsToRectify :: OP.Parser ChecksumsToRectify
-parseChecksumsToRectify = parseChecksumAll <|> parseChecksumsDetail
+parseChecksumsToRectify = parseChecksumNone <|> parseChecksumAll <|> parseChecksumsDetail
     where
+        parseChecksumNone :: OP.Parser ChecksumsToRectify
+        parseChecksumNone = pure ChecksumNone
         parseChecksumAll :: OP.Parser ChecksumsToRectify
         parseChecksumAll = ChecksumAll <$
             OP.flag' () (

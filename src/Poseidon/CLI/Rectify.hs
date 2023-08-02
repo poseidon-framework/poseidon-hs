@@ -40,6 +40,7 @@ data PackageVersionUpdate = PackageVersionUpdate
     }
 
 data ChecksumsToRectify =
+    ChecksumNone |
     ChecksumAll |
     ChecksumsDetail
     { _rectifyChecksumGeno  :: Bool
@@ -88,6 +89,7 @@ addContributors (Just cs) pac = do
 updateChecksums :: ChecksumsToRectify -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updateChecksums checksumSetting pac = do
     case checksumSetting of
+        ChecksumNone            -> logDebug "Update no checksums" >> return pac
         ChecksumAll             -> update True True True True
         ChecksumsDetail g j s b -> update g j s b
     where
@@ -99,17 +101,17 @@ updateChecksums checksumSetting pac = do
                 then do
                     logDebug "Updating genotype data checksums"
                     let gd = posPacGenotypeData pac
-                    genoExists <- liftIO $ doesFileExist (d </> genoFile gd)
+                    genoExists <- exists (d </> genoFile gd)
                     genoChkSum <- if genoExists
-                        then Just <$> (liftIO . getChecksum) (d </> genoFile gd)
+                        then Just <$> getChk (d </> genoFile gd)
                         else return $ genoFileChkSum gd
-                    snpExists <-  liftIO $ doesFileExist (d </> snpFile gd)
+                    snpExists <-  exists (d </> snpFile gd)
                     snpChkSum <-  if snpExists
-                        then Just <$> (liftIO . getChecksum) (d </> snpFile gd)
+                        then Just <$> getChk (d </> snpFile gd)
                         else return $ snpFileChkSum gd
-                    indExists <-  liftIO $ doesFileExist (d </> indFile gd)
+                    indExists <-  exists (d </> indFile gd)
                     indChkSum <-  if indExists
-                        then Just <$> (liftIO . getChecksum) (d </> indFile gd)
+                        then Just <$> getChk (d </> indFile gd)
                         else return $ indFileChkSum gd
                     return $ gd {
                         genoFileChkSum = genoChkSum,
@@ -123,7 +125,7 @@ updateChecksums checksumSetting pac = do
                     logDebug "Updating .janno file checksums"
                     case posPacJannoFile pac of
                         Nothing -> return $ posPacJannoFileChkSum pac
-                        Just fn -> Just <$> (liftIO . getChecksum) (d </> fn)
+                        Just fn -> Just <$> getChk (d </> fn)
                 else return $ posPacJannoFileChkSum pac
             newSeqSourceChkSum <-
                 if s
@@ -131,7 +133,7 @@ updateChecksums checksumSetting pac = do
                     logDebug "Updating .ssf file checksums"
                     case posPacSeqSourceFile pac of
                         Nothing -> return $ posPacSeqSourceFileChkSum pac
-                        Just fn -> Just <$> (liftIO . getChecksum) (d </> fn)
+                        Just fn -> Just <$> getChk (d </> fn)
                 else return $ posPacSeqSourceFileChkSum pac
             newBibChkSum <-
                 if b
@@ -139,7 +141,7 @@ updateChecksums checksumSetting pac = do
                     logDebug "Updating .bib file checksums"
                     case posPacBibFile pac of
                         Nothing -> return $ posPacBibFileChkSum pac
-                        Just fn -> Just <$> (liftIO . getChecksum) (d </> fn)
+                        Just fn -> Just <$> getChk (d </> fn)
                 else return $ posPacBibFileChkSum pac
             return $ pac {
                     posPacGenotypeData = newGenotypeDataSection,
@@ -147,15 +149,17 @@ updateChecksums checksumSetting pac = do
                     posPacSeqSourceFileChkSum = newSeqSourceChkSum,
                     posPacBibFileChkSum = newBibChkSum
                 }
+        getChk = liftIO . getChecksum
+        exists = liftIO . doesFileExist
 
 completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
 completeAndWritePackage Nothing pac = do
-    logDebug "Writing POSEIDON.yml file"
+    logDebug "Writing rectified POSEIDON.yml file"
     liftIO $ writePoseidonPackage pac
 completeAndWritePackage (Just (PackageVersionUpdate component logText)) pac = do
     updatedPacPacVer <- updatePackageVersion component pac
     updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
-    logDebug "Writing POSEIDON.yml file"
+    logDebug "Writing rectified POSEIDON.yml file"
     liftIO $ writePoseidonPackage updatePacChangeLog
 
 updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO PoseidonPackage
