@@ -42,6 +42,7 @@ data ValidatePlan =
         , _valPlanFullGeno         :: Bool
         , _valPlanIgnoreDuplicates :: Bool
         , _valPlanIgnoreChecksums  :: Bool
+        , _valPlanIgnorePosVersion :: Bool
       }
     | ValPlanPoseidonYaml FilePath
     | ValPlanGeno GenotypeDataSpec
@@ -51,7 +52,7 @@ data ValidatePlan =
 
 runValidate :: ValidateOptions -> PoseidonIO ()
 runValidate (ValidateOptions
-    (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup ignoreChecksums)
+    (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup ignoreChecksums ignorePosVersion)
     noExitCode) = do
     logInfo $ "Validating: " ++ intercalate ", " baseDirs
     let pacReadOpts = defaultPackageReadOptions {
@@ -60,6 +61,7 @@ runValidate (ValidateOptions
         , _readOptIgnoreGeno       = ignoreGeno
         , _readOptFullGeno         = fullGeno
         , _readOptStopOnDuplicates = not ignoreDup
+        , _readOptIgnorePosVersion = ignorePosVersion
         }
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs

@@ -240,6 +240,7 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
             , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
         , _validateNoExitCode          = True
     }
@@ -251,6 +252,7 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
             , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
     } & run 2
     validateOpts1 {
@@ -260,6 +262,7 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanFullGeno         = True
             , _valPlanIgnoreDuplicates = True
             , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
     } & run 3
     -- validate packages generated with init
@@ -270,6 +273,7 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
             , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
     } & run 4
     -- validate individual files
