@@ -47,7 +47,7 @@ import           Data.Time              (defaultTimeLocale, formatTime,
 import           Data.Version           (showVersion)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
-import           Network.HTTP.Conduit   (HttpException)
+import           Network.HTTP.Conduit   (HttpException (..))
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
@@ -198,6 +198,9 @@ renderPoseidonException (PoseidonGenotypeException s) =
     "Genotype data structurally inconsistent: " ++ show s
 renderPoseidonException (PoseidonGenotypeExceptionForward e) =
     "Issues in genotype data parsing: " ++ show e
+renderPoseidonException (PoseidonHttpExceptionForward (HttpExceptionRequest _ content)) =
+    "Issues in HTTP-communication with server:\n" ++
+    show content
 renderPoseidonException (PoseidonHttpExceptionForward e) =
     "Issues in HTTP-communication with server: " ++ show e
 renderPoseidonException (PoseidonFileRowException f i s) =
