@@ -10,7 +10,7 @@ The subcommand `update` was renamed to `rectify` to better express its purpose. 
 
 :warning: Please note that certain changes like incrementing the version number or adding a logText do not happen automatically any more in `rectify`. They have to be requested explicitly!
 
-Here is the new command line documentation:
+Here is the new command line documentation of `rectify`:
 
 ```
 Usage: trident rectify (-d|--baseDir DIR) [--ignorePoseidonVersion]
@@ -44,13 +44,56 @@ Available options:
 
 #### `serve` now provides different package archives and `list` and `fetch` can access them
 
-Taught the server (`serve`) how to provide multiple named archives in parallel, with a modified `-d` interface on the command line and a new option `?archive=...` in the Web API. The client commands `fetch` and `list` can request information from different archives with a new option `--archive`.
+`trident serve`, so the subcommand behind the Poseidon Web API, can now provide packages from multiple named archives in parallel. This works through a modified `-d` interface on the command line and a new option `?archive=...` in the Web API. The client commands `fetch` and `list` can request information and package download from these different archives with a new option `--archive`. If `--archive` (or `?archive=...` in the http request) are not given, then the server falls back to a default archive (the first in `-d`).
+
+See the Poseidon [public archive](https://www.poseidon-adna.org/#/archive_overview) and [Web API](https://www.poseidon-adna.org/#/web_api) documentation for the concrete consequences of this new feature.
 
 #### `validate` can now check individual files
 
-- Gave `validate` the ability to check not just entire packages, but also individual package components (e.g. .janno or .bib files).
-- Added an option `--ignorePoseidonVersion` to `validate`.
-Added a `--ignoreChecksums` option to `validate`.
+The `validate` subcommand is no longer confined to validating entire poseidon packages. It can still very much do so with `-d`, where -- just as before -- a number of optional flags can be used to control the exact behaviour. This release adds the new options `--ignorePoseidonVersion` and `--ignoreChecksums` here. But `validate` can now also read, parse and thus check individual files: POSEIDON.yml files, genotype data files, .janno files, .ssf files or .bib files. This is tremendously useful for building packages step-by-step, e.g. in automatic pipelines.
+
+:warning: Please note that these individual file checks naturally do not include the cross-file checks (e.g. publication keys across .janno and .bib) the full package validation provides.
+
+Here is the new command line documentation of `validate`:
+
+```
+Usage: trident validate ((-d|--baseDir DIR) [--ignoreGeno] [--fullGeno]
+                          [--ignoreDuplicates] [-c|--ignoreChecksums]
+                          [--ignorePoseidonVersion] |
+                          --pyml FILE | (-p|--genoOne FILE) | --inFormat FORMAT
+                          --genoFile FILE --snpFile FILE --indFile FILE |
+                          --janno FILE | --ssf FILE | --bib FILE) [--noExitCode]
+
+  Check Poseidon packages or package components for structural correctness
+
+Available options:
+  -h,--help                Show this help text
+  -d,--baseDir DIR         A base directory to search for Poseidon packages.
+  --ignoreGeno             Ignore snp and geno file.
+  --fullGeno               Test parsing of all SNPs (by default only the first
+                           100 SNPs are probed).
+  --ignoreDuplicates       Do not stop on duplicated individual names in the
+                           package collection.
+  -c,--ignoreChecksums     Whether to ignore checksums. Useful for speedup in
+                           debugging.
+  --ignorePoseidonVersion  Read packages even if their poseidonVersion is not
+                           compatible with trident.
+  --pyml FILE              Path to a POSEIDON.yml file.
+  -p,--genoOne FILE        One of the input genotype data files. Expects .bed,
+                           .bim or .fam for PLINK and .geno, .snp or .ind for
+                           EIGENSTRAT. The other files must be in the same
+                           directory and must have the same base name.
+  --inFormat FORMAT        The format of the input genotype data: EIGENSTRAT or
+                           PLINK. Only necessary for data input with --genoFile
+                           + --snpFile + --indFile.
+  --genoFile FILE          Path to the input geno file.
+  --snpFile FILE           Path to the input snp file.
+  --indFile FILE           Path to the input ind file.
+  --janno FILE             Path to a .janno file.
+  --ssf FILE               Path to a .ssf file.
+  --bib FILE               Path to a .bib file.
+  --noExitCode             Do not produce an explicit exit code.
+```
 
 #### Other, minor changes
 
