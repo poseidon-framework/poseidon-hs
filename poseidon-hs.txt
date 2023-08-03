@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.2.3.4
+@version 1.3.0.4
 
 module Poseidon.MathHelpers
 
@@ -138,7 +138,7 @@ PoseidonUnzipException :: SomeException -> PoseidonException
 PoseidonChronicleException :: String -> PoseidonException
 
 -- | An exception for issues with git
-PoseidonGitException :: FilePath -> PoseidonException
+PoseidonGitException :: FilePath -> String -> PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
@@ -1059,7 +1059,7 @@ PoseidonUnzipException :: SomeException -> PoseidonException
 PoseidonChronicleException :: String -> PoseidonException
 
 -- | An exception for issues with git
-PoseidonGitException :: FilePath -> PoseidonException
+PoseidonGitException :: FilePath -> String -> PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
@@ -1235,20 +1235,6 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PackageIteration
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PackageIteration
 instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.Chronicle.PackageIteration
 
-module Poseidon.CLI.Update
-runUpdate :: UpdateOptions -> PoseidonIO ()
-data UpdateOptions
-UpdateOptions :: [FilePath] -> Maybe Version -> Bool -> VersionComponent -> Bool -> Bool -> [ContributorSpec] -> String -> Bool -> UpdateOptions
-[_updateBaseDirs] :: UpdateOptions -> [FilePath]
-[_updatePoseidonVersion] :: UpdateOptions -> Maybe Version
-[_updateIgnorePoseidonVersion] :: UpdateOptions -> Bool
-[_updateVersionUpdate] :: UpdateOptions -> VersionComponent
-[_updateNoChecksumUpdate] :: UpdateOptions -> Bool
-[_updateIgnoreGeno] :: UpdateOptions -> Bool
-[_updateNewContributors] :: UpdateOptions -> [ContributorSpec]
-[_updateLog] :: UpdateOptions -> String
-[_updateForce] :: UpdateOptions -> Bool
-
 module Poseidon.CLI.Timetravel
 data TimetravelOptions
 TimetravelOptions :: [FilePath] -> FilePath -> FilePath -> TimetravelOptions
@@ -1316,6 +1302,29 @@ ServeOptions :: [(String, FilePath)] -> Maybe FilePath -> Int -> Bool -> Maybe (
 [cliIgnoreChecksums] :: ServeOptions -> Bool
 [cliCertFiles] :: ServeOptions -> Maybe (FilePath, [FilePath], FilePath)
 instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
+
+module Poseidon.CLI.Rectify
+runRectify :: RectifyOptions -> PoseidonIO ()
+data RectifyOptions
+RectifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToRectify -> Maybe [ContributorSpec] -> RectifyOptions
+[_rectifyBaseDirs] :: RectifyOptions -> [FilePath]
+[_rectifyIgnorePoseidonVersion] :: RectifyOptions -> Bool
+[_rectifyPoseidonVersion] :: RectifyOptions -> Maybe Version
+[_rectifyPackageVersionUpdate] :: RectifyOptions -> Maybe PackageVersionUpdate
+[_rectifyChecksums] :: RectifyOptions -> ChecksumsToRectify
+[_rectifyNewContributors] :: RectifyOptions -> Maybe [ContributorSpec]
+data PackageVersionUpdate
+PackageVersionUpdate :: VersionComponent -> Maybe String -> PackageVersionUpdate
+[_pacVerUpVersionComponent] :: PackageVersionUpdate -> VersionComponent
+[_pacVerUpLog] :: PackageVersionUpdate -> Maybe String
+data ChecksumsToRectify
+ChecksumNone :: ChecksumsToRectify
+ChecksumAll :: ChecksumsToRectify
+ChecksumsDetail :: Bool -> Bool -> Bool -> Bool -> ChecksumsToRectify
+[_rectifyChecksumGeno] :: ChecksumsToRectify -> Bool
+[_rectifyChecksumJanno] :: ChecksumsToRectify -> Bool
+[_rectifyChecksumSSF] :: ChecksumsToRectify -> Bool
+[_rectifyChecksumBib] :: ChecksumsToRectify -> Bool
 
 module Poseidon.CLI.List
 
@@ -1403,11 +1412,13 @@ ValidateOptions :: ValidatePlan -> Bool -> ValidateOptions
 [_validatePlan] :: ValidateOptions -> ValidatePlan
 [_validateNoExitCode] :: ValidateOptions -> Bool
 data ValidatePlan
-ValPlanBaseDirs :: [FilePath] -> Bool -> Bool -> Bool -> ValidatePlan
+ValPlanBaseDirs :: [FilePath] -> Bool -> Bool -> Bool -> Bool -> Bool -> ValidatePlan
 [_valPlanBaseDirs] :: ValidatePlan -> [FilePath]
 [_valPlanIgnoreGeno] :: ValidatePlan -> Bool
 [_valPlanFullGeno] :: ValidatePlan -> Bool
 [_valPlanIgnoreDuplicates] :: ValidatePlan -> Bool
+[_valPlanIgnoreChecksums] :: ValidatePlan -> Bool
+[_valPlanIgnorePosVersion] :: ValidatePlan -> Bool
 ValPlanPoseidonYaml :: FilePath -> ValidatePlan
 ValPlanGeno :: GenotypeDataSpec -> ValidatePlan
 ValPlanJanno :: FilePath -> ValidatePlan
@@ -1422,7 +1433,8 @@ parseTimetravelSourcePath :: Parser FilePath
 parseTimetravelChronPath :: Parser FilePath
 parseChronOutPath :: Parser FilePath
 parseChronUpdatePath :: Parser FilePath
-parsePoseidonVersion :: Parser (Maybe Version)
+parseMaybePoseidonVersion :: Parser (Maybe Version)
+parseDebugMode :: Parser LogMode
 parseLogMode :: Parser LogMode
 parseTestMode :: Parser TestMode
 data ErrorLength
@@ -1430,9 +1442,14 @@ CharInf :: ErrorLength
 CharCount :: Int -> ErrorLength
 parseErrorLength :: Parser ErrorLength
 parseRemoveOld :: Parser Bool
+parseChecksumsToRectify :: Parser ChecksumsToRectify
+parseMaybePackageVersionUpdate :: Parser (Maybe PackageVersionUpdate)
 parseVersionComponent :: Parser VersionComponent
 parseNoChecksumUpdate :: Parser Bool
+parseMaybeContributors :: Parser (Maybe [ContributorSpec])
 parseContributors :: Parser [ContributorSpec]
+readContributorString :: String -> Either String [ContributorSpec]
+parseMaybeLog :: Parser (Maybe String)
 parseLog :: Parser String
 parseForce :: Parser Bool
 parseForgeEntityInputs :: Parser [EntityInput SignedEntity]
