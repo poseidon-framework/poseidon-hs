@@ -1,3 +1,67 @@
+### V 1.3.0.4
+
+This is a significant release with one breaking change, multiple new features and a number of minor fixes and improvements.
+
+#### `rectify` replaces `update`
+
+The subcommand `update` was renamed to `rectify` to better express its purpose. The name `update` suggested that this command could effectively migrate packages from one Poseidon version to the next, which was never the case. Structural and semantical changes to the package always have to be performed by the user through other means, so usually by manually editing the respective package files. `rectify` only helps to adjusts a number of parameters (mostly in the POSEIDON.yml file) after the changes have been applied: It updates checksums, iterates version numbers, adds contributors and appends logging information to the CHANGELOG files. Despite this limitation it is still a valuable tool, especially for the management of large package archives, where structural changes are often applied to many packages at once, all requiring "rectification" in the end.
+
+`rectify` doesn't only have a different name, it also has a different interface. While `update` was a catch-all procedure with an opinionated, default behaviour that could partially be adjusted with various flags, `rectify` follows a much more transparent opt-in philosophy. The new interface allows to precisely choose which aspects of a package should be updated.
+
+:warning: Please note that certain changes like incrementing the version number or adding a logText do not happen automatically any more in `rectify`. They have to be requested explicitly!
+
+Here is the new command line documentation:
+
+```
+Usage: trident rectify (-d|--baseDir DIR) [--ignorePoseidonVersion]
+                       [--poseidonVersion ?.?.?]
+                       [--packageVersion VPART [--logText STRING]]
+                       [--checksumAll | [--checksumGeno] [--checksumJanno]
+                         [--checksumSSF] [--checksumBib]]
+                       [--newContributors DSL]
+
+  Adjust POSEIDON.yml files automatically to package changes
+
+Available options:
+  -h,--help                Show this help text
+  -d,--baseDir DIR         A base directory to search for Poseidon packages.
+  --ignorePoseidonVersion  Read packages even if their poseidonVersion is not
+                           compatible with trident.
+  --poseidonVersion ?.?.?  Poseidon version the packages should be updated to:
+                           e.g. "2.5.3".
+  --packageVersion VPART   Part of the package version number in the
+                           POSEIDON.yml file that should be updated: Major,
+                           Minor or Patch (see https://semver.org).
+  --logText STRING         Log text for this version in the CHANGELOG file.
+  --checksumAll            Update all checksums.
+  --checksumGeno           Update genotype data checksums.
+  --checksumJanno          Update .janno file checksum.
+  --checksumSSF            Update .ssf file checksum
+  --checksumBib            Update .bib file checksum.
+  --newContributors DSL    Contributors to add to the POSEIDON.yml file in the
+                           form "[Firstname Lastname](Email address);...".
+```
+
+#### `serve` now provides different package archives and `list` and `fetch` can access them
+
+Taught the server (`serve`) how to provide multiple named archives in parallel, with a modified `-d` interface on the command line and a new option `?archive=...` in the Web API. The client commands `fetch` and `list` can request information from different archives with a new option `--archive`.
+
+#### `validate` can now check individual files
+
+- Gave `validate` the ability to check not just entire packages, but also individual package components (e.g. .janno or .bib files).
+- Added an option `--ignorePoseidonVersion` to `validate`.
+Added a `--ignoreChecksums` option to `validate`.
+
+#### Other, minor changes
+
+- Fixed the behaviour of `forge` when combining .bib files. Duplicates are now properly removed upon merging and the output is alphabetically sorted.
+- Added a global option `--debug`, which is short for `--logMode VerboseLog`.
+- Slightly better error handling for http requests in `fetch` and `list --remote`.
+- Some cleaning of the `trident` command line documentation: Added meaningful meta variables to all arguments.
+- Shortened the default command line output of `fetch` to make it more readable.
+- Fixed the behaviour of `chronicle` when updating a chronicle file (with `-u`): The `lastModified` field is now only touched if there is actually a change in the package list.
+- Refactoring of `summarise` to make the result counts more accurate. Some output variables have been renamed as well.
+
 ### V 1.2.1.0
 
 This release does not include changes for trident end users. 
