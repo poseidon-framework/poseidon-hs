@@ -56,6 +56,8 @@ import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
 
+-- file paths --
+
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
 staticTestDir       :: FilePath
@@ -68,6 +70,72 @@ testPacsDir         :: FilePath
 testPacsDir         = "test/testDat/testPackages/ancient"
 testEntityFiles     :: FilePath
 testEntityFiles     = "test/testDat/testEntityFiles"
+
+-- helper functions --
+
+copyDirectoryRecursive :: FilePath -> FilePath -> IO ()
+copyDirectoryRecursive srcDir destDir = do
+  createDirectoryIfMissing True destDir
+  entries <- listDirectory srcDir
+  forM_ entries $ \entry -> do
+    let srcPath = srcDir </> entry
+        destPath = destDir </> entry
+    isDir <- doesDirectoryExist srcPath
+    if isDir
+    then do copyDirectoryRecursive srcPath destPath
+    else do copyFile srcPath destPath
+
+patchLastModified :: FilePath -> FilePath -> IO ()
+patchLastModified testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "lastModified" `T.isPrefixOf` l
+                then return "lastModified: 1970-01-01"
+                else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
+runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
+    -- run action
+    action
+    -- append checksums to checksum file
+    mapM_ (appendChecksum checkSumFilePath testDir actionName) outFiles
+    where
+        appendChecksum :: FilePath -> FilePath -> FilePath -> String -> IO ()
+        appendChecksum checkSumFilePath_ testDir_ actionName_ outFile = do
+            checksum <- getChecksum $ testDir_ </> outFile
+            appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
+
+runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
+runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
+    -- store stdout in a specific output file
+    let outFileName = actionName ++ show outFileNumber
+        outDirInTestDir = actionName </> outFileName
+        outDir = testDir </> actionName
+        outPath = outDir </> outFileName
+    -- create outdir if it doesn't exist
+    outDirExists <- doesDirectoryExist outDir
+    unless outDirExists $ createDirectory outDir
+    -- catch stdout and write it to the outPath
+    writeStdOutToFile outPath action
+    -- append checksum to checksumfile
+    checksum <- getChecksum $ outPath
+    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
+
+writeStdOutToFile :: FilePath -> IO () -> IO ()
+writeStdOutToFile path action =
+    withFile path WriteMode $ \handle -> do
+      -- backup stdout handle
+      stdout_old <- hDuplicate stdout
+      -- redirect stdout to file
+      hDuplicateTo handle stdout
+      -- run action
+      action
+      -- load backup again
+      hDuplicateTo stdout_old stdout
+
+-- test pipeline --
 
 createStaticCheckSumFile :: FilePath -> IO ()
 createStaticCheckSumFile d = runCLICommands True (d </> staticTestDir) (d </> staticCheckSumFile)
@@ -812,67 +880,3 @@ testPipelineListRemote testDir checkFilePath = do
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
 
     killThread threadID
-
--- helper functions --
-
-copyDirectoryRecursive :: FilePath -> FilePath -> IO ()
-copyDirectoryRecursive srcDir destDir = do
-  createDirectoryIfMissing True destDir
-  entries <- listDirectory srcDir
-  forM_ entries $ \entry -> do
-    let srcPath = srcDir </> entry
-        destPath = destDir </> entry
-    isDir <- doesDirectoryExist srcPath
-    if isDir
-    then do copyDirectoryRecursive srcPath destPath
-    else do copyFile srcPath destPath
-
-patchLastModified :: FilePath -> FilePath -> IO ()
-patchLastModified testDir yamlFile = do
-    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = do
-            l <- lines_
-            if "lastModified" `T.isPrefixOf` l
-                then return "lastModified: 1970-01-01"
-                else return l
-    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
-
-runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
-runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
-    -- run action
-    action
-    -- append checksums to checksum file
-    mapM_ (appendChecksum checkSumFilePath testDir actionName) outFiles
-    where
-        appendChecksum :: FilePath -> FilePath -> FilePath -> String -> IO ()
-        appendChecksum checkSumFilePath_ testDir_ actionName_ outFile = do
-            checksum <- getChecksum $ testDir_ </> outFile
-            appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
-
-runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
-runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
-    -- store stdout in a specific output file
-    let outFileName = actionName ++ show outFileNumber
-        outDirInTestDir = actionName </> outFileName
-        outDir = testDir </> actionName
-        outPath = outDir </> outFileName
-    -- create outdir if it doesn't exist
-    outDirExists <- doesDirectoryExist outDir
-    unless outDirExists $ createDirectory outDir
-    -- catch stdout and write it to the outPath
-    writeStdOutToFile outPath action
-    -- append checksum to checksumfile
-    checksum <- getChecksum $ outPath
-    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
-
-writeStdOutToFile :: FilePath -> IO () -> IO ()
-writeStdOutToFile path action =
-    withFile path WriteMode $ \handle -> do
-      -- backup stdout handle
-      stdout_old <- hDuplicate stdout
-      -- redirect stdout to file
-      hDuplicateTo handle stdout
-      -- run action
-      action
-      -- load backup again
-      hDuplicateTo stdout_old stdout
