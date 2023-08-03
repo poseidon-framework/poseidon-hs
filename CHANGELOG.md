@@ -1,3 +1,4 @@
+- V 1.3.0.3: Small code layout changes in the golden test setup and slightly better error handling for http requests in `fetch` and `list --remote`.
 - V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.
 - V 1.3.0.1: Added a global option `--debug`, which is short for `--logMode VerboseLog`.
 - V 1.3.0.0: Replaced `update` with `rectify`.
