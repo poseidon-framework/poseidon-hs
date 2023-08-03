@@ -1,14 +1,14 @@
 ### V 1.3.0.4
 
-This is a significant release with one breaking change, multiple new features and a number of minor fixes and improvements.
+This is a significant release with a breaking change, multiple new features and a number of minor fixes and improvements.
 
 #### `rectify` replaces `update`
 
-The subcommand `update` was renamed to `rectify` to better express its purpose. The name `update` suggested that this command could effectively migrate packages from one Poseidon version to the next, which was never the case. Structural and semantical changes to the package always have to be performed by the user through other means, so usually by manually editing the respective package files. `rectify` only helps to adjusts a number of parameters (mostly in the POSEIDON.yml file) after the changes have been applied: It updates checksums, iterates version numbers, adds contributors and appends logging information to the CHANGELOG files. Despite this limitation it is still a valuable tool, especially for the management of large package archives, where structural changes are often applied to many packages at once, all requiring "rectification" in the end.
+The subcommand `update` was renamed to `rectify` to better express its purpose. The name `update` suggested that this command could effectively migrate packages from one Poseidon version to the next, which was never the case. Structural and semantical changes to the package always have to be performed by the user through other means, so usually by manually editing the respective package files. `rectify` only helps to adjust a number of parameters (mostly in the POSEIDON.yml file) after the changes have been applied: It updates checksums, iterates version numbers, adds contributors and appends logging information to CHANGELOG files. Despite this limitation it is still a valuable tool, especially for the management of large package archives, where structural changes are often applied to many packages at once, all requiring "rectification" in the end.
 
-`rectify` doesn't only have a different name, it also has a different interface. While `update` was a catch-all procedure with an opinionated, default behaviour that could partially be adjusted with various flags, `rectify` follows a much more transparent opt-in philosophy. The new interface allows to precisely choose which aspects of a package should be updated.
+`rectify` doesn't only introduce a different name, it also features a different interface. While `update` was a catch-all procedure with an opinionated, default behaviour that could partially be adjusted with various flags, `rectify` follows a much more transparent opt-in philosophy. The new interface allows to precisely choose which aspects of a package should be updated.
 
-:warning: Please note that certain changes like incrementing the version number or adding a logText do not happen automatically any more in `rectify`. They have to be requested explicitly!
+:warning: Please note that certain changes like incrementing the version number or adding a logText therefore do not happen automatically any more in `rectify`. They have to be requested explicitly!
 
 Here is the new command line documentation of `rectify`:
 
@@ -44,15 +44,15 @@ Available options:
 
 #### `serve` now provides different package archives and `list` and `fetch` can access them
 
-`trident serve`, so the subcommand behind the Poseidon Web API, can now provide packages from multiple named archives in parallel. This works through a modified `-d` interface on the command line and a new option `?archive=...` in the Web API. The client commands `fetch` and `list` can request information and package download from these different archives with a new option `--archive`. If `--archive` (or `?archive=...` in the http request) are not given, then the server falls back to a default archive (the first in `-d`).
+`trident serve`, so the subcommand behind the server providing the Poseidon Web API, can now host packages from multiple named archives in parallel. This works through a modified `-d` interface on the command line and a new option `?archive=...` in the Web API. The client commands `fetch` and `list` can request information and package download from these different archives with a new option `--archive`. If `--archive` (or `?archive=...` in the http request) are not given, then the server falls back to a default archive (the first in `-d`).
 
 See the Poseidon [public archive](https://www.poseidon-adna.org/#/archive_overview) and [Web API](https://www.poseidon-adna.org/#/web_api) documentation for the concrete consequences of this new feature.
 
 #### `validate` can now check individual files
 
-The `validate` subcommand is no longer confined to validating entire poseidon packages. It can still very much do so with `-d`, where -- just as before -- a number of optional flags can be used to control the exact behaviour. This release adds the new options `--ignorePoseidonVersion` and `--ignoreChecksums` here. But `validate` can now also read, parse and thus check individual files: POSEIDON.yml files, genotype data files, .janno files, .ssf files or .bib files. This is tremendously useful for building packages step-by-step, e.g. in automatic pipelines.
+The `validate` subcommand is no longer confined to validating entire poseidon packages. It can still very much do so with `-d`, where -- just as before -- a number of optional flags can be used to control the exact behaviour. This release, in fact, adds the new options `--ignorePoseidonVersion` and `--ignoreChecksums` here. But `validate` can now also read, parse and thus check individual files: POSEIDON.yml files, genotype data files, .janno files, .ssf files or .bib files. This is tremendously useful for building packages step-by-step, e.g. in automatic pipelines.
 
-:warning: Please note that these individual file checks naturally do not include the cross-file checks (e.g. publication keys across .janno and .bib) the full package validation provides.
+:warning: Please note that these individual file checks naturally do not include the cross-file checks (e.g. publication keys across .janno and .bib). These are only available in the full package validation process.
 
 Here is the new command line documentation of `validate`:
 
@@ -97,13 +97,13 @@ Available options:
 
 #### Other, minor changes
 
-- Fixed the behaviour of `forge` when combining .bib files. Duplicates are now properly removed upon merging and the output is alphabetically sorted.
+- Fixed the behaviour of `forge` when combining .bib files. Publication duplicates are now properly removed upon merging and the output is alphabetically sorted.
 - Added a global option `--debug`, which is short for `--logMode VerboseLog`.
-- Slightly better error handling for http requests in `fetch` and `list --remote`.
-- Some cleaning of the `trident` command line documentation: Added meaningful meta variables to all arguments.
-- Shortened the default command line output of `fetch` to make it more readable.
+- Refactored `summarise` to make the resulting counts more accurate. Some variables in the output table have been renamed as well.
 - Fixed the behaviour of `chronicle` when updating a chronicle file (with `-u`): The `lastModified` field is now only touched if there is actually a change in the package list.
-- Refactoring of `summarise` to make the result counts more accurate. Some output variables have been renamed as well.
+- Some cleaning of the general `trident` command line documentation: Added meaningful meta variables to all arguments.
+- Shortened the default command line output of `fetch` to make it more readable.
+- Slightly better error handling for failed http requests in `fetch` and `list --remote`.
 
 ### V 1.2.1.0
 
