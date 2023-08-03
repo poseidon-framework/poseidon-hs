@@ -47,7 +47,7 @@ import           Data.Time              (defaultTimeLocale, formatTime,
 import           Data.Version           (showVersion)
 import           Data.Yaml              (ParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
-import           Network.HTTP.Conduit   (HttpException)
+import           Network.HTTP.Conduit   (HttpException (..))
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
@@ -174,7 +174,7 @@ data PoseidonException =
     | PoseidonServerCommunicationException String -- ^ An exception to mark server communication errors
     | PoseidonUnzipException SomeException -- ^ An exception for unzipping issues in fetch
     | PoseidonChronicleException String -- ^ An exception for issues in chronicle
-    | PoseidonGitException FilePath -- ^ An exception for issues with git
+    | PoseidonGitException FilePath String -- ^ An exception for issues with git
     deriving (Show)
 
 instance Exception PoseidonException
@@ -198,6 +198,9 @@ renderPoseidonException (PoseidonGenotypeException s) =
     "Genotype data structurally inconsistent: " ++ show s
 renderPoseidonException (PoseidonGenotypeExceptionForward e) =
     "Issues in genotype data parsing: " ++ show e
+renderPoseidonException (PoseidonHttpExceptionForward (HttpExceptionRequest _ content)) =
+    "Issues in HTTP-communication with server:\n" ++
+    show content
 renderPoseidonException (PoseidonHttpExceptionForward e) =
     "Issues in HTTP-communication with server: " ++ show e
 renderPoseidonException (PoseidonFileRowException f i s) =
@@ -239,8 +242,8 @@ renderPoseidonException (PoseidonUnzipException e) =
     "Error during unzipping: " ++ show e
 renderPoseidonException (PoseidonChronicleException s) =
     "Error when preparing the chronicle file: "  ++ s
-renderPoseidonException (PoseidonGitException p) =
-    "Failed to load .git directory in " ++ p
+renderPoseidonException (PoseidonGitException p s) =
+    "Failed to load .git directory in " ++ p ++ ": " ++ s
 
 -- helper function to check if a file exists
 checkFile :: FilePath -> Maybe String -> IO ()

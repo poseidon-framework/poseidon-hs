@@ -48,7 +48,7 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
         pacStatesToAdd -> do
             eitherGit <- liftIO $ getGitInfo srcDir
             case eitherGit of
-                Left _ -> do throwM $ PoseidonGitException srcDir
+                Left e -> do throwM $ PoseidonGitException srcDir (show e)
                 Right gitRef -> do
                     let currentBranch = giBranch gitRef
                     logInfo $ "Starting at branch " ++ currentBranch ++ " in " ++ srcDir
@@ -71,7 +71,7 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
             -- this exists to reduce the number of checkouts
             eitherGit <- liftIO $ getGitInfo srcDir
             case eitherGit of
-                Left _ -> do throwM $ PoseidonGitException srcDir
+                Left e -> do throwM $ PoseidonGitException srcDir (show e)
                 Right gitRef -> do
                     let currentCommit = giHash gitRef
                     if currentCommit == commit

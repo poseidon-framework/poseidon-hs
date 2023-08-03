@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.2.3.4
+version:             1.3.0.4
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -19,7 +19,7 @@ library
                         Poseidon.CLI.List, Poseidon.CLI.Chronicle, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
-                        Poseidon.CLI.Update, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
+                        Poseidon.CLI.Rectify, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
                         Poseidon.CLI.OptparseApplicativeParsers, Poseidon.CLI.Timetravel
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
@@ -29,7 +29,7 @@ library
                         scotty, cassava, pureMD5, wai, githash,
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific, country, generics-sop, containers, process
+                        scientific, country, generics-sop, containers, process, deepseq
     default-language:   Haskell2010
 
 executable trident

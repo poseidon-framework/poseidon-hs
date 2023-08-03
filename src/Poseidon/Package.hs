@@ -60,6 +60,7 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              logWithEnv,
                                              renderPoseidonException)
 
+import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM, forM_, unless, void,
                                              when)
@@ -775,7 +776,7 @@ writePoseidonPackage :: PoseidonPackage -> IO ()
 writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
     let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
-    B.writeFile outF (encodePretty opts yamlPac)
+    B.writeFile outF $!! encodePretty opts yamlPac
     where
         opts = setConfDropNull True $ setConfCompare (compare `on` fieldIndex) defConfig
         fieldIndex s = fromMaybe (length fields) $ s `elemIndex` fields

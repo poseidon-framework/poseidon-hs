@@ -11,12 +11,14 @@ import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
 import           Poseidon.CLI.Init        (InitOptions (..), runInit)
 import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
                                            RepoLocationSpec (..), runList)
+import           Poseidon.CLI.Rectify     (ChecksumsToRectify (..),
+                                           PackageVersionUpdate (..),
+                                           RectifyOptions (..), runRectify)
 import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
 import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
 import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
                                            runTimetravel)
-import           Poseidon.CLI.Update      (UpdateOptions (..), runUpdate)
 import           Poseidon.CLI.Validate    (ValidateOptions (..),
                                            ValidatePlan (..), runValidate)
 import           Poseidon.EntitiesList    (EntityInput (..),
@@ -40,6 +42,7 @@ import           Data.Either              (fromRight)
 import           Data.Function            ((&))
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
+import           Data.Version             (makeVersion)
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle   (ChronOperation (..),
                                            ChronicleOptions (..), runChronicle)
@@ -53,6 +56,8 @@ import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
 
+-- file paths --
+
 tempTestDir         :: FilePath
 tempTestDir         = "/tmp/poseidonHSGoldenTestData"
 staticTestDir       :: FilePath
@@ -65,6 +70,72 @@ testPacsDir         :: FilePath
 testPacsDir         = "test/testDat/testPackages/ancient"
 testEntityFiles     :: FilePath
 testEntityFiles     = "test/testDat/testEntityFiles"
+
+-- helper functions --
+
+copyDirectoryRecursive :: FilePath -> FilePath -> IO ()
+copyDirectoryRecursive srcDir destDir = do
+  createDirectoryIfMissing True destDir
+  entries <- listDirectory srcDir
+  forM_ entries $ \entry -> do
+    let srcPath = srcDir </> entry
+        destPath = destDir </> entry
+    isDir <- doesDirectoryExist srcPath
+    if isDir
+    then do copyDirectoryRecursive srcPath destPath
+    else do copyFile srcPath destPath
+
+patchLastModified :: FilePath -> FilePath -> IO ()
+patchLastModified testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "lastModified" `T.isPrefixOf` l
+                then return "lastModified: 1970-01-01"
+                else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
+runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
+    -- run action
+    action
+    -- append checksums to checksum file
+    mapM_ (appendChecksum checkSumFilePath testDir actionName) outFiles
+    where
+        appendChecksum :: FilePath -> FilePath -> FilePath -> String -> IO ()
+        appendChecksum checkSumFilePath_ testDir_ actionName_ outFile = do
+            checksum <- getChecksum $ testDir_ </> outFile
+            appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
+
+runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
+runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
+    -- store stdout in a specific output file
+    let outFileName = actionName ++ show outFileNumber
+        outDirInTestDir = actionName </> outFileName
+        outDir = testDir </> actionName
+        outPath = outDir </> outFileName
+    -- create outdir if it doesn't exist
+    outDirExists <- doesDirectoryExist outDir
+    unless outDirExists $ createDirectory outDir
+    -- catch stdout and write it to the outPath
+    writeStdOutToFile outPath action
+    -- append checksum to checksumfile
+    checksum <- getChecksum $ outPath
+    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
+
+writeStdOutToFile :: FilePath -> IO () -> IO ()
+writeStdOutToFile path action =
+    withFile path WriteMode $ \handle -> do
+      -- backup stdout handle
+      stdout_old <- hDuplicate stdout
+      -- redirect stdout to file
+      hDuplicateTo handle stdout
+      -- run action
+      action
+      -- load backup again
+      hDuplicateTo stdout_old stdout
+
+-- test pipeline --
 
 createStaticCheckSumFile :: FilePath -> IO ()
 createStaticCheckSumFile d = runCLICommands True (d </> staticTestDir) (d </> staticCheckSumFile)
@@ -98,8 +169,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- genoconvert"
     testPipelineGenoconvert testDir checkFilePath
-    hPutStrLn stderr "--- update"
-    testPipelineUpdate testDir checkFilePath
+    hPutStrLn stderr "--- rectify"
+    testPipelineRectify testDir checkFilePath
     hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath
     hPutStrLn stderr "--- chronicle & timetravel"
@@ -168,6 +239,8 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanIgnoreGeno       = False
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
+            , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
         , _validateNoExitCode          = True
     }
@@ -178,6 +251,8 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanIgnoreGeno       = True
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
+            , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
     } & run 2
     validateOpts1 {
@@ -186,6 +261,8 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanIgnoreGeno       = False
             , _valPlanFullGeno         = True
             , _valPlanIgnoreDuplicates = True
+            , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
     } & run 3
     -- validate packages generated with init
@@ -195,6 +272,8 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanIgnoreGeno       = False
             , _valPlanFullGeno         = False
             , _valPlanIgnoreDuplicates = True
+            , _valPlanIgnoreChecksums  = False
+            , _valPlanIgnorePosVersion = False
             }
     } & run 4
     -- validate individual files
@@ -341,57 +420,47 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.fam"
         ]
 
-testPipelineUpdate :: FilePath -> FilePath -> IO ()
-testPipelineUpdate testDir checkFilePath = do
-    -- in-place conversion
-    let updateOpts1 = UpdateOptions {
-          _updateBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _updatePoseidonVersion = Nothing
-        , _updateIgnorePoseidonVersion = False
-        , _updateVersionUpdate = Major
-        , _updateNoChecksumUpdate = True
-        , _updateIgnoreGeno = True
-        , _updateNewContributors = []
-        , _updateLog = "test1"
-        , _updateForce = True
+testPipelineRectify :: FilePath -> FilePath -> IO ()
+testPipelineRectify testDir checkFilePath = do
+    let rectifyOpts1 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Nothing
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
+        , _rectifyChecksums = ChecksumNone
+        , _rectifyNewContributors = Nothing
         }
-    let action1 = testLog (runUpdate updateOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action1 "update" [
+    let action1 = testLog (runRectify rectifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "rectify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let updateOpts2 = UpdateOptions {
-          _updateBaseDirs = [testDir </> "Schiffels"]
-        , _updatePoseidonVersion = Nothing
-        , _updateIgnorePoseidonVersion = False
-        , _updateVersionUpdate = Minor
-        , _updateNoChecksumUpdate = False
-        , _updateIgnoreGeno = False
-        , _updateNewContributors = []
-        , _updateLog = "test2"
-        , _updateForce = False
+    let rectifyOpts2 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Just $ makeVersion [2,7,1]
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
+        , _rectifyChecksums = ChecksumAll
+        , _rectifyNewContributors = Nothing
         }
-    let action2 = testLog (runUpdate updateOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action2 "update" [
+    let action2 = testLog (runRectify rectifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "rectify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let updateOpts3 = UpdateOptions {
-          _updateBaseDirs = [testDir </> "Schiffels"]
-        , _updatePoseidonVersion = Nothing
-        , _updateIgnorePoseidonVersion = False
-        , _updateVersionUpdate = Patch
-        , _updateNoChecksumUpdate = False
-        , _updateIgnoreGeno = False
-        , _updateNewContributors = [
-            ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing,
-            ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
+    let rectifyOpts3 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Nothing
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
+        , _rectifyChecksums = ChecksumNone
+        , _rectifyNewContributors = Just [
+              ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing
+            , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
-        , _updateLog = "test3"
-        , _updateForce = True
         }
-    let action3 = testLog (runUpdate updateOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action3 "update" [
+    let action3 = testLog (runRectify rectifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action3 "rectify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
@@ -721,7 +790,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
             -- normal package in version B
           , "timetravel" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
             -- package added in new commit
-          , "timetravel" </> "Schiffels-1.0.0" </> "POSEIDON.yml"
+          , "timetravel" </> "Schiffels-1.1.1" </> "POSEIDON.yml"
             -- package removed in last commit, real timetravel necessary
           , "timetravel" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
         ]
@@ -815,67 +884,3 @@ testPipelineListRemote testDir checkFilePath = do
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
 
     killThread threadID
-
--- helper functions --
-
-copyDirectoryRecursive :: FilePath -> FilePath -> IO ()
-copyDirectoryRecursive srcDir destDir = do
-  createDirectoryIfMissing True destDir
-  entries <- listDirectory srcDir
-  forM_ entries $ \entry -> do
-    let srcPath = srcDir </> entry
-        destPath = destDir </> entry
-    isDir <- doesDirectoryExist srcPath
-    if isDir
-    then do copyDirectoryRecursive srcPath destPath
-    else do copyFile srcPath destPath
-
-patchLastModified :: FilePath -> FilePath -> IO ()
-patchLastModified testDir yamlFile = do
-    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
-    let patchedLines = do
-            l <- lines_
-            if "lastModified" `T.isPrefixOf` l
-                then return "lastModified: 1970-01-01"
-                else return l
-    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
-
-runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
-runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
-    -- run action
-    action
-    -- append checksums to checksum file
-    mapM_ (appendChecksum checkSumFilePath testDir actionName) outFiles
-    where
-        appendChecksum :: FilePath -> FilePath -> FilePath -> String -> IO ()
-        appendChecksum checkSumFilePath_ testDir_ actionName_ outFile = do
-            checksum <- getChecksum $ testDir_ </> outFile
-            appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
-
-runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
-runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
-    -- store stdout in a specific output file
-    let outFileName = actionName ++ show outFileNumber
-        outDirInTestDir = actionName </> outFileName
-        outDir = testDir </> actionName
-        outPath = outDir </> outFileName
-    -- create outdir if it doesn't exist
-    outDirExists <- doesDirectoryExist outDir
-    unless outDirExists $ createDirectory outDir
-    -- catch stdout and write it to the outPath
-    writeStdOutToFile outPath action
-    -- append checksum to checksumfile
-    checksum <- getChecksum $ outPath
-    appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
-
-writeStdOutToFile :: FilePath -> IO () -> IO ()
-writeStdOutToFile path action =
-    withFile path WriteMode $ \handle -> do
-      -- backup stdout handle
-      stdout_old <- hDuplicate stdout
-      -- redirect stdout to file
-      hDuplicateTo handle stdout
-      -- run action
-      action
-      -- load backup again
-      hDuplicateTo stdout_old stdout

@@ -1,4 +1,9 @@
-- V 1.2.3.4: Some cleaning of the `trident` command line documentation. Added meaningful meta variables to the subcommand arguments.
+- V 1.3.0.4: Added an option `--ignorePoseidonVersion` to `validate`.
+- V 1.3.0.3: Small code layout changes in the golden test setup and slightly better error handling for http requests in `fetch` and `list --remote`.
+- V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.
+- V 1.3.0.1: Added a global option `--debug`, which is short for `--logMode VerboseLog`.
+- V 1.3.0.0: Replaced `update` with `rectify`.
+- V 1.2.3.4: Some cleaning of the `trident` command line documentation. Added meaningful meta variables to the subcommand arguments. Shortened `fetch` command logInfo output.
 - V 1.2.3.3: Fixed the behaviour of `chronicle` when updating a chronicle file (with `-u`): The `lastModified` field is now only touched if there is actually a change in the package list.
 - V 1.2.3.2: Some refactoring of `summarise` to make the code more neat and the result counts more accurate.
 - V 1.2.3.1: Fixed the behaviour of `forge` when combining .bib files. Duplicates are now properly removed upon merging and the output is alphabetically sorted.

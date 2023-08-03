@@ -41,11 +41,11 @@ data ListEntity = ListPackages
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptGenoCheck        = False
+      _readOptStopOnDuplicates     = False
+    , _readOptIgnoreChecksums      = True
+    , _readOptGenoCheck            = False
     , _readOptKeepMultipleVersions = True
-    , _readOptIgnoreGeno = True
+    , _readOptIgnoreGeno           = True
 }
 
 -- | The main function running the list command

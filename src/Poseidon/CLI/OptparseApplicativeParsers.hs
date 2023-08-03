@@ -5,6 +5,8 @@ module Poseidon.CLI.OptparseApplicativeParsers where
 import           Poseidon.CLI.Chronicle  (ChronOperation (..))
 import           Poseidon.CLI.List       (ListEntity (..),
                                           RepoLocationSpec (..))
+import           Poseidon.CLI.Rectify    (ChecksumsToRectify (..),
+                                          PackageVersionUpdate (..))
 import           Poseidon.CLI.Validate   (ValidatePlan (..))
 import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
                                           PoseidonEntity, SignedEntitiesList,
@@ -64,20 +66,25 @@ parseChronUpdatePath = OP.strOption (
             \that are already in the chronicle definition file. \
             \It only adds new entries.")
 
-parsePoseidonVersion :: OP.Parser (Maybe Version)
-parsePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
+parseMaybePoseidonVersion :: OP.Parser (Maybe Version)
+parseMaybePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVersionString) (
     OP.long "poseidonVersion" <>
     OP.metavar "?.?.?" <>
     OP.help "Poseidon version the packages should be updated to: \
             \e.g. \"2.5.3\"." <>
-    OP.value Nothing <>
-    OP.showDefault
+    OP.value Nothing
     )
     where
         readPoseidonVersionString :: String -> Either String Version
         readPoseidonVersionString s = case runParser poseidonVersionParser () "" s of
             Left p  -> Left (show p)
             Right x -> Right x
+
+parseDebugMode :: OP.Parser LogMode
+parseDebugMode = OP.flag' VerboseLog (
+    OP.long "debug" <>
+    OP.help "Short for --logMode VerboseLog."
+    )
 
 parseLogMode :: OP.Parser LogMode
 parseLogMode = OP.option (OP.eitherReader readLogMode) (
@@ -140,15 +147,49 @@ parseRemoveOld = OP.switch (
     OP.help "Remove the old genotype files when creating the new ones."
     )
 
+parseChecksumsToRectify :: OP.Parser ChecksumsToRectify
+parseChecksumsToRectify = parseChecksumNone <|> parseChecksumAll <|> parseChecksumsDetail
+    where
+        parseChecksumNone :: OP.Parser ChecksumsToRectify
+        parseChecksumNone = pure ChecksumNone
+        parseChecksumAll :: OP.Parser ChecksumsToRectify
+        parseChecksumAll = ChecksumAll <$
+            OP.flag' () (
+                OP.long "checksumAll" <>
+                OP.help "Update all checksums.")
+        parseChecksumsDetail :: OP.Parser ChecksumsToRectify
+        parseChecksumsDetail = ChecksumsDetail <$>
+            parseChecksumGeno <*>
+            parseChecksumJanno <*>
+            parseChecksumSSF <*>
+            parseChecksumBib
+        parseChecksumGeno :: OP.Parser Bool
+        parseChecksumGeno = OP.switch (
+            OP.long "checksumGeno" <>
+            OP.help "Update genotype data checksums.")
+        parseChecksumJanno :: OP.Parser Bool
+        parseChecksumJanno = OP.switch (
+            OP.long "checksumJanno" <>
+            OP.help "Update .janno file checksum.")
+        parseChecksumSSF :: OP.Parser Bool
+        parseChecksumSSF = OP.switch (
+            OP.long "checksumSSF" <>
+            OP.help "Update .ssf file checksum")
+        parseChecksumBib :: OP.Parser Bool
+        parseChecksumBib = OP.switch (
+            OP.long "checksumBib" <>
+            OP.help "Update .bib file checksum.")
+
+parseMaybePackageVersionUpdate :: OP.Parser (Maybe PackageVersionUpdate)
+parseMaybePackageVersionUpdate = OP.optional $ PackageVersionUpdate <$> parseVersionComponent <*> parseMaybeLog
+
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
-    OP.long "versionComponent" <>
-    OP.metavar "COMPONENT" <>
+    OP.long "packageVersion" <>
+    OP.metavar "VPART" <>
     OP.help "Part of the package version number in the POSEIDON.yml file \
             \that should be updated: \
-            \Major, Minor or Patch (see https://semver.org)." <>
-    OP.value Patch <>
-    OP.showDefault
+            \Major, Minor or Patch (see https://semver.org)."
     )
     where
         readVersionComponent :: String -> Either String VersionComponent
@@ -164,19 +205,36 @@ parseNoChecksumUpdate = OP.switch (
     OP.help "Should the update of checksums in the POSEIDON.yml file be skipped?"
     )
 
+parseMaybeContributors :: OP.Parser (Maybe [ContributorSpec])
+parseMaybeContributors = OP.option (Just <$> OP.eitherReader readContributorString) (
+    OP.long "newContributors" <>
+    OP.metavar "DSL" <>
+    OP.help "Contributors to add to the POSEIDON.yml file \
+            \ in the form \"[Firstname Lastname](Email address);...\"." <>
+    OP.value Nothing
+    )
+
 parseContributors :: OP.Parser [ContributorSpec]
-parseContributors = concat <$> OP.many (OP.option (OP.eitherReader readContributorString) (
+parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
             \ in the form \"[Firstname Lastname](Email address);...\"."
-    ))
-    where
-        readContributorString :: String -> Either String [ContributorSpec]
-        readContributorString s = case runParser contributorSpecParser () "" s of
-            Left p  -> Left (show p)
-            Right x -> Right x
+    )
 
+readContributorString :: String -> Either String [ContributorSpec]
+readContributorString s = case runParser contributorSpecParser () "" s of
+    Left p  -> Left (show p)
+    Right x -> Right x
+
+
+parseMaybeLog :: OP.Parser (Maybe String)
+parseMaybeLog = OP.option (Just <$> OP.str) (
+    OP.long "logText" <>
+    OP.metavar "STRING" <>
+    OP.help "Log text for this version in the CHANGELOG file." <>
+    OP.value Nothing
+    )
 
 parseLog :: OP.Parser String
 parseLog = OP.strOption (
@@ -217,9 +275,7 @@ parseFetchEntityInputs = parseDownloadAll <|> OP.some parseEntityInput
 parseIgnorePoseidonVersion :: OP.Parser Bool
 parseIgnorePoseidonVersion = OP.switch (
     OP.long "ignorePoseidonVersion" <>
-    OP.help "Read packages even if their poseidonVersion is not compatible with the trident version. \
-        \The assumption is, that the package is already structurally adjusted to the trident version \
-        \and only the version number is lagging behind."
+    OP.help "Read packages even if their poseidonVersion is not compatible with trident."
     )
 
 parseForgeEntitiesDirect :: OP.Parser SignedEntitiesList
@@ -327,7 +383,12 @@ parseArchiveEndpoint = ArchiveEndpoint <$> parseRemoteURL <*> parseMaybeArchiveN
 
 parseValidatePlan :: OP.Parser ValidatePlan
 parseValidatePlan =
-        (ValPlanBaseDirs <$> parseBasePaths <*> parseIgnoreGeno <*> parseFullGeno <*> parseIgnoreDuplicates)
+        (ValPlanBaseDirs <$> parseBasePaths
+                         <*> parseIgnoreGeno
+                         <*> parseFullGeno
+                         <*> parseIgnoreDuplicates
+                         <*> parseIgnoreChecksums
+                         <*> parseIgnorePoseidonVersion)
     <|> (ValPlanPoseidonYaml <$> parseInPoseidonYamlFile)
     <|> (ValPlanGeno <$> parseInGenoWithoutSNPSet)
     <|> (ValPlanJanno <$> parseInJannoFile)
