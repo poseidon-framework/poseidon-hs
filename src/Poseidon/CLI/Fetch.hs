@@ -6,6 +6,10 @@ import           Poseidon.EntitiesList   (EntityInput, PoseidonEntity,
                                           findNonExistentEntities,
                                           indInfoFindRelevantPackageNames,
                                           readEntityInputs)
+import           Poseidon.EntityTypes    (ExtendedIndividualInfo (..),
+                                          IndividualInfo (..),
+                                          PacNameAndVersion (..),
+                                          PackageInfo (..), makeNameWithVersion)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -18,10 +22,6 @@ import           Poseidon.SecondaryTypes (ApiReturnData (..),
 import           Poseidon.Utils          (LogA, PoseidonException (..),
                                           PoseidonIO, envLogAction, logInfo,
                                           logWarning, logWithEnv, padLeft)
-import Poseidon.EntityTypes (                                          ExtendedIndividualInfo (..),
-                                          IndividualInfo (..),
-                                          PacNameAndVersion (..),
-                                          PackageInfo (..), makeNameWithVersion)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)

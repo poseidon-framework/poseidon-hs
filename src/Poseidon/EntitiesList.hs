@@ -7,26 +7,28 @@ module Poseidon.EntitiesList (
     entitiesListP, EntityInput(..), readEntityInputs, PoseidonIndividual (..),
     resolveEntityIndices, SelectionLevel2 (..),     PoseidonEntity (..)) where
 
-import           Poseidon.Package        (PoseidonPackage (..),
-                                          getJointIndividualInfo)
-import           Poseidon.Utils          (PoseidonException (..))
-import Poseidon.EntityTypes (IndividualInfo (..), PoseidonIndividual(..), PacNameAndVersion (..))
+import           Poseidon.EntityTypes   (IndividualInfo (..),
+                                         PacNameAndVersion (..),
+                                         PoseidonIndividual (..))
+import           Poseidon.Package       (PoseidonPackage (..),
+                                         getJointIndividualInfo)
+import           Poseidon.Utils         (PoseidonException (..))
 
-import           Control.Applicative     ((<|>))
-import           Control.Exception       (throwIO)
-import           Control.Monad           (forM)
-import           Control.Monad.IO.Class  (MonadIO, liftIO)
-import           Data.Aeson              (FromJSON (..), ToJSON (..),
-                                          Value (..), withText)
-import           Data.Aeson.Types        (Parser)
-import           Data.Char               (isSpace)
-import           Data.Function           ((&))
-import           Data.List               (groupBy, nub, sort, sortBy, (\\))
-import           Data.Maybe              (mapMaybe)
-import           Data.Text               (Text, pack, unpack)
-import qualified Text.Parsec             as P
-import qualified Text.Parsec.String      as P
-import Data.Version (makeVersion)
+import           Control.Applicative    ((<|>))
+import           Control.Exception      (throwIO)
+import           Control.Monad          (forM)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
+                                         withText)
+import           Data.Aeson.Types       (Parser)
+import           Data.Char              (isSpace)
+import           Data.Function          ((&))
+import           Data.List              (groupBy, nub, sort, sortBy, (\\))
+import           Data.Maybe             (mapMaybe)
+import           Data.Text              (Text, pack, unpack)
+import           Data.Version           (makeVersion)
+import qualified Text.Parsec            as P
+import qualified Text.Parsec.String     as P
 
 -- Data types for the selection process
 

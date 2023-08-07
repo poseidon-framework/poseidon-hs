@@ -4,6 +4,7 @@ module Poseidon.CLI.Rectify (
     runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
     ) where
 
+import           Poseidon.EntityTypes    (makeNameWithVersion)
 import           Poseidon.GenotypeData   (GenotypeDataSpec (..))
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -15,7 +16,6 @@ import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           updateThreeComponentVersion)
 import           Poseidon.Utils          (PoseidonIO, getChecksum, logDebug,
                                           logInfo)
-import Poseidon.EntityTypes (makeNameWithVersion)
 
 import           Control.DeepSeq         ((<$!!>))
 import           Control.Monad.IO.Class  (liftIO)

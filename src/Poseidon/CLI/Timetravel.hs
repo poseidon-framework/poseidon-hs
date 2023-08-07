@@ -1,26 +1,26 @@
 module Poseidon.CLI.Timetravel where
 
-import           Poseidon.Chronicle      (PackageIteration (..),
-                                          PoseidonPackageChronicle (..),
-                                          chroniclePackages, readChronicle)
-import           Poseidon.Package        (PackageReadOptions (..),
-                                          defaultPackageReadOptions,
-                                          readPoseidonPackageCollection)
-import           Poseidon.EntityTypes (makeNameWithVersion)
-import           Poseidon.Utils          (LogA, PoseidonException (..),
-                                          PoseidonIO, envLogAction, logDebug,
-                                          logInfo, logWithEnv)
+import           Poseidon.Chronicle     (PackageIteration (..),
+                                         PoseidonPackageChronicle (..),
+                                         chroniclePackages, readChronicle)
+import           Poseidon.EntityTypes   (makeNameWithVersion)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (LogA, PoseidonException (..),
+                                         PoseidonIO, envLogAction, logDebug,
+                                         logInfo, logWithEnv)
 
-import           Control.Exception       (finally)
-import           Control.Monad           (forM_)
-import           Control.Monad.Catch     (throwM)
-import           Control.Monad.IO.Class  (liftIO)
-import qualified Data.Set                as S
-import           GitHash                 (getGitInfo, giBranch, giHash)
-import           System.Directory        (copyFile, createDirectoryIfMissing,
-                                          listDirectory)
-import           System.FilePath         ((</>))
-import           System.Process          (callCommand)
+import           Control.Exception      (finally)
+import           Control.Monad          (forM_)
+import           Control.Monad.Catch    (throwM)
+import           Control.Monad.IO.Class (liftIO)
+import qualified Data.Set               as S
+import           GitHash                (getGitInfo, giBranch, giHash)
+import           System.Directory       (copyFile, createDirectoryIfMissing,
+                                         listDirectory)
+import           System.FilePath        ((</>))
+import           System.Process         (callCommand)
 
 data TimetravelOptions = TimetravelOptions
     { _timetravelBaseDirs      :: [FilePath]

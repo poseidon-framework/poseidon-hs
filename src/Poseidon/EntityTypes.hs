@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.EntityTypes (
@@ -7,10 +7,11 @@ module Poseidon.EntityTypes (
     HasNameAndVersion (..),
     PacNameAndVersion(..), PoseidonIndividual(..)) where
 
-import Data.Version (Version, showVersion)
-import GHC.Generics (Generic)
-import Data.Time (Day)
-import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), KeyValue ((.=)))
+import           Data.Aeson   (FromJSON (..), KeyValue ((.=)), ToJSON (..),
+                               object, withObject, (.:))
+import           Data.Time    (Day)
+import           Data.Version (Version, showVersion)
+import           GHC.Generics (Generic)
 
 -- Entity definiting data types
 
@@ -29,9 +30,9 @@ instance Show PoseidonIndividual where
     show (SpecificInd i) = show i
 
 data IndividualInfo = IndividualInfo
-    { indInfoName    :: String
-    , indInfoGroups  :: [String]
-    , indInfoPac     :: PacNameAndVersion
+    { indInfoName   :: String
+    , indInfoGroups :: [String]
+    , indInfoPac    :: PacNameAndVersion
     } deriving (Ord, Generic)
 
 instance Eq IndividualInfo where

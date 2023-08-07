@@ -31,6 +31,12 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
+import           Poseidon.EntityTypes       (ExtendedIndividualInfo (..),
+                                             GroupInfo (..),
+                                             HasNameAndVersion (..),
+                                             IndividualInfo (..),
+                                             PacNameAndVersion (..),
+                                             PackageInfo (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -42,9 +48,7 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..),
-                                             ORCID (..)
-                                             )
+import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
@@ -55,8 +59,6 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              logDebug, logInfo, logWarning,
                                              logWithEnv,
                                              renderPoseidonException)
-import Poseidon.EntityTypes (HasNameAndVersion (..), PacNameAndVersion (..), ExtendedIndividualInfo (..),
-                                             GroupInfo (..), IndividualInfo(..), PackageInfo (..))
 
 import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)

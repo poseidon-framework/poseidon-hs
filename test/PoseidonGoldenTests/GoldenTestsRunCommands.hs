@@ -46,6 +46,7 @@ import           Data.Version             (makeVersion)
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle   (ChronOperation (..),
                                            ChronicleOptions (..), runChronicle)
+import           Poseidon.EntityTypes     (PacNameAndVersion (..))
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (copyFile, createDirectory,
                                            createDirectoryIfMissing,
@@ -55,7 +56,6 @@ import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
-import Poseidon.EntityTypes (PacNameAndVersion(..))
 
 -- file paths --
 

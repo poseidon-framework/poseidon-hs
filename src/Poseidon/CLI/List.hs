@@ -10,8 +10,7 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           ArchiveEndpoint (..),
-                                          processApiResponse,
-                                          qDefault)
+                                          processApiResponse, qDefault)
 import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad           (forM_, when)
@@ -19,11 +18,12 @@ import           Control.Monad.IO.Class  (liftIO)
 import           Data.List               (intercalate, sortOn)
 import           Data.Maybe              (catMaybes, fromMaybe)
 import           Data.Version            (Version, showVersion)
+import           Poseidon.EntityTypes    (ExtendedIndividualInfo (ExtendedIndividualInfo),
+                                          GroupInfo (..),
+                                          PacNameAndVersion (..),
+                                          PackageInfo (..))
 import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
                                           rowsG, tableString, titlesH)
-import Poseidon.EntityTypes (                                          ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                          GroupInfo (..),
-                                          PacNameAndVersion (..),PackageInfo (..))
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions

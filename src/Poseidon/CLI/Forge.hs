@@ -11,6 +11,8 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               findNonExistentEntities,
                                               readEntityInputs,
                                               resolveEntityIndices)
+import           Poseidon.EntityTypes        (IndividualInfo (..),
+                                              PacNameAndVersion (..))
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -31,7 +33,6 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
-import           Poseidon.EntityTypes     (IndividualInfo (..), PacNameAndVersion (..))
 import           Poseidon.SequencingSource   (SeqSourceRow (..),
                                               SeqSourceRows (..),
                                               writeSeqSourceFile)

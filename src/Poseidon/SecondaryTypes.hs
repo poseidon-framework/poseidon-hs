@@ -18,9 +18,10 @@ module Poseidon.SecondaryTypes (
 ) where
 
 import           Paths_poseidon_hs      (version)
+import           Poseidon.EntityTypes   (ExtendedIndividualInfo (..),
+                                         GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)
-import Poseidon.EntityTypes (PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo (..))
 
 import           Control.Exception      (catch, throwIO)
 import           Control.Monad          (forM_, guard, mzero, unless)

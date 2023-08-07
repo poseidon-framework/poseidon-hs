@@ -3,6 +3,7 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
+import           Poseidon.EntityTypes         (makeNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
@@ -16,7 +17,6 @@ import           Poseidon.SecondaryTypes      (ApiReturnData (..),
                                                ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
-import Poseidon.EntityTypes (makeNameWithVersion)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
