@@ -39,7 +39,7 @@ instance Eq IndividualInfo where
     (==) (IndividualInfo a1 b1 c1) (IndividualInfo a2 b2 c2) = a1 == a2 && head b1 == head b2 && c1 == c2
 
 instance Show IndividualInfo where
-    show (IndividualInfo i g p) = "<" ++ show p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
+    show (IndividualInfo i g p) = "<" ++ renderNameWithVersion p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
 class HasNameAndVersion a where
     getPacName    :: a -> String
@@ -54,7 +54,7 @@ data PacNameAndVersion = PacNameAndVersion String (Maybe Version)
     deriving (Eq, Ord)
 
 instance Show PacNameAndVersion where
-    show = renderNameWithVersion
+    show a = "*" ++ renderNameWithVersion a ++ "*"
 
 makePacNameAndVersion :: (HasNameAndVersion a) => a -> PacNameAndVersion
 makePacNameAndVersion a = PacNameAndVersion (getPacName a) (getPacVersion a)

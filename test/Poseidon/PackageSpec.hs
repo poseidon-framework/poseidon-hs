@@ -13,7 +13,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
+import           Poseidon.Contributor    (ContributorSpec (..), ORCID (..))
 import           Poseidon.Utils             (LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
