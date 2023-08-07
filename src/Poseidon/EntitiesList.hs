@@ -9,10 +9,12 @@ module Poseidon.EntitiesList (
 
 import           Poseidon.EntityTypes   (IndividualInfo (..),
                                          PacNameAndVersion (..),
-                                         PoseidonIndividual (..), makePacNameAndVersion)
+                                         PoseidonIndividual (..),
+                                         makePacNameAndVersion)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))
+import Poseidon.Version (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)
@@ -26,7 +28,6 @@ import           Data.Function          ((&))
 import           Data.List              (groupBy, nub, sort, sortBy, (\\))
 import           Data.Maybe             (mapMaybe)
 import           Data.Text              (Text, pack, unpack)
-import           Data.Version           (makeVersion)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
 
@@ -120,12 +121,11 @@ instance EntitySpec PoseidonEntity where
         parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseNameAndVer
         parseGroup       = Group <$> parseName
         parseInd         = Ind   <$> (P.try parseSimpleInd <|> parseSpecificInd)
-        parseNameAndVer  = PacNameAndVersion <$> parseName <*> P.optionMaybe parseVersion
+        parseNameAndVer  = PacNameAndVersion <$> parseName <*> P.optionMaybe parseMinVersion
         parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
-        parseVersion     = do
+        parseMinVersion  = do
             _ <- P.char '-'
-            branch <- P.sepBy1 (read <$> P.many1 P.digit) (P.char '.')
-            return $ makeVersion branch
+            parseVersion
         parseSimpleInd   = SimpleInd <$> P.between (P.char '<') (P.char '>') parseName
         parseSpecificInd = do
             _ <- P.char '<'

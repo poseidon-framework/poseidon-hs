@@ -42,7 +42,7 @@ instance Show IndividualInfo where
     show (IndividualInfo i g p) = "<" ++ show p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
 class HasNameAndVersion a where
-    getPacName :: a -> String
+    getPacName    :: a -> String
     getPacVersion :: a -> Maybe Version
 
 renderNameWithVersion :: (HasNameAndVersion a) => a -> String
@@ -64,8 +64,7 @@ instance HasNameAndVersion PacNameAndVersion where
     getPacVersion (PacNameAndVersion _ v) = v
 
 data ExtendedIndividualInfo = ExtendedIndividualInfo
-    {
-      extIndInfoName    :: String
+    { extIndInfoName    :: String
     , extIndInfoGroups  :: [String]
     , extIndInfoPacName :: String
     , extIndInfoVersion :: Maybe Version

@@ -21,6 +21,7 @@ import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
                                            runTimetravel)
 import           Poseidon.CLI.Validate    (ValidateOptions (..),
                                            ValidatePlan (..), runValidate)
+import           Poseidon.Contributor     (ContributorSpec (..))
 import           Poseidon.EntitiesList    (EntityInput (..),
                                            PoseidonEntity (..),
                                            readEntitiesFromString)
@@ -28,12 +29,11 @@ import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.SecondaryTypes  (ArchiveEndpoint (ArchiveEndpoint),
-                                           ContributorSpec (..),
-                                           VersionComponent (..))
+import           Poseidon.ServerClient    (ArchiveEndpoint (..))
 import           Poseidon.Utils           (LogMode (..), TestMode (..),
                                            getChecksum, testLog,
                                            usePoseidonLogger)
+import           Poseidon.Version         (VersionComponent (..))
 
 import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)

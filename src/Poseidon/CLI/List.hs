@@ -2,28 +2,27 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Package        (PackageReadOptions (..),
-                                          defaultPackageReadOptions,
-                                          getAllGroupInfo,
-                                          getExtendedIndividualInfo,
-                                          packageToPackageInfo,
-                                          readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (ApiReturnData (..),
-                                          ArchiveEndpoint (..),
-                                          processApiResponse, qDefault)
-import           Poseidon.Utils          (PoseidonIO, logInfo, logWarning)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         defaultPackageReadOptions,
+                                         getAllGroupInfo,
+                                         getExtendedIndividualInfo,
+                                         packageToPackageInfo,
+                                         readPoseidonPackageCollection)
+import           Poseidon.ServerClient  (ApiReturnData (..),
+                                         ArchiveEndpoint (..),
+                                         processApiResponse, qDefault)
+import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
 
-import           Control.Monad           (forM_, when)
-import           Control.Monad.IO.Class  (liftIO)
-import           Data.List               (intercalate, sortOn)
-import           Data.Maybe              (catMaybes, fromMaybe)
-import           Data.Version            (Version, showVersion)
-import           Poseidon.EntityTypes    (ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                          GroupInfo (..),
-                                          PacNameAndVersion (..),
-                                          PackageInfo (..))
-import           Text.Layout.Table       (asciiRoundS, column, def, expandUntil,
-                                          rowsG, tableString, titlesH)
+import           Control.Monad          (forM_, when)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.List              (intercalate, sortOn)
+import           Data.Maybe             (catMaybes, fromMaybe)
+import           Data.Version           (Version, showVersion)
+import           Poseidon.EntityTypes   (ExtendedIndividualInfo (ExtendedIndividualInfo),
+                                         GroupInfo (..), PacNameAndVersion (..),
+                                         PackageInfo (..))
+import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
+                                         rowsG, tableString, titlesH)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions

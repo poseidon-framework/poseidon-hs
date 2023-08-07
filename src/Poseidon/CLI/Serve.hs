@@ -13,7 +13,7 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                packageToPackageInfo,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
-import           Poseidon.SecondaryTypes      (ApiReturnData (..),
+import           Poseidon.ServerClient        (ApiReturnData (..),
                                                ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)

@@ -31,11 +31,13 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
+import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (ExtendedIndividualInfo (..),
                                              GroupInfo (..),
                                              HasNameAndVersion (..),
                                              IndividualInfo (..),
-                                             PackageInfo (..), makePacNameAndVersion)
+                                             PackageInfo (..),
+                                             makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -47,7 +49,6 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SecondaryTypes    (ContributorSpec (..), ORCID (..))
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
