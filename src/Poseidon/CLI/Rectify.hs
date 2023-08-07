@@ -12,10 +12,10 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           writePoseidonPackage)
 import           Poseidon.SecondaryTypes (ContributorSpec (..),
                                           VersionComponent (..),
-                                          makeNameWithVersion,
                                           updateThreeComponentVersion)
 import           Poseidon.Utils          (PoseidonIO, getChecksum, logDebug,
                                           logInfo)
+import Poseidon.EntityTypes (makeNameWithVersion)
 
 import           Control.DeepSeq         ((<$!!>))
 import           Control.Monad.IO.Class  (liftIO)

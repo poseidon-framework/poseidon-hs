@@ -31,7 +31,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
-import           Poseidon.SecondaryTypes     (IndividualInfo (..))
+import           Poseidon.EntityTypes     (IndividualInfo (..))
 import           Poseidon.SequencingSource   (SeqSourceRow (..),
                                               SeqSourceRows (..),
                                               writeSeqSourceFile)

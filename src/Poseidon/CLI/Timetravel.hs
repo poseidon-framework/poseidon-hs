@@ -6,7 +6,7 @@ import           Poseidon.Chronicle      (PackageIteration (..),
 import           Poseidon.Package        (PackageReadOptions (..),
                                           defaultPackageReadOptions,
                                           readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (makeNameWithVersion)
+import           Poseidon.EntityTypes (makeNameWithVersion)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
                                           PoseidonIO, envLogAction, logDebug,
                                           logInfo, logWithEnv)

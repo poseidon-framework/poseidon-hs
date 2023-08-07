@@ -13,10 +13,10 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.SecondaryTypes      (ApiReturnData (..),
-                                               ServerApiReturnType (..),
-                                               makeNameWithVersion)
+                                               ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
+import Poseidon.EntityTypes (makeNameWithVersion)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,

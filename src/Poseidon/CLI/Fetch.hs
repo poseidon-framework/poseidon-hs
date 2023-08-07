@@ -13,15 +13,15 @@ import           Poseidon.Package        (PackageReadOptions (..),
                                           readPoseidonPackageCollection)
 import           Poseidon.SecondaryTypes (ApiReturnData (..),
                                           ArchiveEndpoint (..),
-                                          ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                          IndividualInfo (..),
-                                          PacNameAndVersion (..),
-                                          PackageInfo (..), makeNameWithVersion,
                                           processApiResponse, qArchive,
                                           qDefault)
 import           Poseidon.Utils          (LogA, PoseidonException (..),
                                           PoseidonIO, envLogAction, logInfo,
                                           logWarning, logWithEnv, padLeft)
+import Poseidon.EntityTypes (                                          ExtendedIndividualInfo (..),
+                                          IndividualInfo (..),
+                                          PacNameAndVersion (..),
+                                          PackageInfo (..), makeNameWithVersion)
 
 import           Codec.Archive.Zip       (ZipOption (..),
                                           extractFilesFromArchive, toArchive)

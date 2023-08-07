@@ -1,16 +1,16 @@
 module Poseidon.EntitiesList (
-    PoseidonEntity (..), SignedEntity (..),
+    SignedEntity (..),
     SignedEntitiesList, EntitiesList, EntitySpec,
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackageNames, filterRelevantPackages,
-    entitiesListP, EntityInput(..), readEntityInputs, getIndName, PoseidonIndividual (..),
-    resolveEntityIndices, SelectionLevel2 (..)) where
+    entitiesListP, EntityInput(..), readEntityInputs, PoseidonIndividual (..),
+    resolveEntityIndices, SelectionLevel2 (..),     PoseidonEntity (..)) where
 
 import           Poseidon.Package        (PoseidonPackage (..),
                                           getJointIndividualInfo)
-import           Poseidon.SecondaryTypes (IndividualInfo (..))
 import           Poseidon.Utils          (PoseidonException (..))
+import Poseidon.EntityTypes (IndividualInfo (..), PoseidonIndividual(..), PacNameAndVersion (..))
 
 import           Control.Applicative     ((<|>))
 import           Control.Exception       (throwIO)
@@ -26,33 +26,25 @@ import           Data.Maybe              (mapMaybe)
 import           Data.Text               (Text, pack, unpack)
 import qualified Text.Parsec             as P
 import qualified Text.Parsec.String      as P
+import Data.Version (makeVersion)
 
--- | A datatype to represent a package, a group or an individual
+-- Data types for the selection process
+
 data PoseidonEntity =
-      Pac String
+      Pac PacNameAndVersion
     | Group String
     | Ind PoseidonIndividual
     deriving (Eq, Ord)
 
 instance Show PoseidonEntity where
-    show (Pac   p) = "*" ++ p ++ "*"
+    show (Pac   p) = show p
     show (Group g) = g
     show (Ind   i) = show i
 
+instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
+instance ToJSON   PoseidonEntity where toJSON e = String (pack $ show e)
+
 type EntitiesList = [PoseidonEntity]
-
-data PoseidonIndividual =
-      SimpleInd String
-    | SpecificInd IndividualInfo
-    deriving (Eq, Ord)
-
-getIndName :: PoseidonIndividual -> String
-getIndName (SimpleInd n)                        = n
-getIndName (SpecificInd (IndividualInfo n _ _)) = n
-
-instance Show PoseidonIndividual where
-    show (SimpleInd                   i     ) = "<" ++ i ++ ">"
-    show (SpecificInd (IndividualInfo i g p)) = "<" ++ p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
 data SignedEntity =
       Include PoseidonEntity
@@ -62,6 +54,9 @@ data SignedEntity =
 instance Show SignedEntity where
     show (Include a) = show a
     show (Exclude a) = "-" ++ show a
+
+instance FromJSON SignedEntity   where parseJSON = withText "SignedEntity" aesonParseEntitySpec
+instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
 
 type SignedEntitiesList = [SignedEntity]
 
@@ -81,7 +76,8 @@ meansIn ShouldBeIncluded                   = True
 meansIn ShouldBeIncludedWithHigherPriority = True
 meansIn ShouldNotBeIncluded                = False
 
--- A class to generalise signed and unsigned Entity Lists. Both have the feature that they can be used to filter individuals.
+-- | A class to generalise signed and unsigned Entity Lists.
+--   Both have the feature that they can be used to filter individuals.
 class Eq a => EntitySpec a where
     indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> SelectionLevel2
     underlyingEntity :: a -> PoseidonEntity
@@ -114,32 +110,30 @@ instance EntitySpec SignedEntity where
       where
         parseSign = (P.char '-' >> return Exclude) <|> (P.optional (P.char '+') >> return Include)
 
-
 instance EntitySpec PoseidonEntity where
     indInfoConformsToEntitySpec entities = indInfoConformsToEntitySpec (map Include entities)
     underlyingEntity = id
     entitySpecParser = parsePac <|> parseGroup <|> parseInd
       where
-        parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseName
+        parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseNameAndVer
         parseGroup       = Group <$> parseName
         parseInd         = Ind   <$> (P.try parseSimpleInd <|> parseSpecificInd)
+        parseNameAndVer  = PacNameAndVersion <$> ((,) <$> parseName <*> P.optionMaybe parseVersion)
         parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
+        parseVersion     = do
+            _ <- P.char '-'
+            branch <- P.sepBy1 (read <$> P.many1 P.digit) (P.char '.')
+            return $ makeVersion branch
         parseSimpleInd   = SimpleInd <$> P.between (P.char '<') (P.char '>') parseName
         parseSpecificInd = do
             _ <- P.char '<'
-            pacName <- parseName
+            pac <- parseNameAndVer
             _ <- P.char ':'
             groupName <- parseName
             _ <- P.char ':'
             indName <- parseName
             _ <- P.char '>'
-            return $ SpecificInd (IndividualInfo indName [groupName] pacName)
-
--- turns out that we cannot easily write instances for classes, so need to be explicit for both types
-instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
-instance FromJSON SignedEntity   where parseJSON = withText "SignedEntity" aesonParseEntitySpec
-instance ToJSON   PoseidonEntity where toJSON e = String (pack $ show e)
-instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
+            return $ SpecificInd (IndividualInfo indName [groupName] pac)
 
 data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
 
@@ -188,25 +182,30 @@ readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
     Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
     Right x -> Right x
 
-indInfoFindRelevantPackageNames :: (EntitySpec a) => [a] -> [IndividualInfo] -> [String]
+indInfoFindRelevantPackageNames :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
 indInfoFindRelevantPackageNames e =
-    nub . map indInfoPacName . filter (meansIn . indInfoConformsToEntitySpec e)
+    nub . map indInfoPac . filter (meansIn . indInfoConformsToEntitySpec e)
 
 filterRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
 filterRelevantPackages e packages =
-    let pacNames = indInfoFindRelevantPackageNames e (getJointIndividualInfo packages)
-    in  filter ((`elem` pacNames) . posPacTitle) packages
+    let relevantPacs = indInfoFindRelevantPackageNames e (getJointIndividualInfo packages)
+    in  filter (isInRelevant relevantPacs) packages
+    where
+        isInRelevant :: [PacNameAndVersion] -> PoseidonPackage -> Bool
+        isInRelevant relPacs p =
+            let pacReduced = PacNameAndVersion (posPacTitle p, posPacPackageVersion p)
+            in pacReduced `elem` relPacs
 
 findNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
 findNonExistentEntities entities individuals =
-    let titlesPac     = nub . map indInfoPacName $ individuals
+    let pacNameVer    = nub . map indInfoPac $ individuals
         indNamesPac   = map indInfoName individuals
         groupNamesPac = nub . concatMap indInfoGroups $ individuals
-        titlesRequestedPacs = nub [ pac   | Pac   pac               <- map underlyingEntity entities]
+        requestedPacVers    = nub [ pac   | Pac   pac               <- map underlyingEntity entities]
         groupNamesStats     = nub [ group | Group group             <- map underlyingEntity entities]
         simpleIndNamesStats = nub [ ind   | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
         specificIndsStats   = nub [ ind   | Ind   (SpecificInd ind) <- map underlyingEntity entities]
-        missingPacs         = map Pac                 $ titlesRequestedPacs \\ titlesPac
+        missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
         missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
         missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
         missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ individuals

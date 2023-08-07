@@ -3,11 +3,11 @@
 module Poseidon.Chronicle where
 
 import           Poseidon.Package        (PoseidonPackage (..))
-import           Poseidon.SecondaryTypes (HasNameAndVersion (..),
-                                          VersionComponent (..),
+import           Poseidon.SecondaryTypes (VersionComponent (..),
                                           updateThreeComponentVersion)
 import           Poseidon.Utils          (Env (..), PoseidonException (..),
                                           PoseidonIO, TestMode (..))
+import Poseidon.EntityTypes (HasNameAndVersion (..))
 
 import           Control.Monad.Catch     (throwM)
 import           Control.Monad.IO.Class  (liftIO)

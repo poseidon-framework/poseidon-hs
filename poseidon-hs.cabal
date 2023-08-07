@@ -16,6 +16,7 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.EntitiesList, Poseidon.MathHelpers, Poseidon.SecondaryTypes,
                         Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Chronicle,
+                        Poseidon.EntityTypes,
                         Poseidon.CLI.List, Poseidon.CLI.Chronicle, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,

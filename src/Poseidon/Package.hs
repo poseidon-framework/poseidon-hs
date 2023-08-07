@@ -43,12 +43,8 @@ import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SecondaryTypes    (ContributorSpec (..),
-                                             ExtendedIndividualInfo (..),
-                                             GroupInfo (..),
-                                             HasNameAndVersion (..),
-                                             IndividualInfo (..), ORCID (..),
-                                             PacNameAndVersion (PacNameAndVersion),
-                                             PackageInfo (..))
+                                             ORCID (..)
+                                             )
 import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
@@ -59,6 +55,8 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              logDebug, logInfo, logWarning,
                                              logWithEnv,
                                              renderPoseidonException)
+import Poseidon.EntityTypes (HasNameAndVersion (..), PacNameAndVersion (..), ExtendedIndividualInfo (..),
+                                             GroupInfo (..), IndividualInfo(..), PackageInfo (..))
 
 import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)
@@ -648,7 +646,10 @@ getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getJointIndividualInfo packages = do
     pac <- packages
     jannoRow <- getJannoRowsFromPac pac
-    return $ IndividualInfo (jPoseidonID jannoRow) ((getJannoList . jGroupName) jannoRow) (posPacTitle pac)
+    return $ IndividualInfo
+        (jPoseidonID jannoRow)
+        ((getJannoList . jGroupName) jannoRow)
+        (PacNameAndVersion (posPacTitle pac, posPacPackageVersion pac))
 
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
 getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
