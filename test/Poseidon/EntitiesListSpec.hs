@@ -14,6 +14,7 @@ import           Poseidon.Utils          (PoseidonException, testLog)
 import           Data.Aeson              (decode, encode)
 import           Data.Either             (fromRight, isLeft)
 import           Test.Hspec
+import Data.Version (makeVersion)
 
 spec :: Spec
 spec = do
@@ -136,11 +137,11 @@ testBaseDir = ["test/testDat/testPackages/ancient"]
 
 goodEntities :: EntitiesList
 goodEntities = [
-      Pac (PacNameAndVersion "Schiffels_2016" Nothing)
+      Pac (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,1]))
     , Group "POP1"
     , Ind (SimpleInd "SAMPLE3")
-    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schiffels_2016" Nothing))
-    , Ind (SpecificInd $ IndividualInfo "XXX012" ["POP2"] (PacNameAndVersion "Lamnidis_2018" Nothing))
+    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,1])))
+    , Ind (SpecificInd $ IndividualInfo "XXX012" ["POP2"] (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,1])))
     ]
 
 badEntities :: EntitiesList
