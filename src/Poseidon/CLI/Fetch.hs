@@ -83,7 +83,8 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnExtIndividualInfo extIndInfo -> return [IndividualInfo i g p | ExtendedIndividualInfo i g p _ _ <- extIndInfo]
+            ApiReturnExtIndividualInfo extIndInfo ->
+                return [IndividualInfo i g (PacNameAndVersion (p, v)) | ExtendedIndividualInfo i g p v _ <- extIndInfo]
             _                             -> error "should not happen"
 
     logInfo "Downloading package list from remote"
@@ -103,17 +104,16 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
         -- check which remote packages the User wants to have
         logInfo "Determine requested packages... "
-        let remotePacTitles = map pTitle remotePacList
-        let desiredPacTitles =
-                if null entities then remotePacTitles else indInfoFindRelevantPackageNames entities remoteIndList
+        let remotePacs = map (\p -> PacNameAndVersion (pTitle p, pVersion p)) remotePacList
+        let desiredPacs = if null entities then remotePacs else indInfoFindRelevantPackageNames entities remoteIndList
 
         let desiredRemotePackages =
                 map last .
                 groupBy (\x y -> pTitle x == pTitle y) .
                 sortBy (\x y -> compare (pTitle x, pVersion x) (pTitle y, pVersion y)) .
-                filter (\x -> pTitle x `elem` desiredPacTitles) $ remotePacList
+                filter (\p -> PacNameAndVersion (pTitle p, pVersion p) `elem` desiredPacs) $ remotePacList
 
-        logInfo $ show (length desiredPacTitles) ++ " requested"
+        logInfo $ show (length desiredPacs) ++ " requested"
         logInfo $ "Comparing local and remote packages..."
 
         unless (null desiredRemotePackages) $ do
