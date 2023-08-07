@@ -9,7 +9,7 @@ import           Poseidon.EntitiesList   (EntityInput, PoseidonEntity,
 import           Poseidon.EntityTypes    (ExtendedIndividualInfo (..),
                                           IndividualInfo (..),
                                           PacNameAndVersion (..),
-                                          PackageInfo (..), makeNameWithVersion)
+                                          PackageInfo (..), renderNameWithVersion, makePacNameAndVersion)
 import           Poseidon.MathHelpers    (roundTo, roundToStr)
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -84,7 +84,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
             ApiReturnExtIndividualInfo extIndInfo ->
-                return [IndividualInfo i g (PacNameAndVersion (p, v)) | ExtendedIndividualInfo i g p v _ <- extIndInfo]
+                return [IndividualInfo i g (PacNameAndVersion p v) | ExtendedIndividualInfo i g p v _ <- extIndInfo]
             _                             -> error "should not happen"
 
     logInfo "Downloading package list from remote"
@@ -104,14 +104,14 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
         -- check which remote packages the User wants to have
         logInfo "Determine requested packages... "
-        let remotePacs = map (\p -> PacNameAndVersion (pTitle p, pVersion p)) remotePacList
+        let remotePacs = map makePacNameAndVersion remotePacList
         let desiredPacs = if null entities then remotePacs else indInfoFindRelevantPackageNames entities remoteIndList
 
         let desiredRemotePackages =
                 map last .
                 groupBy (\x y -> pTitle x == pTitle y) .
                 sortBy (\x y -> compare (pTitle x, pVersion x) (pTitle y, pVersion y)) .
-                filter (\p -> PacNameAndVersion (pTitle p, pVersion p) `elem` desiredPacs) $ remotePacList
+                filter (\p -> makePacNameAndVersion p `elem` desiredPacs) $ remotePacList
 
         logInfo $ show (length desiredPacs) ++ " requested"
         logInfo $ "Comparing local and remote packages..."
@@ -160,12 +160,12 @@ determinePackageState localPacs desiredRemotePac
 handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
 handlePackageByState downloadDir tempDir archiveE (NotLocal, pac, remoteV, _) = do
     logInfo $ "[local _._._" ++ " x remote " ++ printV remoteV ++ "] " ++ pac
-    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion (pac, remoteV))
+    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion pac remoteV)
 handlePackageByState _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
     logInfo $ "[local " ++ printV localV ++ " = remote " ++ printV remoteV ++ "] " ++ pac
 handlePackageByState downloadDir tempDir archiveE (LaterRemote, pac, remoteV, localV) = do
     logInfo $ "[local " ++ printV localV ++ " < remote " ++ printV remoteV ++ "] " ++ pac
-    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion (pac, remoteV))
+    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion pac remoteV)
 handlePackageByState _ _ _ (LaterLocal, pac, remoteV, localV) = do
     logInfo $ "[local " ++ printV localV ++ " > remote " ++ printV remoteV ++ "] " ++ pac
 
@@ -175,11 +175,11 @@ printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
 downloadAndUnzipPackage baseDir tempDir archiveE pacNameAndVersion = do
-    let PacNameAndVersion (pacName, _) = pacNameAndVersion
+    let PacNameAndVersion pacName _ = pacNameAndVersion
     logInfo $ "Downloading: " ++ pacName
     downloadPackage tempDir archiveE pacName
     liftIO $ do
-        unzipPackage (tempDir </> pacName) (baseDir </> makeNameWithVersion pacNameAndVersion)
+        unzipPackage (tempDir </> pacName) (baseDir </> renderNameWithVersion pacNameAndVersion)
         removeFile (tempDir </> pacName)
 
 unzipPackage :: FilePath -> FilePath -> IO ()

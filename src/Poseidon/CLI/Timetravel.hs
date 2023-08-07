@@ -3,7 +3,7 @@ module Poseidon.CLI.Timetravel where
 import           Poseidon.Chronicle     (PackageIteration (..),
                                          PoseidonPackageChronicle (..),
                                          chroniclePackages, readChronicle)
-import           Poseidon.EntityTypes   (makeNameWithVersion)
+import           Poseidon.EntityTypes   (renderNameWithVersion)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
@@ -66,7 +66,7 @@ runTimetravel (TimetravelOptions baseDirs srcDir chroniclePath) = do
         gitCheckoutIO logA s = logWithEnv logA $ gitCheckout srcDir s
         recoverPacIter :: PackageIteration -> PoseidonIO ()
         recoverPacIter pacIter@(PackageIteration _ _ commit path) = do
-            let pacIterName = makeNameWithVersion pacIter
+            let pacIterName = renderNameWithVersion pacIter
             logInfo $ "Recovering package " ++ pacIterName
             -- this exists to reduce the number of checkouts
             eitherGit <- liftIO $ getGitInfo srcDir

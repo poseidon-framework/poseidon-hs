@@ -78,7 +78,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Group", "Package", "Package Version", "Nr Individuals"]
                 tableB = do
-                    GroupInfo groupName (PacNameAndVersion (pacName, pacVersion)) nrInds <- groupInfo
+                    GroupInfo groupName (PacNameAndVersion pacName pacVersion) nrInds <- groupInfo
                     return [groupName, pacName, showMaybeVersion pacVersion, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do

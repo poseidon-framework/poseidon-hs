@@ -828,7 +828,7 @@ testPipelineFetch testDir checkFilePath = do
 
     let fetchOpts1 = FetchOptions {
           _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac (PacNameAndVersion ("Lamnidis_2018", Nothing))]]
+        , _entityInput  = [EntitiesDirect [Pac (PacNameAndVersion "Lamnidis_2018" Nothing)]]
         , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
@@ -837,7 +837,7 @@ testPipelineFetch testDir checkFilePath = do
 
     let fetchOpts2 = FetchOptions {
           _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac (PacNameAndVersion ("Schmid_2028", Nothing))]]
+        , _entityInput  = [EntitiesDirect [Pac (PacNameAndVersion "Schmid_2028" Nothing)]]
         , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts2) "fetch" [

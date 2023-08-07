@@ -12,7 +12,7 @@ import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               readEntityInputs,
                                               resolveEntityIndices)
 import           Poseidon.EntityTypes        (IndividualInfo (..),
-                                              PacNameAndVersion (..))
+                                              makePacNameAndVersion)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -109,14 +109,15 @@ runForge (
     entities <- case entitiesUser of
         [] -> do
             logInfo "No requested entities. Implicitly forging all packages."
-            return $ map (\p -> Include . Pac $ PacNameAndVersion (posPacTitle p, posPacPackageVersion p)) allPackages
+            return $ map (Include . Pac . makePacNameAndVersion) allPackages
         (Include _:_) -> do
             return entitiesUser
         (Exclude _:_) -> do
             -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
             logInfo "forge entities begin with exclude, so implicitly adding all packages as includes before \
                 \applying excludes."
-            return $ map (\p -> Include . Pac $ PacNameAndVersion (posPacTitle p, posPacPackageVersion p)) allPackages ++ entitiesUser -- add all Packages to the front of the list
+            -- add all packages to the front of the list
+            return $ map (Include . Pac . makePacNameAndVersion) allPackages ++ entitiesUser
     logInfo $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
@@ -137,7 +138,7 @@ runForge (
     -- set entities to only packages, if --packagewise is set
     let relevantEntities =
             if packageWise
-            then map (\p -> Include . Pac $ PacNameAndVersion (posPacTitle p, posPacPackageVersion p)) relevantPackages
+            then map (Include . Pac . makePacNameAndVersion) relevantPackages
             else entities
 
     -- determine indizes of relevant individuals and resolve duplicates

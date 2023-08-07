@@ -3,7 +3,7 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
-import           Poseidon.EntityTypes         (makeNameWithVersion)
+import           Poseidon.EntityTypes         (renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
@@ -168,7 +168,7 @@ createZipArchiveStore archiveStore zipPath =
         (archiveName,) <$> forM packages (\pac -> do
             logInfo "Checking whether zip files are missing or outdated"
             liftIO $ createDirectoryIfMissing True (zipPath </> archiveName)
-            let combinedPackageVersionTitle = makeNameWithVersion pac
+            let combinedPackageVersionTitle = renderNameWithVersion pac
             let fn = zipPath </> archiveName </> combinedPackageVersionTitle <.> "zip"
             zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
             when zipFileOutdated $ do

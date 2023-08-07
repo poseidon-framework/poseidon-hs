@@ -3,9 +3,9 @@
 
 module Poseidon.EntityTypes (
     IndividualInfo (..), getIndName, PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo (..),
-    makeNameWithVersion,
+    renderNameWithVersion,
     HasNameAndVersion (..),
-    PacNameAndVersion(..), PoseidonIndividual(..)) where
+    PacNameAndVersion(..), PoseidonIndividual(..), makePacNameAndVersion) where
 
 import           Data.Aeson   (FromJSON (..), KeyValue ((.=)), ToJSON (..),
                                object, withObject, (.:))
@@ -45,19 +45,23 @@ class HasNameAndVersion a where
     getPacName :: a -> String
     getPacVersion :: a -> Maybe Version
 
-makeNameWithVersion :: (HasNameAndVersion a) => a -> String
-makeNameWithVersion a = case getPacVersion a of
+renderNameWithVersion :: (HasNameAndVersion a) => a -> String
+renderNameWithVersion a = case getPacVersion a of
     Nothing -> getPacName a
     Just v  -> getPacName a ++ "-" ++ showVersion v
 
-newtype PacNameAndVersion = PacNameAndVersion (String, Maybe Version) deriving (Eq, Ord)
+data PacNameAndVersion = PacNameAndVersion String (Maybe Version)
+    deriving (Eq, Ord)
 
 instance Show PacNameAndVersion where
-    show = makeNameWithVersion
+    show = renderNameWithVersion
+
+makePacNameAndVersion :: (HasNameAndVersion a) => a -> PacNameAndVersion
+makePacNameAndVersion a = PacNameAndVersion (getPacName a) (getPacVersion a)
 
 instance HasNameAndVersion PacNameAndVersion where
-    getPacName (PacNameAndVersion (n, _)) = n
-    getPacVersion (PacNameAndVersion (_, v)) = v
+    getPacName    (PacNameAndVersion n _) = n
+    getPacVersion (PacNameAndVersion _ v) = v
 
 data ExtendedIndividualInfo = ExtendedIndividualInfo
     {
@@ -75,11 +79,14 @@ instance HasNameAndVersion ExtendedIndividualInfo where
 instance ToJSON ExtendedIndividualInfo where
     toJSON e =
         object [
-            "poseidonID" .= extIndInfoName e, -- following Janno column names
-            "groupNames" .= extIndInfoGroups e,
-            "packageTitle" .= extIndInfoPacName e, -- following mostly the Poseidon YAML definition where possible
-            "packageVersion" .= extIndInfoVersion e,
-            "additionalJannoColumns" .= extIndInfoAddCols e]
+            -- following Janno column names
+            "poseidonID"             .= extIndInfoName e,
+            "groupNames"             .= extIndInfoGroups e,
+             -- following mostly the Poseidon YAML definition where possible
+            "packageTitle"           .= extIndInfoPacName e,
+            "packageVersion"         .= extIndInfoVersion e,
+            "additionalJannoColumns" .= extIndInfoAddCols e
+            ]
 
 instance FromJSON ExtendedIndividualInfo where
     parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
@@ -105,12 +112,12 @@ instance HasNameAndVersion PackageInfo where
 instance ToJSON PackageInfo where
     toJSON (PackageInfo title pacVersion posVersion description lastModified nrIndividuals) =
         object [
-            "packageTitle" .= title,
-            "packageVersion" .= pacVersion,
+            "packageTitle"    .= title,
+            "packageVersion"  .= pacVersion,
             "poseidonVersion" .= posVersion,
-            "description" .= description,
-            "lastModified" .= lastModified,
-            "nrIndividuals" .= nrIndividuals
+            "description"     .= description,
+            "lastModified"    .= lastModified,
+            "nrIndividuals"   .= nrIndividuals
         ]
 
 instance FromJSON PackageInfo where
@@ -124,23 +131,23 @@ instance FromJSON PackageInfo where
 
 data GroupInfo = GroupInfo
     { gName          :: String
-    , gPackageNames  :: PacNameAndVersion
+    , gPackage       :: PacNameAndVersion
     , gNrIndividuals :: Int
     }
 
 instance ToJSON GroupInfo where
-    toJSON (GroupInfo name (PacNameAndVersion (pacTitle, pacVersion)) nrIndividuals) =
+    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion) nrIndividuals) =
         object [
-            "groupName" .= name,
-            "packageTitle" .= pacTitle,
+            "groupName"      .= name,
+            "packageTitle"   .= pacTitle,
             "packageVersion" .= pacVersion,
-            "nrIndividuals" .= nrIndividuals
+            "nrIndividuals"  .= nrIndividuals
         ]
 
 instance FromJSON GroupInfo where
     parseJSON = withObject "GroupInfo" $ \v -> do
-        groupName <- v .: "groupName"
-        packageTitle <- v .: "packageTitle"
+        groupName      <- v .: "groupName"
+        packageTitle   <- v .: "packageTitle"
         packageVersion <- v .: "packageVersion"
-        nrIndividuals <- v .: "nrIndividuals"
-        return $ GroupInfo groupName (PacNameAndVersion (packageTitle, packageVersion)) nrIndividuals
+        nrIndividuals  <- v .: "nrIndividuals"
+        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion) nrIndividuals

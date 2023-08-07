@@ -35,8 +35,7 @@ import           Poseidon.EntityTypes       (ExtendedIndividualInfo (..),
                                              GroupInfo (..),
                                              HasNameAndVersion (..),
                                              IndividualInfo (..),
-                                             PacNameAndVersion (..),
-                                             PackageInfo (..))
+                                             PackageInfo (..), makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -651,7 +650,7 @@ getJointIndividualInfo packages = do
     return $ IndividualInfo
         (jPoseidonID jannoRow)
         ((getJannoList . jGroupName) jannoRow)
-        (PacNameAndVersion (posPacTitle pac, posPacPackageVersion pac))
+        (makePacNameAndVersion pac)
 
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
 getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
@@ -828,9 +827,7 @@ getAllGroupInfo packages = do
             pac <- packages
             jannoRow <- getJannoRowsFromPac pac
             let groups = getJannoList . jGroupName $ jannoRow
-                pacName = posPacTitle pac
-                pacVersion = posPacPackageVersion pac
-            [(g, PacNameAndVersion (pacName, pacVersion)) | g <- groups]
+            [(g, makePacNameAndVersion pac) | g <- groups]
     group_ <- group . sort $ individualInfoUnnested
     let groupName     = head . map fst $ group_
         groupPacs     = head . map snd $ group_

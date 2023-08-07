@@ -4,7 +4,7 @@ module Poseidon.CLI.Rectify (
     runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
     ) where
 
-import           Poseidon.EntityTypes    (makeNameWithVersion)
+import           Poseidon.EntityTypes    (renderNameWithVersion)
 import           Poseidon.GenotypeData   (GenotypeDataSpec (..))
 import           Poseidon.Package        (PackageReadOptions (..),
                                           PoseidonPackage (..),
@@ -70,7 +70,7 @@ runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksum
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
-            logInfo $ "Rectifying package: " ++ makeNameWithVersion inPac
+            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri

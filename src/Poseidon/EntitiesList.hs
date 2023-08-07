@@ -9,7 +9,7 @@ module Poseidon.EntitiesList (
 
 import           Poseidon.EntityTypes   (IndividualInfo (..),
                                          PacNameAndVersion (..),
-                                         PoseidonIndividual (..))
+                                         PoseidonIndividual (..), makePacNameAndVersion)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))
@@ -120,7 +120,7 @@ instance EntitySpec PoseidonEntity where
         parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseNameAndVer
         parseGroup       = Group <$> parseName
         parseInd         = Ind   <$> (P.try parseSimpleInd <|> parseSpecificInd)
-        parseNameAndVer  = PacNameAndVersion <$> ((,) <$> parseName <*> P.optionMaybe parseVersion)
+        parseNameAndVer  = PacNameAndVersion <$> parseName <*> P.optionMaybe parseVersion
         parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
         parseVersion     = do
             _ <- P.char '-'
@@ -194,9 +194,7 @@ filterRelevantPackages e packages =
     in  filter (isInRelevant relevantPacs) packages
     where
         isInRelevant :: [PacNameAndVersion] -> PoseidonPackage -> Bool
-        isInRelevant relPacs p =
-            let pacReduced = PacNameAndVersion (posPacTitle p, posPacPackageVersion p)
-            in pacReduced `elem` relPacs
+        isInRelevant relPacs p = makePacNameAndVersion p `elem` relPacs
 
 findNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
 findNonExistentEntities entities individuals =
