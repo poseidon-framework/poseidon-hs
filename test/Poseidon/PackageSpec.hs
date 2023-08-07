@@ -2,6 +2,7 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.PackageSpec (spec) where
 
+import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
@@ -13,7 +14,6 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
-import           Poseidon.Contributor    (ContributorSpec (..), ORCID (..))
 import           Poseidon.Utils             (LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,

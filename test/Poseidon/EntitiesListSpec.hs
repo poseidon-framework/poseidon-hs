@@ -3,18 +3,19 @@
 module Poseidon.EntitiesListSpec (spec) where
 
 import           Poseidon.EntitiesList
-import           Poseidon.Package        (PackageReadOptions (..),
-                                          PoseidonPackage (..),
-                                          defaultPackageReadOptions,
-                                          getJointIndividualInfo,
-                                          readPoseidonPackageCollection)
-import           Poseidon.EntityTypes (IndividualInfo (..), PacNameAndVersion (PacNameAndVersion))
-import           Poseidon.Utils          (PoseidonException, testLog)
+import           Poseidon.EntityTypes  (IndividualInfo (..),
+                                        PacNameAndVersion (PacNameAndVersion))
+import           Poseidon.Package      (PackageReadOptions (..),
+                                        PoseidonPackage (..),
+                                        defaultPackageReadOptions,
+                                        getJointIndividualInfo,
+                                        readPoseidonPackageCollection)
+import           Poseidon.Utils        (PoseidonException, testLog)
 
-import           Data.Aeson              (decode, encode)
-import           Data.Either             (fromRight, isLeft)
+import           Data.Aeson            (decode, encode)
+import           Data.Either           (fromRight, isLeft)
+import           Data.Version          (makeVersion)
 import           Test.Hspec
-import Data.Version (makeVersion)
 
 spec :: Spec
 spec = do

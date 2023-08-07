@@ -14,7 +14,7 @@ import           Poseidon.EntityTypes   (IndividualInfo (..),
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))
-import Poseidon.Version (parseVersion)
+import           Poseidon.Version       (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)
