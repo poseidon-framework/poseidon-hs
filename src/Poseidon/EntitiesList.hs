@@ -140,7 +140,7 @@ instance EntitySpec PoseidonEntity where
         parseGroup       = Group <$> parseName
         parseInd         = Ind   <$> (P.try parseSimpleInd <|> parseSpecificInd)
         parseNameAndVer  = PacNameAndVersion <$> parseName <*> P.optionMaybe parseMinVersion
-        parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>*")))
+        parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` ":,<>-*")))
         parseMinVersion  = do
             _ <- P.char '-'
             parseVersion
