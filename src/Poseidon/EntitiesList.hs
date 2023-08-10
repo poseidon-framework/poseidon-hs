@@ -116,6 +116,7 @@ instance EntitySpec SignedEntity where
         isIn (Pac p@(PacNameAndVersion _ (Just v))) =
             if p `eqPac` pacNameAndVer then ShouldBeIncluded (WithVersion v) NotSpecified else ShouldNotBeIncluded
         eqInd :: IndividualInfo -> IndividualInfo -> Bool
+        -- head should be fine here, because the SpecificInd parser reads exactly one group name
         (IndividualInfo i1 g1 p1) `eqInd` (IndividualInfo i2 g2 p2) = i1 == i2 && (head g1) `elem` g2 && p1 `eqPac` p2
         -- note that the LHS is the requested entity! eqPac is asymmetric!
         eqPac:: PacNameAndVersion -> PacNameAndVersion -> Bool
@@ -188,7 +189,7 @@ determineNonExistentEntities entities availableInds =
         missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ availableInds
     in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
 
--- This function requires a clean package selection as prepared with filterToRelevantPackages!
+-- This function requires [IndividualInfo] to be from a clean package selection as prepared with filterToRelevantPackages!
 -- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
 resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionState)]], [Int])
 resolveEntityIndices entities xs =
