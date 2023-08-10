@@ -5,7 +5,7 @@ module Poseidon.EntitiesList (
     readEntitiesFromFile, readEntitiesFromString,
     findNonExistentEntities, indInfoFindRelevantPackages, filterRelevantPackages,
     entitiesListP, EntityInput(..), readEntityInputs, PoseidonIndividual (..),
-    resolveEntityIndices, SelectionLevel2 (..),     PoseidonEntity (..)) where
+    resolveEntityIndices, SelectionLevel2 (..),     PoseidonEntity (..), IsRequestWithVersion (..), IsSpecified (..)) where
 
 import           Poseidon.EntityTypes   (IndividualInfo (..),
                                          PacNameAndVersion (..),
@@ -116,7 +116,7 @@ instance EntitySpec SignedEntity where
         isInIndInfo (Pac p@(PacNameAndVersion _ (Just v))) =
             if p `eqPac` pacNameAndVer then IsInIndInfo (WithVersion v) NotSpecified else IsNotInIndInfo
         eqInd :: IndividualInfo -> IndividualInfo -> Bool
-        (IndividualInfo i1 g1 p1) `eqInd` (IndividualInfo i2 g2 p2) = i1 == i2 && g1 == g2 && p1 `eqPac` p2
+        (IndividualInfo i1 g1 p1) `eqInd` (IndividualInfo i2 g2 p2) = i1 == i2 && (head g1) `elem` g2 && p1 `eqPac` p2
         -- note that the LHS is the requested entity! eqPac is asymmetric!
         eqPac:: PacNameAndVersion -> PacNameAndVersion -> Bool
         (PacNameAndVersion n1 Nothing)   `eqPac` (PacNameAndVersion n2 Nothing)   = n1 == n2
@@ -212,14 +212,14 @@ filterRelevantPackages entities packages =
 indInfoFindRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
 indInfoFindRelevantPackages entities availableInds =
     let indsWithSelectionState = map (\ind -> (ind, indInfoConformsToEntitySpec entities ind)) availableInds
-        packages = map infoPerPac indsWithSelectionState
+        packages = map pacPerInd indsWithSelectionState
         packagesExactly = nub [p | (p,ShouldBeIncluded (WithVersion _) _) <- packages]
         packagesUnclear = nub [p | (p,ShouldBeIncluded WithoutVersion  _) <- packages]
         packagesLatest  = map last $ group $ sort packagesUnclear
     in packagesExactly ++ packagesLatest
     where
-        infoPerPac :: (IndividualInfo, SelectionLevel2) -> (PacNameAndVersion, SelectionLevel2)
-        infoPerPac (IndividualInfo _ _ p, s) = (p, s)
+        pacPerInd :: (IndividualInfo, SelectionLevel2) -> (PacNameAndVersion, SelectionLevel2)
+        pacPerInd (IndividualInfo _ _ p, s) = (p, s)
 
 findNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
 findNonExistentEntities entities individuals =
