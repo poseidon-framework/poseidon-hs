@@ -5,7 +5,7 @@ module Poseidon.EntitiesList (
     readEntitiesFromFile, readEntitiesFromString,
     determineNonExistentEntities, determineRelevantPackages, filterToRelevantPackages,
     entitiesListP, EntityInput(..), readEntityInputs, PoseidonIndividual (..),
-    resolveEntityIndices, SelectionLevel2 (..),     PoseidonEntity (..), IsRequestWithVersion (..), IsSpecified (..)) where
+    resolveEntityIndices, SelectionState (..), PoseidonEntity (..), IsRequestWithVersion (..), IsSpecified (..)) where
 
 import           Poseidon.EntityTypes   (IndividualInfo (..),
                                          PacNameAndVersion (..),
@@ -62,62 +62,59 @@ instance Show SignedEntity where
     show (Include a) = show a
     show (Exclude a) = "-" ++ show a
 
-instance FromJSON SignedEntity   where parseJSON = withText "SignedEntity" aesonParseEntitySpec
-instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
+instance FromJSON SignedEntity where parseJSON = withText "SignedEntity" aesonParseEntitySpec
+instance ToJSON   SignedEntity where toJSON e = String (pack $ show e)
 
 type SignedEntitiesList = [SignedEntity]
 
-data SelectionLevel1 =
-      IsInIndInfo IsRequestWithVersion IsSpecified
-    | IsNotInIndInfo
-
-data IsRequestWithVersion = WithVersion Version | WithoutVersion deriving (Show, Eq)
-data IsSpecified = Specified | NotSpecified deriving (Show, Eq)
-
-data SelectionLevel2 =
+data SelectionState =
       ShouldBeIncluded IsRequestWithVersion IsSpecified
     | ShouldNotBeIncluded
     deriving (Show, Eq)
 
-meansIn :: SelectionLevel2 -> Bool
+data IsRequestWithVersion = WithVersion Version | WithoutVersion deriving (Show, Eq)
+data IsSpecified = Specified | NotSpecified deriving (Show, Eq)
+
+meansIn :: SelectionState -> Bool
 meansIn (ShouldBeIncluded _ _) = True
 meansIn ShouldNotBeIncluded    = False
 
 -- | A class to generalise signed and unsigned Entity Lists.
 --   Both have the feature that they can be used to filter individuals.
 class Eq a => EntitySpec a where
-    indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> SelectionLevel2
+    indInfoConformsToEntitySpec :: [a] -> IndividualInfo -> SelectionState
     underlyingEntity :: a -> PoseidonEntity
     entitySpecParser :: P.Parser a
 
 instance EntitySpec SignedEntity where
     indInfoConformsToEntitySpec signedEntities indInfo@(IndividualInfo indName groupNames pacNameAndVer) =
+      -- this mapMaybe step is necessary to consider the order of entity commands in forgeScript
       case mapMaybe shouldIncExc signedEntities of
           [] -> ShouldNotBeIncluded
           xs -> last xs
       where
-        shouldIncExc :: SignedEntity -> Maybe SelectionLevel2
+        shouldIncExc :: SignedEntity -> Maybe SelectionState
         shouldIncExc (Include entity) =
-            case isInIndInfo entity of
-                IsInIndInfo v s -> Just $ ShouldBeIncluded v s
-                IsNotInIndInfo  -> Nothing
+            case isIn entity of
+                ShouldBeIncluded v s -> Just $ ShouldBeIncluded v s
+                ShouldNotBeIncluded  -> Nothing
         shouldIncExc (Exclude entity) =
-            case isInIndInfo entity of
-                IsInIndInfo _ _ -> Just ShouldNotBeIncluded
-                IsNotInIndInfo  -> Nothing
-        isInIndInfo :: PoseidonEntity -> SelectionLevel1
-        isInIndInfo (Ind (SimpleInd n))   =
-            if n == indName then IsInIndInfo WithoutVersion NotSpecified else IsNotInIndInfo
-        isInIndInfo (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ Nothing)))) =
-            if i `eqInd` indInfo then IsInIndInfo WithoutVersion Specified else IsNotInIndInfo
-        isInIndInfo (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ (Just v))))) =
-            if i `eqInd` indInfo then IsInIndInfo (WithVersion v) Specified else IsNotInIndInfo
-        isInIndInfo (Group n) =
-            if n `elem` groupNames then IsInIndInfo WithoutVersion NotSpecified else IsNotInIndInfo
-        isInIndInfo (Pac p@(PacNameAndVersion _ Nothing)) =
-            if p `eqPac` pacNameAndVer then IsInIndInfo WithoutVersion NotSpecified else IsNotInIndInfo
-        isInIndInfo (Pac p@(PacNameAndVersion _ (Just v))) =
-            if p `eqPac` pacNameAndVer then IsInIndInfo (WithVersion v) NotSpecified else IsNotInIndInfo
+            case isIn entity of
+                ShouldBeIncluded _ _ -> Just ShouldNotBeIncluded
+                ShouldNotBeIncluded  -> Nothing
+        isIn :: PoseidonEntity -> SelectionState
+        isIn (Ind (SimpleInd n))   =
+            if n == indName then ShouldBeIncluded WithoutVersion NotSpecified else ShouldNotBeIncluded
+        isIn (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ Nothing)))) =
+            if i `eqInd` indInfo then ShouldBeIncluded WithoutVersion Specified else ShouldNotBeIncluded
+        isIn (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ (Just v))))) =
+            if i `eqInd` indInfo then ShouldBeIncluded (WithVersion v) Specified else ShouldNotBeIncluded
+        isIn (Group n) =
+            if n `elem` groupNames then ShouldBeIncluded WithoutVersion NotSpecified else ShouldNotBeIncluded
+        isIn (Pac p@(PacNameAndVersion _ Nothing)) =
+            if p `eqPac` pacNameAndVer then ShouldBeIncluded WithoutVersion NotSpecified else ShouldNotBeIncluded
+        isIn (Pac p@(PacNameAndVersion _ (Just v))) =
+            if p `eqPac` pacNameAndVer then ShouldBeIncluded (WithVersion v) NotSpecified else ShouldNotBeIncluded
         eqInd :: IndividualInfo -> IndividualInfo -> Bool
         (IndividualInfo i1 g1 p1) `eqInd` (IndividualInfo i2 g2 p2) = i1 == i2 && (head g1) `elem` g2 && p1 `eqPac` p2
         -- note that the LHS is the requested entity! eqPac is asymmetric!
@@ -173,7 +170,7 @@ determineRelevantPackages entities availableInds =
         packagesLatest  = map last $ group $ sort packagesUnclear
     in packagesExactly ++ packagesLatest
     where
-        pacPerInd :: (IndividualInfo, SelectionLevel2) -> (PacNameAndVersion, SelectionLevel2)
+        pacPerInd :: (IndividualInfo, SelectionState) -> (PacNameAndVersion, SelectionState)
         pacPerInd (IndividualInfo _ _ p, s) = (p, s)
 
 determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
@@ -193,7 +190,7 @@ determineNonExistentEntities entities availableInds =
 
 -- This function requires a clean package selection as prepared with filterToRelevantPackages!
 -- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
-resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
+resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionState)]], [Int])
 resolveEntityIndices entities xs =
     let allFittingIndizes = conformingEntityIndices entities xs
         groupsOfEqualNameIndividuals = resolveDuplicatesIfPossible $ groupByIndividualName allFittingIndizes
@@ -201,17 +198,17 @@ resolveEntityIndices entities xs =
         simpleSingles = sort $ map (\(i,_,_) -> i) $ concat $ filter (\x -> length x == 1) groupsOfEqualNameIndividuals
     in (unresolvedDuplicates, simpleSingles)
     where
-        conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
+        conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionState)]
         conformingEntityIndices ents inds =
             filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec ents x)) (zip [0..] inds)
-        groupByIndividualName :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        groupByIndividualName :: [(Int, IndividualInfo, SelectionState)] -> [[(Int, IndividualInfo, SelectionState)]]
         groupByIndividualName entityIndices =
             entityIndices &
                 sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
                 groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
-        resolveDuplicatesIfPossible :: [[(Int, IndividualInfo, SelectionLevel2)]] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        resolveDuplicatesIfPossible :: [[(Int, IndividualInfo, SelectionState)]] -> [[(Int, IndividualInfo, SelectionState)]]
         resolveDuplicatesIfPossible = map onlyKeepSpecifics
-        onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
+        onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionState)] -> [(Int, IndividualInfo, SelectionState)]
         onlyKeepSpecifics groupOfInds =
             let highPrio = [ x | x@(_,_,ShouldBeIncluded _ Specified) <- groupOfInds]
             in if length xs > 1 && length highPrio == 1
