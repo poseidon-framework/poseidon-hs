@@ -64,6 +64,7 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
+    , _readOptKeepMultipleVersions = True
     }
 
 -- | The main function running the Fetch command
