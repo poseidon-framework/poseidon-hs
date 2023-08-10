@@ -33,7 +33,9 @@ import           Data.Version           (Version)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
 
--- Data types for the selection process
+-- data types for the selection process
+
+data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
 
 data PoseidonEntity =
       Pac PacNameAndVersion
@@ -155,7 +157,79 @@ instance EntitySpec PoseidonEntity where
             _ <- P.char '>'
             return $ SpecificInd (IndividualInfo indName [groupName] pac)
 
-data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
+-- entity filter logic
+
+filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
+filterToRelevantPackages entities packages =
+    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages)
+    in filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
+
+determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
+determineRelevantPackages entities availableInds =
+    let indsWithSelectionState = map (\ind -> (ind, indInfoConformsToEntitySpec entities ind)) availableInds
+        packages = map pacPerInd indsWithSelectionState
+        packagesExactly = nub [p | (p,ShouldBeIncluded (WithVersion _) _) <- packages]
+        packagesUnclear = nub [p | (p,ShouldBeIncluded WithoutVersion  _) <- packages]
+        packagesLatest  = map last $ group $ sort packagesUnclear
+    in packagesExactly ++ packagesLatest
+    where
+        pacPerInd :: (IndividualInfo, SelectionLevel2) -> (PacNameAndVersion, SelectionLevel2)
+        pacPerInd (IndividualInfo _ _ p, s) = (p, s)
+
+determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
+determineNonExistentEntities entities availableInds =
+    let pacNameVer    = nub . map indInfoPac $ availableInds
+        indNamesPac   = map indInfoName availableInds
+        groupNamesPac = nub . concatMap indInfoGroups $ availableInds
+        requestedPacVers    = nub [ pac | Pac   pac               <- map underlyingEntity entities]
+        groupNamesStats     = nub [ grp | Group grp               <- map underlyingEntity entities]
+        simpleIndNamesStats = nub [ ind | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
+        specificIndsStats   = nub [ ind | Ind   (SpecificInd ind) <- map underlyingEntity entities]
+        missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
+        missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
+        missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
+        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ availableInds
+    in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
+
+-- This function requires a clean package selection as prepared with filterToRelevantPackages!
+-- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
+resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
+resolveEntityIndices entities xs =
+    let allFittingIndizes = conformingEntityIndices entities xs
+        groupsOfEqualNameIndividuals = resolveDuplicatesIfPossible $ groupByIndividualName allFittingIndizes
+        unresolvedDuplicates = filter (\x -> length x > 1) groupsOfEqualNameIndividuals
+        simpleSingles = sort $ map (\(i,_,_) -> i) $ concat $ filter (\x -> length x == 1) groupsOfEqualNameIndividuals
+    in (unresolvedDuplicates, simpleSingles)
+    where
+        conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
+        conformingEntityIndices ents inds =
+            filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec ents x)) (zip [0..] inds)
+        groupByIndividualName :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        groupByIndividualName entityIndices =
+            entityIndices &
+                sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
+                groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
+        resolveDuplicatesIfPossible :: [[(Int, IndividualInfo, SelectionLevel2)]] -> [[(Int, IndividualInfo, SelectionLevel2)]]
+        resolveDuplicatesIfPossible = map onlyKeepSpecifics
+        onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
+        onlyKeepSpecifics groupOfInds =
+            let highPrio = [ x | x@(_,_,ShouldBeIncluded _ Specified) <- groupOfInds]
+            in if length xs > 1 && length highPrio == 1
+               then highPrio
+               else groupOfInds
+
+-- parsing code to read entities from files
+
+readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]
+readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
+    Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
+    Right x -> Right x
+
+readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
+readEntityInputs entityInputs =
+    fmap nub . fmap concat . forM entityInputs $ \entityInput -> case entityInput of
+        EntitiesDirect   e  -> return e
+        EntitiesFromFile fp -> liftIO $ readEntitiesFromFile fp
 
 aesonParseEntitySpec :: (EntitySpec e) => Text -> Parser e
 aesonParseEntitySpec t = case P.runParser entitySpecParser () "" (unpack t) of
@@ -196,75 +270,3 @@ readEntitiesFromFile entitiesFile = do
     case eitherParseResult of
         Left err -> throwIO (PoseidonPoseidonEntityParsingException (show err))
         Right r  -> return r
-
-readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]
-readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
-    Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
-    Right x -> Right x
-
-filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
-filterToRelevantPackages entities packages =
-    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages)
-    in  filter (isInRelevant relevantPacs) packages
-    where
-        isInRelevant :: [PacNameAndVersion] -> PoseidonPackage -> Bool
-        isInRelevant relPacs p = makePacNameAndVersion p `elem` relPacs
-
-determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
-determineRelevantPackages entities availableInds =
-    let indsWithSelectionState = map (\ind -> (ind, indInfoConformsToEntitySpec entities ind)) availableInds
-        packages = map pacPerInd indsWithSelectionState
-        packagesExactly = nub [p | (p,ShouldBeIncluded (WithVersion _) _) <- packages]
-        packagesUnclear = nub [p | (p,ShouldBeIncluded WithoutVersion  _) <- packages]
-        packagesLatest  = map last $ group $ sort packagesUnclear
-    in packagesExactly ++ packagesLatest
-    where
-        pacPerInd :: (IndividualInfo, SelectionLevel2) -> (PacNameAndVersion, SelectionLevel2)
-        pacPerInd (IndividualInfo _ _ p, s) = (p, s)
-
-determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
-determineNonExistentEntities entities availableInds =
-    let pacNameVer    = nub . map indInfoPac $ availableInds
-        indNamesPac   = map indInfoName availableInds
-        groupNamesPac = nub . concatMap indInfoGroups $ availableInds
-        requestedPacVers    = nub [ pac | Pac   pac               <- map underlyingEntity entities]
-        groupNamesStats     = nub [ grp | Group grp               <- map underlyingEntity entities]
-        simpleIndNamesStats = nub [ ind | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
-        specificIndsStats   = nub [ ind | Ind   (SpecificInd ind) <- map underlyingEntity entities]
-        missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
-        missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
-        missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
-        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ availableInds
-    in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
-
--- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
-resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
-resolveEntityIndices entities xs =
-    let allFittingIndizes = conformingEntityIndices entities xs
-        groupsOfEqualNameIndividuals = resolveDuplicatesIfPossible $ groupByIndividualName allFittingIndizes
-        unresolvedDuplicates = filter (\x -> length x > 1) groupsOfEqualNameIndividuals
-        simpleSingles = sort $ map (\(i,_,_) -> i) $ concat $ filter (\x -> length x == 1) groupsOfEqualNameIndividuals
-    in (unresolvedDuplicates, simpleSingles)
-    where
-        conformingEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [(Int, IndividualInfo, SelectionLevel2)]
-        conformingEntityIndices ents inds =
-            filter (\(_,_,level) -> meansIn level) $ map (\(index, x) -> (index, x, indInfoConformsToEntitySpec ents x)) (zip [0..] inds)
-        groupByIndividualName :: [(Int, IndividualInfo, SelectionLevel2)] -> [[(Int, IndividualInfo, SelectionLevel2)]]
-        groupByIndividualName entityIndices =
-            entityIndices &
-                sortBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> compare a b) &
-                groupBy (\(_,IndividualInfo a _ _,_) (_,IndividualInfo b _ _,_) -> a == b)
-        resolveDuplicatesIfPossible :: [[(Int, IndividualInfo, SelectionLevel2)]] -> [[(Int, IndividualInfo, SelectionLevel2)]]
-        resolveDuplicatesIfPossible = map onlyKeepSpecifics
-        onlyKeepSpecifics :: [(Int, IndividualInfo, SelectionLevel2)] -> [(Int, IndividualInfo, SelectionLevel2)]
-        onlyKeepSpecifics groupOfInds =
-            let highPrio = [ x | x@(_,_,ShouldBeIncluded _ Specified) <- groupOfInds]
-            in if length xs > 1 && length highPrio == 1
-               then highPrio
-               else groupOfInds
-
-readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
-readEntityInputs entityInputs =
-    fmap nub . fmap concat . forM entityInputs $ \entityInput -> case entityInput of
-        EntitiesDirect   e  -> return e
-        EntitiesFromFile fp -> liftIO $ readEntitiesFromFile fp
