@@ -576,7 +576,8 @@ findAllPoseidonYmlFiles baseDir = do
     return $ posFiles ++ morePosFiles
 
 -- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
-filterDuplicatePackages :: (MonadThrow m) => Bool -- ^ whether to allow multiple versions of the same package to be included
+filterDuplicatePackages :: (MonadThrow m) =>
+                           Bool -- ^ whether to allow multiple versions of the same package to be included
                         -> [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
                         -> m [PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
 filterDuplicatePackages keepMultipleVersions pacs =
@@ -592,13 +593,11 @@ filterDuplicatePackages keepMultipleVersions pacs =
         -- all versions need to be given and be unique
         in  if (length . nub . catMaybes) maybeVersions == length maybeVersions
             then
-                if keepMultipleVersions then
-                    return pacs_
-                else
-                    return . singleton . last . sortOn posPacPackageVersion $ pacs_
+                if keepMultipleVersions
+                then return pacs_
+                else return . singleton . last . sortOn posPacPackageVersion $ pacs_
             else
                 let t   = posPacTitle $ head pacs_
-
                     msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
 

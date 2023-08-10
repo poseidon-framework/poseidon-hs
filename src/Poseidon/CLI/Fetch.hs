@@ -4,7 +4,7 @@ module Poseidon.CLI.Fetch where
 
 import           Poseidon.EntitiesList  (EntityInput, PoseidonEntity,
                                          findNonExistentEntities,
-                                         indInfoFindRelevantPackageNames,
+                                         indInfoFindRelevantPackages,
                                          readEntityInputs)
 import           Poseidon.EntityTypes   (ExtendedIndividualInfo (..),
                                          IndividualInfo (..),
@@ -106,7 +106,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         -- check which remote packages the User wants to have
         logInfo "Determine requested packages... "
         let remotePacs = map makePacNameAndVersion remotePacList
-        let desiredPacs = if null entities then remotePacs else indInfoFindRelevantPackageNames entities remoteIndList
+        let desiredPacs = if null entities then remotePacs else indInfoFindRelevantPackages entities remoteIndList
 
         let desiredRemotePackages =
                 map last .

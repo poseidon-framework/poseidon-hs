@@ -50,7 +50,10 @@ renderNameWithVersion a = case getPacVersion a of
     Nothing -> getPacName a
     Just v  -> getPacName a ++ "-" ++ showVersion v
 
-data PacNameAndVersion = PacNameAndVersion String (Maybe Version)
+data PacNameAndVersion = PacNameAndVersion {
+      panavName :: String
+    , panavVersion :: Maybe Version
+    }
     deriving (Eq, Ord)
 
 instance Show PacNameAndVersion where
