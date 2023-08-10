@@ -54,7 +54,13 @@ data PacNameAndVersion = PacNameAndVersion {
       panavName :: String
     , panavVersion :: Maybe Version
     }
-    deriving (Eq, Ord)
+    deriving (Ord)
+
+instance Eq PacNameAndVersion where
+    (==) (PacNameAndVersion n1 Nothing) (PacNameAndVersion n2 Nothing) = n1 == n2
+    (==) (PacNameAndVersion n1 Nothing) (PacNameAndVersion n2 (Just _)) = n1 == n2
+    (==) (PacNameAndVersion n1 (Just _)) (PacNameAndVersion n2 Nothing) = n1 == n2
+    (==) (PacNameAndVersion n1 (Just v1)) (PacNameAndVersion n2 (Just v2)) = n1 == n2 && v1 == v2
 
 instance Show PacNameAndVersion where
     show a = "*" ++ renderNameWithVersion a ++ "*"

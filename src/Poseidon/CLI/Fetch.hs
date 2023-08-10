@@ -3,8 +3,8 @@
 module Poseidon.CLI.Fetch where
 
 import           Poseidon.EntitiesList  (EntityInput, PoseidonEntity,
-                                         findNonExistentEntities,
-                                         indInfoFindRelevantPackages,
+                                         determineNonExistentEntities,
+                                         determineRelevantPackages,
                                          readEntityInputs)
 import           Poseidon.EntityTypes   (ExtendedIndividualInfo (..),
                                          IndividualInfo (..),
@@ -95,7 +95,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
             ApiReturnPackageInfo p -> return p
             _                      -> error "should not happen"
 
-    let nonExistentEntities = findNonExistentEntities entities remoteIndList
+    let nonExistentEntities = determineNonExistentEntities entities remoteIndList
 
     if (not . null) nonExistentEntities then do
         logWarning "Cannot find the following requested entities:"
@@ -106,7 +106,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         -- check which remote packages the User wants to have
         logInfo "Determine requested packages... "
         let remotePacs = map makePacNameAndVersion remotePacList
-        let desiredPacs = if null entities then remotePacs else indInfoFindRelevantPackages entities remoteIndList
+        let desiredPacs = if null entities then remotePacs else determineRelevantPackages entities remoteIndList
 
         let desiredRemotePackages =
                 map last .

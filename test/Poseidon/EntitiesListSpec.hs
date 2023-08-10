@@ -156,26 +156,26 @@ badEntities = [
 
 testFindNonExistentEntities :: Spec
 testFindNonExistentEntities =
-    describe "Poseidon.EntitiesList.findNonExistentEntities" $ do
+    describe "Poseidon.EntitiesList.determineNonExistentEntities" $ do
     it "should ignore good entities" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let ents = findNonExistentEntities goodEntities (getJointIndividualInfo ps)
+        let ents = determineNonExistentEntities goodEntities (getJointIndividualInfo ps)
         ents `shouldBe` []
     it "should find bad entities" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let ents = findNonExistentEntities badEntities (getJointIndividualInfo ps)
+        let ents = determineNonExistentEntities badEntities (getJointIndividualInfo ps)
         ents `shouldMatchList` badEntities
 
 testFilterPackages :: Spec
 testFilterPackages =
-    describe "Poseidon.EntitiesList.filterPackages" $ do
+    describe "Poseidon.EntitiesList.filterToRelevantPackages" $ do
     it "should select all relevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let pacs = filterRelevantPackages goodEntities ps
+        let pacs = filterToRelevantPackages goodEntities ps
         map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_2020", "Schmid_2028", "Lamnidis_2018"]
     it "should drop all irrelevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let pacs = filterRelevantPackages badEntities ps
+        let pacs = filterToRelevantPackages badEntities ps
         pacs `shouldBe` []
 
 testResolveEntityIndices :: Spec

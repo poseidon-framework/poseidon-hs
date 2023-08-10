@@ -7,8 +7,8 @@ import           Poseidon.BibFile            (BibEntry (..), BibTeX,
 import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
                                               PoseidonIndividual (..),
                                               SignedEntity (..),
-                                              filterRelevantPackages,
-                                              findNonExistentEntities,
+                                              filterToRelevantPackages,
+                                              determineNonExistentEntities,
                                               readEntityInputs,
                                               resolveEntityIndices)
 import           Poseidon.EntityTypes        (IndividualInfo (..),
@@ -123,13 +123,13 @@ runForge (
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
     -- check for entities that do not exist in this dataset
-    let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
+    let nonExistentEntities = determineNonExistentEntities entities . getJointIndividualInfo $ allPackages
     unless (null nonExistentEntities) $
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
 
     -- determine relevant packages
-    let relevantPackages = filterRelevantPackages entities allPackages
+    let relevantPackages = filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 

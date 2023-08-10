@@ -3,7 +3,7 @@ module Poseidon.EntitiesList (
     SignedEntitiesList, EntitiesList, EntitySpec,
     indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
-    findNonExistentEntities, indInfoFindRelevantPackages, filterRelevantPackages,
+    determineNonExistentEntities, determineRelevantPackages, filterToRelevantPackages,
     entitiesListP, EntityInput(..), readEntityInputs, PoseidonIndividual (..),
     resolveEntityIndices, SelectionLevel2 (..),     PoseidonEntity (..), IsRequestWithVersion (..), IsSpecified (..)) where
 
@@ -201,16 +201,16 @@ readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
     Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
     Right x -> Right x
 
-filterRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
-filterRelevantPackages entities packages =
-    let relevantPacs = indInfoFindRelevantPackages entities (getJointIndividualInfo packages)
+filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
+filterToRelevantPackages entities packages =
+    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages)
     in  filter (isInRelevant relevantPacs) packages
     where
         isInRelevant :: [PacNameAndVersion] -> PoseidonPackage -> Bool
         isInRelevant relPacs p = makePacNameAndVersion p `elem` relPacs
 
-indInfoFindRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
-indInfoFindRelevantPackages entities availableInds =
+determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
+determineRelevantPackages entities availableInds =
     let indsWithSelectionState = map (\ind -> (ind, indInfoConformsToEntitySpec entities ind)) availableInds
         packages = map pacPerInd indsWithSelectionState
         packagesExactly = nub [p | (p,ShouldBeIncluded (WithVersion _) _) <- packages]
@@ -221,11 +221,11 @@ indInfoFindRelevantPackages entities availableInds =
         pacPerInd :: (IndividualInfo, SelectionLevel2) -> (PacNameAndVersion, SelectionLevel2)
         pacPerInd (IndividualInfo _ _ p, s) = (p, s)
 
-findNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
-findNonExistentEntities entities individuals =
-    let pacNameVer    = nub . map indInfoPac $ individuals
-        indNamesPac   = map indInfoName individuals
-        groupNamesPac = nub . concatMap indInfoGroups $ individuals
+determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
+determineNonExistentEntities entities availableInds =
+    let pacNameVer    = nub . map indInfoPac $ availableInds
+        indNamesPac   = map indInfoName availableInds
+        groupNamesPac = nub . concatMap indInfoGroups $ availableInds
         requestedPacVers    = nub [ pac | Pac   pac               <- map underlyingEntity entities]
         groupNamesStats     = nub [ grp | Group grp               <- map underlyingEntity entities]
         simpleIndNamesStats = nub [ ind | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
@@ -233,7 +233,7 @@ findNonExistentEntities entities individuals =
         missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
         missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
         missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
-        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ individuals
+        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ availableInds
     in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
 
 -- | Result: fst is a list of unresolved duplicates, snd a simple list of integers for the simple single individuals
