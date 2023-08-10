@@ -25,12 +25,13 @@ import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
 import           Data.Function          ((&))
-import           Data.List              (groupBy, nub, sort, sortBy, (\\), group)
+import           Data.List              (group, groupBy, nub, sort, sortBy,
+                                         (\\))
 import           Data.Maybe             (mapMaybe)
 import           Data.Text              (Text, pack, unpack)
+import           Data.Version           (Version)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
-import Data.Version (Version)
 
 -- Data types for the selection process
 
@@ -96,8 +97,8 @@ instance EntitySpec SignedEntity where
         shouldIncExc :: SignedEntity -> Maybe SelectionLevel2
         shouldIncExc (Include entity) =
             case isInIndInfo entity of
-                IsInIndInfo v s      -> Just $ ShouldBeIncluded v s
-                IsNotInIndInfo       -> Nothing
+                IsInIndInfo v s -> Just $ ShouldBeIncluded v s
+                IsNotInIndInfo  -> Nothing
         shouldIncExc (Exclude entity) =
             case isInIndInfo entity of
                 IsInIndInfo _ _ -> Just ShouldNotBeIncluded
