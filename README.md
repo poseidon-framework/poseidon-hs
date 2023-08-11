@@ -4,9 +4,9 @@
 [![Install with Bioconda](https://anaconda.org/bioconda/poseidon-trident/badges/version.svg)](https://anaconda.org/bioconda/poseidon-trident) [![Anaconda-Server Badge](https://anaconda.org/bioconda/poseidon-trident/badges/downloads.svg)](https://anaconda.org/bioconda/poseidon-trident)
 
 # poseidon-hs
-A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
+A toolset to work with modular genotype databases formatted using Poseidon. The package provides two main executables, named `trident` and `xerxes`.
 
-**Detailed user documentation can be found on our [website](https://poseidon-framework.github.io/#/trident).**
+**Detailed user documentation on both tools can be found on our [website](https://poseidon-framework.github.io).**
 
 ***
 
