@@ -60,6 +60,13 @@ packages:
       size: 1487
   original:
     hackage: typerep-map-0.5.0.0
+- completed:
+    hackage: parsec3-numbers-0.1.0@sha256:2f32295f9f4023f7f97da851549aaaf5e72866e98bf016a1ac3c6e8715bbaf8a,685
+    pantry-tree:
+      sha256: a3d23f56cc2a9d17ed24ac5119a7b2102d40c0afeed5271f6b41b7597f181df0
+      size: 264
+  original:
+    hackage: parsec3-numbers-0.1.0
 snapshots:
 - completed:
     sha256: e019cd29e3f7f9dbad500225829a3f7a50f73c674614f2f452e21bb8bf5d99ea

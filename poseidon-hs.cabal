@@ -31,10 +31,10 @@ library
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout, mtl, split, warp, warp-tls, wai-cors,
-                        scotty, cassava, pureMD5, wai, githash,
-                        http-conduit, conduit, http-types, zip-archive,
+                        scotty, cassava, pureMD5, wai, githash, parsec3-numbers, lens-family,
+                        http-conduit, conduit, http-types, zip-archive, pipes-group, foldl,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific, country, generics-sop, containers, process, deepseq
+                        scientific, country, generics-sop, containers, process, deepseq, MonadRandom
     default-language:   Haskell2010
 
 executable trident
@@ -72,9 +72,9 @@ executable poseidon-devtools
     default-language:   Haskell2010
 
 executable xerxes
-    main-is:            Main.hs
+    main-is:            Main-xerxes.hs
     hs-source-dirs:     src-executables
-    build-depends:      base, poseidon-hs, poseidon-analysis-hs, optparse-applicative, sequence-formats,
+    build-depends:      base, poseidon-hs, optparse-applicative, sequence-formats,
                         bytestring, co-log, text, filepath, MonadRandom
-    other-modules:      Paths_poseidon_analysis_hs
+    other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010

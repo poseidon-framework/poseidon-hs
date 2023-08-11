@@ -20,7 +20,7 @@ import           Data.ByteString.Char8                   (pack, splitWith)
 import           Data.List                               (intercalate)
 import           Data.Version                            (showVersion)
 import qualified Options.Applicative                     as OP
-import           Paths_poseidon_analysis_hs              (version)
+import           Paths_poseidon_hs                       (version)
 import           Poseidon.CLI.OptparseApplicativeParsers
 import           Poseidon.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
