@@ -1,3 +1,4 @@
+- V 1.3.1.0: poseidon-hs now includes xerxes, from the former poseidon-analysis-hs
 - V 1.3.0.4: Added an option `--ignorePoseidonVersion` to `validate`.
 - V 1.3.0.3: Small code layout changes in the golden test setup and slightly better error handling for http requests in `fetch` and `list --remote`.
 - V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.
