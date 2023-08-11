@@ -1,0 +1,30 @@
+groupDefs:
+  CEU2: ["CEU.SG", "-<NA12889.SG>", "-<NA12890.SG>"]
+  FIN2: ["FIN.SG", "-<HG00383.SG>", "-<HG00384.SG>"]
+  GBR2: ["GBR.SG", "-<HG01791.SG>", "-<HG02215.SG>"]
+  IBS2: ["IBS.SG", "-<HG02238.SG>", "-<HG02239.SG>"]
+fstats:
+- type: F2
+  a: ["French", "Spanish"]
+  b: ["Han", "CEU2"]
+  # Ascertainment is optional
+- type: F3
+  a: ["French", "Spanish", "Mbuti"]
+  b: ["Han", "CEU2"]
+  c: ["<Chimp.REF>"]
+  ascertainment:
+    outgroup: "<Chimp.REF>" # ascertainint gon outgroup-polarised derived allele frequency
+    reference: "CEU2"
+    lower: 0.05
+    upper: 0.95
+- type: F4
+  a: ["<I0156.SG>", "<I0157.SG>", "<I0159.SG>", "<I0160.SG>", "<I0161.SG>"]
+  b: ["<I0156.SG>", "<I0157.SG>", "<I0159.SG>", "<I0160.SG>", "<I0161.SG>"]
+  c: ["CEU2", "FIN2", "GBR2", "IBS2"]
+  d: ["<Chimp.REF>"]
+  ascertainment:
+    # A missing outgroup means: ascertain on minor allele frequency
+    reference: "CEU.SG"
+    lower: 0.00
+    upper: 0.10
+
