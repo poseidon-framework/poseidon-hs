@@ -264,45 +264,54 @@ buildRasFold indInfo minFreq maxFreq maxM maybeOutgroup popLefts popRights = do
                 Nothing       -> Just (c, p)
                 Just (c', p') -> Just (c', p')
         let newEndPos = Just (c, p)
-            alleleCountPairs = map (computeAlleleCount genoLine) rightI
-            totalDerived = sum . map fst $ alleleCountPairs
-            totalNonMissing = sum . map snd $ alleleCountPairs
-            totalHaps = 2 * sum (map length rightI)
-            missingness = fromIntegral (totalHaps - totalNonMissing) / fromIntegral totalHaps
-        -- liftIO $ hPrint stderr (totalDerived, totalNonMissing, totalHaps, missingness)
-        when (missingness <= maxM) $ do
-            let outgroupFreq = if null outgroupI then Just 0.0 else computeAlleleFreq genoLine outgroupI
-            case outgroupFreq of
+            rAlleleCountPairs = map (computeAlleleCount genoLine) rightI
+            rTotalDerived = sum . map fst $ rAlleleCountPairs
+            rTotalHaps = 2 * sum (map length rightI)
+            rTotalFreq = fromIntegral rTotalDerived / fromIntegral rTotalHaps
+            rTotalNonMissing = sum . map snd $ rAlleleCountPairs
+            rMissingness = fromIntegral (rTotalHaps - rTotalNonMissing) / fromIntegral rTotalHaps
+        let maybePolarise =
+                if null outgroupI
+                then Just (rTotalFreq > 0.5) -- repolarise to minor freq if no ougroup is set
+                else
+                    case computeAlleleCount genoLine outgroupI of
+                        (_, 0) -> Nothing -- outgroup missing
+                        (ogNonRef, ogNonMissing) ->
+                            if ogNonRef == 0 then Just False else -- outgroup is fixed at reference allele
+                                if ogNonRef == ogNonMissing then Just True else -- outgroup is fixed at alternative allele
+                                    Nothing -- outgroup is polymorphic
+        when (rMissingness <= maxM) $ do
+            case maybePolarise of
                 Nothing -> return ()
-                Just oFreq -> do
+                Just polarise -> do
                     -- update counts
                     forM_ (zip [0..] leftI) $ \(i1, i2s) ->
                         when (any (/= Missing) [genoLine V.! j | j <- i2s]) . liftIO $ VUM.modify counts (+1) i1
-                    let directedTotalCount = if oFreq < 0.5 then totalDerived else totalHaps - totalDerived
-                        directedTotalFreq = fromIntegral directedTotalCount / fromIntegral totalHaps
+                    let rDirectedTotalCount = if polarise then rTotalHaps - rTotalDerived else rTotalDerived
+                        rDirectedTotalFreq = fromIntegral rDirectedTotalCount / fromIntegral rTotalHaps
                     -- liftIO $ hPrint stderr (directedTotalCount, totalDerived, totalNonMissing, totalHaps, missingness)
                     let conditionMin = case minFreq of
                             FreqNone -> True
-                            FreqK k  -> directedTotalCount >= k
-                            FreqX x  -> directedTotalFreq >= x
+                            FreqK k  -> rDirectedTotalCount >= k
+                            FreqX x  -> rDirectedTotalFreq >= x
                         conditionMax = case maxFreq of
                             FreqNone -> True
-                            FreqK k  -> directedTotalCount <= k
-                            FreqX x  -> directedTotalFreq <= x
+                            FreqK k  -> rDirectedTotalCount <= k
+                            FreqX x  -> rDirectedTotalFreq <= x
                     when (conditionMin && conditionMax) $ do
                         -- liftIO $ hPrint stderr (directedTotalCount, totalDerived, totalNonMissing, totalHaps, missingness)
                         -- main loop
                         let nR = length popRights
                             leftFreqsNonRef = map (computeAlleleFreq genoLine) leftI
-                            leftFreqs = if oFreq < 0.5 then leftFreqsNonRef else map (fmap (1.0 - )) leftFreqsNonRef
+                            leftFreqs = if polarise then map (fmap (1.0 - )) leftFreqsNonRef else leftFreqsNonRef
                             rightFreqs = do
                                 r <- rightI
                                 let nrDerived = fst $ computeAlleleCount genoLine r
                                 let n = 2 * length r
-                                if oFreq < 0.5 then
-                                    return (fromIntegral nrDerived / fromIntegral n)
-                                else
+                                if polarise then
                                     return $ 1.0 - (fromIntegral nrDerived / fromIntegral n)
+                                else
+                                    return (fromIntegral nrDerived / fromIntegral n)
                             relevantLeftFreqs  = [(i, x) | (i, Just x) <- zip [0..] leftFreqs,  x > 0.0]
                             relevantRightFreqs = [(i, x) | (i,      x) <- zip [0..] rightFreqs, x > 0.0]
                         forM_ relevantLeftFreqs $ \(i, x) ->
