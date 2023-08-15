@@ -25,6 +25,7 @@ import           Poseidon.Contributor     (ContributorSpec (..))
 import           Poseidon.EntitiesList    (EntityInput (..),
                                            PoseidonEntity (..),
                                            readEntitiesFromString)
+import Poseidon.EntityTypes (PoseidonIndividual (..))
 import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
@@ -46,7 +47,7 @@ import           Data.Version             (makeVersion)
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle   (ChronOperation (..),
                                            ChronicleOptions (..), runChronicle)
-import           Poseidon.EntityTypes     (PacNameAndVersion (..))
+import           Poseidon.EntityTypes     (PacNameAndVersion (..), IndividualInfo (IndividualInfo))
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (copyFile, createDirectory,
                                            createDirectoryIfMissing,
@@ -56,6 +57,7 @@ import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
+import Control.Exception (finally)
 
 -- file paths --
 
@@ -814,74 +816,109 @@ archives = [
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-
     let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing
-
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
-
     -- this will start the server on another thread
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
-
-    -- takeMVar will block the main thread until the server is ready
-    _ <- takeMVar serverReady
-
-    let fetchOpts1 = FetchOptions {
-          _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac (PacNameAndVersion "Lamnidis_2018" Nothing)]]
-        , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
-        }
-    runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
-          "fetch" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
-        ]
-
-    let fetchOpts2 = FetchOptions {
-          _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac (PacNameAndVersion "Schmid_2028" Nothing)]]
-        , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
-        }
-    runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts2) "fetch" [
-          "fetch" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
-        , "fetch" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
-        , "fetch" </> "Schmid_2028-1.0.0" </> "geno.txt"
-        ]
-
-    -- kill server thread
-    killThread threadID
+    finally (
+        do
+        -- takeMVar will block the main thread until the server is ready
+        _ <- takeMVar serverReady
+        -- fetch latest version of package from default archive
+        let fetchOpts1 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_package"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" Nothing]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
+              "fetch" </> "by_package" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            ]
+        -- fetch only version of package from other archive
+        let fetchOpts2 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_package"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Schmid_2028" Nothing]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts2) "fetch" [
+              "fetch" </> "by_package" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+            , "fetch" </> "by_package" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
+            , "fetch" </> "by_package" </> "Schmid_2028-1.0.0" </> "geno.txt"
+            ]
+        -- fetch old version of package from default archive
+        let fetchOpts3 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_package"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0])]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts3) "fetch" [
+              "fetch" </> "by_package" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            ]
+        -- fetch package by individual of package from default archive
+        let fetchOpts5 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
+            , _entityInput  = [EntitiesDirect [Ind $ SimpleInd "SAMPLE2"]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts5) "fetch" [
+              "fetch" </> "by_individual" </> "Wang_2020-0.1.0" </> "POSEIDON.yml"
+            ]
+        -- fetch package by individual through the SpecificInd interface from other archive
+        let fetchOpts6 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
+            , _entityInput  = [EntitiesDirect [Ind $ SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schmid_2028" Nothing)]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts6) "fetch" [
+              "fetch" </> "by_individual" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+            ]
+        -- fetch package by individual from old package version through the SpecificInd interface from default archive
+        let fetchOpts7 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
+            , _entityInput  = [EntitiesDirect [Ind $ SpecificInd $ IndividualInfo "XXX018" ["POP3"] (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0]))]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts7) "fetch" [
+              "fetch" </> "by_individual" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            ]
+        ) (
+        -- kill server thread
+        killThread threadID
+        )
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-
     let serverOpts = ServeOptions archives Nothing 3000 True Nothing
-
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
     _ <- takeMVar serverReady
+    finally (
+        do
+        -- list from default archive
+        let listOpts1 = ListOptions {
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
+            , _listListEntity   = ListPackages
+            , _listRawOutput    = False
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
+        let listOpts2 = listOpts1 {
+              _listListEntity    = ListGroups
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
+        let listOpts3 = listOpts1 {
+              _listListEntity    = ListIndividuals ["Publication"]
+            , _listRawOutput     = True
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
 
-    -- list from default archive
-    let listOpts1 = ListOptions {
-          _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
-        , _listListEntity   = ListPackages
-        , _listRawOutput    = False
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
-    let listOpts2 = listOpts1 {
-          _listListEntity    = ListGroups
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
-    let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals ["Publication"]
-        , _listRawOutput     = True
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
-
-    -- list from alternative archive
-    let listOpts4 = ListOptions {
-          _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
-        , _listListEntity   = ListPackages
-        , _listRawOutput    = False
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
-
-    killThread threadID
+        -- list from alternative archive
+        let listOpts4 = ListOptions {
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
+            , _listListEntity   = ListPackages
+            , _listRawOutput    = False
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
+        ) (
+        killThread threadID
+        )
