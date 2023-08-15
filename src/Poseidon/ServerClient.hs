@@ -6,7 +6,7 @@ module Poseidon.ServerClient (
     ApiReturnData(..),
     processApiResponse,
     ArchiveEndpoint(..),
-    qDefault, qArchive
+    qDefault, qArchive, qPacVersion, (+&+)
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -22,7 +22,7 @@ import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
                                          eitherDecode', object, parseJSON,
                                          toJSON, withObject, (.:), (.=))
-import           Data.Version           (showVersion)
+import           Data.Version           (showVersion, Version)
 import           GHC.Generics           (Generic)
 import           Network.HTTP.Conduit   (simpleHttp)
 
@@ -34,6 +34,10 @@ qDefault archive = qVersion +&+ qArchive archive
 (+&+) :: String -> String -> String
 (+&+) a ('?':b) = a ++ "&" ++ b
 (+&+) a b       = a ++ "&" ++ b
+
+qPacVersion :: Maybe Version -> String
+qPacVersion Nothing  = ""
+qPacVersion (Just v) = "?package_version=" ++ showVersion v
 
 qVersion :: String
 qVersion = "?client_version=" ++ showVersion version

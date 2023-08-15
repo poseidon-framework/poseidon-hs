@@ -10,7 +10,7 @@ module Poseidon.EntitiesList (
 import           Poseidon.EntityTypes   (IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          PoseidonIndividual (..),
-                                         makePacNameAndVersion)
+                                         makePacNameAndVersion, HasNameAndVersion (..))
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))
@@ -25,7 +25,7 @@ import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
 import           Data.Function          ((&))
-import           Data.List              (group, groupBy, nub, sort, sortBy,
+import           Data.List              (groupBy, nub, sort, sortBy,
                                          (\\))
 import           Data.Maybe             (mapMaybe)
 import           Data.Text              (Text, pack, unpack)
@@ -179,7 +179,7 @@ determineRelevantPackages entities availableInds =
         packages = map pacPerInd indsWithSelectionState
         packagesExactly = nub [p | (p,ShouldBeIncluded (WithVersion _) _) <- packages]
         packagesUnclear = nub [p | (p,ShouldBeIncluded WithoutVersion  _) <- packages]
-        packagesLatest  = map last $ group $ sort packagesUnclear
+        packagesLatest  = map last $ groupBy (\x y -> getPacName x == getPacName y) $ sort packagesUnclear
     in packagesExactly ++ packagesLatest
     where
         pacPerInd :: (IndividualInfo, SelectionState) -> (PacNameAndVersion, SelectionState)
