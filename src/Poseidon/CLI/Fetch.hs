@@ -7,21 +7,24 @@ import           Poseidon.EntitiesList  (EntityInput, PoseidonEntity,
                                          determineRelevantPackages,
                                          readEntityInputs)
 import           Poseidon.EntityTypes   (ExtendedIndividualInfo (..),
+                                         HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          PackageInfo (..),
                                          makePacNameAndVersion,
-                                         renderNameWithVersion, HasNameAndVersion (..))
+                                         renderNameWithVersion)
 import           Poseidon.MathHelpers   (roundTo, roundToStr)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
-                                         processApiResponse, qDefault, qPacVersion, (+&+))
+                                         processApiResponse, qDefault,
+                                         qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
-                                         PoseidonIO, envLogAction, logInfo,
-                                         logWarning, logWithEnv, padLeft, logDebug)
+                                         PoseidonIO, envLogAction, logDebug,
+                                         logInfo, logWarning, logWithEnv,
+                                         padLeft)
 
 import           Codec.Archive.Zip      (ZipOption (..),
                                          extractFilesFromArchive, toArchive)

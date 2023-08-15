@@ -22,7 +22,7 @@ import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
                                          eitherDecode', object, parseJSON,
                                          toJSON, withObject, (.:), (.=))
-import           Data.Version           (showVersion, Version)
+import           Data.Version           (Version, showVersion)
 import           GHC.Generics           (Generic)
 import           Network.HTTP.Conduit   (simpleHttp)
 

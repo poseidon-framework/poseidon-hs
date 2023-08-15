@@ -25,7 +25,7 @@ import           Poseidon.Contributor     (ContributorSpec (..))
 import           Poseidon.EntitiesList    (EntityInput (..),
                                            PoseidonEntity (..),
                                            readEntitiesFromString)
-import Poseidon.EntityTypes (PoseidonIndividual (..))
+import           Poseidon.EntityTypes     (PoseidonIndividual (..))
 import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
@@ -38,6 +38,7 @@ import           Poseidon.Version         (VersionComponent (..))
 
 import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)
+import           Control.Exception        (finally)
 import           Control.Monad            (forM_, unless, when)
 import           Data.Either              (fromRight)
 import           Data.Function            ((&))
@@ -47,7 +48,8 @@ import           Data.Version             (makeVersion)
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle   (ChronOperation (..),
                                            ChronicleOptions (..), runChronicle)
-import           Poseidon.EntityTypes     (PacNameAndVersion (..), IndividualInfo (IndividualInfo))
+import           Poseidon.EntityTypes     (IndividualInfo (IndividualInfo),
+                                           PacNameAndVersion (..))
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (copyFile, createDirectory,
                                            createDirectoryIfMissing,
@@ -57,7 +59,6 @@ import           System.FilePath.Posix    ((</>))
 import           System.IO                (IOMode (WriteMode), hPutStrLn,
                                            openFile, stderr, stdout, withFile)
 import           System.Process           (callCommand)
-import Control.Exception (finally)
 
 -- file paths --
 

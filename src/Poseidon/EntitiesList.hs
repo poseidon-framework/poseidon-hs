@@ -7,10 +7,11 @@ module Poseidon.EntitiesList (
     entitiesListP, EntityInput(..), readEntityInputs, PoseidonIndividual (..),
     resolveEntityIndices, SelectionState (..), PoseidonEntity (..), IsRequestWithVersion (..), IsSpecified (..)) where
 
-import           Poseidon.EntityTypes   (IndividualInfo (..),
+import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          PoseidonIndividual (..),
-                                         makePacNameAndVersion, HasNameAndVersion (..))
+                                         makePacNameAndVersion)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))
@@ -25,8 +26,7 @@ import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
 import           Data.Function          ((&))
-import           Data.List              (groupBy, nub, sort, sortBy,
-                                         (\\))
+import           Data.List              (groupBy, nub, sort, sortBy, (\\))
 import           Data.Maybe             (mapMaybe)
 import           Data.Text              (Text, pack, unpack)
 import           Data.Version           (Version)
