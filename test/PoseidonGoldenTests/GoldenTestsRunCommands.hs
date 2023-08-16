@@ -882,6 +882,26 @@ testPipelineFetch testDir checkFilePath = do
         runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts7) "fetch" [
               "fetch" </> "by_individual" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
             ]
+        -- fetch two packages in different versions (order 1)
+        let fetchOpts8 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "multi_packages_1"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" Nothing, Pac $ PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0])]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts8) "fetch" [
+              "fetch" </> "multi_packages_1" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            , "fetch" </> "multi_packages_1" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            ]
+        -- fetch two packages in different versions (order 2)
+        let fetchOpts9 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "multi_packages_2"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0]), Pac $ PacNameAndVersion "Lamnidis_2018" Nothing]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts9) "fetch" [
+              "fetch" </> "multi_packages_2" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            , "fetch" </> "multi_packages_2" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            ]
         ) (
         -- kill server thread
         killThread threadID

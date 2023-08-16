@@ -97,6 +97,10 @@ b43da4d5734371c0648553120f812466 fetch fetch/by_package/Lamnidis_2018-1.0.0/POSE
 32c0c39ad05a40c13828e92cd2062a46 fetch fetch/by_individual/Wang_2020-0.1.0/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 fetch fetch/by_individual/Schmid_2028-1.0.0/POSEIDON.yml
 b43da4d5734371c0648553120f812466 fetch fetch/by_individual/Lamnidis_2018-1.0.0/POSEIDON.yml
+b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_1/Lamnidis_2018-1.0.0/POSEIDON.yml
+8d57ce1a1ab28c0d8a5f391dd790a59c fetch fetch/multi_packages_1/Lamnidis_2018-1.0.1/POSEIDON.yml
+b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_2/Lamnidis_2018-1.0.0/POSEIDON.yml
+8d57ce1a1ab28c0d8a5f391dd790a59c fetch fetch/multi_packages_2/Lamnidis_2018-1.0.1/POSEIDON.yml
 c4e54aa7297642ad90f5caa9799cb33a listRemote listRemote/listRemote1
 e4e1519fa1852aee6bb5d8e3949a4263 listRemote listRemote/listRemote2
 f231731bbe0b18f27591fd1d01d7d72e listRemote listRemote/listRemote3
