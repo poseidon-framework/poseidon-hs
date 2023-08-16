@@ -87,7 +87,7 @@ data IsSpecified = Specified | NotSpecified deriving (Show, Eq)
 
 isSpecified :: SelectionState -> Bool
 isSpecified (ShouldBeIncluded _ Specified) = True
-isSpecified _ = False
+isSpecified _                              = False
 
 -- | A class to generalise signed and unsigned Entity Lists.
 --   Both have the feature that they can be used to filter individuals.
