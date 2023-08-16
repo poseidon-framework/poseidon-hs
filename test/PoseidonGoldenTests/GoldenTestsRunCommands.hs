@@ -747,7 +747,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac12"
         , _forgeOutPacName   = Just "ForgePac12"
-        , _forgePackageWise  = True
+        , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
     }
     let action12 = testLog (runForge forgeOpts12) >> patchLastModified testDir ("forge" </> "ForgePac12" </> "POSEIDON.yml")
@@ -765,7 +765,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac13"
         , _forgeOutPacName   = Just "ForgePac13"
-        , _forgePackageWise  = True
+        , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
     }
     let action13 = testLog (runForge forgeOpts13) >> patchLastModified testDir ("forge" </> "ForgePac13" </> "POSEIDON.yml")
@@ -784,7 +784,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutOnlyGeno  = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac14"
         , _forgeOutPacName   = Just "ForgePac14"
-        , _forgePackageWise  = True
+        , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
     }
     let action14 = testLog (runForge forgeOpts14) >> patchLastModified testDir ("forge" </> "ForgePac14" </> "POSEIDON.yml")

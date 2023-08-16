@@ -85,6 +85,8 @@ bdef2c307caa92ee7a3e946d0264171a forge forge/ForgePac10/ForgePac10.bib
 4c9dfdb37e4568e091796acbc95bbc9a forge forge/ForgePac11/ForgePac11.janno
 0aef7781caa017fa2b888dfa64b60cf3 forge forge/ForgePac11/ForgePac11.ssf
 0bb988d9e1c981a47f332bea8a16e984 forge forge/ForgePac12/ForgePac12.ind
+d2d112d9de2e45a113ac206f64a0667e forge forge/ForgePac13/ForgePac13.janno
+b8dc712e82f00db8bbcdb4fce6b51589 forge forge/ForgePac14/ForgePac14.janno
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
