@@ -754,7 +754,43 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action12 "forge" [
           "forge" </> "ForgePac12" </> "ForgePac12.ind"
         ]
-    -- ...
+    -- merge an explicitly versioned package with another package
+    let forgeOpts13 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.1*,*Schiffels_2016*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac13"
+        , _forgeOutPacName   = Just "ForgePac13"
+        , _forgePackageWise  = True
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action13 = testLog (runForge forgeOpts13) >> patchLastModified testDir ("forge" </> "ForgePac13" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action13 "forge" [
+          "forge" </> "ForgePac13" </> "ForgePac13.janno"
+        ]
+    -- use the SpecificInd interface to merge individuals from the same package across different versions
+    let forgeOpts14 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "<XXX099>,<Lamnidis_2018-1.0.1:POP1:XXX017>,<Lamnidis_2018-1.0.0:POP3:XXX018>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac14"
+        , _forgeOutPacName   = Just "ForgePac14"
+        , _forgePackageWise  = True
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action14 = testLog (runForge forgeOpts14) >> patchLastModified testDir ("forge" </> "ForgePac14" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action14 "forge" [
+          "forge" </> "ForgePac14" </> "ForgePac14.janno"
+        ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
