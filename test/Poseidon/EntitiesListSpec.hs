@@ -250,9 +250,9 @@ testResolveEntityIndices =
             , Include (Ind (SimpleInd "Ind2"))
             ] indInfoDuplicates `shouldBe` (
                 [[
-                  (3, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPac = PacNameAndVersion "Pac1" Nothing}, ShouldBeIncluded WithoutVersion NotSpecified)
-                , (4, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPac = PacNameAndVersion "Pac2" Nothing}, ShouldBeIncluded WithoutVersion NotSpecified)
-                , (5, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPac = PacNameAndVersion "Pac3" Nothing}, ShouldBeIncluded WithoutVersion NotSpecified)
+                  (3, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPac = PacNameAndVersion "Pac1" Nothing}, [ShouldBeIncluded (PacNameAndVersion "Pac1" Nothing) NotSpecified])
+                , (4, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPac = PacNameAndVersion "Pac2" Nothing}, [ShouldBeIncluded (PacNameAndVersion "Pac2" Nothing) NotSpecified])
+                , (5, IndividualInfo {indInfoName = "Ind2", indInfoGroups = ["Pop2","PopB"], indInfoPac = PacNameAndVersion "Pac3" Nothing}, [ShouldBeIncluded (PacNameAndVersion "Pac3" Nothing) NotSpecified])
                 ]],
                 [1]
             )
