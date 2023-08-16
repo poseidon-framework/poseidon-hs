@@ -41,6 +41,10 @@ instance Eq IndividualInfo where
 instance Show IndividualInfo where
     show (IndividualInfo i g p) = "<" ++ renderNameWithVersion p ++ ":" ++ (head g) ++ ":" ++ i ++ ">"
 
+instance HasNameAndVersion IndividualInfo where
+    getPacName    = getPacName . indInfoPac
+    getPacVersion = getPacVersion . indInfoPac
+
 class HasNameAndVersion a where
     getPacName    :: a -> String
     getPacVersion :: a -> Maybe Version

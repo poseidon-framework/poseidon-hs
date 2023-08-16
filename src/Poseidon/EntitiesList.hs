@@ -114,14 +114,14 @@ instance EntitySpec SignedEntity where
             if n == indName then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
         isIn (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ Nothing)))) =
             if i `eqInd` indInfo then ShouldBeIncluded (PacNameAndVersion pacName Nothing) Specified else ShouldNotBeIncluded
-        isIn (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ (Just _))))) =
-            if i `eqInd` indInfo then ShouldBeIncluded pacNameAndVer Specified else ShouldNotBeIncluded
+        isIn (Ind (SpecificInd i@(IndividualInfo _ _ p@(PacNameAndVersion _ (Just _))))) =
+            if i `eqInd` indInfo then ShouldBeIncluded p Specified else ShouldNotBeIncluded
         isIn (Group n) =
             if n `elem` groupNames then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
         isIn (Pac p@(PacNameAndVersion _ Nothing)) =
             if p `eqPac` pacNameAndVer then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
         isIn (Pac p@(PacNameAndVersion _ (Just _))) =
-            if p `eqPac` pacNameAndVer then ShouldBeIncluded pacNameAndVer NotSpecified else ShouldNotBeIncluded
+            if p `eqPac` pacNameAndVer then ShouldBeIncluded p NotSpecified else ShouldNotBeIncluded
         eqInd :: IndividualInfo -> IndividualInfo -> Bool
         -- head should be fine here, because the SpecificInd parser reads exactly one group name
         (IndividualInfo i1 g1 p1) `eqInd` (IndividualInfo i2 g2 p2) = i1 == i2 && (head g1) `elem` g2 && p1 `eqPac` p2
@@ -184,10 +184,12 @@ determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNa
 determineRelevantPackages entities availableInds =
     let selectionStates = concatMap (indInfoConformsToEntitySpec entities) availableInds
         packagesExactly = nub [p | (ShouldBeIncluded p@(PacNameAndVersion _ (Just _)) _) <- selectionStates]
-        packagesUnclear = nub [p | (ShouldBeIncluded p@(PacNameAndVersion _ Nothing) _)  <- selectionStates]
-        packagesLatest  = map last $ groupBy (\x y -> getPacName x == getPacName y) $ sort packagesUnclear
-    in --packagesExactly ++ packagesLatest
-       error $ show packagesExactly ++ " + " ++ show packagesUnclear ++ " + " ++ show packagesLatest
+        packagesUnclear = nub [pacName | (ShouldBeIncluded (PacNameAndVersion pacName Nothing) _)  <- selectionStates]
+        packagesLatest  = map getLatestPackageVersion packagesUnclear
+    in packagesExactly ++ packagesLatest --error $ show packagesExactly ++ " + " ++ show packagesLatest
+    where
+        getLatestPackageVersion :: String -> PacNameAndVersion
+        getLatestPackageVersion n = maximum $ filter (\p -> n == getPacName p) $ map makePacNameAndVersion availableInds
 
 determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
 determineNonExistentEntities entities availableInds =
