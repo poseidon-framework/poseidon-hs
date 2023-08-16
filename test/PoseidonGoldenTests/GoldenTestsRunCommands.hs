@@ -736,6 +736,25 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac11" </> "ForgePac11.janno"
         , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
         ]
+    -- simple package version selection
+    let forgeOpts12 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.0*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac12"
+        , _forgeOutPacName   = Just "ForgePac12"
+        , _forgePackageWise  = True
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action12 = testLog (runForge forgeOpts12) >> patchLastModified testDir ("forge" </> "ForgePac12" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action12 "forge" [
+          "forge" </> "ForgePac12" </> "ForgePac12.ind"
+        ]
+    -- ...
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
