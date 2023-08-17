@@ -139,24 +139,30 @@ testReadEntitiesFromFile =
               Ind (SimpleInd "a")
             , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
             , Group "b"
-            , Pac (PacNameAndVersion "c" Nothing)
+            , Pac (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
             ]
     it "should parse good, multi-value-per-line files correctly" $ do
         g2res <- readEntitiesFromFile g2
         g2res `shouldBe`
             map Include [
-                  Ind (SimpleInd "a1")
-                , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))
-                , Ind (SimpleInd "a2")
-                , Group "b1", Pac (PacNameAndVersion "c1" Nothing)
-                , Pac (PacNameAndVersion "c2" Nothing)
-                , Group "b2"
-                , Group "b3"
-                ]
+              Ind (SimpleInd "a1")
+            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
+            , Ind (SimpleInd "a2")
+            , Group "b1", Pac (PacNameAndVersion "c1" Nothing)
+            , Pac (PacNameAndVersion "c2" Nothing)
+            , Group "b2"
+            , Group "b3"
+            ]
     it "should handle empty lines and #-comments correctly" $ do
         g3res <- readEntitiesFromFile g3
         g3res `shouldBe`
-            map Include [Ind (SimpleInd "a1"), Ind (SimpleInd "a2"), Group "b1", Group "b2", Group "b3"]
+            map Include [
+              Ind (SimpleInd "a1")
+            , Ind (SimpleInd "a2")
+            , Group "b1"
+            , Group "b2"
+            , Group "b3"
+            ]
     it "should handle exclusion correctly" $ do
         g4res <- readEntitiesFromFile g4
         g4res `shouldBe`
@@ -164,7 +170,7 @@ testReadEntitiesFromFile =
               Exclude $ Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))
             , Exclude $ Ind (SimpleInd "a2")
             , Exclude $ Group "b1", Include $ Group "b1"
-            , Exclude $ Pac (PacNameAndVersion "c2" Nothing)
+            , Exclude $ Pac (PacNameAndVersion "c2" (Just $ makeVersion [5,5,5]))
             ]
     it "should fail to parse bad files and throw an exception" $ do
         (readEntitiesFromFile b1 :: IO EntitiesList) `shouldThrow` anyException -- wrong space
@@ -185,7 +191,7 @@ goodEntities = [
       Pac (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,1]))
     , Group "POP1"
     , Ind (SimpleInd "SAMPLE3")
-    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,1])))
+    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schiffels_2016" Nothing))
     , Ind (SpecificInd $ IndividualInfo "XXX012" ["POP2"] (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,1])))
     ]
 
@@ -194,7 +200,7 @@ badEntities = [
       Pac (PacNameAndVersion "Schiffels_2015" Nothing)
     , Group "foo"
     , Ind (SimpleInd "bar")
-    , Ind (SpecificInd $ IndividualInfo "XXX002" ["POP1"] (PacNameAndVersion "Schiffels_2016" Nothing))
+    , Ind (SpecificInd $ IndividualInfo "XXX002" ["POP1"] (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,2])))
     , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP2"] (PacNameAndVersion "Schiffels_2016" Nothing))
     ]
 
@@ -323,25 +329,53 @@ testResolveEntityIndices =
                 [],
                 [1]
             )
+    it "should correctly extract indices in case of multiple package versions" $ do
+        let indInfo = [
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind3" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind4" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind5" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind6" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind7" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind8" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                ]
+        indInfo `shouldBe` indInfo
 
 testJSON :: Spec
 testJSON =
     describe "Poseidon.EntitiesList.ToJSON" $ do
         it "should encode entities correctly to JSON" $ do
-            encode (Ind (SimpleInd "Ind1"))                                     `shouldBe` "\"<Ind1>\""
-            encode (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))) `shouldBe` "\"<c:b:a>\""
-            encode (Group "Group1")                                             `shouldBe` "\"Group1\""
-            encode (Pac (PacNameAndVersion "Pac1" Nothing))                     `shouldBe` "\"*Pac1*\""
-            encode (Exclude (Ind (SimpleInd "Ind1")))                           `shouldBe` "\"-<Ind1>\""
-            encode (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)))) `shouldBe` "\"-<c:b:a>\""
-            encode (Exclude (Group "Group1"))                                   `shouldBe` "\"-Group1\""
-            encode (Exclude (Pac (PacNameAndVersion "Pac1" Nothing)))           `shouldBe` "\"-*Pac1*\""
+            encode (Ind (SimpleInd "Ind1")) `shouldBe`
+                    "\"<Ind1>\""
+            encode (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))) `shouldBe`
+                    "\"<c:b:a>\""
+            encode (Group "Group1") `shouldBe`
+                    "\"Group1\""
+            encode (Pac (PacNameAndVersion "Pac1" Nothing)) `shouldBe`
+                    "\"*Pac1*\""
+            encode (Exclude (Ind (SimpleInd "Ind1"))) `shouldBe`
+                    "\"-<Ind1>\""
+            encode (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)))) `shouldBe`
+                    "\"-<c:b:a>\""
+            encode (Exclude (Group "Group1")) `shouldBe`
+                    "\"-Group1\""
+            encode (Exclude (Pac (PacNameAndVersion "Pac1" Nothing))) `shouldBe`
+                    "\"-*Pac1*\""
         it "should decode entities correctly from JSON" $ do
-            decode "\"<Ind1>\""   `shouldBe` Just (Ind (SimpleInd "Ind1"))
-            decode "\"<c:b:a>\""  `shouldBe` Just (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)))
-            decode "\"Group1\""   `shouldBe` Just (Group "Group1")
-            decode "\"*Pac1*\""   `shouldBe` Just (Pac (PacNameAndVersion "Pac1" Nothing))
-            decode "\"-<Ind1>\""  `shouldBe` Just (Exclude (Ind (SimpleInd "Ind1")))
-            decode "\"-<c:b:a>\"" `shouldBe` Just (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"]  (PacNameAndVersion "c" Nothing))))
-            decode "\"-Group1\""  `shouldBe` Just (Exclude (Group "Group1"))
-            decode "\"-*Pac1*\""  `shouldBe` Just (Exclude (Pac (PacNameAndVersion "Pac1" Nothing)))
+            decode "\"<Ind1>\""   `shouldBe`
+                    Just (Ind (SimpleInd "Ind1"))
+            decode "\"<c:b:a>\""  `shouldBe`
+                    Just (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)))
+            decode "\"Group1\""   `shouldBe`
+                    Just (Group "Group1")
+            decode "\"*Pac1*\""   `shouldBe`
+                    Just (Pac (PacNameAndVersion "Pac1" Nothing))
+            decode "\"-<Ind1>\""  `shouldBe`
+                    Just (Exclude (Ind (SimpleInd "Ind1")))
+            decode "\"-<c:b:a>\"" `shouldBe`
+                    Just (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"]  (PacNameAndVersion "c" Nothing))))
+            decode "\"-Group1\""  `shouldBe`
+                    Just (Exclude (Group "Group1"))
+            decode "\"-*Pac1*\""  `shouldBe`
+                    Just (Exclude (Pac (PacNameAndVersion "Pac1" Nothing)))
