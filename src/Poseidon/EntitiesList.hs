@@ -182,14 +182,15 @@ filterToRelevantPackages entities packages =
 
 determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
 determineRelevantPackages entities availableInds =
-    let selectionStates = concatMap (indInfoConformsToEntitySpec entities) availableInds
+    let availablePacs   = map makePacNameAndVersion availableInds
+        selectionStates = concatMap (indInfoConformsToEntitySpec entities) availableInds
         packagesExactly = nub [p | (ShouldBeIncluded p@(PacNameAndVersion _ (Just _)) _) <- selectionStates]
         packagesUnclear = nub [pacName | (ShouldBeIncluded (PacNameAndVersion pacName Nothing) _)  <- selectionStates]
-        packagesLatest  = map getLatestPackageVersion packagesUnclear
+        packagesLatest  = map (getLatestPackageVersion availablePacs) packagesUnclear
     in packagesExactly ++ packagesLatest --error $ show packagesExactly ++ " + " ++ show packagesLatest
     where
-        getLatestPackageVersion :: String -> PacNameAndVersion
-        getLatestPackageVersion n = maximum $ filter (\p -> n == getPacName p) $ map makePacNameAndVersion availableInds
+        getLatestPackageVersion :: [PacNameAndVersion] -> String -> PacNameAndVersion
+        getLatestPackageVersion refPacList n = maximum $ filter (\p -> n == getPacName p) refPacList
 
 determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
 determineNonExistentEntities entities availableInds =
