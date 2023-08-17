@@ -26,64 +26,103 @@ spec = do
     testResolveEntityIndices
     testJSON
 
-
 testReadPoseidonEntitiesString :: Spec
 testReadPoseidonEntitiesString =
     describe "Poseidon.EntitiesList.readPoseidonEntitiesString" $ do
     it "should parse single entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>") `shouldBe` [Include $ Ind (SimpleInd "a")]
-        fromRight [] (readEntitiesFromString "<c:b:a>") `shouldBe` [Include $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))]
-        fromRight [] (readEntitiesFromString "b") `shouldBe` [Include $ Group "b"]
-        fromRight [] (readEntitiesFromString "*c*") `shouldBe` [Include $ Pac (PacNameAndVersion "c" Nothing)]
+        fromRight [] (readEntitiesFromString "<a>") `shouldBe`
+            [Include $ Ind (SimpleInd "a")]
+        fromRight [] (readEntitiesFromString "<c:b:a>") `shouldBe`
+            [Include $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))]
+        fromRight [] (readEntitiesFromString "<c-2.0.2:b:a>") `shouldBe`
+            [Include $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" (Just $ makeVersion [2,0,2])))]
+        fromRight [] (readEntitiesFromString "b") `shouldBe`
+            [Include $ Group "b"]
+        fromRight [] (readEntitiesFromString "*c*") `shouldBe`
+            [Include $ Pac (PacNameAndVersion "c" Nothing)]
+        fromRight [] (readEntitiesFromString "*c-1.2.3*") `shouldBe`
+            [Include $ Pac (PacNameAndVersion "c" (Just $ makeVersion [1,2,3]))]
     it "should parse longer entity lists correctly" $ do
         fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
-            map Include [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)), Group "b", Pac (PacNameAndVersion "c" Nothing)]
+            map Include [
+              Ind (SimpleInd "a")
+            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Group "b", Pac (PacNameAndVersion "c" Nothing)
+            ]
         fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>") `shouldBe`
             map Include [
-                  Ind (SimpleInd "a1")
-                , Group "b1"
-                , Ind (SimpleInd "a2")
-                , Pac (PacNameAndVersion "c" Nothing)
-                , Group "b2"
-                , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))
+              Ind (SimpleInd "a1")
+            , Group "b1"
+            , Ind (SimpleInd "a2")
+            , Pac (PacNameAndVersion "c" Nothing)
+            , Group "b2"
+            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))
+            ]
+        fromRight [] (readEntitiesFromString "<a1>,*c-4.3.2*,<c-3.3.3:b2:a3>") `shouldBe`
+            map Include [
+              Ind (SimpleInd "a1")
+            , Pac (PacNameAndVersion "c" (Just $ makeVersion [4,3,2]))
+            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" (Just $ makeVersion [3,3,3])))
             ]
     it "should parse unsigned entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
-            [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)), Group "b", Pac (PacNameAndVersion "c" Nothing)]
-        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>") `shouldBe`
-            [Ind (SimpleInd "a1"), Group "b1", Ind (SimpleInd "a2"), Pac (PacNameAndVersion "c" Nothing), Group "b2", Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))]
+        fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c-1.0.0*") `shouldBe`
+            [ Ind (SimpleInd "a")
+            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Group "b"
+            , Pac (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
+            ]
+        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c-1.0.0:b2:a3>") `shouldBe`
+            [ Ind (SimpleInd "a1")
+            , Group "b1"
+            , Ind (SimpleInd "a2")
+            , Pac (PacNameAndVersion "c" Nothing)
+            , Group "b2"
+            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
+            ]
     it "should ignore spaces after commas" $ do
-        fromRight [] (readEntitiesFromString "<a>, <c:b:a>, b, *c*") `shouldBe`
-            map Include [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)), Group "b", Pac (PacNameAndVersion "c" Nothing)]
+        fromRight [] (readEntitiesFromString "<a>, <c-1.0.0:b:a>, b, *c*") `shouldBe`
+            map Include [
+              Ind (SimpleInd "a")
+            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
+            , Group "b"
+            , Pac (PacNameAndVersion "c" Nothing)
+            ]
         fromRight [] (readEntitiesFromString "*c*,  b") `shouldBe`
-            map Include [Pac (PacNameAndVersion "c" Nothing), Group "b"]
+            map Include [
+              Pac (PacNameAndVersion "c" Nothing)
+            , Group "b"
+            ]
     it "should parse exclusion entities correctly" $ do
-        fromRight [] (readEntitiesFromString "-<a>") `shouldBe` [Exclude $ Ind (SimpleInd "a")]
-        fromRight [] (readEntitiesFromString "-<a1>, -<c:b:a>, <a2>, -b1,b2,-*c1*, *c2*") `shouldBe`
+        fromRight [] (readEntitiesFromString "-<a>") `shouldBe`
+            [Exclude $ Ind (SimpleInd "a")]
+        fromRight [] (readEntitiesFromString "-<a1>, -<c:b:a>, <a2>, -b1,b2,-*c1-1.0.0*, *c2*") `shouldBe`
             [ Exclude $ Ind (SimpleInd "a1")
             , Exclude $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
             , Include $ Ind (SimpleInd "a2")
             , Exclude $ Group "b1", Include $ Group "b2"
-            , Exclude $ Pac (PacNameAndVersion "c1" Nothing), Include $ Pac (PacNameAndVersion "c2" Nothing)
+            , Exclude $ Pac (PacNameAndVersion "c1" (Just $ makeVersion [1,0,0]))
+            , Include $ Pac (PacNameAndVersion "c2" Nothing)
             ]
     it "should fail with any other setting" $ do
         -- the following type annotations - annoyingly - are required because readEntitiesFromString is polymorphic,
         -- and even though it all returns Left, the compiler complains about ambiguous types.
-        (readEntitiesFromString "<a> ,b,*c*"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString " <a>,b,*c*"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<a >,b,*c*"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "< a>,b,*c*"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<a>,b,*c* "   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<a>,b d,*c*"  :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<a>>,b,*c*"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<a>,b,*c*c*"  :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "-<a>,b,*c*c*" :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<a>,b,*c*-"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "-a>,b,*c*"    :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<cb:a>"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<c:ba>"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<c :b:a>"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-        (readEntitiesFromString "<c: b:a>"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a> ,b,*c*"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString " <a>,b,*c*"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a >,b,*c*"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "< a>,b,*c*"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a>,b,*c* "       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a>,b d,*c*"      :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a>>,b,*c*"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a>,b,*c*c*"      :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "-<a>,b,*c*c*"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<a>,b,*c*-"       :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "-a>,b,*c*"        :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<cb:a>"           :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c:ba>"           :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c :b:a>"         :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c: b:a>"         :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c-1.0.0 :b:a>"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<c- 1.0.0:b:a>"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
 
 testReadEntitiesFromFile :: Spec
 testReadEntitiesFromFile =
@@ -96,7 +135,12 @@ testReadEntitiesFromFile =
     it "should parse good, single-value-per-line files correctly" $ do
         g1res <- readEntitiesFromFile g1
         g1res `shouldBe`
-            map Include [Ind (SimpleInd "a"), Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)), Group "b", Pac (PacNameAndVersion "c" Nothing)]
+            map Include [
+              Ind (SimpleInd "a")
+            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Group "b"
+            , Pac (PacNameAndVersion "c" Nothing)
+            ]
     it "should parse good, multi-value-per-line files correctly" $ do
         g2res <- readEntitiesFromFile g2
         g2res `shouldBe`
