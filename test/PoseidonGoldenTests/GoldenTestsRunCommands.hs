@@ -791,6 +791,63 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action14 "forge" [
           "forge" </> "ForgePac14" </> "ForgePac14.janno"
         ]
+    -- negative selection with different package versions - use versioned to cancel versioned
+    let forgeOpts15 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018-1.0.1*,*Lamnidis_2018-1.0.0*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac15"
+        , _forgeOutPacName   = Just "ForgePac15"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action15 = testLog (runForge forgeOpts15) >> patchLastModified testDir ("forge" </> "ForgePac15" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action15 "forge" [
+          "forge" </> "ForgePac15" </> "ForgePac15.janno"
+        ]
+    -- negative selection with different package versions - use unversioned to cancel versioned
+    let forgeOpts16 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018*,*Lamnidis_2018-1.0.0*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac16"
+        , _forgeOutPacName   = Just "ForgePac16"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action16 = testLog (runForge forgeOpts16) >> patchLastModified testDir ("forge" </> "ForgePac16" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action16 "forge" [
+          "forge" </> "ForgePac16" </> "ForgePac16.janno"
+        ]
+    -- negative selection with different package versions - using the SpecificInd interface
+    let forgeOpts17 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "*Lamnidis_2018-1.0.1*,-POP2,-<Lamnidis_2018-1.0.1:POP1:XXX017>,-<Lamnidis_2018-1.0.1:POP3:XXX018>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac17"
+        , _forgeOutPacName   = Just "ForgePac17"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action17 = testLog (runForge forgeOpts17) >> patchLastModified testDir ("forge" </> "ForgePac17" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action17 "forge" [
+          "forge" </> "ForgePac17" </> "ForgePac17.janno"
+        ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
