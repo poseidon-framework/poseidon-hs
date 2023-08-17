@@ -271,28 +271,19 @@ testResolveEntityIndices =
         -- test simple extraction with specific syntax
         resolveEntityIndices [
                Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
-            ] indInfoDuplicates `shouldBe` (
-                [],
-                [1]
-            )
+            ] indInfoDuplicates `shouldBe` ([], [1])
         -- test solving simple duplication for one individual
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
-            ] indInfoDuplicates `shouldBe` (
-                [],
-                [1]
-            )
+            ] indInfoDuplicates `shouldBe` ([], [1])
         -- test solving duplication for two individuals at once
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
             , Include (Ind (SimpleInd "Ind2"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] (PacNameAndVersion "Pac3" Nothing)))
-            ] indInfoDuplicates `shouldBe` (
-                [],
-                [1,5]
-            )
+            ] indInfoDuplicates `shouldBe` ([], [1,5])
         -- test output in case of unresolved duplicates
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
@@ -312,10 +303,7 @@ testResolveEntityIndices =
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
             , Exclude (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] (PacNameAndVersion "Pac1" Nothing)))
             , Exclude (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] (PacNameAndVersion "Pac3" Nothing)))
-            ] indInfoDuplicates `shouldBe` (
-                [],
-                [1,4]
-            )
+            ] indInfoDuplicates `shouldBe` ([], [1,4])
     it "should correctly extract indices in case of duplicates within one package" $ do
         let indInfoDuplicates = [
                   IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
@@ -325,22 +313,45 @@ testResolveEntityIndices =
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
             , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop2"] (PacNameAndVersion "Pac1" Nothing)))
-            ] indInfoDuplicates `shouldBe` (
-                [],
-                [1]
-            )
+            ] indInfoDuplicates `shouldBe` ([], [1])
     it "should correctly extract indices in case of multiple package versions" $ do
         let indInfo = [
-                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
-                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
-                , IndividualInfo "Ind3" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
-                , IndividualInfo "Ind4" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
-                , IndividualInfo "Ind5" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
-                , IndividualInfo "Ind6" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
-                , IndividualInfo "Ind7" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
-                , IndividualInfo "Ind8" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))
+                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))
+                , IndividualInfo "Ind3" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind4" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 ]
-        indInfo `shouldBe` indInfo
+        resolveEntityIndices [
+              Include (Pac (PacNameAndVersion "Pac1" Nothing))
+            ] indInfo `shouldBe` (
+                [[
+                  (0, IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])), [ShouldBeIncluded (PacNameAndVersion "Pac1" Nothing) NotSpecified])
+                , (2, IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])), [ShouldBeIncluded (PacNameAndVersion "Pac1" Nothing) NotSpecified])
+                ],[
+                  (1, IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])), [ShouldBeIncluded (PacNameAndVersion "Pac1" Nothing) NotSpecified])
+                , (3, IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])), [ShouldBeIncluded (PacNameAndVersion "Pac1" Nothing) NotSpecified])
+                ]],
+                []
+                )
+        resolveEntityIndices [
+              Include (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
+            ] indInfo `shouldBe` ([], [0,1])
+        resolveEntityIndices [
+              Include (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])))
+            ] indInfo `shouldBe` ([], [2,3])
+        resolveEntityIndices [
+              Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))))
+            , Exclude (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
+            ] indInfo `shouldBe` ([], [2])
+        resolveEntityIndices [
+              Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))))
+            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))))
+            , Exclude (Pac (PacNameAndVersion "Pac1" Nothing))
+            , Include (Ind (SimpleInd "Ind4"))
+            ] indInfo `shouldBe` ([], [5])
 
 testJSON :: Spec
 testJSON =
