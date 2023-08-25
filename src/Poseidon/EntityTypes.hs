@@ -18,16 +18,16 @@ import           GHC.Generics (Generic)
 -- | A datatype to represent a package, a group or an individual
 data PoseidonIndividual =
       SimpleInd String
-    | SpecificInd IndividualInfo
+    | SpecificInd String String PacNameAndVersion
     deriving (Eq, Ord)
 
 getIndName :: PoseidonIndividual -> String
-getIndName (SimpleInd n)                        = n
-getIndName (SpecificInd (IndividualInfo n _ _)) = n
+getIndName (SimpleInd n)       = n
+getIndName (SpecificInd n _ _) = n
 
 instance Show PoseidonIndividual where
     show (SimpleInd   i) = "<" ++ i ++ ">"
-    show (SpecificInd i) = show i
+    show (SpecificInd i g p) = "<" ++ renderNameWithVersion p ++ ":" ++ g ++ ":" ++ i ++ ">"
 
 data IndividualInfo = IndividualInfo
     { indInfoName   :: String

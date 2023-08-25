@@ -110,11 +110,11 @@ instance EntitySpec SignedEntity where
                 ShouldBeIncluded _ _ -> Just ShouldNotBeIncluded
                 ShouldNotBeIncluded  -> Nothing
         isIn :: PoseidonEntity -> SelectionState
-        isIn (Ind (SimpleInd n))   =
-            if n == indName then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
-        isIn (Ind (SpecificInd i@(IndividualInfo _ _ (PacNameAndVersion _ Nothing)))) =
+        isIn (Ind i@(SimpleInd n))   =
+            if i `eqInd` indInfo then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
+        isIn (Ind i@(SpecificInd n g (PacNameAndVersion _ Nothing))) =
             if i `eqInd` indInfo then ShouldBeIncluded (PacNameAndVersion pacName Nothing) Specified else ShouldNotBeIncluded
-        isIn (Ind (SpecificInd i@(IndividualInfo _ _ p@(PacNameAndVersion _ (Just _))))) =
+        isIn (Ind i@(SpecificInd n g p@(PacNameAndVersion _ (Just _)))) =
             if i `eqInd` indInfo then ShouldBeIncluded p Specified else ShouldNotBeIncluded
         isIn (Group n) =
             if n `elem` groupNames then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
@@ -122,9 +122,9 @@ instance EntitySpec SignedEntity where
             if p `eqPac` pacNameAndVer then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
         isIn (Pac p@(PacNameAndVersion _ (Just _))) =
             if p `eqPac` pacNameAndVer then ShouldBeIncluded p NotSpecified else ShouldNotBeIncluded
-        eqInd :: IndividualInfo -> IndividualInfo -> Bool
-        -- head should be fine here, because the SpecificInd parser reads exactly one group name
-        (IndividualInfo i1 g1 p1) `eqInd` (IndividualInfo i2 g2 p2) = i1 == i2 && (head g1) `elem` g2 && p1 `eqPac` p2
+        eqInd :: PoseidonIndividual -> IndividualInfo -> Bool
+        SpecificInd i1 g1 p1 `eqInd` IndividualInfo i2 g2 p2 = i1 == i2 && g1 `elem` g2 && p1 `eqPac` p2
+        SimpleInd   i1       `eqInd` IndividualInfo i2 _  _  = i1 == i2
         -- note that the LHS is the requested entity! eqPac is asymmetric!
         eqPac:: PacNameAndVersion -> PacNameAndVersion -> Bool
         (PacNameAndVersion n1 Nothing)   `eqPac` (PacNameAndVersion n2 Nothing)   = n1 == n2
@@ -200,7 +200,7 @@ determineNonExistentEntities entities availableInds =
         requestedPacVers    = nub [ pac | Pac   pac               <- map underlyingEntity entities]
         groupNamesStats     = nub [ grp | Group grp               <- map underlyingEntity entities]
         simpleIndNamesStats = nub [ ind | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
-        specificIndsStats   = nub [ ind | Ind   (SpecificInd ind) <- map underlyingEntity entities]
+        specificIndsStats   = nub [ (n, g, p) | Ind   (SpecificInd n g p) <- map underlyingEntity entities]
         missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
         missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
         missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
