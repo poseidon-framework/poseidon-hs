@@ -171,7 +171,7 @@ instance EntitySpec PoseidonEntity where
             _ <- P.char ':'
             indName <- parseName
             _ <- P.char '>'
-            return $ SpecificInd (IndividualInfo indName [groupName] pac)
+            return $ SpecificInd indName groupName pac
 
 -- entity filter logic
 
@@ -197,10 +197,10 @@ determineNonExistentEntities entities availableInds =
     let pacNameVer    = nub . map indInfoPac $ availableInds
         indNamesPac   = map indInfoName availableInds
         groupNamesPac = nub . concatMap indInfoGroups $ availableInds
-        requestedPacVers    = nub [ pac | Pac   pac               <- map underlyingEntity entities]
-        groupNamesStats     = nub [ grp | Group grp               <- map underlyingEntity entities]
-        simpleIndNamesStats = nub [ ind | Ind   (SimpleInd ind)   <- map underlyingEntity entities]
-        specificIndsStats   = nub [ (n, g, p) | Ind   (SpecificInd n g p) <- map underlyingEntity entities]
+        requestedPacVers    = nub [ pac | Pac   pac                   <- map underlyingEntity entities]
+        groupNamesStats     = nub [ grp | Group grp                   <- map underlyingEntity entities]
+        simpleIndNamesStats = nub [ ind | Ind     (SimpleInd ind)     <- map underlyingEntity entities]
+        specificIndsStats   = nub [ ind | Ind ind@(SpecificInd n g p) <- map underlyingEntity entities]
         missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
         missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
         missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
