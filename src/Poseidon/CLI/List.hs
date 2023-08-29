@@ -12,15 +12,17 @@ import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          processApiResponse, qDefault)
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
+import           Poseidon.EntityTypes   (PacNameAndVersion (..))
+import           Poseidon.ServerClient   (ExtendedIndividualInfo (ExtendedIndividualInfo),
+                                         GroupInfo (..),
+                                         PackageInfo (..))
 
 import           Control.Monad          (forM_, when)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (intercalate, sortOn)
 import           Data.Maybe             (catMaybes, fromMaybe)
 import           Data.Version           (Version, showVersion)
-import           Poseidon.EntityTypes   (ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                         GroupInfo (..), PacNameAndVersion (..),
-                                         PackageInfo (..))
+                                         
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 

@@ -6,11 +6,9 @@ import           Poseidon.EntitiesList  (EntityInput, PoseidonEntity,
                                          determineNonExistentEntities,
                                          determineRelevantPackages,
                                          readEntityInputs)
-import           Poseidon.EntityTypes   (ExtendedIndividualInfo (..),
-                                         HasNameAndVersion (..),
+import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          PacNameAndVersion (..),
-                                         PackageInfo (..),
                                          makePacNameAndVersion,
                                          renderNameWithVersion)
 import           Poseidon.MathHelpers   (roundTo, roundToStr)
@@ -19,8 +17,9 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
-                                         processApiResponse, qDefault,
-                                         qPacVersion, (+&+))
+                                         ExtendedIndividualInfo (..),
+                                         PackageInfo (..), processApiResponse,
+                                         qDefault, qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
                                          logInfo, logWarning, logWithEnv,

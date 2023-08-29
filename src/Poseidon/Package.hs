@@ -32,11 +32,8 @@ module Poseidon.Package (
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
-import           Poseidon.EntityTypes       (ExtendedIndividualInfo (..),
-                                             GroupInfo (..),
-                                             HasNameAndVersion (..),
+import           Poseidon.EntityTypes       (HasNameAndVersion (..),
                                              IndividualInfo (..),
-                                             PackageInfo (..),
                                              makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
@@ -53,6 +50,8 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
+import           Poseidon.ServerClient      (ExtendedIndividualInfo (..),
+                                             GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
