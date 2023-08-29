@@ -99,7 +99,7 @@ class Eq a => EntitySpec a where
 instance EntitySpec SignedEntity where
     indInfoConformsToEntitySpec
         signedEntities
-        indInfo@(IndividualInfo indName groupNames pacNameAndVer@(PacNameAndVersion pacName _)) =
+        indInfo@(IndividualInfo _ groupNames pacNameAndVer@(PacNameAndVersion pacName _)) =
       takeWhile meansIn $ reverse $ mapMaybe shouldIncExc signedEntities -- this considers the entity order in forgeScript
       where
         shouldIncExc :: SignedEntity -> Maybe SelectionState
@@ -110,11 +110,11 @@ instance EntitySpec SignedEntity where
                 ShouldBeIncluded _ _ -> Just ShouldNotBeIncluded
                 ShouldNotBeIncluded  -> Nothing
         isIn :: PoseidonEntity -> SelectionState
-        isIn (Ind i@(SimpleInd n))   =
+        isIn (Ind i@(SimpleInd _))   =
             if i `eqInd` indInfo then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
-        isIn (Ind i@(SpecificInd n g (PacNameAndVersion _ Nothing))) =
+        isIn (Ind i@(SpecificInd _ _ (PacNameAndVersion _ Nothing))) =
             if i `eqInd` indInfo then ShouldBeIncluded (PacNameAndVersion pacName Nothing) Specified else ShouldNotBeIncluded
-        isIn (Ind i@(SpecificInd n g p@(PacNameAndVersion _ (Just _)))) =
+        isIn (Ind i@(SpecificInd _ _ p@(PacNameAndVersion _ (Just _)))) =
             if i `eqInd` indInfo then ShouldBeIncluded p Specified else ShouldNotBeIncluded
         isIn (Group n) =
             if n `elem` groupNames then ShouldBeIncluded (PacNameAndVersion pacName Nothing) NotSpecified else ShouldNotBeIncluded
@@ -194,9 +194,10 @@ determineRelevantPackages entities availableInds =
 
 determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
 determineNonExistentEntities entities availableInds =
-    let pacNameVer    = nub . map indInfoPac $ availableInds
-        indNamesPac   = map indInfoName availableInds
-        groupNamesPac = nub . concatMap indInfoGroups $ availableInds
+    let pacNameVer          = nub . map indInfoPac $ availableInds
+        groupNamesPac       = nub . concatMap indInfoGroups $ availableInds
+        indNamesPac         = map indInfoName availableInds
+        specificIndNamesPac = map (\(IndividualInfo n (g:_) pv) -> SpecificInd n g pv) availableInds
         requestedPacVers    = nub [ pac | Pac   pac                   <- map underlyingEntity entities]
         groupNamesStats     = nub [ grp | Group grp                   <- map underlyingEntity entities]
         simpleIndNamesStats = nub [ ind | Ind     (SimpleInd ind)     <- map underlyingEntity entities]
@@ -204,7 +205,7 @@ determineNonExistentEntities entities availableInds =
         missingPacs         = map Pac                 $ requestedPacVers    \\ pacNameVer
         missingGroups       = map Group               $ groupNamesStats     \\ groupNamesPac
         missingSimpleInds   = map (Ind . SimpleInd)   $ simpleIndNamesStats \\ indNamesPac
-        missingSpecificInds = map (Ind . SpecificInd) $ specificIndsStats   \\ availableInds
+        missingSpecificInds = map Ind                 $ specificIndsStats   \\ specificIndNamesPac
     in missingPacs ++ missingGroups ++ missingSimpleInds ++ missingSpecificInds
 
 -- This function requires [IndividualInfo] to be from a clean package selection as prepared with filterToRelevantPackages!

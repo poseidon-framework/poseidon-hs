@@ -149,7 +149,7 @@ runForge (
     unless (null unresolvedDuplicatedInds) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) $ concat unresolvedDuplicatedInds
+        mapM_ (\(_,i@(IndividualInfo n (g:_) pv),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd n g pv)) $ concat unresolvedDuplicatedInds
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- collect data --

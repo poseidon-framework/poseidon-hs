@@ -33,9 +33,9 @@ testReadPoseidonEntitiesString =
         fromRight [] (readEntitiesFromString "<a>") `shouldBe`
             [Include $ Ind (SimpleInd "a")]
         fromRight [] (readEntitiesFromString "<c:b:a>") `shouldBe`
-            [Include $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))]
+            [Include $ Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))]
         fromRight [] (readEntitiesFromString "<c-2.0.2:b:a>") `shouldBe`
-            [Include $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" (Just $ makeVersion [2,0,2])))]
+            [Include $ Ind (SpecificInd "a" "b" (PacNameAndVersion "c" (Just $ makeVersion [2,0,2])))]
         fromRight [] (readEntitiesFromString "b") `shouldBe`
             [Include $ Group "b"]
         fromRight [] (readEntitiesFromString "*c*") `shouldBe`
@@ -46,7 +46,7 @@ testReadPoseidonEntitiesString =
         fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
             map Include [
               Ind (SimpleInd "a")
-            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))
             , Group "b", Pac (PacNameAndVersion "c" Nothing)
             ]
         fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>") `shouldBe`
@@ -56,18 +56,18 @@ testReadPoseidonEntitiesString =
             , Ind (SimpleInd "a2")
             , Pac (PacNameAndVersion "c" Nothing)
             , Group "b2"
-            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))
+            , Ind (SpecificInd "a3" "b2" (PacNameAndVersion "c" Nothing))
             ]
         fromRight [] (readEntitiesFromString "<a1>,*c-4.3.2*,<c-3.3.3:b2:a3>") `shouldBe`
             map Include [
               Ind (SimpleInd "a1")
             , Pac (PacNameAndVersion "c" (Just $ makeVersion [4,3,2]))
-            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" (Just $ makeVersion [3,3,3])))
+            , Ind (SpecificInd "a3" "b2" (PacNameAndVersion "c" (Just $ makeVersion [3,3,3])))
             ]
     it "should parse unsigned entity lists correctly" $ do
         fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c-1.0.0*") `shouldBe`
             [ Ind (SimpleInd "a")
-            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))
             , Group "b"
             , Pac (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
             ]
@@ -77,13 +77,13 @@ testReadPoseidonEntitiesString =
             , Ind (SimpleInd "a2")
             , Pac (PacNameAndVersion "c" Nothing)
             , Group "b2"
-            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
+            , Ind (SpecificInd "a3" "b2" (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
             ]
     it "should ignore spaces after commas" $ do
         fromRight [] (readEntitiesFromString "<a>, <c-1.0.0:b:a>, b, *c*") `shouldBe`
             map Include [
               Ind (SimpleInd "a")
-            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
+            , Ind (SpecificInd "a" "b" (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
             , Group "b"
             , Pac (PacNameAndVersion "c" Nothing)
             ]
@@ -97,7 +97,7 @@ testReadPoseidonEntitiesString =
             [Exclude $ Ind (SimpleInd "a")]
         fromRight [] (readEntitiesFromString "-<a1>, -<c:b:a>, <a2>, -b1,b2,-*c1-1.0.0*, *c2*") `shouldBe`
             [ Exclude $ Ind (SimpleInd "a1")
-            , Exclude $ Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Exclude $ Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))
             , Include $ Ind (SimpleInd "a2")
             , Exclude $ Group "b1", Include $ Group "b2"
             , Exclude $ Pac (PacNameAndVersion "c1" (Just $ makeVersion [1,0,0]))
@@ -137,7 +137,7 @@ testReadEntitiesFromFile =
         g1res `shouldBe`
             map Include [
               Ind (SimpleInd "a")
-            , Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))
+            , Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))
             , Group "b"
             , Pac (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
             ]
@@ -146,7 +146,7 @@ testReadEntitiesFromFile =
         g2res `shouldBe`
             map Include [
               Ind (SimpleInd "a1")
-            , Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
+            , Ind (SpecificInd "a3" "b2" (PacNameAndVersion "c" (Just $ makeVersion [1,0,0])))
             , Ind (SimpleInd "a2")
             , Group "b1", Pac (PacNameAndVersion "c1" Nothing)
             , Pac (PacNameAndVersion "c2" Nothing)
@@ -167,7 +167,7 @@ testReadEntitiesFromFile =
         g4res <- readEntitiesFromFile g4
         g4res `shouldBe`
             [ Include $ Ind (SimpleInd "a1"),
-              Exclude $ Ind (SpecificInd $ IndividualInfo "a3" ["b2"] (PacNameAndVersion "c" Nothing))
+              Exclude $ Ind (SpecificInd "a3" "b2" (PacNameAndVersion "c" Nothing))
             , Exclude $ Ind (SimpleInd "a2")
             , Exclude $ Group "b1", Include $ Group "b1"
             , Exclude $ Pac (PacNameAndVersion "c2" (Just $ makeVersion [5,5,5]))
@@ -191,8 +191,8 @@ goodEntities = [
       Pac (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,1]))
     , Group "POP1"
     , Ind (SimpleInd "SAMPLE3")
-    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schiffels_2016" Nothing))
-    , Ind (SpecificInd $ IndividualInfo "XXX012" ["POP2"] (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,1])))
+    , Ind (SpecificInd "XXX001" "POP1" (PacNameAndVersion "Schiffels_2016" Nothing))
+    , Ind (SpecificInd "XXX012" "POP2" (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,1])))
     ]
 
 badEntities :: EntitiesList
@@ -200,8 +200,8 @@ badEntities = [
       Pac (PacNameAndVersion "Schiffels_2015" Nothing)
     , Group "foo"
     , Ind (SimpleInd "bar")
-    , Ind (SpecificInd $ IndividualInfo "XXX002" ["POP1"] (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,2])))
-    , Ind (SpecificInd $ IndividualInfo "XXX001" ["POP2"] (PacNameAndVersion "Schiffels_2016" Nothing))
+    , Ind (SpecificInd "XXX002" "POP1" (PacNameAndVersion "Schiffels_2016" (Just $ makeVersion [1,0,2])))
+    , Ind (SpecificInd "XXX001" "POP2" (PacNameAndVersion "Schiffels_2016" Nothing))
     ]
 
 testFindNonExistentEntities :: Spec
@@ -257,7 +257,7 @@ testResolveEntityIndices =
               Include (Pac (PacNameAndVersion "Pac1" Nothing))
             , Exclude (Group "Pop2")
             , Include (Ind (SimpleInd "Ind3"))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind8" ["Pop4"] (PacNameAndVersion "Pac2" Nothing)))
+            , Include (Ind (SpecificInd "Ind8" "Pop4" (PacNameAndVersion "Pac2" Nothing)))
             ] indInfo `shouldBe` ([], [0, 1, 2, 7])
     it "should correctly extract indices in case of duplicates across packages" $ do
         let indInfoDuplicates = [
@@ -270,24 +270,24 @@ testResolveEntityIndices =
                 ]
         -- test simple extraction with specific syntax
         resolveEntityIndices [
-               Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
+               Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac2" Nothing)))
             ] indInfoDuplicates `shouldBe` ([], [1])
         -- test solving simple duplication for one individual
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
+            , Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac2" Nothing)))
             ] indInfoDuplicates `shouldBe` ([], [1])
         -- test solving duplication for two individuals at once
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
+            , Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac2" Nothing)))
             , Include (Ind (SimpleInd "Ind2"))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] (PacNameAndVersion "Pac3" Nothing)))
+            , Include (Ind (SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac3" Nothing)))
             ] indInfoDuplicates `shouldBe` ([], [1,5])
         -- test output in case of unresolved duplicates
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
+            , Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac2" Nothing)))
             , Include (Ind (SimpleInd "Ind2"))
             ] indInfoDuplicates `shouldBe` (
                 [[
@@ -300,9 +300,9 @@ testResolveEntityIndices =
         -- test interaction with secondary group name selection and negative selection to solve duplication
         resolveEntityIndices [
               Include (Group "PopB")
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac2" Nothing)))
-            , Exclude (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] (PacNameAndVersion "Pac1" Nothing)))
-            , Exclude (Ind (SpecificInd $ IndividualInfo "Ind2" ["Pop2"] (PacNameAndVersion "Pac3" Nothing)))
+            , Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac2" Nothing)))
+            , Exclude (Ind (SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac1" Nothing)))
+            , Exclude (Ind (SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac3" Nothing)))
             ] indInfoDuplicates `shouldBe` ([], [1,4])
     it "should correctly extract indices in case of duplicates within one package" $ do
         let indInfoDuplicates = [
@@ -312,7 +312,7 @@ testResolveEntityIndices =
                 ]
         resolveEntityIndices [
               Include (Ind (SimpleInd "Ind1"))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop2"] (PacNameAndVersion "Pac1" Nothing)))
+            , Include (Ind (SpecificInd "Ind1" "Pop2" (PacNameAndVersion "Pac1" Nothing)))
             ] indInfoDuplicates `shouldBe` ([], [1])
     it "should correctly extract indices in case of multiple package versions" $ do
         let indInfo = [
@@ -342,13 +342,13 @@ testResolveEntityIndices =
               Include (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])))
             ] indInfo `shouldBe` ([], [2,3])
         resolveEntityIndices [
-              Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))))
+              Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))))
+            , Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))))
             , Exclude (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
             ] indInfo `shouldBe` ([], [2])
         resolveEntityIndices [
-              Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))))
-            , Include (Ind (SpecificInd $ IndividualInfo "Ind1" ["Pop1"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))))
+              Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))))
+            , Include (Ind (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))))
             , Exclude (Pac (PacNameAndVersion "Pac1" Nothing))
             , Include (Ind (SimpleInd "Ind4"))
             ] indInfo `shouldBe` ([], [5])
@@ -359,7 +359,7 @@ testJSON =
         it "should encode entities correctly to JSON" $ do
             encode (Ind (SimpleInd "Ind1")) `shouldBe`
                     "\"<Ind1>\""
-            encode (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing))) `shouldBe`
+            encode (Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))) `shouldBe`
                     "\"<c:b:a>\""
             encode (Group "Group1") `shouldBe`
                     "\"Group1\""
@@ -367,7 +367,7 @@ testJSON =
                     "\"*Pac1*\""
             encode (Exclude (Ind (SimpleInd "Ind1"))) `shouldBe`
                     "\"-<Ind1>\""
-            encode (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)))) `shouldBe`
+            encode (Exclude (Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)))) `shouldBe`
                     "\"-<c:b:a>\""
             encode (Exclude (Group "Group1")) `shouldBe`
                     "\"-Group1\""
@@ -377,7 +377,7 @@ testJSON =
             decode "\"<Ind1>\""   `shouldBe`
                     Just (Ind (SimpleInd "Ind1"))
             decode "\"<c:b:a>\""  `shouldBe`
-                    Just (Ind (SpecificInd $ IndividualInfo "a" ["b"] (PacNameAndVersion "c" Nothing)))
+                    Just (Ind (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)))
             decode "\"Group1\""   `shouldBe`
                     Just (Group "Group1")
             decode "\"*Pac1*\""   `shouldBe`
@@ -385,7 +385,7 @@ testJSON =
             decode "\"-<Ind1>\""  `shouldBe`
                     Just (Exclude (Ind (SimpleInd "Ind1")))
             decode "\"-<c:b:a>\"" `shouldBe`
-                    Just (Exclude (Ind (SpecificInd $ IndividualInfo "a" ["b"]  (PacNameAndVersion "c" Nothing))))
+                    Just (Exclude (Ind (SpecificInd "a" "b"  (PacNameAndVersion "c" Nothing))))
             decode "\"-Group1\""  `shouldBe`
                     Just (Exclude (Group "Group1"))
             decode "\"-*Pac1*\""  `shouldBe`

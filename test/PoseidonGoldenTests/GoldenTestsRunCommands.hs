@@ -979,7 +979,7 @@ testPipelineFetch testDir checkFilePath = do
         -- fetch package by individual through the SpecificInd interface from other archive
         let fetchOpts6 = FetchOptions {
               _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
-            , _entityInput  = [EntitiesDirect [Ind $ SpecificInd $ IndividualInfo "XXX001" ["POP1"] (PacNameAndVersion "Schmid_2028" Nothing)]]
+            , _entityInput  = [EntitiesDirect [Ind $ SpecificInd "XXX001" "POP1" (PacNameAndVersion "Schmid_2028" Nothing)]]
             , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
             }
         runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts6) "fetch" [
@@ -988,7 +988,7 @@ testPipelineFetch testDir checkFilePath = do
         -- fetch package by individual from old package version through the SpecificInd interface from default archive
         let fetchOpts7 = FetchOptions {
               _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
-            , _entityInput  = [EntitiesDirect [Ind $ SpecificInd $ IndividualInfo "XXX018" ["POP3"] (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0]))]]
+            , _entityInput  = [EntitiesDirect [Ind $ SpecificInd "XXX018" "POP3" (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0]))]]
             , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
             }
         runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts7) "fetch" [
