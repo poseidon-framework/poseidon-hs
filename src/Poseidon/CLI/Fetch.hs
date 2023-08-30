@@ -2,11 +2,12 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList  (EntityInput, PoseidonEntity,
+import           Poseidon.EntitiesList  (EntityInput,
                                          determineNonExistentEntities,
                                          determineRelevantPackages,
                                          readEntityInputs)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         PoseidonEntity,
                                          IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          makePacNameAndVersion,
@@ -17,7 +18,6 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
-                                         ExtendedIndividualInfo (..),
                                          PackageInfo (..), processApiResponse,
                                          qDefault, qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
@@ -84,9 +84,8 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnExtIndividualInfo extIndInfo ->
-                return [IndividualInfo i g (PacNameAndVersion p v) | ExtendedIndividualInfo i g p v _ <- extIndInfo]
-            _                             -> error "should not happen"
+            ApiReturnIndividualInfo indInfo -> return indInfo
+            _                               -> error "should not happen"
     logInfo "Downloading package list from remote"
     remotePacList <- do
         r <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) True
@@ -111,7 +110,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         mapM_ (logDebug . show) desiredPacs
         -- start comparison/download process
         logInfo $ show (length desiredPacs) ++ " requested"
-        logInfo $ "Comparing local and remote packages..."
+        logInfo   "Comparing local and remote packages..."
         unless (null desiredPacs) $ do
             liftIO $ createDirectoryIfMissing False tempDir
             forM_ desiredPacs $ \pac -> do
@@ -121,7 +120,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
             liftIO $ removeDirectory tempDir
     logInfo "Done"
 
-readServerIndInfo :: LB.ByteString -> IO [ExtendedIndividualInfo]
+readServerIndInfo :: LB.ByteString -> IO [IndividualInfo]
 readServerIndInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err

@@ -6,12 +6,12 @@ module Poseidon.ServerClient (
     ApiReturnData(..),
     processApiResponse,
     ArchiveEndpoint(..),
-    PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo (..),
+    PackageInfo (..), GroupInfo (..),
     qDefault, qArchive, qPacVersion, (+&+)
 ) where
 
 import           Paths_poseidon_hs      (version)
-import           Poseidon.EntityTypes   (PacNameAndVersion (..), HasNameAndVersion(..))
+import           Poseidon.EntityTypes   (PacNameAndVersion (..), HasNameAndVersion(..), IndividualInfo(..))
 import           Poseidon.Janno         (JannoRows)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)
@@ -68,38 +68,6 @@ instance FromJSON ServerApiReturnType where
     parseJSON = withObject "ServerApiReturnType" $ \v -> ServerApiReturnType
             <$> v .: "serverMessages"
             <*> v .: "serverResponse"
-
-data ExtendedIndividualInfo = ExtendedIndividualInfo
-    { extIndInfoName    :: String
-    , extIndInfoGroups  :: [String]
-    , extIndInfoPacName :: String
-    , extIndInfoVersion :: Maybe Version
-    , extIndInfoAddCols :: [(String, Maybe String)]
-    }
-
-instance HasNameAndVersion ExtendedIndividualInfo where
-    getPacName = extIndInfoPacName
-    getPacVersion = extIndInfoVersion
-
-instance ToJSON ExtendedIndividualInfo where
-    toJSON e =
-        object [
-            -- following Janno column names
-            "poseidonID"             .= extIndInfoName e,
-            "groupNames"             .= extIndInfoGroups e,
-             -- following mostly the Poseidon YAML definition where possible
-            "packageTitle"           .= extIndInfoPacName e,
-            "packageVersion"         .= extIndInfoVersion e,
-            "additionalJannoColumns" .= extIndInfoAddCols e
-            ]
-
-instance FromJSON ExtendedIndividualInfo where
-    parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
-            <$> v .: "poseidonID"
-            <*> v .: "groupNames"
-            <*> v .: "packageTitle"
-            <*> v .: "packageVersion"
-            <*> v .: "additionalJannoColumns"
 
 data PackageInfo = PackageInfo
     { pTitle         :: String
@@ -159,7 +127,7 @@ instance FromJSON GroupInfo where
 
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
-                   | ApiReturnExtIndividualInfo [ExtendedIndividualInfo]
+                   | ApiReturnIndividualInfo [IndividualInfo]
                    | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
 
 instance ToJSON ApiReturnData where
@@ -173,10 +141,10 @@ instance ToJSON ApiReturnData where
             "constructor" .= String "ApiReturnGroupInfo",
             "groupInfo" .= groupInfo
         ]
-    toJSON (ApiReturnExtIndividualInfo extIndInfo) =
+    toJSON (ApiReturnIndividualInfo indInfo) =
         object [
-            "constructor" .= String "ApiReturnExtIndividualInfo",
-            "extIndInfo" .= extIndInfo
+            "constructor" .= String "ApiReturnExtIndividualInfo", -- we use the term "Ext" in here for historical and compatibility reasons. But actually this is just IndividualInfo
+            "extIndInfo" .= indInfo
         ]
     toJSON (ApiReturnJanno janno) =
         object [
@@ -190,7 +158,7 @@ instance FromJSON ApiReturnData where
         case constr of
             "ApiReturnPackageInfo" -> ApiReturnPackageInfo <$> v .: "packageInfo"
             "ApiReturnGroupInfo" -> ApiReturnGroupInfo <$> v .: "groupInfo"
-            "ApiReturnExtIndividualInfo" -> ApiReturnExtIndividualInfo <$> v .: "extIndInfo"
+            "ApiReturnExtIndividualInfo" -> ApiReturnIndividualInfo <$> v .: "extIndInfo" -- see above, term "ext" for historical reasons.
             "ApiReturnJanno" -> ApiReturnJanno <$> v .: "janno"
             _ -> error $ "cannot parse ApiReturnType with constructor " ++ constr
 

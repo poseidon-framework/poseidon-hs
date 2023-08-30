@@ -2,27 +2,26 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
+import           Poseidon.EntityTypes   (IndividualInfo (..),
+                                         PacNameAndVersion (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getAllGroupInfo,
-                                         getExtendedIndividualInfo,
+                                         getJointIndividualInfo,
                                          packageToPackageInfo,
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
-                                         ArchiveEndpoint (..),
-                                         processApiResponse, qDefault)
+                                         ArchiveEndpoint (..), GroupInfo (..),
+                                         PackageInfo (..), processApiResponse,
+                                         qDefault)
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
-import           Poseidon.EntityTypes   (PacNameAndVersion (..))
-import           Poseidon.ServerClient   (ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                         GroupInfo (..),
-                                         PackageInfo (..))
 
 import           Control.Monad          (forM_, when)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (intercalate, sortOn)
 import           Data.Maybe             (catMaybes, fromMaybe)
 import           Data.Version           (Version, showVersion)
-                                         
+
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -83,27 +82,29 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     return [groupName, pacName, showMaybeVersion pacVersion, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
-            extIndInfo <- case repoLocation of
+            indInfo <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
-                        ApiReturnExtIndividualInfo extIndInfo -> return extIndInfo
+                        ApiReturnIndividualInfo indInfo -> return indInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-                    return $ getExtendedIndividualInfo allPackages moreJannoColumns
+                    return $ getJointIndividualInfo allPackages moreJannoColumns
 
             -- warning in case the additional Columns do not exist in the entire janno dataset
             forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
                 -- check entries in all individuals for that key
-                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfo]
+                let nonEmptyEntries = catMaybes [snd (entries !! i) | IndividualInfo _ _ _ _ entries <- indInfo]
                 when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
             let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns
                 tableB = do
-                    (ExtendedIndividualInfo name groups pacName pacVersion addColumnEntries) <- extIndInfo
-                    return $ [name, intercalate ", " groups, pacName, showMaybeVersion pacVersion] ++ map (fromMaybe "n/a" . snd) addColumnEntries
+                    (IndividualInfo name groups pac isLatest addColumnEntries) <- indInfo
+                    return $ [name, intercalate ", " groups, panavName pac,
+                              showMaybeVersion (panavVersion pac) ++ if isLatest then " (latest)" else ""] ++
+                              map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]

@@ -4,14 +4,14 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
-                                              PoseidonIndividual (..),
-                                              SignedEntity (..),
+import           Poseidon.EntitiesList       (EntityInput,
                                               determineNonExistentEntities,
                                               filterToRelevantPackages,
                                               readEntityInputs,
                                               resolveEntityIndices)
 import           Poseidon.EntityTypes        (IndividualInfo (..),
+                                              PoseidonEntity (..),
+                                              SignedEntity (..),
                                               makePacNameAndVersion)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
@@ -45,7 +45,7 @@ import           Poseidon.Utils              (PoseidonException (..),
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
-import           Data.List                   (intercalate, nub)
+import           Data.List                   (intercalate, nub, groupBy, sortOn)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -123,7 +123,7 @@ runForge (
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
     -- check for entities that do not exist in this dataset
-    let nonExistentEntities = determineNonExistentEntities entities . getJointIndividualInfo $ allPackages
+    let nonExistentEntities = determineNonExistentEntities entities (getJointIndividualInfo allPackages [])
     unless (null nonExistentEntities) $
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
@@ -134,7 +134,7 @@ runForge (
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
     -- get all individuals from the relevant packages
-    let allInds = getJointIndividualInfo relevantPackages
+    let allInds = getJointIndividualInfo relevantPackages []
 
     -- set entities to only packages, if --packagewise is set
     let relevantEntities =
@@ -142,14 +142,15 @@ runForge (
             then map (Include . Pac . makePacNameAndVersion) relevantPackages
             else entities
 
-    -- determine indizes of relevant individuals and resolve duplicates
-    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices relevantEntities allInds
-
+    -- determine indizes of relevant individuals
+    let relevantIndices = resolveEntityIndices relevantEntities allInds
+        duplicates = concat . filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) .
+            sortOn indInfoName . map (allInds !!) $ relevantIndices
     -- check if there still are duplicates and if yes, then stop
-    unless (null unresolvedDuplicatedInds) $ do
+    unless (null duplicates) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) $ concat unresolvedDuplicatedInds
+        mapM_ (\(IndividualInfo n g p _ _) -> logError $ show (Ind n) ++ " -> " ++ show (SpecificInd n (head g) p)) duplicates
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- collect data --

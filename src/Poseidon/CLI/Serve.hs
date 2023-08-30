@@ -9,7 +9,7 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
-                                               getExtendedIndividualInfo,
+                                               getJointIndividualInfo,
                                                packageToPackageInfo,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
@@ -119,12 +119,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
 
-            let extIndInfo = case maybeAdditionalColumnsString of
+            let indInfo = case maybeAdditionalColumnsString of
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
-                        in  getExtendedIndividualInfo pacs additionalColumnNames
-                    Nothing -> getExtendedIndividualInfo pacs []
-            let retData = ApiReturnExtIndividualInfo extIndInfo
+                        in  getJointIndividualInfo pacs additionalColumnNames
+                    Nothing -> getJointIndividualInfo pacs []
+            let retData = ApiReturnIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files

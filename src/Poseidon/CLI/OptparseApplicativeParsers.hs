@@ -9,9 +9,10 @@ import           Poseidon.CLI.Rectify   (ChecksumsToRectify (..),
 import           Poseidon.CLI.Validate  (ValidatePlan (..))
 import           Poseidon.Contributor   (ContributorSpec (..),
                                          contributorSpecParser)
-import           Poseidon.EntitiesList  (EntitiesList, EntityInput (..),
-                                         PoseidonEntity, SignedEntitiesList,
-                                         SignedEntity, readEntitiesFromString)
+import           Poseidon.EntitiesList  (EntityInput (..),
+                                         readEntitiesFromString)
+import           Poseidon.EntityTypes   (EntitiesList, PoseidonEntity,
+                                         SignedEntitiesList, SignedEntity)
 import           Poseidon.GenotypeData  (GenoDataSource (..),
                                          GenotypeDataSpec (..),
                                          GenotypeFormatSpec (..),
@@ -438,7 +439,7 @@ parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
 parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
     where
         createGeno :: GenoInput -> Maybe SNPSetSpec -> GenotypeDataSpec
-        createGeno (a,b,c,d) e = GenotypeDataSpec a b Nothing c Nothing d Nothing e
+        createGeno (a,b,c,d) = GenotypeDataSpec a b Nothing c Nothing d Nothing
 
 type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
 

@@ -25,7 +25,6 @@ module Poseidon.Package (
     dummyContributor,
     packageToPackageInfo,
     getAllGroupInfo,
-    getExtendedIndividualInfo,
     validateGeno
 ) where
 
@@ -34,6 +33,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..),
                                              IndividualInfo (..),
+                                             PacNameAndVersion(..),
+                                             setPacVersionLatest,
                                              makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
@@ -50,8 +51,7 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
-import           Poseidon.ServerClient      (ExtendedIndividualInfo (..),
-                                             GroupInfo (..), PackageInfo (..))
+import           Poseidon.ServerClient      (GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
@@ -583,7 +583,7 @@ filterDuplicatePackages keepMultipleVersions pacs =
     fmap concat . mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
-    titleEq = \p1 p2 -> posPacTitle p1 == posPacTitle p2
+    titleEq p1 p2 = posPacTitle p1 == posPacTitle p2
     checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m [PoseidonPackage]
     checkDuplicatePackages [pac] = return [pac]
     checkDuplicatePackages dupliPacs =
@@ -641,15 +641,6 @@ getJointGenotypeData logA intersect popMode pacs maybeSnpFile = do
 
 getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointJanno pacs = mconcat $ map posPacJanno pacs
-
-getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
-getJointIndividualInfo packages = do
-    pac <- packages
-    jannoRow <- getJannoRowsFromPac pac
-    return $ IndividualInfo
-        (jPoseidonID jannoRow)
-        ((getJannoList . jGroupName) jannoRow)
-        (makePacNameAndVersion pac)
 
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
 getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
@@ -833,16 +824,17 @@ getAllGroupInfo packages = do
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
-getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
-getExtendedIndividualInfo allPackages additionalJannoColumns = do
-    pac <- allPackages
-    jannoRow <- getJannoRowsFromPac pac
-    let name = jPoseidonID jannoRow
-        groups = getJannoList . jGroupName $ jannoRow
-        pacName = posPacTitle pac
-        version = posPacPackageVersion pac
-        additionalColumnEntries = case additionalJannoColumns of
-            [] -> []
-            colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
-    return $ ExtendedIndividualInfo name groups pacName version additionalColumnEntries
-
+getJointIndividualInfo :: [PoseidonPackage] -> [String] -> [IndividualInfo]
+getJointIndividualInfo packages additionalJannoColumns =
+    let ret = do -- for loop
+            pac <- packages -- outer loop over all packages
+            jannoRow <- getJannoRowsFromPac pac -- inner loop over all individuals
+            let name    = jPoseidonID jannoRow
+            let groups  = getJannoList . jGroupName $ jannoRow
+            let pacName = posPacTitle pac
+            let version = posPacPackageVersion pac
+                additionalColumnEntries = case additionalJannoColumns of
+                    [] -> []
+                    colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+            return $ IndividualInfo name groups (PacNameAndVersion pacName version) False additionalColumnEntries
+    in  setPacVersionLatest ret
