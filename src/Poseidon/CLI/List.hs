@@ -3,7 +3,8 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
 import           Poseidon.EntityTypes   (IndividualInfo (..),
-                                         PacNameAndVersion (..))
+                                         PacNameAndVersion (..),
+                                         setPacVersionLatest)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getAllGroupInfo,
@@ -87,7 +88,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     logInfo "Downloading individual data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
-                        ApiReturnIndividualInfo indInfo -> return indInfo
+                        ApiReturnIndividualInfo indInfo -> return (setPacVersionLatest indInfo)
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs

@@ -104,6 +104,7 @@ instance ToJSON IndividualInfo where
             "packageTitle"           .= (panavName . indInfoPac $ e),
             "packageVersion"         .= (panavVersion . indInfoPac $ e),
             "additionalJannoColumns" .= indInfoAddCols e
+            -- we skip indInfoIsLatest for backwards-compatibility reasons. It can be simply computed after the fact.
             ]
 
 instance FromJSON IndividualInfo where

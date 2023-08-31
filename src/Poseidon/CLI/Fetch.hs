@@ -11,7 +11,8 @@ import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          makePacNameAndVersion,
-                                         renderNameWithVersion)
+                                         renderNameWithVersion,
+                                         setPacVersionLatest)
 import           Poseidon.MathHelpers   (roundTo, roundToStr)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
@@ -84,7 +85,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnIndividualInfo indInfo -> return indInfo
+            ApiReturnIndividualInfo indInfo -> return (setPacVersionLatest indInfo)
             _                               -> error "should not happen"
     logInfo "Downloading package list from remote"
     remotePacList <- do

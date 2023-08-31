@@ -676,7 +676,7 @@ testPipelineForge testDir checkFilePath = do
     -- forge test 9 (duplicates are handled correctly if an individual is properly specified)
     let forgeOpts9 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
-        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,<Schmid_2028:POP1:XXX001>")]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,-<Schiffels_2016:POP1:XXX001>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -846,6 +846,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action17 "forge" [
           "forge" </> "ForgePac17" </> "ForgePac17.janno"
         ]
+    return ()
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
