@@ -4,7 +4,7 @@ module Poseidon.EntitiesList (
     readEntitiesFromFile, readEntitiesFromString,
     determineNonExistentEntities, determineRelevantPackages, filterToRelevantPackages,
     entitiesListP, EntityInput(..), readEntityInputs,
-    resolveEntityIndices) where
+    resolveEntityIndices, reportDuplicateIndividuals) where
 
 import           Poseidon.EntityTypes   (IndividualInfo (..),
                                          PacNameAndVersion (..),
@@ -22,7 +22,7 @@ import           Control.Exception      (throwIO)
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Char              (isSpace)
-import           Data.List              (nub, (\\))
+import           Data.List              (nub, groupBy, sortOn)
 import           Data.Maybe             (mapMaybe)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
@@ -50,8 +50,9 @@ indInfoConformsToEntitySpecs indInfo entities = case mapMaybe (indInfoConformsTo
     xs -> last xs
 
 instance EntitySpec SignedEntity where
-    -- this specifies the exact semantics of all Includes and Excludes for all types of entities
-    -- there are only a few general patterns to exploit. We are specifying them one by one
+    
+    -- | Here we specify the exact semantics of all Includes and Excludes for all types of entities.
+    -- There are only a few general patterns to exploit. We are specifying them one by one
     
     -- include Package
     indInfoConformsToEntitySpec (IndividualInfo _ _ p1 isLatest _) (Include (Pac p2)) =
@@ -132,33 +133,33 @@ instance EntitySpec PoseidonEntity where
             _ <- P.char '>'
             return $ SpecificInd indName groupName pac
 
--- entity filter logic
+-- | Filter packages such that only packages with individuals covered by the given EntitySpec are returned
 filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
 filterToRelevantPackages entities packages =
     let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages [])
     in filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
 
+-- | determine all packages with versions that contain individuals covered by the given entities
 determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
 determineRelevantPackages entities = nub . map indInfoPac . filter (`indInfoConformsToEntitySpecs` entities)
 
-determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
-determineNonExistentEntities entities indInfos =
-    let availablePacs         = nub . map (Pac . indInfoPac)                                        $ indInfos
-        availableInds         = nub . map (Ind . indInfoName)                                       $ indInfos
-        availableGroups       = nub . map Group . concatMap indInfoGroups                           $ indInfos
-        availableSpecificInds = nub . map (\(IndividualInfo n g p _ _) -> SpecificInd n (head g) p) $ indInfos
-        requestedPacs         = nub [ p | p@(Pac _)          <- map underlyingEntity entities]
-        requestedGroups       = nub [ g | g@(Group _)        <- map underlyingEntity entities]
-        requestedInds         = nub [ i | i@(Ind _)          <- map underlyingEntity entities]
-        requestedSpecificInds = nub [ i | i@(SpecificInd {}) <- map underlyingEntity entities]
-        missingPacs           = requestedPacs         \\ availablePacs
-        missingGroups         = requestedGroups       \\ availableGroups
-        missingInds           = requestedInds         \\ availableInds
-        missingSpecificInds   = requestedSpecificInds \\ availableSpecificInds
-    in  missingPacs ++ missingGroups ++ missingInds ++ missingSpecificInds
-
+-- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
 resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
 resolveEntityIndices entities = map fst . filter ((`indInfoConformsToEntitySpecs` entities) . snd) . zip [0..]
+
+-- | this returns a list of entities which could not be found
+determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
+determineNonExistentEntities entities indInfos = do -- for loop over entities
+    entity <- underlyingEntity <$> entities
+    let indices = resolveEntityIndices [entity] indInfos
+    True <- return $ null indices
+    return entity
+
+-- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specification
+reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, PoseidonEntity)]
+reportDuplicateIndividuals individuals =
+    let duplicates = concat . filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
+    in  [(i, SpecificInd n (head g) p) | i@(IndividualInfo n g p _ _) <- duplicates]
 
 -- parsing code to read entities from files
 readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]

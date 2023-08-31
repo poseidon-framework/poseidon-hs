@@ -87,7 +87,7 @@ data IndividualInfo = IndividualInfo
     , indInfoPac      :: PacNameAndVersion -- ^ the package the individual is in.
     , indInfoIsLatest :: Bool -- ^ whether this package is the latest package in the collection
     , indInfoAddCols  :: [(String, Maybe String)] -- ^ additional key-value pairs obtained from the Janno. Needed for server-communication
-    } deriving (Eq, Ord, Generic)
+    } deriving (Show, Eq, Ord, Generic)
 
 instance HasNameAndVersion IndividualInfo where
     getPacName    = getPacName . indInfoPac

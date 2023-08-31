@@ -8,7 +8,8 @@ import           Poseidon.EntitiesList       (EntityInput,
                                               determineNonExistentEntities,
                                               filterToRelevantPackages,
                                               readEntityInputs,
-                                              resolveEntityIndices)
+                                              resolveEntityIndices,
+                                              reportDuplicateIndividuals)
 import           Poseidon.EntityTypes        (IndividualInfo (..),
                                               PoseidonEntity (..),
                                               SignedEntity (..),
@@ -45,7 +46,7 @@ import           Poseidon.Utils              (PoseidonException (..),
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
-import           Data.List                   (intercalate, nub, groupBy, sortOn)
+import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
@@ -144,13 +145,12 @@ runForge (
 
     -- determine indizes of relevant individuals
     let relevantIndices = resolveEntityIndices relevantEntities allInds
-        duplicates = concat . filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) .
-            sortOn indInfoName . map (allInds !!) $ relevantIndices
+        duplicateReport = reportDuplicateIndividuals . map (allInds !!) $ relevantIndices
     -- check if there still are duplicates and if yes, then stop
-    unless (null duplicates) $ do
+    unless (null duplicateReport) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(IndividualInfo n g p _ _) -> logError $ show (Ind n) ++ " -> " ++ show (SpecificInd n (head g) p)) duplicates
+        mapM_ (\(IndividualInfo n _ _ _ _, sugg) -> logError $ show (Ind n) ++ " -> " ++ show sugg) duplicateReport
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- collect data --
