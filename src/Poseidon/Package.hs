@@ -33,9 +33,9 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..),
                                              IndividualInfo (..),
-                                             PacNameAndVersion(..),
-                                             setPacVersionLatest,
-                                             makePacNameAndVersion)
+                                             PacNameAndVersion (..),
+                                             makePacNameAndVersion,
+                                             setPacVersionLatest)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)

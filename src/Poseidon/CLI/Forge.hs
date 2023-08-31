@@ -8,8 +8,8 @@ import           Poseidon.EntitiesList       (EntityInput,
                                               determineNonExistentEntities,
                                               filterToRelevantPackages,
                                               readEntityInputs,
-                                              resolveEntityIndices,
-                                              reportDuplicateIndividuals)
+                                              reportDuplicateIndividuals,
+                                              resolveEntityIndices)
 import           Poseidon.EntityTypes        (IndividualInfo (..),
                                               PoseidonEntity (..),
                                               SignedEntity (..),

@@ -6,11 +6,9 @@ module Poseidon.EntitiesList (
     entitiesListP, EntityInput(..), readEntityInputs,
     resolveEntityIndices, reportDuplicateIndividuals) where
 
-import           Poseidon.EntityTypes   (IndividualInfo (..),
+import           Poseidon.EntityTypes   (EntitiesList, IndividualInfo (..),
                                          PacNameAndVersion (..),
-                                         PoseidonEntity(..),
-                                         SignedEntity(..),
-                                         EntitiesList,
+                                         PoseidonEntity (..), SignedEntity (..),
                                          makePacNameAndVersion)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
@@ -22,7 +20,7 @@ import           Control.Exception      (throwIO)
 import           Control.Monad          (forM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Char              (isSpace)
-import           Data.List              (nub, groupBy, sortOn)
+import           Data.List              (groupBy, nub, sortOn)
 import           Data.Maybe             (mapMaybe)
 import qualified Text.Parsec            as P
 import qualified Text.Parsec.String     as P
@@ -50,28 +48,28 @@ indInfoConformsToEntitySpecs indInfo entities = case mapMaybe (indInfoConformsTo
     xs -> last xs
 
 instance EntitySpec SignedEntity where
-    
+
     -- | Here we specify the exact semantics of all Includes and Excludes for all types of entities.
     -- There are only a few general patterns to exploit. We are specifying them one by one
-    
+
     -- include Package
     indInfoConformsToEntitySpec (IndividualInfo _ _ p1 isLatest _) (Include (Pac p2)) =
         case (p1, p2) of
             (PacNameAndVersion n1 (Just v1), PacNameAndVersion n2 (Just v2)) -> if n1 == n2 && v1 == v2 then Just True else Nothing
             (PacNameAndVersion _  Nothing,   PacNameAndVersion _  (Just _ )) -> Nothing
             (PacNameAndVersion n1 _      ,   PacNameAndVersion n2 Nothing  ) -> if n1 == n2 && isLatest then Just True else Nothing
-    
+
     -- exclude Package
     indInfoConformsToEntitySpec (IndividualInfo _ _ p1 _ _) (Exclude (Pac p2)) =
         case (p1, p2) of
             (PacNameAndVersion n1 (Just v1), PacNameAndVersion n2 (Just v2)) -> if n1 == n2 && v1 == v2 then Just False else Nothing
             (PacNameAndVersion _  Nothing,   PacNameAndVersion _  (Just _ )) -> Nothing
             (PacNameAndVersion n1 _        , PacNameAndVersion n2 Nothing)   -> if n1 == n2             then Just False else Nothing
-    
+
     -- include group
     indInfoConformsToEntitySpec (IndividualInfo _ gs _ isLatest _) (Include (Group g)) =
         if g `elem` gs && isLatest then Just True else Nothing
-    
+
     -- exclude group
     indInfoConformsToEntitySpec (IndividualInfo _ gs _ _ _) (Exclude (Group g)) =
         if g `elem` gs then Just False else Nothing

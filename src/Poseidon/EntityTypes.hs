@@ -13,7 +13,7 @@ module Poseidon.EntityTypes (
 
 import           Data.Aeson   (FromJSON (..), KeyValue ((.=)), ToJSON (..),
                                object, withObject, (.:))
-import           Data.List    (groupBy, sort, nub)
+import           Data.List    (groupBy, nub, sort)
 import           Data.Maybe   (isJust)
 import           Data.Version (Version, showVersion)
 import           GHC.Generics (Generic)

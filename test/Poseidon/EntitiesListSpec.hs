@@ -3,12 +3,10 @@
 module Poseidon.EntitiesListSpec (spec) where
 
 import           Poseidon.EntitiesList
-import           Poseidon.EntityTypes  (IndividualInfo (..),
+import           Poseidon.EntityTypes  (EntitiesList, IndividualInfo (..),
                                         PacNameAndVersion (..),
-                                        PoseidonEntity(..),
-                                        SignedEntity(..),
-                                        SignedEntitiesList,
-                                        EntitiesList)
+                                        PoseidonEntity (..), SignedEntitiesList,
+                                        SignedEntity (..))
 import           Poseidon.Package      (PackageReadOptions (..),
                                         PoseidonPackage (..),
                                         defaultPackageReadOptions,
