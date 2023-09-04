@@ -19,7 +19,7 @@ jobs:
     steps:
     # setup and loading cache
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Haskell
       uses: haskell/actions/setup@v2
