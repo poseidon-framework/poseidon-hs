@@ -8,20 +8,20 @@ module Poseidon.EntityTypes (
     PoseidonEntity(..),
     SignedEntity(..),
     hasVersion, EntitiesList, SignedEntitiesList,
-    setPacVersionLatest,
-    PacNameAndVersion(..), makePacNameAndVersion) where
+    PacNameAndVersion(..), makePacNameAndVersion,
+    setIsLatestInList) where
 
-import           Data.Aeson   (FromJSON (..), KeyValue ((.=)), ToJSON (..),
-                               object, withObject, (.:))
-import           Data.List    (groupBy, nub, sort)
+import           Data.List    (groupBy, sortBy)
 import           Data.Maybe   (isJust)
 import           Data.Version (Version, showVersion)
 import           GHC.Generics (Generic)
 
 -- | A class to represent a package-identifying property
-class HasNameAndVersion a where
-    getPacName    :: a -> String        -- ^ a name property
-    getPacVersion :: a -> Maybe Version -- ^ a version property
+class Eq a => HasNameAndVersion a where
+    getPacName     :: a -> String        -- ^ a name property
+    getPacVersion  :: a -> Maybe Version -- ^ a version property
+    getPacIsLatest :: a -> Bool          -- ^ whether that package is the latest of its kind in a given collection
+    setPacIsLatest :: a -> a             -- ^ a setter for the isLatest property
 
 -- | a convenience function
 hasVersion :: (HasNameAndVersion a) => a -> Bool
@@ -35,21 +35,24 @@ renderNameWithVersion a = case getPacVersion a of
 
 -- | The minimal instance of HasNameAndVersion
 data PacNameAndVersion = PacNameAndVersion {
-      panavName    :: String
-    , panavVersion :: Maybe Version
+      panavName     :: String
+    , panavVersion  :: Maybe Version
+    , panavIsLatest :: Bool
     }
     deriving (Ord, Eq)
 
 instance HasNameAndVersion PacNameAndVersion where
-    getPacName    = panavName
-    getPacVersion = panavVersion
+    getPacName     = panavName
+    getPacVersion  = panavVersion
+    getPacIsLatest = panavIsLatest
+    setPacIsLatest a = a {panavIsLatest = True}
 
 instance Show PacNameAndVersion where
     show a = "*" ++ renderNameWithVersion a ++ "*"
 
 -- | a function to normalise any instance of HasNameAndVersion to the minimal concrete type PacNameAndVersion
 makePacNameAndVersion :: (HasNameAndVersion a) => a -> PacNameAndVersion
-makePacNameAndVersion a = PacNameAndVersion (getPacName a) (getPacVersion a)
+makePacNameAndVersion a = PacNameAndVersion (getPacName a) (getPacVersion a) (getPacIsLatest a)
 
 -- | A datatype to represent a requested package, group or individual
 data PoseidonEntity =
@@ -85,41 +88,18 @@ data IndividualInfo = IndividualInfo
     { indInfoName     :: String -- ^ the name of the individual, corresponding to jPoseidonID in Janno
     , indInfoGroups   :: [String] -- ^ the groups associated with the individual, corresponding to jGroupName in Janno
     , indInfoPac      :: PacNameAndVersion -- ^ the package the individual is in.
-    , indInfoIsLatest :: Bool -- ^ whether this package is the latest package in the collection
-    , indInfoAddCols  :: [(String, Maybe String)] -- ^ additional key-value pairs obtained from the Janno. Needed for server-communication
     } deriving (Show, Eq, Ord, Generic)
 
 instance HasNameAndVersion IndividualInfo where
-    getPacName    = getPacName . indInfoPac
-    getPacVersion = getPacVersion . indInfoPac
+    getPacName       = getPacName . indInfoPac
+    getPacVersion    = getPacVersion . indInfoPac
+    getPacIsLatest   = getPacIsLatest . indInfoPac
+    setPacIsLatest a = let pac = indInfoPac a in a {indInfoPac = setPacIsLatest pac}
 
--- these JSON instances are required for the Server-Client communication
-instance ToJSON IndividualInfo where
-    toJSON e =
-        object [
-            -- following Janno column names
-            "poseidonID"             .= indInfoName e,
-            "groupNames"             .= indInfoGroups e,
-             -- following mostly the Poseidon YAML definition where possible
-            "packageTitle"           .= (panavName . indInfoPac $ e),
-            "packageVersion"         .= (panavVersion . indInfoPac $ e),
-            "additionalJannoColumns" .= indInfoAddCols e
-            -- we skip indInfoIsLatest for backwards-compatibility reasons. It can be simply computed after the fact.
-            ]
-
-instance FromJSON IndividualInfo where
-    parseJSON = withObject "IndividualInfo" $ \v -> IndividualInfo
-            <$> v .: "poseidonID"
-            <*> v .: "groupNames"
-            <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
-            <*> pure False -- we set isLatest by default to False. It needs to be set by setPacVersionLatest
-            <*> v .: "additionalJannoColumns"
-
-setPacVersionLatest :: [IndividualInfo] -> [IndividualInfo]
-setPacVersionLatest indInfos =
-    let allLatestPacs = map last . groupBy (\a b -> panavName a == panavName b) . sort . nub . map indInfoPac $ indInfos
+setIsLatestInList :: (HasNameAndVersion a) => [a] -> [a]
+setIsLatestInList as = 
+    let allLatestPacs = map last . groupBy (\a b -> (getPacName a, getPacVersion a) == (getPacName b, getPacVersion b)) . sortBy (\a b -> compare (getPacName a, getPacVersion a) (getPacName b, getPacVersion b)) $ as
     in  do -- loop over ret
-            indInfo <- indInfos
-            let isLatest = indInfoPac indInfo `elem` allLatestPacs
-            return $ indInfo {indInfoIsLatest = isLatest}
-
+            a <- as
+            let isLatest = a `elem` allLatestPacs
+            if isLatest then return . setPacIsLatest $ a else return a

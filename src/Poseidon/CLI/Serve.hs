@@ -9,7 +9,7 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
-                                               getJointIndividualInfo,
+                                               getExtendedIndividualInfo,
                                                packageToPackageInfo,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
@@ -122,9 +122,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             let indInfo = case maybeAdditionalColumnsString of
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
-                        in  getJointIndividualInfo pacs additionalColumnNames
-                    Nothing -> getJointIndividualInfo pacs []
-            let retData = ApiReturnIndividualInfo indInfo
+                        in  getExtendedIndividualInfo pacs additionalColumnNames
+                    Nothing -> getExtendedIndividualInfo pacs []
+            let retData = ApiReturnExtIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files

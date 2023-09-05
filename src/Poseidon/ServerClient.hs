@@ -6,13 +6,12 @@ module Poseidon.ServerClient (
     ApiReturnData(..),
     processApiResponse,
     ArchiveEndpoint(..),
-    PackageInfo (..), GroupInfo (..),
+    PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo(..),
     qDefault, qArchive, qPacVersion, (+&+)
 ) where
 
 import           Paths_poseidon_hs      (version)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
-                                         IndividualInfo (..),
                                          PacNameAndVersion (..))
 import           Poseidon.Janno         (JannoRows)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
@@ -71,65 +70,9 @@ instance FromJSON ServerApiReturnType where
             <$> v .: "serverMessages"
             <*> v .: "serverResponse"
 
-data PackageInfo = PackageInfo
-    { pTitle         :: String
-    , pVersion       :: Maybe Version
-    , pPosVersion    :: Version
-    , pDescription   :: Maybe String
-    , pLastModified  :: Maybe Day
-    , pNrIndividuals :: Int
-    } deriving (Eq)
-
-instance HasNameAndVersion PackageInfo where
-    getPacName = pTitle
-    getPacVersion = pVersion
-
-instance ToJSON PackageInfo where
-    toJSON (PackageInfo title pacVersion posVersion description lastModified nrIndividuals) =
-        object [
-            "packageTitle"    .= title,
-            "packageVersion"  .= pacVersion,
-            "poseidonVersion" .= posVersion,
-            "description"     .= description,
-            "lastModified"    .= lastModified,
-            "nrIndividuals"   .= nrIndividuals
-        ]
-
-instance FromJSON PackageInfo where
-    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-            <$> v .: "packageTitle"
-            <*> v .: "packageVersion"
-            <*> v .: "poseidonVersion"
-            <*> v .: "description"
-            <*> v .: "lastModified"
-            <*> v .: "nrIndividuals"
-
-data GroupInfo = GroupInfo
-    { gName          :: String
-    , gPackage       :: PacNameAndVersion
-    , gNrIndividuals :: Int
-    }
-
-instance ToJSON GroupInfo where
-    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion) nrIndividuals) =
-        object [
-            "groupName"      .= name,
-            "packageTitle"   .= pacTitle,
-            "packageVersion" .= pacVersion,
-            "nrIndividuals"  .= nrIndividuals
-        ]
-
-instance FromJSON GroupInfo where
-    parseJSON = withObject "GroupInfo" $ \v -> do
-        groupName      <- v .: "groupName"
-        packageTitle   <- v .: "packageTitle"
-        packageVersion <- v .: "packageVersion"
-        nrIndividuals  <- v .: "nrIndividuals"
-        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion) nrIndividuals
-
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
-                   | ApiReturnIndividualInfo [IndividualInfo]
+                   | ApiReturnExtIndividualInfo [ExtendedIndividualInfo]
                    | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
 
 instance ToJSON ApiReturnData where
@@ -143,9 +86,9 @@ instance ToJSON ApiReturnData where
             "constructor" .= String "ApiReturnGroupInfo",
             "groupInfo" .= groupInfo
         ]
-    toJSON (ApiReturnIndividualInfo indInfo) =
+    toJSON (ApiReturnExtIndividualInfo indInfo) =
         object [
-            "constructor" .= String "ApiReturnExtIndividualInfo", -- we use the term "Ext" in here for historical and compatibility reasons. But actually this is just IndividualInfo
+            "constructor" .= String "ApiReturnExtIndividualInfo",
             "extIndInfo" .= indInfo
         ]
     toJSON (ApiReturnJanno janno) =
@@ -158,11 +101,102 @@ instance FromJSON ApiReturnData where
     parseJSON = withObject "ApiReturnData" $ \v -> do
         constr <- v .: "constructor"
         case constr of
-            "ApiReturnPackageInfo" -> ApiReturnPackageInfo <$> v .: "packageInfo"
-            "ApiReturnGroupInfo" -> ApiReturnGroupInfo <$> v .: "groupInfo"
-            "ApiReturnExtIndividualInfo" -> ApiReturnIndividualInfo <$> v .: "extIndInfo" -- see above, term "ext" for historical reasons.
-            "ApiReturnJanno" -> ApiReturnJanno <$> v .: "janno"
-            _ -> error $ "cannot parse ApiReturnType with constructor " ++ constr
+            "ApiReturnPackageInfo"       -> ApiReturnPackageInfo       <$> v .: "packageInfo"
+            "ApiReturnGroupInfo"         -> ApiReturnGroupInfo         <$> v .: "groupInfo"
+            "ApiReturnExtIndividualInfo" -> ApiReturnExtIndividualInfo <$> v .: "extIndInfo"
+            "ApiReturnJanno"             -> ApiReturnJanno             <$> v .: "janno"
+            _                            -> error $ "cannot parse ApiReturnType with constructor " ++ constr
+
+
+data PackageInfo = PackageInfo
+    { pPac         :: PacNameAndVersion
+    , pPosVersion    :: Version
+    , pDescription   :: Maybe String
+    , pLastModified  :: Maybe Day
+    , pNrIndividuals :: Int
+    } deriving (Eq)
+
+instance HasNameAndVersion PackageInfo where
+    getPacName = getPacName . pPac
+    getPacVersion = getPacVersion . pPac
+    getPacIsLatest = getPacIsLatest . pPac
+    setPacIsLatest a = let pac = pPac a in a {pPac = setPacIsLatest pac}
+
+instance ToJSON PackageInfo where
+    toJSON (PackageInfo (PacNameAndVersion n v l) posVersion description lastModified nrIndividuals) =
+        object [
+            "packageTitle"    .= n,
+            "packageVersion"  .= v,
+            "isLatest"        .= l,
+            "poseidonVersion" .= posVersion,
+            "description"     .= description,
+            "lastModified"    .= lastModified,
+            "nrIndividuals"   .= nrIndividuals
+        ]
+
+instance FromJSON PackageInfo where
+    parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
+            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion") <*> (v .: "isLatest"))
+            <*> v .: "posieonVersion"
+            <*> v .: "description"
+            <*> v .: "lastModified"
+            <*> v .: "nrIndividuals"
+
+data GroupInfo = GroupInfo
+    { gName          :: String
+    , gPackage       :: PacNameAndVersion
+    , gNrIndividuals :: Int
+    }
+
+instance ToJSON GroupInfo where
+    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion isLatest) nrIndividuals) =
+        object [
+            "groupName"       .= name,
+            "packageTitle"    .= pacTitle,
+            "packageVersion"  .= pacVersion,
+            "packageIsLatest" .= isLatest,
+            "nrIndividuals"   .= nrIndividuals
+        ]
+
+instance FromJSON GroupInfo where
+    parseJSON = withObject "GroupInfo" $ \v -> do
+        groupName      <- v .: "groupName"
+        packageTitle   <- v .: "packageTitle"
+        packageVersion <- v .: "packageVersion"
+        nrIndividuals  <- v .: "nrIndividuals"
+        isLatest       <- v .: "isLatest"
+        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion isLatest) nrIndividuals
+
+data ExtendedIndividualInfo = ExtendedIndividualInfo
+    {
+      extIndInfoName      :: String
+    , extIndInfoGroups    :: [String]
+    , extIndInfoPac       :: PacNameAndVersion
+    , extIndInfoAddCols   :: [(String, Maybe String)]
+    } deriving (Eq)
+
+instance HasNameAndVersion ExtendedIndividualInfo where
+    getPacName = getPacName . extIndInfoPac
+    getPacVersion = getPacVersion . extIndInfoPac
+    getPacIsLatest = getPacIsLatest . extIndInfoPac
+    setPacIsLatest a = let pac = extIndInfoPac a in a {extIndInfoPac = setPacIsLatest pac}
+
+instance ToJSON ExtendedIndividualInfo where
+    toJSON e =
+        object [
+            "poseidonID"             .= extIndInfoName e,
+            "groupNames"             .= extIndInfoGroups e,
+            "packageTitle"           .= (getPacName     . extIndInfoPac $ e),
+            "packageVersion"         .= (getPacVersion  . extIndInfoPac $ e),
+            "isLatest"               .= (getPacIsLatest . extIndInfoPac $ e),
+            "additionalJannoColumns" .= extIndInfoAddCols e]
+
+instance FromJSON ExtendedIndividualInfo where
+    parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
+            <$> v .: "poseidonID"
+            <*> v .: "groupNames"
+            <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion") <*> (v .: "isLatest"))
+            <*> v .: "additionalJannoColumns"
 
 processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData
 processApiResponse url quiet = do

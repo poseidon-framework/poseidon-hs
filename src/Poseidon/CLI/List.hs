@@ -8,11 +8,12 @@ import           Poseidon.EntityTypes   (IndividualInfo (..),
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getAllGroupInfo,
-                                         getJointIndividualInfo,
+                                         getExtendedIndividualInfo,
                                          packageToPackageInfo,
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..), GroupInfo (..),
+                                         ExtendedIndividualInfo(..),
                                          PackageInfo (..), processApiResponse,
                                          qDefault)
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
@@ -88,7 +89,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     logInfo "Downloading individual data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
-                        ApiReturnIndividualInfo indInfo -> return (setPacVersionLatest indInfo)
+                        ApiReturnExtIndividualInfo indInfo -> return (setPacVersionLatest indInfo)
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
@@ -97,7 +98,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             -- warning in case the additional Columns do not exist in the entire janno dataset
             forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
                 -- check entries in all individuals for that key
-                let nonEmptyEntries = catMaybes [snd (entries !! i) | IndividualInfo _ _ _ _ entries <- indInfo]
+                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- indInfo]
                 when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
             let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns

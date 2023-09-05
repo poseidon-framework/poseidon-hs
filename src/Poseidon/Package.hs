@@ -12,7 +12,7 @@ module Poseidon.Package (
     readPoseidonPackageCollection,
     getJointGenotypeData,
     getJointJanno,
-    getJointIndividualInfo,
+    getExtendedIndividualInfo,
     newMinimalPackageTemplate,
     newPackageTemplate,
     renderMismatch,
@@ -32,10 +32,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..),
-                                             IndividualInfo (..),
-                                             PacNameAndVersion (..),
                                              makePacNameAndVersion,
-                                             setPacVersionLatest)
+                                             PacNameAndVersion(..), setIsLatestInList)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -51,7 +49,7 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
-import           Poseidon.ServerClient      (GroupInfo (..), PackageInfo (..))
+import           Poseidon.ServerClient      (GroupInfo (..), PackageInfo (..), ExtendedIndividualInfo(..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
@@ -179,14 +177,12 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the base directory of the YAML file
     , posPacPoseidonVersion     :: Version
     -- ^ the version of the package
-    , posPacTitle               :: String
-    -- ^ the title of the package
+    , posPacNameAndVersion      :: PacNameAndVersion
+    -- ^ the title and version of the package
     , posPacDescription         :: Maybe String
     -- ^ the optional description string of the package
     , posPacContributor         :: [ContributorSpec]
     -- ^ the contributor(s) of the package
-    , posPacPackageVersion      :: Maybe Version
-    -- ^ the optional version of the package
     , posPacLastModified        :: Maybe Day
     -- ^ the optional date of last update
     , posPacGenotypeData        :: GenotypeDataSpec
@@ -219,11 +215,13 @@ data PoseidonPackage = PoseidonPackage
     deriving (Show, Eq, Generic)
 
 instance Ord PoseidonPackage where
-    compare = comparing posPacTitle <> comparing posPacPackageVersion
+    compare pacA pacB = compare (getPacName pacA, getPacVersion pacA) (getPacName pacB, getPacVersion pacB)
 
 instance HasNameAndVersion PoseidonPackage where
-    getPacName = posPacTitle
-    getPacVersion = posPacPackageVersion
+    getPacName = getPacName . posPacNameAndVersion
+    getPacVersion = getPacVersion . posPacNameAndVersion
+    getPacIsLatest = getPacIsLatest . posPacNameAndVersion
+    setPacIsLatest a = let pac = posPacNameAndVersion a in a {posPacNameAndVersion = setPacIsLatest pac}
 
 data PackageReadOptions = PackageReadOptions
     { _readOptStopOnDuplicates     :: Bool
@@ -384,7 +382,7 @@ readPoseidonPackage opts ymlPath = do
         logInfo $ "Trying to parse genotype data for package: " ++ tit
 
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
+    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer False) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
 
     -- validate genotype data
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
@@ -580,23 +578,23 @@ filterDuplicatePackages :: (MonadThrow m) =>
                         -> [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
                         -> m [PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
 filterDuplicatePackages keepMultipleVersions pacs =
-    fmap concat . mapM checkDuplicatePackages $ groupBy titleEq $ sortOn posPacTitle pacs
+    fmap concat . mapM checkDuplicatePackages . groupBy titleEq . sortOn getPacName $ pacs
   where
     titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
-    titleEq p1 p2 = posPacTitle p1 == posPacTitle p2
+    titleEq p1 p2 = getPacName p1 == getPacName p2
     checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m [PoseidonPackage]
     checkDuplicatePackages [pac] = return [pac]
     checkDuplicatePackages dupliPacs =
         let pacs_ = map (\x -> x { posPacDuplicate = length dupliPacs }) dupliPacs
-            maybeVersions = map posPacPackageVersion pacs_
+            maybeVersions = map getPacVersion pacs_
         -- all versions need to be given and be unique
         in  if (length . nub . catMaybes) maybeVersions == length maybeVersions
             then
                 if keepMultipleVersions
                 then return pacs_
-                else return . singleton . last . sortOn posPacPackageVersion $ pacs_
+                else return . singleton . last . sortOn getPacVersion $ pacs_
             else
-                let t   = posPacTitle $ head pacs_
+                let t   = getPacName $ head pacs_
                     msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
                 in  throwM $ PoseidonPackageException msg
 
@@ -614,7 +612,7 @@ getJointGenotypeData logA intersect popMode pacs maybeSnpFile = do
     let indEntries      = map fst genotypeTuples
         jointIndEntries = concat indEntries
         nrInds          = map length indEntries
-        pacNames        = map posPacTitle pacs
+        pacNames        = map getPacName pacs
         prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
                                 P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds pacNames
     jointProducer <- case maybeSnpFile of
@@ -668,10 +666,9 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     PoseidonPackage {
         posPacBaseDir = baseDir
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
-    ,   posPacTitle = name
+    ,   posPacNameAndVersion = PacNameAndVersion name Nothing False
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
-    ,   posPacPackageVersion = Nothing
     ,   posPacLastModified = Nothing
     ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
     ,   posPacJannoFile = Nothing
@@ -732,7 +729,7 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
         ,   posPacContributor = [dummyContributor]
-        ,   posPacPackageVersion = Just $ makeVersion [0, 1, 0]
+        ,   posPacNameAndVersion = PacNameAndVersion name (Just $ makeVersion [0, 1, 0]) False
         ,   posPacLastModified = Just today
         }
         jannoFilledTemplate     = completeJannoSpec name indsOrJanno fluffedUpTemplate
@@ -765,8 +762,8 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
             }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
-    let yamlPac = PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
+writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
+    let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     B.writeFile outF $!! encodePretty opts yamlPac
     where
@@ -803,8 +800,7 @@ writePoseidonPackage (PoseidonPackage baseDir ver tit des con pacVer mod_ geno j
 
 packageToPackageInfo :: PoseidonPackage -> PackageInfo
 packageToPackageInfo pac = PackageInfo {
-    pTitle         = posPacTitle pac,
-    pVersion       = posPacPackageVersion pac,
+    pPac           = posPacNameAndVersion pac,
     pPosVersion    = posPacPoseidonVersion pac,
     pDescription   = posPacDescription pac,
     pLastModified  = posPacLastModified pac,
@@ -813,6 +809,7 @@ packageToPackageInfo pac = PackageInfo {
 
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
 getAllGroupInfo packages = do
+    indInfo <- getExtendedIndividualInfo packages []
     let individualInfoUnnested = do
             pac <- packages
             jannoRow <- getJannoRowsFromPac pac
@@ -824,17 +821,15 @@ getAllGroupInfo packages = do
         groupNrInds   = length group_
     return $ GroupInfo groupName groupPacs groupNrInds
 
-getJointIndividualInfo :: [PoseidonPackage] -> [String] -> [IndividualInfo]
-getJointIndividualInfo packages additionalJannoColumns =
-    let ret = do -- for loop
-            pac <- packages -- outer loop over all packages
-            jannoRow <- getJannoRowsFromPac pac -- inner loop over all individuals
-            let name    = jPoseidonID jannoRow
-            let groups  = getJannoList . jGroupName $ jannoRow
-            let pacName = posPacTitle pac
-            let version = posPacPackageVersion pac
+getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
+getExtendedIndividualInfo allPackages additionalJannoColumns =
+    let ret = do
+            pac <- allPackages
+            jannoRow <- getJannoRowsFromPac pac
+            let name = jPoseidonID jannoRow
+                groups = getJannoList . jGroupName $ jannoRow
                 additionalColumnEntries = case additionalJannoColumns of
                     [] -> []
                     colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
-            return $ IndividualInfo name groups (PacNameAndVersion pacName version) False additionalColumnEntries
-    in  setPacVersionLatest ret
+            return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) additionalColumnEntries
+    in  setIsLatestInList ret
