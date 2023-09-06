@@ -1,6 +1,6 @@
 .----------------.-----------------.------------------.--------------------------------------------------------------.---------------.----------------.
 |    Package     | Package Version | Poseidon Version |                         Description                          | Last modified | Nr Individuals |
 :================:=================:==================:==============================================================:===============:================:
-| Schiffels_2016 | 1.0.1           | 2.7.1            | Genetic data published in Schiffels et al. 2016              | 2021-11-09    | 10             |
-| Schmid_2028    | 1.0.0           | 2.6.0            | Genetic data that will never be published in Schmid et al. … | 2023-01-12    | 2              |
+| Schiffels_2016 | 1.0.1 (latest)  | 2.7.1            | Genetic data published in Schiffels et al. 2016              | 2021-11-09    | 10             |
+| Schmid_2028    | 1.0.0 (latest)  | 2.6.0            | Genetic data that will never be published in Schmid et al. … | 2023-01-12    | 2              |
 '----------------'-----------------'------------------'--------------------------------------------------------------'---------------'----------------'
