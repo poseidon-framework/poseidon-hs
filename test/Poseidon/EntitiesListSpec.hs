@@ -4,11 +4,10 @@ module Poseidon.EntitiesListSpec (spec) where
 
 import           Poseidon.EntitiesList
 import           Poseidon.EntityTypes  (EntitiesList, IndividualInfo (..),
-                                        PacNameAndVersion (..),
+                                        PacNameAndVersion (..), HasNameAndVersion(..),
                                         PoseidonEntity (..), SignedEntitiesList,
                                         SignedEntity (..))
 import           Poseidon.Package      (PackageReadOptions (..),
-                                        PoseidonPackage (..),
                                         defaultPackageReadOptions,
                                         getJointIndividualInfo,
                                         readPoseidonPackageCollection)
@@ -214,11 +213,11 @@ testFindNonExistentEntities =
     describe "Poseidon.EntitiesList.determineNonExistentEntities" $ do
     it "should ignore good entities" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let ents = determineNonExistentEntities goodEntities (getJointIndividualInfo ps [])
+        let ents = determineNonExistentEntities goodEntities (getJointIndividualInfo ps)
         ents `shouldBe` []
     it "should find bad entities" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let ents = determineNonExistentEntities badEntities (getJointIndividualInfo ps [])
+        let ents = determineNonExistentEntities badEntities (getJointIndividualInfo ps)
         ents `shouldMatchList` badEntities
 
 testFilterPackages :: Spec
@@ -227,7 +226,7 @@ testFilterPackages =
     it "should select all relevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterToRelevantPackages goodEntities ps
-        map posPacTitle pacs `shouldMatchList` ["Schiffels_2016", "Wang_2020", "Lamnidis_2018"]
+        map getPacName pacs `shouldMatchList` ["Schiffels_2016", "Wang_2020", "Lamnidis_2018"]
     it "should drop all irrelevant packages" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
         let pacs = filterToRelevantPackages badEntities ps
@@ -238,22 +237,22 @@ testResolveEntityIndices =
     describe "Poseidon.EntitiesList.resolveEntityIndices" $ do
     it "should select all relevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let indInts = resolveEntityIndices goodEntities (getJointIndividualInfo ps [])
+        let indInts = resolveEntityIndices goodEntities (getJointIndividualInfo ps)
         indInts `shouldBe` [0, 1, 2, 6, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 25]
     it "should drop all irrelevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        let indInts = resolveEntityIndices badEntities (getJointIndividualInfo ps [])
+        let indInts = resolveEntityIndices badEntities (getJointIndividualInfo ps)
         indInts `shouldBe` []
     it "should correctly extract indices with ordered signed entities" $ do
         let indInfo = [
-                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing) True []
-                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing) True []
-                , IndividualInfo "Ind3" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing) True []
-                , IndividualInfo "Ind4" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing) True []
-                , IndividualInfo "Ind5" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing) True []
-                , IndividualInfo "Ind6" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing) True []
-                , IndividualInfo "Ind7" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing) True []
-                , IndividualInfo "Ind8" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing) True []
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind3" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind4" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind5" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind6" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind7" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind8" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 ]
         resolveEntityIndices [
               Include (Pac (PacNameAndVersion "Pac1" Nothing))
@@ -266,12 +265,12 @@ testResolveEntityIndices =
             ] indInfo `shouldBe` [0, 1, 2, 7]
     it "should correctly extract indices in case of duplicates across packages" $ do
         let indInfoDuplicates = [
-                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing) True []
-                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac2" Nothing) True []
-                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac3" Nothing) True []
-                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing) True []
-                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac2" Nothing) True []
-                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac3" Nothing) True []
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac3" Nothing)
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac3" Nothing)
                 ]
         -- test simple extraction with specific syntax
         resolveEntityIndices [

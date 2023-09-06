@@ -3,6 +3,7 @@
 module Poseidon.PackageSpec (spec) where
 
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
+import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
@@ -201,7 +202,7 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
     let dir = "test/testDat/testPackages/ancient"
     it "should discover packages correctly" $ do
         pac <- testLog $ readPoseidonPackageCollection testPacReadOpts [dir]
-        sort (map posPacTitle pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_2020"]
+        sort (map getPacName pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_2020"]
         sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 5 20),
                                                       Just (fromGregorian 2021 11 9),
