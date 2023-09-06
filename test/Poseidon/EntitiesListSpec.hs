@@ -13,9 +13,6 @@ import           Poseidon.Package      (PackageReadOptions (..),
                                         readPoseidonPackageCollection)
 import           Poseidon.Utils        (PoseidonException, testLog)
 
--- import           Control.Monad (forM)
--- import           System.IO (hPutStrLn, stderr)
--- import           Data.Aeson            (decode, encode)
 import           Data.Either           (fromRight, isLeft)
 import           Data.Version          (makeVersion)
 import           Test.Hspec
