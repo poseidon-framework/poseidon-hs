@@ -846,7 +846,6 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action17 "forge" [
           "forge" </> "ForgePac17" </> "ForgePac17.janno"
         ]
-    return ()
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
