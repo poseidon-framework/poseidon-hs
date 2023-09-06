@@ -9,7 +9,8 @@ module Poseidon.EntitiesList (
 import           Poseidon.EntityTypes   (EntitiesList, IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          PoseidonEntity (..), SignedEntity (..),
-                                         makePacNameAndVersion)
+                                         makePacNameAndVersion,
+                                         isLatestInCollection)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))
@@ -32,8 +33,9 @@ data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty 
 -- | A class to generalise signed and unsigned Entity Lists.
 --   Both have the feature that they can be used to filter individuals.
 class EntitySpec a where
-    indInfoConformsToEntitySpec :: IndividualInfo -> a -> Maybe Bool
-    -- ^ a function to check whether a given individualInfo matches a given entitySpec.
+    indInfoConformsToEntitySpec :: IndividualInfo -> Bool -> a -> Maybe Bool
+    -- ^ a function to check whether a given individualInfo within a collection of individualInfos matches a given entitySpec.
+    -- the second argument specifies whether the package is the latest of all possible packages in the collection
     -- `Nothing` means that the entity has no say about this individual, neither negatively nor positively
     -- `Just True` means that the entity actively selects this individual
     -- `Just False` means that the entity actively unselects this individual
@@ -41,9 +43,10 @@ class EntitySpec a where
     entitySpecParser :: P.Parser a -- ^ a parser
 
 -- | this function checks whether a given individual info is selected by a given list of entities.
+
 --  The logic is to execute the entitySpecs in order, and then use the last active call to make the decision
-indInfoConformsToEntitySpecs :: (EntitySpec a) => IndividualInfo -> [a] -> Bool
-indInfoConformsToEntitySpecs indInfo entities = case mapMaybe (indInfoConformsToEntitySpec indInfo) entities of
+indInfoConformsToEntitySpecs :: (EntitySpec a) => IndividualInfo -> Bool -> [a] -> Bool
+indInfoConformsToEntitySpecs indInfo isLatest entities = case mapMaybe (indInfoConformsToEntitySpec indInfo isLatest) entities of
     [] -> False
     xs -> last xs
 
@@ -53,42 +56,42 @@ instance EntitySpec SignedEntity where
     -- There are only a few general patterns to exploit. We are specifying them one by one
 
     -- include Package
-    indInfoConformsToEntitySpec (IndividualInfo _ _ p1 isLatest _) (Include (Pac p2)) =
+    indInfoConformsToEntitySpec (IndividualInfo _ _ p1) isLatest (Include (Pac p2)) =
         case (p1, p2) of
             (PacNameAndVersion n1 (Just v1), PacNameAndVersion n2 (Just v2)) -> if n1 == n2 && v1 == v2 then Just True else Nothing
             (PacNameAndVersion _  Nothing,   PacNameAndVersion _  (Just _ )) -> Nothing
             (PacNameAndVersion n1 _      ,   PacNameAndVersion n2 Nothing  ) -> if n1 == n2 && isLatest then Just True else Nothing
 
     -- exclude Package
-    indInfoConformsToEntitySpec (IndividualInfo _ _ p1 _ _) (Exclude (Pac p2)) =
+    indInfoConformsToEntitySpec (IndividualInfo _ _ p1) _ (Exclude (Pac p2)) =
         case (p1, p2) of
             (PacNameAndVersion n1 (Just v1), PacNameAndVersion n2 (Just v2)) -> if n1 == n2 && v1 == v2 then Just False else Nothing
             (PacNameAndVersion _  Nothing,   PacNameAndVersion _  (Just _ )) -> Nothing
             (PacNameAndVersion n1 _        , PacNameAndVersion n2 Nothing)   -> if n1 == n2             then Just False else Nothing
 
     -- include group
-    indInfoConformsToEntitySpec (IndividualInfo _ gs _ isLatest _) (Include (Group g)) =
+    indInfoConformsToEntitySpec (IndividualInfo _ gs _) isLatest (Include (Group g)) =
         if g `elem` gs && isLatest then Just True else Nothing
 
     -- exclude group
-    indInfoConformsToEntitySpec (IndividualInfo _ gs _ _ _) (Exclude (Group g)) =
+    indInfoConformsToEntitySpec (IndividualInfo _ gs _) _ (Exclude (Group g)) =
         if g `elem` gs then Just False else Nothing
 
     -- include general individual
-    indInfoConformsToEntitySpec (IndividualInfo n1 _ _ isLatest _) (Include (Ind n2)) =
+    indInfoConformsToEntitySpec (IndividualInfo n1 _ _ ) isLatest (Include (Ind n2)) =
         if n1 == n2 && isLatest then Just True else Nothing
 
     -- exclude general individual
-    indInfoConformsToEntitySpec (IndividualInfo n1 _ _ _ _) (Exclude (Ind n2)) =
+    indInfoConformsToEntitySpec (IndividualInfo n1 _ _) _ (Exclude (Ind n2)) =
         if n1 == n2 then Just False else Nothing
 
     -- include specific individual
-    indInfoConformsToEntitySpec indInfo@(IndividualInfo n1 gs _ _ _) (Include (SpecificInd n2 g p2)) =
-        if n1 /= n2 || g `notElem` gs then Nothing else indInfoConformsToEntitySpec indInfo (Include (Pac p2))
+    indInfoConformsToEntitySpec indInfo@(IndividualInfo n1 gs _) isLatest (Include (SpecificInd n2 g p2)) =
+        if n1 /= n2 || g `notElem` gs then Nothing else indInfoConformsToEntitySpec indInfo isLatest (Include (Pac p2))
 
     -- exclude specific individual
-    indInfoConformsToEntitySpec indInfo@(IndividualInfo n1 gs _ _ _) (Exclude (SpecificInd n2 g p2)) =
-        if n1 /= n2 || g `notElem` gs then Nothing else indInfoConformsToEntitySpec indInfo (Exclude (Pac p2))
+    indInfoConformsToEntitySpec indInfo@(IndividualInfo n1 gs _) isLatest (Exclude (SpecificInd n2 g p2)) =
+        if n1 /= n2 || g `notElem` gs then Nothing else indInfoConformsToEntitySpec indInfo isLatest (Exclude (Pac p2))
 
     underlyingEntity = removeEntitySign
 
@@ -97,7 +100,7 @@ instance EntitySpec SignedEntity where
         parseSign = (P.char '-' >> return Exclude) <|> (P.optional (P.char '+') >> return Include)
 
 instance EntitySpec PoseidonEntity where
-    indInfoConformsToEntitySpec indInfo entity = indInfoConformsToEntitySpec indInfo (Include entity)
+    indInfoConformsToEntitySpec indInfo isLatest entity = indInfoConformsToEntitySpec indInfo isLatest (Include entity)
     underlyingEntity = id
     entitySpecParser = parsePac <|> parseGroup <|> parseInd
       where
@@ -134,16 +137,24 @@ instance EntitySpec PoseidonEntity where
 -- | Filter packages such that only packages with individuals covered by the given EntitySpec are returned
 filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
 filterToRelevantPackages entities packages =
-    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages [])
+    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages)
     in filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
 
 -- | determine all packages with versions that contain individuals covered by the given entities
 determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
-determineRelevantPackages entities = nub . map indInfoPac . filter (`indInfoConformsToEntitySpecs` entities)
+determineRelevantPackages entities indInfos = do
+    indInfo <- indInfos
+    let isLatest = isLatestInCollection indInfos indInfo
+    True <- return $ indInfoConformsToEntitySpecs indInfo isLatest entities
+    return . indInfoPac $ indInfo
 
 -- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
 resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
-resolveEntityIndices entities = map fst . filter ((`indInfoConformsToEntitySpecs` entities) . snd) . zip [0..]
+resolveEntityIndices entities indInfos = do
+    (i, indInfo) <- zip [0..] indInfos
+    let isLatest = isLatestInCollection indInfos indInfo
+    True <- return $ indInfoConformsToEntitySpecs indInfo isLatest entities
+    return i
 
 -- | this returns a list of entities which could not be found
 determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
@@ -157,7 +168,7 @@ determineNonExistentEntities entities indInfos = do -- for loop over entities
 reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, PoseidonEntity)]
 reportDuplicateIndividuals individuals =
     let duplicates = concat . filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
-    in  [(i, SpecificInd n (head g) p) | i@(IndividualInfo n g p _ _) <- duplicates]
+    in  [(i, SpecificInd n (head g) p) | i@(IndividualInfo n g p) <- duplicates]
 
 -- parsing code to read entities from files
 readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]

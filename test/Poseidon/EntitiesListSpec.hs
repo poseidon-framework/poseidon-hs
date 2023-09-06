@@ -301,12 +301,12 @@ testResolveEntityIndices =
             ] indInfoDuplicates `shouldBe` [0]
     it "should correctly extract indices in case of multiple package versions" $ do
         let indInfo = [
-                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])) False []
-                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])) False []
-                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])) True []
-                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])) True []
-                , IndividualInfo "Ind3" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing) True []
-                , IndividualInfo "Ind4" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing) True []
+                  IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0]))
+                , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))
+                , IndividualInfo "Ind2" ["Pop1", "PopB"] (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0]))
+                , IndividualInfo "Ind3" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
+                , IndividualInfo "Ind4" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 ]
         let selectedIndices = resolveEntityIndices [Include $ Pac (PacNameAndVersion "Pac1" Nothing)] indInfo
         selectedIndices `shouldBe` [2, 3]

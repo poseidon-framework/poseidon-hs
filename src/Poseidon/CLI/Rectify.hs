@@ -5,7 +5,7 @@ module Poseidon.CLI.Rectify (
     ) where
 
 import           Poseidon.Contributor   (ContributorSpec (..))
-import           Poseidon.EntityTypes   (renderNameWithVersion)
+import           Poseidon.EntityTypes   (renderNameWithVersion, PacNameAndVersion(..), HasNameAndVersion(..))
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -167,11 +167,12 @@ updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO Poseid
 updatePackageVersion component pac = do
     logDebug "Updating package version"
     (UTCTime today _) <- liftIO getCurrentTime
+    let pacNameAndVer = posPacNameAndVersion pac
     let outPac = pac {
-        posPacPackageVersion =
-            maybe (Just $ makeVersion [0, 1, 0])
+        posPacNameAndVersion = pacNameAndVer {panavVersion = maybe (Just $ makeVersion [0, 1, 0])
                 (Just . updateThreeComponentVersion component)
-                (posPacPackageVersion pac)
+                (getPacVersion pac)
+            }
         , posPacLastModified = Just today
         }
     return outPac
@@ -183,7 +184,7 @@ writeOrUpdateChangelogFile (Just logText) pac = do
         Nothing -> do
             logDebug "Creating CHANGELOG.md"
             liftIO $ writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
-                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++
+                "- V " ++ showVersion (fromJust $ getPacVersion pac) ++ ": " ++
                 logText ++ "\n"
             return pac { posPacChangelogFile = Just "CHANGELOG.md" }
         Just x -> do
@@ -191,6 +192,6 @@ writeOrUpdateChangelogFile (Just logText) pac = do
             changelogFile <- liftIO $ readFile (posPacBaseDir pac </> x)
             liftIO $ removeFile (posPacBaseDir pac </> x)
             liftIO $ writeFile (posPacBaseDir pac </> x) $
-                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": "
+                "- V " ++ showVersion (fromJust $ getPacVersion pac) ++ ": "
                 ++ logText ++ "\n" ++ changelogFile
             return pac

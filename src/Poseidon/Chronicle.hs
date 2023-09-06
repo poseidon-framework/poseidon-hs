@@ -153,7 +153,7 @@ chroniclePackages pathToChronicleFile pacs = do
             version <- getPackageVersion pac
             commit <- getGitCommitHash $ posPacBaseDir pac
             return $ PackageIteration {
-                pacStateTitle   = posPacTitle pac,
+                pacStateTitle   = getPacName pac,
                 pacStateVersion = version,
                 pacStateCommit  = commit,
                 pacStatePath    = makeRelative (takeDirectory pathToChronicleFile) $ posPacBaseDir pac
@@ -161,7 +161,7 @@ chroniclePackages pathToChronicleFile pacs = do
 
 getPackageVersion :: PoseidonPackage -> PoseidonIO Version
 getPackageVersion pac =
-    case posPacPackageVersion pac of
+    case getPacVersion pac of
         Just v -> return v
         Nothing -> do
             testMode <- asks _envTestMode
@@ -169,7 +169,7 @@ getPackageVersion pac =
                 Testing -> return $ makeVersion [0, 0, 0]
                 Production -> do
                     throwM $ PoseidonChronicleException $
-                        "Package " ++ show (posPacTitle pac) ++ " has no version."
+                        "Package " ++ show (getPacName pac) ++ " has no version."
 
 getGitCommitHash :: FilePath -> PoseidonIO String
 getGitCommitHash p = do

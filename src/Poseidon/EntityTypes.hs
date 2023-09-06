@@ -8,10 +8,8 @@ module Poseidon.EntityTypes (
     PoseidonEntity(..),
     SignedEntity(..),
     hasVersion, EntitiesList, SignedEntitiesList,
-    PacNameAndVersion(..), makePacNameAndVersion,
-    setIsLatestInList) where
+    PacNameAndVersion(..), makePacNameAndVersion, isLatestInCollection) where
 
-import           Data.List    (groupBy, sortBy)
 import           Data.Maybe   (isJust)
 import           Data.Version (Version, showVersion)
 import           GHC.Generics (Generic)
@@ -20,8 +18,6 @@ import           GHC.Generics (Generic)
 class Eq a => HasNameAndVersion a where
     getPacName     :: a -> String        -- ^ a name property
     getPacVersion  :: a -> Maybe Version -- ^ a version property
-    getPacIsLatest :: a -> Bool          -- ^ whether that package is the latest of its kind in a given collection
-    setPacIsLatest :: a -> a             -- ^ a setter for the isLatest property
 
 -- | a convenience function
 hasVersion :: (HasNameAndVersion a) => a -> Bool
@@ -33,26 +29,30 @@ renderNameWithVersion a = case getPacVersion a of
     Nothing -> getPacName a
     Just v  -> getPacName a ++ "-" ++ showVersion v
 
+-- | a function to check whether a given package is the latest within a collection
+isLatestInCollection :: (HasNameAndVersion a) => [a] -> a -> Bool
+isLatestInCollection collection a =
+    let n = getPacName a
+        latest = maximum . filter ((==n) . getPacName) . map makePacNameAndVersion $ collection
+    in  makePacNameAndVersion a == latest
+
 -- | The minimal instance of HasNameAndVersion
 data PacNameAndVersion = PacNameAndVersion {
       panavName     :: String
     , panavVersion  :: Maybe Version
-    , panavIsLatest :: Bool
     }
     deriving (Ord, Eq)
 
 instance HasNameAndVersion PacNameAndVersion where
     getPacName     = panavName
     getPacVersion  = panavVersion
-    getPacIsLatest = panavIsLatest
-    setPacIsLatest a = a {panavIsLatest = True}
-
+ 
 instance Show PacNameAndVersion where
     show a = "*" ++ renderNameWithVersion a ++ "*"
 
 -- | a function to normalise any instance of HasNameAndVersion to the minimal concrete type PacNameAndVersion
 makePacNameAndVersion :: (HasNameAndVersion a) => a -> PacNameAndVersion
-makePacNameAndVersion a = PacNameAndVersion (getPacName a) (getPacVersion a) (getPacIsLatest a)
+makePacNameAndVersion a = PacNameAndVersion (getPacName a) (getPacVersion a)
 
 -- | A datatype to represent a requested package, group or individual
 data PoseidonEntity =
@@ -93,13 +93,3 @@ data IndividualInfo = IndividualInfo
 instance HasNameAndVersion IndividualInfo where
     getPacName       = getPacName . indInfoPac
     getPacVersion    = getPacVersion . indInfoPac
-    getPacIsLatest   = getPacIsLatest . indInfoPac
-    setPacIsLatest a = let pac = indInfoPac a in a {indInfoPac = setPacIsLatest pac}
-
-setIsLatestInList :: (HasNameAndVersion a) => [a] -> [a]
-setIsLatestInList as = 
-    let allLatestPacs = map last . groupBy (\a b -> (getPacName a, getPacVersion a) == (getPacName b, getPacVersion b)) . sortBy (\a b -> compare (getPacName a, getPacVersion a) (getPacName b, getPacVersion b)) $ as
-    in  do -- loop over ret
-            a <- as
-            let isLatest = a `elem` allLatestPacs
-            if isLatest then return . setPacIsLatest $ a else return a

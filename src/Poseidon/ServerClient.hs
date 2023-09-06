@@ -114,20 +114,17 @@ data PackageInfo = PackageInfo
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
-    } deriving (Eq)
+    } deriving (Eq, Ord)
 
 instance HasNameAndVersion PackageInfo where
     getPacName = getPacName . pPac
     getPacVersion = getPacVersion . pPac
-    getPacIsLatest = getPacIsLatest . pPac
-    setPacIsLatest a = let pac = pPac a in a {pPac = setPacIsLatest pac}
 
 instance ToJSON PackageInfo where
-    toJSON (PackageInfo (PacNameAndVersion n v l) posVersion description lastModified nrIndividuals) =
+    toJSON (PackageInfo (PacNameAndVersion n v) posVersion description lastModified nrIndividuals) =
         object [
             "packageTitle"    .= n,
             "packageVersion"  .= v,
-            "isLatest"        .= l,
             "poseidonVersion" .= posVersion,
             "description"     .= description,
             "lastModified"    .= lastModified,
@@ -136,8 +133,8 @@ instance ToJSON PackageInfo where
 
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion") <*> (v .: "isLatest"))
-            <*> v .: "posieonVersion"
+            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
+            <*> v .: "poseidonVersion"
             <*> v .: "description"
             <*> v .: "lastModified"
             <*> v .: "nrIndividuals"
@@ -146,15 +143,14 @@ data GroupInfo = GroupInfo
     { gName          :: String
     , gPackage       :: PacNameAndVersion
     , gNrIndividuals :: Int
-    }
+    } deriving (Eq)
 
 instance ToJSON GroupInfo where
-    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion isLatest) nrIndividuals) =
+    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion) nrIndividuals) =
         object [
             "groupName"       .= name,
             "packageTitle"    .= pacTitle,
             "packageVersion"  .= pacVersion,
-            "packageIsLatest" .= isLatest,
             "nrIndividuals"   .= nrIndividuals
         ]
 
@@ -164,8 +160,11 @@ instance FromJSON GroupInfo where
         packageTitle   <- v .: "packageTitle"
         packageVersion <- v .: "packageVersion"
         nrIndividuals  <- v .: "nrIndividuals"
-        isLatest       <- v .: "isLatest"
-        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion isLatest) nrIndividuals
+        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion) nrIndividuals
+
+instance HasNameAndVersion GroupInfo where
+    getPacName = getPacName . gPackage
+    getPacVersion = getPacVersion . gPackage
 
 data ExtendedIndividualInfo = ExtendedIndividualInfo
     {
@@ -178,8 +177,6 @@ data ExtendedIndividualInfo = ExtendedIndividualInfo
 instance HasNameAndVersion ExtendedIndividualInfo where
     getPacName = getPacName . extIndInfoPac
     getPacVersion = getPacVersion . extIndInfoPac
-    getPacIsLatest = getPacIsLatest . extIndInfoPac
-    setPacIsLatest a = let pac = extIndInfoPac a in a {extIndInfoPac = setPacIsLatest pac}
 
 instance ToJSON ExtendedIndividualInfo where
     toJSON e =
@@ -188,14 +185,13 @@ instance ToJSON ExtendedIndividualInfo where
             "groupNames"             .= extIndInfoGroups e,
             "packageTitle"           .= (getPacName     . extIndInfoPac $ e),
             "packageVersion"         .= (getPacVersion  . extIndInfoPac $ e),
-            "isLatest"               .= (getPacIsLatest . extIndInfoPac $ e),
             "additionalJannoColumns" .= extIndInfoAddCols e]
 
 instance FromJSON ExtendedIndividualInfo where
     parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
             <$> v .: "poseidonID"
             <*> v .: "groupNames"
-            <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion") <*> (v .: "isLatest"))
+            <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
             <*> v .: "additionalJannoColumns"
 
 processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData

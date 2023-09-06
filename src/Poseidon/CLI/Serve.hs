@@ -3,7 +3,7 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
-import           Poseidon.EntityTypes         (renderNameWithVersion)
+import           Poseidon.EntityTypes         (renderNameWithVersion, PacNameAndVersion, HasNameAndVersion(..))
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
@@ -58,7 +58,7 @@ data ServeOptions = ServeOptions
     }
     deriving (Show)
 
-type ZipStore = [((String, Maybe Version), FilePath)] -- maps PackageName+Version to a zipfile-path
+type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
 type ArchiveName = String
 
@@ -138,14 +138,14 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 Just versionStr -> case parseVersionString versionStr of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
-            case sortOn (Down . snd . fst) . filter ((==packageName) . fst . fst) $ zipStore of
-                [] -> raise . pack $ "unknown package " ++ packageName
-                [((_, pv), fn)] -> case maybeVersion of
+            case sortOn (Down . fst) . filter ((==packageName) . getPacName . fst) $ zipStore of
+                [] -> raise . pack $ "unknown package " ++ packageName -- no version found
+                [(pacNameAndVersion, fn)] -> case maybeVersion of -- exactly one version found
                     Nothing -> file fn
-                    Just v -> if pv == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
+                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
                 pl@((_, fnLatest) : _) -> case maybeVersion of
                     Nothing -> file fnLatest
-                    Just v -> case filter ((==Just v) . snd . fst) pl of
+                    Just v -> case filter ((==Just v) . getPacVersion . fst) pl of
                         [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
@@ -176,7 +176,7 @@ createZipArchiveStore archiveStore zipPath =
                 zip_ <- liftIO $ makeZipArchive pac
                 let zip_raw = fromArchive zip_
                 liftIO $ B.writeFile fn zip_raw
-            return ((posPacTitle pac, posPacPackageVersion pac), fn))
+            return (posPacNameAndVersion pac, fn))
 
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]

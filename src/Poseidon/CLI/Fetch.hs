@@ -10,8 +10,7 @@ import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          PacNameAndVersion (..), PoseidonEntity,
                                          makePacNameAndVersion,
-                                         renderNameWithVersion,
-                                         setPacVersionLatest)
+                                         renderNameWithVersion)
 import           Poseidon.MathHelpers   (roundTo, roundToStr)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
@@ -19,6 +18,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..), PackageInfo (..),
                                          processApiResponse, qDefault,
+                                         ExtendedIndividualInfo(..),
                                          qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
@@ -84,7 +84,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnIndividualInfo indInfo -> return (setPacVersionLatest indInfo)
+            ApiReturnExtIndividualInfo indInfo -> return [IndividualInfo n g p | ExtendedIndividualInfo n g p _ <- indInfo]
             _                               -> error "should not happen"
     logInfo "Downloading package list from remote"
     remotePacList <- do
@@ -120,7 +120,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
             liftIO $ removeDirectory tempDir
     logInfo "Done"
 
-readServerIndInfo :: LB.ByteString -> IO [IndividualInfo]
+readServerIndInfo :: LB.ByteString -> IO [ExtendedIndividualInfo]
 readServerIndInfo bs = do
     case eitherDecode' bs of
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err

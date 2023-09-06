@@ -2,9 +2,8 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.EntityTypes   (IndividualInfo (..),
-                                         PacNameAndVersion (..),
-                                         setPacVersionLatest)
+import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         isLatestInCollection)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getAllGroupInfo,
@@ -55,7 +54,7 @@ runList :: ListOptions -> PoseidonIO ()
 runList (ListOptions repoLocation listEntity rawOutput) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
-            packageInfo <- case repoLocation of
+            packageInfos <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading package data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) False
@@ -66,11 +65,13 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                     map packageToPackageInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Package", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
                 tableB = sortOn head $ do
-                    PackageInfo t v pv d l i <- packageInfo
-                    return [t, showMaybe (showVersion <$> v), showVersion pv, showMaybe d, showMaybe (show <$> l), show i]
+                    pInf@(PackageInfo _ posV desc lastMod nrInds) <- packageInfos
+                    let isLatest = isLatestInCollection packageInfos pInf
+                    return [getPacName pInf, showMaybeVersion (getPacVersion pInf) isLatest,
+                            showVersion posV, showMaybe desc, showMaybe (show <$> lastMod), show nrInds]
             return (tableH, tableB)
         ListGroups -> do
-            groupInfo <- case repoLocation of
+            groupInfos <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading group data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/groups" ++ qDefault archive) False
@@ -80,32 +81,34 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Group", "Package", "Package Version", "Nr Individuals"]
                 tableB = do
-                    GroupInfo groupName (PacNameAndVersion pacName pacVersion) nrInds <- groupInfo
-                    return [groupName, pacName, showMaybeVersion pacVersion, show nrInds]
+                    gi@(GroupInfo groupName _ nrInds) <- groupInfos
+                    let isLatest = isLatestInCollection groupInfos gi
+                    return [groupName, getPacName gi, showMaybeVersion (getPacVersion gi) isLatest, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
-            indInfo <- case repoLocation of
+            extIndInfos <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns) False
                     case apiReturn of
-                        ApiReturnExtIndividualInfo indInfo -> return (setPacVersionLatest indInfo)
+                        ApiReturnExtIndividualInfo indInfo -> return indInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-                    return $ getJointIndividualInfo allPackages moreJannoColumns
+                    return $ getExtendedIndividualInfo allPackages moreJannoColumns
 
             -- warning in case the additional Columns do not exist in the entire janno dataset
             forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do
                 -- check entries in all individuals for that key
-                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- indInfo]
+                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ entries <- extIndInfos]
                 when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
             let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns
                 tableB = do
-                    (IndividualInfo name groups pac isLatest addColumnEntries) <- indInfo
-                    return $ [name, intercalate ", " groups, panavName pac,
-                              showMaybeVersion (panavVersion pac) ++ if isLatest then " (latest)" else ""] ++
+                    i@(ExtendedIndividualInfo name groups _ addColumnEntries) <- extIndInfos
+                    let isLatest = isLatestInCollection extIndInfos i
+                    return $ [name, intercalate ", " groups, getPacName i,
+                              showMaybeVersion (getPacVersion i) isLatest] ++
                               map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then
@@ -116,5 +119,5 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
   where
     showMaybe :: Maybe String -> String
     showMaybe = fromMaybe "n/a"
-    showMaybeVersion :: Maybe Version -> String
-    showMaybeVersion = maybe "n/a" showVersion
+    showMaybeVersion :: Maybe Version -> Bool -> String
+    showMaybeVersion mv isLatest = maybe "n/a" showVersion mv ++ if isLatest then " (latest)" else ""

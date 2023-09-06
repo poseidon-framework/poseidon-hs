@@ -12,6 +12,7 @@ module Poseidon.Package (
     readPoseidonPackageCollection,
     getJointGenotypeData,
     getJointJanno,
+    getJointIndividualInfo,
     getExtendedIndividualInfo,
     newMinimalPackageTemplate,
     newPackageTemplate,
@@ -33,7 +34,8 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..),
                                              makePacNameAndVersion,
-                                             PacNameAndVersion(..), setIsLatestInList)
+                                             PacNameAndVersion(..),
+                                             IndividualInfo(..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -78,7 +80,6 @@ import           Data.List                  (elemIndex, group, groupBy,
                                              sortOn, (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
-import           Data.Ord                   (comparing)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -220,8 +221,6 @@ instance Ord PoseidonPackage where
 instance HasNameAndVersion PoseidonPackage where
     getPacName = getPacName . posPacNameAndVersion
     getPacVersion = getPacVersion . posPacNameAndVersion
-    getPacIsLatest = getPacIsLatest . posPacNameAndVersion
-    setPacIsLatest a = let pac = posPacNameAndVersion a in a {posPacNameAndVersion = setPacIsLatest pac}
 
 data PackageReadOptions = PackageReadOptions
     { _readOptStopOnDuplicates     :: Bool
@@ -382,7 +381,7 @@ readPoseidonPackage opts ymlPath = do
         logInfo $ "Trying to parse genotype data for package: " ++ tit
 
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer False) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
+    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
 
     -- validate genotype data
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
@@ -666,7 +665,7 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     PoseidonPackage {
         posPacBaseDir = baseDir
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
-    ,   posPacNameAndVersion = PacNameAndVersion name Nothing False
+    ,   posPacNameAndVersion = PacNameAndVersion name Nothing
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
     ,   posPacLastModified = Nothing
@@ -729,7 +728,7 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
         ,   posPacContributor = [dummyContributor]
-        ,   posPacNameAndVersion = PacNameAndVersion name (Just $ makeVersion [0, 1, 0]) False
+        ,   posPacNameAndVersion = PacNameAndVersion name (Just $ makeVersion [0, 1, 0])
         ,   posPacLastModified = Just today
         }
         jannoFilledTemplate     = completeJannoSpec name indsOrJanno fluffedUpTemplate
@@ -808,28 +807,35 @@ packageToPackageInfo pac = PackageInfo {
 }
 
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
-getAllGroupInfo packages = do
-    indInfo <- getExtendedIndividualInfo packages []
+getAllGroupInfo packages =
     let individualInfoUnnested = do
             pac <- packages
             jannoRow <- getJannoRowsFromPac pac
             let groups = getJannoList . jGroupName $ jannoRow
             [(g, makePacNameAndVersion pac) | g <- groups]
-    group_ <- group . sort $ individualInfoUnnested
-    let groupName     = head . map fst $ group_
-        groupPacs     = head . map snd $ group_
-        groupNrInds   = length group_
-    return $ GroupInfo groupName groupPacs groupNrInds
+    in  do -- loop over pairs of groups and pacNames
+        group_ <- group . sort $ individualInfoUnnested
+        let groupName     = head . map fst $ group_
+            groupPacs     = head . map snd $ group_
+            groupNrInds   = length group_
+        return $ GroupInfo groupName groupPacs groupNrInds
+
+getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getJointIndividualInfo packages = do
+    pac <- packages
+    jannoRow <- getJannoRowsFromPac pac
+    return $ IndividualInfo
+        (jPoseidonID jannoRow)
+        ((getJannoList . jGroupName) jannoRow)
+        (makePacNameAndVersion pac)
 
 getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
-getExtendedIndividualInfo allPackages additionalJannoColumns =
-    let ret = do
-            pac <- allPackages
-            jannoRow <- getJannoRowsFromPac pac
-            let name = jPoseidonID jannoRow
-                groups = getJannoList . jGroupName $ jannoRow
-                additionalColumnEntries = case additionalJannoColumns of
-                    [] -> []
-                    colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
-            return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) additionalColumnEntries
-    in  setIsLatestInList ret
+getExtendedIndividualInfo allPackages additionalJannoColumns = do
+    pac <- allPackages
+    jannoRow <- getJannoRowsFromPac pac
+    let name = jPoseidonID jannoRow
+        groups = getJannoList . jGroupName $ jannoRow
+        additionalColumnEntries = case additionalJannoColumns of
+            [] -> []
+            colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+    return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) additionalColumnEntries

@@ -124,7 +124,7 @@ runForge (
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
     -- check for entities that do not exist in this dataset
-    let nonExistentEntities = determineNonExistentEntities entities (getJointIndividualInfo allPackages [])
+    let nonExistentEntities = determineNonExistentEntities entities (getJointIndividualInfo allPackages)
     unless (null nonExistentEntities) $
         logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
             intercalate ", " (map show nonExistentEntities)
@@ -135,7 +135,7 @@ runForge (
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
     -- get all individuals from the relevant packages
-    let allInds = getJointIndividualInfo relevantPackages []
+    let allInds = getJointIndividualInfo relevantPackages
 
     -- set entities to only packages, if --packagewise is set
     let relevantEntities =
@@ -150,7 +150,7 @@ runForge (
     unless (null duplicateReport) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(IndividualInfo n _ _ _ _, sugg) -> logError $ show (Ind n) ++ " -> " ++ show sugg) duplicateReport
+        mapM_ (\(IndividualInfo n _ _, sugg) -> logError $ show (Ind n) ++ " -> " ++ show sugg) duplicateReport
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- collect data --
@@ -271,11 +271,11 @@ filterBibEntries (JannoRows rows) references_ =
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do
-    let title_ = posPacTitle pac
+    let pac_ = posPacNameAndVersion pac
         maybeSnpSet = snpSet . posPacGenotypeData $ pac
     case maybeSnpSet of
         Just s -> return s
         Nothing -> do
-            logWarning $ "Warning for package " ++ title_ ++ ": field \"snpSet\" \
+            logWarning $ "Warning for package " ++ show pac_ ++ ": field \"snpSet\" \
                 \is not set. I will interpret this as \"snpSet: Other\""
             return SNPSetOther

@@ -52,7 +52,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
 
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
-    let packageNames = map posPacTitle allPackages
+    let packageNames = map posPacNameAndVersion allPackages
     -- geno
     let genotypeDataTuples = [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- allPackages]
     genoFilesExist <- liftIO $ sequence [doesFileExist (d </> genoFile gd) | (d, gd) <- genotypeDataTuples]
@@ -69,7 +69,7 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     (tableH, tableB) <- do
         let tableH = ["Package", "Survey"]
         tableB <- forM (zip5 packageNames genoTypeDataExists jannos ssfs bibs) $ \(p, g, j, s, b) -> do
-            return [p, renderPackageWithCompleteness p g j s b]
+            return [show p, renderPackageWithCompleteness g j s b]
         return (tableH, tableB)
     let colSpecs = replicate 2 (column (expandUntil 60) def def def)
     if rawOutput
@@ -78,8 +78,8 @@ runSurvey (SurveyOptions baseDirs rawOutput) = do
     -- print help
     logInfo "see trident survey -h for a list of column names"
 
-renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
-renderPackageWithCompleteness _ genoTypeDataExists janno (SeqSourceRows seqSource) bib =
+renderPackageWithCompleteness :: Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
+renderPackageWithCompleteness genoTypeDataExists janno (SeqSourceRows seqSource) bib =
        (if genoTypeDataExists then "G" else ".")
     ++ (if not (null seqSource) then "S" else ".")
     ++ (if not (null bib) then "B" else ".")
