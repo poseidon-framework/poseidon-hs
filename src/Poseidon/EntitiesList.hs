@@ -161,7 +161,7 @@ determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> Ent
 determineNonExistentEntities entities indInfos = do -- for loop over entities
     entity <- underlyingEntity <$> entities
     let indices = resolveEntityIndices [entity] indInfos
-    True <- return $ null indices
+    True <- return $ null indices -- this selects only those loop iterations for which null indices is True
     return entity
 
 -- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specification
