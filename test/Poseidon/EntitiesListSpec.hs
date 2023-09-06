@@ -24,7 +24,7 @@ spec = do
     testFindNonExistentEntities
     testFilterPackages
     testResolveEntityIndices
-    -- testJSON
+    testShow
 
 testReadPoseidonEntitiesString :: Spec
 testReadPoseidonEntitiesString =
@@ -324,40 +324,23 @@ testResolveEntityIndices =
             , Include (Ind "Ind4")
             ] indInfo `shouldBe` [5]
 
--- testJSON :: Spec
--- testJSON =
---     describe "Poseidon.EntitiesList.ToJSON" $ do
---         it "should encode entities correctly to JSON" $ do
---             encode (Ind "Ind1") `shouldBe`
---                     "\"<Ind1>\""
---             encode (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)) `shouldBe`
---                     "\"<c:b:a>\""
---             encode (Group "Group1") `shouldBe`
---                     "\"Group1\""
---             encode (Pac (PacNameAndVersion "Pac1" Nothing)) `shouldBe`
---                     "\"*Pac1*\""
---             encode (Exclude (Ind "Ind1")) `shouldBe`
---                     "\"-<Ind1>\""
---             encode (Exclude (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))) `shouldBe`
---                     "\"-<c:b:a>\""
---             encode (Exclude (Group "Group1")) `shouldBe`
---                     "\"-Group1\""
---             encode (Exclude (Pac (PacNameAndVersion "Pac1" Nothing))) `shouldBe`
---                     "\"-*Pac1*\""
---         it "should decode entities correctly from JSON" $ do
---             decode "\"<Ind1>\""   `shouldBe`
---                     Just (Ind "Ind1")
---             decode "\"<c:b:a>\""  `shouldBe`
---                     Just (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))
---             decode "\"Group1\""   `shouldBe`
---                     Just (Group "Group1")
---             decode "\"*Pac1*\""   `shouldBe`
---                     Just (Pac (PacNameAndVersion "Pac1" Nothing))
---             decode "\"-<Ind1>\""  `shouldBe`
---                     Just (Exclude (Ind "Ind1"))
---             decode "\"-<c:b:a>\"" `shouldBe`
---                     Just (Exclude (SpecificInd "a" "b"  (PacNameAndVersion "c" Nothing)))
---             decode "\"-Group1\""  `shouldBe`
---                     Just (Exclude (Group "Group1"))
---             decode "\"-*Pac1*\""  `shouldBe`
---                     Just (Exclude (Pac (PacNameAndVersion "Pac1" Nothing)))
+testShow :: Spec
+testShow =
+    describe "Poseidon.EntitiesList.Show" $ do
+        it "should turn entities correctly to Strings" $ do
+            show (Ind "Ind1") `shouldBe`
+                    "<Ind1>"
+            show (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)) `shouldBe`
+                    "<c:b:a>"
+            show (Group "Group1") `shouldBe`
+                    "Group1"
+            show (Pac (PacNameAndVersion "Pac1" Nothing)) `shouldBe`
+                    "*Pac1*"
+            show (Exclude (Ind "Ind1")) `shouldBe`
+                    "-<Ind1>"
+            show (Exclude (SpecificInd "a" "b" (PacNameAndVersion "c" Nothing))) `shouldBe`
+                    "-<c:b:a>"
+            show (Exclude (Group "Group1")) `shouldBe`
+                    "-Group1"
+            show (Exclude (Pac (PacNameAndVersion "Pac1" Nothing))) `shouldBe`
+                    "-*Pac1*"
