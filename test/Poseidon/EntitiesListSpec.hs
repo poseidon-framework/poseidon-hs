@@ -283,10 +283,11 @@ testResolveEntityIndices =
         let selectedIndices = resolveEntityIndices [Include (Ind "Ind2")] indInfoDuplicates
         selectedIndices `shouldBe` [3, 4, 5]
         let duplicateReport = reportDuplicateIndividuals . map (indInfoDuplicates !!) $ selectedIndices
-        duplicateReport `shouldBe` zip (drop 3 indInfoDuplicates) [
-                SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac1" Nothing),
-                SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac2" Nothing),
-                SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac3" Nothing)
+        duplicateReport `shouldBe` [
+                (IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing), 
+                    [SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac1" Nothing),
+                     SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac2" Nothing),
+                     SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac3" Nothing)])
             ]
         -- test interaction with secondary group name selection and negative selection to solve duplication
         resolveEntityIndices [

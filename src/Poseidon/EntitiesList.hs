@@ -164,11 +164,11 @@ determineNonExistentEntities entities indInfos = do -- for loop over entities
     True <- return $ null indices -- this selects only those loop iterations for which null indices is True
     return entity
 
--- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specification
-reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, PoseidonEntity)]
-reportDuplicateIndividuals individuals =
-    let duplicates = concat . filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
-    in  [(i, SpecificInd n (head g) p) | i@(IndividualInfo n g p) <- duplicates]
+-- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specifications
+reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, [PoseidonEntity])]
+reportDuplicateIndividuals individuals = do -- loop over duplication groups
+    duplicateGroup@(firstInd : _) <- filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
+    return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
 
 -- parsing code to read entities from files
 readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]

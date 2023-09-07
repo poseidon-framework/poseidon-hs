@@ -126,7 +126,8 @@ runForge (
     -- check for entities that do not exist in this dataset
     let nonExistentEntities = determineNonExistentEntities entities (getJointIndividualInfo allPackages)
     unless (null nonExistentEntities) $
-        logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
+        logWarning $ "The following entities could not be found in the dataset and will be ignored \
+                     \(keep in mind that without further specification, only latest versions of packages are considered): " ++
             intercalate ", " (map show nonExistentEntities)
 
     -- determine relevant packages
@@ -150,7 +151,10 @@ runForge (
     unless (null duplicateReport) $ do
         logError "There are duplicated individuals, but forge does not allow that"
         logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(IndividualInfo n _ _, sugg) -> logError $ show (Ind n) ++ " -> " ++ show sugg) duplicateReport
+        forM_ duplicateReport $ \(IndividualInfo n _ _, specs) -> do
+             logError $ "Duplicate individual " ++ show (Ind n) ++ " (please specify)"
+             forM_ specs $ \spec -> do
+                 logError $ "  " ++ show (Ind n) ++ " -> " ++ show spec
         liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
 
     -- collect data --
