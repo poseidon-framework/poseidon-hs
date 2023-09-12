@@ -125,10 +125,10 @@ runForge (
 
     -- check for entities that do not exist in this dataset
     let nonExistentEntities = determineNonExistentEntities entities (getJointIndividualInfo allPackages)
-    unless (null nonExistentEntities) $
-        logWarning $ "The following entities could not be found in the dataset and will be ignored \
-                     \(keep in mind that without further specification, only latest versions of packages are considered): " ++
-            intercalate ", " (map show nonExistentEntities)
+    unless (null nonExistentEntities) $ do
+        logWarning "The following entities could not be found in the dataset and will be ignored"
+        forM_ nonExistentEntities (logWarning . show)
+        logWarning "Maybe these entities exist in older package versions?"
 
     -- determine relevant packages
     let relevantPackages = filterToRelevantPackages entities allPackages

@@ -84,7 +84,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnExtIndividualInfo indInfo -> return [IndividualInfo n g p | ExtendedIndividualInfo n g p _ <- indInfo]
+            ApiReturnExtIndividualInfo indInfo -> return [IndividualInfo n g p | ExtendedIndividualInfo n g p _ _ <- indInfo]
             _                               -> error "should not happen"
     logInfo "Downloading package list from remote"
     remotePacList <- do

@@ -171,6 +171,7 @@ data ExtendedIndividualInfo = ExtendedIndividualInfo
       extIndInfoName      :: String
     , extIndInfoGroups    :: [String]
     , extIndInfoPac       :: PacNameAndVersion
+    , extIndInfoIsLatest  :: Bool
     , extIndInfoAddCols   :: [(String, Maybe String)]
     } deriving (Eq)
 
@@ -185,6 +186,7 @@ instance ToJSON ExtendedIndividualInfo where
             "groupNames"             .= extIndInfoGroups e,
             "packageTitle"           .= (getPacName     . extIndInfoPac $ e),
             "packageVersion"         .= (getPacVersion  . extIndInfoPac $ e),
+            "isLatest"               .= extIndInfoIsLatest e,
             "additionalJannoColumns" .= extIndInfoAddCols e]
 
 instance FromJSON ExtendedIndividualInfo where
@@ -192,6 +194,7 @@ instance FromJSON ExtendedIndividualInfo where
             <$> v .: "poseidonID"
             <*> v .: "groupNames"
             <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
+            <*> v .: "isLatest"
             <*> v .: "additionalJannoColumns"
 
 processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData

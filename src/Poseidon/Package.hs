@@ -35,7 +35,8 @@ import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..),
                                              makePacNameAndVersion,
                                              PacNameAndVersion(..),
-                                             IndividualInfo(..))
+                                             IndividualInfo(..),
+                                             isLatestInCollection)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -838,4 +839,5 @@ getExtendedIndividualInfo allPackages additionalJannoColumns = do
         additionalColumnEntries = case additionalJannoColumns of
             [] -> []
             colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
-    return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) additionalColumnEntries
+    let isLatest = isLatestInCollection allPackages pac
+    return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
