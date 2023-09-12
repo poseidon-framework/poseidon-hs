@@ -33,10 +33,10 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..),
-                                             makePacNameAndVersion,
-                                             PacNameAndVersion(..),
-                                             IndividualInfo(..),
-                                             isLatestInCollection)
+                                             IndividualInfo (..),
+                                             PacNameAndVersion (..),
+                                             isLatestInCollection,
+                                             makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -52,7 +52,8 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
-import           Poseidon.ServerClient      (GroupInfo (..), PackageInfo (..), ExtendedIndividualInfo(..))
+import           Poseidon.ServerClient      (ExtendedIndividualInfo (..),
+                                             GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,

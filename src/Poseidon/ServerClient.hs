@@ -174,11 +174,11 @@ instance HasNameAndVersion GroupInfo where
 
 data ExtendedIndividualInfo = ExtendedIndividualInfo
     {
-      extIndInfoName      :: String
-    , extIndInfoGroups    :: [String]
-    , extIndInfoPac       :: PacNameAndVersion
-    , extIndInfoIsLatest  :: Bool
-    , extIndInfoAddCols   :: [(String, Maybe String)]
+      extIndInfoName     :: String
+    , extIndInfoGroups   :: [String]
+    , extIndInfoPac      :: PacNameAndVersion
+    , extIndInfoIsLatest :: Bool
+    , extIndInfoAddCols  :: [(String, Maybe String)]
     } deriving (Eq)
 
 instance HasNameAndVersion ExtendedIndividualInfo where

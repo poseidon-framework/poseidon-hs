@@ -9,8 +9,8 @@ module Poseidon.EntitiesList (
 import           Poseidon.EntityTypes   (EntitiesList, IndividualInfo (..),
                                          PacNameAndVersion (..),
                                          PoseidonEntity (..), SignedEntity (..),
-                                         makePacNameAndVersion,
-                                         isLatestInCollection)
+                                         isLatestInCollection,
+                                         makePacNameAndVersion)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          getJointIndividualInfo)
 import           Poseidon.Utils         (PoseidonException (..))

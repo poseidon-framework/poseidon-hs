@@ -5,7 +5,9 @@ module Poseidon.CLI.Rectify (
     ) where
 
 import           Poseidon.Contributor   (ContributorSpec (..))
-import           Poseidon.EntityTypes   (renderNameWithVersion, PacNameAndVersion(..), HasNameAndVersion(..))
+import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         PacNameAndVersion (..),
+                                         renderNameWithVersion)
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),

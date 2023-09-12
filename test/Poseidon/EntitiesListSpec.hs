@@ -3,8 +3,9 @@
 module Poseidon.EntitiesListSpec (spec) where
 
 import           Poseidon.EntitiesList
-import           Poseidon.EntityTypes  (EntitiesList, IndividualInfo (..),
-                                        PacNameAndVersion (..), HasNameAndVersion(..),
+import           Poseidon.EntityTypes  (EntitiesList, HasNameAndVersion (..),
+                                        IndividualInfo (..),
+                                        PacNameAndVersion (..),
                                         PoseidonEntity (..), SignedEntitiesList,
                                         SignedEntity (..))
 import           Poseidon.Package      (PackageReadOptions (..),
@@ -284,7 +285,7 @@ testResolveEntityIndices =
         selectedIndices `shouldBe` [3, 4, 5]
         let duplicateReport = reportDuplicateIndividuals . map (indInfoDuplicates !!) $ selectedIndices
         duplicateReport `shouldBe` [
-                (IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing), 
+                (IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing),
                     [SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac1" Nothing),
                      SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac2" Nothing),
                      SpecificInd "Ind2" "Pop2" (PacNameAndVersion "Pac3" Nothing)])

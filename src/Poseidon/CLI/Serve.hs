@@ -3,7 +3,9 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
-import           Poseidon.EntityTypes         (renderNameWithVersion, PacNameAndVersion, HasNameAndVersion(..))
+import           Poseidon.EntityTypes         (HasNameAndVersion (..),
+                                               PacNameAndVersion,
+                                               renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),

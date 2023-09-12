@@ -10,10 +10,10 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          packagesToPackageInfos,
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
-                                         ArchiveEndpoint (..), GroupInfo (..),
-                                         ExtendedIndividualInfo(..),
-                                         PackageInfo (..), processApiResponse,
-                                         qDefault)
+                                         ArchiveEndpoint (..),
+                                         ExtendedIndividualInfo (..),
+                                         GroupInfo (..), PackageInfo (..),
+                                         processApiResponse, qDefault)
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad          (forM_, when)

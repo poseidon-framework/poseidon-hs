@@ -2,7 +2,7 @@
 
 module Poseidon.CLI.Genoconvert where
 
-import Poseidon.EntityTypes (HasNameAndVersion(..))
+import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),

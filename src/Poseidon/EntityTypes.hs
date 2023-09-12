@@ -38,15 +38,15 @@ isLatestInCollection collection a =
 
 -- | The minimal instance of HasNameAndVersion
 data PacNameAndVersion = PacNameAndVersion {
-      panavName     :: String
-    , panavVersion  :: Maybe Version
+      panavName    :: String
+    , panavVersion :: Maybe Version
     }
     deriving (Ord, Eq)
 
 instance HasNameAndVersion PacNameAndVersion where
     getPacName     = panavName
     getPacVersion  = panavVersion
- 
+
 instance Show PacNameAndVersion where
     show a = "*" ++ renderNameWithVersion a ++ "*"
 
@@ -85,9 +85,9 @@ type SignedEntitiesList = [SignedEntity]
 
 -- | a minimal datatype representing an individual in a collection of packages
 data IndividualInfo = IndividualInfo
-    { indInfoName     :: String -- ^ the name of the individual, corresponding to jPoseidonID in Janno
-    , indInfoGroups   :: [String] -- ^ the groups associated with the individual, corresponding to jGroupName in Janno
-    , indInfoPac      :: PacNameAndVersion -- ^ the package the individual is in.
+    { indInfoName   :: String -- ^ the name of the individual, corresponding to jPoseidonID in Janno
+    , indInfoGroups :: [String] -- ^ the groups associated with the individual, corresponding to jGroupName in Janno
+    , indInfoPac    :: PacNameAndVersion -- ^ the package the individual is in.
     } deriving (Show, Eq, Ord, Generic)
 
 instance HasNameAndVersion IndividualInfo where

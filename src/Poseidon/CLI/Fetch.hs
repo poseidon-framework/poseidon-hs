@@ -16,10 +16,10 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
-                                         ArchiveEndpoint (..), PackageInfo (..),
-                                         processApiResponse, qDefault,
-                                         ExtendedIndividualInfo(..),
-                                         qPacVersion, (+&+))
+                                         ArchiveEndpoint (..),
+                                         ExtendedIndividualInfo (..),
+                                         PackageInfo (..), processApiResponse,
+                                         qDefault, qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
                                          logInfo, logWarning, logWithEnv,
