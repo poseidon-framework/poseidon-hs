@@ -1,3 +1,9 @@
+- V 1.4.0.0: 
+    - Major version bump, due to forgescript semantics change
+    - forgescript now allows for versions of packages to be specified
+    - list, fetch and forge now all work with versions
+    - list got an option `--onlyLatest` to specify listing only latest versions
+    - forge semantics has subtly changed in its behaviour of duplicate resolution. Essentially, there is no automatic duplicate resolution anymore.
 - V 1.3.0.4: Added an option `--ignorePoseidonVersion` to `validate`.
 - V 1.3.0.3: Small code layout changes in the golden test setup and slightly better error handling for http requests in `fetch` and `list --remote`.
 - V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.
