@@ -313,6 +313,7 @@ testPipelineList testDir checkFilePath = do
           _listRepoLocation  = RepoLocal [testPacsDir </> "Schiffels_2016", testPacsDir  </> "Wang_Wang_2020"]
         , _listListEntity    = ListPackages
         , _listRawOutput     = False
+        , _listOnlyLatest    = False
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
@@ -327,6 +328,10 @@ testPipelineList testDir checkFilePath = do
           _listRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "list" 4
+    let listOpts5 = listOpts1 {
+          _listOnlyLatest     = True
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "list" 5
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
@@ -1031,6 +1036,7 @@ testPipelineListRemote testDir checkFilePath = do
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
             , _listListEntity   = ListPackages
             , _listRawOutput    = False
+            , _listOnlyLatest   = False
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
         let listOpts2 = listOpts1 {
@@ -1048,6 +1054,7 @@ testPipelineListRemote testDir checkFilePath = do
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
             , _listListEntity   = ListPackages
             , _listRawOutput    = False
+            , _listOnlyLatest   = False
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
         ) (

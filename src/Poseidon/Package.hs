@@ -24,7 +24,7 @@ module Poseidon.Package (
     makePseudoPackageFromGenotypeData,
     getJannoRowsFromPac,
     dummyContributor,
-    packageToPackageInfo,
+    packagesToPackageInfos,
     getAllGroupInfo,
     validateGeno
 ) where
@@ -798,14 +798,18 @@ writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno j
           "changelogFile"
          ]
 
-packageToPackageInfo :: PoseidonPackage -> PackageInfo
-packageToPackageInfo pac = PackageInfo {
-    pPac           = posPacNameAndVersion pac,
-    pPosVersion    = posPacPoseidonVersion pac,
-    pDescription   = posPacDescription pac,
-    pLastModified  = posPacLastModified pac,
-    pNrIndividuals = (length . getJannoRowsFromPac) pac
-}
+packagesToPackageInfos :: [PoseidonPackage] -> [PackageInfo]
+packagesToPackageInfos pacs = do
+    pac <- pacs
+    let isLatest = isLatestInCollection pacs pac
+    return $ PackageInfo {
+        pPac           = posPacNameAndVersion pac,
+        pIsLatest      = isLatest,
+        pPosVersion    = posPacPoseidonVersion pac,
+        pDescription   = posPacDescription pac,
+        pLastModified  = posPacLastModified pac,
+        pNrIndividuals = (length . getJannoRowsFromPac) pac
+    }
 
 getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
 getAllGroupInfo packages =
@@ -816,10 +820,11 @@ getAllGroupInfo packages =
             [(g, makePacNameAndVersion pac) | g <- groups]
     in  do -- loop over pairs of groups and pacNames
         group_ <- group . sort $ individualInfoUnnested
-        let groupName     = head . map fst $ group_
-            groupPacs     = head . map snd $ group_
-            groupNrInds   = length group_
-        return $ GroupInfo groupName groupPacs groupNrInds
+        let groupName   = head . map fst $ group_
+            groupPac    = head . map snd $ group_
+            groupNrInds = length group_
+            isLatest    = isLatestInCollection (map makePacNameAndVersion packages) groupPac
+        return $ GroupInfo groupName groupPac isLatest groupNrInds
 
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
 getJointIndividualInfo packages = do

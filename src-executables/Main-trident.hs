@@ -193,6 +193,7 @@ listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
                             <*> parseListEntity
                             <*> parseRawOutput
+                            <*> parseOnlyLatest
 
 fetchOptParser :: OP.Parser FetchOptions
 fetchOptParser = FetchOptions <$> parseBasePaths

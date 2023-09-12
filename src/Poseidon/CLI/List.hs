@@ -2,13 +2,12 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.EntityTypes   (HasNameAndVersion (..),
-                                         isLatestInCollection)
+import           Poseidon.EntityTypes   (HasNameAndVersion (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getAllGroupInfo,
                                          getExtendedIndividualInfo,
-                                         packageToPackageInfo,
+                                         packagesToPackageInfos,
                                          readPoseidonPackageCollection)
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..), GroupInfo (..),
@@ -31,6 +30,7 @@ data ListOptions = ListOptions
     { _listRepoLocation :: RepoLocationSpec -- ^ the list of base directories to search for packages
     , _listListEntity   :: ListEntity -- ^ what to list
     , _listRawOutput    :: Bool -- ^ whether to output raw TSV instead of a nicely formatted table
+    , _listOnlyLatest   :: Bool
     }
 
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
@@ -51,7 +51,7 @@ pacReadOpts = defaultPackageReadOptions {
 
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonIO ()
-runList (ListOptions repoLocation listEntity rawOutput) = do
+runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             packageInfos <- case repoLocation of
@@ -62,11 +62,11 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                         ApiReturnPackageInfo pacInfo -> return pacInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs ->
-                    map packageToPackageInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
+                    packagesToPackageInfos <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Package", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
                 tableB = sortOn head $ do
-                    pInf@(PackageInfo _ posV desc lastMod nrInds) <- packageInfos
-                    let isLatest = isLatestInCollection packageInfos pInf
+                    pInf@(PackageInfo _ isLatest posV desc lastMod nrInds) <- packageInfos
+                    True <- return (not onlyLatest || isLatest)
                     return [getPacName pInf, showMaybeVersion (getPacVersion pInf) isLatest,
                             showVersion posV, showMaybe desc, showMaybe (show <$> lastMod), show nrInds]
             return (tableH, tableB)
@@ -81,8 +81,8 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
                 RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
             let tableH = ["Group", "Package", "Package Version", "Nr Individuals"]
                 tableB = do
-                    gi@(GroupInfo groupName _ nrInds) <- groupInfos
-                    let isLatest = isLatestInCollection groupInfos gi
+                    gi@(GroupInfo groupName _ isLatest nrInds) <- groupInfos
+                    True <- return (not onlyLatest || isLatest)
                     return [groupName, getPacName gi, showMaybeVersion (getPacVersion gi) isLatest, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
@@ -106,6 +106,7 @@ runList (ListOptions repoLocation listEntity rawOutput) = do
             let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns
                 tableB = do
                     i@(ExtendedIndividualInfo name groups _ isLatest addColumnEntries) <- extIndInfos
+                    True <- return (not onlyLatest || isLatest)
                     return $ [name, intercalate ", " groups, getPacName i,
                               showMaybeVersion (getPacVersion i) isLatest] ++
                               map (fromMaybe "n/a" . snd) addColumnEntries

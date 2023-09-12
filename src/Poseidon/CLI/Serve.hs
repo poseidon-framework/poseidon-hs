@@ -10,7 +10,7 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
                                                getExtendedIndividualInfo,
-                                               packageToPackageInfo,
+                                               packagesToPackageInfos,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.ServerClient        (ApiReturnData (..),
@@ -105,7 +105,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            let retData = ApiReturnPackageInfo . map packageToPackageInfo $ pacs
+            let retData = ApiReturnPackageInfo . packagesToPackageInfos $ pacs
             return $ ServerApiReturnType [] (Just retData)
 
         get "/groups" . conditionOnClientVersion $ do

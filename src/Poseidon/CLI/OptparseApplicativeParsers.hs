@@ -610,6 +610,12 @@ parseRawOutput = OP.switch (
     \This is useful for piping into grep or awk."
     )
 
+parseOnlyLatest :: OP.Parser Bool
+parseOnlyLatest = OP.switch (
+    OP.long "onlyLatest" <>
+    OP.help "list only the latest versions of packages, or the groups/individuals within the latest versions of packages, respectively"
+    )
+
 parseIgnoreGeno :: OP.Parser Bool
 parseIgnoreGeno = OP.switch (
     OP.long "ignoreGeno" <>

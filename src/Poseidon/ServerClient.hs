@@ -109,7 +109,8 @@ instance FromJSON ApiReturnData where
 
 
 data PackageInfo = PackageInfo
-    { pPac         :: PacNameAndVersion
+    { pPac           :: PacNameAndVersion
+    , pIsLatest      :: Bool
     , pPosVersion    :: Version
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
@@ -121,10 +122,11 @@ instance HasNameAndVersion PackageInfo where
     getPacVersion = getPacVersion . pPac
 
 instance ToJSON PackageInfo where
-    toJSON (PackageInfo (PacNameAndVersion n v) posVersion description lastModified nrIndividuals) =
+    toJSON (PackageInfo (PacNameAndVersion n v) isLatest posVersion description lastModified nrIndividuals) =
         object [
             "packageTitle"    .= n,
             "packageVersion"  .= v,
+            "isLatest" .= isLatest,
             "poseidonVersion" .= posVersion,
             "description"     .= description,
             "lastModified"    .= lastModified,
@@ -134,6 +136,7 @@ instance ToJSON PackageInfo where
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
             <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
+            <*> v .: "isLatest"
             <*> v .: "poseidonVersion"
             <*> v .: "description"
             <*> v .: "lastModified"
@@ -142,15 +145,17 @@ instance FromJSON PackageInfo where
 data GroupInfo = GroupInfo
     { gName          :: String
     , gPackage       :: PacNameAndVersion
+    , gIsLatest      :: Bool
     , gNrIndividuals :: Int
     } deriving (Eq)
 
 instance ToJSON GroupInfo where
-    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion) nrIndividuals) =
+    toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion) isLatest nrIndividuals) =
         object [
             "groupName"       .= name,
             "packageTitle"    .= pacTitle,
             "packageVersion"  .= pacVersion,
+            "isLatest" .= isLatest,
             "nrIndividuals"   .= nrIndividuals
         ]
 
@@ -159,8 +164,9 @@ instance FromJSON GroupInfo where
         groupName      <- v .: "groupName"
         packageTitle   <- v .: "packageTitle"
         packageVersion <- v .: "packageVersion"
+        isLatest       <- v .: "isLatest"
         nrIndividuals  <- v .: "nrIndividuals"
-        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion) nrIndividuals
+        return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion) isLatest nrIndividuals
 
 instance HasNameAndVersion GroupInfo where
     getPacName = getPacName . gPackage
