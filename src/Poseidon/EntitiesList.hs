@@ -1,6 +1,6 @@
 module Poseidon.EntitiesList (
     EntitySpec,
-    indInfoConformsToEntitySpec, underlyingEntity, entitySpecParser,
+    indInfoConformsToEntitySpecs, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     determineNonExistentEntities, determineRelevantPackages, filterToRelevantPackages,
     entitiesListP, EntityInput(..), readEntityInputs,
