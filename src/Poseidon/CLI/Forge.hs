@@ -4,16 +4,15 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (EntityInput,
-                                              determineNonExistentEntities,
-                                              filterToRelevantPackages,
-                                              readEntityInputs,
-                                              reportDuplicateIndividuals,
-                                              resolveEntityIndices)
 import           Poseidon.EntityTypes        (IndividualInfo (..),
                                               PoseidonEntity (..),
                                               SignedEntity (..),
-                                              makePacNameAndVersion)
+                                              makePacNameAndVersion,
+                                              EntityInput,
+                                              determineNonExistentEntities,
+                                              readEntityInputs,
+                                              reportDuplicateIndividuals,
+                                              resolveEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -29,6 +28,7 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               getJointGenotypeData,
                                               getJointIndividualInfo,
                                               getJointJanno,
+                                              filterToRelevantPackages,
                                               makePseudoPackageFromGenotypeData,
                                               newMinimalPackageTemplate,
                                               newPackageTemplate,

@@ -9,10 +9,10 @@ import           Poseidon.CLI.Rectify   (ChecksumsToRectify (..),
 import           Poseidon.CLI.Validate  (ValidatePlan (..))
 import           Poseidon.Contributor   (ContributorSpec (..),
                                          contributorSpecParser)
-import           Poseidon.EntitiesList  (EntityInput (..),
-                                         readEntitiesFromString)
 import           Poseidon.EntityTypes   (EntitiesList, PoseidonEntity,
-                                         SignedEntitiesList, SignedEntity)
+                                         SignedEntitiesList, SignedEntity,
+                                         EntityInput (..),
+                                         readEntitiesFromString)
 import           Poseidon.GenotypeData  (GenoDataSource (..),
                                          GenotypeDataSpec (..),
                                          GenotypeFormatSpec (..),

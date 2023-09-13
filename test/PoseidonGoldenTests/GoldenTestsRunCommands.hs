@@ -22,9 +22,8 @@ import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
 import           Poseidon.CLI.Validate    (ValidateOptions (..),
                                            ValidatePlan (..), runValidate)
 import           Poseidon.Contributor     (ContributorSpec (..))
-import           Poseidon.EntitiesList    (EntityInput (..),
+import           Poseidon.EntityTypes     (PoseidonEntity (..), EntityInput (..),
                                            readEntitiesFromString)
-import           Poseidon.EntityTypes     (PoseidonEntity (..))
 import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),

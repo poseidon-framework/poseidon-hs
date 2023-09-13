@@ -2,15 +2,15 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList  (EntityInput,
-                                         determineNonExistentEntities,
-                                         determineRelevantPackages,
-                                         readEntityInputs)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          PacNameAndVersion (..), PoseidonEntity,
                                          makePacNameAndVersion,
-                                         renderNameWithVersion)
+                                         renderNameWithVersion,
+                                         EntityInput,
+                                         determineNonExistentEntities,
+                                         determineRelevantPackages,
+                                         readEntityInputs)
 import           Poseidon.MathHelpers   (roundTo, roundToStr)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,

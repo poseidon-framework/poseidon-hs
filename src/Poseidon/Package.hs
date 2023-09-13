@@ -26,7 +26,8 @@ module Poseidon.Package (
     dummyContributor,
     packagesToPackageInfos,
     getAllGroupInfo,
-    validateGeno
+    validateGeno,
+    filterToRelevantPackages
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
@@ -36,7 +37,9 @@ import           Poseidon.EntityTypes       (HasNameAndVersion (..),
                                              IndividualInfo (..),
                                              PacNameAndVersion (..),
                                              isLatestInCollection,
-                                             makePacNameAndVersion)
+                                             makePacNameAndVersion,
+                                             determineRelevantPackages,
+                                             EntitySpec)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -847,3 +850,9 @@ getExtendedIndividualInfo allPackages additionalJannoColumns = do
             colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
     let isLatest = isLatestInCollection allPackages pac
     return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
+
+-- | Filter packages such that only packages with individuals covered by the given EntitySpec are returned
+filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
+filterToRelevantPackages entities packages =
+    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages)
+    in filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
