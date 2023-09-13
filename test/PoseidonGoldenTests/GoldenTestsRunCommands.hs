@@ -779,7 +779,7 @@ testPipelineForge testDir checkFilePath = do
     let forgeOpts14 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
-            readEntitiesFromString "<XXX099>,<Lamnidis_2018-1.0.1:POP1:XXX017>,<Lamnidis_2018-1.0.0:POP3:XXX018>")]
+            readEntitiesFromString "<Lamnidis_2018-1.0.1:POP1:XXX017>,<Lamnidis_2018-1.0.0:POP3:XXX018>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -794,7 +794,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action14 "forge" [
           "forge" </> "ForgePac14" </> "ForgePac14.janno"
         ]
-    -- negative selection with different package versions - use versioned to cancel versioned
+    -- -- negative selection with different package versions - use versioned to cancel versioned
     let forgeOpts15 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $

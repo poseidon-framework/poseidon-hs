@@ -5,7 +5,7 @@ module Poseidon.CLI.Fetch where
 import           Poseidon.EntityTypes   (EntityInput, HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          PacNameAndVersion (..), PoseidonEntity,
-                                         determineNonExistentEntities,
+                                         checkIfAllEntitiesExist,
                                          determineRelevantPackages,
                                          makePacNameAndVersion,
                                          readEntityInputs,
@@ -21,7 +21,7 @@ import           Poseidon.ServerClient  (ApiReturnData (..),
                                          qDefault, qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
-                                         logInfo, logWarning, logWithEnv,
+                                         logInfo, logWithEnv,
                                          padLeft)
 
 import           Codec.Archive.Zip      (ZipOption (..),
@@ -91,32 +91,28 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         case r of
             ApiReturnPackageInfo p -> return p
             _                      -> error "should not happen"
-    -- find and report non-existent entities
-    let nonExistentEntities = determineNonExistentEntities entities remoteIndList
-    if (not . null) nonExistentEntities then do
-        logWarning "Cannot find the following requested entities:"
-        logWarning $ show nonExistentEntities
-    else do
-        -- load local packages
-        allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-        let localPacs = map makePacNameAndVersion allLocalPackages
-        -- check which remote packages the User wants to have
-        logInfo "Determine requested packages... "
-        let remotePacs = map makePacNameAndVersion remotePacList
-        -- prepare list of relevant packages with individual list
-        let desiredPacs = if null entities then remotePacs else determineRelevantPackages entities remoteIndList
-        logDebug "Desired packages based on remote individuals list:"
-        mapM_ (logDebug . show) desiredPacs
-        -- start comparison/download process
-        logInfo $ show (length desiredPacs) ++ " requested"
-        logInfo   "Comparing local and remote packages..."
-        unless (null desiredPacs) $ do
-            liftIO $ createDirectoryIfMissing False tempDir
-            forM_ desiredPacs $ \pac -> do
-                -- perform package download depending on local-remote state
-                let packageState = determinePackageState localPacs pac
-                handlePackageByState downloadDir tempDir archiveE packageState
-            liftIO $ removeDirectory tempDir
+    -- find and report non-existent entities (throws an exception)
+    checkIfAllEntitiesExist entities remoteIndList
+    -- load local packages
+    allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    let localPacs = map makePacNameAndVersion allLocalPackages
+    -- check which remote packages the User wants to have
+    logInfo "Determine requested packages... "
+    let remotePacs = map makePacNameAndVersion remotePacList
+    -- prepare list of relevant packages with individual list
+    let desiredPacs = if null entities then remotePacs else determineRelevantPackages entities remoteIndList
+    logDebug "Desired packages based on remote individuals list:"
+    mapM_ (logDebug . show) desiredPacs
+    -- start comparison/download process
+    logInfo $ show (length desiredPacs) ++ " requested"
+    logInfo   "Comparing local and remote packages..."
+    unless (null desiredPacs) $ do
+        liftIO $ createDirectoryIfMissing False tempDir
+        forM_ desiredPacs $ \pac -> do
+            -- perform package download depending on local-remote state
+            let packageState = determinePackageState localPacs pac
+            handlePackageByState downloadDir tempDir archiveE packageState
+        liftIO $ removeDirectory tempDir
     logInfo "Done"
 
 readServerIndInfo :: LB.ByteString -> IO [ExtendedIndividualInfo]

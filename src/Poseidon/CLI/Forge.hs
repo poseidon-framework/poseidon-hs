@@ -4,14 +4,13 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntityTypes        (EntityInput, IndividualInfo (..),
+import           Poseidon.EntityTypes        (EntityInput,
                                               PoseidonEntity (..),
                                               SignedEntity (..),
-                                              determineNonExistentEntities,
+                                              checkIfAllEntitiesExist,
                                               makePacNameAndVersion,
                                               readEntityInputs,
-                                              reportDuplicateIndividuals,
-                                              resolveEntityIndices)
+                                              resolveUniqueEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -40,7 +39,7 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logError, logInfo, logWarning,
+                                              logInfo, logWarning,
                                               uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
@@ -122,13 +121,8 @@ runForge (
     logInfo $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
-    -- check for entities that do not exist in this dataset
-    let nonExistentEntities = determineNonExistentEntities entities (getJointIndividualInfo allPackages)
-    unless (null nonExistentEntities) $ do
-        logWarning "The following entities could not be found in the dataset and will be ignored"
-        forM_ nonExistentEntities (logWarning . show)
-        logWarning "Maybe these entities exist in older package versions?"
-
+    -- check if all entities can be found. This function reports an error and throws and exception
+    checkIfAllEntitiesExist entities (getJointIndividualInfo allPackages)
     -- determine relevant packages
     let relevantPackages = filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
@@ -144,17 +138,7 @@ runForge (
             else entities
 
     -- determine indizes of relevant individuals
-    let relevantIndices = resolveEntityIndices relevantEntities allInds
-        duplicateReport = reportDuplicateIndividuals . map (allInds !!) $ relevantIndices
-    -- check if there still are duplicates and if yes, then stop
-    unless (null duplicateReport) $ do
-        logError "There are duplicated individuals, but forge does not allow that"
-        logError "Please specify in your --forgeString or --forgeFile:"
-        forM_ duplicateReport $ \(IndividualInfo n _ _, specs) -> do
-             logError $ "Duplicate individual " ++ show (Ind n) ++ " (please specify)"
-             forM_ specs $ \spec -> do
-                 logError $ "  " ++ show (Ind n) ++ " -> " ++ show spec
-        liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
+    relevantIndices <- resolveUniqueEntityIndices relevantEntities allInds
 
     -- collect data --
     -- janno
@@ -189,8 +173,8 @@ runForge (
     -- create package
     logInfo "Creating new package entity"
     pac <- if minimal
-           then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate
+        then return $ newMinimalPackageTemplate outPath outName genotypeData
+        else newPackageTemplate
                     outPath
                     outName
                     genotypeData

@@ -10,18 +10,20 @@ module Poseidon.EntityTypes (
     hasVersion, EntitiesList, SignedEntitiesList,
     PacNameAndVersion(..), makePacNameAndVersion, isLatestInCollection,
     EntitySpec,
+    resolveUniqueEntityIndices,
     indInfoConformsToEntitySpecs, underlyingEntity, entitySpecParser,
     readEntitiesFromFile, readEntitiesFromString,
     determineNonExistentEntities, determineRelevantPackages,
     entitiesListP, EntityInput(..), readEntityInputs,
+    checkIfAllEntitiesExist,
     resolveEntityIndices, reportDuplicateIndividuals) where
 
-import           Poseidon.Utils         (PoseidonException (..))
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO, logError)
 import           Poseidon.Version       (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)
-import           Control.Monad          (forM)
+import           Control.Monad          (forM, unless, forM_)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
                                          withText)
@@ -243,6 +245,12 @@ determineRelevantPackages entities indInfos = do
     True <- return $ indInfoConformsToEntitySpecs indInfo isLatest entities
     return . indInfoPac $ indInfo
 
+-- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specifications
+reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, [PoseidonEntity])]
+reportDuplicateIndividuals individuals = do -- loop over duplication groups
+    duplicateGroup@(firstInd : _) <- filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
+    return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
+
 -- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
 resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
 resolveEntityIndices entities indInfos = do
@@ -250,6 +258,21 @@ resolveEntityIndices entities indInfos = do
     let isLatest = isLatestInCollection indInfos indInfo
     True <- return $ indInfoConformsToEntitySpecs indInfo isLatest entities
     return i
+
+resolveUniqueEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> PoseidonIO [Int]
+resolveUniqueEntityIndices entities indInfos = do
+    let relevantIndices = resolveEntityIndices entities indInfos
+        duplicateReport = reportDuplicateIndividuals . map (indInfos !!) $ relevantIndices
+    -- check if there still are duplicates and if yes, then stop
+    unless (null duplicateReport) $ do
+        logError "There are duplicated individuals, but forge does not allow that"
+        logError "Please specify in your --forgeString or --forgeFile:"
+        forM_ duplicateReport $ \(IndividualInfo n _ _, specs) -> do
+            logError $ "Duplicate individual " ++ show (Ind n) ++ " (please specify)"
+            forM_ specs $ \spec -> do
+                logError $ "  " ++ show (Ind n) ++ " -> " ++ show spec
+        liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
+    return relevantIndices
 
 -- | this returns a list of entities which could not be found
 determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
@@ -259,11 +282,14 @@ determineNonExistentEntities entities indInfos = do -- for loop over entities
     True <- return $ null indices -- this selects only those loop iterations for which null indices is True
     return entity
 
--- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specifications
-reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, [PoseidonEntity])]
-reportDuplicateIndividuals individuals = do -- loop over duplication groups
-    duplicateGroup@(firstInd : _) <- filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
-    return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
+checkIfAllEntitiesExist :: (EntitySpec a) => [a] -> [IndividualInfo] -> PoseidonIO ()
+checkIfAllEntitiesExist entities indInfos = do
+    let nonExistentEntities = determineNonExistentEntities entities indInfos
+    unless (null nonExistentEntities) $ do
+        logError "The following entities could not be found in the dataset and will be ignored"
+        forM_ nonExistentEntities (logError . show)
+        logError "Maybe these entities exist in older package versions?"
+        liftIO . throwIO $ PoseidonForgeEntitiesException "some entities do not exist"
 
 -- parsing code to read entities from files
 readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]
