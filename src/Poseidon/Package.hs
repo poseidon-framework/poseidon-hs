@@ -33,13 +33,12 @@ module Poseidon.Package (
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
-import           Poseidon.EntityTypes       (HasNameAndVersion (..),
+import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
                                              PacNameAndVersion (..),
-                                             isLatestInCollection,
-                                             makePacNameAndVersion,
                                              determineRelevantPackages,
-                                             EntitySpec)
+                                             isLatestInCollection,
+                                             makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
