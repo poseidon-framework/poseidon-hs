@@ -286,7 +286,7 @@ checkIfAllEntitiesExist :: (EntitySpec a) => [a] -> [IndividualInfo] -> Poseidon
 checkIfAllEntitiesExist entities indInfos = do
     let nonExistentEntities = determineNonExistentEntities entities indInfos
     unless (null nonExistentEntities) $ do
-        logError "The following entities could not be found in the dataset and will be ignored"
+        logError "The following entities could not be found in the dataset"
         forM_ nonExistentEntities (logError . show)
         logError "Maybe these entities exist in older package versions?"
         liftIO . throwIO $ PoseidonForgeEntitiesException "some entities do not exist"
