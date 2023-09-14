@@ -10,7 +10,7 @@ import           Poseidon.EntityTypes        (EntityInput,
                                               checkIfAllEntitiesExist,
                                               makePacNameAndVersion,
                                               readEntityInputs,
-                                              resolveUniqueEntityIndices)
+                                              resolveUniqueEntityIndices, isLatestInCollection)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -106,18 +106,19 @@ runForge (
     -- compile entities
     entitiesUser <- readEntityInputs entityInputs
 
+    let allLatestPackages = filter (isLatestInCollection allPackages) allPackages
     entities <- case entitiesUser of
         [] -> do
             logInfo "No requested entities. Implicitly forging all packages."
-            return $ map (Include . Pac . makePacNameAndVersion) allPackages
+            return $ map (Include . Pac . makePacNameAndVersion) allLatestPackages
         (Include _:_) -> do
             return entitiesUser
         (Exclude _:_) -> do
             -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
-            logInfo "forge entities begin with exclude, so implicitly adding all packages as includes before \
-                \applying excludes."
-            -- add all packages to the front of the list
-            return $ map (Include . Pac . makePacNameAndVersion) allPackages ++ entitiesUser
+            logInfo "forge entities begin with exclude, so implicitly adding all packages \
+                \(latest versions) as includes before applying excludes."
+            -- add all latest packages to the front of the list
+            return $ map (Include . Pac . makePacNameAndVersion) allLatestPackages ++ entitiesUser
     logInfo $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
