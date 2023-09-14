@@ -4,6 +4,7 @@
     - list, fetch and forge now all work with versions
     - list got an option `--onlyLatest` to specify listing only latest versions
     - forge semantics has subtly changed in its behaviour of duplicate resolution. Essentially, there is no automatic duplicate resolution anymore.
+    - Genotype Ploidy in Janno Files is now checked with `validate`: If a sample marked as "haploid" has a heterozygote SNP, this now throws an error.
 - V 1.3.0.4: Added an option `--ignorePoseidonVersion` to `validate`.
 - V 1.3.0.3: Small code layout changes in the golden test setup and slightly better error handling for http requests in `fetch` and `list --remote`.
 - V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.
