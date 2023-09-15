@@ -21,8 +21,7 @@ import           Poseidon.ServerClient  (ApiReturnData (..),
                                          qDefault, qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
-                                         logInfo, logWithEnv,
-                                         padLeft)
+                                         logInfo, logWithEnv, padLeft)
 
 import           Codec.Archive.Zip      (ZipOption (..),
                                          extractFilesFromArchive, toArchive)

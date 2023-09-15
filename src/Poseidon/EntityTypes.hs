@@ -18,12 +18,13 @@ module Poseidon.EntityTypes (
     checkIfAllEntitiesExist,
     resolveEntityIndices, reportDuplicateIndividuals) where
 
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO, logError)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
+                                         logError)
 import           Poseidon.Version       (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)
-import           Control.Monad          (forM, unless, forM_)
+import           Control.Monad          (forM, forM_, unless)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
                                          withText)

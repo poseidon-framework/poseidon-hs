@@ -42,12 +42,12 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
-import           Poseidon.Janno             (JannoLibraryBuilt (..),
+import           Poseidon.Janno             (JannoGenotypePloidy (..),
+                                             JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
-                                             getMaybeJannoList, readJannoFile,
-                                             JannoGenotypePloidy(..))
+                                             getMaybeJannoList, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
@@ -60,8 +60,8 @@ import           Poseidon.ServerClient      (ExtendedIndividualInfo (..),
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
-                                             logDebug, logInfo, logWarning,
-                                             logWithEnv, logError,
+                                             logDebug, logError, logInfo,
+                                             logWarning, logWithEnv,
                                              renderPoseidonException)
 
 import           Control.DeepSeq            (($!!))
@@ -424,7 +424,7 @@ validateGeno pac checkFullGeno = do
         unless (null illegals) $ do
             logWithEnv logA . logError $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
             mapM_ (logWithEnv logA . logError) illegals
-            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes" 
+            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes"
 
 
 -- throws exception if any file is missing or checksum is incorrect

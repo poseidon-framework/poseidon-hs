@@ -4,13 +4,13 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntityTypes        (EntityInput,
-                                              PoseidonEntity (..),
+import           Poseidon.EntityTypes        (EntityInput, PoseidonEntity (..),
                                               SignedEntity (..),
                                               checkIfAllEntitiesExist,
+                                              isLatestInCollection,
                                               makePacNameAndVersion,
                                               readEntityInputs,
-                                              resolveUniqueEntityIndices, isLatestInCollection)
+                                              resolveUniqueEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -39,8 +39,7 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning,
-                                              uniqueRO)
+                                              logInfo, logWarning, uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (forM, forM_, unless, when)
