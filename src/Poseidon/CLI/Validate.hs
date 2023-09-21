@@ -60,14 +60,19 @@ runValidate (ValidateOptions
         , _readOptGenoCheck        = True
         , _readOptIgnoreGeno       = ignoreGeno
         , _readOptFullGeno         = fullGeno
-        , _readOptStopOnDuplicates = not ignoreDup
         , _readOptIgnorePosVersion = ignorePosVersion
         }
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
+    unless ignoreDup $
+        let allIndNames = map indInfoName . getJointIndividualInfo $ allPackages
+        when (nub allIndNames /= allIndNames) $
+            throwM . PoseidonCollectionException $ "found duplicate individuals:"
+            forM  
     let numberOfPOSEIDONymlFiles = length posFiles
         numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
+    logInfo $ show posFiles
     conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates) noExitCode
 runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
     logInfo $ "Validating: " ++ path

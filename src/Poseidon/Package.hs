@@ -7,7 +7,6 @@ module Poseidon.Package (
     PoseidonPackage(..),
     PoseidonException(..),
     PackageReadOptions (..),
-    filterDuplicatePackages,
     findAllPoseidonYmlFiles,
     readPoseidonPackageCollection,
     getJointGenotypeData,
@@ -215,8 +214,6 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the path to the README file
     , posPacChangelogFile       :: Maybe FilePath
     -- ^ the path to the CHANGELOG file
-    , posPacDuplicate           :: Int
-    -- ^ how many packages of this name exist in the current collection
     }
     deriving (Show, Eq, Generic)
 
@@ -228,9 +225,7 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptStopOnDuplicates     :: Bool
-    -- ^ whether to stop on duplicated individuals
-    , _readOptIgnoreChecksums      :: Bool
+    { _readOptIgnoreChecksums      :: Bool
     -- ^ whether to ignore all checksums
     , _readOptIgnoreGeno           :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
@@ -240,7 +235,7 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to check all SNPs or only the first 100
     , _readOptIgnorePosVersion     :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptKeepMultipleVersions :: Bool
+    , _readOptOnlyLatest           :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
     }
 
@@ -249,13 +244,12 @@ data PackageReadOptions = PackageReadOptions
 -- pass it on to the package read system.
 defaultPackageReadOptions :: PackageReadOptions
 defaultPackageReadOptions = PackageReadOptions {
-      _readOptStopOnDuplicates     = False
-    , _readOptIgnoreChecksums      = False
+      _readOptIgnoreChecksums      = False
     , _readOptIgnoreGeno           = False
     , _readOptGenoCheck            = True
     , _readOptFullGeno             = False
     , _readOptIgnorePosVersion     = False
-    , _readOptKeepMultipleVersions = True
+    , _readOptOnlyLatest           = False
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
@@ -289,16 +283,15 @@ readPoseidonPackageCollection opts baseDirs = do
     let loadedPackages = rights eitherPackages
     -- package duplication check
     -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    filteredPackageList <- liftIO $ filterDuplicatePackages (_readOptKeepMultipleVersions opts) loadedPackages
+    let filteredPackageList = if _readOptOnlyLatest opts then
+                filter (isLatestInCollection loadedPackages) loadedPackages
+            else
+                loadedPackages
     let finalPackageList = sort filteredPackageList
     when (length loadedPackages > length finalPackageList) $ do
         logWarning "Some packages were skipped as old versions or duplicates:"
         forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
             \x -> logWarning x
-    -- individual duplication check
-    individuals <- forM finalPackageList $ \pac ->
-        loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac)
-    checkIndividualsUnique (_readOptStopOnDuplicates opts) $ concat individuals
     -- report number of valid packages
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
@@ -386,7 +379,7 @@ readPoseidonPackage opts ymlPath = do
         logInfo $ "Trying to parse genotype data for package: " ++ tit
 
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF 1
+    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
 
     -- validate genotype data
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
@@ -590,32 +583,6 @@ findAllPoseidonYmlFiles baseDir = do
     morePosFiles <- fmap concat . mapM findAllPoseidonYmlFiles $ subDirs
     return $ posFiles ++ morePosFiles
 
--- | A helper function to detect packages with duplicate names and select the most up-to-date ones.
-filterDuplicatePackages :: (MonadThrow m) =>
-                           Bool -- ^ whether to allow multiple versions of the same package to be included
-                        -> [PoseidonPackage] -- ^ a list of Poseidon packages with potential duplicates.
-                        -> m [PoseidonPackage] -- ^ a cleaned up list with duplicates removed. If there are ambiguities about which package to remove, for example because last Update fields are missing or ambiguous themselves, then a Left value with an exception is returned. If successful, a Right value with the clean up list is returned.
-filterDuplicatePackages keepMultipleVersions pacs =
-    fmap concat . mapM checkDuplicatePackages . groupBy titleEq . sortOn getPacName $ pacs
-  where
-    titleEq :: PoseidonPackage -> PoseidonPackage -> Bool
-    titleEq p1 p2 = getPacName p1 == getPacName p2
-    checkDuplicatePackages :: (MonadThrow m) => [PoseidonPackage] -> m [PoseidonPackage]
-    checkDuplicatePackages [pac] = return [pac]
-    checkDuplicatePackages dupliPacs =
-        let pacs_ = map (\x -> x { posPacDuplicate = length dupliPacs }) dupliPacs
-            maybeVersions = map getPacVersion pacs_
-        -- all versions need to be given and be unique
-        in  if (length . nub . catMaybes) maybeVersions == length maybeVersions
-            then
-                if keepMultipleVersions
-                then return pacs_
-                else return . singleton . last . sortOn getPacVersion $ pacs_
-            else
-                let t   = getPacName $ head pacs_
-                    msg = "Multiple packages with the title " ++ t ++ " and all with missing or identical version numbers"
-                in  throwM $ PoseidonPackageException msg
-
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m =>
                         LogA -- ^ how messages should be logged
@@ -700,7 +667,6 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     ,   posPacBibFileChkSum = Nothing
     ,   posPacReadmeFile = Nothing
     ,   posPacChangelogFile = Nothing
-    ,   posPacDuplicate = 1
     }
 
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
@@ -780,7 +746,7 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
             }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF _) = do
+writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF) = do
     let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     B.writeFile outF $!! encodePretty opts yamlPac
