@@ -80,7 +80,6 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             _readOptStopOnDuplicates = False
             , _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = isJust maybeZipPath
-            , _readOptKeepMultipleVersions = True
         }
 
     logInfo "Server starting up. Loading packages..."

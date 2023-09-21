@@ -45,7 +45,6 @@ pacReadOpts = defaultPackageReadOptions {
       _readOptStopOnDuplicates     = False
     , _readOptIgnoreChecksums      = True
     , _readOptGenoCheck            = False
-    , _readOptKeepMultipleVersions = True
     , _readOptIgnoreGeno           = True
 }
 

@@ -21,7 +21,6 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptIgnoreGeno           = True
     , _readOptGenoCheck            = False
     , _readOptIgnorePosVersion     = True
-    , _readOptKeepMultipleVersions = True
     }
 
 runChronicle :: ChronicleOptions -> PoseidonIO ()

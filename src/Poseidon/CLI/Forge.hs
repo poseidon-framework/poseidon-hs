@@ -84,7 +84,6 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
-    , _readOptKeepMultipleVersions = True
     }
 
 -- | The main function running the forge command

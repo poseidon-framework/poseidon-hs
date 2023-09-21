@@ -255,7 +255,7 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptGenoCheck            = True
     , _readOptFullGeno             = False
     , _readOptIgnorePosVersion     = False
-    , _readOptKeepMultipleVersions = False
+    , _readOptKeepMultipleVersions = True
     }
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
