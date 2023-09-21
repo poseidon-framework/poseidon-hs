@@ -1,25 +1,26 @@
-XXX011	POP1	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX012	POP2	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX013	POP1	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX014	POP2	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX015	POP2	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX016	POP2	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX017	POP1	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX018	POP3	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX019	POP1	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX099	POP3	Lamnidis_2018	1.0.0	Lamnidis2018
-XXX011	POP1	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX012	POP2	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX013	POP1	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX014	POP2	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX015	POP2	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX016	POP2	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX017	POP1	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX018	POP3	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX019	POP1	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-XXX020	POP3	Lamnidis_2018	1.0.1 (latest)	Lamnidis2018
-SAMPLE0	1	Wang_2020	0.1.0 (latest)	
-SAMPLE1	2	Wang_2020	0.1.0 (latest)	TestPaper1
-SAMPLE2	3	Wang_2020	0.1.0 (latest)	Wang2020;TestPaper1
-SAMPLE3	4	Wang_2020	0.1.0 (latest)	Wang2020;TestBook2
-SAMPLE4	5	Wang_2020	0.1.0 (latest)	Wang2020;TestPaper1;TestBook2
+Individual	Group	Package	PackageVersion	Is Latest	Publication
+XXX011	POP1	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX012	POP2	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX013	POP1	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX014	POP2	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX015	POP2	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX016	POP2	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX017	POP1	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX018	POP3	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX019	POP1	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX099	POP3	Lamnidis_2018	1.0.0	False	Lamnidis2018
+XXX011	POP1	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX012	POP2	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX013	POP1	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX014	POP2	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX015	POP2	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX016	POP2	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX017	POP1	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX018	POP3	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX019	POP1	Lamnidis_2018	1.0.1	True	Lamnidis2018
+XXX020	POP3	Lamnidis_2018	1.0.1	True	Lamnidis2018
+SAMPLE0	1	Wang_2020	0.1.0	True	
+SAMPLE1	2	Wang_2020	0.1.0	True	TestPaper1
+SAMPLE2	3	Wang_2020	0.1.0	True	Wang2020;TestPaper1
+SAMPLE3	4	Wang_2020	0.1.0	True	Wang2020;TestBook2
+SAMPLE4	5	Wang_2020	0.1.0	True	Wang2020;TestPaper1;TestBook2

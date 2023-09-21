@@ -63,11 +63,11 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                         _ -> error "should not happen"
                 RepoLocal baseDirs ->
                     packagesToPackageInfos <$> readPoseidonPackageCollection pacReadOpts baseDirs
-            let tableH = ["Package", "Package Version", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
+            let tableH = ["Package", "Package Version", "Is Latest", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
                 tableB = sortOn head $ do
                     pInf@(PackageInfo _ isLatest posV desc lastMod nrInds) <- packageInfos
                     True <- return (not onlyLatest || isLatest)
-                    return [getPacName pInf, showMaybeVersion (getPacVersion pInf) isLatest,
+                    return [getPacName pInf, showMaybeVersion (getPacVersion pInf), show isLatest,
                             showVersion posV, showMaybe desc, showMaybe (show <$> lastMod), show nrInds]
             return (tableH, tableB)
         ListGroups -> do
@@ -79,11 +79,11 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
-            let tableH = ["Group", "Package", "Package Version", "Nr Individuals"]
+            let tableH = ["Group", "Package", "Package Version", "Is Latest", "Nr Individuals"]
                 tableB = do
                     gi@(GroupInfo groupName _ isLatest nrInds) <- groupInfos
                     True <- return (not onlyLatest || isLatest)
-                    return [groupName, getPacName gi, showMaybeVersion (getPacVersion gi) isLatest, show nrInds]
+                    return [groupName, getPacName gi, showMaybeVersion (getPacVersion gi), show isLatest, show nrInds]
             return (tableH, tableB)
         ListIndividuals moreJannoColumns -> do
             extIndInfos <- case repoLocation of
@@ -103,21 +103,21 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                 let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
                 when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
-            let tableH = ["Individual", "Group", "Package", "PackageVersion"] ++ moreJannoColumns
+            let tableH = ["Individual", "Group", "Package", "PackageVersion", "Is Latest"] ++ moreJannoColumns
                 tableB = do
                     i@(ExtendedIndividualInfo name groups _ isLatest addColumnEntries) <- extIndInfos
                     True <- return (not onlyLatest || isLatest)
                     return $ [name, intercalate ", " groups, getPacName i,
-                              showMaybeVersion (getPacVersion i) isLatest] ++
+                              showMaybeVersion (getPacVersion i), show  isLatest] ++
                               map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
     if rawOutput then
-        liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+        liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableH:tableB]
     else do
         let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
         liftIO $ putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
   where
     showMaybe :: Maybe String -> String
     showMaybe = fromMaybe "n/a"
-    showMaybeVersion :: Maybe Version -> Bool -> String
-    showMaybeVersion mv isLatest = maybe "n/a" showVersion mv ++ if isLatest then " (latest)" else ""
+    showMaybeVersion :: Maybe Version -> String
+    showMaybeVersion = maybe "n/a" showVersion

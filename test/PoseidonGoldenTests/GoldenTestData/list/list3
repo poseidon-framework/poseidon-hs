@@ -1,14 +1,14 @@
-.------------.-------.----------------.----------------.---------.---------.
-| Individual | Group |    Package     | PackageVersion | Country | Nr_SNPs |
-:============:=======:================:================:=========:=========:
-| XXX001     | POP1  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX002     | POP2  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX003     | POP1  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX004     | POP2  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX005     | POP2  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX006     | POP2  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX007     | POP1  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX008     | POP3  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX009     | POP1  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-| XXX010     | POP3  | Schiffels_2016 | 1.0.1 (latest) |         |         |
-'------------'-------'----------------'----------------'---------'---------'
+.------------.-------.----------------.----------------.-----------.---------.---------.
+| Individual | Group |    Package     | PackageVersion | Is Latest | Country | Nr_SNPs |
+:============:=======:================:================:===========:=========:=========:
+| XXX001     | POP1  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX002     | POP2  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX003     | POP1  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX004     | POP2  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX005     | POP2  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX006     | POP2  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX007     | POP1  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX008     | POP3  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX009     | POP1  | Schiffels_2016 | 1.0.1          | True      |         |         |
+| XXX010     | POP3  | Schiffels_2016 | 1.0.1          | True      |         |         |
+'------------'-------'----------------'----------------'-----------'---------'---------'
