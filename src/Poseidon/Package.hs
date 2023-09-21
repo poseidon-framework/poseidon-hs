@@ -65,9 +65,9 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
 
 import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (filterM, forM, forM_, unless, void,
+import           Control.Monad              (filterM, forM_, unless, void,
                                              when)
-import           Control.Monad.Catch        (MonadThrow, throwM, try)
+import           Control.Monad.Catch        (throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -79,9 +79,9 @@ import           Data.Csv                   (toNamedRecord)
 import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (elemIndex, group, groupBy,
-                                             intercalate, nub, singleton, sort,
-                                             sortOn, (\\))
+import           Data.List                  (elemIndex, group,
+                                             intercalate, nub, sort,
+                                             (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -555,25 +555,6 @@ checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "The following papers lack BibTeX entries: " ++
         intercalate ", " literatureNotInBibButInJanno
-
-checkIndividualsUnique :: Bool -> [EigenstratIndEntry] -> PoseidonIO ()
-checkIndividualsUnique stopOnDuplicates indEntries = do
-    let genoIDs = [ x | EigenstratIndEntry  x _ _ <- indEntries]
-    when (length genoIDs /= length (nub genoIDs)) $ do
-        let dups = nub (genoIDs \\ nub genoIDs)
-        if stopOnDuplicates
-        then do
-            liftIO $ throwIO $ PoseidonCollectionException $
-                "Duplicate individuals in package collection (" ++
-                intercalate ", " dups ++
-                ")"
-        else do
-            logWarning $
-                "Duplicate individuals in package collection (" ++
-                intercalate ", " (take 3 dups) ++
-                if length (nub dups) > 3
-                then ", ...)"
-                else ")"
 
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do

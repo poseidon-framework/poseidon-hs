@@ -50,8 +50,7 @@ spec = do
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = False
+      _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
     }

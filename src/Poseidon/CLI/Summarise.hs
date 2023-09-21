@@ -24,11 +24,10 @@ data SummariseOptions = SummariseOptions
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates     = False
-    , _readOptIgnoreChecksums      = True
+      _readOptIgnoreChecksums      = True
     , _readOptIgnoreGeno           = True
     , _readOptGenoCheck            = False
-    , _readOptKeepMultipleVersions = False
+    , _readOptOnlyLatest           = True
     }
 
 

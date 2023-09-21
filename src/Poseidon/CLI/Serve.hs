@@ -77,8 +77,7 @@ runServerMainThread opts = do
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
 runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
     let pacReadOpts = defaultPackageReadOptions {
-            _readOptStopOnDuplicates = False
-            , _readOptIgnoreChecksums  = ignoreChecksums
+              _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = isJust maybeZipPath
         }
 

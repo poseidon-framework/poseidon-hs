@@ -8,13 +8,12 @@ import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
 import           Poseidon.Janno            (JannoRows (..), readJannoFile)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonException (..),
-                                            PoseidonPackage (..),
                                             PoseidonYamlStruct (..),
                                             defaultPackageReadOptions,
                                             findAllPoseidonYmlFiles,
                                             makePseudoPackageFromGenotypeData,
                                             readPoseidonPackageCollection,
-                                            validateGeno)
+                                            validateGeno, getJointIndividualInfo)
 import           Poseidon.SequencingSource (SeqSourceRows (..),
                                             readSeqSourceFile)
 import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
@@ -22,12 +21,13 @@ import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
 import           Control.Monad             (unless)
 import           Control.Monad.Catch       (throwM)
 import           Control.Monad.IO.Class    (liftIO)
-import           Control.Monad.List        (filterM)
+import           Control.Monad.List        (filterM, forM_)
 import qualified Data.ByteString           as B
-import           Data.List                 (foldl', intercalate)
+import           Data.List                 (intercalate, sortOn, groupBy)
 import           Data.Yaml                 (decodeEither')
 import           System.Directory          (doesDirectoryExist)
 import           System.Exit               (exitFailure, exitSuccess)
+import Poseidon.EntityTypes (IndividualInfo(..))
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -65,15 +65,23 @@ runValidate (ValidateOptions
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
-    unless ignoreDup $
-        let allIndNames = map indInfoName . getJointIndividualInfo $ allPackages
-        when (nub allIndNames /= allIndNames) $
-            throwM . PoseidonCollectionException $ "found duplicate individuals:"
-            forM  
+    unless ignoreDup $ do
+        let allInds = getJointIndividualInfo allPackages
+            duplicateGroups =   filter ((>1) . length)
+                              . groupBy (\a b -> indInfoName a == indInfoName b)
+                              . sortOn indInfoName $ allInds
+        unless (null duplicateGroups) $ do
+            logError "There are duplicated individuals in this package collection. \
+                     \Set --ignoreDuplicates to ignore this issue."
+            forM_ duplicateGroups $ \xs -> do
+                logError $ "Duplicate individual " ++ show (indInfoName $ head xs)
+                forM_ xs $ \x -> do
+                    logError $ "  " ++ show x
+            throwM . PoseidonCollectionException $ "Detected duplicate individuals."
     let numberOfPOSEIDONymlFiles = length posFiles
-        numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
+        numberOfLoadedPackages   = length allPackages
     logInfo $ show posFiles
-    conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates) noExitCode
+    conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackages) noExitCode
 runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
     logInfo $ "Validating: " ++ path
     bs <- liftIO $ B.readFile path

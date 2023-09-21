@@ -42,8 +42,7 @@ data ListEntity = ListPackages
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates     = False
-    , _readOptIgnoreChecksums      = True
+      _readOptIgnoreChecksums      = True
     , _readOptGenoCheck            = False
     , _readOptIgnoreGeno           = True
 }
