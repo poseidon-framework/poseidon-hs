@@ -1,6 +1,6 @@
 ### V 1.4.0.0
 
-This release finally fully enables handling multiple Poseidon package versions with trident. It includes a significant overhaul of the selection language in `forge` and `fetch` with major changes in its implementation and, as a consequence, multiple breaking changes in its semantics.
+This release finally fully enables handling multiple Poseidon package versions with trident. It includes a significant overhaul of the selection language in `forge` and `fetch` with major changes in its implementation and, as a consequence, multiple (subtle, but strictly breaking) changes in its semantics.
 
 #### Handling multiple package versions
 
@@ -39,6 +39,11 @@ But the specific individual selection syntax (with `-<Pac1-1.0.1:Group1:Ind1>`) 
 - The genotype ploidy (`Genotype_Ploidy`) documented in .janno files is now checked when reading the package: If a sample marked as `haploid` has a heterozygote SNP, this now throws an error.
 - `list` returns an extra, boolean column `isLatest` to point out if an entity (individual, group, package) is from the latest package version.
 - `list` now also returns column headers with the `--raw` flag. If they are not desired, then they have to be filtered out manually on the command line (e.g. with `trident list ... | tail -n+2`).
+- Duplicate individuals in a package collection do not anymore lead to errors. Instead, only a selection for `forge` (and externally also in `xerxes`), if resulting in multiple individuals in the selection, will lead to errors.
+- Missing (or mis-spelled) entities in a selection-set also now more strictly lead to errors.
+
+#### Internal refactoring
+The `SecondaryTypes` module was dissolved and instead we now have `Contributor`, `ServerClient` and `Version`. `EntitiesList` (or what is left of it) now lives in `EntityTypes`.
 
 ### V 1.3.0.4
 
