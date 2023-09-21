@@ -1,3 +1,45 @@
+### V 1.4.0.0
+
+This release finally fully enables handling multiple Poseidon package versions with trident. It includes a significant overhaul of the selection language in `forge` and `fetch` with major changes in its implementation and, as a consequence, multiple breaking changes in its semantics.
+
+#### Handling multiple package versions
+
+The trident subcommands `fetch`, `forge`, `genoconvert`, `list`, `rectify`, `survey` and `validate` now by default consider all versions of each Poseidon package in the given base directories. Previously all of them only considered the latest versions. If this old behaviour is desired now, it can be enabled with the flag `--onlyLatest` for the subcommands `genoconvert`, `list`, `rectify`, `survey` and `validate`. `fetch` and `forge` now generally consider all package versions (if we ignore the selection language semantics) and `summarize` continues to consider only the latest ones.
+
+#### Changes to the selection language
+
+In the `forge`- and `fetch`-selection language it is now possible to specify which version of a Poseidon package should be forged/fetched by appending the version number after a minus: e.g. `*2010_RasmussenNature-2.1.1*`. This also works for the more verbose and precise syntax to describe individuals, e.g. `<2010_RasmussenNature-2.1.1:Greenland_Saqqaq.SG:Inuk.SG>`.
+
+While implementing this change, we also reworked the entity selection logic. It now adheres to the following rules:
+
+**Inclusion queries**
+
+* `*Pac1*`: Select all individuals in the latest version of package "Pac1"
+* `*Pac1-1.0.1*`: Select all individuals in package "Pac1" with version "1.0.1"
+* `Group1`: Select all individuals associated with "Group1" in all latest versions of all packages
+* `<Ind1>`: Select the individual named "Ind1", searching in all latest packages.
+* `<Pac1:Group1:Ind1>`: Select the individual named "Ind1" associated with "Group1" in the latest version of package "Pac1"
+* `<Pac1-1.0.1:Group1:Ind1>`: Select the individual named "Ind1" associated with "Group1" in the package "Pac1" with version "1.0.1"
+
+**Exclusion queries**
+
+* `-*Pac1*`: Remove all individuals in all versions of package "Pac1"
+* `-*Pac1-1.0.1*`: Remove only individuals in package "Pac1" with version "1.0.1" (but leave other versions in)
+* `-Group1`: Remove all individuals associated with "Group1" in all versions of all packages (not just the latest)
+* `-<Ind1>`: Remove all individuals named "Ind1" in all versions of all packages (not just the latest).
+* `-<Pac1:Group1:Ind1>`: Remove the individual named "Ind1" associated with "Group1", searching in all versions of package "Pac1"
+* `-<Pac1-1.0.1:Group1:Ind1>`: Remove the individual named "Ind1" associated with "Group1", but only if they are in "Pac1" with version "1.0.1"
+
+If the forge entity list starts with a negative entity, or if the entity list is empty, `forge` will still implicitly assume you want to include all individuals from only the **latest** packages found in the baseDirs.
+
+But the specific individual selection syntax (with `-<Pac1-1.0.1:Group1:Ind1>`) does not perform automatic duplicate resolution any more. If there is another `<Ind1>` somewhere within the selected entities, then this will cause an error that has to be resolved manually by adjusting the selection.
+
+#### Minor additional changes
+
+- The genotype ploidy (`Genotype_Ploidy`) documented in .janno files is now checked when reading the package: If a sample marked as `haploid` has a heterozygote SNP, this now throws an error.
+- `list` returns an extra, boolean column `isLatest` to point out if an entity (individual, group, package) is from the latest package version.
+- `list` now also returns column headers with the `--raw` flag. If they are not desired, then they have to be filtered out manually on the command line (e.g. with `trident list ... | tail -n+2`).
+
 ### V 1.3.0.4
 
 This is a significant release with a breaking change, multiple new features and a number of minor fixes and improvements.
