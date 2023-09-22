@@ -80,7 +80,7 @@ import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (elemIndex, group, intercalate, nub,
-                                             sort, (\\))
+                                             sort, (\\), sortOn, groupBy)
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -285,6 +285,17 @@ readPoseidonPackageCollection opts baseDirs = do
             if _readOptOnlyLatest opts
             then filterM (isLatestInCollection loadedPackages) loadedPackages
             else pure $ loadedPackages
+    -- check if any packages appear more than once
+    let duplicateGroups =   filter ((>1) . length)
+                          . groupBy (\a b -> makePacNameAndVersion a == makePacNameAndVersion b)
+                          . sortOn makePacNameAndVersion $ filteredPackageList
+    unless (null duplicateGroups) $ do
+        logError "There are duplicated packages in this package collection:"
+        forM_ duplicateGroups $ \xs -> do
+            logError $ "Duplicate package " ++ show (posPacNameAndVersion $ head xs) ++ " found at"
+            forM_ xs $ \x -> do
+                logError $ "  " ++ posPacBaseDir x
+            throwM . PoseidonCollectionException $ "Detected duplicate packages."
     -- report number of valid packages
     let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
