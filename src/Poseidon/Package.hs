@@ -9,6 +9,7 @@ module Poseidon.Package (
     PackageReadOptions (..),
     findAllPoseidonYmlFiles,
     readPoseidonPackageCollection,
+    readPoseidonPackageCollectionWithSkipIndicator,
     getJointGenotypeData,
     getJointJanno,
     getJointIndividualInfo,
@@ -252,13 +253,18 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptOnlyLatest           = False
     }
 
--- | a utility function to load all poseidon packages found recursively in multiple base directories.
--- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
--- warnings
 readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
-                              -> PoseidonIO [PoseidonPackage] -- ^ A list of returned poseidon packages.
-readPoseidonPackageCollection opts baseDirs = do
+                              -> PoseidonIO [PoseidonPackage] -- ^ A list of returned poseidon packages 
+readPoseidonPackageCollection opts baseDirs = fst <$> readPoseidonPackageCollectionWithSkipIndicator opts baseDirs
+
+-- | a utility function to load all poseidon packages found recursively in multiple base directories.
+-- This also takes care of smart filtering and duplication checks. Exceptions lead to skipping packages and outputting
+-- warnings. A flag is returned for whether packages were skipped (needed for validate)
+readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions
+                              -> [FilePath] -- ^ A list of base directories where to search in
+                              -> PoseidonIO ([PoseidonPackage], Bool) -- ^ A list of returned poseidon packages and a flag for whether packages were skipped
+readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     logInfo "Checking base directories... "
     goodDirs <- catMaybes <$> mapM checkIfBaseDirExists baseDirs
     logInfo "Searching POSEIDON.yml files... "
@@ -272,7 +278,7 @@ readPoseidonPackageCollection opts baseDirs = do
     logInfo "Initializing packages... "
     eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
     -- notifying the users of package problems
-    unless (null . lefts $ eitherPackages) $ do
+    skipIndicator <- if (null . lefts $ eitherPackages) then return False else do
         logWarning "Some packages were skipped due to issues:"
         forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
             case epac of
@@ -280,6 +286,7 @@ readPoseidonPackageCollection opts baseDirs = do
                     logWarning $ "In the package described in " ++ posF ++ ":"
                     logWarning $ renderPoseidonException e
                 _ -> return ()
+        return True
     let loadedPackages = rights eitherPackages
     -- filter the package list to only latest packages, if this is requested
     filteredPackageList <-
@@ -301,7 +308,7 @@ readPoseidonPackageCollection opts baseDirs = do
     let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
-    return finalPackageList
+    return (finalPackageList, skipIndicator)
   where
     checkIfBaseDirExists :: FilePath -> PoseidonIO (Maybe FilePath)
     checkIfBaseDirExists p = do
