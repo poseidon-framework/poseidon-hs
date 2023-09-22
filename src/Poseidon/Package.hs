@@ -807,31 +807,17 @@ getJointIndividualInfo packages = do
         (makePacNameAndVersion pac)
 
 getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
-getExtendedIndividualInfo allPackages additionalJannoColumns = do
-    concatForM allPackages $ \pac -> do
-        forM (getJannoRowsFromPac pac) $ \jannoRow -> do
-            let name = jPoseidonID jannoRow
-                groups = getJannoList . jGroupName $ jannoRow
-                additionalColumnEntries = case additionalJannoColumns of
-                    [] -> []
-                    colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
-            isLatest <- isLatestInCollection allPackages pac
-            return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
-
--- from https://hackage.haskell.org/package/extra-1.7.14/docs/Control-Monad-Extra.html
-concatForM :: Monad m => [a] -> (a -> m [b]) -> m [b]
-concatForM = flip concatMapM
-    where
-        concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
-        concatMapM op = foldr f (pure [])
-            where
-                f x xs = do
-                  xMod <- op x
-                  if null xMod
-                    then xs
-                    else do
-                      xs' <- xs
-                      pure $ xMod ++ xs'
+getExtendedIndividualInfo allPackages additionalJannoColumns = sequence $ do -- list monad
+    pac <- allPackages -- outer loop (automatically concatenating over inner loops)
+    jannoRow <- getJannoRowsFromPac pac -- inner loop
+    let name = jPoseidonID jannoRow
+        groups = getJannoList . jGroupName $ jannoRow
+        additionalColumnEntries = case additionalJannoColumns of
+            [] -> []
+            colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+    isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
+    -- double-return for m and then list.
+    return . return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
 
 -- | Filter packages such that only packages with individuals covered by the given EntitySpec are returned
 filterToRelevantPackages :: (MonadThrow m) => (EntitySpec a) => [a] -> [PoseidonPackage] -> m [PoseidonPackage]
