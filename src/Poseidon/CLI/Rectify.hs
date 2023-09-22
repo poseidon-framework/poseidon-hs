@@ -35,6 +35,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    , _rectifyOnlyLatest            :: Bool
     }
 
 data PackageVersionUpdate = PackageVersionUpdate
@@ -52,15 +53,14 @@ data ChecksumsToRectify =
     , _rectifyChecksumBib   :: Bool
     }
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
-    }
-
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors) = do
+runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors onlyLatest) = do
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = True
+        , _readOptGenoCheck        = False
+        , _readOptOnlyLatest       = onlyLatest
+    }
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs

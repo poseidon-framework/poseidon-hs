@@ -34,6 +34,7 @@ import           System.Exit               (exitFailure, exitSuccess)
 data ValidateOptions = ValidateOptions
     { _validatePlan       :: ValidatePlan
     , _validateNoExitCode :: Bool
+    , _validateOnlyLatest :: Bool
     }
 
 data ValidatePlan =
@@ -54,7 +55,7 @@ data ValidatePlan =
 runValidate :: ValidateOptions -> PoseidonIO ()
 runValidate (ValidateOptions
     (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup ignoreChecksums ignorePosVersion)
-    noExitCode) = do
+    noExitCode onlyLatest) = do
     logInfo $ "Validating: " ++ intercalate ", " baseDirs
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = ignoreChecksums
@@ -62,6 +63,7 @@ runValidate (ValidateOptions
         , _readOptIgnoreGeno       = ignoreGeno
         , _readOptFullGeno         = fullGeno
         , _readOptIgnorePosVersion = ignorePosVersion
+        , _readOptOnlyLatest       = onlyLatest
         }
     -- detect all POSEIDON.yml files
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
@@ -84,7 +86,7 @@ runValidate (ValidateOptions
             throwM . PoseidonCollectionException $ "Detected duplicate individuals."
     -- fail the validation if not all POSEIDON.yml files yielded a clean package
     conclude (length posFiles == length allPackages) noExitCode
-runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     bs <- liftIO $ B.readFile path
     yml <- case decodeEither' bs of
@@ -92,22 +94,22 @@ runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
         Right pac -> return (pac :: PoseidonYamlStruct)
     logInfo $ "Read .yml file of package " ++ _posYamlTitle yml
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanGeno geno) noExitCode) = do
+runValidate (ValidateOptions (ValPlanGeno geno) noExitCode _) = do
     logInfo $ "Validating: " ++ genoFile geno
     pac <- makePseudoPackageFromGenotypeData geno
     validateGeno pac True
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanJanno path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanJanno path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     (JannoRows entries) <- readJannoFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanSSF path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanSSF path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     (SeqSourceRows entries) <- readSeqSourceFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanBib path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanBib path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     entries <- liftIO $ readBibTeXFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"

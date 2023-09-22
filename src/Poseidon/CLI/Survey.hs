@@ -34,21 +34,20 @@ import           Text.Layout.Table         (asciiRoundS, column, def,
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
-    { _surveyBaseDirs  :: [FilePath]
-    , _surveyRawOutput :: Bool
-    }
-
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
+    { _surveyBaseDirs   :: [FilePath]
+    , _surveyRawOutput  :: Bool
+    , _surveyOnlyLatest :: Bool
     }
 
 -- | The main function running the janno command
 runSurvey :: SurveyOptions -> PoseidonIO ()
-runSurvey (SurveyOptions baseDirs rawOutput) = do
-
+runSurvey (SurveyOptions baseDirs rawOutput onlyLatest) = do
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = True
+        , _readOptGenoCheck        = False
+        , _readOptOnlyLatest       = onlyLatest
+    }
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     -- collect information
     let packageNames = map posPacNameAndVersion allPackages

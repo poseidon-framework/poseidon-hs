@@ -220,6 +220,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
                                           <*> parseOutputPlinkPopMode
+                                          <*> parseOnlyLatest
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
@@ -228,6 +229,7 @@ summariseOptParser = SummariseOptions <$> parseBasePaths
 surveyOptParser :: OP.Parser SurveyOptions
 surveyOptParser = SurveyOptions <$> parseBasePaths
                                 <*> parseRawOutput
+                                <*> parseOnlyLatest
 
 rectifyOptParser :: OP.Parser RectifyOptions
 rectifyOptParser = RectifyOptions <$> parseBasePaths
@@ -236,10 +238,12 @@ rectifyOptParser = RectifyOptions <$> parseBasePaths
                                   <*> parseMaybePackageVersionUpdate
                                   <*> parseChecksumsToRectify
                                   <*> parseMaybeContributors
+                                  <*> parseOnlyLatest
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseValidatePlan
                                     <*> parseNoExitCode
+                                    <*> parseOnlyLatest
 
 chronicleOptParser :: OP.Parser ChronicleOptions
 chronicleOptParser = ChronicleOptions <$> parseBasePaths

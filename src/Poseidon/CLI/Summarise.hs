@@ -30,7 +30,6 @@ pacReadOpts = defaultPackageReadOptions {
     , _readOptOnlyLatest           = True
     }
 
-
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> PoseidonIO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do

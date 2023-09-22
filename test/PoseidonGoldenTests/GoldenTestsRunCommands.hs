@@ -245,6 +245,7 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanIgnorePosVersion = False
             }
         , _validateNoExitCode          = True
+        , _validateOnlyLatest          = False
     }
     run 1 validateOpts1
     validateOpts1 {
@@ -351,13 +352,21 @@ testPipelineSurvey testDir checkFilePath = do
     let surveyOpts1 = SurveyOptions {
           _surveyBaseDirs = [testPacsDir]
         , _surveyRawOutput = False
+        , _surveyOnlyLatest = False
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runSurvey surveyOpts1) "survey" 1
     let surveyOpts2 = SurveyOptions {
           _surveyBaseDirs = [testPacsDir]
         , _surveyRawOutput = True
+        , _surveyOnlyLatest = False
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runSurvey surveyOpts2) "survey" 2
+    let surveyOpts3 = SurveyOptions {
+          _surveyBaseDirs = [testPacsDir]
+        , _surveyRawOutput = False
+        , _surveyOnlyLatest = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runSurvey surveyOpts3) "survey" 3
 
 testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
@@ -368,6 +377,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
           "genoconvert" </> "Schiffels" </> "Schiffels_2016.bed"
@@ -381,6 +391,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
           "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.bed"
@@ -395,6 +406,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts3) "genoconvert" [
           "init" </> "Wang" </> "Wang.geno"
@@ -420,6 +432,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts4) "genoconvert" [
           "init" </> "Schiffels" </> "geno.bed"
@@ -436,6 +449,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
         , _rectifyChecksums = ChecksumNone
         , _rectifyNewContributors = Nothing
+        , _rectifyOnlyLatest = False
         }
     let action1 = testLog (runRectify rectifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "rectify" [
@@ -449,6 +463,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
         , _rectifyChecksums = ChecksumAll
         , _rectifyNewContributors = Nothing
+        , _rectifyOnlyLatest = False
         }
     let action2 = testLog (runRectify rectifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "rectify" [
@@ -465,6 +480,7 @@ testPipelineRectify testDir checkFilePath = do
               ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
+        , _rectifyOnlyLatest = False
         }
     let action3 = testLog (runRectify rectifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "rectify" [

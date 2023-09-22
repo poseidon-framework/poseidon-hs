@@ -40,18 +40,17 @@ data GenoconvertOptions = GenoconvertOptions
     , _genoMaybeOutPackagePath    :: Maybe FilePath
     , _genoconvertRemoveOld       :: Bool
     , _genoconvertOutPlinkPopMode :: PlinkPopNameMode
+    , _genoconvertOnlyLatest      :: Bool
     }
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
+runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld outPlinkPopMode onlyLatest) = do
+    let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = False
         , _readOptGenoCheck        = True
-        }
-
-runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
-runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld outPlinkPopMode) = do
-
+        , _readOptOnlyLatest       = onlyLatest
+    }
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     inPlinkPopMode <- envInputPlinkMode

@@ -79,8 +79,9 @@ import           Data.Csv                   (toNamedRecord)
 import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (elemIndex, group, intercalate, nub,
-                                             sort, (\\), sortOn, groupBy)
+import           Data.List                  (elemIndex, group, groupBy,
+                                             intercalate, nub, sort, sortOn,
+                                             (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
