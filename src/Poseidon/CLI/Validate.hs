@@ -11,9 +11,10 @@ import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonYamlStruct (..),
                                             defaultPackageReadOptions,
                                             findAllPoseidonYmlFiles,
+                                            getJointIndividualInfo,
                                             makePseudoPackageFromGenotypeData,
                                             readPoseidonPackageCollection,
-                                            validateGeno, getJointIndividualInfo)
+                                            validateGeno)
 import           Poseidon.SequencingSource (SeqSourceRows (..),
                                             readSeqSourceFile)
 import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
@@ -23,11 +24,11 @@ import           Control.Monad.Catch       (throwM)
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.List        (filterM, forM_)
 import qualified Data.ByteString           as B
-import           Data.List                 (intercalate, sortOn, groupBy)
+import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
+import           Poseidon.EntityTypes      (IndividualInfo (..))
 import           System.Directory          (doesDirectoryExist)
 import           System.Exit               (exitFailure, exitSuccess)
-import Poseidon.EntityTypes (IndividualInfo(..))
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -62,9 +63,12 @@ runValidate (ValidateOptions
         , _readOptFullGeno         = fullGeno
         , _readOptIgnorePosVersion = ignorePosVersion
         }
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    -- detect all POSEIDON.yml files
     goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
     posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
+    -- load all packages
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    -- stop on duplicates
     unless ignoreDup $ do
         let allInds = getJointIndividualInfo allPackages
             duplicateGroups =   filter ((>1) . length)
@@ -78,10 +82,8 @@ runValidate (ValidateOptions
                 forM_ xs $ \x -> do
                     logError $ "  " ++ show x
             throwM . PoseidonCollectionException $ "Detected duplicate individuals."
-    let numberOfPOSEIDONymlFiles = length posFiles
-        numberOfLoadedPackages   = length allPackages
-    logInfo $ show posFiles
-    conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackages) noExitCode
+    -- fail the validation if not all POSEIDON.yml files yielded a clean package
+    conclude (length posFiles == length allPackages) noExitCode
 runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
     logInfo $ "Validating: " ++ path
     bs <- liftIO $ B.readFile path

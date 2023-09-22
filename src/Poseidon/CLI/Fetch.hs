@@ -97,7 +97,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     logInfo "Determine requested packages... "
     let remotePacs = map makePacNameAndVersion remotePacList
     -- prepare list of relevant packages with individual list
-    let desiredPacs = if null entities then remotePacs else determineRelevantPackages entities remoteIndList
+    desiredPacs <- if null entities then pure remotePacs else determineRelevantPackages entities remoteIndList
     logDebug "Desired packages based on remote individuals list:"
     mapM_ (logDebug . show) desiredPacs
     -- start comparison/download process

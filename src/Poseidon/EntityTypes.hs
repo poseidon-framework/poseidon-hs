@@ -24,14 +24,15 @@ import           Poseidon.Version       (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)
-import           Control.Monad          (forM, forM_, unless)
+import           Control.Monad          (forM, forM_, unless, when)
+import           Control.Monad.Catch    (MonadThrow, throwM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
                                          withText)
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
-import           Data.List              (groupBy, nub, sortOn)
-import           Data.Maybe             (isJust, mapMaybe)
+import           Data.List              (groupBy, intercalate, nub, sortOn)
+import           Data.Maybe             (isJust, isNothing, mapMaybe)
 import           Data.Text              (Text, pack, unpack)
 import           Data.Version           (Version, showVersion)
 import           GHC.Generics           (Generic)
@@ -54,11 +55,19 @@ renderNameWithVersion a = case getPacVersion a of
     Just v  -> getPacName a ++ "-" ++ showVersion v
 
 -- | a function to check whether a given package is the latest within a collection
-isLatestInCollection :: (HasNameAndVersion a) => [a] -> a -> Bool
-isLatestInCollection collection a =
-    let n = getPacName a
-        latest = maximum . filter ((==n) . getPacName) . map makePacNameAndVersion $ collection
-    in  makePacNameAndVersion a == latest
+isLatestInCollection :: (MonadThrow m, HasNameAndVersion a) => [a] -> a -> m Bool
+isLatestInCollection pacCollection onePac = do
+    let nameOfOne = getPacName onePac
+        allWithThisName = nub $ filter ((==nameOfOne) . getPacName) $ map makePacNameAndVersion pacCollection
+        -- the latest package can not be determined, if there is more than one with this name
+        -- and any of them has no specified version
+        missingVersion = any (isNothing . getPacVersion) allWithThisName && length allWithThisName > 1
+    when missingVersion $
+        throwM $ PoseidonCollectionException $
+            "Can not resolve latest package, because of missing version numbers: " ++
+            intercalate "," (map renderNameWithVersion allWithThisName)
+    let latest = maximum allWithThisName
+    return $ makePacNameAndVersion onePac == latest
 
 -- | The minimal instance of HasNameAndVersion
 data PacNameAndVersion = PacNameAndVersion {
@@ -239,12 +248,11 @@ instance HasNameAndVersion IndividualInfo where
 data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
 
 -- | determine all packages with versions that contain individuals covered by the given entities
-determineRelevantPackages :: (EntitySpec a) => [a] -> [IndividualInfo] -> [PacNameAndVersion]
+determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [PacNameAndVersion]
 determineRelevantPackages entities indInfos = do
-    indInfo <- indInfos
-    let isLatest = isLatestInCollection indInfos indInfo
-    True <- return $ indInfoConformsToEntitySpecs indInfo isLatest entities
-    return . indInfoPac $ indInfo
+    areLatest <- mapM (isLatestInCollection indInfos) indInfos
+    let relevantPacs = [ indInfoPac ind | (ind, l) <- zip indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
+    return $ map makePacNameAndVersion relevantPacs
 
 -- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specifications
 reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, [PoseidonEntity])]
@@ -253,17 +261,16 @@ reportDuplicateIndividuals individuals = do -- loop over duplication groups
     return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
 
 -- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
-resolveEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> [Int]
+resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [Int]
 resolveEntityIndices entities indInfos = do
-    (i, indInfo) <- zip [0..] indInfos
-    let isLatest = isLatestInCollection indInfos indInfo
-    True <- return $ indInfoConformsToEntitySpecs indInfo isLatest entities
-    return i
+    areLatest <- mapM (isLatestInCollection indInfos) indInfos
+    let relevantIndizes = [ i | (i, ind, l) <- zip3 [0..] indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
+    return relevantIndizes
 
 resolveUniqueEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> PoseidonIO [Int]
 resolveUniqueEntityIndices entities indInfos = do
-    let relevantIndices = resolveEntityIndices entities indInfos
-        duplicateReport = reportDuplicateIndividuals . map (indInfos !!) $ relevantIndices
+    relevantIndices <- resolveEntityIndices entities indInfos
+    let duplicateReport = reportDuplicateIndividuals . map (indInfos !!) $ relevantIndices
     -- check if there still are duplicates and if yes, then stop
     unless (null duplicateReport) $ do
         logError "There are duplicated individuals, but forge does not allow that"
@@ -276,16 +283,13 @@ resolveUniqueEntityIndices entities indInfos = do
     return relevantIndices
 
 -- | this returns a list of entities which could not be found
-determineNonExistentEntities :: (EntitySpec a) => [a] -> [IndividualInfo] -> EntitiesList
-determineNonExistentEntities entities indInfos = do -- for loop over entities
-    entity <- underlyingEntity <$> entities
-    let indices = resolveEntityIndices [entity] indInfos
-    True <- return $ null indices -- this selects only those loop iterations for which null indices is True
-    return entity
+determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m EntitiesList
+determineNonExistentEntities entities indInfos = do
+    return [ entity | entity <- map underlyingEntity entities, indices <- resolveEntityIndices [entity] indInfos, null indices]
 
 checkIfAllEntitiesExist :: (EntitySpec a) => [a] -> [IndividualInfo] -> PoseidonIO ()
 checkIfAllEntitiesExist entities indInfos = do
-    let nonExistentEntities = determineNonExistentEntities entities indInfos
+    nonExistentEntities <- determineNonExistentEntities entities indInfos
     unless (null nonExistentEntities) $ do
         logError "The following entities could not be found in the dataset"
         forM_ nonExistentEntities (logError . show)

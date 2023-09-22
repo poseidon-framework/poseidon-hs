@@ -105,21 +105,22 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            let retData = ApiReturnPackageInfo . packagesToPackageInfos $ pacs
+            pacInfos <- packagesToPackageInfos pacs
+            let retData = ApiReturnPackageInfo pacInfos
             return $ ServerApiReturnType [] (Just retData)
 
         get "/groups" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            let retData = ApiReturnGroupInfo . getAllGroupInfo $ pacs
+            groupInfos <- getAllGroupInfo pacs
+            let retData = ApiReturnGroupInfo groupInfos
             return $ ServerApiReturnType [] (Just retData)
 
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
-
-            let indInfo = case maybeAdditionalColumnsString of
+            indInfo <- case maybeAdditionalColumnsString of
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
                         in  getExtendedIndividualInfo pacs additionalColumnNames

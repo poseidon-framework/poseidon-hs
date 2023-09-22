@@ -65,9 +65,9 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
 
 import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (filterM, forM_, unless, void,
+import           Control.Monad              (filterM, forM, forM_, unless, void,
                                              when)
-import           Control.Monad.Catch        (throwM, try)
+import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -79,9 +79,8 @@ import           Data.Csv                   (toNamedRecord)
 import           Data.Either                (lefts, rights)
 import           Data.Function              (on)
 import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (elemIndex, group,
-                                             intercalate, nub, sort,
-                                             (\\))
+import           Data.List                  (elemIndex, group, intercalate, nub,
+                                             sort, (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
@@ -225,17 +224,17 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptIgnoreChecksums      :: Bool
+    { _readOptIgnoreChecksums  :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno           :: Bool
+    , _readOptIgnoreGeno       :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck            :: Bool
+    , _readOptGenoCheck        :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno             :: Bool
+    , _readOptFullGeno         :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptIgnorePosVersion     :: Bool
+    , _readOptIgnorePosVersion :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptOnlyLatest           :: Bool
+    , _readOptOnlyLatest       :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
     }
 
@@ -281,18 +280,13 @@ readPoseidonPackageCollection opts baseDirs = do
                     logWarning $ renderPoseidonException e
                 _ -> return ()
     let loadedPackages = rights eitherPackages
-    -- package duplication check
-    -- This will throw if packages come with same versions and titles (see filterDuplicates)
-    let filteredPackageList = if _readOptOnlyLatest opts then
-                filter (isLatestInCollection loadedPackages) loadedPackages
-            else
-                loadedPackages
-    let finalPackageList = sort filteredPackageList
-    when (length loadedPackages > length finalPackageList) $ do
-        logWarning "Some packages were skipped as old versions or duplicates:"
-        forM_ (map posPacBaseDir loadedPackages \\ map posPacBaseDir finalPackageList) $
-            \x -> logWarning x
+    -- filter the package list to only latest packages, if this is requested
+    filteredPackageList <-
+            if _readOptOnlyLatest opts
+            then filterM (isLatestInCollection loadedPackages) loadedPackages
+            else pure $ loadedPackages
     -- report number of valid packages
+    let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
     -- return package list
     return finalPackageList
@@ -763,32 +757,32 @@ writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno j
           "changelogFile"
          ]
 
-packagesToPackageInfos :: [PoseidonPackage] -> [PackageInfo]
+packagesToPackageInfos :: (MonadThrow m) => [PoseidonPackage] -> m [PackageInfo]
 packagesToPackageInfos pacs = do
-    pac <- pacs
-    let isLatest = isLatestInCollection pacs pac
-    return $ PackageInfo {
-        pPac           = posPacNameAndVersion pac,
-        pIsLatest      = isLatest,
-        pPosVersion    = posPacPoseidonVersion pac,
-        pDescription   = posPacDescription pac,
-        pLastModified  = posPacLastModified pac,
-        pNrIndividuals = (length . getJannoRowsFromPac) pac
-    }
+    forM pacs $ \pac -> do
+        isLatest <- isLatestInCollection pacs pac
+        return $ PackageInfo {
+            pPac           = posPacNameAndVersion pac,
+            pIsLatest      = isLatest,
+            pPosVersion    = posPacPoseidonVersion pac,
+            pDescription   = posPacDescription pac,
+            pLastModified  = posPacLastModified pac,
+            pNrIndividuals = (length . getJannoRowsFromPac) pac
+        }
 
-getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
-getAllGroupInfo packages =
+getAllGroupInfo :: (MonadThrow m) => [PoseidonPackage] -> m [GroupInfo]
+getAllGroupInfo packages = do
     let individualInfoUnnested = do
             pac <- packages
             jannoRow <- getJannoRowsFromPac pac
             let groups = getJannoList . jGroupName $ jannoRow
             [(g, makePacNameAndVersion pac) | g <- groups]
-    in  do -- loop over pairs of groups and pacNames
-        group_ <- group . sort $ individualInfoUnnested
+    -- loop over pairs of groups and pacNames
+    forM ((group . sort) individualInfoUnnested) $ \group_ -> do
         let groupName   = head . map fst $ group_
             groupPac    = head . map snd $ group_
             groupNrInds = length group_
-            isLatest    = isLatestInCollection (map makePacNameAndVersion packages) groupPac
+        isLatest <- isLatestInCollection (map makePacNameAndVersion packages) groupPac
         return $ GroupInfo groupName groupPac isLatest groupNrInds
 
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
@@ -800,20 +794,35 @@ getJointIndividualInfo packages = do
         ((getJannoList . jGroupName) jannoRow)
         (makePacNameAndVersion pac)
 
-getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
+getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
 getExtendedIndividualInfo allPackages additionalJannoColumns = do
-    pac <- allPackages
-    jannoRow <- getJannoRowsFromPac pac
-    let name = jPoseidonID jannoRow
-        groups = getJannoList . jGroupName $ jannoRow
-        additionalColumnEntries = case additionalJannoColumns of
-            [] -> []
-            colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
-    let isLatest = isLatestInCollection allPackages pac
-    return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
+    concatForM allPackages $ \pac -> do
+        forM (getJannoRowsFromPac pac) $ \jannoRow -> do
+            let name = jPoseidonID jannoRow
+                groups = getJannoList . jGroupName $ jannoRow
+                additionalColumnEntries = case additionalJannoColumns of
+                    [] -> []
+                    colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+            isLatest <- isLatestInCollection allPackages pac
+            return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
+
+-- from https://hackage.haskell.org/package/extra-1.7.14/docs/Control-Monad-Extra.html
+concatForM :: Monad m => [a] -> (a -> m [b]) -> m [b]
+concatForM = flip concatMapM
+    where
+        concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
+        concatMapM op = foldr f (pure [])
+            where
+                f x xs = do
+                  xMod <- op x
+                  if null xMod
+                    then xs
+                    else do
+                      xs' <- xs
+                      pure $ xMod ++ xs'
 
 -- | Filter packages such that only packages with individuals covered by the given EntitySpec are returned
-filterToRelevantPackages :: (EntitySpec a) => [a] -> [PoseidonPackage] -> [PoseidonPackage]
-filterToRelevantPackages entities packages =
-    let relevantPacs = determineRelevantPackages entities (getJointIndividualInfo packages)
-    in filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
+filterToRelevantPackages :: (MonadThrow m) => (EntitySpec a) => [a] -> [PoseidonPackage] -> m [PoseidonPackage]
+filterToRelevantPackages entities packages = do
+    relevantPacs <- determineRelevantPackages entities (getJointIndividualInfo packages)
+    return $ filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages

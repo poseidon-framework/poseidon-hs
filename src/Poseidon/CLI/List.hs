@@ -40,16 +40,16 @@ data ListEntity = ListPackages
     | ListGroups
     | ListIndividuals [String]
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptIgnoreChecksums      = True
-    , _readOptGenoCheck            = False
-    , _readOptIgnoreGeno           = True
-}
-
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonIO ()
 runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptIgnoreChecksums      = True
+        , _readOptGenoCheck            = False
+        , _readOptIgnoreGeno           = True
+        , _readOptOnlyLatest           = onlyLatest
+    }
+    -- build tables
     (tableH, tableB) <- case listEntity of
         ListPackages -> do
             packageInfos <- case repoLocation of
@@ -59,11 +59,15 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     case apiReturn of
                         ApiReturnPackageInfo pacInfo -> return pacInfo
                         _ -> error "should not happen"
-                RepoLocal baseDirs ->
-                    packagesToPackageInfos <$> readPoseidonPackageCollection pacReadOpts baseDirs
+                RepoLocal baseDirs -> do
+                    pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    packagesToPackageInfos pacCollection
             let tableH = ["Package", "Package Version", "Is Latest", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
                 tableB = sortOn head $ do
                     pInf@(PackageInfo _ isLatest posV desc lastMod nrInds) <- packageInfos
+                    -- for the locally read packages this doesn't do anything,
+                    -- because the dataset is already reduced to the latest packages
+                    -- in the reading process
                     True <- return (not onlyLatest || isLatest)
                     return [getPacName pInf, showMaybeVersion (getPacVersion pInf), show isLatest,
                             showVersion posV, showMaybe desc, showMaybe (show <$> lastMod), show nrInds]
@@ -76,7 +80,9 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     case apiReturn of
                         ApiReturnGroupInfo groupInfo -> return groupInfo
                         _ -> error "should not happen"
-                RepoLocal baseDirs -> getAllGroupInfo <$> readPoseidonPackageCollection pacReadOpts baseDirs
+                RepoLocal baseDirs -> do
+                    pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    getAllGroupInfo pacCollection
             let tableH = ["Group", "Package", "Package Version", "Is Latest", "Nr Individuals"]
                 tableB = do
                     gi@(GroupInfo groupName _ isLatest nrInds) <- groupInfos
@@ -92,8 +98,8 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                         ApiReturnExtIndividualInfo indInfo -> return indInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
-                    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-                    return $ getExtendedIndividualInfo allPackages moreJannoColumns
+                    pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    getExtendedIndividualInfo pacCollection moreJannoColumns
 
             -- warning in case the additional Columns do not exist in the entire janno dataset
             forM_ (zip [0..] moreJannoColumns) $ \(i, columnKey) -> do

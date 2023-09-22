@@ -201,11 +201,14 @@ testreadPoseidonPackageCollection = describe "PoseidonPackage.findPoseidonPackag
     let dir = "test/testDat/testPackages/ancient"
     it "should discover packages correctly" $ do
         pac <- testLog $ readPoseidonPackageCollection testPacReadOpts [dir]
-        sort (map getPacName pac) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_2020"]
-        sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2020 2 20),
+        sort (map getPacName pac) `shouldBe` ["Lamnidis_2018", "Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_2020"]
+        sort (map posPacLastModified pac) `shouldBe` [Just (fromGregorian 2019 01 15),
+                                                      Just (fromGregorian 2020 2 20),
                                                       Just (fromGregorian 2020 5 20),
                                                       Just (fromGregorian 2021 11 9),
                                                       Just (fromGregorian 2023 01 12)]
+        pacLatest <- testLog $ readPoseidonPackageCollection (testPacReadOpts {_readOptOnlyLatest = True}) [dir]
+        sort (map getPacName pacLatest) `shouldBe` ["Lamnidis_2018", "Schiffels_2016", "Schmid_2028", "Wang_2020"]
 
 files :: [String]
 files  = ["test/testDat/testPackages/ancient/Schiffels_2016/geno.txt",

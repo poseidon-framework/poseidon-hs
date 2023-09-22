@@ -8,7 +8,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO, uniquePO, logInfo)
+import           Poseidon.Utils         (PoseidonIO, logInfo, uniquePO)
 
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, sort, sortBy)

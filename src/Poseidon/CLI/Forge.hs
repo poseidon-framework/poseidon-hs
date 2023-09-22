@@ -42,7 +42,8 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               logInfo, logWarning, uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
-import           Control.Monad               (forM, forM_, unless, when)
+import           Control.Monad               (filterM, forM, forM_, unless,
+                                              when)
 import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
@@ -103,7 +104,7 @@ runForge (
     -- compile entities
     entitiesUser <- readEntityInputs entityInputs
 
-    let allLatestPackages = filter (isLatestInCollection allPackages) allPackages
+    allLatestPackages <- filterM (isLatestInCollection allPackages) allPackages
     entities <- case entitiesUser of
         [] -> do
             logInfo "No requested entities. Implicitly forging all packages."
@@ -122,7 +123,7 @@ runForge (
     -- check if all entities can be found. This function reports an error and throws and exception
     checkIfAllEntitiesExist entities (getJointIndividualInfo allPackages)
     -- determine relevant packages
-    let relevantPackages = filterToRelevantPackages entities allPackages
+    relevantPackages <- filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
