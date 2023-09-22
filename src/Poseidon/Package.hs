@@ -255,7 +255,7 @@ defaultPackageReadOptions = PackageReadOptions {
 
 readPoseidonPackageCollection :: PackageReadOptions
                               -> [FilePath] -- ^ A list of base directories where to search in
-                              -> PoseidonIO [PoseidonPackage] -- ^ A list of returned poseidon packages 
+                              -> PoseidonIO [PoseidonPackage] -- ^ A list of returned poseidon packages
 readPoseidonPackageCollection opts baseDirs = fst <$> readPoseidonPackageCollectionWithSkipIndicator opts baseDirs
 
 -- | a utility function to load all poseidon packages found recursively in multiple base directories.
