@@ -30,20 +30,18 @@ While implementing this change, we also reworked the entity selection logic. It 
 * `-<Pac1:Group1:Ind1>`: Remove the individual named "Ind1" associated with "Group1", searching in all versions of package "Pac1"
 * `-<Pac1-1.0.1:Group1:Ind1>`: Remove the individual named "Ind1" associated with "Group1", but only if they are in "Pac1" with version "1.0.1"
 
+Missing (or mis-spelled) entities in a selection-set lead to errors now.
+
 If the forge entity list starts with a negative entity, or if the entity list is empty, `forge` will still implicitly assume you want to include all individuals from only the **latest** packages found in the baseDirs.
 
-But the specific individual selection syntax (with `-<Pac1-1.0.1:Group1:Ind1>`) does not perform automatic duplicate resolution any more. If there is another `<Ind1>` somewhere within the selected entities, then this will cause an error that has to be resolved manually by adjusting the selection.
+The specific individual selection syntax (with `-<Pac1-1.0.1:Group1:Ind1>`) does not perform automatic duplicate resolution any more. If there is another `<Ind1>` somewhere within the selected entities, then this will cause an error that has to be resolved manually by adjusting the selection.
 
 #### Minor additional changes
 
-- The genotype ploidy (`Genotype_Ploidy`) documented in .janno files is now checked when reading the package: If a sample marked as `haploid` has a heterozygote SNP, this now throws an error.
-- `list` returns an extra, boolean column `isLatest` to point out if an entity (individual, group, package) is from the latest package version.
+- The Web API and the `list` subcommand now return an extra, boolean field/column `isLatest` to point out if an entity (individual, group, package) is from the latest package version.
 - `list` now also returns column headers with the `--raw` flag. If they are not desired, then they have to be filtered out manually on the command line (e.g. with `trident list ... | tail -n+2`).
-- Duplicate individuals in a package collection do not anymore lead to errors. Instead, only a selection for `forge` (and externally also in `xerxes`), if resulting in multiple individuals in the selection, will lead to errors.
-- Missing (or mis-spelled) entities in a selection-set also now more strictly lead to errors.
-
-#### Internal refactoring
-The `SecondaryTypes` module was dissolved and instead we now have `Contributor`, `ServerClient` and `Version`. `EntitiesList` (or what is left of it) now lives in `EntityTypes`.
+- Duplicate individuals in a package collection do not anymore lead to errors. Instead, only a selection for `forge` (and externally also in `xerxes`), if resulting in multiple individuals in the selection, will lead to errors. `validate` will also fail by default, except `--ignoreDuplicates` is set.
+- The genotype ploidy (`Genotype_Ploidy`) documented in .janno files is now checked when reading the package: If a sample marked as `haploid` has a heterozygote SNP, this now throws an error.
 
 ### V 1.3.0.4
 
