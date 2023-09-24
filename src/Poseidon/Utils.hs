@@ -187,8 +187,8 @@ renderPoseidonException (PoseidonPackageException s) =
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++
     ". This package is build according to poseidon schema v" ++ s ++
-    ", which is not supported by trident v" ++ showVersion version ++
-    ". Modify the package, or download a newer (or older) version of trident."
+    ", which is not supported by poseidon-hs v" ++ showVersion version ++
+    ". Modify the package, or switch to a newer (or older) version of this software."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
     "The POSEIDON.yml file " ++ show p ++ " has no poseidonVersion field. " ++
     "This is mandatory."
