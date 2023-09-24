@@ -612,7 +612,8 @@ parseRawOutput = OP.switch (
 parseOnlyLatest :: OP.Parser Bool
 parseOnlyLatest = OP.switch (
     OP.long "onlyLatest" <>
-    OP.help "list only the latest versions of packages, or the groups/individuals within the latest versions of packages, respectively"
+    OP.help "Consider only the latest versions of packages, or the groups and individuals \
+            \within the latest versions of packages, respectively."
     )
 
 parseIgnoreGeno :: OP.Parser Bool
