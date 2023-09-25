@@ -8,7 +8,38 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.3.0.4
+@version 1.4.0.0
+
+module Poseidon.Contributor
+
+-- | A data type to represent a contributor
+data ContributorSpec
+ContributorSpec :: String -> String -> Maybe ORCID -> ContributorSpec
+
+-- | the name of a contributor
+[contributorName] :: ContributorSpec -> String
+
+-- | the email address of a contributor
+[contributorEmail] :: ContributorSpec -> String
+
+-- | the ORCID of a contributor
+[contributorORCID] :: ContributorSpec -> Maybe ORCID
+contributorSpecParser :: Parser [ContributorSpec]
+
+-- | A data type to represent an ORCID see
+--   <a>https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier</a>
+data ORCID
+ORCID :: [Char] -> Char -> ORCID
+[_orcidNums] :: ORCID -> [Char]
+[_orcidChecksum] :: ORCID -> Char
+instance GHC.Classes.Eq Poseidon.Contributor.ORCID
+instance GHC.Show.Show Poseidon.Contributor.ORCID
+instance GHC.Classes.Eq Poseidon.Contributor.ContributorSpec
+instance GHC.Show.Show Poseidon.Contributor.ContributorSpec
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ContributorSpec
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Contributor.ContributorSpec
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ORCID
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Contributor.ORCID
 
 module Poseidon.MathHelpers
 
@@ -674,128 +705,6 @@ instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFUDG
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SequencingSource.SSFUDG
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SequencingSource.SSFUDG
 
-module Poseidon.SecondaryTypes
-poseidonVersionParser :: Parser Version
-
--- | A data type to represent a contributor
-data ContributorSpec
-ContributorSpec :: String -> String -> Maybe ORCID -> ContributorSpec
-
--- | the name of a contributor
-[contributorName] :: ContributorSpec -> String
-
--- | the email address of a contributor
-[contributorEmail] :: ContributorSpec -> String
-
--- | the ORCID of a contributor
-[contributorORCID] :: ContributorSpec -> Maybe ORCID
-contributorSpecParser :: Parser [ContributorSpec]
-data IndividualInfo
-IndividualInfo :: String -> [String] -> String -> IndividualInfo
-[indInfoName] :: IndividualInfo -> String
-[indInfoGroups] :: IndividualInfo -> [String]
-[indInfoPacName] :: IndividualInfo -> String
-data GroupInfo
-GroupInfo :: String -> PacNameAndVersion -> Int -> GroupInfo
-[gName] :: GroupInfo -> String
-[gPackageNames] :: GroupInfo -> PacNameAndVersion
-[gNrIndividuals] :: GroupInfo -> Int
-data VersionComponent
-Major :: VersionComponent
-Minor :: VersionComponent
-Patch :: VersionComponent
-updateThreeComponentVersion :: VersionComponent -> Version -> Version
-data PackageInfo
-PackageInfo :: String -> Maybe Version -> Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
-[pTitle] :: PackageInfo -> String
-[pVersion] :: PackageInfo -> Maybe Version
-[pPosVersion] :: PackageInfo -> Version
-[pDescription] :: PackageInfo -> Maybe String
-[pLastModified] :: PackageInfo -> Maybe Day
-[pNrIndividuals] :: PackageInfo -> Int
-
--- | The most general way to run a parser over the Identity monad.
---   <tt>runParser p state filePath input</tt> runs parser <tt>p</tt> on
---   the input list of tokens <tt>input</tt>, obtained from source
---   <tt>filePath</tt> with the initial user state <tt>st</tt>. The
---   <tt>filePath</tt> is only used in error messages and may be the empty
---   string. Returns either a <a>ParseError</a> (<a>Left</a>) or a value of
---   type <tt>a</tt> (<a>Right</a>).
---   
---   <pre>
---   parseFromFile p fname
---     = do{ input &lt;- readFile fname
---         ; return (runParser p () fname input)
---         }
---   </pre>
-runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Either ParseError a
-
--- | A data type to represent an ORCID see
---   <a>https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier</a>
-data ORCID
-ORCID :: [Char] -> Char -> ORCID
-[_orcidNums] :: ORCID -> [Char]
-[_orcidChecksum] :: ORCID -> Char
-data ServerApiReturnType
-ServerApiReturnType :: [String] -> Maybe ApiReturnData -> ServerApiReturnType
-[_apiMessages] :: ServerApiReturnType -> [String]
-[_apiResponse] :: ServerApiReturnType -> Maybe ApiReturnData
-data ApiReturnData
-ApiReturnPackageInfo :: [PackageInfo] -> ApiReturnData
-ApiReturnGroupInfo :: [GroupInfo] -> ApiReturnData
-ApiReturnExtIndividualInfo :: [ExtendedIndividualInfo] -> ApiReturnData
-ApiReturnJanno :: [(String, JannoRows)] -> ApiReturnData
-data ExtendedIndividualInfo
-ExtendedIndividualInfo :: String -> [String] -> String -> Maybe Version -> [(String, Maybe String)] -> ExtendedIndividualInfo
-[extIndInfoName] :: ExtendedIndividualInfo -> String
-[extIndInfoGroups] :: ExtendedIndividualInfo -> [String]
-[extIndInfoPacName] :: ExtendedIndividualInfo -> String
-[extIndInfoVersion] :: ExtendedIndividualInfo -> Maybe Version
-[extIndInfoAddCols] :: ExtendedIndividualInfo -> [(String, Maybe String)]
-processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData
-makeNameWithVersion :: HasNameAndVersion a => a -> String
-class HasNameAndVersion a
-getPacName :: HasNameAndVersion a => a -> String
-getPacVersion :: HasNameAndVersion a => a -> Maybe Version
-newtype PacNameAndVersion
-PacNameAndVersion :: (String, Maybe Version) -> PacNameAndVersion
-data ArchiveEndpoint
-ArchiveEndpoint :: String -> Maybe String -> ArchiveEndpoint
-[_aeServerURL] :: ArchiveEndpoint -> String
-[_aeArchiveName] :: ArchiveEndpoint -> Maybe String
-qDefault :: Maybe String -> String
-qArchive :: Maybe String -> String
-instance GHC.Classes.Ord Poseidon.SecondaryTypes.PacNameAndVersion
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.PacNameAndVersion
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.PackageInfo
-instance GHC.Generics.Generic Poseidon.SecondaryTypes.ApiReturnData
-instance GHC.Show.Show Poseidon.SecondaryTypes.VersionComponent
-instance GHC.Generics.Generic Poseidon.SecondaryTypes.IndividualInfo
-instance GHC.Classes.Ord Poseidon.SecondaryTypes.IndividualInfo
-instance GHC.Show.Show Poseidon.SecondaryTypes.IndividualInfo
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.ORCID
-instance GHC.Show.Show Poseidon.SecondaryTypes.ORCID
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.ContributorSpec
-instance GHC.Show.Show Poseidon.SecondaryTypes.ContributorSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ContributorSpec
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ContributorSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ORCID
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ORCID
-instance GHC.Classes.Eq Poseidon.SecondaryTypes.IndividualInfo
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ServerApiReturnType
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ServerApiReturnType
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ApiReturnData
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ApiReturnData
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.GroupInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.GroupInfo
-instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.PackageInfo
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.PackageInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.PackageInfo
-instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.ExtendedIndividualInfo
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.SecondaryTypes.ExtendedIndividualInfo
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.SecondaryTypes.ExtendedIndividualInfo
-instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.SecondaryTypes.PacNameAndVersion
-
 module Poseidon.GenotypeData
 data GenoDataSource
 PacBaseDir :: FilePath -> GenoDataSource
@@ -881,6 +790,196 @@ instance GHC.Show.Show Poseidon.BibFile.BibEntry
 instance GHC.Classes.Eq Poseidon.BibFile.BibEntry
 instance GHC.Classes.Ord Poseidon.BibFile.BibEntry
 
+module Poseidon.Version
+data VersionComponent
+Major :: VersionComponent
+Minor :: VersionComponent
+Patch :: VersionComponent
+updateThreeComponentVersion :: VersionComponent -> Version -> Version
+parseVersion :: Parser Version
+instance GHC.Show.Show Poseidon.Version.VersionComponent
+
+module Poseidon.EntityTypes
+
+-- | a minimal datatype representing an individual in a collection of
+--   packages
+data IndividualInfo
+IndividualInfo :: String -> [String] -> PacNameAndVersion -> IndividualInfo
+
+-- | the name of the individual, corresponding to jPoseidonID in Janno
+[indInfoName] :: IndividualInfo -> String
+
+-- | the groups associated with the individual, corresponding to jGroupName
+--   in Janno
+[indInfoGroups] :: IndividualInfo -> [String]
+
+-- | the package the individual is in.
+[indInfoPac] :: IndividualInfo -> PacNameAndVersion
+
+-- | universal rendering of package names and version
+renderNameWithVersion :: HasNameAndVersion a => a -> String
+
+-- | A class to represent a package-identifying property
+class Eq a => HasNameAndVersion a
+getPacName :: HasNameAndVersion a => a -> String
+getPacVersion :: HasNameAndVersion a => a -> Maybe Version
+
+-- | A datatype to represent a requested package, group or individual
+data PoseidonEntity
+
+-- | all individuals in a package. A version can be specified, if not
+--   implicitly request the latest
+Pac :: PacNameAndVersion -> PoseidonEntity
+
+-- | all individuals with a given group, in all of the latest packages
+Group :: String -> PoseidonEntity
+
+-- | all individuals with the given name, in all of the latest packages
+Ind :: String -> PoseidonEntity
+
+-- | the individual specified by its name, group and package. If not
+--   versioned, then take the latest version.
+SpecificInd :: String -> String -> PacNameAndVersion -> PoseidonEntity
+
+-- | a signed entity specification, denoting inclusion or exclusion of an
+--   entity
+data SignedEntity
+Include :: PoseidonEntity -> SignedEntity
+Exclude :: PoseidonEntity -> SignedEntity
+
+-- | a convenience function
+hasVersion :: HasNameAndVersion a => a -> Bool
+type EntitiesList = [PoseidonEntity]
+type SignedEntitiesList = [SignedEntity]
+
+-- | The minimal instance of HasNameAndVersion
+data PacNameAndVersion
+PacNameAndVersion :: String -> Maybe Version -> PacNameAndVersion
+[panavName] :: PacNameAndVersion -> String
+[panavVersion] :: PacNameAndVersion -> Maybe Version
+
+-- | a function to normalise any instance of HasNameAndVersion to the
+--   minimal concrete type PacNameAndVersion
+makePacNameAndVersion :: HasNameAndVersion a => a -> PacNameAndVersion
+
+-- | a function to check whether a given package is the latest within a
+--   collection
+isLatestInCollection :: (MonadThrow m, HasNameAndVersion a) => [a] -> a -> m Bool
+
+-- | A class to generalise signed and unsigned Entity Lists. Both have the
+--   feature that they can be used to filter individuals.
+class EntitySpec a
+resolveUniqueEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> PoseidonIO [Int]
+
+-- | this function checks whether a given individual info is selected by a
+--   given list of entities.
+indInfoConformsToEntitySpecs :: EntitySpec a => IndividualInfo -> Bool -> [a] -> Bool
+underlyingEntity :: EntitySpec a => a -> PoseidonEntity
+entitySpecParser :: EntitySpec a => Parser a
+readEntitiesFromFile :: EntitySpec a => FilePath -> IO [a]
+readEntitiesFromString :: EntitySpec a => String -> Either PoseidonException [a]
+
+-- | this returns a list of entities which could not be found
+determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m EntitiesList
+
+-- | determine all packages with versions that contain individuals covered
+--   by the given entities
+determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [PacNameAndVersion]
+entitiesListP :: EntitySpec a => Parser [a]
+data EntityInput a
+EntitiesDirect :: [a] -> EntityInput a
+EntitiesFromFile :: FilePath -> EntityInput a
+readEntityInputs :: (MonadIO m, EntitySpec a, Eq a) => [EntityInput a] -> m [a]
+checkIfAllEntitiesExist :: EntitySpec a => [a] -> [IndividualInfo] -> PoseidonIO ()
+
+-- | this finds the indices of all individuals from an individual-list
+--   which are specified in the Entity list
+resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [Int]
+
+-- | takes a list of selected individuals, checks for duplicates and
+--   reports a list of individuals with suggested Entity specifications
+reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, [PoseidonEntity])]
+instance GHC.Classes.Eq Poseidon.EntityTypes.PacNameAndVersion
+instance GHC.Classes.Ord Poseidon.EntityTypes.PacNameAndVersion
+instance GHC.Classes.Ord Poseidon.EntityTypes.PoseidonEntity
+instance GHC.Classes.Eq Poseidon.EntityTypes.PoseidonEntity
+instance GHC.Classes.Ord Poseidon.EntityTypes.SignedEntity
+instance GHC.Classes.Eq Poseidon.EntityTypes.SignedEntity
+instance GHC.Generics.Generic Poseidon.EntityTypes.IndividualInfo
+instance GHC.Classes.Ord Poseidon.EntityTypes.IndividualInfo
+instance GHC.Classes.Eq Poseidon.EntityTypes.IndividualInfo
+instance GHC.Show.Show Poseidon.EntityTypes.IndividualInfo
+instance Poseidon.EntityTypes.EntitySpec Poseidon.EntityTypes.SignedEntity
+instance Poseidon.EntityTypes.EntitySpec Poseidon.EntityTypes.PoseidonEntity
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.EntityTypes.IndividualInfo
+instance GHC.Show.Show Poseidon.EntityTypes.SignedEntity
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntityTypes.SignedEntity
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntityTypes.SignedEntity
+instance GHC.Show.Show Poseidon.EntityTypes.PoseidonEntity
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntityTypes.PoseidonEntity
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntityTypes.PoseidonEntity
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.EntityTypes.PacNameAndVersion
+instance GHC.Show.Show Poseidon.EntityTypes.PacNameAndVersion
+
+module Poseidon.ServerClient
+data ServerApiReturnType
+ServerApiReturnType :: [String] -> Maybe ApiReturnData -> ServerApiReturnType
+[_apiMessages] :: ServerApiReturnType -> [String]
+[_apiResponse] :: ServerApiReturnType -> Maybe ApiReturnData
+data ApiReturnData
+ApiReturnPackageInfo :: [PackageInfo] -> ApiReturnData
+ApiReturnGroupInfo :: [GroupInfo] -> ApiReturnData
+ApiReturnExtIndividualInfo :: [ExtendedIndividualInfo] -> ApiReturnData
+ApiReturnJanno :: [(String, JannoRows)] -> ApiReturnData
+processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData
+data ArchiveEndpoint
+ArchiveEndpoint :: String -> Maybe String -> ArchiveEndpoint
+[_aeServerURL] :: ArchiveEndpoint -> String
+[_aeArchiveName] :: ArchiveEndpoint -> Maybe String
+data PackageInfo
+PackageInfo :: PacNameAndVersion -> Bool -> Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
+[pPac] :: PackageInfo -> PacNameAndVersion
+[pIsLatest] :: PackageInfo -> Bool
+[pPosVersion] :: PackageInfo -> Version
+[pDescription] :: PackageInfo -> Maybe String
+[pLastModified] :: PackageInfo -> Maybe Day
+[pNrIndividuals] :: PackageInfo -> Int
+data GroupInfo
+GroupInfo :: String -> PacNameAndVersion -> Bool -> Int -> GroupInfo
+[gName] :: GroupInfo -> String
+[gPackage] :: GroupInfo -> PacNameAndVersion
+[gIsLatest] :: GroupInfo -> Bool
+[gNrIndividuals] :: GroupInfo -> Int
+data ExtendedIndividualInfo
+ExtendedIndividualInfo :: String -> [String] -> PacNameAndVersion -> Bool -> [(String, Maybe String)] -> ExtendedIndividualInfo
+[extIndInfoName] :: ExtendedIndividualInfo -> String
+[extIndInfoGroups] :: ExtendedIndividualInfo -> [String]
+[extIndInfoPac] :: ExtendedIndividualInfo -> PacNameAndVersion
+[extIndInfoIsLatest] :: ExtendedIndividualInfo -> Bool
+[extIndInfoAddCols] :: ExtendedIndividualInfo -> [(String, Maybe String)]
+qDefault :: Maybe String -> String
+qArchive :: Maybe String -> String
+qPacVersion :: Maybe Version -> String
+(+&+) :: String -> String -> String
+instance GHC.Classes.Ord Poseidon.ServerClient.PackageInfo
+instance GHC.Classes.Eq Poseidon.ServerClient.PackageInfo
+instance GHC.Classes.Eq Poseidon.ServerClient.GroupInfo
+instance GHC.Classes.Eq Poseidon.ServerClient.ExtendedIndividualInfo
+instance GHC.Generics.Generic Poseidon.ServerClient.ApiReturnData
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.ServerApiReturnType
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.ServerApiReturnType
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.ApiReturnData
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.ApiReturnData
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.ServerClient.ExtendedIndividualInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.ExtendedIndividualInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.ExtendedIndividualInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.GroupInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.GroupInfo
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.ServerClient.GroupInfo
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.ServerClient.PackageInfo
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.PackageInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.PackageInfo
+
 module Poseidon.Package
 
 -- | Internal structure for YAML loading only
@@ -904,7 +1003,7 @@ PoseidonYamlStruct :: Version -> String -> Maybe String -> [ContributorSpec] -> 
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage
-PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [ContributorSpec] -> Maybe Version -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> JannoRows -> Maybe String -> Maybe FilePath -> SeqSourceRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> Int -> PoseidonPackage
+PoseidonPackage :: FilePath -> Version -> PacNameAndVersion -> Maybe String -> [ContributorSpec] -> Maybe Day -> GenotypeDataSpec -> Maybe FilePath -> JannoRows -> Maybe String -> Maybe FilePath -> SeqSourceRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> PoseidonPackage
 
 -- | the base directory of the YAML file
 [posPacBaseDir] :: PoseidonPackage -> FilePath
@@ -912,17 +1011,14 @@ PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [Contributor
 -- | the version of the package
 [posPacPoseidonVersion] :: PoseidonPackage -> Version
 
--- | the title of the package
-[posPacTitle] :: PoseidonPackage -> String
+-- | the title and version of the package
+[posPacNameAndVersion] :: PoseidonPackage -> PacNameAndVersion
 
 -- | the optional description string of the package
 [posPacDescription] :: PoseidonPackage -> Maybe String
 
 -- | the contributor(s) of the package
 [posPacContributor] :: PoseidonPackage -> [ContributorSpec]
-
--- | the optional version of the package
-[posPacPackageVersion] :: PoseidonPackage -> Maybe Version
 
 -- | the optional date of last update
 [posPacLastModified] :: PoseidonPackage -> Maybe Day
@@ -962,9 +1058,6 @@ PoseidonPackage :: FilePath -> Version -> String -> Maybe String -> [Contributor
 
 -- | the path to the CHANGELOG file
 [posPacChangelogFile] :: PoseidonPackage -> Maybe FilePath
-
--- | how many packages of this name exist in the current collection
-[posPacDuplicate] :: PoseidonPackage -> Int
 
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException
@@ -1061,10 +1154,7 @@ PoseidonChronicleException :: String -> PoseidonException
 -- | An exception for issues with git
 PoseidonGitException :: FilePath -> String -> PoseidonException
 data PackageReadOptions
-PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
-
--- | whether to stop on duplicated individuals
-[_readOptStopOnDuplicates] :: PackageReadOptions -> Bool
+PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
 -- | whether to ignore all checksums
 [_readOptIgnoreChecksums] :: PackageReadOptions -> Bool
@@ -1084,23 +1174,22 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Pa
 
 -- | whether to keep multiple versions of the same package (True) or just
 --   the latest one (False)
-[_readOptKeepMultipleVersions] :: PackageReadOptions -> Bool
-
--- | A helper function to detect packages with duplicate names and select
---   the most up-to-date ones.
-filterDuplicatePackages :: MonadThrow m => Bool -> [PoseidonPackage] -> m [PoseidonPackage]
+[_readOptOnlyLatest] :: PackageReadOptions -> Bool
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
+readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO [PoseidonPackage]
 
 -- | a utility function to load all poseidon packages found recursively in
 --   multiple base directories. This also takes care of smart filtering and
 --   duplication checks. Exceptions lead to skipping packages and
---   outputting warnings
-readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO [PoseidonPackage]
+--   outputting warnings. A flag is returned for whether packages were
+--   skipped (needed for validate)
+readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions -> [FilePath] -> PoseidonIO ([PoseidonPackage], Bool)
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m => LogA -> Bool -> PlinkPopNameMode -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
@@ -1121,10 +1210,13 @@ readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonIO PoseidonPack
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
 dummyContributor :: ContributorSpec
-packageToPackageInfo :: PoseidonPackage -> PackageInfo
-getAllGroupInfo :: [PoseidonPackage] -> [GroupInfo]
-getExtendedIndividualInfo :: [PoseidonPackage] -> [String] -> [ExtendedIndividualInfo]
+packagesToPackageInfos :: MonadThrow m => [PoseidonPackage] -> m [PackageInfo]
+getAllGroupInfo :: MonadThrow m => [PoseidonPackage] -> m [GroupInfo]
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
+
+-- | Filter packages such that only packages with individuals covered by
+--   the given EntitySpec are returned
+filterToRelevantPackages :: MonadThrow m => EntitySpec a => [a] -> [PoseidonPackage] -> m [PoseidonPackage]
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -1132,119 +1224,30 @@ instance GHC.Generics.Generic Poseidon.Package.PoseidonPackage
 instance GHC.Classes.Eq Poseidon.Package.PoseidonPackage
 instance GHC.Show.Show Poseidon.Package.PoseidonPackage
 instance GHC.Classes.Ord Poseidon.Package.PoseidonPackage
-instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.Package.PoseidonPackage
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.Package.PoseidonPackage
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PoseidonYamlStruct
 
-module Poseidon.EntitiesList
+module Poseidon.CLI.Survey
 
--- | A datatype to represent a package, a group or an individual
-data PoseidonEntity
-Pac :: String -> PoseidonEntity
-Group :: String -> PoseidonEntity
-Ind :: PoseidonIndividual -> PoseidonEntity
-data SignedEntity
-Include :: PoseidonEntity -> SignedEntity
-Exclude :: PoseidonEntity -> SignedEntity
-type SignedEntitiesList = [SignedEntity]
-type EntitiesList = [PoseidonEntity]
-class Eq a => EntitySpec a
-indInfoConformsToEntitySpec :: EntitySpec a => [a] -> IndividualInfo -> SelectionLevel2
-underlyingEntity :: EntitySpec a => a -> PoseidonEntity
-entitySpecParser :: EntitySpec a => Parser a
-readEntitiesFromFile :: EntitySpec a => FilePath -> IO [a]
-readEntitiesFromString :: EntitySpec a => String -> Either PoseidonException [a]
-findNonExistentEntities :: EntitySpec a => [a] -> [IndividualInfo] -> EntitiesList
-indInfoFindRelevantPackageNames :: EntitySpec a => [a] -> [IndividualInfo] -> [String]
-filterRelevantPackages :: EntitySpec a => [a] -> [PoseidonPackage] -> [PoseidonPackage]
-entitiesListP :: EntitySpec a => Parser [a]
-data EntityInput a
-EntitiesDirect :: [a] -> EntityInput a
-EntitiesFromFile :: FilePath -> EntityInput a
-readEntityInputs :: (MonadIO m, EntitySpec a) => [EntityInput a] -> m [a]
-getIndName :: PoseidonIndividual -> String
-data PoseidonIndividual
-SimpleInd :: String -> PoseidonIndividual
-SpecificInd :: IndividualInfo -> PoseidonIndividual
+-- | A datatype representing command line options for the survey command
+data SurveyOptions
+SurveyOptions :: [FilePath] -> Bool -> Bool -> SurveyOptions
+[_surveyBaseDirs] :: SurveyOptions -> [FilePath]
+[_surveyRawOutput] :: SurveyOptions -> Bool
+[_surveyOnlyLatest] :: SurveyOptions -> Bool
 
--- | Result: fst is a list of unresolved duplicates, snd a simple list of
---   integers for the simple single individuals
-resolveEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> ([[(Int, IndividualInfo, SelectionLevel2)]], [Int])
-data SelectionLevel2
-ShouldBeIncluded :: SelectionLevel2
-ShouldBeIncludedWithHigherPriority :: SelectionLevel2
-ShouldNotBeIncluded :: SelectionLevel2
-instance GHC.Classes.Ord Poseidon.EntitiesList.PoseidonIndividual
-instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonIndividual
-instance GHC.Classes.Ord Poseidon.EntitiesList.PoseidonEntity
-instance GHC.Classes.Eq Poseidon.EntitiesList.PoseidonEntity
-instance GHC.Classes.Ord Poseidon.EntitiesList.SignedEntity
-instance GHC.Classes.Eq Poseidon.EntitiesList.SignedEntity
-instance GHC.Classes.Eq Poseidon.EntitiesList.SelectionLevel2
-instance GHC.Show.Show Poseidon.EntitiesList.SelectionLevel2
-instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.SignedEntity
-instance Poseidon.EntitiesList.EntitySpec Poseidon.EntitiesList.PoseidonEntity
-instance GHC.Show.Show Poseidon.EntitiesList.SignedEntity
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntitiesList.SignedEntity
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.SignedEntity
-instance GHC.Show.Show Poseidon.EntitiesList.PoseidonEntity
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.EntitiesList.PoseidonEntity
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.EntitiesList.PoseidonEntity
-instance GHC.Show.Show Poseidon.EntitiesList.PoseidonIndividual
-
-module Poseidon.Chronicle
-data PoseidonPackageChronicle
-PoseidonPackageChronicle :: String -> Maybe String -> Version -> Day -> Set PackageIteration -> PoseidonPackageChronicle
-[snapYamlTitle] :: PoseidonPackageChronicle -> String
-[snapYamlDescription] :: PoseidonPackageChronicle -> Maybe String
-[snapYamlChronicleVersion] :: PoseidonPackageChronicle -> Version
-[snapYamlLastModified] :: PoseidonPackageChronicle -> Day
-[snapYamlPackages] :: PoseidonPackageChronicle -> Set PackageIteration
-
--- | A data type to represent a package state
-data PackageIteration
-PackageIteration :: String -> Version -> String -> FilePath -> PackageIteration
-
--- | the title of the package
-[pacStateTitle] :: PackageIteration -> String
-
--- | the version of the package
-[pacStateVersion] :: PackageIteration -> Version
-
--- | the hash of a relevant commit where a package can be accessed in this
---   version
-[pacStateCommit] :: PackageIteration -> String
-
--- | the file path where the POSEIDON.yml file is stored
-[pacStatePath] :: PackageIteration -> FilePath
-updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
-readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
-writeChronicle :: FilePath -> PoseidonPackageChronicle -> PoseidonIO ()
-makeChronicle :: FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
-chroniclePackages :: FilePath -> [PoseidonPackage] -> PoseidonIO (Set PackageIteration)
-getPackageVersion :: PoseidonPackage -> PoseidonIO Version
-getGitCommitHash :: FilePath -> PoseidonIO String
-instance GHC.Show.Show Poseidon.Chronicle.PackageIteration
-instance GHC.Classes.Eq Poseidon.Chronicle.PoseidonPackageChronicle
-instance GHC.Show.Show Poseidon.Chronicle.PoseidonPackageChronicle
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PoseidonPackageChronicle
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PoseidonPackageChronicle
-instance GHC.Classes.Eq Poseidon.Chronicle.PackageIteration
-instance GHC.Classes.Ord Poseidon.Chronicle.PackageIteration
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PackageIteration
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PackageIteration
-instance Poseidon.SecondaryTypes.HasNameAndVersion Poseidon.Chronicle.PackageIteration
-
-module Poseidon.CLI.Timetravel
-data TimetravelOptions
-TimetravelOptions :: [FilePath] -> FilePath -> FilePath -> TimetravelOptions
-[_timetravelBaseDirs] :: TimetravelOptions -> [FilePath]
-[_timetravelSourceDir] :: TimetravelOptions -> FilePath
-[_timetravelChronicleFile] :: TimetravelOptions -> FilePath
-pacReadOpts :: PackageReadOptions
-runTimetravel :: TimetravelOptions -> PoseidonIO ()
-gitCheckout :: FilePath -> String -> PoseidonIO ()
-copyDirectory :: FilePath -> FilePath -> PoseidonIO ()
+-- | The main function running the janno command
+runSurvey :: SurveyOptions -> PoseidonIO ()
+renderPackageWithCompleteness :: Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
+renderJannoCompleteness :: JannoRows -> String
+class PresenceCountable a
+countPresence :: PresenceCountable a => a -> Int
+instance Poseidon.CLI.Survey.PresenceCountable (GHC.Maybe.Maybe a)
+instance Poseidon.CLI.Survey.PresenceCountable GHC.Base.String
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.JannoSex
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.JannoStringList
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.CsvNamedRecord
 
 module Poseidon.CLI.Summarise
 
@@ -1291,126 +1294,23 @@ printFrequencyMaybeString :: String -> [(Maybe String, Int)] -> String
 -- | As maybeShow, but without additional quoting of strings
 maybeShowString :: Maybe String -> String
 
-module Poseidon.CLI.Serve
-runServer :: ServeOptions -> MVar () -> PoseidonIO ()
-runServerMainThread :: ServeOptions -> PoseidonIO ()
-data ServeOptions
-ServeOptions :: [(String, FilePath)] -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
-[cliArchiveBaseDirs] :: ServeOptions -> [(String, FilePath)]
-[cliZipDir] :: ServeOptions -> Maybe FilePath
-[cliPort] :: ServeOptions -> Int
-[cliIgnoreChecksums] :: ServeOptions -> Bool
-[cliCertFiles] :: ServeOptions -> Maybe (FilePath, [FilePath], FilePath)
-instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
-
-module Poseidon.CLI.Rectify
-runRectify :: RectifyOptions -> PoseidonIO ()
-data RectifyOptions
-RectifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToRectify -> Maybe [ContributorSpec] -> RectifyOptions
-[_rectifyBaseDirs] :: RectifyOptions -> [FilePath]
-[_rectifyIgnorePoseidonVersion] :: RectifyOptions -> Bool
-[_rectifyPoseidonVersion] :: RectifyOptions -> Maybe Version
-[_rectifyPackageVersionUpdate] :: RectifyOptions -> Maybe PackageVersionUpdate
-[_rectifyChecksums] :: RectifyOptions -> ChecksumsToRectify
-[_rectifyNewContributors] :: RectifyOptions -> Maybe [ContributorSpec]
-data PackageVersionUpdate
-PackageVersionUpdate :: VersionComponent -> Maybe String -> PackageVersionUpdate
-[_pacVerUpVersionComponent] :: PackageVersionUpdate -> VersionComponent
-[_pacVerUpLog] :: PackageVersionUpdate -> Maybe String
-data ChecksumsToRectify
-ChecksumNone :: ChecksumsToRectify
-ChecksumAll :: ChecksumsToRectify
-ChecksumsDetail :: Bool -> Bool -> Bool -> Bool -> ChecksumsToRectify
-[_rectifyChecksumGeno] :: ChecksumsToRectify -> Bool
-[_rectifyChecksumJanno] :: ChecksumsToRectify -> Bool
-[_rectifyChecksumSSF] :: ChecksumsToRectify -> Bool
-[_rectifyChecksumBib] :: ChecksumsToRectify -> Bool
-
-module Poseidon.CLI.List
-
--- | The main function running the list command
-runList :: ListOptions -> PoseidonIO ()
-
--- | A datatype representing command line options for the list command
-data ListOptions
-ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> ListOptions
-
--- | the list of base directories to search for packages
-[_listRepoLocation] :: ListOptions -> RepoLocationSpec
-
--- | what to list
-[_listListEntity] :: ListOptions -> ListEntity
-
--- | whether to output raw TSV instead of a nicely formatted table
-[_listRawOutput] :: ListOptions -> Bool
-
--- | A datatype to represent the options what to list
-data ListEntity
-ListPackages :: ListEntity
-ListGroups :: ListEntity
-ListIndividuals :: [String] -> ListEntity
-data RepoLocationSpec
-RepoLocal :: [FilePath] -> RepoLocationSpec
-RepoRemote :: ArchiveEndpoint -> RepoLocationSpec
-
-module Poseidon.CLI.Genoconvert
-
--- | A datatype representing command line options for the validate command
-data GenoconvertOptions
-GenoconvertOptions :: [GenoDataSource] -> GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> GenoconvertOptions
-[_genoconvertGenoSources] :: GenoconvertOptions -> [GenoDataSource]
-[_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeFormatSpec
-[_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
-[_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
-[_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
-[_genoconvertOutPlinkPopMode] :: GenoconvertOptions -> PlinkPopNameMode
-pacReadOpts :: PackageReadOptions
-runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
-
-module Poseidon.CLI.Fetch
-data FetchOptions
-FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> ArchiveEndpoint -> FetchOptions
-[_jaBaseDirs] :: FetchOptions -> [FilePath]
-[_entityInput] :: FetchOptions -> [EntityInput PoseidonEntity]
-[_archiveEnd] :: FetchOptions -> ArchiveEndpoint
-data PackageState
-NotLocal :: PackageState
-EqualLocalRemote :: PackageState
-LaterRemote :: PackageState
-LaterLocal :: PackageState
-pacReadOpts :: PackageReadOptions
-
--- | The main function running the Fetch command
-runFetch :: FetchOptions -> PoseidonIO ()
-readServerIndInfo :: ByteString -> IO [ExtendedIndividualInfo]
-readServerPackageInfo :: ByteString -> IO [PackageInfo]
-determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
-handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
-printV :: Maybe Version -> String
-downloadAndUnzipPackage :: FilePath -> FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
-unzipPackage :: FilePath -> FilePath -> IO ()
-downloadPackage :: FilePath -> ArchiveEndpoint -> String -> PoseidonIO ()
-printDownloadProgress :: LogA -> Double -> ConduitT ByteString ByteString (ResourceT IO) ()
-
-module Poseidon.CLI.Chronicle
-data ChronicleOptions
-ChronicleOptions :: [FilePath] -> ChronOperation -> ChronicleOptions
-[_chronicleBaseDirs] :: ChronicleOptions -> [FilePath]
-[_chronicleOperation] :: ChronicleOptions -> ChronOperation
-data ChronOperation
-CreateChron :: FilePath -> ChronOperation
-UpdateChron :: FilePath -> ChronOperation
-pacReadOpts :: PackageReadOptions
-runChronicle :: ChronicleOptions -> PoseidonIO ()
+module Poseidon.CLI.Init
+data InitOptions
+InitOptions :: GenotypeDataSpec -> FilePath -> Maybe String -> Bool -> InitOptions
+[_initGenoData] :: InitOptions -> GenotypeDataSpec
+[_initPacPath] :: InitOptions -> FilePath
+[_initPacName] :: InitOptions -> Maybe String
+[_initMinimal] :: InitOptions -> Bool
+runInit :: InitOptions -> PoseidonIO ()
 
 module Poseidon.CLI.Validate
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions
-ValidateOptions :: ValidatePlan -> Bool -> ValidateOptions
+ValidateOptions :: ValidatePlan -> Bool -> Bool -> ValidateOptions
 [_validatePlan] :: ValidateOptions -> ValidatePlan
 [_validateNoExitCode] :: ValidateOptions -> Bool
+[_validateOnlyLatest] :: ValidateOptions -> Bool
 data ValidatePlan
 ValPlanBaseDirs :: [FilePath] -> Bool -> Bool -> Bool -> Bool -> Bool -> ValidatePlan
 [_valPlanBaseDirs] :: ValidatePlan -> [FilePath]
@@ -1426,6 +1326,200 @@ ValPlanSSF :: FilePath -> ValidatePlan
 ValPlanBib :: FilePath -> ValidatePlan
 runValidate :: ValidateOptions -> PoseidonIO ()
 conclude :: Bool -> Bool -> PoseidonIO ()
+
+module Poseidon.CLI.Serve
+runServer :: ServeOptions -> MVar () -> PoseidonIO ()
+runServerMainThread :: ServeOptions -> PoseidonIO ()
+data ServeOptions
+ServeOptions :: [(String, FilePath)] -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
+[cliArchiveBaseDirs] :: ServeOptions -> [(String, FilePath)]
+[cliZipDir] :: ServeOptions -> Maybe FilePath
+[cliPort] :: ServeOptions -> Int
+[cliIgnoreChecksums] :: ServeOptions -> Bool
+[cliCertFiles] :: ServeOptions -> Maybe (FilePath, [FilePath], FilePath)
+instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
+
+module Poseidon.CLI.List
+
+-- | The main function running the list command
+runList :: ListOptions -> PoseidonIO ()
+
+-- | A datatype representing command line options for the list command
+data ListOptions
+ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> Bool -> ListOptions
+
+-- | the list of base directories to search for packages
+[_listRepoLocation] :: ListOptions -> RepoLocationSpec
+
+-- | what to list
+[_listListEntity] :: ListOptions -> ListEntity
+
+-- | whether to output raw TSV instead of a nicely formatted table
+[_listRawOutput] :: ListOptions -> Bool
+[_listOnlyLatest] :: ListOptions -> Bool
+
+-- | A datatype to represent the options what to list
+data ListEntity
+ListPackages :: ListEntity
+ListGroups :: ListEntity
+ListIndividuals :: [String] -> ListEntity
+data RepoLocationSpec
+RepoLocal :: [FilePath] -> RepoLocationSpec
+RepoRemote :: ArchiveEndpoint -> RepoLocationSpec
+
+module Poseidon.CLI.Genoconvert
+
+-- | A datatype representing command line options for the validate command
+data GenoconvertOptions
+GenoconvertOptions :: [GenoDataSource] -> GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> GenoconvertOptions
+[_genoconvertGenoSources] :: GenoconvertOptions -> [GenoDataSource]
+[_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeFormatSpec
+[_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
+[_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
+[_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
+[_genoconvertOutPlinkPopMode] :: GenoconvertOptions -> PlinkPopNameMode
+[_genoconvertOnlyLatest] :: GenoconvertOptions -> Bool
+runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
+convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
+
+module Poseidon.CLI.Forge
+
+-- | A datatype representing command line options for the survey command
+data ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> ForgeOptions
+[_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
+[_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
+[_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
+[_forgeIntersect] :: ForgeOptions -> Bool
+[_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
+[_forgeOutMinimal] :: ForgeOptions -> Bool
+[_forgeOutOnlyGeno] :: ForgeOptions -> Bool
+[_forgeOutPacPath] :: ForgeOptions -> FilePath
+[_forgeOutPacName] :: ForgeOptions -> Maybe String
+[_forgePackageWise] :: ForgeOptions -> Bool
+[_forgeOutputPlinkPopMode] :: ForgeOptions -> PlinkPopNameMode
+pacReadOpts :: PackageReadOptions
+
+-- | The main function running the forge command
+runForge :: ForgeOptions -> PoseidonIO ()
+sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
+filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
+filterBibEntries :: JannoRows -> BibTeX -> BibTeX
+fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
+
+module Poseidon.CLI.Fetch
+data FetchOptions
+FetchOptions :: [FilePath] -> [EntityInput PoseidonEntity] -> ArchiveEndpoint -> FetchOptions
+[_jaBaseDirs] :: FetchOptions -> [FilePath]
+[_entityInput] :: FetchOptions -> [EntityInput PoseidonEntity]
+[_archiveEnd] :: FetchOptions -> ArchiveEndpoint
+data PackageState
+NotLocal :: PackageState
+EqualLocalRemote :: PackageState
+UnequalLocalRemote :: PackageState
+pacReadOpts :: PackageReadOptions
+
+-- | The main function running the Fetch command
+runFetch :: FetchOptions -> PoseidonIO ()
+readServerIndInfo :: ByteString -> IO [ExtendedIndividualInfo]
+readServerPackageInfo :: ByteString -> IO [PackageInfo]
+determinePackageState :: [PacNameAndVersion] -> PacNameAndVersion -> (PackageState, String, Maybe Version, [Maybe Version])
+handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, [Maybe Version]) -> PoseidonIO ()
+printVs :: [Maybe Version] -> String
+printV :: Maybe Version -> String
+downloadAndUnzipPackage :: FilePath -> FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
+unzipPackage :: FilePath -> FilePath -> IO ()
+downloadPackage :: FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
+printDownloadProgress :: LogA -> Double -> ConduitT ByteString ByteString (ResourceT IO) ()
+
+module Poseidon.Chronicle
+data PoseidonPackageChronicle
+PoseidonPackageChronicle :: String -> Maybe String -> Version -> Day -> Set PackageIteration -> PoseidonPackageChronicle
+[snapYamlTitle] :: PoseidonPackageChronicle -> String
+[snapYamlDescription] :: PoseidonPackageChronicle -> Maybe String
+[snapYamlChronicleVersion] :: PoseidonPackageChronicle -> Version
+[snapYamlLastModified] :: PoseidonPackageChronicle -> Day
+[snapYamlPackages] :: PoseidonPackageChronicle -> Set PackageIteration
+
+-- | A data type to represent a package state
+data PackageIteration
+PackageIteration :: String -> Version -> String -> FilePath -> PackageIteration
+
+-- | the title of the package
+[pacStateTitle] :: PackageIteration -> String
+
+-- | the version of the package
+[pacStateVersion] :: PackageIteration -> Version
+
+-- | the hash of a relevant commit where a package can be accessed in this
+--   version
+[pacStateCommit] :: PackageIteration -> String
+
+-- | the file path where the POSEIDON.yml file is stored
+[pacStatePath] :: PackageIteration -> FilePath
+updateChronicle :: PoseidonPackageChronicle -> PoseidonPackageChronicle -> PoseidonPackageChronicle
+readChronicle :: FilePath -> PoseidonIO PoseidonPackageChronicle
+writeChronicle :: FilePath -> PoseidonPackageChronicle -> PoseidonIO ()
+makeChronicle :: FilePath -> [PoseidonPackage] -> PoseidonIO PoseidonPackageChronicle
+chroniclePackages :: FilePath -> [PoseidonPackage] -> PoseidonIO (Set PackageIteration)
+getPackageVersion :: PoseidonPackage -> PoseidonIO Version
+getGitCommitHash :: FilePath -> PoseidonIO String
+instance GHC.Show.Show Poseidon.Chronicle.PackageIteration
+instance GHC.Classes.Eq Poseidon.Chronicle.PoseidonPackageChronicle
+instance GHC.Show.Show Poseidon.Chronicle.PoseidonPackageChronicle
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PoseidonPackageChronicle
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PoseidonPackageChronicle
+instance GHC.Classes.Eq Poseidon.Chronicle.PackageIteration
+instance GHC.Classes.Ord Poseidon.Chronicle.PackageIteration
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Chronicle.PackageIteration
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Chronicle.PackageIteration
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.Chronicle.PackageIteration
+
+module Poseidon.CLI.Timetravel
+data TimetravelOptions
+TimetravelOptions :: [FilePath] -> FilePath -> FilePath -> TimetravelOptions
+[_timetravelBaseDirs] :: TimetravelOptions -> [FilePath]
+[_timetravelSourceDir] :: TimetravelOptions -> FilePath
+[_timetravelChronicleFile] :: TimetravelOptions -> FilePath
+pacReadOpts :: PackageReadOptions
+runTimetravel :: TimetravelOptions -> PoseidonIO ()
+gitCheckout :: FilePath -> String -> PoseidonIO ()
+copyDirectory :: FilePath -> FilePath -> PoseidonIO ()
+
+module Poseidon.CLI.Chronicle
+data ChronicleOptions
+ChronicleOptions :: [FilePath] -> ChronOperation -> ChronicleOptions
+[_chronicleBaseDirs] :: ChronicleOptions -> [FilePath]
+[_chronicleOperation] :: ChronicleOptions -> ChronOperation
+data ChronOperation
+CreateChron :: FilePath -> ChronOperation
+UpdateChron :: FilePath -> ChronOperation
+pacReadOpts :: PackageReadOptions
+runChronicle :: ChronicleOptions -> PoseidonIO ()
+
+module Poseidon.CLI.Rectify
+runRectify :: RectifyOptions -> PoseidonIO ()
+data RectifyOptions
+RectifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToRectify -> Maybe [ContributorSpec] -> Bool -> RectifyOptions
+[_rectifyBaseDirs] :: RectifyOptions -> [FilePath]
+[_rectifyIgnorePoseidonVersion] :: RectifyOptions -> Bool
+[_rectifyPoseidonVersion] :: RectifyOptions -> Maybe Version
+[_rectifyPackageVersionUpdate] :: RectifyOptions -> Maybe PackageVersionUpdate
+[_rectifyChecksums] :: RectifyOptions -> ChecksumsToRectify
+[_rectifyNewContributors] :: RectifyOptions -> Maybe [ContributorSpec]
+[_rectifyOnlyLatest] :: RectifyOptions -> Bool
+data PackageVersionUpdate
+PackageVersionUpdate :: VersionComponent -> Maybe String -> PackageVersionUpdate
+[_pacVerUpVersionComponent] :: PackageVersionUpdate -> VersionComponent
+[_pacVerUpLog] :: PackageVersionUpdate -> Maybe String
+data ChecksumsToRectify
+ChecksumNone :: ChecksumsToRectify
+ChecksumAll :: ChecksumsToRectify
+ChecksumsDetail :: Bool -> Bool -> Bool -> Bool -> ChecksumsToRectify
+[_rectifyChecksumGeno] :: ChecksumsToRectify -> Bool
+[_rectifyChecksumJanno] :: ChecksumsToRectify -> Bool
+[_rectifyChecksumSSF] :: ChecksumsToRectify -> Bool
+[_rectifyChecksumBib] :: ChecksumsToRectify -> Bool
 
 module Poseidon.CLI.OptparseApplicativeParsers
 parseChronOperation :: Parser ChronOperation
@@ -1492,6 +1586,7 @@ parsePackageWise :: Parser Bool
 parseMaybeSnpFile :: Parser (Maybe FilePath)
 parseListEntity :: Parser ListEntity
 parseRawOutput :: Parser Bool
+parseOnlyLatest :: Parser Bool
 parseIgnoreGeno :: Parser Bool
 parseFullGeno :: Parser Bool
 parseNoExitCode :: Parser Bool
@@ -1511,58 +1606,3 @@ parseCertFile :: Parser FilePath
 parseArchiveBasePaths :: Parser [(String, FilePath)]
 parseMaybeArchiveName :: Parser (Maybe String)
 instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
-
-module Poseidon.CLI.Survey
-
--- | A datatype representing command line options for the survey command
-data SurveyOptions
-SurveyOptions :: [FilePath] -> Bool -> SurveyOptions
-[_surveyBaseDirs] :: SurveyOptions -> [FilePath]
-[_surveyRawOutput] :: SurveyOptions -> Bool
-pacReadOpts :: PackageReadOptions
-
--- | The main function running the janno command
-runSurvey :: SurveyOptions -> PoseidonIO ()
-renderPackageWithCompleteness :: String -> Bool -> JannoRows -> SeqSourceRows -> BibTeX -> String
-renderJannoCompleteness :: JannoRows -> String
-class PresenceCountable a
-countPresence :: PresenceCountable a => a -> Int
-instance Poseidon.CLI.Survey.PresenceCountable (GHC.Maybe.Maybe a)
-instance Poseidon.CLI.Survey.PresenceCountable GHC.Base.String
-instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.JannoSex
-instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.JannoStringList
-instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.CsvNamedRecord
-
-module Poseidon.CLI.Init
-data InitOptions
-InitOptions :: GenotypeDataSpec -> FilePath -> Maybe String -> Bool -> InitOptions
-[_initGenoData] :: InitOptions -> GenotypeDataSpec
-[_initPacPath] :: InitOptions -> FilePath
-[_initPacName] :: InitOptions -> Maybe String
-[_initMinimal] :: InitOptions -> Bool
-runInit :: InitOptions -> PoseidonIO ()
-
-module Poseidon.CLI.Forge
-
--- | A datatype representing command line options for the survey command
-data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> ForgeOptions
-[_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
-[_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
-[_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
-[_forgeIntersect] :: ForgeOptions -> Bool
-[_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
-[_forgeOutMinimal] :: ForgeOptions -> Bool
-[_forgeOutOnlyGeno] :: ForgeOptions -> Bool
-[_forgeOutPacPath] :: ForgeOptions -> FilePath
-[_forgeOutPacName] :: ForgeOptions -> Maybe String
-[_forgePackageWise] :: ForgeOptions -> Bool
-[_forgeOutputPlinkPopMode] :: ForgeOptions -> PlinkPopNameMode
-pacReadOpts :: PackageReadOptions
-
--- | The main function running the forge command
-runForge :: ForgeOptions -> PoseidonIO ()
-sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
-filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
-filterBibEntries :: JannoRows -> BibTeX -> BibTeX
-fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]

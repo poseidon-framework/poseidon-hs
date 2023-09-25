@@ -1,0 +1,713 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric     #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Poseidon.ServerClient</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier">ServerApiReturnType</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnData"><span class="hs-identifier">ApiReturnData</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#processApiResponse"><span class="hs-identifier">processApiResponse</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#ArchiveEndpoint"><span class="hs-identifier">ArchiveEndpoint</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier">PackageInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier">GroupInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier">ExtendedIndividualInfo</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#qDefault"><span class="hs-identifier">qDefault</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#qArchive"><span class="hs-identifier">qArchive</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#qPacVersion"><span class="hs-identifier">qPacVersion</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#%2B%26%2B"><span class="hs-operator">(+&amp;+)</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Paths_poseidon_hs.html"><span class="hs-identifier">Paths_poseidon_hs</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="Paths_poseidon_hs.html#version"><span class="hs-identifier">version</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.EntityTypes.html"><span class="hs-identifier">Poseidon.EntityTypes</span></a></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.EntityTypes.html#HasNameAndVersion"><span class="hs-identifier">HasNameAndVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>                                         </span><span class="annot"><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier">PacNameAndVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Janno.html"><span class="hs-identifier">Poseidon.Janno</span></a></span><span>         </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRows"><span class="hs-identifier">JannoRows</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Utils.html"><span class="hs-identifier">Poseidon.Utils</span></a></span><span>         </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Utils.html#PoseidonException"><span class="hs-identifier">PoseidonException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier">PoseidonIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>                                         </span><span class="annot"><a href="Poseidon.Utils.html#logError"><span class="hs-identifier">logError</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier">logInfo</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">catch</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">forM_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">unless</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.IO.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">liftIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>             </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">FromJSON</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ToJSON</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Value</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">String</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>                                         </span><span class="annot"><span class="hs-identifier">eitherDecode'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">object</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">parseJSON</span></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>                                         </span><span class="annot"><span class="hs-identifier">toJSON</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">withObject</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(.:)</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(.=)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Time</span></span><span>              </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Day</span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Version</span></span><span>           </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Version</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">showVersion</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span>           </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Network.HTTP.Conduit</span></span><span>   </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">simpleHttp</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">--  Client Server Communication types and functions</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="annot"><a href="Poseidon.ServerClient.html#qDefault"><span class="hs-identifier hs-type">qDefault</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-34"></span><span id="qDefault"><span class="annot"><span class="annottext">qDefault :: Maybe [Char] -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#qDefault"><span class="hs-identifier hs-var hs-var">qDefault</span></a></span></span><span> </span><span id="local-6989586621679498816"><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679498816"><span class="hs-identifier hs-var">archive</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="Poseidon.ServerClient.html#qVersion"><span class="hs-identifier hs-var">qVersion</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#%2B%26%2B"><span class="hs-operator hs-var">+&amp;+</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char] -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#qArchive"><span class="hs-identifier hs-var">qArchive</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679498816"><span class="hs-identifier hs-var">archive</span></a></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Poseidon.ServerClient.html#%2B%26%2B"><span class="hs-operator hs-type">(+&amp;+)</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-37"></span><span id="%2B%26%2B"><span class="annot"><span class="annottext">+&amp;+ :: [Char] -&gt; [Char] -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#%2B%26%2B"><span class="hs-operator hs-var hs-var">(+&amp;+)</span></a></span></span><span> </span><span id="local-6989586621679498814"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498814"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'?'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679498813"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498813"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498814"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498813"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Poseidon.ServerClient.html#%2B%26%2B"><span class="hs-operator hs-var">(+&amp;+)</span></a></span><span> </span><span id="local-6989586621679498812"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498812"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679498811"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498811"><span class="hs-identifier hs-var">b</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498812"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498811"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Poseidon.ServerClient.html#qPacVersion"><span class="hs-identifier hs-type">qPacVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-41"></span><span id="qPacVersion"><span class="annot"><span class="annottext">qPacVersion :: Maybe Version -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#qPacVersion"><span class="hs-identifier hs-var hs-var">qPacVersion</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe Version
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-42"></span><span class="annot"><a href="Poseidon.ServerClient.html#qPacVersion"><span class="hs-identifier hs-var">qPacVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679498810"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679498810"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;?package_version=&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Version -&gt; [Char]
+</span><span class="hs-identifier hs-var">showVersion</span></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679498810"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="annot"><a href="Poseidon.ServerClient.html#qVersion"><span class="hs-identifier hs-type">qVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-45"></span><span id="qVersion"><span class="annot"><span class="annottext">qVersion :: [Char]
+</span><a href="Poseidon.ServerClient.html#qVersion"><span class="hs-identifier hs-var hs-var">qVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;?client_version=&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Version -&gt; [Char]
+</span><span class="hs-identifier hs-var">showVersion</span></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="Paths_poseidon_hs.html#version"><span class="hs-identifier hs-var">version</span></a></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="annot"><a href="Poseidon.ServerClient.html#qArchive"><span class="hs-identifier hs-type">qArchive</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-48"></span><span id="qArchive"><span class="annot"><span class="annottext">qArchive :: Maybe [Char] -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#qArchive"><span class="hs-identifier hs-var hs-var">qArchive</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Poseidon.ServerClient.html#qArchive"><span class="hs-identifier hs-var">qArchive</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679498809"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498809"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;?archive=&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498809"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">data</span><span> </span><span id="ArchiveEndpoint"><span class="annot"><a href="Poseidon.ServerClient.html#ArchiveEndpoint"><span class="hs-identifier hs-var">ArchiveEndpoint</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ArchiveEndpoint"><span class="annot"><a href="Poseidon.ServerClient.html#ArchiveEndpoint"><span class="hs-identifier hs-var">ArchiveEndpoint</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-52"></span><span>      </span><span id="_aeServerURL"><span class="annot"><span class="annottext">ArchiveEndpoint -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#_aeServerURL"><span class="hs-identifier hs-var hs-var">_aeServerURL</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_aeArchiveName"><span class="annot"><span class="annottext">ArchiveEndpoint -&gt; Maybe [Char]
+</span><a href="Poseidon.ServerClient.html#_aeArchiveName"><span class="hs-identifier hs-var hs-var">_aeArchiveName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-54"></span><span class="hs-special">}</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">data</span><span> </span><span id="ServerApiReturnType"><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-var">ServerApiReturnType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ServerApiReturnType"><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-var">ServerApiReturnType</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-57"></span><span>    </span><span id="_apiMessages"><span class="annot"><span class="annottext">ServerApiReturnType -&gt; [[Char]]
+</span><a href="Poseidon.ServerClient.html#_apiMessages"><span class="hs-identifier hs-var hs-var">_apiMessages</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-58"></span><span>    </span><span id="_apiResponse"><span class="annot"><span class="annottext">ServerApiReturnType -&gt; Maybe ApiReturnData
+</span><a href="Poseidon.ServerClient.html#_apiResponse"><span class="hs-identifier hs-var hs-var">_apiResponse</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnData"><span class="hs-identifier hs-type">ApiReturnData</span></a></span><span>
+</span><span id="line-59"></span><span class="hs-special">}</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498796"><span id="local-6989586621679498798"><span id="local-6989586621679498800"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-type">ServerApiReturnType</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>    </span><span id="local-6989586621679498780"><span class="annot"><span class="annottext">toJSON :: ServerApiReturnType -&gt; Value
+</span><a href="#local-6989586621679498780"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-type">ServerApiReturnType</span></a></span><span> </span><span id="local-6989586621679498779"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679498779"><span class="hs-identifier hs-var">messages</span></a></span></span><span> </span><span id="local-6989586621679498778"><span class="annot"><span class="annottext">Maybe ApiReturnData
+</span><a href="#local-6989586621679498778"><span class="hs-identifier hs-var">response</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-63"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-64"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;serverMessages&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679498779"><span class="hs-identifier hs-var">messages</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-65"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;serverResponse&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Maybe ApiReturnData
+</span><a href="#local-6989586621679498778"><span class="hs-identifier hs-var">response</span></a></span><span>
+</span><span id="line-66"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498775"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-type">ServerApiReturnType</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-69"></span><span>    </span><span id="local-6989586621679498759"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ServerApiReturnType
+</span><a href="#local-6989586621679498759"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [Char] -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ServerApiReturnType&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679498758"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498758"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; Maybe ApiReturnData -&gt; ServerApiReturnType
+</span><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-var">ServerApiReturnType</span></a></span><span>
+</span><span id="line-70"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498758"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;serverMessages&quot;</span></span><span>
+</span><span id="line-71"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498758"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;serverResponse&quot;</span></span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span id="local-6989586621679498755"><span id="local-6989586621679498756"></span></span><span class="hs-keyword">data</span><span> </span><span id="ApiReturnData"><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnData"><span class="hs-identifier hs-var">ApiReturnData</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ApiReturnPackageInfo"><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnPackageInfo"><span class="hs-identifier hs-var">ApiReturnPackageInfo</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-type">PackageInfo</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-74"></span><span>                   </span><span class="hs-glyph">|</span><span> </span><span id="ApiReturnGroupInfo"><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnGroupInfo"><span class="hs-identifier hs-var">ApiReturnGroupInfo</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-type">GroupInfo</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-75"></span><span>                   </span><span class="hs-glyph">|</span><span> </span><span id="ApiReturnExtIndividualInfo"><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnExtIndividualInfo"><span class="hs-identifier hs-var">ApiReturnExtIndividualInfo</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-type">ExtendedIndividualInfo</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-76"></span><span>                   </span><span class="hs-glyph">|</span><span> </span><span id="ApiReturnJanno"><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnJanno"><span class="hs-identifier hs-var">ApiReturnJanno</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall x. Rep ApiReturnData x -&gt; ApiReturnData
+forall x. ApiReturnData -&gt; Rep ApiReturnData x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep ApiReturnData x -&gt; ApiReturnData
+$cfrom :: forall x. ApiReturnData -&gt; Rep ApiReturnData x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498740"><span id="local-6989586621679498742"><span id="local-6989586621679498744"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnData"><span class="hs-identifier hs-type">ApiReturnData</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>    </span><span id="local-6989586621679498700"><span class="annot"><span class="annottext">toJSON :: ApiReturnData -&gt; Value
+</span><a href="#local-6989586621679498700"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnPackageInfo"><span class="hs-identifier hs-type">ApiReturnPackageInfo</span></a></span><span> </span><span id="local-6989586621679498699"><span class="annot"><span class="annottext">[PackageInfo]
+</span><a href="#local-6989586621679498699"><span class="hs-identifier hs-var">pacInfo</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-80"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-81"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;constructor&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;ApiReturnPackageInfo&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-82"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageInfo&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[PackageInfo]
+</span><a href="#local-6989586621679498699"><span class="hs-identifier hs-var">pacInfo</span></a></span><span>
+</span><span id="line-83"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-84"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnGroupInfo"><span class="hs-identifier hs-type">ApiReturnGroupInfo</span></a></span><span> </span><span id="local-6989586621679498698"><span class="annot"><span class="annottext">[GroupInfo]
+</span><a href="#local-6989586621679498698"><span class="hs-identifier hs-var">groupInfo</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-85"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-86"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;constructor&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;ApiReturnGroupInfo&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-87"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;groupInfo&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[GroupInfo]
+</span><a href="#local-6989586621679498698"><span class="hs-identifier hs-var">groupInfo</span></a></span><span>
+</span><span id="line-88"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnExtIndividualInfo"><span class="hs-identifier hs-type">ApiReturnExtIndividualInfo</span></a></span><span> </span><span id="local-6989586621679498697"><span class="annot"><span class="annottext">[ExtendedIndividualInfo]
+</span><a href="#local-6989586621679498697"><span class="hs-identifier hs-var">indInfo</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-90"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-91"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;constructor&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;ApiReturnExtIndividualInfo&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-92"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;extIndInfo&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[ExtendedIndividualInfo]
+</span><a href="#local-6989586621679498697"><span class="hs-identifier hs-var">indInfo</span></a></span><span>
+</span><span id="line-93"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnJanno"><span class="hs-identifier hs-type">ApiReturnJanno</span></a></span><span> </span><span id="local-6989586621679498696"><span class="annot"><span class="annottext">[([Char], JannoRows)]
+</span><a href="#local-6989586621679498696"><span class="hs-identifier hs-var">janno</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-95"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-96"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;constructor&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;ApiReturnJanno&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-97"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;janno&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[([Char], JannoRows)]
+</span><a href="#local-6989586621679498696"><span class="hs-identifier hs-var">janno</span></a></span><span>
+</span><span id="line-98"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498693"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnData"><span class="hs-identifier hs-type">ApiReturnData</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-101"></span><span>    </span><span id="local-6989586621679498654"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ApiReturnData
+</span><a href="#local-6989586621679498654"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [Char] -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ApiReturnData&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679498653"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498653"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-102"></span><span>        </span><span id="local-6989586621679498652"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498652"><span class="hs-identifier hs-var">constr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498653"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;constructor&quot;</span></span><span>
+</span><span id="line-103"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498652"><span class="hs-identifier hs-var">constr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-104"></span><span>            </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ApiReturnPackageInfo&quot;</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[PackageInfo] -&gt; ApiReturnData
+</span><a href="Poseidon.ServerClient.html#ApiReturnPackageInfo"><span class="hs-identifier hs-var">ApiReturnPackageInfo</span></a></span><span>       </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498653"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageInfo&quot;</span></span><span>
+</span><span id="line-105"></span><span>            </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ApiReturnGroupInfo&quot;</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[GroupInfo] -&gt; ApiReturnData
+</span><a href="Poseidon.ServerClient.html#ApiReturnGroupInfo"><span class="hs-identifier hs-var">ApiReturnGroupInfo</span></a></span><span>         </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498653"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;groupInfo&quot;</span></span><span>
+</span><span id="line-106"></span><span>            </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ApiReturnExtIndividualInfo&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[ExtendedIndividualInfo] -&gt; ApiReturnData
+</span><a href="Poseidon.ServerClient.html#ApiReturnExtIndividualInfo"><span class="hs-identifier hs-var">ApiReturnExtIndividualInfo</span></a></span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498653"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;extIndInfo&quot;</span></span><span>
+</span><span id="line-107"></span><span>            </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ApiReturnJanno&quot;</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[([Char], JannoRows)] -&gt; ApiReturnData
+</span><a href="Poseidon.ServerClient.html#ApiReturnJanno"><span class="hs-identifier hs-var">ApiReturnJanno</span></a></span><span>             </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498653"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;janno&quot;</span></span><span>
+</span><span id="line-108"></span><span>            </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span>                            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. HasCallStack =&gt; [Char] -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;cannot parse ApiReturnType with constructor &quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498652"><span class="hs-identifier hs-var">constr</span></a></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="hs-keyword">data</span><span> </span><span id="PackageInfo"><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-var">PackageInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PackageInfo"><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-var">PackageInfo</span></a></span></span><span>
+</span><span id="line-112"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="pPac"><span class="annot"><span class="annottext">PackageInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#pPac"><span class="hs-identifier hs-var hs-var">pPac</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-type">PacNameAndVersion</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="pIsLatest"><span class="annot"><span class="annottext">PackageInfo -&gt; Bool
+</span><a href="Poseidon.ServerClient.html#pIsLatest"><span class="hs-identifier hs-var hs-var">pIsLatest</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="pPosVersion"><span class="annot"><span class="annottext">PackageInfo -&gt; Version
+</span><a href="Poseidon.ServerClient.html#pPosVersion"><span class="hs-identifier hs-var hs-var">pPosVersion</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="pDescription"><span class="annot"><span class="annottext">PackageInfo -&gt; Maybe [Char]
+</span><a href="Poseidon.ServerClient.html#pDescription"><span class="hs-identifier hs-var hs-var">pDescription</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-116"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="pLastModified"><span class="annot"><span class="annottext">PackageInfo -&gt; Maybe Day
+</span><a href="Poseidon.ServerClient.html#pLastModified"><span class="hs-identifier hs-var hs-var">pLastModified</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Day</span></span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="pNrIndividuals"><span class="annot"><span class="annottext">PackageInfo -&gt; Int
+</span><a href="Poseidon.ServerClient.html#pNrIndividuals"><span class="hs-identifier hs-var hs-var">pNrIndividuals</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-118"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679498627"><span id="local-6989586621679498642"><span class="annot"><span class="annottext">PackageInfo -&gt; PackageInfo -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: PackageInfo -&gt; PackageInfo -&gt; Bool
+$c/= :: PackageInfo -&gt; PackageInfo -&gt; Bool
+== :: PackageInfo -&gt; PackageInfo -&gt; Bool
+$c== :: PackageInfo -&gt; PackageInfo -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679498584"><span id="local-6989586621679498586"><span id="local-6989586621679498589"><span id="local-6989586621679498592"><span id="local-6989586621679498595"><span id="local-6989586621679498605"><span id="local-6989586621679498620"><span class="annot"><span class="annottext">Eq PackageInfo
+PackageInfo -&gt; PackageInfo -&gt; Bool
+PackageInfo -&gt; PackageInfo -&gt; Ordering
+PackageInfo -&gt; PackageInfo -&gt; PackageInfo
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: PackageInfo -&gt; PackageInfo -&gt; PackageInfo
+$cmin :: PackageInfo -&gt; PackageInfo -&gt; PackageInfo
+max :: PackageInfo -&gt; PackageInfo -&gt; PackageInfo
+$cmax :: PackageInfo -&gt; PackageInfo -&gt; PackageInfo
+&gt;= :: PackageInfo -&gt; PackageInfo -&gt; Bool
+$c&gt;= :: PackageInfo -&gt; PackageInfo -&gt; Bool
+&gt; :: PackageInfo -&gt; PackageInfo -&gt; Bool
+$c&gt; :: PackageInfo -&gt; PackageInfo -&gt; Bool
+&lt;= :: PackageInfo -&gt; PackageInfo -&gt; Bool
+$c&lt;= :: PackageInfo -&gt; PackageInfo -&gt; Bool
+&lt; :: PackageInfo -&gt; PackageInfo -&gt; Bool
+$c&lt; :: PackageInfo -&gt; PackageInfo -&gt; Bool
+compare :: PackageInfo -&gt; PackageInfo -&gt; Ordering
+$ccompare :: PackageInfo -&gt; PackageInfo -&gt; Ordering
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#HasNameAndVersion"><span class="hs-identifier hs-type">HasNameAndVersion</span></a></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-type">PackageInfo</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-121"></span><span>    </span><span id="local-6989586621679498569"><span class="annot"><span class="annottext">getPacName :: PackageInfo -&gt; [Char]
+</span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; [Char]
+</span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PackageInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#pPac"><span class="hs-identifier hs-var">pPac</span></a></span><span>
+</span><span id="line-122"></span><span>    </span><span id="local-6989586621679498565"><span class="annot"><span class="annottext">getPacVersion :: PackageInfo -&gt; Maybe Version
+</span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
+</span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PackageInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#pPac"><span class="hs-identifier hs-var">pPac</span></a></span><span>
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498557"><span id="local-6989586621679498559"><span id="local-6989586621679498561"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-type">PackageInfo</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-125"></span><span>    </span><span id="local-6989586621679498528"><span class="annot"><span class="annottext">toJSON :: PackageInfo -&gt; Value
+</span><a href="#local-6989586621679498528"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-type">PackageInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-type">PacNameAndVersion</span></a></span><span> </span><span id="local-6989586621679498526"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498526"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679498525"><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679498525"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679498524"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498524"><span class="hs-identifier hs-var">isLatest</span></a></span></span><span> </span><span id="local-6989586621679498523"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679498523"><span class="hs-identifier hs-var">posVersion</span></a></span></span><span> </span><span id="local-6989586621679498522"><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679498522"><span class="hs-identifier hs-var">description</span></a></span></span><span> </span><span id="local-6989586621679498521"><span class="annot"><span class="annottext">Maybe Day
+</span><a href="#local-6989586621679498521"><span class="hs-identifier hs-var">lastModified</span></a></span></span><span> </span><span id="local-6989586621679498520"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679498520"><span class="hs-identifier hs-var">nrIndividuals</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-126"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-127"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageTitle&quot;</span></span><span>    </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498526"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-128"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageVersion&quot;</span></span><span>  </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679498525"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-129"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;isLatest&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498524"><span class="hs-identifier hs-var">isLatest</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-130"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;poseidonVersion&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679498523"><span class="hs-identifier hs-var">posVersion</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-131"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;description&quot;</span></span><span>     </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679498522"><span class="hs-identifier hs-var">description</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-132"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;lastModified&quot;</span></span><span>    </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Maybe Day
+</span><a href="#local-6989586621679498521"><span class="hs-identifier hs-var">lastModified</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-133"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;nrIndividuals&quot;</span></span><span>   </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679498520"><span class="hs-identifier hs-var">nrIndividuals</span></a></span><span>
+</span><span id="line-134"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-135"></span><span>
+</span><span id="line-136"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498517"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-type">PackageInfo</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-137"></span><span>    </span><span id="local-6989586621679498487"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PackageInfo
+</span><a href="#local-6989586621679498487"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [Char] -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;PackageInfo&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679498486"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PacNameAndVersion
+-&gt; Bool
+-&gt; Version
+-&gt; Maybe [Char]
+-&gt; Maybe Day
+-&gt; Int
+-&gt; PackageInfo
+</span><a href="Poseidon.ServerClient.html#PackageInfo"><span class="hs-identifier hs-var">PackageInfo</span></a></span><span>
+</span><span id="line-138"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; Maybe Version -&gt; PacNameAndVersion
+</span><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-var">PacNameAndVersion</span></a></span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageTitle&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageVersion&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;isLatest&quot;</span></span><span>
+</span><span id="line-140"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;poseidonVersion&quot;</span></span><span>
+</span><span id="line-141"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;description&quot;</span></span><span>
+</span><span id="line-142"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;lastModified&quot;</span></span><span>
+</span><span id="line-143"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498486"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;nrIndividuals&quot;</span></span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="hs-keyword">data</span><span> </span><span id="GroupInfo"><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-var">GroupInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="GroupInfo"><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-var">GroupInfo</span></a></span></span><span>
+</span><span id="line-146"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="gName"><span class="annot"><span class="annottext">GroupInfo -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#gName"><span class="hs-identifier hs-var hs-var">gName</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-147"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="gPackage"><span class="annot"><span class="annottext">GroupInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#gPackage"><span class="hs-identifier hs-var hs-var">gPackage</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-type">PacNameAndVersion</span></a></span><span>
+</span><span id="line-148"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="gIsLatest"><span class="annot"><span class="annottext">GroupInfo -&gt; Bool
+</span><a href="Poseidon.ServerClient.html#gIsLatest"><span class="hs-identifier hs-var hs-var">gIsLatest</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-149"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="gNrIndividuals"><span class="annot"><span class="annottext">GroupInfo -&gt; Int
+</span><a href="Poseidon.ServerClient.html#gNrIndividuals"><span class="hs-identifier hs-var hs-var">gNrIndividuals</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-150"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679498472"><span id="local-6989586621679498479"><span class="annot"><span class="annottext">GroupInfo -&gt; GroupInfo -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: GroupInfo -&gt; GroupInfo -&gt; Bool
+$c/= :: GroupInfo -&gt; GroupInfo -&gt; Bool
+== :: GroupInfo -&gt; GroupInfo -&gt; Bool
+$c== :: GroupInfo -&gt; GroupInfo -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498465"><span id="local-6989586621679498467"><span id="local-6989586621679498469"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-type">GroupInfo</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-153"></span><span>    </span><span id="local-6989586621679498447"><span class="annot"><span class="annottext">toJSON :: GroupInfo -&gt; Value
+</span><a href="#local-6989586621679498447"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-type">GroupInfo</span></a></span><span> </span><span id="local-6989586621679498446"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498446"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-type">PacNameAndVersion</span></a></span><span> </span><span id="local-6989586621679498445"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498445"><span class="hs-identifier hs-var">pacTitle</span></a></span></span><span> </span><span id="local-6989586621679498444"><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679498444"><span class="hs-identifier hs-var">pacVersion</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679498443"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498443"><span class="hs-identifier hs-var">isLatest</span></a></span></span><span> </span><span id="local-6989586621679498442"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679498442"><span class="hs-identifier hs-var">nrIndividuals</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-154"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-155"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;groupName&quot;</span></span><span>       </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498446"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-156"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageTitle&quot;</span></span><span>    </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498445"><span class="hs-identifier hs-var">pacTitle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-157"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageVersion&quot;</span></span><span>  </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679498444"><span class="hs-identifier hs-var">pacVersion</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-158"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;isLatest&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498443"><span class="hs-identifier hs-var">isLatest</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-159"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;nrIndividuals&quot;</span></span><span>   </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679498442"><span class="hs-identifier hs-var">nrIndividuals</span></a></span><span>
+</span><span id="line-160"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-161"></span><span>
+</span><span id="line-162"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498439"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-type">GroupInfo</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-163"></span><span>    </span><span id="local-6989586621679498420"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser GroupInfo
+</span><a href="#local-6989586621679498420"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [Char] -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;GroupInfo&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679498419"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498419"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-164"></span><span>        </span><span id="local-6989586621679498418"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498418"><span class="hs-identifier hs-var">groupName</span></a></span></span><span>      </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498419"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;groupName&quot;</span></span><span>
+</span><span id="line-165"></span><span>        </span><span id="local-6989586621679498417"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498417"><span class="hs-identifier hs-var">packageTitle</span></a></span></span><span>   </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498419"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageTitle&quot;</span></span><span>
+</span><span id="line-166"></span><span>        </span><span id="local-6989586621679498416"><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679498416"><span class="hs-identifier hs-var">packageVersion</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498419"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageVersion&quot;</span></span><span>
+</span><span id="line-167"></span><span>        </span><span id="local-6989586621679498415"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498415"><span class="hs-identifier hs-var">isLatest</span></a></span></span><span>       </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498419"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;isLatest&quot;</span></span><span>
+</span><span id="line-168"></span><span>        </span><span id="local-6989586621679498414"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679498414"><span class="hs-identifier hs-var">nrIndividuals</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498419"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;nrIndividuals&quot;</span></span><span>
+</span><span id="line-169"></span><span>        </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; PacNameAndVersion -&gt; Bool -&gt; Int -&gt; GroupInfo
+</span><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-var">GroupInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498418"><span class="hs-identifier hs-var">groupName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; Maybe Version -&gt; PacNameAndVersion
+</span><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-var">PacNameAndVersion</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498417"><span class="hs-identifier hs-var">packageTitle</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679498416"><span class="hs-identifier hs-var">packageVersion</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498415"><span class="hs-identifier hs-var">isLatest</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679498414"><span class="hs-identifier hs-var">nrIndividuals</span></a></span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#HasNameAndVersion"><span class="hs-identifier hs-type">HasNameAndVersion</span></a></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#GroupInfo"><span class="hs-identifier hs-type">GroupInfo</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-172"></span><span>    </span><span id="local-6989586621679498407"><span class="annot"><span class="annottext">getPacName :: GroupInfo -&gt; [Char]
+</span><a href="#local-6989586621679498407"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; [Char]
+</span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">GroupInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#gPackage"><span class="hs-identifier hs-var">gPackage</span></a></span><span>
+</span><span id="line-173"></span><span>    </span><span id="local-6989586621679498405"><span class="annot"><span class="annottext">getPacVersion :: GroupInfo -&gt; Maybe Version
+</span><a href="#local-6989586621679498405"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
+</span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">GroupInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#gPackage"><span class="hs-identifier hs-var">gPackage</span></a></span><span>
+</span><span id="line-174"></span><span>
+</span><span id="line-175"></span><span class="hs-keyword">data</span><span> </span><span id="ExtendedIndividualInfo"><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-var">ExtendedIndividualInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ExtendedIndividualInfo"><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-var">ExtendedIndividualInfo</span></a></span></span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-special">{</span><span>
+</span><span id="line-177"></span><span>      </span><span id="extIndInfoName"><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#extIndInfoName"><span class="hs-identifier hs-var hs-var">extIndInfoName</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-178"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="extIndInfoGroups"><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; [[Char]]
+</span><a href="Poseidon.ServerClient.html#extIndInfoGroups"><span class="hs-identifier hs-var hs-var">extIndInfoGroups</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-179"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="extIndInfoPac"><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#extIndInfoPac"><span class="hs-identifier hs-var hs-var">extIndInfoPac</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-type">PacNameAndVersion</span></a></span><span>
+</span><span id="line-180"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="extIndInfoIsLatest"><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; Bool
+</span><a href="Poseidon.ServerClient.html#extIndInfoIsLatest"><span class="hs-identifier hs-var hs-var">extIndInfoIsLatest</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-181"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="extIndInfoAddCols"><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; [([Char], Maybe [Char])]
+</span><a href="Poseidon.ServerClient.html#extIndInfoAddCols"><span class="hs-identifier hs-var hs-var">extIndInfoAddCols</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-182"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679498388"><span id="local-6989586621679498397"><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; ExtendedIndividualInfo -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ExtendedIndividualInfo -&gt; ExtendedIndividualInfo -&gt; Bool
+$c/= :: ExtendedIndividualInfo -&gt; ExtendedIndividualInfo -&gt; Bool
+== :: ExtendedIndividualInfo -&gt; ExtendedIndividualInfo -&gt; Bool
+$c== :: ExtendedIndividualInfo -&gt; ExtendedIndividualInfo -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#HasNameAndVersion"><span class="hs-identifier hs-type">HasNameAndVersion</span></a></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-type">ExtendedIndividualInfo</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-185"></span><span>    </span><span id="local-6989586621679498379"><span class="annot"><span class="annottext">getPacName :: ExtendedIndividualInfo -&gt; [Char]
+</span><a href="#local-6989586621679498379"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; [Char]
+</span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#extIndInfoPac"><span class="hs-identifier hs-var">extIndInfoPac</span></a></span><span>
+</span><span id="line-186"></span><span>    </span><span id="local-6989586621679498377"><span class="annot"><span class="annottext">getPacVersion :: ExtendedIndividualInfo -&gt; Maybe Version
+</span><a href="#local-6989586621679498377"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
+</span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#extIndInfoPac"><span class="hs-identifier hs-var">extIndInfoPac</span></a></span><span>
+</span><span id="line-187"></span><span>
+</span><span id="line-188"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498370"><span id="local-6989586621679498372"><span id="local-6989586621679498374"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-type">ExtendedIndividualInfo</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-189"></span><span>    </span><span id="local-6989586621679498345"><span class="annot"><span class="annottext">toJSON :: ExtendedIndividualInfo -&gt; Value
+</span><a href="#local-6989586621679498345"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span id="local-6989586621679498344"><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-190"></span><span>        </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-191"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;poseidonID&quot;</span></span><span>             </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; [Char]
+</span><a href="Poseidon.ServerClient.html#extIndInfoName"><span class="hs-identifier hs-var">extIndInfoName</span></a></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-192"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;groupNames&quot;</span></span><span>             </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; [[Char]]
+</span><a href="Poseidon.ServerClient.html#extIndInfoGroups"><span class="hs-identifier hs-var">extIndInfoGroups</span></a></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-193"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageTitle&quot;</span></span><span>           </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; [Char]
+</span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span>     </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#extIndInfoPac"><span class="hs-identifier hs-var">extIndInfoPac</span></a></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-194"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageVersion&quot;</span></span><span>         </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
+</span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span>  </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; PacNameAndVersion
+</span><a href="Poseidon.ServerClient.html#extIndInfoPac"><span class="hs-identifier hs-var">extIndInfoPac</span></a></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-195"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;isLatest&quot;</span></span><span>               </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; Bool
+</span><a href="Poseidon.ServerClient.html#extIndInfoIsLatest"><span class="hs-identifier hs-var">extIndInfoIsLatest</span></a></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-196"></span><span>            </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;additionalJannoColumns&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo -&gt; [([Char], Maybe [Char])]
+</span><a href="Poseidon.ServerClient.html#extIndInfoAddCols"><span class="hs-identifier hs-var">extIndInfoAddCols</span></a></span><span> </span><span class="annot"><span class="annottext">ExtendedIndividualInfo
+</span><a href="#local-6989586621679498344"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498341"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-type">ExtendedIndividualInfo</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-199"></span><span>    </span><span id="local-6989586621679498317"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ExtendedIndividualInfo
+</span><a href="#local-6989586621679498317"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [Char] -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ExtendedIndividualInfo&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679498316"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
+-&gt; [[Char]]
+-&gt; PacNameAndVersion
+-&gt; Bool
+-&gt; [([Char], Maybe [Char])]
+-&gt; ExtendedIndividualInfo
+</span><a href="Poseidon.ServerClient.html#ExtendedIndividualInfo"><span class="hs-identifier hs-var">ExtendedIndividualInfo</span></a></span><span>
+</span><span id="line-200"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;poseidonID&quot;</span></span><span>
+</span><span id="line-201"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;groupNames&quot;</span></span><span>
+</span><span id="line-202"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; Maybe Version -&gt; PacNameAndVersion
+</span><a href="Poseidon.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-var">PacNameAndVersion</span></a></span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageTitle&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;packageVersion&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-203"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;isLatest&quot;</span></span><span>
+</span><span id="line-204"></span><span>            </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679498316"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;additionalJannoColumns&quot;</span></span><span>
+</span><span id="line-205"></span><span>
+</span><span id="line-206"></span><span class="annot"><a href="Poseidon.ServerClient.html#processApiResponse"><span class="hs-identifier hs-type">processApiResponse</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><a href="Poseidon.ServerClient.html#ApiReturnData"><span class="hs-identifier hs-type">ApiReturnData</span></a></span><span>
+</span><span id="line-207"></span><span id="processApiResponse"><span class="annot"><span class="annottext">processApiResponse :: [Char] -&gt; Bool -&gt; PoseidonIO ApiReturnData
+</span><a href="Poseidon.ServerClient.html#processApiResponse"><span class="hs-identifier hs-var hs-var">processApiResponse</span></a></span></span><span> </span><span id="local-6989586621679498315"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498315"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span id="local-6989586621679498314"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498314"><span class="hs-identifier hs-var">quiet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-208"></span><span>    </span><span id="local-6989586621679498313"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679498313"><span class="hs-identifier hs-var">remoteData</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
+</span><span class="hs-identifier hs-var">catch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall (m :: * -&gt; *). MonadIO m =&gt; [Char] -&gt; m ByteString
+</span><span class="hs-identifier hs-var">simpleHttp</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498315"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall e a. Exception e =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HttpException -&gt; PoseidonException
+</span><a href="Poseidon.Utils.html#PoseidonHttpExceptionForward"><span class="hs-identifier hs-var">PoseidonHttpExceptionForward</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-209"></span><span>    </span><span class="annot"><a href="Poseidon.ServerClient.html#ServerApiReturnType"><span class="hs-identifier hs-type">ServerApiReturnType</span></a></span><span> </span><span id="local-6989586621679498311"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679498311"><span class="hs-identifier hs-var">messages</span></a></span></span><span> </span><span id="local-6989586621679498310"><span class="annot"><span class="annottext">Maybe ApiReturnData
+</span><a href="#local-6989586621679498310"><span class="hs-identifier hs-var">maybeReturn</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">forall a. FromJSON a =&gt; ByteString -&gt; Either [Char] a
+</span><span class="hs-identifier hs-var">eitherDecode'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679498313"><span class="hs-identifier hs-var">remoteData</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-210"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679498309"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498309"><span class="hs-identifier hs-var">err</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">forall e a. Exception e =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonException
+</span><a href="Poseidon.Utils.html#PoseidonRemoteJSONParsingException"><span class="hs-identifier hs-var">PoseidonRemoteJSONParsingException</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498309"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-211"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679498307"><span class="annot"><span class="annottext">ServerApiReturnType
+</span><a href="#local-6989586621679498307"><span class="hs-identifier hs-var">sam</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">ServerApiReturnType
+</span><a href="#local-6989586621679498307"><span class="hs-identifier hs-var">sam</span></a></span><span>
+</span><span id="line-212"></span><span>    </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679498311"><span class="hs-identifier hs-var">messages</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679498314"><span class="hs-identifier hs-var">quiet</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-213"></span><span>        </span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m ()
+</span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679498311"><span class="hs-identifier hs-var">messages</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679498304"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498304"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ReaderT Env IO ()
+</span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Message from the Server: &quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498304"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-214"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe ApiReturnData
+</span><a href="#local-6989586621679498310"><span class="hs-identifier hs-var">maybeReturn</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-215"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679498303"><span class="annot"><span class="annottext">ApiReturnData
+</span><a href="#local-6989586621679498303"><span class="hs-identifier hs-var">apiReturn</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">ApiReturnData
+</span><a href="#local-6989586621679498303"><span class="hs-identifier hs-var">apiReturn</span></a></span><span>
+</span><span id="line-216"></span><span>        </span><span class="annot"><span class="annottext">Maybe ApiReturnData
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-217"></span><span>            </span><span class="annot"><span class="annottext">[Char] -&gt; ReaderT Env IO ()
+</span><a href="Poseidon.Utils.html#logError"><span class="hs-identifier hs-var">logError</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;The server request was unsuccessful&quot;</span></span><span>
+</span><span id="line-218"></span><span>            </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">forall e a. Exception e =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonException
+</span><a href="Poseidon.Utils.html#PoseidonServerCommunicationException"><span class="hs-identifier hs-var">PoseidonServerCommunicationException</span></a></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Server error upon URL &quot;</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679498315"><span class="hs-identifier hs-var">url</span></a></span><span>
+</span><span id="line-219"></span></pre></body></html>
