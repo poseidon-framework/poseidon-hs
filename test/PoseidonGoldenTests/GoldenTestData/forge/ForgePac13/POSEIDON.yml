@@ -1,0 +1,18 @@
+poseidonVersion: 2.7.1
+title: ForgePac13
+description: Empty package template. Please add a description
+contributor:
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
+packageVersion: 0.1.0
+lastModified: 1970-01-01
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: ForgePac13.geno
+  snpFile: ForgePac13.snp
+  indFile: ForgePac13.ind
+  snpSet: Other
+jannoFile: ForgePac13.janno
+sequencingSourceFile: ForgePac13.ssf
+bibFile: ForgePac13.bib

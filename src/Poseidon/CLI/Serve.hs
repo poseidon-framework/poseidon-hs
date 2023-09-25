@@ -3,18 +3,20 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
+import           Poseidon.EntityTypes         (HasNameAndVersion (..),
+                                               PacNameAndVersion,
+                                               renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
                                                getExtendedIndividualInfo,
-                                               packageToPackageInfo,
+                                               packagesToPackageInfos,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
-import           Poseidon.SecondaryTypes      (ApiReturnData (..),
-                                               ServerApiReturnType (..),
-                                               makeNameWithVersion)
+import           Poseidon.ServerClient        (ApiReturnData (..),
+                                               ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
 
@@ -58,7 +60,7 @@ data ServeOptions = ServeOptions
     }
     deriving (Show)
 
-type ZipStore = [((String, Maybe Version), FilePath)] -- maps PackageName+Version to a zipfile-path
+type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
 type ArchiveName = String
 
@@ -75,10 +77,8 @@ runServerMainThread opts = do
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
 runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
     let pacReadOpts = defaultPackageReadOptions {
-            _readOptStopOnDuplicates = False
-            , _readOptIgnoreChecksums  = ignoreChecksums
+              _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = isJust maybeZipPath
-            , _readOptKeepMultipleVersions = True
         }
 
     logInfo "Server starting up. Loading packages..."
@@ -105,26 +105,27 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            let retData = ApiReturnPackageInfo . map packageToPackageInfo $ pacs
+            pacInfos <- packagesToPackageInfos pacs
+            let retData = ApiReturnPackageInfo pacInfos
             return $ ServerApiReturnType [] (Just retData)
 
         get "/groups" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            let retData = ApiReturnGroupInfo . getAllGroupInfo $ pacs
+            groupInfos <- getAllGroupInfo pacs
+            let retData = ApiReturnGroupInfo groupInfos
             return $ ServerApiReturnType [] (Just retData)
 
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
-
-            let extIndInfo = case maybeAdditionalColumnsString of
+            indInfo <- case maybeAdditionalColumnsString of
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
                         in  getExtendedIndividualInfo pacs additionalColumnNames
                     Nothing -> getExtendedIndividualInfo pacs []
-            let retData = ApiReturnExtIndividualInfo extIndInfo
+            let retData = ApiReturnExtIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
@@ -138,14 +139,14 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 Just versionStr -> case parseVersionString versionStr of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
-            case sortOn (Down . snd . fst) . filter ((==packageName) . fst . fst) $ zipStore of
-                [] -> raise . pack $ "unknown package " ++ packageName
-                [((_, pv), fn)] -> case maybeVersion of
+            case sortOn (Down . fst) . filter ((==packageName) . getPacName . fst) $ zipStore of
+                [] -> raise . pack $ "unknown package " ++ packageName -- no version found
+                [(pacNameAndVersion, fn)] -> case maybeVersion of -- exactly one version found
                     Nothing -> file fn
-                    Just v -> if pv == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
+                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
                 pl@((_, fnLatest) : _) -> case maybeVersion of
                     Nothing -> file fnLatest
-                    Just v -> case filter ((==Just v) . snd . fst) pl of
+                    Just v -> case filter ((==Just v) . getPacVersion . fst) pl of
                         [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
@@ -168,7 +169,7 @@ createZipArchiveStore archiveStore zipPath =
         (archiveName,) <$> forM packages (\pac -> do
             logInfo "Checking whether zip files are missing or outdated"
             liftIO $ createDirectoryIfMissing True (zipPath </> archiveName)
-            let combinedPackageVersionTitle = makeNameWithVersion pac
+            let combinedPackageVersionTitle = renderNameWithVersion pac
             let fn = zipPath </> archiveName </> combinedPackageVersionTitle <.> "zip"
             zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
             when zipFileOutdated $ do
@@ -176,7 +177,7 @@ createZipArchiveStore archiveStore zipPath =
                 zip_ <- liftIO $ makeZipArchive pac
                 let zip_raw = fromArchive zip_
                 liftIO $ B.writeFile fn zip_raw
-            return ((posPacTitle pac, posPacPackageVersion pac), fn))
+            return (posPacNameAndVersion pac, fn))
 
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]

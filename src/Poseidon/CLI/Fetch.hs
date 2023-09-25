@@ -2,49 +2,49 @@
 
 module Poseidon.CLI.Fetch where
 
-import           Poseidon.EntitiesList   (EntityInput, PoseidonEntity,
-                                          findNonExistentEntities,
-                                          indInfoFindRelevantPackageNames,
-                                          readEntityInputs)
-import           Poseidon.MathHelpers    (roundTo, roundToStr)
-import           Poseidon.Package        (PackageReadOptions (..),
-                                          PoseidonPackage (..),
-                                          defaultPackageReadOptions,
-                                          readPoseidonPackageCollection)
-import           Poseidon.SecondaryTypes (ApiReturnData (..),
-                                          ArchiveEndpoint (..),
-                                          ExtendedIndividualInfo (ExtendedIndividualInfo),
-                                          IndividualInfo (..),
-                                          PacNameAndVersion (..),
-                                          PackageInfo (..), makeNameWithVersion,
-                                          processApiResponse, qArchive,
-                                          qDefault)
-import           Poseidon.Utils          (LogA, PoseidonException (..),
-                                          PoseidonIO, envLogAction, logInfo,
-                                          logWarning, logWithEnv, padLeft)
+import           Poseidon.EntityTypes   (EntityInput, HasNameAndVersion (..),
+                                         IndividualInfo (..),
+                                         PacNameAndVersion (..), PoseidonEntity,
+                                         checkIfAllEntitiesExist,
+                                         determineRelevantPackages,
+                                         makePacNameAndVersion,
+                                         readEntityInputs,
+                                         renderNameWithVersion)
+import           Poseidon.MathHelpers   (roundTo, roundToStr)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection)
+import           Poseidon.ServerClient  (ApiReturnData (..),
+                                         ArchiveEndpoint (..),
+                                         ExtendedIndividualInfo (..),
+                                         PackageInfo (..), processApiResponse,
+                                         qDefault, qPacVersion, (+&+))
+import           Poseidon.Utils         (LogA, PoseidonException (..),
+                                         PoseidonIO, envLogAction, logDebug,
+                                         logInfo, logWithEnv, padLeft)
 
-import           Codec.Archive.Zip       (ZipOption (..),
-                                          extractFilesFromArchive, toArchive)
-import           Conduit                 (ResourceT, await, runResourceT,
-                                          sinkFile, yield)
-import           Control.Exception       (catch, throwIO)
-import           Control.Monad           (forM_, unless, when)
-import           Control.Monad.IO.Class  (liftIO)
-import           Data.Aeson              (eitherDecode')
-import qualified Data.ByteString         as B
-import           Data.ByteString.Char8   as B8 (unpack)
-import qualified Data.ByteString.Lazy    as LB
-import           Data.Conduit            (ConduitT, sealConduitT, ($$+-), (.|))
-import           Data.List               (groupBy, sortBy)
-import           Data.Maybe              (fromMaybe)
-import           Data.Version            (Version, showVersion)
-import           Network.HTTP.Conduit    (http, newManager, parseRequest,
-                                          responseBody, responseHeaders,
-                                          tlsManagerSettings)
-import           Network.HTTP.Types      (hContentLength)
-import           System.Directory        (createDirectoryIfMissing,
-                                          removeDirectory, removeFile)
-import           System.FilePath         ((</>))
+import           Codec.Archive.Zip      (ZipOption (..),
+                                         extractFilesFromArchive, toArchive)
+import           Conduit                (ResourceT, await, runResourceT,
+                                         sinkFile, yield)
+import           Control.Exception      (catch, throwIO)
+import           Control.Monad          (forM_, unless, when)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Aeson             (eitherDecode')
+import qualified Data.ByteString        as B
+import           Data.ByteString.Char8  as B8 (unpack)
+import qualified Data.ByteString.Lazy   as LB
+import           Data.Conduit           (ConduitT, sealConduitT, ($$+-), (.|))
+import           Data.List              (intercalate)
+import           Data.Maybe             (fromMaybe)
+import           Data.Version           (Version, showVersion)
+import           Network.HTTP.Conduit   (http, newManager, parseRequest,
+                                         responseBody, responseHeaders,
+                                         tlsManagerSettings)
+import           Network.HTTP.Types     (hContentLength)
+import           System.Directory       (createDirectoryIfMissing,
+                                         removeDirectory, removeFile)
+import           System.FilePath        ((</>))
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]
@@ -54,13 +54,11 @@ data FetchOptions = FetchOptions
 
 data PackageState = NotLocal
     | EqualLocalRemote
-    | LaterRemote
-    | LaterLocal
+    | UnequalLocalRemote
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
+      _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
     }
@@ -68,61 +66,50 @@ pacReadOpts = defaultPackageReadOptions {
 -- | The main function running the Fetch command
 runFetch :: FetchOptions -> PoseidonIO ()
 runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL archive)) = do
-
+    -- create download directory + temporary storage for downloaded .zip archives
     let downloadDir = head baseDirs
         tempDir = downloadDir </> ".trident_download_folder"
-
     logInfo $ "Download directory (will be created if missing): " ++ downloadDir
     liftIO $ createDirectoryIfMissing True downloadDir
-
     -- compile entities
     entities <- readEntityInputs entityInputs
-
-    -- load remote package list
+    logDebug "Requested entities:"
+    mapM_ (logDebug . show) entities
+    -- load remote information to decide what to download
     logInfo "Downloading individual list from remote"
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnExtIndividualInfo extIndInfo -> return [IndividualInfo i g p | ExtendedIndividualInfo i g p _ _ <- extIndInfo]
-            _                             -> error "should not happen"
-
+            ApiReturnExtIndividualInfo indInfo -> return [IndividualInfo n g p | ExtendedIndividualInfo n g p _ _ <- indInfo]
+            _                               -> error "should not happen"
     logInfo "Downloading package list from remote"
     remotePacList <- do
         r <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) True
         case r of
             ApiReturnPackageInfo p -> return p
             _                      -> error "should not happen"
-
-    let nonExistentEntities = findNonExistentEntities entities remoteIndList
-
-    if (not . null) nonExistentEntities then do
-        logWarning "Cannot find the following requested entities:"
-        logWarning $ show nonExistentEntities
-    else do
-        -- load local packages
-        allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-        -- check which remote packages the User wants to have
-        logInfo "Determine requested packages... "
-        let remotePacTitles = map pTitle remotePacList
-        let desiredPacTitles =
-                if null entities then remotePacTitles else indInfoFindRelevantPackageNames entities remoteIndList
-
-        let desiredRemotePackages =
-                map last .
-                groupBy (\x y -> pTitle x == pTitle y) .
-                sortBy (\x y -> compare (pTitle x, pVersion x) (pTitle y, pVersion y)) .
-                filter (\x -> pTitle x `elem` desiredPacTitles) $ remotePacList
-
-        logInfo $ show (length desiredPacTitles) ++ " requested"
-        logInfo $ "Comparing local and remote packages..."
-
-        unless (null desiredRemotePackages) $ do
-            liftIO $ createDirectoryIfMissing False tempDir
-            forM_ desiredRemotePackages $ \pac -> do
-                -- perform package download depending on local-remote state
-                let packageState = determinePackageState allLocalPackages pac
-                handlePackageByState downloadDir tempDir archiveE packageState
-            liftIO $ removeDirectory tempDir
+    -- find and report non-existent entities (throws an exception)
+    checkIfAllEntitiesExist entities remoteIndList
+    -- load local packages
+    allLocalPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    let localPacs = map makePacNameAndVersion allLocalPackages
+    -- check which remote packages the User wants to have
+    logInfo "Determine requested packages... "
+    let remotePacs = map makePacNameAndVersion remotePacList
+    -- prepare list of relevant packages with individual list
+    desiredPacs <- if null entities then pure remotePacs else determineRelevantPackages entities remoteIndList
+    logDebug "Desired packages based on remote individuals list:"
+    mapM_ (logDebug . show) desiredPacs
+    -- start comparison/download process
+    logInfo $ show (length desiredPacs) ++ " requested"
+    logInfo   "Comparing local and remote packages..."
+    unless (null desiredPacs) $ do
+        liftIO $ createDirectoryIfMissing False tempDir
+        forM_ desiredPacs $ \pac -> do
+            -- perform package download depending on local-remote state
+            let packageState = determinePackageState localPacs pac
+            handlePackageByState downloadDir tempDir archiveE packageState
+        liftIO $ removeDirectory tempDir
     logInfo "Done"
 
 readServerIndInfo :: LB.ByteString -> IO [ExtendedIndividualInfo]
@@ -137,37 +124,31 @@ readServerPackageInfo bs = do
         Left err  -> throwIO $ PoseidonRemoteJSONParsingException err
         Right pac -> return pac
 
-determinePackageState :: [PoseidonPackage] -> PackageInfo -> (PackageState, String, Maybe Version, Maybe Version)
-determinePackageState localPacs desiredRemotePac
-    | desiredRemotePacTitle `notElem` localPacsTitles =
-        (NotLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
-    | desiredRemotePacSimple `elem` localPacsSimple =
-        (EqualLocalRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
-    | localVersionOfDesired < desiredRemotePacVersion =
-        (LaterRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
-    | localVersionOfDesired > desiredRemotePacVersion =
-        (LaterLocal, desiredRemotePacTitle, desiredRemotePacVersion, localVersionOfDesired)
+determinePackageState :: [PacNameAndVersion] -> PacNameAndVersion -> (PackageState, String, Maybe Version, [Maybe Version])
+determinePackageState localPacs desiredRemotePac@(PacNameAndVersion desiredRemotePacTitle desiredRemotePacVersion)
+    | desiredRemotePacTitle `notElem` map getPacName localPacs =
+        (NotLocal,           desiredRemotePacTitle, desiredRemotePacVersion, [Nothing])
+    | desiredRemotePac `elem` localPacs =
+        (EqualLocalRemote,   desiredRemotePacTitle, desiredRemotePacVersion, [desiredRemotePacVersion])
+    | desiredRemotePac `notElem` localPacs =
+        (UnequalLocalRemote, desiredRemotePacTitle, desiredRemotePacVersion, localVersionsOfDesired)
     | otherwise = error "determinePackageState: should never happen"
     where
-        desiredRemotePacTitle = pTitle desiredRemotePac
-        desiredRemotePacVersion = pVersion desiredRemotePac
-        desiredRemotePacSimple = (desiredRemotePacTitle, desiredRemotePacVersion)
-        localPacsTitles = map posPacTitle localPacs
-        localPacsVersion = map posPacPackageVersion localPacs
-        localPacsSimple = zip localPacsTitles localPacsVersion
-        localVersionOfDesired = snd $ head $ filter (\x -> fst x == desiredRemotePacTitle) localPacsSimple
+        localVersionsOfDesired = map getPacVersion $ filter (\x -> getPacName x == desiredRemotePacTitle) localPacs
 
-handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, Maybe Version) -> PoseidonIO ()
+handlePackageByState :: FilePath -> FilePath -> ArchiveEndpoint -> (PackageState, String, Maybe Version, [Maybe Version]) -> PoseidonIO ()
 handlePackageByState downloadDir tempDir archiveE (NotLocal, pac, remoteV, _) = do
     logInfo $ "[local _._._" ++ " x remote " ++ printV remoteV ++ "] " ++ pac
-    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion (pac, remoteV))
-handlePackageByState _ _ _ (EqualLocalRemote, pac, remoteV, localV) = do
-    logInfo $ "[local " ++ printV localV ++ " = remote " ++ printV remoteV ++ "] " ++ pac
-handlePackageByState downloadDir tempDir archiveE (LaterRemote, pac, remoteV, localV) = do
-    logInfo $ "[local " ++ printV localV ++ " < remote " ++ printV remoteV ++ "] " ++ pac
-    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion (pac, remoteV))
-handlePackageByState _ _ _ (LaterLocal, pac, remoteV, localV) = do
-    logInfo $ "[local " ++ printV localV ++ " > remote " ++ printV remoteV ++ "] " ++ pac
+    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion pac remoteV)
+handlePackageByState _ _ _ (EqualLocalRemote, pac, remoteV, localVs) = do
+    logInfo $ "[local " ++ printVs localVs ++ " = remote " ++ printV remoteV ++ "] " ++ pac
+handlePackageByState downloadDir tempDir archiveE (UnequalLocalRemote, pac, remoteV, localVs) = do
+    logInfo $ "[local " ++ printVs localVs ++ " < remote " ++ printV remoteV ++ "] " ++ pac
+    downloadAndUnzipPackage downloadDir tempDir archiveE (PacNameAndVersion pac remoteV)
+
+printVs :: [Maybe Version] -> String
+printVs [] = "?.?.?"
+printVs xs = intercalate "," $ map printV xs
 
 printV :: Maybe Version -> String
 printV Nothing  = "?.?.?"
@@ -175,12 +156,12 @@ printV (Just x) = showVersion x
 
 downloadAndUnzipPackage :: FilePath -> FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
 downloadAndUnzipPackage baseDir tempDir archiveE pacNameAndVersion = do
-    let PacNameAndVersion (pacName, _) = pacNameAndVersion
-    logInfo $ "Downloading: " ++ pacName
-    downloadPackage tempDir archiveE pacName
+    let pnv = renderNameWithVersion pacNameAndVersion
+    logInfo $ "Downloading: " ++ pnv
+    downloadPackage tempDir archiveE pacNameAndVersion
     liftIO $ do
-        unzipPackage (tempDir </> pacName) (baseDir </> makeNameWithVersion pacNameAndVersion)
-        removeFile (tempDir </> pacName)
+        unzipPackage (tempDir </> pnv) (baseDir </> pnv)
+        removeFile (tempDir </> pnv)
 
 unzipPackage :: FilePath -> FilePath -> IO ()
 unzipPackage zip_ outDir = do
@@ -188,11 +169,12 @@ unzipPackage zip_ outDir = do
     let archive = toArchive archiveBS
     catch (extractFilesFromArchive [OptRecursive, OptDestination outDir] archive) (throwIO . PoseidonUnzipException)
 
-downloadPackage :: FilePath -> ArchiveEndpoint -> String -> PoseidonIO ()
-downloadPackage pathToRepo (ArchiveEndpoint remoteURL archive) pacName = do
+downloadPackage :: FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
+downloadPackage outDir (ArchiveEndpoint remoteURL archive) pacNameAndVersion@(PacNameAndVersion pacName pacVersion) = do
     logA <- envLogAction
     downloadManager <- liftIO $ newManager tlsManagerSettings
-    packageRequest <- parseRequest (remoteURL ++ "/zip_file/" ++ pacName ++ qArchive archive)
+    packageRequest <- parseRequest (remoteURL ++ "/zip_file/" ++ pacName ++ qDefault archive +&+ qPacVersion pacVersion)
+    --logInfo $ show packageRequest
     liftIO $ runResourceT $ do
         response <- http packageRequest downloadManager
         let fileSize = fromMaybe "0" $ lookup hContentLength (responseHeaders response)
@@ -201,7 +183,7 @@ downloadPackage pathToRepo (ArchiveEndpoint remoteURL archive) pacName = do
         logWithEnv logA $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"
         sealConduitT (responseBody response) $$+-
             printDownloadProgress logA fileSizeMB .|
-            sinkFile (pathToRepo </> pacName)
+            sinkFile (outDir </> renderNameWithVersion pacNameAndVersion)
     return ()
 
 printDownloadProgress :: LogA -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()

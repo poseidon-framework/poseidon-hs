@@ -8,12 +8,11 @@ import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
 import           Poseidon.Janno            (JannoRows (..), readJannoFile)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonException (..),
-                                            PoseidonPackage (..),
                                             PoseidonYamlStruct (..),
                                             defaultPackageReadOptions,
-                                            findAllPoseidonYmlFiles,
+                                            getJointIndividualInfo,
                                             makePseudoPackageFromGenotypeData,
-                                            readPoseidonPackageCollection,
+                                            readPoseidonPackageCollectionWithSkipIndicator,
                                             validateGeno)
 import           Poseidon.SequencingSource (SeqSourceRows (..),
                                             readSeqSourceFile)
@@ -22,17 +21,18 @@ import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
 import           Control.Monad             (unless)
 import           Control.Monad.Catch       (throwM)
 import           Control.Monad.IO.Class    (liftIO)
-import           Control.Monad.List        (filterM)
+import           Control.Monad.List        (forM_)
 import qualified Data.ByteString           as B
-import           Data.List                 (foldl', intercalate)
+import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
-import           System.Directory          (doesDirectoryExist)
+import           Poseidon.EntityTypes      (IndividualInfo (..))
 import           System.Exit               (exitFailure, exitSuccess)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
     { _validatePlan       :: ValidatePlan
     , _validateNoExitCode :: Bool
+    , _validateOnlyLatest :: Bool
     }
 
 data ValidatePlan =
@@ -53,23 +53,35 @@ data ValidatePlan =
 runValidate :: ValidateOptions -> PoseidonIO ()
 runValidate (ValidateOptions
     (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup ignoreChecksums ignorePosVersion)
-    noExitCode) = do
+    noExitCode onlyLatest) = do
     logInfo $ "Validating: " ++ intercalate ", " baseDirs
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = ignoreChecksums
         , _readOptGenoCheck        = True
         , _readOptIgnoreGeno       = ignoreGeno
         , _readOptFullGeno         = fullGeno
-        , _readOptStopOnDuplicates = not ignoreDup
         , _readOptIgnorePosVersion = ignorePosVersion
+        , _readOptOnlyLatest       = onlyLatest
         }
-    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    goodDirs <- liftIO $ filterM doesDirectoryExist baseDirs
-    posFiles <- liftIO $ concat <$> mapM findAllPoseidonYmlFiles goodDirs
-    let numberOfPOSEIDONymlFiles = length posFiles
-        numberOfLoadedPackagesWithDuplicates = foldl' (+) 0 $ map posPacDuplicate allPackages
-    conclude (numberOfPOSEIDONymlFiles == numberOfLoadedPackagesWithDuplicates) noExitCode
-runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
+    -- load all packages
+    (allPackages, packagesSkipped) <- readPoseidonPackageCollectionWithSkipIndicator pacReadOpts baseDirs
+    -- stop on duplicates
+    unless ignoreDup $ do
+        let allInds = getJointIndividualInfo allPackages
+            duplicateGroups =   filter ((>1) . length)
+                              . groupBy (\a b -> indInfoName a == indInfoName b)
+                              . sortOn indInfoName $ allInds
+        unless (null duplicateGroups) $ do
+            logError "There are duplicated individuals in this package collection. \
+                     \Set --ignoreDuplicates to ignore this issue."
+            forM_ duplicateGroups $ \xs -> do
+                logError $ "Duplicate individual " ++ show (indInfoName $ head xs)
+                forM_ xs $ \x -> do
+                    logError $ "  " ++ show x
+            throwM . PoseidonCollectionException $ "Detected duplicate individuals."
+    -- fail the validation if not all POSEIDON.yml files yielded a clean package
+    conclude (not packagesSkipped) noExitCode
+runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     bs <- liftIO $ B.readFile path
     yml <- case decodeEither' bs of
@@ -77,22 +89,22 @@ runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode) = do
         Right pac -> return (pac :: PoseidonYamlStruct)
     logInfo $ "Read .yml file of package " ++ _posYamlTitle yml
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanGeno geno) noExitCode) = do
+runValidate (ValidateOptions (ValPlanGeno geno) noExitCode _) = do
     logInfo $ "Validating: " ++ genoFile geno
     pac <- makePseudoPackageFromGenotypeData geno
     validateGeno pac True
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanJanno path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanJanno path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     (JannoRows entries) <- readJannoFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanSSF path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanSSF path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     (SeqSourceRows entries) <- readSeqSourceFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanBib path) noExitCode) = do
+runValidate (ValidateOptions (ValPlanBib path) noExitCode _) = do
     logInfo $ "Validating: " ++ path
     entries <- liftIO $ readBibTeXFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"

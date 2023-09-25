@@ -2,33 +2,32 @@
 
 module Poseidon.Chronicle where
 
-import           Poseidon.Package        (PoseidonPackage (..))
-import           Poseidon.SecondaryTypes (HasNameAndVersion (..),
-                                          VersionComponent (..),
-                                          updateThreeComponentVersion)
-import           Poseidon.Utils          (Env (..), PoseidonException (..),
-                                          PoseidonIO, TestMode (..))
+import           Poseidon.EntityTypes   (HasNameAndVersion (..))
+import           Poseidon.Package       (PoseidonPackage (..))
+import           Poseidon.Utils         (Env (..), PoseidonException (..),
+                                         PoseidonIO, TestMode (..))
+import           Poseidon.Version       (VersionComponent (..),
+                                         updateThreeComponentVersion)
 
-import           Control.Monad.Catch     (throwM)
-import           Control.Monad.IO.Class  (liftIO)
-import           Control.Monad.Reader    (asks)
-import           Data.Aeson              (FromJSON, ToJSON, object, parseJSON,
-                                          toJSON, withObject, (.!=), (.:),
-                                          (.:?), (.=))
-import qualified Data.ByteString         as B
-import           Data.Function           (on)
-import           Data.List               (elemIndex)
-import           Data.Maybe              (fromMaybe)
-import qualified Data.Set                as S
-import           Data.Time               (Day, UTCTime (..), getCurrentTime)
-import           Data.Version            (Version, makeVersion)
-import           Data.Yaml               (decodeEither')
-import           Data.Yaml.Pretty        (defConfig, encodePretty,
-                                          setConfCompare, setConfDropNull)
-import           GitHash                 (getGitInfo, giHash)
-import           System.Directory        (createDirectoryIfMissing,
-                                          makeAbsolute)
-import           System.FilePath         (makeRelative, takeDirectory)
+import           Control.Monad.Catch    (throwM)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (asks)
+import           Data.Aeson             (FromJSON, ToJSON, object, parseJSON,
+                                         toJSON, withObject, (.!=), (.:), (.:?),
+                                         (.=))
+import qualified Data.ByteString        as B
+import           Data.Function          (on)
+import           Data.List              (elemIndex)
+import           Data.Maybe             (fromMaybe)
+import qualified Data.Set               as S
+import           Data.Time              (Day, UTCTime (..), getCurrentTime)
+import           Data.Version           (Version, makeVersion)
+import           Data.Yaml              (decodeEither')
+import           Data.Yaml.Pretty       (defConfig, encodePretty,
+                                         setConfCompare, setConfDropNull)
+import           GitHash                (getGitInfo, giHash)
+import           System.Directory       (createDirectoryIfMissing, makeAbsolute)
+import           System.FilePath        (makeRelative, takeDirectory)
 
 data PoseidonPackageChronicle = PoseidonPackageChronicle
     { snapYamlTitle            :: String
@@ -154,7 +153,7 @@ chroniclePackages pathToChronicleFile pacs = do
             version <- getPackageVersion pac
             commit <- getGitCommitHash $ posPacBaseDir pac
             return $ PackageIteration {
-                pacStateTitle   = posPacTitle pac,
+                pacStateTitle   = getPacName pac,
                 pacStateVersion = version,
                 pacStateCommit  = commit,
                 pacStatePath    = makeRelative (takeDirectory pathToChronicleFile) $ posPacBaseDir pac
@@ -162,7 +161,7 @@ chroniclePackages pathToChronicleFile pacs = do
 
 getPackageVersion :: PoseidonPackage -> PoseidonIO Version
 getPackageVersion pac =
-    case posPacPackageVersion pac of
+    case getPacVersion pac of
         Just v -> return v
         Nothing -> do
             testMode <- asks _envTestMode
@@ -170,7 +169,7 @@ getPackageVersion pac =
                 Testing -> return $ makeVersion [0, 0, 0]
                 Production -> do
                     throwM $ PoseidonChronicleException $
-                        "Package " ++ show (posPacTitle pac) ++ " has no version."
+                        "Package " ++ show (getPacName pac) ++ " has no version."
 
 getGitCommitHash :: FilePath -> PoseidonIO String
 getGitCommitHash p = do

@@ -4,13 +4,13 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntitiesList       (EntityInput, PoseidonEntity (..),
-                                              PoseidonIndividual (..),
+import           Poseidon.EntityTypes        (EntityInput, PoseidonEntity (..),
                                               SignedEntity (..),
-                                              filterRelevantPackages,
-                                              findNonExistentEntities,
+                                              checkIfAllEntitiesExist,
+                                              isLatestInCollection,
+                                              makePacNameAndVersion,
                                               readEntityInputs,
-                                              resolveEntityIndices)
+                                              resolveUniqueEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFormatSpec (..),
@@ -23,6 +23,7 @@ import           Poseidon.Janno              (JannoList (..), JannoRow (..),
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
+                                              filterToRelevantPackages,
                                               getJointGenotypeData,
                                               getJointIndividualInfo,
                                               getJointJanno,
@@ -31,7 +32,6 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
-import           Poseidon.SecondaryTypes     (IndividualInfo (..))
 import           Poseidon.SequencingSource   (SeqSourceRow (..),
                                               SeqSourceRows (..),
                                               writeSeqSourceFile)
@@ -39,11 +39,11 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logError, logInfo, logWarning,
-                                              uniqueRO)
+                                              logInfo, logWarning, uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
-import           Control.Monad               (forM, forM_, unless, when)
+import           Control.Monad               (filterM, forM, forM_, unless,
+                                              when)
 import           Data.List                   (intercalate, nub)
 import           Data.Maybe                  (mapMaybe)
 import           Data.Time                   (getCurrentTime)
@@ -81,8 +81,7 @@ data ForgeOptions = ForgeOptions
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
+      _readOptIgnoreChecksums  = True
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = True
     }
@@ -105,28 +104,26 @@ runForge (
     -- compile entities
     entitiesUser <- readEntityInputs entityInputs
 
+    allLatestPackages <- filterM (isLatestInCollection allPackages) allPackages
     entities <- case entitiesUser of
         [] -> do
             logInfo "No requested entities. Implicitly forging all packages."
-            return $ map (Include . Pac . posPacTitle) allPackages
+            return $ map (Include . Pac . makePacNameAndVersion) allLatestPackages
         (Include _:_) -> do
             return entitiesUser
         (Exclude _:_) -> do
             -- fill entitiesToInclude with all packages, if entitiesInput starts with an Exclude
-            logInfo "forge entities begin with exclude, so implicitly adding all packages as includes before \
-                \applying excludes."
-            return $ map (Include . Pac . posPacTitle) allPackages ++ entitiesUser -- add all Packages to the front of the list
+            logInfo "forge entities begin with exclude, so implicitly adding all packages \
+                \(latest versions) as includes before applying excludes."
+            -- add all latest packages to the front of the list
+            return $ map (Include . Pac . makePacNameAndVersion) allLatestPackages ++ entitiesUser
     logInfo $ "Forging with the following entity-list: " ++ (intercalate ", " . map show . take 10) entities ++
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
-    -- check for entities that do not exist in this dataset
-    let nonExistentEntities = findNonExistentEntities entities . getJointIndividualInfo $ allPackages
-    unless (null nonExistentEntities) $
-        logWarning $ "Detected entities that do not exist in the dataset. They will be ignored: " ++
-            intercalate ", " (map show nonExistentEntities)
-
+    -- check if all entities can be found. This function reports an error and throws and exception
+    checkIfAllEntitiesExist entities (getJointIndividualInfo allPackages)
     -- determine relevant packages
-    let relevantPackages = filterRelevantPackages entities allPackages
+    relevantPackages <- filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
@@ -136,18 +133,11 @@ runForge (
     -- set entities to only packages, if --packagewise is set
     let relevantEntities =
             if packageWise
-            then map (Include . Pac . posPacTitle) relevantPackages
+            then map (Include . Pac . makePacNameAndVersion) relevantPackages
             else entities
 
-    -- determine indizes of relevant individuals and resolve duplicates
-    let (unresolvedDuplicatedInds, relevantIndices) = resolveEntityIndices relevantEntities allInds
-
-    -- check if there still are duplicates and if yes, then stop
-    unless (null unresolvedDuplicatedInds) $ do
-        logError "There are duplicated individuals, but forge does not allow that"
-        logError "Please specify in your --forgeString or --forgeFile:"
-        mapM_ (\(_,i@(IndividualInfo n _ _),_) -> logError $ show (SimpleInd n) ++ " -> " ++ show (SpecificInd i)) $ concat unresolvedDuplicatedInds
-        liftIO $ throwIO $ PoseidonForgeEntitiesException "Unresolved duplicated individuals"
+    -- determine indizes of relevant individuals
+    relevantIndices <- resolveUniqueEntityIndices relevantEntities allInds
 
     -- collect data --
     -- janno
@@ -182,8 +172,8 @@ runForge (
     -- create package
     logInfo "Creating new package entity"
     pac <- if minimal
-           then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate
+        then return $ newMinimalPackageTemplate outPath outName genotypeData
+        else newPackageTemplate
                     outPath
                     outName
                     genotypeData
@@ -267,11 +257,11 @@ filterBibEntries (JannoRows rows) references_ =
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do
-    let title_ = posPacTitle pac
+    let pac_ = posPacNameAndVersion pac
         maybeSnpSet = snpSet . posPacGenotypeData $ pac
     case maybeSnpSet of
         Just s -> return s
         Nothing -> do
-            logWarning $ "Warning for package " ++ title_ ++ ": field \"snpSet\" \
+            logWarning $ "Warning for package " ++ show pac_ ++ ": field \"snpSet\" \
                 \is not set. I will interpret this as \"snpSet: Other\""
             return SNPSetOther

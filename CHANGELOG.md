@@ -1,3 +1,14 @@
+- V 1.4.0.0: 
+    - Major version bump, due to forgescript semantics change.
+    - forgeScript now allows for versions of packages to be specified.
+    - `fetch` and `forge` now work with all package versions.
+    - Various other subcommands now load all versions and got an option `--onlyLatest` to specify listing only latest versions.
+    - `forge` semantics has subtly changed in its behaviour of duplicate resolution. Essentially, there is no automatic duplicate resolution anymore.
+    - Genotype Ploidy in Janno Files is now checked with `validate`: If a sample marked as "haploid" has a heterozygote SNP, this now throws an error.
+    - The output of the webAPI and `list` now include an `isLatest` field.
+    - `list --raw` now includes column headers.
+    - The `SecondaryTypes` module was dissolved and instead we now have `Contributor`, `ServerClient` and `Version`. `EntitiesList` (or what is left of it) now lives in `EntityTypes`.
+    - We reworked the tests and added new ones according to all these changes.
 - V 1.3.0.4: Added an option `--ignorePoseidonVersion` to `validate`.
 - V 1.3.0.3: Small code layout changes in the golden test setup and slightly better error handling for http requests in `fetch` and `list --remote`.
 - V 1.3.0.2: Added a `--ignoreChecksums` option to `validate`.

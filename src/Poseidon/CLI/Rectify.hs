@@ -4,28 +4,29 @@ module Poseidon.CLI.Rectify (
     runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
     ) where
 
-import           Poseidon.GenotypeData   (GenotypeDataSpec (..))
-import           Poseidon.Package        (PackageReadOptions (..),
-                                          PoseidonPackage (..),
-                                          defaultPackageReadOptions,
-                                          readPoseidonPackageCollection,
-                                          writePoseidonPackage)
-import           Poseidon.SecondaryTypes (ContributorSpec (..),
-                                          VersionComponent (..),
-                                          makeNameWithVersion,
-                                          updateThreeComponentVersion)
-import           Poseidon.Utils          (PoseidonIO, getChecksum, logDebug,
-                                          logInfo)
+import           Poseidon.Contributor   (ContributorSpec (..))
+import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         PacNameAndVersion (..),
+                                         renderNameWithVersion)
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         PoseidonPackage (..),
+                                         defaultPackageReadOptions,
+                                         readPoseidonPackageCollection,
+                                         writePoseidonPackage)
+import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
+                                         logInfo)
+import           Poseidon.Version       (VersionComponent (..),
+                                         updateThreeComponentVersion)
 
-import           Control.DeepSeq         ((<$!!>))
-import           Control.Monad.IO.Class  (liftIO)
-import           Data.List               (nub)
-import           Data.Maybe              (fromJust)
-import           Data.Time               (UTCTime (..), getCurrentTime)
-import           Data.Version            (Version (..), makeVersion,
-                                          showVersion)
-import           System.Directory        (doesFileExist, removeFile)
-import           System.FilePath         ((</>))
+import           Control.DeepSeq        ((<$!!>))
+import           Control.Monad.IO.Class (liftIO)
+import           Data.List              (nub)
+import           Data.Maybe             (fromJust)
+import           Data.Time              (UTCTime (..), getCurrentTime)
+import           Data.Version           (Version (..), makeVersion, showVersion)
+import           System.Directory       (doesFileExist, removeFile)
+import           System.FilePath        ((</>))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
@@ -34,6 +35,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    , _rectifyOnlyLatest            :: Bool
     }
 
 data PackageVersionUpdate = PackageVersionUpdate
@@ -51,16 +53,14 @@ data ChecksumsToRectify =
     , _rectifyChecksumBib   :: Bool
     }
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
-    }
-
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors) = do
+runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors onlyLatest) = do
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptIgnoreChecksums  = True
+        , _readOptIgnoreGeno       = True
+        , _readOptGenoCheck        = False
+        , _readOptOnlyLatest       = onlyLatest
+    }
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
@@ -70,7 +70,7 @@ runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksum
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
-            logInfo $ "Rectifying package: " ++ makeNameWithVersion inPac
+            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
@@ -168,11 +168,12 @@ updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO Poseid
 updatePackageVersion component pac = do
     logDebug "Updating package version"
     (UTCTime today _) <- liftIO getCurrentTime
+    let pacNameAndVer = posPacNameAndVersion pac
     let outPac = pac {
-        posPacPackageVersion =
-            maybe (Just $ makeVersion [0, 1, 0])
+        posPacNameAndVersion = pacNameAndVer {panavVersion = maybe (Just $ makeVersion [0, 1, 0])
                 (Just . updateThreeComponentVersion component)
-                (posPacPackageVersion pac)
+                (getPacVersion pac)
+            }
         , posPacLastModified = Just today
         }
     return outPac
@@ -184,7 +185,7 @@ writeOrUpdateChangelogFile (Just logText) pac = do
         Nothing -> do
             logDebug "Creating CHANGELOG.md"
             liftIO $ writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
-                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": " ++
+                "- V " ++ showVersion (fromJust $ getPacVersion pac) ++ ": " ++
                 logText ++ "\n"
             return pac { posPacChangelogFile = Just "CHANGELOG.md" }
         Just x -> do
@@ -192,6 +193,6 @@ writeOrUpdateChangelogFile (Just logText) pac = do
             changelogFile <- liftIO $ readFile (posPacBaseDir pac </> x)
             liftIO $ removeFile (posPacBaseDir pac </> x)
             liftIO $ writeFile (posPacBaseDir pac </> x) $
-                "- V " ++ showVersion (fromJust $ posPacPackageVersion pac) ++ ": "
+                "- V " ++ showVersion (fromJust $ getPacVersion pac) ++ ": "
                 ++ logText ++ "\n" ++ changelogFile
             return pac

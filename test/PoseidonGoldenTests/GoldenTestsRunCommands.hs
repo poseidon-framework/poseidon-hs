@@ -21,22 +21,23 @@ import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
                                            runTimetravel)
 import           Poseidon.CLI.Validate    (ValidateOptions (..),
                                            ValidatePlan (..), runValidate)
-import           Poseidon.EntitiesList    (EntityInput (..),
+import           Poseidon.Contributor     (ContributorSpec (..))
+import           Poseidon.EntityTypes     (EntityInput (..),
                                            PoseidonEntity (..),
                                            readEntitiesFromString)
 import           Poseidon.GenotypeData    (GenoDataSource (..),
                                            GenotypeDataSpec (..),
                                            GenotypeFormatSpec (..),
                                            SNPSetSpec (..))
-import           Poseidon.SecondaryTypes  (ArchiveEndpoint (ArchiveEndpoint),
-                                           ContributorSpec (..),
-                                           VersionComponent (..))
+import           Poseidon.ServerClient    (ArchiveEndpoint (..))
 import           Poseidon.Utils           (LogMode (..), TestMode (..),
                                            getChecksum, testLog,
                                            usePoseidonLogger)
+import           Poseidon.Version         (VersionComponent (..))
 
 import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
 import           Control.Concurrent.MVar  (takeMVar)
+import           Control.Exception        (finally)
 import           Control.Monad            (forM_, unless, when)
 import           Data.Either              (fromRight)
 import           Data.Function            ((&))
@@ -46,6 +47,7 @@ import           Data.Version             (makeVersion)
 import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle   (ChronOperation (..),
                                            ChronicleOptions (..), runChronicle)
+import           Poseidon.EntityTypes     (PacNameAndVersion (..))
 import           SequenceFormats.Plink    (PlinkPopNameMode (..))
 import           System.Directory         (copyFile, createDirectory,
                                            createDirectoryIfMissing,
@@ -243,6 +245,7 @@ testPipelineValidate testDir checkFilePath = do
             , _valPlanIgnorePosVersion = False
             }
         , _validateNoExitCode          = True
+        , _validateOnlyLatest          = False
     }
     run 1 validateOpts1
     validateOpts1 {
@@ -311,6 +314,7 @@ testPipelineList testDir checkFilePath = do
           _listRepoLocation  = RepoLocal [testPacsDir </> "Schiffels_2016", testPacsDir  </> "Wang_Wang_2020"]
         , _listListEntity    = ListPackages
         , _listRawOutput     = False
+        , _listOnlyLatest    = False
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "list" 1
     let listOpts2 = listOpts1 {
@@ -325,6 +329,10 @@ testPipelineList testDir checkFilePath = do
           _listRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "list" 4
+    let listOpts5 = listOpts1 {
+          _listOnlyLatest     = True
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "list" 5
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
@@ -344,13 +352,21 @@ testPipelineSurvey testDir checkFilePath = do
     let surveyOpts1 = SurveyOptions {
           _surveyBaseDirs = [testPacsDir]
         , _surveyRawOutput = False
+        , _surveyOnlyLatest = False
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runSurvey surveyOpts1) "survey" 1
     let surveyOpts2 = SurveyOptions {
           _surveyBaseDirs = [testPacsDir]
         , _surveyRawOutput = True
+        , _surveyOnlyLatest = False
     }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runSurvey surveyOpts2) "survey" 2
+    let surveyOpts3 = SurveyOptions {
+          _surveyBaseDirs = [testPacsDir]
+        , _surveyRawOutput = False
+        , _surveyOnlyLatest = True
+    }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runSurvey surveyOpts3) "survey" 3
 
 testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
@@ -361,6 +377,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
           "genoconvert" </> "Schiffels" </> "Schiffels_2016.bed"
@@ -374,6 +391,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
           "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.bed"
@@ -388,6 +406,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts3) "genoconvert" [
           "init" </> "Wang" </> "Wang.geno"
@@ -413,6 +432,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts4) "genoconvert" [
           "init" </> "Schiffels" </> "geno.bed"
@@ -429,6 +449,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
         , _rectifyChecksums = ChecksumNone
         , _rectifyNewContributors = Nothing
+        , _rectifyOnlyLatest = False
         }
     let action1 = testLog (runRectify rectifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "rectify" [
@@ -442,6 +463,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
         , _rectifyChecksums = ChecksumAll
         , _rectifyNewContributors = Nothing
+        , _rectifyOnlyLatest = False
         }
     let action2 = testLog (runRectify rectifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "rectify" [
@@ -458,6 +480,7 @@ testPipelineRectify testDir checkFilePath = do
               ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
+        , _rectifyOnlyLatest = False
         }
     let action3 = testLog (runRectify rectifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "rectify" [
@@ -674,7 +697,7 @@ testPipelineForge testDir checkFilePath = do
     -- forge test 9 (duplicates are handled correctly if an individual is properly specified)
     let forgeOpts9 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
-        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,<Schmid_2028:POP1:XXX001>")]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,-<Schiffels_2016:POP1:XXX001>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
@@ -731,6 +754,118 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac11" </> "ForgePac11.geno"
         , "forge" </> "ForgePac11" </> "ForgePac11.janno"
         , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
+        ]
+    -- simple package version selection
+    let forgeOpts12 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.0*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac12"
+        , _forgeOutPacName   = Just "ForgePac12"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action12 = testLog (runForge forgeOpts12) >> patchLastModified testDir ("forge" </> "ForgePac12" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action12 "forge" [
+          "forge" </> "ForgePac12" </> "ForgePac12.ind"
+        ]
+    -- merge an explicitly versioned package with another package
+    let forgeOpts13 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.1*,*Schiffels_2016*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac13"
+        , _forgeOutPacName   = Just "ForgePac13"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action13 = testLog (runForge forgeOpts13) >> patchLastModified testDir ("forge" </> "ForgePac13" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action13 "forge" [
+          "forge" </> "ForgePac13" </> "ForgePac13.janno"
+        ]
+    -- use the SpecificInd interface to merge individuals from the same package across different versions
+    let forgeOpts14 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "<Lamnidis_2018-1.0.1:POP1:XXX017>,<Lamnidis_2018-1.0.0:POP3:XXX018>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac14"
+        , _forgeOutPacName   = Just "ForgePac14"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action14 = testLog (runForge forgeOpts14) >> patchLastModified testDir ("forge" </> "ForgePac14" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action14 "forge" [
+          "forge" </> "ForgePac14" </> "ForgePac14.janno"
+        ]
+    -- -- negative selection with different package versions - use versioned to cancel versioned
+    let forgeOpts15 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018-1.0.1*,*Lamnidis_2018-1.0.0*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac15"
+        , _forgeOutPacName   = Just "ForgePac15"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action15 = testLog (runForge forgeOpts15) >> patchLastModified testDir ("forge" </> "ForgePac15" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action15 "forge" [
+          "forge" </> "ForgePac15" </> "ForgePac15.janno"
+        ]
+    -- negative selection with different package versions - use unversioned to cancel versioned
+    let forgeOpts16 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018*,*Lamnidis_2018-1.0.0*")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac16"
+        , _forgeOutPacName   = Just "ForgePac16"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action16 = testLog (runForge forgeOpts16) >> patchLastModified testDir ("forge" </> "ForgePac16" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action16 "forge" [
+          "forge" </> "ForgePac16" </> "ForgePac16.janno"
+        ]
+    -- negative selection with different package versions - using the SpecificInd interface
+    let forgeOpts17 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $
+            readEntitiesFromString "*Lamnidis_2018-1.0.1*,-POP2,-<Lamnidis_2018-1.0.1:POP1:XXX017>,-<Lamnidis_2018-1.0.1:POP3:XXX018>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatEigenstrat
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac17"
+        , _forgeOutPacName   = Just "ForgePac17"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+    }
+    let action17 = testLog (runForge forgeOpts17) >> patchLastModified testDir ("forge" </> "ForgePac17" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action17 "forge" [
+          "forge" </> "ForgePac17" </> "ForgePac17.janno"
         ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
@@ -813,74 +948,131 @@ archives = [
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-
     let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing
-
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
-
     -- this will start the server on another thread
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
-
-    -- takeMVar will block the main thread until the server is ready
-    _ <- takeMVar serverReady
-
-    let fetchOpts1 = FetchOptions {
-          _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac "Lamnidis_2018"]]
-        , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
-        }
-    runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
-          "fetch" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
-        ]
-
-    let fetchOpts2 = FetchOptions {
-          _jaBaseDirs   = [testDir </> "fetch"]
-        , _entityInput  = [EntitiesDirect [Pac "Schmid_2028"]]
-        , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
-        }
-    runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts2) "fetch" [
-          "fetch" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
-        , "fetch" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
-        , "fetch" </> "Schmid_2028-1.0.0" </> "geno.txt"
-        ]
-
-    -- kill server thread
-    killThread threadID
+    finally (
+        do
+        -- takeMVar will block the main thread until the server is ready
+        _ <- takeMVar serverReady
+        -- fetch latest version of package from default archive
+        let fetchOpts1 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_package"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" Nothing]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts1) "fetch" [
+              "fetch" </> "by_package" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            ]
+        -- fetch only version of package from other archive
+        let fetchOpts2 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_package"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Schmid_2028" Nothing]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts2) "fetch" [
+              "fetch" </> "by_package" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+            , "fetch" </> "by_package" </> "Schmid_2028-1.0.0" </> "Schmid_2028.janno"
+            , "fetch" </> "by_package" </> "Schmid_2028-1.0.0" </> "geno.txt"
+            ]
+        -- fetch old version of package from default archive
+        let fetchOpts3 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_package"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0])]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts3) "fetch" [
+              "fetch" </> "by_package" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            ]
+        -- fetch package by individual of package from default archive
+        let fetchOpts5 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
+            , _entityInput  = [EntitiesDirect [Ind "SAMPLE2"]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts5) "fetch" [
+              "fetch" </> "by_individual" </> "Wang_2020-0.1.0" </> "POSEIDON.yml"
+            ]
+        -- fetch package by individual through the SpecificInd interface from other archive
+        let fetchOpts6 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
+            , _entityInput  = [EntitiesDirect [SpecificInd "XXX001" "POP1" (PacNameAndVersion "Schmid_2028" Nothing)]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" (Just "testArchive2")
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts6) "fetch" [
+              "fetch" </> "by_individual" </> "Schmid_2028-1.0.0" </> "POSEIDON.yml"
+            ]
+        -- fetch package by individual from old package version through the SpecificInd interface from default archive
+        let fetchOpts7 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "by_individual"]
+            , _entityInput  = [EntitiesDirect [SpecificInd "XXX018" "POP3" (PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0]))]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts7) "fetch" [
+              "fetch" </> "by_individual" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            ]
+        -- fetch two packages in different versions (order 1)
+        let fetchOpts8 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "multi_packages_1"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" Nothing, Pac $ PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0])]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts8) "fetch" [
+              "fetch" </> "multi_packages_1" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            , "fetch" </> "multi_packages_1" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            ]
+        -- fetch two packages in different versions (order 2)
+        let fetchOpts9 = FetchOptions {
+              _jaBaseDirs   = [testDir </> "fetch" </> "multi_packages_2"]
+            , _entityInput  = [EntitiesDirect [Pac $ PacNameAndVersion "Lamnidis_2018" (Just $ makeVersion [1,0,0]), Pac $ PacNameAndVersion "Lamnidis_2018" Nothing]]
+            , _archiveEnd   = ArchiveEndpoint "http://localhost:3000" Nothing
+            }
+        runAndChecksumFiles checkFilePath testDir (testLog $ runFetch fetchOpts9) "fetch" [
+              "fetch" </> "multi_packages_2" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"
+            , "fetch" </> "multi_packages_2" </> "Lamnidis_2018-1.0.1" </> "POSEIDON.yml"
+            ]
+        ) (
+        -- kill server thread
+        killThread threadID
+        )
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-
     let serverOpts = ServeOptions archives Nothing 3000 True Nothing
-
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
     _ <- takeMVar serverReady
+    finally (
+        do
+        -- list from default archive
+        let listOpts1 = ListOptions {
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
+            , _listListEntity   = ListPackages
+            , _listRawOutput    = False
+            , _listOnlyLatest   = False
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
+        let listOpts2 = listOpts1 {
+              _listListEntity    = ListGroups
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
+        let listOpts3 = listOpts1 {
+              _listListEntity    = ListIndividuals ["Publication"]
+            , _listRawOutput     = True
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
 
-    -- list from default archive
-    let listOpts1 = ListOptions {
-          _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
-        , _listListEntity   = ListPackages
-        , _listRawOutput    = False
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "listRemote" 1
-    let listOpts2 = listOpts1 {
-          _listListEntity    = ListGroups
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
-    let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals ["Publication"]
-        , _listRawOutput     = True
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
-
-    -- list from alternative archive
-    let listOpts4 = ListOptions {
-          _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
-        , _listListEntity   = ListPackages
-        , _listRawOutput    = False
-        }
-    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
-
-    killThread threadID
+        -- list from alternative archive
+        let listOpts4 = ListOptions {
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
+            , _listListEntity   = ListPackages
+            , _listRawOutput    = False
+            , _listOnlyLatest   = False
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
+        ) (
+        killThread threadID
+        )

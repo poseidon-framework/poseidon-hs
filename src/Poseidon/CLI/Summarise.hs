@@ -8,7 +8,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonIO, uniquePO)
+import           Poseidon.Utils         (PoseidonIO, logInfo, uniquePO)
 
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, sort, sortBy)
@@ -24,19 +24,18 @@ data SummariseOptions = SummariseOptions
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = True
-    , _readOptIgnoreGeno       = True
-    , _readOptGenoCheck        = False
+      _readOptIgnoreChecksums      = True
+    , _readOptIgnoreGeno           = True
+    , _readOptGenoCheck            = False
+    , _readOptOnlyLatest           = True
     }
-
 
 -- | The main function running the janno command
 runSummarise :: SummariseOptions -> PoseidonIO ()
 runSummarise (SummariseOptions baseDirs rawOutput) = do
-
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     let jannos = map posPacJanno allPackages
+    logInfo "Note that only the latest versions of packages are included in the summary"
     liftIO $ summariseJannoRows (mconcat jannos) rawOutput
 
 -- | A function to print meaningful summary information for a list of poseidon samples

@@ -2,6 +2,7 @@
 
 module Poseidon.CLI.Genoconvert where
 
+import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
@@ -39,19 +40,17 @@ data GenoconvertOptions = GenoconvertOptions
     , _genoMaybeOutPackagePath    :: Maybe FilePath
     , _genoconvertRemoveOld       :: Bool
     , _genoconvertOutPlinkPopMode :: PlinkPopNameMode
+    , _genoconvertOnlyLatest      :: Bool
     }
 
-pacReadOpts :: PackageReadOptions
-pacReadOpts = defaultPackageReadOptions {
-          _readOptStopOnDuplicates = False
-        , _readOptIgnoreChecksums  = True
+runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
+runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld outPlinkPopMode onlyLatest) = do
+    let pacReadOpts = defaultPackageReadOptions {
+          _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = False
         , _readOptGenoCheck        = True
-        }
-
-runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
-runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath removeOld outPlinkPopMode) = do
-
+        , _readOptOnlyLatest       = onlyLatest
+    }
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
     inPlinkPopMode <- envInputPlinkMode
@@ -68,12 +67,12 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
     -- start message
     logInfo $
         "Converting genotype data in "
-        ++ posPacTitle pac
+        ++ show (posPacNameAndVersion pac)
         ++ " to format "
         ++ show outFormat
         ++ ":"
     -- compile file names paths
-    let outName = posPacTitle pac
+    let outName = getPacName . posPacNameAndVersion $ pac
     let (outInd, outSnp, outGeno) = case outFormat of
             GenotypeFormatEigenstrat -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
             GenotypeFormatPlink -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
@@ -92,7 +91,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
         let (outG, outS, outI) = (newBaseDir </> outGeno, newBaseDir </> outSnp, newBaseDir </> outInd)
         anyExists <- or <$> mapM checkFile [outG, outS, outI]
         if anyExists
-        then logWarning ("skipping genotype conversion for " ++ posPacTitle pac)
+        then logWarning ("skipping genotype conversion for " ++ show (posPacNameAndVersion pac))
         else do
             logInfo "Processing SNPs..."
             logA <- envLogAction

@@ -112,8 +112,7 @@ newChronicle = PoseidonPackageChronicle {
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
-      _readOptStopOnDuplicates = False
-    , _readOptIgnoreChecksums  = False
+      _readOptIgnoreChecksums  = False
     , _readOptIgnoreGeno       = False
     , _readOptGenoCheck        = False
     }
@@ -137,7 +136,7 @@ testEncodeDecodeChronicleFile = describe "Poseidon.Chronicle.writeChronicle+read
 testMakeChronicle :: Spec
 testMakeChronicle = describe "Poseidon.Chronicle.makeChronicle" $ do
     it "should make a chronicle as expected" $ do
-        pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts
+        pacs <- testLog $ readPoseidonPackageCollection (testPacReadOpts {_readOptOnlyLatest = True})
                           ["test/testDat/testPackages/ancient"]
         snap <- testLog $ makeChronicle "test/testDat/testPackages/ancient" pacs
         snap {snapYamlLastModified = fromGregorian 2023 04 02} `shouldBe` exampleChronicle

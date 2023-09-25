@@ -2,33 +2,32 @@
 
 module Poseidon.CLI.OptparseApplicativeParsers where
 
-import           Poseidon.CLI.Chronicle  (ChronOperation (..))
-import           Poseidon.CLI.List       (ListEntity (..),
-                                          RepoLocationSpec (..))
-import           Poseidon.CLI.Rectify    (ChecksumsToRectify (..),
-                                          PackageVersionUpdate (..))
-import           Poseidon.CLI.Validate   (ValidatePlan (..))
-import           Poseidon.EntitiesList   (EntitiesList, EntityInput (..),
-                                          PoseidonEntity, SignedEntitiesList,
-                                          SignedEntity, readEntitiesFromString)
-import           Poseidon.GenotypeData   (GenoDataSource (..),
-                                          GenotypeDataSpec (..),
-                                          GenotypeFormatSpec (..),
-                                          SNPSetSpec (..))
-import           Poseidon.SecondaryTypes (ArchiveEndpoint (..),
-                                          ContributorSpec (..),
-                                          VersionComponent (..),
-                                          contributorSpecParser,
-                                          poseidonVersionParser, runParser)
-import           Poseidon.Utils          (LogMode (..), TestMode (..))
+import           Poseidon.CLI.Chronicle (ChronOperation (..))
+import           Poseidon.CLI.List      (ListEntity (..), RepoLocationSpec (..))
+import           Poseidon.CLI.Rectify   (ChecksumsToRectify (..),
+                                         PackageVersionUpdate (..))
+import           Poseidon.CLI.Validate  (ValidatePlan (..))
+import           Poseidon.Contributor   (ContributorSpec (..),
+                                         contributorSpecParser)
+import           Poseidon.EntityTypes   (EntitiesList, EntityInput (..),
+                                         PoseidonEntity, SignedEntitiesList,
+                                         SignedEntity, readEntitiesFromString)
+import           Poseidon.GenotypeData  (GenoDataSource (..),
+                                         GenotypeDataSpec (..),
+                                         GenotypeFormatSpec (..),
+                                         SNPSetSpec (..))
+import           Poseidon.ServerClient  (ArchiveEndpoint (..))
+import           Poseidon.Utils         (LogMode (..), TestMode (..))
+import           Poseidon.Version       (VersionComponent (..), parseVersion)
 
-import           Control.Applicative     ((<|>))
-import           Data.List.Split         (splitOn)
-import           Data.Version            (Version)
-import qualified Options.Applicative     as OP
-import           SequenceFormats.Plink   (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath         (dropExtension, takeExtension, (<.>))
-import           Text.Read               (readMaybe)
+import           Control.Applicative    ((<|>))
+import           Data.List.Split        (splitOn)
+import           Data.Version           (Version)
+import qualified Options.Applicative    as OP
+import           SequenceFormats.Plink  (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
+import           System.FilePath        (dropExtension, takeExtension, (<.>))
+import qualified Text.Parsec            as P
+import           Text.Read              (readMaybe)
 
 
 parseChronOperation :: OP.Parser ChronOperation
@@ -76,7 +75,7 @@ parseMaybePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVers
     )
     where
         readPoseidonVersionString :: String -> Either String Version
-        readPoseidonVersionString s = case runParser poseidonVersionParser () "" s of
+        readPoseidonVersionString s = case P.runParser parseVersion () "" s of
             Left p  -> Left (show p)
             Right x -> Right x
 
@@ -223,7 +222,7 @@ parseContributors = OP.option (OP.eitherReader readContributorString) (
     )
 
 readContributorString :: String -> Either String [ContributorSpec]
-readContributorString s = case runParser contributorSpecParser () "" s of
+readContributorString s = case P.runParser contributorSpecParser () "" s of
     Left p  -> Left (show p)
     Right x -> Right x
 
@@ -439,7 +438,7 @@ parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
 parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
     where
         createGeno :: GenoInput -> Maybe SNPSetSpec -> GenotypeDataSpec
-        createGeno (a,b,c,d) e = GenotypeDataSpec a b Nothing c Nothing d Nothing e
+        createGeno (a,b,c,d) = GenotypeDataSpec a b Nothing c Nothing d Nothing
 
 type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
 
@@ -608,6 +607,13 @@ parseRawOutput = OP.switch (
     OP.long "raw" <>
     OP.help "Return the output table as tab-separated values without header. \
     \This is useful for piping into grep or awk."
+    )
+
+parseOnlyLatest :: OP.Parser Bool
+parseOnlyLatest = OP.switch (
+    OP.long "onlyLatest" <>
+    OP.help "Consider only the latest versions of packages, or the groups and individuals \
+            \within the latest versions of packages, respectively."
     )
 
 parseIgnoreGeno :: OP.Parser Bool
