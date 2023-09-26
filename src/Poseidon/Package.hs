@@ -36,10 +36,10 @@ import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
                                              PacNameAndVersion (..),
-                                             renderNameWithVersion,
                                              determineRelevantPackages,
                                              isLatestInCollection,
-                                             makePacNameAndVersion)
+                                             makePacNameAndVersion,
+                                             renderNameWithVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
