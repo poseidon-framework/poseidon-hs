@@ -1,3 +1,5 @@
+- V 1.4.0.1:
+    - This patch makes the error output in case of ploidy-mismatches between the Genotype_Ploidy information in Janno and heterozygote genotypes more user-friendly.
 - V 1.4.0.0: 
     - Major version bump, due to forgescript semantics change.
     - forgeScript now allows for versions of packages to be specified.

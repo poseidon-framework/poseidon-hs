@@ -1,4 +1,4 @@
-### V 1.4.0.0
+### V 1.4.0.1
 
 This release finally fully enables handling multiple Poseidon package versions with trident. It includes a significant overhaul of the selection language in `forge` and `fetch` with major changes in its implementation and, as a consequence, multiple (subtle, but strictly breaking) changes in its semantics.
 
