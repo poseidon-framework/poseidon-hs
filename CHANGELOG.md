@@ -1,3 +1,5 @@
+- V 1.4.0.2:
+    - Strictly checking ploidy information across the .janno file and the genotype data in the package reading process has unforeseen consequences. Activating this will require some more changes, so we decided to uncomment this code for now.
 - V 1.4.0.1:
     - This patch makes the error output in case of ploidy-mismatches between the Genotype_Ploidy information in Janno and heterozygote genotypes more user-friendly.
     - We fixed a bug in Fetch.hs in the output for comparing local and remote package versions
