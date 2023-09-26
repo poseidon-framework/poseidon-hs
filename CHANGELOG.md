@@ -1,5 +1,7 @@
 - V 1.4.0.1:
     - This patch makes the error output in case of ploidy-mismatches between the Genotype_Ploidy information in Janno and heterozygote genotypes more user-friendly.
+    - We fixed a bug in Fetch.hs in the output for comparing local and remote package versions
+    - `trident fetch --downloadAll` now considers only latest versions.
 - V 1.4.0.0: 
     - Major version bump, due to forgescript semantics change.
     - forgeScript now allows for versions of packages to be specified.

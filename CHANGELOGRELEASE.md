@@ -33,6 +33,7 @@ While implementing this change, we also reworked the entity selection logic. It 
 Missing (or mis-spelled) entities in a selection-set lead to errors now.
 
 If the forge entity list starts with a negative entity, or if the entity list is empty, `forge` will still implicitly assume you want to include all individuals from only the **latest** packages found in the baseDirs.
+Likewise, `trident fetch --downloadAll` considers only latest versions now.
 
 The specific individual selection syntax (with `-<Pac1-1.0.1:Group1:Ind1>`) does not perform automatic duplicate resolution any more. If there is another `<Ind1>` somewhere within the selected entities, then this will cause an error that has to be resolved manually by adjusting the selection.
 
