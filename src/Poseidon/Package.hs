@@ -38,13 +38,11 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              PacNameAndVersion (..),
                                              determineRelevantPackages,
                                              isLatestInCollection,
-                                             makePacNameAndVersion,
-                                             renderNameWithVersion)
+                                             makePacNameAndVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
-import           Poseidon.Janno             (JannoGenotypePloidy (..),
-                                             JannoLibraryBuilt (..),
+import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
@@ -406,9 +404,9 @@ validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
     logA <- envLogAction
     plinkMode <- envInputPlinkMode
-    let jannoRows = getJannoRowsFromPac pac
-    let ploidyList = map jGenotypePloidy jannoRows
-    let indivNames = map jPoseidonID jannoRows
+    --let jannoRows = getJannoRowsFromPac pac
+    --let ploidyList = map jGenotypePloidy jannoRows
+    --let indivNames = map jPoseidonID jannoRows
     liftIO $ catch (
         runSafeT $ do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
@@ -418,20 +416,22 @@ validateGeno pac checkFullGeno = do
             if checkFullGeno
             then do
                 currentTime <- liftIO getCurrentTime
-                runEffect $ eigenstratProd >-> checkPloidy logA ploidyList indivNames >-> printSNPCopyProgress logA currentTime >-> P.drain
+                --runEffect $ eigenstratProd >-> checkPloidy logA ploidyList indivNames >-> printSNPCopyProgress logA currentTime >-> P.drain
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else
-                runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
+                --runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
+                runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward)
-  where
-    checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
-        let illegals =
-                map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
-                filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
-                zip3 ploidyList indivNames . V.toList $ genoLine
-        unless (null illegals) $ do
-            logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
-            mapM_ (logWithEnv logA . logDebug) illegals
-            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
+  -- where
+  --   checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
+  --       let illegals =
+  --               map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
+  --               filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
+  --               zip3 ploidyList indivNames . V.toList $ genoLine
+  --       unless (null illegals) $ do
+  --           logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
+  --           mapM_ (logWithEnv logA . logDebug) illegals
+  --           liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
 
 
 -- throws exception if any file is missing or checksum is incorrect
