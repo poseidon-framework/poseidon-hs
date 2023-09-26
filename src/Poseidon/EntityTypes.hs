@@ -252,7 +252,7 @@ determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualI
 determineRelevantPackages entities indInfos = do
     areLatest <- mapM (isLatestInCollection indInfos) indInfos
     let relevantPacs = [ indInfoPac ind | (ind, l) <- zip indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
-    return $ map makePacNameAndVersion relevantPacs
+    return . nub . map makePacNameAndVersion $ relevantPacs
 
 -- | takes a list of selected individuals, checks for duplicates and reports a list of individuals with suggested Entity specifications
 reportDuplicateIndividuals :: [IndividualInfo] -> [(IndividualInfo, [PoseidonEntity])]

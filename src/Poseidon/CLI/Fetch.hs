@@ -7,6 +7,7 @@ import           Poseidon.EntityTypes   (EntityInput, HasNameAndVersion (..),
                                          PacNameAndVersion (..), PoseidonEntity,
                                          checkIfAllEntitiesExist,
                                          determineRelevantPackages,
+                                         isLatestInCollection,
                                          makePacNameAndVersion,
                                          readEntityInputs,
                                          renderNameWithVersion)
@@ -28,7 +29,7 @@ import           Codec.Archive.Zip      (ZipOption (..),
 import           Conduit                (ResourceT, await, runResourceT,
                                          sinkFile, yield)
 import           Control.Exception      (catch, throwIO)
-import           Control.Monad          (forM_, unless, when)
+import           Control.Monad          (filterM, forM_, unless, when)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson             (eitherDecode')
 import qualified Data.ByteString        as B
@@ -48,7 +49,7 @@ import           System.FilePath        ((</>))
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]
-    , _entityInput :: [EntityInput PoseidonEntity] -- Empty list = All packages
+    , _entityInput :: [EntityInput PoseidonEntity] -- Empty list = All latest packages
     , _archiveEnd  :: ArchiveEndpoint
     }
 
@@ -82,12 +83,8 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
         case r of
             ApiReturnExtIndividualInfo indInfo -> return [IndividualInfo n g p | ExtendedIndividualInfo n g p _ _ <- indInfo]
             _                               -> error "should not happen"
-    logInfo "Downloading package list from remote"
-    remotePacList <- do
-        r <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) True
-        case r of
-            ApiReturnPackageInfo p -> return p
-            _                      -> error "should not happen"
+
+
     -- find and report non-existent entities (throws an exception)
     checkIfAllEntitiesExist entities remoteIndList
     -- load local packages
@@ -95,9 +92,18 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     let localPacs = map makePacNameAndVersion allLocalPackages
     -- check which remote packages the User wants to have
     logInfo "Determine requested packages... "
-    let remotePacs = map makePacNameAndVersion remotePacList
     -- prepare list of relevant packages with individual list
-    desiredPacs <- if null entities then pure remotePacs else determineRelevantPackages entities remoteIndList
+    desiredPacs <- if null entities then do
+            -- load all latest packages
+            logInfo "Downloading package list from remote"
+            remotePacListAll <- do
+                r <- processApiResponse (remoteURL ++ "/packages" ++ qDefault archive) True
+                case r of
+                    ApiReturnPackageInfo p -> return p
+                    _                      -> error "should not happen"
+            remotePacList <- filterM (isLatestInCollection remotePacListAll) remotePacListAll
+            return $ map makePacNameAndVersion remotePacList
+        else determineRelevantPackages entities remoteIndList
     logDebug "Desired packages based on remote individuals list:"
     mapM_ (logDebug . show) desiredPacs
     -- start comparison/download process
