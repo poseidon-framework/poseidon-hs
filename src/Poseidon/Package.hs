@@ -38,7 +38,8 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              PacNameAndVersion (..),
                                              determineRelevantPackages,
                                              isLatestInCollection,
-                                             makePacNameAndVersion)
+                                             makePacNameAndVersion,
+                                             renderNameWithVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -424,13 +425,13 @@ validateGeno pac checkFullGeno = do
   where
     checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
         let illegals =
-                map (\(_, ind, _) -> getPacName pac ++ ": " ++ ind) .
+                map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
                 filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
                 zip3 ploidyList indivNames . V.toList $ genoLine
         unless (null illegals) $ do
-            logWithEnv logA . logError $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
-            mapM_ (logWithEnv logA . logError) illegals
-            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes"
+            logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
+            mapM_ (logWithEnv logA . logDebug) illegals
+            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
 
 
 -- throws exception if any file is missing or checksum is incorrect
