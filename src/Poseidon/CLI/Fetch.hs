@@ -3,7 +3,6 @@
 module Poseidon.CLI.Fetch where
 
 import           Poseidon.EntityTypes   (EntityInput, HasNameAndVersion (..),
-                                         IndividualInfo (..),
                                          PacNameAndVersion (..), PoseidonEntity,
                                          checkIfAllEntitiesExist,
                                          determineRelevantPackages,
@@ -18,6 +17,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
 import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          ExtendedIndividualInfo (..),
+                                         extIndInfo2IndInfoCollection,
                                          PackageInfo (..), processApiResponse,
                                          qDefault, qPacVersion, (+&+))
 import           Poseidon.Utils         (LogA, PoseidonException (..),
@@ -81,7 +81,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     remoteIndList <- do
         r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
         case r of
-            ApiReturnExtIndividualInfo indInfo -> return [IndividualInfo n g p | ExtendedIndividualInfo n g p _ _ <- indInfo]
+            ApiReturnExtIndividualInfo extIndInfos -> return $ extIndInfo2IndInfoCollection extIndInfos
             _                               -> error "should not happen"
 
 

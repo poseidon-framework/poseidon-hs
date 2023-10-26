@@ -67,8 +67,8 @@ runValidate (ValidateOptions
     (allPackages, packagesSkipped) <- readPoseidonPackageCollectionWithSkipIndicator pacReadOpts baseDirs
     -- stop on duplicates
     unless ignoreDup $ do
-        let allInds = getJointIndividualInfo allPackages
-            duplicateGroups =   filter ((>1) . length)
+        (allInds, _) <- getJointIndividualInfo allPackages
+        let duplicateGroups =   filter ((>1) . length)
                               . groupBy (\a b -> indInfoName a == indInfoName b)
                               . sortOn indInfoName $ allInds
         unless (null duplicateGroups) $ do

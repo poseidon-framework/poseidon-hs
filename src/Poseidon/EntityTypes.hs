@@ -3,6 +3,7 @@
 
 module Poseidon.EntityTypes (
     IndividualInfo (..),
+    IndividualInfoCollection,
     renderNameWithVersion,
     HasNameAndVersion (..),
     PoseidonEntity(..),
@@ -242,15 +243,17 @@ instance HasNameAndVersion IndividualInfo where
     getPacName       = getPacName . indInfoPac
     getPacVersion    = getPacVersion . indInfoPac
 
+-- | a tuple of a collection of IndividualInfos and a list of bools
+--   indicating whether the given sample is in the latest version of packages
+type IndividualInfoCollection = ([IndividualInfo], [Bool]) 
 
 -- data types for the selection process
 
 data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
 
 -- | determine all packages with versions that contain individuals covered by the given entities
-determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [PacNameAndVersion]
-determineRelevantPackages entities indInfos = do
-    areLatest <- mapM (isLatestInCollection indInfos) indInfos
+determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [PacNameAndVersion]
+determineRelevantPackages entities (indInfos, areLatest) = do
     let relevantPacs = [ indInfoPac ind | (ind, l) <- zip indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
     return . nub . map makePacNameAndVersion $ relevantPacs
 
@@ -261,16 +264,15 @@ reportDuplicateIndividuals individuals = do -- loop over duplication groups
     return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
 
 -- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
-resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [Int]
-resolveEntityIndices entities indInfos = do
-    areLatest <- mapM (isLatestInCollection indInfos) indInfos
+resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [Int]
+resolveEntityIndices entities (indInfos, areLatest) = do
     let relevantIndizes = [ i | (i, ind, l) <- zip3 [0..] indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
     return relevantIndizes
 
-resolveUniqueEntityIndices :: (EntitySpec a) => [a] -> [IndividualInfo] -> PoseidonIO [Int]
-resolveUniqueEntityIndices entities indInfos = do
-    relevantIndices <- resolveEntityIndices entities indInfos
-    let duplicateReport = reportDuplicateIndividuals . map (indInfos !!) $ relevantIndices
+resolveUniqueEntityIndices :: (EntitySpec a) => [a] -> IndividualInfoCollection -> PoseidonIO [Int]
+resolveUniqueEntityIndices entities indInfoCollection = do
+    relevantIndices <- resolveEntityIndices entities indInfoCollection
+    let duplicateReport = reportDuplicateIndividuals . map ((fst indInfoCollection) !!) $ relevantIndices
     -- check if there still are duplicates and if yes, then stop
     unless (null duplicateReport) $ do
         logError "There are duplicated individuals, but forge does not allow that"
@@ -283,13 +285,13 @@ resolveUniqueEntityIndices entities indInfos = do
     return relevantIndices
 
 -- | this returns a list of entities which could not be found
-determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m EntitiesList
-determineNonExistentEntities entities indInfos = do
-    return [ entity | entity <- map underlyingEntity entities, indices <- resolveEntityIndices [entity] indInfos, null indices]
+determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m EntitiesList
+determineNonExistentEntities entities indInfoCollection = do
+    return [ entity | entity <- map underlyingEntity entities, indices <- resolveEntityIndices [entity] indInfoCollection, null indices]
 
-checkIfAllEntitiesExist :: (EntitySpec a) => [a] -> [IndividualInfo] -> PoseidonIO ()
-checkIfAllEntitiesExist entities indInfos = do
-    nonExistentEntities <- determineNonExistentEntities entities indInfos
+checkIfAllEntitiesExist :: (EntitySpec a) => [a] -> IndividualInfoCollection -> PoseidonIO ()
+checkIfAllEntitiesExist entities indInfoCollection = do
+    nonExistentEntities <- determineNonExistentEntities entities indInfoCollection
     unless (null nonExistentEntities) $ do
         logError "The following entities could not be found in the dataset"
         forM_ nonExistentEntities (logError . show)
