@@ -245,7 +245,7 @@ instance HasNameAndVersion IndividualInfo where
 
 -- | a tuple of a collection of IndividualInfos and a list of bools
 --   indicating whether the given sample is in the latest version of packages
-type IndividualInfoCollection = ([IndividualInfo], [Bool]) 
+type IndividualInfoCollection = ([IndividualInfo], [Bool])
 
 -- data types for the selection process
 

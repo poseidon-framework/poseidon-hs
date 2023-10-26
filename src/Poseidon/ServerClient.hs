@@ -12,8 +12,10 @@ module Poseidon.ServerClient (
 ) where
 
 import           Paths_poseidon_hs      (version)
-import           Poseidon.EntityTypes   (HasNameAndVersion (..), IndividualInfo(..),
-                                         PacNameAndVersion (..), IndividualInfoCollection)
+import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         IndividualInfo (..),
+                                         IndividualInfoCollection,
+                                         PacNameAndVersion (..))
 import           Poseidon.Janno         (JannoRows)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)

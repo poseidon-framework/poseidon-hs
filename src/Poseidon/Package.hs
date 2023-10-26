@@ -817,7 +817,7 @@ getJointIndividualInfo packages = do
                     (makePacNameAndVersion pac)
             return (indInfo, isLatest)
     return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
-    
+
 
 getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
 getExtendedIndividualInfo allPackages additionalJannoColumns = sequence $ do -- list monad
@@ -836,5 +836,5 @@ getExtendedIndividualInfo allPackages additionalJannoColumns = sequence $ do -- 
 filterToRelevantPackages :: (MonadThrow m) => (EntitySpec a) => [a] -> [PoseidonPackage] -> m [PoseidonPackage]
 filterToRelevantPackages entities packages = do
     indInfoCollection <- getJointIndividualInfo packages
-    relevantPacs <- determineRelevantPackages entities indInfoCollection 
+    relevantPacs <- determineRelevantPackages entities indInfoCollection
     return $ filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
