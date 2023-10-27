@@ -15,5 +15,7 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 ADD . source
 WORKDIR source
 
-# Install sequenceTools. As described in cryptonite README, cryptoniate requires disabling "use_target_attributes"
-RUN stack install --system-ghc --flag cryptonite:-use_target_attributes
+# install
+# - as described in cryptonite README, cryptoniate requires disabling "use_target_attributes"
+# - for bitvec the "simd" flag added in v1.1.5.0 has to be deactivated - the gcc version here does not seem to support it
+RUN stack install --system-ghc --flag cryptonite:-use_target_attributes --flag bitvec:-simd
