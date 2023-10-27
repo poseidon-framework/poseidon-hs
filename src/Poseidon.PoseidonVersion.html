@@ -9,24 +9,40 @@
 </span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Version</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Version</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">makeVersion</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">showVersion</span></span><span class="hs-special">)</span><span>
 </span><span id="line-10"></span><span>
 </span><span id="line-11"></span><span class="hs-keyword">newtype</span><span> </span><span id="PoseidonVersion"><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-var">PoseidonVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PoseidonVersion"><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-var">PoseidonVersion</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
-</span><span id="line-12"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679482466"><span id="local-6989586621679482468"><span id="local-6989586621679482474"><span class="annot"><span class="annottext">Int -&gt; PoseidonVersion -&gt; ShowS
+</span><span id="line-12"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679474459"><span id="local-6989586621679474465"><span id="local-6989586621679474469"><span class="annot"><span class="annottext">Int -&gt; PoseidonVersion -&gt; ShowS
 [PoseidonVersion] -&gt; ShowS
 PoseidonVersion -&gt; String
+(Int -&gt; PoseidonVersion -&gt; ShowS)
+-&gt; (PoseidonVersion -&gt; String)
+-&gt; ([PoseidonVersion] -&gt; ShowS)
+-&gt; Show PoseidonVersion
 forall a.
 (Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
-showList :: [PoseidonVersion] -&gt; ShowS
-$cshowList :: [PoseidonVersion] -&gt; ShowS
-show :: PoseidonVersion -&gt; String
-$cshow :: PoseidonVersion -&gt; String
-showsPrec :: Int -&gt; PoseidonVersion -&gt; ShowS
 $cshowsPrec :: Int -&gt; PoseidonVersion -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679482458"><span id="local-6989586621679482463"><span class="annot"><span class="annottext">PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+showsPrec :: Int -&gt; PoseidonVersion -&gt; ShowS
+$cshow :: PoseidonVersion -&gt; String
+show :: PoseidonVersion -&gt; String
+$cshowList :: [PoseidonVersion] -&gt; ShowS
+showList :: [PoseidonVersion] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679474473"><span id="local-6989586621679474478"><span class="annot"><span class="annottext">PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+(PoseidonVersion -&gt; PoseidonVersion -&gt; Bool)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; Bool)
+-&gt; Eq PoseidonVersion
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
-/= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-$c/= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-== :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
 $c== :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679482425"><span id="local-6989586621679482429"><span id="local-6989586621679482433"><span id="local-6989586621679482437"><span id="local-6989586621679482441"><span id="local-6989586621679482445"><span id="local-6989586621679482450"><span class="annot"><span class="annottext">Eq PoseidonVersion
+== :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+$c/= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+/= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679474486"><span id="local-6989586621679474491"><span id="local-6989586621679474495"><span id="local-6989586621679474499"><span id="local-6989586621679474503"><span id="local-6989586621679474507"><span id="local-6989586621679474511"><span class="annot"><span class="annottext">Eq PoseidonVersion
+Eq PoseidonVersion
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; Ordering)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; Bool)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; Bool)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; Bool)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; Bool)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion)
+-&gt; (PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion)
+-&gt; Ord PoseidonVersion
 PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
 PoseidonVersion -&gt; PoseidonVersion -&gt; Ordering
 PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
@@ -40,27 +56,30 @@ Eq a
 -&gt; (a -&gt; a -&gt; a)
 -&gt; (a -&gt; a -&gt; a)
 -&gt; Ord a
-min :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
-$cmin :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
-max :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
-$cmax :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
-&gt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-$c&gt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-&gt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-$c&gt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-&lt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-$c&lt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-&lt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-$c&lt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
-compare :: PoseidonVersion -&gt; PoseidonVersion -&gt; Ordering
 $ccompare :: PoseidonVersion -&gt; PoseidonVersion -&gt; Ordering
+compare :: PoseidonVersion -&gt; PoseidonVersion -&gt; Ordering
+$c&lt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+&lt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+$c&lt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+&lt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+$c&gt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+&gt; :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+$c&gt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+&gt;= :: PoseidonVersion -&gt; PoseidonVersion -&gt; Bool
+$cmax :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
+max :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
+$cmin :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
+min :: PoseidonVersion -&gt; PoseidonVersion -&gt; PoseidonVersion
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-13"></span><span>
 </span><span id="line-14"></span><span class="annot"><a href="Poseidon.PoseidonVersion.html#validPoseidonVersions"><span class="hs-identifier hs-type">validPoseidonVersions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-15"></span><span id="validPoseidonVersions"><span class="annot"><span class="annottext">validPoseidonVersions :: [PoseidonVersion]
-</span><a href="Poseidon.PoseidonVersion.html#validPoseidonVersions"><span class="hs-identifier hs-var hs-var">validPoseidonVersions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="Poseidon.PoseidonVersion.html#validPoseidonVersions"><span class="hs-identifier hs-var hs-var">validPoseidonVersions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([Int] -&gt; PoseidonVersion) -&gt; [[Int]] -&gt; [PoseidonVersion]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; PoseidonVersion
-</span><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-var">PoseidonVersion</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-var">PoseidonVersion</span></a></span><span> </span><span class="annot"><span class="annottext">(Version -&gt; PoseidonVersion)
+-&gt; ([Int] -&gt; Version) -&gt; [Int] -&gt; PoseidonVersion
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Version
 </span><span class="hs-identifier hs-var">makeVersion</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
@@ -78,22 +97,23 @@ $ccompare :: PoseidonVersion -&gt; PoseidonVersion -&gt; Ordering
 </span><span id="line-16"></span><span>
 </span><span id="line-17"></span><span class="annot"><a href="Poseidon.PoseidonVersion.html#latestPoseidonVersion"><span class="hs-identifier hs-type">latestPoseidonVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span>
 </span><span id="line-18"></span><span id="latestPoseidonVersion"><span class="annot"><span class="annottext">latestPoseidonVersion :: PoseidonVersion
-</span><a href="Poseidon.PoseidonVersion.html#latestPoseidonVersion"><span class="hs-identifier hs-var hs-var">latestPoseidonVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; a
+</span><a href="Poseidon.PoseidonVersion.html#latestPoseidonVersion"><span class="hs-identifier hs-var hs-var">latestPoseidonVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[PoseidonVersion] -&gt; PoseidonVersion
+forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">last</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonVersion]
 </span><a href="Poseidon.PoseidonVersion.html#validPoseidonVersions"><span class="hs-identifier hs-var">validPoseidonVersions</span></a></span><span>
 </span><span id="line-19"></span><span>
 </span><span id="line-20"></span><span class="annot"><a href="Poseidon.PoseidonVersion.html#asVersion"><span class="hs-identifier hs-type">asVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
 </span><span id="line-21"></span><span id="asVersion"><span class="annot"><span class="annottext">asVersion :: PoseidonVersion -&gt; Version
-</span><a href="Poseidon.PoseidonVersion.html#asVersion"><span class="hs-identifier hs-var hs-var">asVersion</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span> </span><span id="local-6989586621679482418"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679482418"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679482418"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="Poseidon.PoseidonVersion.html#asVersion"><span class="hs-identifier hs-var hs-var">asVersion</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span> </span><span id="local-6989586621679474518"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679474518"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679474518"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-22"></span><span>
 </span><span id="line-23"></span><span class="annot"><a href="Poseidon.PoseidonVersion.html#showPoseidonVersion"><span class="hs-identifier hs-type">showPoseidonVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-24"></span><span id="showPoseidonVersion"><span class="annot"><span class="annottext">showPoseidonVersion :: PoseidonVersion -&gt; String
-</span><a href="Poseidon.PoseidonVersion.html#showPoseidonVersion"><span class="hs-identifier hs-var hs-var">showPoseidonVersion</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span> </span><span id="local-6989586621679482417"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679482417"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
+</span><a href="Poseidon.PoseidonVersion.html#showPoseidonVersion"><span class="hs-identifier hs-var hs-var">showPoseidonVersion</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.PoseidonVersion.html#PoseidonVersion"><span class="hs-identifier hs-type">PoseidonVersion</span></a></span><span> </span><span id="local-6989586621679474519"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679474519"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
 </span><span class="hs-identifier hs-var">showVersion</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679482417"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679474519"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-25"></span><span>
 </span><span id="line-26"></span><span class="hs-comment">-- this is for the server</span><span>
 </span><span id="line-27"></span><span class="annot"><a href="Poseidon.PoseidonVersion.html#minimalRequiredClientVersion"><span class="hs-identifier hs-type">minimalRequiredClientVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>

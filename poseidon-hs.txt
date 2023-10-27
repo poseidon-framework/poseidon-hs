@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.4.0.2
+@version 1.4.0.3
 
 module Poseidon.Contributor
 
@@ -194,7 +194,7 @@ logWithEnv :: MonadIO m => LogA -> PoseidonIO () -> m ()
 padRight :: Int -> String -> String
 padLeft :: Int -> String -> String
 determinePackageOutName :: Maybe String -> FilePath -> IO String
-data PlinkPopNameMode
+data () => PlinkPopNameMode
 PlinkPopNameAsFamily :: PlinkPopNameMode
 PlinkPopNameAsPhenotype :: PlinkPopNameMode
 PlinkPopNameAsBoth :: PlinkPopNameMode
@@ -277,7 +277,7 @@ JannoSex :: Sex -> JannoSex
 newtype JannoList a
 JannoList :: [a] -> JannoList a
 [getJannoList] :: JannoList a -> [a]
-data Sex
+data () => Sex
 Male :: Sex
 Female :: Sex
 Unknown :: Sex
@@ -816,6 +816,11 @@ IndividualInfo :: String -> [String] -> PacNameAndVersion -> IndividualInfo
 -- | the package the individual is in.
 [indInfoPac] :: IndividualInfo -> PacNameAndVersion
 
+-- | a tuple of a collection of IndividualInfos and a list of bools
+--   indicating whether the given sample is in the latest version of
+--   packages
+type IndividualInfoCollection = ([IndividualInfo], [Bool])
+
 -- | universal rendering of package names and version
 renderNameWithVersion :: HasNameAndVersion a => a -> String
 
@@ -869,7 +874,7 @@ isLatestInCollection :: (MonadThrow m, HasNameAndVersion a) => [a] -> a -> m Boo
 -- | A class to generalise signed and unsigned Entity Lists. Both have the
 --   feature that they can be used to filter individuals.
 class EntitySpec a
-resolveUniqueEntityIndices :: EntitySpec a => [a] -> [IndividualInfo] -> PoseidonIO [Int]
+resolveUniqueEntityIndices :: EntitySpec a => [a] -> IndividualInfoCollection -> PoseidonIO [Int]
 
 -- | this function checks whether a given individual info is selected by a
 --   given list of entities.
@@ -880,21 +885,21 @@ readEntitiesFromFile :: EntitySpec a => FilePath -> IO [a]
 readEntitiesFromString :: EntitySpec a => String -> Either PoseidonException [a]
 
 -- | this returns a list of entities which could not be found
-determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m EntitiesList
+determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m EntitiesList
 
 -- | determine all packages with versions that contain individuals covered
 --   by the given entities
-determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [PacNameAndVersion]
+determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [PacNameAndVersion]
 entitiesListP :: EntitySpec a => Parser [a]
 data EntityInput a
 EntitiesDirect :: [a] -> EntityInput a
 EntitiesFromFile :: FilePath -> EntityInput a
 readEntityInputs :: (MonadIO m, EntitySpec a, Eq a) => [EntityInput a] -> m [a]
-checkIfAllEntitiesExist :: EntitySpec a => [a] -> [IndividualInfo] -> PoseidonIO ()
+checkIfAllEntitiesExist :: EntitySpec a => [a] -> IndividualInfoCollection -> PoseidonIO ()
 
 -- | this finds the indices of all individuals from an individual-list
 --   which are specified in the Entity list
-resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> [IndividualInfo] -> m [Int]
+resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [Int]
 
 -- | takes a list of selected individuals, checks for duplicates and
 --   reports a list of individuals with suggested Entity specifications
@@ -957,6 +962,7 @@ ExtendedIndividualInfo :: String -> [String] -> PacNameAndVersion -> Bool -> [(S
 [extIndInfoPac] :: ExtendedIndividualInfo -> PacNameAndVersion
 [extIndInfoIsLatest] :: ExtendedIndividualInfo -> Bool
 [extIndInfoAddCols] :: ExtendedIndividualInfo -> [(String, Maybe String)]
+extIndInfo2IndInfoCollection :: [ExtendedIndividualInfo] -> IndividualInfoCollection
 qDefault :: Maybe String -> String
 qArchive :: Maybe String -> String
 qPacVersion :: Maybe Version -> String
@@ -1188,7 +1194,7 @@ readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions -> [FilePat
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m => LogA -> Bool -> PlinkPopNameMode -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> JannoRows
-getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getJointIndividualInfo :: MonadThrow m => [PoseidonPackage] -> m IndividualInfoCollection
 getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
