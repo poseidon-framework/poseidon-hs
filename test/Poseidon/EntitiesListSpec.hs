@@ -209,11 +209,11 @@ testFindNonExistentEntities =
     describe "Poseidon.EntitiesList.determineNonExistentEntities" $ do
     it "should ignore good entities" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        ents <- determineNonExistentEntities goodEntities (getJointIndividualInfo ps)
+        ents <- determineNonExistentEntities goodEntities =<< getJointIndividualInfo ps
         ents `shouldBe` []
     it "should find bad entities" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        ents <- determineNonExistentEntities badEntities (getJointIndividualInfo ps)
+        ents <- determineNonExistentEntities badEntities =<< getJointIndividualInfo ps
         ents `shouldMatchList` badEntities
 
 testFilterPackages :: Spec
@@ -233,11 +233,11 @@ testResolveEntityIndices =
     describe "Poseidon.EntitiesList.resolveEntityIndices" $ do
     it "should select all relevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        indInts <- resolveEntityIndices goodEntities (getJointIndividualInfo ps)
+        indInts <- resolveEntityIndices goodEntities =<< getJointIndividualInfo ps
         indInts `shouldBe` [10,11,12,16,18,20,21,22,23,24,25,26,27,28,29,35]
     it "should drop all irrelevant individuals" $ do
         ps <- testLog $ readPoseidonPackageCollection testPacReadOpts testBaseDir
-        indInts <- resolveEntityIndices badEntities (getJointIndividualInfo ps)
+        indInts <- resolveEntityIndices badEntities =<< getJointIndividualInfo ps
         indInts `shouldBe` []
     it "should correctly extract indices with ordered signed entities" $ do
         let indInfo = [
@@ -250,16 +250,18 @@ testResolveEntityIndices =
                 , IndividualInfo "Ind7" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 , IndividualInfo "Ind8" ["Pop4", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 ]
+        areLatest <- mapM (isLatestInCollection indInfo) indInfo
+        let indInfoCollection = (indInfo, areLatest)
         indInts1 <- resolveEntityIndices [
               Include (Pac (PacNameAndVersion "Pac1" Nothing))
-            ] indInfo
+            ] indInfoCollection
         indInts1 `shouldBe` [0, 1, 2, 3]
         indInts2 <- resolveEntityIndices [
               Include (Pac (PacNameAndVersion "Pac1" Nothing))
             , Exclude (Group "Pop2")
             , Include (Ind "Ind3")
             , Include (SpecificInd "Ind8" "Pop4" (PacNameAndVersion "Pac2" Nothing))
-            ] indInfo
+            ] indInfoCollection
         indInts2 `shouldBe` [0, 1, 2, 7]
     it "should correctly extract indices in case of duplicates across packages" $ do
         let indInfoDuplicates = [
@@ -268,22 +270,23 @@ testResolveEntityIndices =
                 , IndividualInfo "Ind1" ["Pop1", "PopB"] (PacNameAndVersion "Pac3" Nothing)
                 , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac1" Nothing)
                 , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac2" Nothing)
-                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac3" Nothing)
-                ]
+                , IndividualInfo "Ind2" ["Pop2", "PopB"] (PacNameAndVersion "Pac3" Nothing)]
+        areLatest <- mapM (isLatestInCollection indInfoDuplicates) indInfoDuplicates
+        let indInfoDupCollection = (indInfoDuplicates, areLatest)
         -- test simple extraction with specific syntax
         indInts1 <- resolveEntityIndices [
                Include (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac2" Nothing))
-            ] indInfoDuplicates
+            ] indInfoDupCollection
         indInts1 `shouldBe` [1]
         -- test solving simple duplication for one individual
         indInts2 <- resolveEntityIndices [
               Include $ Ind "Ind1"
             , Exclude $ Pac (PacNameAndVersion "Pac2" Nothing)
             , Exclude $ Pac (PacNameAndVersion "Pac3" Nothing)
-            ] indInfoDuplicates
+            ] indInfoDupCollection
         indInts2 `shouldBe` [0]
         -- test output in case of unresolved duplicates
-        indInts3 <- resolveEntityIndices [Include (Ind "Ind2")] indInfoDuplicates
+        indInts3 <- resolveEntityIndices [Include (Ind "Ind2")] indInfoDupCollection
         indInts3 `shouldBe` [3, 4, 5]
         let duplicateReport = reportDuplicateIndividuals . map (indInfoDuplicates !!) $ indInts3
         duplicateReport `shouldBe` [
@@ -298,7 +301,7 @@ testResolveEntityIndices =
             , Exclude $ Group "Pop2"
             , Exclude $ Pac (PacNameAndVersion "Pac2" Nothing)
             , Exclude $ Pac (PacNameAndVersion "Pac3" Nothing)
-            ] indInfoDuplicates
+            ] indInfoDupCollection
         indInts4 `shouldBe` [0]
     it "should correctly extract indices in case of multiple package versions" $ do
         let indInfo = [
@@ -309,28 +312,30 @@ testResolveEntityIndices =
                 , IndividualInfo "Ind3" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 , IndividualInfo "Ind4" ["Pop3", "PopC"] (PacNameAndVersion "Pac2" Nothing)
                 ]
-        indInts1 <- resolveEntityIndices [Include $ Pac (PacNameAndVersion "Pac1" Nothing)] indInfo
+        areLatest <- mapM (isLatestInCollection indInfo) indInfo
+        let indInfoCollection = (indInfo, areLatest)
+        indInts1 <- resolveEntityIndices [Include $ Pac (PacNameAndVersion "Pac1" Nothing)] indInfoCollection
         indInts1 `shouldBe` [2, 3]
         indInts2 <- resolveEntityIndices [
               Include (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
-            ] indInfo
+            ] indInfoCollection
         indInts2 `shouldBe` [0,1]
         indInts3 <- resolveEntityIndices [
               Include (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])))
-            ] indInfo
+            ] indInfoCollection
         indInts3 `shouldBe` [2,3]
         indInts4 <- resolveEntityIndices [
               Include (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])))
             , Include (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
             , Exclude (Pac (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
-            ] indInfo
+            ] indInfoCollection
         indInts4 `shouldBe` [2]
         indInts5 <- resolveEntityIndices [
               Include (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [2,0,0])))
             , Include (SpecificInd "Ind1" "Pop1" (PacNameAndVersion "Pac1" (Just $ makeVersion [1,0,0])))
             , Exclude (Pac (PacNameAndVersion "Pac1" Nothing))
             , Include (Ind "Ind4")
-            ] indInfo
+            ] indInfoCollection
         indInts5 `shouldBe` [5]
 
 testShow :: Spec

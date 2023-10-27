@@ -1,3 +1,6 @@
+- V 1.4.0.3:
+    - Fixed a severe performance leak in code around `resolveEntityIndices`, which was called in various functions and wastefully recomputed `isLatestInCollection` way too often. This affected simple commands, like fetching a few packages from the server, forging, and has effects also in xerxes.
+    - Bumped to a newer Compiler (GHC 9.4.7) and new Stackage Snapshot (LTS-21.17)
 - V 1.4.0.2:
     - Strictly checking ploidy information across the .janno file and the genotype data in the package reading process has unforeseen consequences. Activating this will require some more changes, so we decided to uncomment this code for now.
 - V 1.4.0.1:

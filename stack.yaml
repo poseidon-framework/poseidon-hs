@@ -1,4 +1,4 @@
-resolver: lts-20.24
+resolver: lts-21.17
 
 packages:
 - .
@@ -7,8 +7,7 @@ extra-deps:
 - data-default-instances-base-0.1.0.1
 - sequence-formats-1.7.0
 - pipes-ordered-zip-1.2.1
-- co-log-0.5.0.0
+- co-log-0.6.0.2
 - ansi-terminal-0.10.3
 - chronos-1.1.5
-- typerep-map-0.5.0.0
 allow-newer: true

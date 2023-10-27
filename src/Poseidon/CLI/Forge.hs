@@ -121,14 +121,14 @@ runForge (
         if length entities > 10 then " and " ++ show (length entities - 10) ++ " more" else ""
 
     -- check if all entities can be found. This function reports an error and throws and exception
-    checkIfAllEntitiesExist entities (getJointIndividualInfo allPackages)
+    getJointIndividualInfo allPackages >>= checkIfAllEntitiesExist entities
     -- determine relevant packages
     relevantPackages <- filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
 
     -- get all individuals from the relevant packages
-    let allInds = getJointIndividualInfo relevantPackages
+    indInfoCollection <- getJointIndividualInfo relevantPackages
 
     -- set entities to only packages, if --packagewise is set
     let relevantEntities =
@@ -137,7 +137,7 @@ runForge (
             else entities
 
     -- determine indizes of relevant individuals
-    relevantIndices <- resolveUniqueEntityIndices relevantEntities allInds
+    relevantIndices <- resolveUniqueEntityIndices relevantEntities indInfoCollection
 
     -- collect data --
     -- janno

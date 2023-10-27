@@ -35,6 +35,7 @@ import           Poseidon.BibFile           (BibEntry (..), BibTeX,
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
+                                             IndividualInfoCollection,
                                              PacNameAndVersion (..),
                                              determineRelevantPackages,
                                              isLatestInCollection,
@@ -805,14 +806,18 @@ getAllGroupInfo packages = do
         isLatest <- isLatestInCollection (map makePacNameAndVersion packages) groupPac
         return $ GroupInfo groupName groupPac isLatest groupNrInds
 
-getJointIndividualInfo :: [PoseidonPackage] -> [IndividualInfo]
+getJointIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> m IndividualInfoCollection
 getJointIndividualInfo packages = do
-    pac <- packages
-    jannoRow <- getJannoRowsFromPac pac
-    return $ IndividualInfo
-        (jPoseidonID jannoRow)
-        ((getJannoList . jGroupName) jannoRow)
-        (makePacNameAndVersion pac)
+    indInfoLatestPairs <- forM packages $ \pac -> do
+        isLatest <- isLatestInCollection packages pac
+        forM (getJannoRowsFromPac pac) $ \jannoRow -> do
+            let indInfo = IndividualInfo
+                    (jPoseidonID jannoRow)
+                    ((getJannoList . jGroupName) jannoRow)
+                    (makePacNameAndVersion pac)
+            return (indInfo, isLatest)
+    return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
+
 
 getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
 getExtendedIndividualInfo allPackages additionalJannoColumns = sequence $ do -- list monad
@@ -830,5 +835,6 @@ getExtendedIndividualInfo allPackages additionalJannoColumns = sequence $ do -- 
 -- | Filter packages such that only packages with individuals covered by the given EntitySpec are returned
 filterToRelevantPackages :: (MonadThrow m) => (EntitySpec a) => [a] -> [PoseidonPackage] -> m [PoseidonPackage]
 filterToRelevantPackages entities packages = do
-    relevantPacs <- determineRelevantPackages entities (getJointIndividualInfo packages)
+    indInfoCollection <- getJointIndividualInfo packages
+    relevantPacs <- determineRelevantPackages entities indInfoCollection
     return $ filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages

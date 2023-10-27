@@ -7,11 +7,14 @@ module Poseidon.ServerClient (
     processApiResponse,
     ArchiveEndpoint(..),
     PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo(..),
+    extIndInfo2IndInfoCollection,
     qDefault, qArchive, qPacVersion, (+&+)
 ) where
 
 import           Paths_poseidon_hs      (version)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+                                         IndividualInfo (..),
+                                         IndividualInfoCollection,
                                          PacNameAndVersion (..))
 import           Poseidon.Janno         (JannoRows)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
@@ -216,3 +219,9 @@ processApiResponse url quiet = do
         Nothing -> do
             logError "The server request was unsuccessful"
             liftIO . throwIO . PoseidonServerCommunicationException $ "Server error upon URL " ++ url
+
+extIndInfo2IndInfoCollection :: [ExtendedIndividualInfo] -> IndividualInfoCollection
+extIndInfo2IndInfoCollection extIndInfos =
+    let indInfos  = [IndividualInfo n g p | ExtendedIndividualInfo n g p _ _ <- extIndInfos]
+        areLatest = map extIndInfoIsLatest extIndInfos
+    in  (indInfos, areLatest)
