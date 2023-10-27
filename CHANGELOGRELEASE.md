@@ -1,3 +1,9 @@
+### V 1.4.0.3
+
+This small release fixes a performance issue related to finding the latest version of all packages. The bug had severe detrimental effects on `forge` and `fetch`, which are now resolved.
+
+We used this opportunity to switch to a new GHC version and new versions of a lot of dependencies for building trident.
+
 ### V 1.4.0.2
 
 This release finally fully enables handling multiple Poseidon package versions with trident. It includes a significant overhaul of the selection language in `forge` and `fetch` with major changes in its implementation and, as a consequence, multiple (subtle, but strictly breaking) changes in its semantics.
