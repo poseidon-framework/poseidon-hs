@@ -12,10 +12,9 @@ runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
 runJannocoalesce (JannoCoalesceOptions source target outSpec fillColumns overwrite) = do
     sourceJanno <- readJannoFile source
     targetJanno <- readJannoFile target
-    let newJanno = do -- list monad
-            sourceRow <- sourceJanno -- loop over source rows
-            targetRow <- lookupRowById targetJanno sourceRow
-            
+    newJanno = forM sourceJanno $ \sourceRow -> do
+        targetRow <- lookupRowById targetJanno sourceRow
+
 
 lookupRowById :: (MonadThrow m) => JannoRows -> JannoRow -> m JannoRow
 lookupRowById = do
