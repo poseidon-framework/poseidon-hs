@@ -1,18 +1,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.CLI.Jannocoalesce where
 
-import Poseidon.Janno (JannoRow(..), JannoRows(..), writeJannoFile, readJannoFile)
-import Poseidon.Utils (PoseidonIO, PoseidonException(..))
+import           Poseidon.Janno         (JannoRow (..), JannoRows (..),
+                                         readJannoFile, writeJannoFile)
+import           Poseidon.Package       (PackageReadOptions (..),
+                                         defaultPackageReadOptions,
+                                         getJointJanno,
+                                         readPoseidonPackageCollection)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO)
 
-import Control.Monad (forM)
-import Control.Monad.Catch (throwM, MonadThrow)
-import Control.Monad.IO.Class (liftIO)
-import qualified Data.ByteString.Char8      as BSC
-import qualified Data.Csv as Csv
-import qualified Data.HashMap.Strict as HM
+import           Control.Monad          (forM)
+import           Control.Monad.Catch    (MonadThrow, throwM)
+import           Control.Monad.IO.Class (liftIO)
+import qualified Data.ByteString.Char8  as BSC
+import qualified Data.Csv               as Csv
+import qualified Data.HashMap.Strict    as HM
+
+-- the source can be a single janno file, or a set of base directories as usual.
+data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
 
 data JannoCoalesceOptions = JannoCoalesceOptions
-    { _jannocoalesceSource           :: FilePath
+    { _jannocoalesceSource           :: JannoSourceSpec
     , _jannocoalesceTarget           :: FilePath
     , _jannocoalesceOutSpec          :: Maybe FilePath -- Nothing means "in place"
     , _jannocoalesceFillColumns      :: [String] -- empty list means All
@@ -20,8 +28,17 @@ data JannoCoalesceOptions = JannoCoalesceOptions
     }
 
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
-runJannocoalesce (JannoCoalesceOptions source target outSpec fields overwrite) = do
-    JannoRows sourceRows <- readJannoFile source
+runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrite) = do
+    JannoRows sourceRows <- case sourceSpec of
+        JannoSourceSingle sourceFile -> readJannoFile sourceFile
+        JannoSourceBaseDirs sourceDirs -> do
+            let pacReadOpts = defaultPackageReadOptions {
+                      _readOptIgnoreChecksums      = True
+                    , _readOptGenoCheck            = False
+                    , _readOptIgnoreGeno           = True
+                    , _readOptOnlyLatest           = True
+                }
+            getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
     JannoRows targetRows <- readJannoFile target
     newJanno <- forM targetRows $ \targetRow -> do
         let posId = jPoseidonID targetRow
@@ -30,7 +47,7 @@ runJannocoalesce (JannoCoalesceOptions source target outSpec fields overwrite) =
             [] -> return targetRow
             [keyRow] -> mergeRow targetRow keyRow fields overwrite
             _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
-    let outPath = maybe target id outSpec 
+    let outPath = maybe target id outSpec
     liftIO $ writeJannoFile outPath (JannoRows newJanno)
 
 
@@ -43,8 +60,9 @@ mergeRow targetRow sourceRow fields overwrite = do
         Left err -> throwM $ PoseidonGenericException $ "Janno row-merge error: " ++ err
         Right r  -> return r
   where
+    mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
     mergeIfMissing key targetVal sourceVal =
-        if (null key || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
+        if (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
             sourceVal
         else
             targetVal

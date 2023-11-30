@@ -2,32 +2,37 @@
 
 module Poseidon.CLI.OptparseApplicativeParsers where
 
-import           Poseidon.CLI.Chronicle (ChronOperation (..))
-import           Poseidon.CLI.List      (ListEntity (..), RepoLocationSpec (..))
-import           Poseidon.CLI.Rectify   (ChecksumsToRectify (..),
-                                         PackageVersionUpdate (..))
-import           Poseidon.CLI.Validate  (ValidatePlan (..))
-import           Poseidon.Contributor   (ContributorSpec (..),
-                                         contributorSpecParser)
-import           Poseidon.EntityTypes   (EntitiesList, EntityInput (..),
-                                         PoseidonEntity, SignedEntitiesList,
-                                         SignedEntity, readEntitiesFromString)
-import           Poseidon.GenotypeData  (GenoDataSource (..),
-                                         GenotypeDataSpec (..),
-                                         GenotypeFormatSpec (..),
-                                         SNPSetSpec (..))
-import           Poseidon.ServerClient  (ArchiveEndpoint (..))
-import           Poseidon.Utils         (LogMode (..), TestMode (..))
-import           Poseidon.Version       (VersionComponent (..), parseVersion)
+import           Poseidon.CLI.Chronicle     (ChronOperation (..))
+import           Poseidon.CLI.Jannocoalesce (JannoSourceSpec (..))
+import           Poseidon.CLI.List          (ListEntity (..),
+                                             RepoLocationSpec (..))
+import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
+                                             PackageVersionUpdate (..))
+import           Poseidon.CLI.Validate      (ValidatePlan (..))
+import           Poseidon.Contributor       (ContributorSpec (..),
+                                             contributorSpecParser)
+import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
+                                             PoseidonEntity, SignedEntitiesList,
+                                             SignedEntity,
+                                             readEntitiesFromString)
+import           Poseidon.GenotypeData      (GenoDataSource (..),
+                                             GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..),
+                                             SNPSetSpec (..))
+import           Poseidon.ServerClient      (ArchiveEndpoint (..))
+import           Poseidon.Utils             (LogMode (..), TestMode (..))
+import           Poseidon.Version           (VersionComponent (..),
+                                             parseVersion)
 
-import           Control.Applicative    ((<|>))
-import           Data.List.Split        (splitOn)
-import           Data.Version           (Version)
-import qualified Options.Applicative    as OP
-import           SequenceFormats.Plink  (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath        (dropExtension, takeExtension, (<.>))
-import qualified Text.Parsec            as P
-import           Text.Read              (readMaybe)
+import           Control.Applicative        ((<|>))
+import           Data.List.Split            (splitOn)
+import           Data.Version               (Version)
+import qualified Options.Applicative        as OP
+import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
+import           System.FilePath            (dropExtension, takeExtension,
+                                             (<.>))
+import qualified Text.Parsec                as P
+import           Text.Read                  (readMaybe)
 
 
 parseChronOperation :: OP.Parser ChronOperation
@@ -761,4 +766,44 @@ parseMaybeArchiveName = OP.option (Just <$> OP.str) (
             \for a list of archives currently available from the official Poseidon Web API." <>
     OP.value Nothing <>
     OP.showDefault
+    )
+
+parseJannocoalSourceSpec :: OP.Parser JannoSourceSpec
+parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <$> parseBasePaths)
+  where
+    parseJannocoalSingleSource = OP.option (JannoSourceSingle <$> OP.str) (
+        OP.long "sourceFile" <>
+        OP.metavar "FILE" <>
+        OP.help "The source Janno file"
+        )
+
+parseJannocoalTargetFile :: OP.Parser FilePath
+parseJannocoalTargetFile = OP.strOption (
+    OP.long "targetFile" <>
+    OP.metavar "FILE" <>
+    OP.help "The target file to fill"
+    )
+
+parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
+parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
+    OP.long "outFile" <>
+    OP.metavar "FILE" <>
+    OP.value Nothing <>
+    OP.showDefault <>
+    OP.help "An optional file to write the results to. If not specified, change the target file in place."
+    )
+
+parseJannocoalFillColumns :: OP.Parser [String]
+parseJannocoalFillColumns = OP.option (splitOn "," <$> OP.str) (
+    OP.long "fillColumns" <>
+    OP.short 'f' <>
+    OP.value [] <>
+    OP.help "A comma-separated list of Janno field names. If not specified, fill all columns that can be found in the source and target."
+    )
+
+parseJannocoalOverride :: OP.Parser Bool
+parseJannocoalOverride = OP.switch (
+    OP.long "force" <>
+    OP.short 'f' <>
+    OP.help "With this option, potential non-missing content in target columns gets overridden with non-missing content in source columns. By default, only missing data gets filled-in."
     )
