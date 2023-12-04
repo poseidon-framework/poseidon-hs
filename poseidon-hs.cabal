@@ -53,7 +53,7 @@ Test-Suite poseidon-tools-tests
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
                         unordered-containers, cassava, containers, process
     other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
-                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
+                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec, Poseidon.JannocoalesceSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
                         PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.ChronicleSpec,
