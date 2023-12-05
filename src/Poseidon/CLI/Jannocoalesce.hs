@@ -7,7 +7,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getJointJanno,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO, logInfo)
 
 import           Control.Monad          (forM)
 import           Control.Monad.Catch    (MonadThrow, throwM)
@@ -15,6 +15,8 @@ import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
+import           System.Directory       (createDirectoryIfMissing)
+import           System.FilePath        (takeDirectory)
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
@@ -48,8 +50,10 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
             [keyRow] -> mergeRow targetRow keyRow fields overwrite
             _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
     let outPath = maybe target id outSpec
-    liftIO $ writeJannoFile outPath (JannoRows newJanno)
-
+    logInfo $ "Writing to file (directory will be created if missing): " ++ outPath
+    liftIO $ do
+        createDirectoryIfMissing True (takeDirectory outPath)
+        writeJannoFile outPath (JannoRows newJanno)
 
 mergeRow :: (MonadThrow m) => JannoRow -> JannoRow -> [String] -> Bool -> m JannoRow
 mergeRow targetRow sourceRow fields overwrite = do
