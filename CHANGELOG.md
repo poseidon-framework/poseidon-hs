@@ -1,3 +1,5 @@
+- V 1.4.1.0:
+    - Added new tool `trident jannocoalesce`, which merges information from a source janno file to a target janno file, see `trident jannocoalesce --help` for details.
 - V 1.4.0.3:
     - Fixed a severe performance leak in code around `resolveEntityIndices`, which was called in various functions and wastefully recomputed `isLatestInCollection` way too often. This affected simple commands, like fetching a few packages from the server, forging, and has effects also in xerxes.
     - Bumped to a newer Compiler (GHC 9.4.7) and new Stackage Snapshot (LTS-21.17)
