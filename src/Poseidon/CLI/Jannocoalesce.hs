@@ -7,7 +7,8 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getJointJanno,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO, logInfo)
+import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
+                                         logInfo)
 
 import           Control.Monad          (forM)
 import           Control.Monad.Catch    (MonadThrow, throwM)

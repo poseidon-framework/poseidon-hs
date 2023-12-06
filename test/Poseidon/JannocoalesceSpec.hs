@@ -3,8 +3,8 @@ module Poseidon.JannocoalesceSpec (spec) where
 
 import           Poseidon.CLI.Jannocoalesce (mergeRow)
 import           Poseidon.Janno             (JannoList (..), JannoRow (..),
-                                             createMinimalSample,
-                                             makeLatitude, makeLongitude)
+                                             createMinimalSample, makeLatitude,
+                                             makeLongitude)
 
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           Test.Hspec
