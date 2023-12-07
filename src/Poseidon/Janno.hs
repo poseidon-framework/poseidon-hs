@@ -1038,16 +1038,16 @@ checkIndividualUnique :: JannoRows -> Bool
 checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
-checkJannoRowConsistency jannoPath row x
-    | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonFileRowException jannoPath row
-          "The mandatory columns Poseidon_ID and Group_Name contain empty values"
-    | not $ checkC14ColsConsistent x = Left $ PoseidonFileRowException jannoPath row
-          "The Date_* columns are not consistent"
-    | not $ checkContamColsConsistent x = Left $ PoseidonFileRowException jannoPath row
-          "The Contamination_* columns are not consistent"
-    | not $ checkRelationColsConsistent x = Left $ PoseidonFileRowException jannoPath row
-          "The Relation_* columns are not consistent"
-    | otherwise = Right x
+checkJannoRowConsistency jannoPath row x = undefined
+    -- | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonFileRowException jannoPath row
+    --       "The mandatory columns Poseidon_ID and Group_Name contain empty values"
+    -- | not $ checkC14ColsConsistent x = Left $ PoseidonFileRowException jannoPath row
+    --       "The Date_* columns are not consistent"
+    -- | not $ checkContamColsConsistent x = Left $ PoseidonFileRowException jannoPath row
+    --       "The Contamination_* columns are not consistent"
+    -- | not $ checkRelationColsConsistent x = Left $ PoseidonFileRowException jannoPath row
+    --       "The Relation_* columns are not consistent"
+    -- | otherwise = Right x
 
 checkMandatoryStringNotEmpty :: JannoRow -> Bool
 checkMandatoryStringNotEmpty x =
@@ -1062,18 +1062,23 @@ allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
 allEqual x  = length (nub x) == 1
 
-checkC14ColsConsistent :: JannoRow -> Bool
+checkC14ColsConsistent :: JannoRow -> Either String JannoRow
 checkC14ColsConsistent x =
-    let lLabnr          = getCellLength $ jDateC14Labnr x
+    let isTypeC14       = jDateType x == Just C14
+        lLabnr          = getCellLength $ jDateC14Labnr x
         lUncalBP        = getCellLength $ jDateC14UncalBP x
         lUncalBPErr     = getCellLength $ jDateC14UncalBPErr x
-        shouldBeTypeC14 = lUncalBP > 0
-        isTypeC14       = jDateType x == Just C14
-    in
-        (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
-        && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)
-        && lUncalBP == lUncalBPErr
-        && (not shouldBeTypeC14 || isTypeC14)
+        allColsEmpty    = lLabnr == 0 && lUncalBP == 0 && lUncalBPErr == 0
+        allSameLength   = allEqual [lLabnr, lUncalBP, lUncalBPErr]
+    in case (isTypeC14, allColsEmpty, allSameLength) of
+        (False, False, _    ) -> Left "Date_Type is not \"C14\", but either Date_C14_Labnr, \
+                                       \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
+        (False, True,  _    ) -> Right x
+        (True,  False, False) -> Left "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
+                                      \do not have the same lengths"
+        (True,  False, True ) -> Right x
+        (True,  True,  _    ) -> Left "Date_Type is \"C14\", but either Date_C14_Labnr, \
+                                      \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"
 
 checkContamColsConsistent :: JannoRow -> Bool
 checkContamColsConsistent x =
