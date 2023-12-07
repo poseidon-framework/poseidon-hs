@@ -1071,17 +1071,19 @@ checkC14ColsConsistent x =
         lLabnr          = getCellLength $ jDateC14Labnr x
         lUncalBP        = getCellLength $ jDateC14UncalBP x
         lUncalBPErr     = getCellLength $ jDateC14UncalBPErr x
-        allColsEmpty    = lLabnr == 0 && lUncalBP == 0 && lUncalBPErr == 0
-        allSameLength   = allEqual [lLabnr, lUncalBP, lUncalBPErr]
-    in case (isTypeC14, allColsEmpty, allSameLength) of
-        (False, False, _    ) -> Left "Date_Type is not \"C14\", but either Date_C14_Labnr, \
-                                       \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
-        (False, True,  _    ) -> Right x
-        (True,  False, False) -> Left "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
-                                      \do not have the same lengths"
-        (True,  False, True ) -> Right x
-        (True,  True,  _    ) -> Left "Date_Type is \"C14\", but either Date_C14_Labnr, \
-                                      \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"
+        anyColFilled    = lLabnr > 0 || lUncalBP > 0 || lUncalBPErr > 0
+        anyMainColEmpty = lUncalBP == 0 || lUncalBPErr == 0
+        allSameLength   = allEqual [lLabnr, lUncalBP, lUncalBPErr] ||
+                          (lLabnr == 0 && lUncalBP == lUncalBPErr)
+    in case (isTypeC14, anyColFilled, anyMainColEmpty, allSameLength) of
+        (False, True, _, _ )    -> Left "Date_Type is not \"C14\", but either Date_C14_Labnr, \
+                                        \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
+        (False, False, _, _ )   -> Right x
+        (True, _, False, False) -> Left "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
+                                        \do not have the same lengths. Date_C14_Labnr can be empty"
+        (True, _, False, True ) -> Right x
+        (True, _, True, _ )     -> Left "Date_Type is \"C14\", but either \
+                                        \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"
 
 checkContamColsConsistent :: JannoRow -> Bool
 checkContamColsConsistent x =
