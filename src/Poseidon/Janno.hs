@@ -1038,9 +1038,12 @@ checkIndividualUnique :: JannoRows -> Bool
 checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
 checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
-checkJannoRowConsistency jannoPath row x = undefined
+checkJannoRowConsistency jannoPath row x = do
     -- | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonFileRowException jannoPath row
     --       "The mandatory columns Poseidon_ID and Group_Name contain empty values"
+    case (checkC14ColsConsistent x) of
+        Right res -> Right res
+        Left e    -> Left $ PoseidonFileRowException jannoPath row e
     -- | not $ checkC14ColsConsistent x = Left $ PoseidonFileRowException jannoPath row
     --       "The Date_* columns are not consistent"
     -- | not $ checkContamColsConsistent x = Left $ PoseidonFileRowException jannoPath row
