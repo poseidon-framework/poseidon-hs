@@ -48,8 +48,8 @@ module Poseidon.Janno (
 
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
-                                                       logError,
-                                                       renderPoseidonException, logWarning)
+                                                       logError, logWarning,
+                                                       renderPoseidonException)
 
 
 import           Control.Applicative                  (empty)
