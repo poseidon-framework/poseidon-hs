@@ -1067,16 +1067,16 @@ allEqual x  = length (nub x) == 1
 
 checkC14ColsConsistent :: JannoRow -> Either String JannoRow
 checkC14ColsConsistent x =
-    let isTypeC14       = jDateType x == Just C14
-        lLabnr          = getCellLength $ jDateC14Labnr x
-        lUncalBP        = getCellLength $ jDateC14UncalBP x
-        lUncalBPErr     = getCellLength $ jDateC14UncalBPErr x
-        anyColFilled    = lLabnr > 0 || lUncalBP > 0 || lUncalBPErr > 0
-        anyMainColEmpty = lUncalBP == 0 || lUncalBPErr == 0
-        allSameLength   = allEqual [lLabnr, lUncalBP, lUncalBPErr] ||
+    let isTypeC14        = jDateType x == Just C14
+        lLabnr           = getCellLength $ jDateC14Labnr x
+        lUncalBP         = getCellLength $ jDateC14UncalBP x
+        lUncalBPErr      = getCellLength $ jDateC14UncalBPErr x
+        anyMainColFilled = lUncalBP > 0 || lUncalBPErr > 0
+        anyMainColEmpty  = lUncalBP == 0 || lUncalBPErr == 0
+        allSameLength    = allEqual [lLabnr, lUncalBP, lUncalBPErr] ||
                           (lLabnr == 0 && lUncalBP == lUncalBPErr)
-    in case (isTypeC14, anyColFilled, anyMainColEmpty, allSameLength) of
-        (False, True, _, _ )    -> Left "Date_Type is not \"C14\", but either Date_C14_Labnr, \
+    in case (isTypeC14, anyMainColFilled, anyMainColEmpty, allSameLength) of
+        (False, True, _, _ )    -> Left "Date_Type is not \"C14\", but either \
                                         \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
         (False, False, _, _ )   -> Right x
         (True, _, False, False) -> Left "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
