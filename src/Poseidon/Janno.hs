@@ -1002,23 +1002,29 @@ findSimilarNames reference = map (findSimilar reference)
 -- | A function to load one row of a janno file
 readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException JannoRow)
 readJannoFileRow jannoPath (lineNumber, row) = do
-    case Csv.decodeByNameWith decodingOptions row of
+    let decoded = Csv.decodeByNameWith decodingOptions row
+        simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
+    case simplifiedDecoded of
         Left e -> do
             let betterError = case P.parse parseCsvParseError "" e of
                     Left _       -> removeUselessSuffix e
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
-        Right (_, jannoRow :: V.Vector JannoRow) -> do
-            case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
-                Left e -> do
-                    return $ Left e
-                Right (ws :: JannoRowWarnings, r :: JannoRow) -> do
-                    mapM_ (logWarning . renderWarning) ws
+        Right jannoRow -> do
+            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
+            case errOrJannoRow of
+                Left e -> return $ Left $
+                    PoseidonFileRowException jannoPath renderLocation e
+                Right r -> do
+                    mapM_ (logWarning . renderWarning) warnings
                     return $ Right r
                 where
                     renderWarning :: String -> String
-                    renderWarning e = "Issue in " ++ jannoPath ++
-                                      " in line " ++ show lineNumber ++ ": " ++ e
+                    renderWarning e = "Issue in " ++ jannoPath ++ " " ++
+                                      "in line " ++ renderLocation ++ ": " ++ e
+                    renderLocation :: String
+                    renderLocation =  show lineNumber ++
+                                      " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
@@ -1083,24 +1089,13 @@ checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPosei
 type JannoRowWarnings = [String]
 type JannoRowLog = E.ExceptT String (W.Writer JannoRowWarnings)
 
-checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException (JannoRowWarnings, JannoRow)
-checkJannoRowConsistency jannoPath row x =
-    let (eitherErr, ws) = W.runWriter (E.runExceptT check)
-    in case eitherErr of
-        Right res -> return (ws, res)
-        Left  e   -> E.throwError $
-            PoseidonFileRowException
-                jannoPath
-                (show row ++ " (Poseidon_ID: " ++ jPoseidonID x ++ ")")
-                e
-    where
-        check :: JannoRowLog JannoRow
-        check =
-            return x
-            >>= checkMandatoryStringNotEmpty
-            >>= checkC14ColsConsistent
-            >>= checkContamColsConsistent
-            >>= checkRelationColsConsistent
+checkJannoRowConsistency :: JannoRow -> JannoRowLog JannoRow
+checkJannoRowConsistency x =
+    return x
+    >>= checkMandatoryStringNotEmpty
+    >>= checkC14ColsConsistent
+    >>= checkContamColsConsistent
+    >>= checkRelationColsConsistent
 
 checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
 checkMandatoryStringNotEmpty x =
