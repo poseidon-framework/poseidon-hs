@@ -1012,19 +1012,17 @@ readJannoFileRow jannoPath (lineNumber, row) = do
             return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
         Right jannoRow -> do
             let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
+            mapM_ (logWarning . renderWarning) warnings
             case errOrJannoRow of
-                Left e -> return $ Left $
-                    PoseidonFileRowException jannoPath renderLocation e
-                Right r -> do
-                    mapM_ (logWarning . renderWarning) warnings
-                    return $ Right r
-                where
-                    renderWarning :: String -> String
-                    renderWarning e = "Issue in " ++ jannoPath ++ " " ++
-                                      "in line " ++ renderLocation ++ ": " ++ e
-                    renderLocation :: String
-                    renderLocation =  show lineNumber ++
-                                      " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
+                Left e  -> return $ Left $ PoseidonFileRowException jannoPath renderLocation e
+                Right r -> return $ Right r
+            where
+                renderWarning :: String -> String
+                renderWarning e = "Issue in " ++ jannoPath ++ " " ++
+                                  "in line " ++ renderLocation ++ ": " ++ e
+                renderLocation :: String
+                renderLocation =  show lineNumber ++
+                                  " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
