@@ -68,7 +68,7 @@ import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (isSpace, ord, chr)
+import           Data.Char                            (chr, isSpace, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
@@ -86,9 +86,9 @@ import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
+import qualified Text.Parsec                          as P
+import qualified Text.Parsec.String                   as P
 import qualified Text.Regex.TDFA                      as Reg
-import qualified Text.Parsec as P
-import qualified Text.Parsec.String as P
 
 -- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -1003,7 +1003,7 @@ readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
             let betterError = case P.parse parseCsvParseError "" e of
-                    Left _ -> removeUselessSuffix e
+                    Left _       -> removeUselessSuffix e
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
         Right (_, jannoRow :: V.Vector JannoRow) -> do
@@ -1027,7 +1027,7 @@ removeUselessSuffix = unpack . replace " at \"\"" "" . pack
 
 data CsvParseError = CsvParseError {
       _expected :: String
-    , _actual :: String
+    , _actual   :: String
     , _leftover :: String
 } deriving Show
 
