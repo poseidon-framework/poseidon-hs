@@ -41,6 +41,8 @@ module Poseidon.Janno (
     decodingOptions,
     explicitNA,
     removeUselessSuffix,
+    parseCsvParseError,
+    renderCsvParseError,
     getMaybeJannoList
 ) where
 
@@ -66,7 +68,7 @@ import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (isSpace, ord)
+import           Data.Char                            (isSpace, ord, chr)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
@@ -85,6 +87,8 @@ import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Regex.TDFA                      as Reg
+import qualified Text.Parsec as P
+import qualified Text.Parsec.String as P
 
 -- | A datatype for genetic sex
 newtype JannoSex = JannoSex { sfSex :: Sex }
@@ -998,7 +1002,10 @@ readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either Pose
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
-            return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) $ removeUselessSuffix e
+            let betterError = case P.parse parseCsvParseError "" e of
+                    Left _ -> removeUselessSuffix e
+                    Right result -> renderCsvParseError result
+            return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
         Right (_, jannoRow :: V.Vector JannoRow) -> do
             case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
                 Left e -> do
@@ -1013,6 +1020,33 @@ decodingOptions = Csv.defaultDecodeOptions {
 
 removeUselessSuffix :: String -> String
 removeUselessSuffix = unpack . replace " at \"\"" "" . pack
+
+-- reformat the parser error
+-- from: parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
+-- to:   parse error in one column (expected data type: Int, broken value: "430;", problematic characters: ";")
+
+data CsvParseError = CsvParseError {
+      _expected :: String
+    , _actual :: String
+    , _leftover :: String
+} deriving Show
+
+parseCsvParseError :: P.Parser CsvParseError
+parseCsvParseError = do
+    _ <- P.string "parse error (Failed reading: conversion error: expected "
+    expected <- P.manyTill P.anyChar (P.try (P.string ", got "))
+    actual <- P.manyTill P.anyChar (P.try (P.string " (incomplete field parse, leftover: ["))
+    leftoverList <- P.sepBy (read <$> P.many1 P.digit) (P.char ',')
+    _ <- P.char ']'
+    _ <- P.many P.anyChar
+    return $ CsvParseError expected actual (map chr leftoverList)
+
+renderCsvParseError :: CsvParseError -> String
+renderCsvParseError (CsvParseError expected actual leftover) =
+    "parse error in one column (" ++
+    "expected data type: " ++ expected ++ ", " ++
+    "broken value: " ++ actual ++ ", " ++
+    "problematic characters: " ++ show leftover ++ ")"
 
 -- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
 explicitNA :: Bch.ByteString -> Bch.ByteString

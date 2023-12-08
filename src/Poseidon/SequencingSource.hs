@@ -11,7 +11,7 @@ import           Poseidon.Janno             (AccessionID (..),
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
                                              makeAccessionID,
-                                             removeUselessSuffix)
+                                             removeUselessSuffix, parseCsvParseError, renderCsvParseError)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logDebug, logError, logWarning,
                                              renderPoseidonException)
@@ -39,6 +39,7 @@ import           Data.Time.Format           (defaultTimeLocale, formatTime,
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
+import qualified Text.Parsec as P
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -414,7 +415,10 @@ readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either 
 readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
-            return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) $ removeUselessSuffix e
+            let betterError = case P.parse parseCsvParseError "" e of
+                    Left _ -> removeUselessSuffix e
+                    Right result -> renderCsvParseError result
+            return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
         Right (_, seqSourceRow :: V.Vector SeqSourceRow) -> do
             case checkSeqSourceRowConsistency seqSourcePath lineNumber $ V.head seqSourceRow of
                 Left e                     -> do return $ Left e
