@@ -998,7 +998,7 @@ readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either Pose
 readJannoFileRow jannoPath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
-            return $ Left $ PoseidonFileRowException jannoPath lineNumber $ removeUselessSuffix e
+            return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) $ removeUselessSuffix e
         Right (_, jannoRow :: V.Vector JannoRow) -> do
             case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
                 Left e -> do
@@ -1041,7 +1041,8 @@ checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonExcept
 checkJannoRowConsistency jannoPath row x =
     case check of
         Right res -> Right res
-        Left  e   -> Left $ PoseidonFileRowException jannoPath row e
+        Left  e   -> Left $
+            PoseidonFileRowException jannoPath (show row ++ " (" ++ jPoseidonID x ++ ")") e
     where
         check :: Either String JannoRow
         check =

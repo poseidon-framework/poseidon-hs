@@ -414,7 +414,7 @@ readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either 
 readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
     case Csv.decodeByNameWith decodingOptions row of
         Left e -> do
-            return $ Left $ PoseidonFileRowException seqSourcePath lineNumber $ removeUselessSuffix e
+            return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) $ removeUselessSuffix e
         Right (_, seqSourceRow :: V.Vector SeqSourceRow) -> do
             case checkSeqSourceRowConsistency seqSourcePath lineNumber $ V.head seqSourceRow of
                 Left e                     -> do return $ Left e
