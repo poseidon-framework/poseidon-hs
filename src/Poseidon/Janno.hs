@@ -49,7 +49,7 @@ module Poseidon.Janno (
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
                                                        logError,
-                                                       renderPoseidonException)
+                                                       renderPoseidonException, logWarning)
 
 
 import           Control.Applicative                  (empty)
@@ -1010,8 +1010,13 @@ readJannoFileRow jannoPath (lineNumber, row) = do
             case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
                 Left e -> do
                     return $ Left e
-                Right (pS :: JannoRow) -> do
-                    return $ Right pS
+                Right (ws :: JannoRowWarnings, r :: JannoRow) -> do
+                    mapM_ (logWarning . renderWarning) ws
+                    return $ Right r
+                where
+                    renderWarning :: String -> String
+                    renderWarning e = "Issue in " ++ jannoPath ++
+                                      " in line " ++ show lineNumber ++ ": " ++ e
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
@@ -1060,7 +1065,7 @@ replaceInJannoBytestring from to tsv =
         tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
--- Janno consistency checks
+-- Global janno consistency checks
 
 checkJannoConsistency :: FilePath -> JannoRows -> Either PoseidonException JannoRows
 checkJannoConsistency jannoPath xs
@@ -1071,7 +1076,11 @@ checkJannoConsistency jannoPath xs
 checkIndividualUnique :: JannoRows -> Bool
 checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
-checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
+-- Row-wise janno consistency checks
+
+type JannoRowWarnings = [String]
+
+checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException (JannoRowWarnings, JannoRow)
 checkJannoRowConsistency jannoPath row x =
     case check of
         Right res -> Right res
@@ -1081,22 +1090,22 @@ checkJannoRowConsistency jannoPath row x =
                 (show row ++ " (Poseidon_ID: " ++ jPoseidonID x ++ ")")
                 e
     where
-        check :: Either String JannoRow
+        check :: Either String (JannoRowWarnings, JannoRow)
         check =
-            Right x
+            Right ([], x)
             >>= checkMandatoryStringNotEmpty
             >>= checkC14ColsConsistent
             >>= checkContamColsConsistent
             >>= checkRelationColsConsistent
 
-checkMandatoryStringNotEmpty :: JannoRow -> Either String JannoRow
-checkMandatoryStringNotEmpty x =
+checkMandatoryStringNotEmpty :: (JannoRowWarnings, JannoRow) -> Either String (JannoRowWarnings, JannoRow)
+checkMandatoryStringNotEmpty (ws, x) =
     let notEmpty = (not . null . jPoseidonID $ x) &&
                    (not . null . getJannoList . jGroupName $ x) &&
                    (not . null . head . getJannoList . jGroupName $ x)
     in case notEmpty of
         False -> Left "Poseidon_ID or Group_Name are empty"
-        True  -> Right x
+        True  -> Right (ws,x)
 
 getCellLength :: Maybe (JannoList a) -> Int
 getCellLength = maybe 0 (length . getJannoList)
@@ -1105,8 +1114,8 @@ allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
 allEqual x  = length (nub x) == 1
 
-checkC14ColsConsistent :: JannoRow -> Either String JannoRow
-checkC14ColsConsistent x =
+checkC14ColsConsistent :: (JannoRowWarnings, JannoRow) -> Either String (JannoRowWarnings, JannoRow)
+checkC14ColsConsistent (ws, x) =
     let isTypeC14        = jDateType x == Just C14
         lLabnr           = getCellLength $ jDateC14Labnr x
         lUncalBP         = getCellLength $ jDateC14UncalBP x
@@ -1116,17 +1125,19 @@ checkC14ColsConsistent x =
         allSameLength    = allEqual [lLabnr, lUncalBP, lUncalBPErr] ||
                           (lLabnr == 0 && lUncalBP == lUncalBPErr)
     in case (isTypeC14, anyMainColFilled, anyMainColEmpty, allSameLength) of
-        (False, False, _, _ )   -> Right x
-        (False, True, _, _ )    -> Left "Date_Type is not \"C14\", but either \
-                                        \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
-        (True, _, False, False) -> Left "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
-                                        \do not have the same lengths. Date_C14_Labnr can be empty"
-        (True, _, False, True ) -> Right x
-        (True, _, True, _ )     -> Left "Date_Type is \"C14\", but either \
-                                        \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"
+        (False, False, _, _ )   -> Right (ws, x)
+        (False, True, _, _ )    -> Left  "Date_Type is not \"C14\", but either \
+                                         \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
+        (True, _, False, False) -> Left  "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
+                                         \do not have the same lengths. Date_C14_Labnr can be empty"
+        (True, _, False, True ) -> Right (ws, x)
+        -- this should be an error, but we have legacy packages with this issue, so it's only a warning
+        (True, _, True, _ )     -> Right (ws ++ ["Date_Type is \"C14\", but either \
+                                         \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"],
+                                         x)
 
-checkContamColsConsistent :: JannoRow -> Either String JannoRow
-checkContamColsConsistent x =
+checkContamColsConsistent :: (JannoRowWarnings, JannoRow) -> Either String (JannoRowWarnings, JannoRow)
+checkContamColsConsistent (ws, x) =
     let lContamination      = getCellLength $ jContamination x
         lContaminationErr   = getCellLength $ jContaminationErr x
         lContaminationMeas  = getCellLength $ jContaminationMeas x
@@ -1134,10 +1145,10 @@ checkContamColsConsistent x =
     in case allSameLength of
         False -> Left "Contamination, Contamination_Err and Contamination_Meas \
                       \do not have the same lengths"
-        True  -> Right x
+        True  -> Right (ws, x)
 
-checkRelationColsConsistent :: JannoRow -> Either String JannoRow
-checkRelationColsConsistent x =
+checkRelationColsConsistent :: (JannoRowWarnings, JannoRow) -> Either String (JannoRowWarnings, JannoRow)
+checkRelationColsConsistent (ws, x) =
     let lRelationTo     = getCellLength $ jRelationTo x
         lRelationDegree = getCellLength $ jRelationDegree x
         lRelationType   = getCellLength $ jRelationType x
@@ -1146,7 +1157,7 @@ checkRelationColsConsistent x =
     in case allSameLength of
         False -> Left "Relation_To, Relation_Degree and Relation_Type \
                       \do not have the same lengths. Relation_Type can be empty"
-        True  -> Right x
+        True  -> Right (ws, x)
 
 -- deriving with TemplateHaskell necessary for the generics magic in the Survey module
 deriveGeneric ''JannoRow
