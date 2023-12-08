@@ -1076,7 +1076,10 @@ checkJannoRowConsistency jannoPath row x =
     case check of
         Right res -> Right res
         Left  e   -> Left $
-            PoseidonFileRowException jannoPath (show row ++ " (" ++ jPoseidonID x ++ ")") e
+            PoseidonFileRowException
+                jannoPath
+                (show row ++ " (Poseidon_ID: " ++ jPoseidonID x ++ ")")
+                e
     where
         check :: Either String JannoRow
         check =
