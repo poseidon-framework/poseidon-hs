@@ -403,39 +403,25 @@ readSeqSourceFile seqSourcePath = do
         mapM_ (logError . renderPoseidonException) $ take 5 $ lefts seqSourceRepresentation
         liftIO $ throwIO $ PoseidonFileConsistencyException seqSourcePath "Broken lines."
     else do
-        let consistentSeqSource = checkSeqSourceConsistency seqSourcePath $ SeqSourceRows $ rights seqSourceRepresentation
-        case consistentSeqSource of
-            Left e  -> do liftIO $ throwIO (e :: PoseidonException)
-            Right x -> do
-                -- warnings
-                warnSeqSourceConsistency seqSourcePath x
-                -- finally return the good ones
-                return x
+        let seqSource = SeqSourceRows $ rights seqSourceRepresentation
+        warnSeqSourceConsistency seqSourcePath seqSource
+        return seqSource
 
 -- | A function to read one row of a seqSourceFile
 readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
 readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
-    case Csv.decodeByNameWith decodingOptions row of
+    let decoded = Csv.decodeByNameWith decodingOptions row
+        simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
+    case simplifiedDecoded of
         Left e -> do
             let betterError = case P.parse parseCsvParseError "" e of
                     Left _       -> removeUselessSuffix e
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
-        Right (_, seqSourceRow :: V.Vector SeqSourceRow) -> do
-            case checkSeqSourceRowConsistency seqSourcePath lineNumber $ V.head seqSourceRow of
-                Left e                     -> do return $ Left e
-                Right (pS :: SeqSourceRow) -> do return $ Right pS
+        Right seqSourceRow -> do
+            return $ Right seqSourceRow
 
--- SeqSource consistency checks
-checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
-checkSeqSourceConsistency _ xs
-    -- | ... no tests implemented
-    | otherwise = Right xs
-
-checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
-checkSeqSourceRowConsistency _ _ x
-    -- | ... no tests implemented
-    | otherwise = Right x
+-- Global SSF consistency checks
 
 warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
 warnSeqSourceConsistency seqSourcePath xs = do
