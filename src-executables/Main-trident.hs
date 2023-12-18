@@ -275,3 +275,6 @@ jannocoalesceOptParser = JannoCoalesceOptions <$> parseJannocoalSourceSpec
                                               <*> parseJannocoalOutSpec
                                               <*> parseJannocoalFillColumns
                                               <*> parseJannocoalOverride
+                                              <*> parseJannocoalSourceKey
+                                              <*> parseJannocoalTargetKey
+                                              <*> parseJannocoalIdStripRegex

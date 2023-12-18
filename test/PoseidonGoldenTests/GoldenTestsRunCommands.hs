@@ -1091,7 +1091,10 @@ testPipelineJannocoalesce testDir checkFilePath = do
             _jannocoalesceTarget           = "test/testDat/testJannoFiles/normal_subset.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "targetNoFieldsNoOverride.janno"),
             _jannocoalesceFillColumns      = [],
-            _jannocoalesceOverwriteColumns = False
+            _jannocoalesceOverwriteColumns = False,
+            _jannocoalesceSourceKey        = "Poseidon_ID",
+            _jannocoalesceTargetKey        = "Poseidon_ID",
+            _jannocoalesceIdStripRegex     = Nothing
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts1) "jannocoalesce" [
           "jannocoalesce" </> "targetNoFieldsNoOverride.janno"

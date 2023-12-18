@@ -807,3 +807,14 @@ parseJannocoalOverride = OP.switch (
     OP.short 'f' <>
     OP.help "With this option, potential non-missing content in target columns gets overridden with non-missing content in source columns. By default, only missing data gets filled-in."
     )
+
+parseJannocoalSourceKey :: OP.Parser String
+parseJannocoalSourceKey = OP.strOption (OP.long "sourceKey" <> OP.help "the janno column to use as the source key" <> OP.value "Poseidon_ID" <> OP.showDefault)
+
+parseJannocoalTargetKey :: OP.Parser String
+parseJannocoalTargetKey = OP.strOption (OP.long "targetKey" <> OP.help "the janno column to use as the target key" <> OP.value "Poseidon_ID" <> OP.showDefault)
+
+parseJannocoalIdStripRegex :: OP.Parser (Maybe String)
+parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (OP.long "stripIdSuffix" <>
+    OP.help "an optional regular expression to identify parts of the IDs to strip before matching between source and target" <> OP.value Nothing)
+
