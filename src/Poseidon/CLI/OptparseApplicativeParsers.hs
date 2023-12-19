@@ -773,6 +773,7 @@ parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <
   where
     parseJannocoalSingleSource = OP.option (JannoSourceSingle <$> OP.str) (
         OP.long "sourceFile" <>
+        OP.short 's' <>
         OP.metavar "FILE" <>
         OP.help "The source Janno file"
         )
@@ -780,6 +781,7 @@ parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <
 parseJannocoalTargetFile :: OP.Parser FilePath
 parseJannocoalTargetFile = OP.strOption (
     OP.long "targetFile" <>
+    OP.short 't' <>
     OP.metavar "FILE" <>
     OP.help "The target file to fill"
     )
@@ -787,6 +789,7 @@ parseJannocoalTargetFile = OP.strOption (
 parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
 parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
     OP.long "outFile" <>
+    OP.short `-o` <>
     OP.metavar "FILE" <>
     OP.value Nothing <>
     OP.showDefault <>
@@ -796,7 +799,6 @@ parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
 parseJannocoalFillColumns :: OP.Parser [String]
 parseJannocoalFillColumns = OP.option (splitOn "," <$> OP.str) (
     OP.long "fillColumns" <>
-    OP.short 'f' <>
     OP.value [] <>
     OP.help "A comma-separated list of Janno field names. If not specified, fill all columns that can be found in the source and target."
     )
