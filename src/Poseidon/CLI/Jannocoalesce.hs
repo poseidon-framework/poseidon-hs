@@ -11,7 +11,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logInfo)
 
-import           Control.Monad          (filterM, forM)
+import           Control.Monad          (filterM, forM, forM_)
 import           Control.Monad.Catch    (MonadThrow, throwM)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
@@ -103,11 +103,9 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
             let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetRowRecord
             if HM.null newFields then do
                 logInfo "-- no changes"
-                return r
             else do
-                forM (HM.toList newFields) $ \(key, val) ->
+                forM_ (HM.toList newFields) $ \(key, val) ->
                     logInfo $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
-                return r
             return r
   where
     mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
