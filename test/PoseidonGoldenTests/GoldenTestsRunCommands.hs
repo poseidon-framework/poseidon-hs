@@ -1094,21 +1094,8 @@ testPipelineJannocoalesce testDir checkFilePath = do
             _jannocoalesceOverwriteColumns = False,
             _jannocoalesceSourceKey        = "Poseidon_ID",
             _jannocoalesceTargetKey        = "Poseidon_ID",
-            _jannocoalesceIdStripRegex     = Nothing
+            _jannocoalesceIdStrip          = Nothing
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts1) "jannocoalesce" [
           "jannocoalesce" </> "targetNoFieldsNoOverride.janno"
         ]
-    -- runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts2) "jannocoalesce" [
-    --       "jannocoalesce" </> "targetFieldsNoOverride.janno",
-    -- ]
-    -- runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts3) "jannocoalesce" [
-    --       "jannocoalesce" </> "targetNoFieldsOverride.janno",
-    -- ]
-    -- runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts4) "jannocoalesce" [
-    --       "jannocoalesce" </> "targetFieldsOverride.janno",
-    -- ]
-    -- runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts5) "jannocoalesce" [
-    --       "jannocoalesce" </> "targetFromBaseDir.janno",
-    -- ]
-

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Poseidon.CLI.Jannocoalesce where
 
 import           Poseidon.Janno         (JannoRow (..), JannoRows (..),
@@ -16,10 +17,10 @@ import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
-import           Data.List.Utils        (replace)
+import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
-import           Text.Regex.TDFA        (subRegex)
+import           Text.Regex.TDFA        ((=~))
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
@@ -48,18 +49,24 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
                 }
             getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
     JannoRows targetRows <- readJannoFile target
-    newJanno <- forM targetRows $ \targetRow -> do
-        posId <- getKeyFromJanno targetRow tKey
-        sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
-        case sourceRowCandidates of
-            [] -> return targetRow
-            [keyRow] -> mergeRow targetRow keyRow fields overwrite
-            _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
+
+    newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
+
     let outPath = maybe target id outSpec
     logInfo $ "Writing to file (directory will be created if missing): " ++ outPath
     liftIO $ do
         createDirectoryIfMissing True (takeDirectory outPath)
         writeJannoFile outPath (JannoRows newJanno)
+
+makeNewJannoRows :: (MonadThrow m) => [JannoRow] -> [JannoRow] -> [String] -> Bool -> String -> String -> Maybe String -> m [JannoRow]
+makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip =
+    forM targetRows $ \targetRow -> do
+        posId <- getKeyFromJanno targetRow tKey
+        sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
+        case sourceRowCandidates of
+            [] -> return targetRow
+            [keyRow] -> mergeRow targetRow keyRow fields overwrite tKey
+            _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
 
 getKeyFromJanno :: (MonadThrow m) => JannoRow -> String -> m String
 getKeyFromJanno jannoRow key = do
@@ -73,16 +80,18 @@ matchWithOptionalStrip maybeRegex id1 id2 =
     case maybeRegex of
         Nothing -> id1 == id2
         Just r ->
-            let id1stripped = stripR (mkRegex r) id1 ""
-                id2stripped = stripR (mkRegex r) id2 ""
+            let id1stripped = stripR r id1
+                id2stripped = stripR r id2
             in  id1stripped == id2stripped
   where
+    stripR :: String -> String -> String
     stripR r s =
         let match = s =~ r
-        in  replace s match ""
+        in  if null match then s else unpack $ replace (pack match) "" (pack s)
 
-mergeRow :: (MonadThrow m) => JannoRow -> JannoRow -> [String] -> Bool -> m JannoRow
-mergeRow targetRow sourceRow fields overwrite = do
+-- note that we never overwrite values in the key-colum, that's why this function takes it as an argument to check.
+mergeRow :: (MonadThrow m) => JannoRow -> JannoRow -> [String] -> Bool -> String -> m JannoRow
+mergeRow targetRow sourceRow fields overwrite keyCol = do
     let targetRowRecord = Csv.toNamedRecord targetRow
         sourceRowRecord = Csv.toNamedRecord sourceRow
         parseResult = Csv.runParser . Csv.parseNamedRecord $ HM.unionWithKey mergeIfMissing targetRowRecord sourceRowRecord
@@ -92,7 +101,7 @@ mergeRow targetRow sourceRow fields overwrite = do
   where
     mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
     mergeIfMissing key targetVal sourceVal =
-        if (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
+        if key /= BSC.pack keyCol && (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
             sourceVal
         else
             targetVal
