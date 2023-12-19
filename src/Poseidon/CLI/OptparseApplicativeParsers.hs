@@ -789,7 +789,7 @@ parseJannocoalTargetFile = OP.strOption (
 parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
 parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
     OP.long "outFile" <>
-    OP.short `-o` <>
+    OP.short 'o' <>
     OP.metavar "FILE" <>
     OP.value Nothing <>
     OP.showDefault <>

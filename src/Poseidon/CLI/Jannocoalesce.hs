@@ -58,14 +58,14 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
         createDirectoryIfMissing True (takeDirectory outPath)
         writeJannoFile outPath (JannoRows newJanno)
 
-makeNewJannoRows :: (MonadThrow m) => [JannoRow] -> [JannoRow] -> [String] -> Bool -> String -> String -> Maybe String -> m [JannoRow]
+makeNewJannoRows :: [JannoRow] -> [JannoRow] -> [String] -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
 makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip =
     forM targetRows $ \targetRow -> do
         posId <- getKeyFromJanno targetRow tKey
         sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
         case sourceRowCandidates of
             [] -> return targetRow
-            [keyRow] -> mergeRow targetRow keyRow fields overwrite tKey
+            [keyRow] -> mergeRow targetRow keyRow fields overwrite sKey tKey
             _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
 
 getKeyFromJanno :: (MonadThrow m) => JannoRow -> String -> m String
@@ -89,19 +89,30 @@ matchWithOptionalStrip maybeRegex id1 id2 =
         let match = s =~ r
         in  if null match then s else unpack $ replace (pack match) "" (pack s)
 
--- note that we never overwrite values in the key-colum, that's why this function takes it as an argument to check.
-mergeRow :: (MonadThrow m) => JannoRow -> JannoRow -> [String] -> Bool -> String -> m JannoRow
-mergeRow targetRow sourceRow fields overwrite keyCol = do
+mergeRow :: JannoRow -> JannoRow -> [String] -> Bool -> String -> String -> PoseidonIO JannoRow
+mergeRow targetRow sourceRow fields overwrite sKey tKey = do
     let targetRowRecord = Csv.toNamedRecord targetRow
         sourceRowRecord = Csv.toNamedRecord sourceRow
-        parseResult = Csv.runParser . Csv.parseNamedRecord $ HM.unionWithKey mergeIfMissing targetRowRecord sourceRowRecord
+        newRowRecord    = HM.unionWithKey mergeIfMissing targetRowRecord sourceRowRecord
+        parseResult     = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
+    logInfo $ "matched target individual with ID " ++ BSC.unpack (targetRowRecord HM.! (BSC.pack tKey)) ++
+              " with source individual with ID " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
     case parseResult of
-        Left err -> throwM $ PoseidonGenericException $ "Janno row-merge error: " ++ err
-        Right r  -> return r
+        Left err -> throwM . PoseidonGenericException $ "Janno row-merge error: " ++ err
+        Right r  -> do
+            let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetRowRecord
+            if HM.null newFields then do
+                logInfo "-- no changes"
+                return r
+            else do
+                forM (HM.toList newFields) $ \(key, val) ->
+                    logInfo $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
+                return r
+            return r
   where
     mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
     mergeIfMissing key targetVal sourceVal =
-        if key /= BSC.pack keyCol && (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
+        if key /= BSC.pack tKey && (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
             sourceVal
         else
             targetVal
