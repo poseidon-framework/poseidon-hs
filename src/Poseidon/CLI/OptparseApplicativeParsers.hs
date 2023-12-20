@@ -775,7 +775,7 @@ parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <
         OP.long "sourceFile" <>
         OP.short 's' <>
         OP.metavar "FILE" <>
-        OP.help "The source Janno file"
+        OP.help "The source .janno file."
         )
 
 parseJannocoalTargetFile :: OP.Parser FilePath
@@ -783,7 +783,7 @@ parseJannocoalTargetFile = OP.strOption (
     OP.long "targetFile" <>
     OP.short 't' <>
     OP.metavar "FILE" <>
-    OP.help "The target file to fill"
+    OP.help "The target .janno file to fill."
     )
 
 parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
@@ -793,30 +793,47 @@ parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
     OP.metavar "FILE" <>
     OP.value Nothing <>
     OP.showDefault <>
-    OP.help "An optional file to write the results to. If not specified, change the target file in place."
+    OP.help "An optional file to write the results to. \
+            \If not specified, change the target file in place."
     )
 
 parseJannocoalFillColumns :: OP.Parser [String]
 parseJannocoalFillColumns = OP.option (splitOn "," <$> OP.str) (
     OP.long "fillColumns" <>
     OP.value [] <>
-    OP.help "A comma-separated list of Janno field names. If not specified, fill all columns that can be found in the source and target."
+    OP.help "A comma-separated list of .janno field names. \
+            \If not specified, fill all columns that can be found in the source and target."
     )
 
 parseJannocoalOverride :: OP.Parser Bool
 parseJannocoalOverride = OP.switch (
     OP.long "force" <>
     OP.short 'f' <>
-    OP.help "With this option, potential non-missing content in target columns gets overridden with non-missing content in source columns. By default, only missing data gets filled-in."
+    OP.help "With this option, potential non-missing content in target columns gets overridden \
+            \with non-missing content in source columns. By default, only missing data gets filled-in."
     )
 
 parseJannocoalSourceKey :: OP.Parser String
-parseJannocoalSourceKey = OP.strOption (OP.long "sourceKey" <> OP.help "the janno column to use as the source key" <> OP.value "Poseidon_ID" <> OP.showDefault)
+parseJannocoalSourceKey = OP.strOption (
+    OP.long "sourceKey" <>
+    OP.help "The .janno column to use as the source key." <>
+    OP.value "Poseidon_ID" <>
+    OP.showDefault
+    )
 
 parseJannocoalTargetKey :: OP.Parser String
-parseJannocoalTargetKey = OP.strOption (OP.long "targetKey" <> OP.help "the janno column to use as the target key" <> OP.value "Poseidon_ID" <> OP.showDefault)
+parseJannocoalTargetKey = OP.strOption (
+    OP.long "targetKey" <>
+    OP.help "The .janno column to use as the target key." <>
+    OP.value "Poseidon_ID" <>
+    OP.showDefault
+    )
 
 parseJannocoalIdStripRegex :: OP.Parser (Maybe String)
-parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (OP.long "stripIdSuffix" <>
-    OP.help "an optional regular expression to identify parts of the IDs to strip before matching between source and target" <> OP.value Nothing)
+parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (
+    OP.long "stripIdRegex" <>
+    OP.help "An optional regular expression to identify parts of the IDs to strip \
+            \before matching between source and target. Uses POSIX Extended regular expressions." <>
+    OP.value Nothing
+    )
 

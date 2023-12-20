@@ -9,7 +9,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          getJointJanno,
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
-                                         logInfo)
+                                         logInfo, logDebug)
 
 import           Control.Monad          (filterM, forM, forM_)
 import           Control.Monad.Catch    (MonadThrow, throwM)
@@ -64,7 +64,9 @@ makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip =
         posId <- getKeyFromJanno targetRow tKey
         sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
         case sourceRowCandidates of
-            [] -> return targetRow
+            [] -> do
+                logInfo $ "no match for target " ++ posId ++ " in source"
+                return targetRow
             [keyRow] -> mergeRow targetRow keyRow fields overwrite sKey tKey
             _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
 
@@ -72,7 +74,7 @@ getKeyFromJanno :: (MonadThrow m) => JannoRow -> String -> m String
 getKeyFromJanno jannoRow key = do
     let jannoRowDict = Csv.toNamedRecord jannoRow
     case jannoRowDict HM.!? (BSC.pack key) of
-        Nothing -> throwM $ PoseidonGenericException ("Key " ++ key ++ " not present in janno file")
+        Nothing -> throwM $ PoseidonGenericException ("Key " ++ key ++ " not present in .janno file")
         Just r -> return $ BSC.unpack r
 
 matchWithOptionalStrip :: (Maybe String) -> String -> String -> Bool
@@ -95,17 +97,17 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
         sourceRowRecord = Csv.toNamedRecord sourceRow
         newRowRecord    = HM.unionWithKey mergeIfMissing targetRowRecord sourceRowRecord
         parseResult     = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
-    logInfo $ "matched target individual with ID " ++ BSC.unpack (targetRowRecord HM.! (BSC.pack tKey)) ++
-              " with source individual with ID " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
+    logInfo $ "matched target " ++ BSC.unpack (targetRowRecord HM.! (BSC.pack tKey)) ++
+              " with source " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
     case parseResult of
-        Left err -> throwM . PoseidonGenericException $ "Janno row-merge error: " ++ err
+        Left err -> throwM . PoseidonGenericException $ ".janno row-merge error: " ++ err
         Right r  -> do
             let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetRowRecord
             if HM.null newFields then do
-                logInfo "-- no changes"
+                logDebug "-- no changes"
             else do
                 forM_ (HM.toList newFields) $ \(key, val) ->
-                    logInfo $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
+                    logDebug $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
             return r
   where
     mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
