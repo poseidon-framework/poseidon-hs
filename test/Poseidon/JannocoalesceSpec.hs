@@ -6,7 +6,7 @@ import           Poseidon.Janno             (CsvNamedRecord (..),
                                              JannoList (..), JannoRow (..),
                                              createMinimalSample, makeLatitude,
                                              makeLongitude)
-import Poseidon.Utils (testLog)
+import           Poseidon.Utils             (testLog)
 
 import qualified Data.HashMap.Strict        as HM
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
