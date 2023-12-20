@@ -59,7 +59,8 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
         writeJannoFile outPath (JannoRows newJanno)
 
 makeNewJannoRows :: [JannoRow] -> [JannoRow] -> [String] -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
-makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip =
+makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip = do
+    logInfo "Starting to coalesce..."
     forM targetRows $ \targetRow -> do
         posId <- getKeyFromJanno targetRow tKey
         sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
