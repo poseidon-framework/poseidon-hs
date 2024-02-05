@@ -52,7 +52,7 @@ jobs:
         target: stack:poseidon-tools-tests
 
     - name: Send coverage report
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
 
     # render and deploy haddock documentation
     - name: Render haddock documentation
