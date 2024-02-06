@@ -1,80 +1,52 @@
-# https://kodimensional.dev/github-actions
 name: CI
 
-# Trigger the workflow on push or pull request, but only for the master branch
+# trigger the workflow on push or pull request, but only for the master branch
 on:
   pull_request:
   push:
     branches: [master]
 
 jobs:
-  stack:
-    name: stack / ghc ${{ matrix.ghc }}
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        stack: ["latest"]
-        ghc: ["9.4.7"]
-
     steps:
-    # setup and loading cache
-    - name: Check out code
-      uses: actions/checkout@v4
-
-    - name: Setup Haskell
-      uses: haskell/actions/setup@v2
-      with:
-        ghc-version: ${{ matrix.ghc }}
-        enable-stack: true
-        stack-version: ${{ matrix.stack }}
-
-    - name: Cache ~/.stack
-      uses: freckle/stack-cache-action@v2
-
-    - name: Set Git user identity for chronicle/timetravel tests
-      run: |
-        git config --global user.name "Test Name"
-        git config --global user.email "test@email.com"
-
-    - name: Build
-      run: |
-        stack build \
-        --system-ghc \
-        --test \
-        --coverage \
-        --bench \
-        --no-run-benchmarks \
-        --pedantic
-
-    - name: Generate coverage report
-      uses: 8c6794b6/hpc-codecov-action@v3
-      with:
-        target: stack:poseidon-tools-tests
-
-    - name: Send coverage report
-      uses: codecov/codecov-action@v3
-
-    # render and deploy haddock documentation
-    - name: Render haddock documentation
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      run: |
-        stack haddock \
-        --no-haddock-deps \
-        --fast
-
-    - name: Get path to haddock documentation
-      id: haddockpath
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      run: |
-        docpathgeneral=`stack path --local-install-root`/doc
-        echo $docpathgeneral
-        docpath=`find $docpathgeneral -type d -name "poseidon-hs*" -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2`
-        echo $docpath
-        echo "DOCPATH=$docpath" >> $GITHUB_OUTPUT
-
-    - name: Deploy haddock documentation
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ${{ steps.haddockpath.outputs.DOCPATH }}
+      - uses: actions/checkout@v4
+      - name: Set Git user identity for chronicle/timetravel tests
+        run: |
+          git config --global user.name "Test Name"
+          git config --global user.email "test@email.com"
+      - name: Install Haskell and install+test the module
+        uses: freckle/stack-action@v4
+        with:
+          stack-arguments: --coverage
+      # prepare and upload test coverage report
+      - name: Create codecov coverage report
+        uses: 8c6794b6/hpc-codecov-action@v3
+        with:
+          target: stack:spec
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # set in organization settings
+      # render and deploy haddock documentation
+      - name: Render haddock documentation
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: |
+          stack haddock \
+          --no-haddock-deps \
+          --fast
+      - name: Get path to haddock documentation
+        id: haddockpath
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: |
+          docpathgeneral=`stack path --local-install-root`/doc
+          echo $docpathgeneral
+          docpath=`find $docpathgeneral -type d -name "poseidon-hs*" -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2`
+          echo $docpath
+          echo "DOCPATH=$docpath" >> $GITHUB_OUTPUT
+      - name: Deploy haddock documentation
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ steps.haddockpath.outputs.DOCPATH }}
