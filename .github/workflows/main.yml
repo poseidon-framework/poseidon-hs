@@ -23,7 +23,7 @@ jobs:
       - name: Create codecov coverage report
         uses: 8c6794b6/hpc-codecov-action@v3
         with:
-          target: stack:spec
+          target: stack:poseidon-tools-tests
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v4
         with:
