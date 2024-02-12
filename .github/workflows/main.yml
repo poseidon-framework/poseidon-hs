@@ -16,7 +16,7 @@ jobs:
           git config --global user.name "Test Name"
           git config --global user.email "test@email.com"
       - name: Install Haskell and install+test the module
-        uses: freckle/stack-action@v4
+        uses: freckle/stack-action@v5
         with:
           stack-arguments: --coverage
       # prepare and upload test coverage report
