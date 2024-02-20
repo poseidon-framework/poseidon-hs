@@ -594,7 +594,8 @@ parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividual
     parseListIndividualsDummy = OP.flag' () (
         OP.long "individuals" <>
         OP.help "List all individuals/samples.")
-    parseListIndividualsExtraCols = ListIndividuals <$> OP.many parseExtraCol
+    parseListIndividualsExtraCols = ListIndividuals <$> (parseAllJannoCols <|> (Just <$> OP.many parseExtraCol))
+    parseAllJannoCols = OP.flag' Nothing (OP.long "fullJanno" <> OP.help "output all Janno Columns")
     parseExtraCol = OP.strOption (
         OP.short 'j' <>
         OP.long "jannoColumn" <>

@@ -47,6 +47,7 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
+                                             jannoHeaderString,
                                              getMaybeJannoList, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
@@ -819,15 +820,17 @@ getJointIndividualInfo packages = do
     return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
 
 
-getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
-getExtendedIndividualInfo allPackages additionalJannoColumns = sequence $ do -- list monad
+getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> Maybe [String] -> m [ExtendedIndividualInfo]
+getExtendedIndividualInfo allPackages maybeAdditionalJannoColumns = sequence $ do -- list monad
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
     let name = jPoseidonID jannoRow
         groups = getJannoList . jGroupName $ jannoRow
-        additionalColumnEntries = case additionalJannoColumns of
-            [] -> []
-            colNames -> [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+        colNames = case maybeAdditionalJannoColumns of
+            Nothing -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
+                                                                          -- except for these two which are already explicit
+            Just c -> c
+        additionalColumnEntries = [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
     return . return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries

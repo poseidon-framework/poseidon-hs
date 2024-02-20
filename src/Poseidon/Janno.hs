@@ -808,7 +808,7 @@ cleanInput (Just rawInputBS) = transNA $ trimWS . removeNoBreakSpace $ rawInputB
         transNA x     = Just x
 
 instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord j = Csv.namedRecord [
+    toNamedRecord j = Csv.namedRecord . filter ((/= "") . snd) $ [
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
         , "Group_Name"                      Csv..= jGroupName j

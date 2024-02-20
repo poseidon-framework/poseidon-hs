@@ -27,7 +27,7 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (nub, sortOn)
+import           Data.List                    (nub, sortOn, (\\))
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
@@ -121,10 +121,11 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
             indInfo <- case maybeAdditionalColumnsString of
+                    Just "ALL" -> getExtendedIndividualInfo pacs Nothing -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
-                        in  getExtendedIndividualInfo pacs additionalColumnNames
-                    Nothing -> getExtendedIndividualInfo pacs []
+                        in  getExtendedIndividualInfo pacs (Just additionalColumnNames)
+                    Nothing -> getExtendedIndividualInfo pacs (Just [])
             let retData = ApiReturnExtIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
 
