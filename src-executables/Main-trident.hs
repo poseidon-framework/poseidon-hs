@@ -273,7 +273,7 @@ jannocoalesceOptParser :: OP.Parser JannoCoalesceOptions
 jannocoalesceOptParser = JannoCoalesceOptions <$> parseJannocoalSourceSpec
                                               <*> parseJannocoalTargetFile
                                               <*> parseJannocoalOutSpec
-                                              <*> parseJannocoalFillColumns
+                                              <*> parseJannocoalJannoColumns
                                               <*> parseJannocoalOverride
                                               <*> parseJannocoalSourceKey
                                               <*> parseJannocoalTargetKey

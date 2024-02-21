@@ -3,7 +3,7 @@
 module Poseidon.CLI.OptparseApplicativeParsers where
 
 import           Poseidon.CLI.Chronicle     (ChronOperation (..))
-import           Poseidon.CLI.Jannocoalesce (JannoSourceSpec (..))
+import           Poseidon.CLI.Jannocoalesce (JannoSourceSpec (..), CoalesceJannoColumnSpec (..))
 import           Poseidon.CLI.List          (ListEntity (..),
                                              RepoLocationSpec (..))
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
@@ -797,13 +797,21 @@ parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
             \If not specified, change the target file in place."
     )
 
-parseJannocoalFillColumns :: OP.Parser [String]
-parseJannocoalFillColumns = OP.option (splitOn "," <$> OP.str) (
-    OP.long "fillColumns" <>
-    OP.value [] <>
-    OP.help "A comma-separated list of .janno field names. \
-            \If not specified, fill all columns that can be found in the source and target."
-    )
+parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec
+parseJannocoalJannoColumns = includeJannoColumns OP.<|> excludeJannoColumns OP.<|> pure AllJannoColumns
+    where
+        includeJannoColumns = OP.option (IncludeJannoColumns . splitOn "," <$> OP.str) (
+            OP.long "includeColumns" <>
+            OP.help "A comma-separated list of .janno column names to coalesce. \
+                    \If not specified, all columns that can be found in the source \
+                    \and target will get filled."
+            )
+        excludeJannoColumns = OP.option (ExcludeJannoColumns . splitOn "," <$> OP.str) (
+            OP.long "excludeColumns" <>
+            OP.help "A comma-separated list of .janno column names NOT to coalesce. \
+                    \All columns that can be found in the source and target will get filled, \
+                    \except the ones listed here."
+            )
 
 parseJannocoalOverride :: OP.Parser Bool
 parseJannocoalOverride = OP.switch (

@@ -25,11 +25,16 @@ import           Text.Regex.TDFA        ((=~))
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
 
+data CoalesceJannoColumnSpec =
+      AllJannoColumns
+    | IncludeJannoColumns [String]
+    | ExcludeJannoColumns [String]
+
 data JannoCoalesceOptions = JannoCoalesceOptions
     { _jannocoalesceSource           :: JannoSourceSpec
     , _jannocoalesceTarget           :: FilePath
     , _jannocoalesceOutSpec          :: Maybe FilePath -- Nothing means "in place"
-    , _jannocoalesceFillColumns      :: [String] -- empty list means All
+    , _jannocoalesceJannoColumns     :: CoalesceJannoColumnSpec
     , _jannocoalesceOverwriteColumns :: Bool
     , _jannocoalesceSourceKey        :: String -- by default set to "Poseidon_ID"
     , _jannocoalesceTargetKey        :: String -- by default set to "Poseidon_ID"
@@ -58,7 +63,7 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
         createDirectoryIfMissing True (takeDirectory outPath)
         writeJannoFile outPath (JannoRows newJanno)
 
-makeNewJannoRows :: [JannoRow] -> [JannoRow] -> [String] -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
+makeNewJannoRows :: [JannoRow] -> [JannoRow] -> CoalesceJannoColumnSpec -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
 makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip = do
     logInfo "Starting to coalesce..."
     forM targetRows $ \targetRow -> do
@@ -92,7 +97,7 @@ matchWithOptionalStrip maybeRegex id1 id2 =
         let match = s =~ r
         in  if null match then s else unpack $ replace (pack match) "" (pack s)
 
-mergeRow :: JannoRow -> JannoRow -> [String] -> Bool -> String -> String -> PoseidonIO JannoRow
+mergeRow :: JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
 mergeRow targetRow sourceRow fields overwrite sKey tKey = do
     let targetRowRecord = Csv.toNamedRecord targetRow
         sourceRowRecord = Csv.toNamedRecord sourceRow
@@ -113,7 +118,15 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
   where
     mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
     mergeIfMissing key targetVal sourceVal =
-        if key /= BSC.pack tKey && (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
-            sourceVal
-        else
-            targetVal
+           -- don't overwrite key
+        if key /= BSC.pack tKey
+           -- overwrite field only if it's requested
+           && includeField (BSC.unpack key) fields
+           -- overwrite only empty fields, except overwrite is set
+           && (targetVal `elem` ["n/a", ""] || overwrite)
+        then sourceVal
+        else targetVal
+    includeField :: String -> CoalesceJannoColumnSpec -> Bool
+    includeField _    AllJannoColumns         = True
+    includeField key (IncludeJannoColumns xs) = key `elem` xs
+    includeField key (ExcludeJannoColumns xs) = key `notElem` xs

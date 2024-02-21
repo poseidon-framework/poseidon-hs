@@ -11,7 +11,8 @@ import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
 import           Poseidon.CLI.Jannocoalesce (JannoCoalesceOptions (..),
                                              JannoSourceSpec (..),
-                                             runJannocoalesce)
+                                             runJannocoalesce,
+                                             CoalesceJannoColumnSpec (..))
 import           Poseidon.CLI.List          (ListEntity (..), ListOptions (..),
                                              RepoLocationSpec (..), runList)
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
@@ -1090,7 +1091,7 @@ testPipelineJannocoalesce testDir checkFilePath = do
             _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
             _jannocoalesceTarget           = "test/testDat/testJannoFiles/normal_subset.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "targetNoFieldsNoOverride.janno"),
-            _jannocoalesceFillColumns      = [],
+            _jannocoalesceJannoColumns     = AllJannoColumns,
             _jannocoalesceOverwriteColumns = False,
             _jannocoalesceSourceKey        = "Poseidon_ID",
             _jannocoalesceTargetKey        = "Poseidon_ID",
