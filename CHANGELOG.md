@@ -1,3 +1,7 @@
+- V 1.4.0.4:
+    - Added better error messages for generic cassava parsing (e.g. for broken Int and Double fields) in .janno files.
+    - Added better error handling and messages for inconsistent `Date_*`, `Contamination_*` and `Relation_*` columns in .janno files using an `Except` & `Writer` monad stack.
+    - Cleaned a bit in the `SequencingSource` module.
 - V 1.4.0.3:
     - Fixed a severe performance leak in code around `resolveEntityIndices`, which was called in various functions and wastefully recomputed `isLatestInCollection` way too often. This affected simple commands, like fetching a few packages from the server, forging, and has effects also in xerxes.
     - Bumped to a newer Compiler (GHC 9.4.7) and new Stackage Snapshot (LTS-21.17)
