@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.4.0.3
+@version 1.4.0.4
 
 module Poseidon.Contributor
 
@@ -108,7 +108,7 @@ PoseidonHttpExceptionForward :: HttpException -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the janno or
 --   seqSource file
-PoseidonFileRowException :: FilePath -> Int -> String -> PoseidonException
+PoseidonFileRowException :: FilePath -> String -> String -> PoseidonException
 
 -- | An exception to represent consistency errors in janno or seqSource
 --   files
@@ -390,6 +390,8 @@ decodingOptions :: DecodeOptions
 --   with explicit "n/a"
 explicitNA :: ByteString -> ByteString
 removeUselessSuffix :: String -> String
+parseCsvParseError :: Parser CsvParseError
+renderCsvParseError :: CsvParseError -> String
 getMaybeJannoList :: Maybe (JannoList a) -> [a]
 instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
@@ -457,6 +459,7 @@ instance GHC.Show.Show Poseidon.Janno.JannoRow
 instance GHC.Generics.Generic Poseidon.Janno.JannoRows
 instance GHC.Classes.Eq Poseidon.Janno.JannoRows
 instance GHC.Show.Show Poseidon.Janno.JannoRows
+instance GHC.Show.Show Poseidon.Janno.CsvParseError
 instance GHC.Base.Semigroup Poseidon.Janno.JannoRows
 instance GHC.Base.Monoid Poseidon.Janno.JannoRows
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Janno.JannoRows
@@ -627,8 +630,6 @@ readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
 
 -- | A function to read one row of a seqSourceFile
 readSeqSourceFileRow :: FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
-checkSeqSourceConsistency :: FilePath -> SeqSourceRows -> Either PoseidonException SeqSourceRows
-checkSeqSourceRowConsistency :: FilePath -> Int -> SeqSourceRow -> Either PoseidonException SeqSourceRow
 warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
 checkRunsUnique :: SeqSourceRows -> Bool
 checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
@@ -1097,7 +1098,7 @@ PoseidonHttpExceptionForward :: HttpException -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the janno or
 --   seqSource file
-PoseidonFileRowException :: FilePath -> Int -> String -> PoseidonException
+PoseidonFileRowException :: FilePath -> String -> String -> PoseidonException
 
 -- | An exception to represent consistency errors in janno or seqSource
 --   files
