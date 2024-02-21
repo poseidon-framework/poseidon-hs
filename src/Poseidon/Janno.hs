@@ -1126,7 +1126,7 @@ checkC14ColsConsistent x =
         (False, True, _, _ )    -> E.throwError "Date_Type is not \"C14\", but either \
                                          \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
         (True, _, False, False) -> E.throwError "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
-                                         \do not have the same lengths. Date_C14_Labnr can be empty"
+                                         \do not have the same lengths"
         (True, _, False, True ) -> return x
         -- this should be an error, but we have legacy packages with this issue, so it's only a warning
         (True, _, True, _ )     -> do
