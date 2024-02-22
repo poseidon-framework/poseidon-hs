@@ -101,15 +101,13 @@ matchWithOptionalStrip maybeRegex id1 id2 =
 
 mergeRow :: JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
 mergeRow targetRow sourceRow fields overwrite sKey tKey = do
-    let targetRowRecord   = Csv.toNamedRecord targetRow
-        sourceRowRecord   = Csv.toNamedRecord sourceRow
-        sourceKeys        = HM.keys sourceRowRecord
+    let sourceKeys        = HM.keys sourceRowRecord
         sourceKeysDesired = determineDesiredSourceKeys sourceKeys fields
-        targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, "" :: BSC.ByteString) sourceKeysDesired)
+        targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
         newRowRecord      = HM.mapWithKey fillFromSource targetComplete
         parseResult       = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
-    logInfo $ "matched target " ++ BSC.unpack (targetComplete HM.! (BSC.pack tKey)) ++
-              " with source " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
+    logInfo $ "matched target " ++ BSC.unpack (targetComplete  HM.! BSC.pack tKey) ++
+              " with source "   ++ BSC.unpack (sourceRowRecord HM.! BSC.pack sKey)
     case parseResult of
         Left err -> throwM . PoseidonGenericException $ ".janno row-merge error: " ++ err
         Right r  -> do
@@ -121,6 +119,10 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
                     logDebug $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
             return r
   where
+    targetRowRecord :: Csv.NamedRecord
+    targetRowRecord = Csv.toNamedRecord targetRow
+    sourceRowRecord :: Csv.NamedRecord
+    sourceRowRecord = Csv.toNamedRecord sourceRow
     determineDesiredSourceKeys :: [BSC.ByteString] -> CoalesceJannoColumnSpec -> [BSC.ByteString]
     determineDesiredSourceKeys keys  AllJannoColumns               = keys
     determineDesiredSourceKeys _    (IncludeJannoColumns included) = included
@@ -132,8 +134,8 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
            -- overwrite field only if it's requested
            && includeField key fields
            -- overwrite only empty fields, except overwrite is set
-           && (targetVal `elem` ["n/a", ""] || overwrite)
-        then HM.findWithDefault "" key (Csv.toNamedRecord sourceRow)
+           && (targetVal `elem` ["n/a", "", BSC.empty] || overwrite)
+        then HM.findWithDefault "" key sourceRowRecord
         else targetVal
     includeField :: BSC.ByteString -> CoalesceJannoColumnSpec -> Bool
     includeField _    AllJannoColumns         = True
