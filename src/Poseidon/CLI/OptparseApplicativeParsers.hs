@@ -33,7 +33,7 @@ import           System.FilePath            (dropExtension, takeExtension,
                                              (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
-
+import qualified Data.ByteString.Char8  as BSC
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -800,13 +800,13 @@ parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
 parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec
 parseJannocoalJannoColumns = includeJannoColumns OP.<|> excludeJannoColumns OP.<|> pure AllJannoColumns
     where
-        includeJannoColumns = OP.option (IncludeJannoColumns . splitOn "," <$> OP.str) (
+        includeJannoColumns = OP.option (IncludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
             OP.long "includeColumns" <>
             OP.help "A comma-separated list of .janno column names to coalesce. \
                     \If not specified, all columns that can be found in the source \
                     \and target will get filled."
             )
-        excludeJannoColumns = OP.option (ExcludeJannoColumns . splitOn "," <$> OP.str) (
+        excludeJannoColumns = OP.option (ExcludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
             OP.long "excludeColumns" <>
             OP.help "A comma-separated list of .janno column names NOT to coalesce. \
                     \All columns that can be found in the source and target will get filled, \

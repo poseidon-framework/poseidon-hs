@@ -22,14 +22,15 @@ import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
 import           Text.Regex.TDFA        ((=~))
+import Data.List ((\\))
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
 
 data CoalesceJannoColumnSpec =
       AllJannoColumns
-    | IncludeJannoColumns [String]
-    | ExcludeJannoColumns [String]
+    | IncludeJannoColumns [BSC.ByteString]
+    | ExcludeJannoColumns [BSC.ByteString]
 
 data JannoCoalesceOptions = JannoCoalesceOptions
     { _jannocoalesceSource           :: JannoSourceSpec
@@ -103,8 +104,11 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
     let targetRowRecord = Csv.toNamedRecord targetRow
         sourceRowRecord = Csv.toNamedRecord sourceRow
         sourceKeys      = HM.keys sourceRowRecord
-        targetComplete  = HM.union targetRowRecord (HM.fromList $ map (,BSC.pack "") sourceKeys)
-        newRowRecord    = HM.unionWithKey mergeIfMissing targetComplete sourceRowRecord
+        sourceKeysWanted = determineDesiredSourceKeys sourceKeys fields
+        targetComplete  = HM.union targetRowRecord (HM.fromList $ map (, "" :: BSC.ByteString) sourceKeysWanted)
+        newRowRecord    = HM.mapWithKey fillFromSource targetComplete
+        --targetComplete  = HM.union targetRowRecord (HM.fromList $ map (,BSC.pack "") sourceKeys)
+        --newRowRecord    = HM.unionWithKey mergeIfMissing targetComplete sourceRowRecord
         parseResult     = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
     logInfo $ "matched target " ++ BSC.unpack (targetComplete HM.! (BSC.pack tKey)) ++
               " with source " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
@@ -119,17 +123,21 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
                     logDebug $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
             return r
   where
-    mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
-    mergeIfMissing key targetVal sourceVal =
+    determineDesiredSourceKeys :: [BSC.ByteString] -> CoalesceJannoColumnSpec -> [BSC.ByteString] 
+    determineDesiredSourceKeys keys  AllJannoColumns               = keys
+    determineDesiredSourceKeys _    (IncludeJannoColumns included) = included
+    determineDesiredSourceKeys keys (ExcludeJannoColumns excluded) = keys \\ excluded
+    fillFromSource :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString
+    fillFromSource key targetVal =
            -- don't overwrite key
         if key /= BSC.pack tKey
            -- overwrite field only if it's requested
-           && includeField (BSC.unpack key) fields
+           && includeField key fields
            -- overwrite only empty fields, except overwrite is set
            && (targetVal `elem` ["n/a", ""] || overwrite)
-        then sourceVal
+        then HM.findWithDefault "" key (Csv.toNamedRecord sourceRow)
         else targetVal
-    includeField :: String -> CoalesceJannoColumnSpec -> Bool
+    includeField :: BSC.ByteString -> CoalesceJannoColumnSpec -> Bool
     includeField _    AllJannoColumns         = True
     includeField key (IncludeJannoColumns xs) = key `elem` xs
     includeField key (ExcludeJannoColumns xs) = key `notElem` xs
