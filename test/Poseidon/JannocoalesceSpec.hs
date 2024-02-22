@@ -69,7 +69,7 @@ testMergeSingleRow =
             jGroupName merged `shouldBe` JannoList ["SamplePop"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
             jLongitude merged `shouldBe` makeLongitude 30.0
-            jAdditionalColumns merged `shouldBe` (CsvNamedRecord $ HM.fromList [
+            jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn1", "A"),
                     ("AdditionalColumn2", "C")
                 ])
@@ -79,7 +79,7 @@ testMergeSingleRow =
             jGroupName merged `shouldBe` JannoList ["SamplePop2"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
             jLongitude merged `shouldBe` makeLongitude 30.0
-            jAdditionalColumns merged `shouldBe` (CsvNamedRecord $ HM.fromList [
+            jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn1", "A"),
                     ("AdditionalColumn2", "B")
                 ])
@@ -89,14 +89,16 @@ testMergeSingleRow =
             jGroupName merged `shouldBe` JannoList ["SamplePop"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
             jLongitude merged `shouldBe` Nothing
-            jAdditionalColumns merged `shouldBe` (CsvNamedRecord $ HM.fromList [])
+            jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
+                    ("AdditionalColumn2", "C")
+                ])
         it "should correctly merge with negative field selection and no override" $ do
             merged <- testLog $ mergeRow jannoTargetRow jannoSourceRow (ExcludeJannoColumns ["Latitude"]) False "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just "Vienna"
             jGroupName merged `shouldBe` JannoList ["SamplePop"]
             jLatitude merged  `shouldBe` Nothing
             jLongitude merged `shouldBe` makeLongitude 30.0
-            jAdditionalColumns merged `shouldBe` (CsvNamedRecord $ HM.fromList [
+            jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn1", "A"),
                     ("AdditionalColumn2", "C")
                 ])
@@ -106,7 +108,9 @@ testMergeSingleRow =
             jGroupName merged `shouldBe` JannoList ["SamplePop2"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
             jLongitude merged `shouldBe` Nothing
-            jAdditionalColumns merged `shouldBe` (CsvNamedRecord $ HM.fromList [])
+            jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
+                    ("AdditionalColumn2", "C")
+                ])
 
 testCoalesceMultipleRows :: Spec
 testCoalesceMultipleRows = describe "Poseidon.Jannocoalesce.makeNewJannoRows" $ do
