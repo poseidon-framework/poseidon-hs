@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Poseidon.CLI.Jannocoalesce where
 
@@ -18,11 +18,11 @@ import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
+import           Data.List              ((\\))
 import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
 import           Text.Regex.TDFA        ((=~))
-import Data.List ((\\))
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
@@ -121,7 +121,7 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
                     logDebug $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
             return r
   where
-    determineDesiredSourceKeys :: [BSC.ByteString] -> CoalesceJannoColumnSpec -> [BSC.ByteString] 
+    determineDesiredSourceKeys :: [BSC.ByteString] -> CoalesceJannoColumnSpec -> [BSC.ByteString]
     determineDesiredSourceKeys keys  AllJannoColumns               = keys
     determineDesiredSourceKeys _    (IncludeJannoColumns included) = included
     determineDesiredSourceKeys keys (ExcludeJannoColumns excluded) = keys \\ excluded

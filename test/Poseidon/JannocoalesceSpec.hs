@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.JannocoalesceSpec (spec) where
 
-import           Poseidon.CLI.Jannocoalesce (makeNewJannoRows, mergeRow, CoalesceJannoColumnSpec (..))
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             makeNewJannoRows, mergeRow)
 import           Poseidon.Janno             (CsvNamedRecord (..),
                                              JannoList (..), JannoRow (..),
                                              createMinimalSample, makeLatitude,

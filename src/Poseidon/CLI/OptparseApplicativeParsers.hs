@@ -3,7 +3,8 @@
 module Poseidon.CLI.OptparseApplicativeParsers where
 
 import           Poseidon.CLI.Chronicle     (ChronOperation (..))
-import           Poseidon.CLI.Jannocoalesce (JannoSourceSpec (..), CoalesceJannoColumnSpec (..))
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             JannoSourceSpec (..))
 import           Poseidon.CLI.List          (ListEntity (..),
                                              RepoLocationSpec (..))
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
@@ -25,6 +26,7 @@ import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
 
 import           Control.Applicative        ((<|>))
+import qualified Data.ByteString.Char8      as BSC
 import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
@@ -33,7 +35,6 @@ import           System.FilePath            (dropExtension, takeExtension,
                                              (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
-import qualified Data.ByteString.Char8  as BSC
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)

@@ -9,10 +9,10 @@ import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
                                              runGenoconvert)
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
-import           Poseidon.CLI.Jannocoalesce (JannoCoalesceOptions (..),
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             JannoCoalesceOptions (..),
                                              JannoSourceSpec (..),
-                                             runJannocoalesce,
-                                             CoalesceJannoColumnSpec (..))
+                                             runJannocoalesce)
 import           Poseidon.CLI.List          (ListEntity (..), ListOptions (..),
                                              RepoLocationSpec (..), runList)
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
