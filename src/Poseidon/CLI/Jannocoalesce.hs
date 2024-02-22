@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module Poseidon.CLI.Jannocoalesce where
 
@@ -101,14 +102,16 @@ mergeRow :: JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String ->
 mergeRow targetRow sourceRow fields overwrite sKey tKey = do
     let targetRowRecord = Csv.toNamedRecord targetRow
         sourceRowRecord = Csv.toNamedRecord sourceRow
-        newRowRecord    = HM.unionWithKey mergeIfMissing targetRowRecord sourceRowRecord
+        sourceKeys      = HM.keys sourceRowRecord
+        targetComplete  = HM.union targetRowRecord (HM.fromList $ map (,BSC.pack "") sourceKeys)
+        newRowRecord    = HM.unionWithKey mergeIfMissing targetComplete sourceRowRecord
         parseResult     = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
-    logInfo $ "matched target " ++ BSC.unpack (targetRowRecord HM.! (BSC.pack tKey)) ++
+    logInfo $ "matched target " ++ BSC.unpack (targetComplete HM.! (BSC.pack tKey)) ++
               " with source " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
     case parseResult of
         Left err -> throwM . PoseidonGenericException $ ".janno row-merge error: " ++ err
         Right r  -> do
-            let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetRowRecord
+            let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetComplete
             if HM.null newFields then do
                 logDebug "-- no changes"
             else do
