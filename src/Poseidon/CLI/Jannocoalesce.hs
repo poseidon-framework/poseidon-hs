@@ -101,15 +101,13 @@ matchWithOptionalStrip maybeRegex id1 id2 =
 
 mergeRow :: JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
 mergeRow targetRow sourceRow fields overwrite sKey tKey = do
-    let targetRowRecord = Csv.toNamedRecord targetRow
-        sourceRowRecord = Csv.toNamedRecord sourceRow
-        sourceKeys      = HM.keys sourceRowRecord
-        sourceKeysWanted = determineDesiredSourceKeys sourceKeys fields
-        targetComplete  = HM.union targetRowRecord (HM.fromList $ map (, "" :: BSC.ByteString) sourceKeysWanted)
-        newRowRecord    = HM.mapWithKey fillFromSource targetComplete
-        --targetComplete  = HM.union targetRowRecord (HM.fromList $ map (,BSC.pack "") sourceKeys)
-        --newRowRecord    = HM.unionWithKey mergeIfMissing targetComplete sourceRowRecord
-        parseResult     = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
+    let targetRowRecord   = Csv.toNamedRecord targetRow
+        sourceRowRecord   = Csv.toNamedRecord sourceRow
+        sourceKeys        = HM.keys sourceRowRecord
+        sourceKeysDesired = determineDesiredSourceKeys sourceKeys fields
+        targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, "" :: BSC.ByteString) sourceKeysDesired)
+        newRowRecord      = HM.mapWithKey fillFromSource targetComplete
+        parseResult       = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
     logInfo $ "matched target " ++ BSC.unpack (targetComplete HM.! (BSC.pack tKey)) ++
               " with source " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
     case parseResult of
