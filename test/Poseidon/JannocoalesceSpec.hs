@@ -12,6 +12,8 @@ import           Poseidon.Utils             (testLog)
 import qualified Data.HashMap.Strict        as HM
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           Test.Hspec
+import           Control.Monad.IO.Class (liftIO)
+import qualified Data.IORef as R
 
 spec :: Spec
 spec = do
@@ -65,7 +67,8 @@ testMergeSingleRow :: Spec
 testMergeSingleRow =
     describe "Poseidon.Jannocoalesce.mergeRow" $ do
         it "should correctly merge without fields and no override" $ do
-            merged <- testLog $ mergeRow jannoTargetRow jannoSourceRow AllJannoColumns False "Poseidon_ID" "Poseidon_ID"
+            cp <- liftIO $ R.newIORef 0
+            merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow AllJannoColumns False "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just "Vienna"
             jGroupName merged `shouldBe` JannoList ["SamplePop"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
@@ -75,7 +78,8 @@ testMergeSingleRow =
                     ("AdditionalColumn2", "C")
                 ])
         it "should correctly merge without fields and override" $ do
-            merged <- testLog $ mergeRow jannoTargetRow jannoSourceRow AllJannoColumns True "Poseidon_ID" "Poseidon_ID"
+            cp <- liftIO $ R.newIORef 0
+            merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow AllJannoColumns True "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just "Salzburg"
             jGroupName merged `shouldBe` JannoList ["SamplePop2"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
@@ -85,7 +89,8 @@ testMergeSingleRow =
                     ("AdditionalColumn2", "B")
                 ])
         it "should correctly merge with fields selection and no override" $ do
-            merged <- testLog $ mergeRow jannoTargetRow jannoSourceRow (IncludeJannoColumns ["Group_Name", "Latitude"]) False "Poseidon_ID" "Poseidon_ID"
+            cp <- liftIO $ R.newIORef 0
+            merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow (IncludeJannoColumns ["Group_Name", "Latitude"]) False "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just "Vienna"
             jGroupName merged `shouldBe` JannoList ["SamplePop"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
@@ -94,7 +99,8 @@ testMergeSingleRow =
                     ("AdditionalColumn2", "C")
                 ])
         it "should correctly merge with negative field selection and no override" $ do
-            merged <- testLog $ mergeRow jannoTargetRow jannoSourceRow (ExcludeJannoColumns ["Latitude"]) False "Poseidon_ID" "Poseidon_ID"
+            cp <- liftIO $ R.newIORef 0
+            merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow (ExcludeJannoColumns ["Latitude"]) False "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just "Vienna"
             jGroupName merged `shouldBe` JannoList ["SamplePop"]
             jLatitude merged  `shouldBe` Nothing
@@ -104,7 +110,8 @@ testMergeSingleRow =
                     ("AdditionalColumn2", "C")
                 ])
         it "should correctly merge with fields and override" $ do
-            merged <- testLog $ mergeRow jannoTargetRow jannoSourceRow (IncludeJannoColumns ["Group_Name", "Latitude"]) True "Poseidon_ID" "Poseidon_ID"
+            cp <- liftIO $ R.newIORef 0
+            merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow (IncludeJannoColumns ["Group_Name", "Latitude"]) True "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just "Vienna"
             jGroupName merged `shouldBe` JannoList ["SamplePop2"]
             jLatitude merged  `shouldBe` makeLatitude 30.0
