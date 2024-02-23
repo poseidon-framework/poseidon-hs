@@ -9,11 +9,11 @@ import           Poseidon.Janno             (CsvNamedRecord (..),
                                              makeLongitude)
 import           Poseidon.Utils             (testLog)
 
+import           Control.Monad.IO.Class     (liftIO)
 import qualified Data.HashMap.Strict        as HM
+import qualified Data.IORef                 as R
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           Test.Hspec
-import           Control.Monad.IO.Class (liftIO)
-import qualified Data.IORef as R
 
 spec :: Spec
 spec = do

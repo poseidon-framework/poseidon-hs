@@ -18,12 +18,12 @@ import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
+import qualified Data.IORef             as R
 import           Data.List              ((\\))
 import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
 import           Text.Regex.TDFA        ((=~))
-import qualified Data.IORef as R
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
