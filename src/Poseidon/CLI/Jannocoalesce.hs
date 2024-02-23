@@ -119,6 +119,7 @@ mergeRow :: CounterCopied -> JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> 
 mergeRow cp targetRow sourceRow fields overwrite sKey tKey = do
     let sourceKeys        = HM.keys sourceRowRecord
         sourceKeysDesired = determineDesiredSourceKeys sourceKeys fields
+        -- fill in the target row with dummy values for desired fields that might not be present yet
         targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
         newRowRecord      = HM.mapWithKey fillFromSource targetComplete
         parseResult       = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
