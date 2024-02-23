@@ -10,9 +10,9 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          getJointJanno,
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
-                                         logDebug, logInfo)
+                                         logDebug, logInfo, logWarning)
 
-import           Control.Monad          (filterM, forM, forM_)
+import           Control.Monad          (filterM, forM_, when)
 import           Control.Monad.Catch    (MonadThrow, throwM)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
@@ -23,6 +23,7 @@ import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
 import           Text.Regex.TDFA        ((=~))
+import qualified Data.IORef as R
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
@@ -65,18 +66,33 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
         createDirectoryIfMissing True (takeDirectory outPath)
         writeJannoFile outPath (JannoRows newJanno)
 
+type CounterMismatches = R.IORef Int
+type CounterCopied     = R.IORef Int
+
 makeNewJannoRows :: [JannoRow] -> [JannoRow] -> CoalesceJannoColumnSpec -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
 makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip = do
     logInfo "Starting to coalesce..."
-    forM targetRows $ \targetRow -> do
-        posId <- getKeyFromJanno targetRow tKey
-        sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
-        case sourceRowCandidates of
-            [] -> do
-                logInfo $ "no match for target " ++ posId ++ " in source"
-                return targetRow
-            [keyRow] -> mergeRow targetRow keyRow fields overwrite sKey tKey
-            _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
+    counterMismatches <- liftIO $ R.newIORef 0
+    counterCopied <- liftIO $ R.newIORef 0
+    newRows <- mapM (makeNewJannoRow counterMismatches counterCopied) targetRows
+    counterCopiedVal <- liftIO $ R.readIORef counterCopied
+    counterMismatchesVal <- liftIO $ R.readIORef counterMismatches
+    logInfo $ "Copied " ++ show counterCopiedVal ++ " values"
+    when (counterMismatchesVal > 0) $
+        logWarning $ "Failed to find matches for " ++ show counterMismatchesVal ++ " target rows in source"
+    return newRows
+    where
+        makeNewJannoRow :: CounterMismatches -> CounterCopied -> JannoRow -> PoseidonIO JannoRow
+        makeNewJannoRow cm cp targetRow = do
+            posId <- getKeyFromJanno targetRow tKey
+            sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
+            case sourceRowCandidates of
+                [] -> do
+                    logWarning $ "no match for target " ++ posId ++ " in source"
+                    liftIO $ R.modifyIORef cm (+1)
+                    return targetRow
+                [keyRow] -> mergeRow cp targetRow keyRow fields overwrite sKey tKey
+                _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
 
 getKeyFromJanno :: (MonadThrow m) => JannoRow -> String -> m String
 getKeyFromJanno jannoRow key = do
@@ -99,8 +115,8 @@ matchWithOptionalStrip maybeRegex id1 id2 =
         let match = s =~ r
         in  if null match then s else unpack $ replace (pack match) "" (pack s)
 
-mergeRow :: JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
-mergeRow targetRow sourceRow fields overwrite sKey tKey = do
+mergeRow :: CounterCopied -> JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
+mergeRow cp targetRow sourceRow fields overwrite sKey tKey = do
     let sourceKeys        = HM.keys sourceRowRecord
         sourceKeysDesired = determineDesiredSourceKeys sourceKeys fields
         targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
@@ -115,7 +131,8 @@ mergeRow targetRow sourceRow fields overwrite sKey tKey = do
             if HM.null newFields then do
                 logDebug "-- no changes"
             else do
-                forM_ (HM.toList newFields) $ \(key, val) ->
+                forM_ (HM.toList newFields) $ \(key, val) -> do
+                    liftIO $ R.modifyIORef cp (+1)
                     logDebug $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
             return r
   where
