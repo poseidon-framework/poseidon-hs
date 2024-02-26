@@ -4,59 +4,65 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.CLI.Fetch       (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge       (ForgeOptions (..), runForge)
-import           Poseidon.CLI.Genoconvert (GenoconvertOptions (..),
-                                           runGenoconvert)
-import           Poseidon.CLI.Init        (InitOptions (..), runInit)
-import           Poseidon.CLI.List        (ListEntity (..), ListOptions (..),
-                                           RepoLocationSpec (..), runList)
-import           Poseidon.CLI.Rectify     (ChecksumsToRectify (..),
-                                           PackageVersionUpdate (..),
-                                           RectifyOptions (..), runRectify)
-import           Poseidon.CLI.Serve       (ServeOptions (..), runServer)
-import           Poseidon.CLI.Summarise   (SummariseOptions (..), runSummarise)
-import           Poseidon.CLI.Survey      (SurveyOptions (..), runSurvey)
-import           Poseidon.CLI.Timetravel  (TimetravelOptions (..),
-                                           runTimetravel)
-import           Poseidon.CLI.Validate    (ValidateOptions (..),
-                                           ValidatePlan (..), runValidate)
-import           Poseidon.Contributor     (ContributorSpec (..))
-import           Poseidon.EntityTypes     (EntityInput (..),
-                                           PoseidonEntity (..),
-                                           readEntitiesFromString)
-import           Poseidon.GenotypeData    (GenoDataSource (..),
-                                           GenotypeDataSpec (..),
-                                           GenotypeFormatSpec (..),
-                                           SNPSetSpec (..))
-import           Poseidon.ServerClient    (ArchiveEndpoint (..))
-import           Poseidon.Utils           (LogMode (..), TestMode (..),
-                                           getChecksum, testLog,
-                                           usePoseidonLogger)
-import           Poseidon.Version         (VersionComponent (..))
+import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge)
+import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
+                                             runGenoconvert)
+import           Poseidon.CLI.Init          (InitOptions (..), runInit)
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             JannoCoalesceOptions (..),
+                                             JannoSourceSpec (..),
+                                             runJannocoalesce)
+import           Poseidon.CLI.List          (ListEntity (..), ListOptions (..),
+                                             RepoLocationSpec (..), runList)
+import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
+                                             PackageVersionUpdate (..),
+                                             RectifyOptions (..), runRectify)
+import           Poseidon.CLI.Serve         (ServeOptions (..), runServer)
+import           Poseidon.CLI.Summarise     (SummariseOptions (..),
+                                             runSummarise)
+import           Poseidon.CLI.Survey        (SurveyOptions (..), runSurvey)
+import           Poseidon.CLI.Timetravel    (TimetravelOptions (..),
+                                             runTimetravel)
+import           Poseidon.CLI.Validate      (ValidateOptions (..),
+                                             ValidatePlan (..), runValidate)
+import           Poseidon.Contributor       (ContributorSpec (..))
+import           Poseidon.EntityTypes       (EntityInput (..),
+                                             PoseidonEntity (..),
+                                             readEntitiesFromString)
+import           Poseidon.GenotypeData      (GenoDataSource (..),
+                                             GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..),
+                                             SNPSetSpec (..))
+import           Poseidon.ServerClient      (ArchiveEndpoint (..))
+import           Poseidon.Utils             (LogMode (..), TestMode (..),
+                                             getChecksum, testLog,
+                                             usePoseidonLogger)
+import           Poseidon.Version           (VersionComponent (..))
 
-import           Control.Concurrent       (forkIO, killThread, newEmptyMVar)
-import           Control.Concurrent.MVar  (takeMVar)
-import           Control.Exception        (finally)
-import           Control.Monad            (forM_, unless, when)
-import           Data.Either              (fromRight)
-import           Data.Function            ((&))
-import qualified Data.Text                as T
-import qualified Data.Text.IO             as T
-import           Data.Version             (makeVersion)
-import           GHC.IO.Handle            (hClose, hDuplicate, hDuplicateTo)
-import           Poseidon.CLI.Chronicle   (ChronOperation (..),
-                                           ChronicleOptions (..), runChronicle)
-import           Poseidon.EntityTypes     (PacNameAndVersion (..))
-import           SequenceFormats.Plink    (PlinkPopNameMode (..))
-import           System.Directory         (copyFile, createDirectory,
-                                           createDirectoryIfMissing,
-                                           doesDirectoryExist, listDirectory,
-                                           removeDirectoryRecursive)
-import           System.FilePath.Posix    ((</>))
-import           System.IO                (IOMode (WriteMode), hPutStrLn,
-                                           openFile, stderr, stdout, withFile)
-import           System.Process           (callCommand)
+import           Control.Concurrent         (forkIO, killThread, newEmptyMVar)
+import           Control.Concurrent.MVar    (takeMVar)
+import           Control.Exception          (finally)
+import           Control.Monad              (forM_, unless, when)
+import           Data.Either                (fromRight)
+import           Data.Function              ((&))
+import qualified Data.Text                  as T
+import qualified Data.Text.IO               as T
+import           Data.Version               (makeVersion)
+import           GHC.IO.Handle              (hClose, hDuplicate, hDuplicateTo)
+import           Poseidon.CLI.Chronicle     (ChronOperation (..),
+                                             ChronicleOptions (..),
+                                             runChronicle)
+import           Poseidon.EntityTypes       (PacNameAndVersion (..))
+import           SequenceFormats.Plink      (PlinkPopNameMode (..))
+import           System.Directory           (copyFile, createDirectory,
+                                             createDirectoryIfMissing,
+                                             doesDirectoryExist, listDirectory,
+                                             removeDirectoryRecursive)
+import           System.FilePath.Posix      ((</>))
+import           System.IO                  (IOMode (WriteMode), hPutStrLn,
+                                             openFile, stderr, stdout, withFile)
+import           System.Process             (callCommand)
 
 -- file paths --
 
@@ -182,6 +188,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineFetch testDir checkFilePath
     hPutStrLn stderr "--- list --remote"
     testPipelineListRemote testDir checkFilePath
+    hPutStrLn stderr "--- jannocoalesce"
+    testPipelineJannocoalesce testDir checkFilePath
     -- close error sink
     hClose devNull
     unless interactive $ hDuplicateTo stderr_old stderr
@@ -1076,3 +1084,48 @@ testPipelineListRemote testDir checkFilePath = do
         ) (
         killThread threadID
         )
+
+testPipelineJannocoalesce :: FilePath -> FilePath -> IO ()
+testPipelineJannocoalesce testDir checkFilePath = do
+    -- simple coalesce
+    let jannocoalesceOpts1 = JannoCoalesceOptions {
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target1.janno"),
+            _jannocoalesceJannoColumns     = AllJannoColumns,
+            _jannocoalesceOverwriteColumns = False,
+            _jannocoalesceSourceKey        = "Poseidon_ID",
+            _jannocoalesceTargetKey        = "Poseidon_ID",
+            _jannocoalesceIdStrip          = Nothing
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts1) "jannocoalesce" [
+          "jannocoalesce" </> "target1.janno"
+        ]
+    -- only coalesce certain columns (--includeColumns)
+    let jannocoalesceOpts2 = JannoCoalesceOptions {
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target2.janno"),
+            _jannocoalesceJannoColumns     = IncludeJannoColumns ["Latitude", "Longitude"],
+            _jannocoalesceOverwriteColumns = False,
+            _jannocoalesceSourceKey        = "Poseidon_ID",
+            _jannocoalesceTargetKey        = "Poseidon_ID",
+            _jannocoalesceIdStrip          = Nothing
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts2) "jannocoalesce" [
+          "jannocoalesce" </> "target2.janno"
+        ]
+    -- do not coalesce certain columns (--excludeColumns)
+    let jannocoalesceOpts3 = JannoCoalesceOptions {
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target3.janno"),
+            _jannocoalesceJannoColumns     = ExcludeJannoColumns ["Latitude", "Longitude"],
+            _jannocoalesceOverwriteColumns = False,
+            _jannocoalesceSourceKey        = "Poseidon_ID",
+            _jannocoalesceTargetKey        = "Poseidon_ID",
+            _jannocoalesceIdStrip          = Nothing
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts3) "jannocoalesce" [
+          "jannocoalesce" </> "target3.janno"
+        ]

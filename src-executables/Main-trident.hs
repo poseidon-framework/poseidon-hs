@@ -11,6 +11,8 @@ import           Poseidon.CLI.Genoconvert                (GenoconvertOptions (..
                                                           runGenoconvert)
 import           Poseidon.CLI.Init                       (InitOptions (..),
                                                           runInit)
+import           Poseidon.CLI.Jannocoalesce              (JannoCoalesceOptions (..),
+                                                          runJannocoalesce)
 import           Poseidon.CLI.List                       (ListOptions (..),
                                                           runList)
 import           Poseidon.CLI.OptparseApplicativeParsers
@@ -68,6 +70,7 @@ data Subcommand =
     | CmdChronicle ChronicleOptions
     | CmdTimetravel TimetravelOptions
     | CmdServe ServeOptions
+    | CmdJannoCoalesce JannoCoalesceOptions
 
 main :: IO ()
 main = do
@@ -88,18 +91,20 @@ main = do
 
 runCmd :: Subcommand -> PoseidonIO ()
 runCmd o = case o of
-    CmdInit opts        -> runInit opts
-    CmdList opts        -> runList opts
-    CmdFetch opts       -> runFetch opts
-    CmdForge opts       -> runForge opts
-    CmdGenoconvert opts -> runGenoconvert opts
-    CmdSummarise opts   -> runSummarise opts
-    CmdSurvey opts      -> runSurvey opts
-    CmdRectify opts     -> runRectify opts
-    CmdValidate opts    -> runValidate opts
-    CmdChronicle opts   -> runChronicle opts
-    CmdTimetravel opts  -> runTimetravel opts
-    CmdServe opts       -> runServerMainThread opts
+    -- alphabetic order
+    CmdChronicle     opts -> runChronicle opts
+    CmdFetch         opts -> runFetch opts
+    CmdForge         opts -> runForge opts
+    CmdGenoconvert   opts -> runGenoconvert opts
+    CmdJannoCoalesce opts -> runJannocoalesce opts
+    CmdInit          opts -> runInit opts
+    CmdList          opts -> runList opts
+    CmdRectify       opts -> runRectify opts
+    CmdServe         opts -> runServerMainThread opts
+    CmdSummarise     opts -> runSummarise opts
+    CmdSurvey        opts -> runSurvey opts
+    CmdTimetravel    opts -> runTimetravel opts
+    CmdValidate      opts -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (
@@ -131,6 +136,7 @@ subcommandParser = OP.subparser (
         OP.command "fetch" fetchOptInfo <>
         OP.command "forge" forgeOptInfo <>
         OP.command "genoconvert" genoconvertOptInfo <>
+        OP.command "jannocoalesce" jannocoalesceOptInfo <>
         OP.command "rectify" rectifyOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
@@ -182,6 +188,8 @@ subcommandParser = OP.subparser (
         (OP.progDesc "Construct package directories from chronicle files")
     serveOptInfo    = OP.info (OP.helper <*> (CmdServe <$> serveOptParser))
         (OP.progDesc "Serve Poseidon packages via HTTP or HTTPS")
+    jannocoalesceOptInfo = OP.info (OP.helper <*> (CmdJannoCoalesce <$> jannocoalesceOptParser))
+        (OP.progDesc "Coalesce information from one or multiple janno files to another one")
 
 initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeDataset
@@ -260,3 +268,13 @@ serveOptParser = ServeOptions <$> parseArchiveBasePaths
                               <*> parsePort
                               <*> parseIgnoreChecksums
                               <*> parseMaybeCertFiles
+
+jannocoalesceOptParser :: OP.Parser JannoCoalesceOptions
+jannocoalesceOptParser = JannoCoalesceOptions <$> parseJannocoalSourceSpec
+                                              <*> parseJannocoalTargetFile
+                                              <*> parseJannocoalOutSpec
+                                              <*> parseJannocoalJannoColumns
+                                              <*> parseJannocoalOverride
+                                              <*> parseJannocoalSourceKey
+                                              <*> parseJannocoalTargetKey
+                                              <*> parseJannocoalIdStripRegex

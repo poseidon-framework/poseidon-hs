@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.4.0.4
+version:             1.4.1.0
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -21,7 +21,8 @@ library
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Rectify, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
-                        Poseidon.CLI.OptparseApplicativeParsers, Poseidon.CLI.Timetravel
+                        Poseidon.CLI.OptparseApplicativeParsers, Poseidon.CLI.Timetravel,
+                        Poseidon.CLI.Jannocoalesce
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
@@ -52,7 +53,7 @@ Test-Suite poseidon-tools-tests
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
                         unordered-containers, cassava, containers, process
     other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
-                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
+                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec, Poseidon.JannocoalesceSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
                         PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.ChronicleSpec,
