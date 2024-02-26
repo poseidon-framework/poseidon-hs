@@ -1,3 +1,17 @@
+### V 1.4.1.0
+
+This release improves the error messages for broken `.janno` files and adds an entirely new subcommand to merge two `.janno` files: `jannocoalecse`.
+
+#### Merging `.janno` files with `jannocoalesce`
+
+The need for a tool to combine the information of two `.janno` files arose in the Poseidon ecosystem as we started to conceptualize the Poseidon [Minotaur Archive](https://www.poseidon-adna.org/#/archive_overview?id=the-poseidon-minotaur-archive-pma). This archive will be populated by paper-wise Poseidon packages for which the genotype data was regenerated through the Minotaur workflow (work in progress). We plan to reprocess various packages that are already in the [Poseidon Community Archive](https://www.poseidon-adna.org/#/archive_overview?id=the-poseidon-community-archive-pca) and want to copy for these packages e.g. spatiotemporal information from the already available `.janno` files. `jannocoalesce` is the answer to this specific need, but can also be useful for various other applications.
+
+It generally works by reading a source `.janno` file with `-s|--sourceFile` (or all `.janno` files in a `-d|--baseDir`) and a target `.janno` file with `-t|--targetFile`. It then merges these files by a key column in each of these files, which can be selected with `--sourceKey` and `--targetKey`. The default for both of these is the `Poseidon_ID` column. In case the entries in these key columns slightly and systematically differ, e.g. because the `Poseidon_ID`s in either have a special suffix (for example `_SG`), then the `--stripIdRegex` option allows to strip these with a regular expression.
+
+`jannocoalesce` generally attempts to fill all empty cells in the target `.janno` file with information from the source. `--includeColumns` and `--excludeColumns` allow to select specific columns for which this should be done. In some cases it may be desirable to not just fill empty fields in the target, but overwrite the information already there with the `-f|--force` option. If the target file should be preserved, then the output can be directed to a new output `.janno` file with `-o|--outFile`.
+
+
+
 ### V 1.4.0.3
 
 This small release fixes a performance issue related to finding the latest version of all packages. The bug had severe detrimental effects on `forge` and `fetch`, which are now resolved.
