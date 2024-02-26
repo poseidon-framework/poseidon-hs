@@ -1,5 +1,5 @@
 - V 1.4.1.0:
-    - Added new tool `trident jannocoalesce`, which merges information from a source janno file to a target janno file.
+    - Added new tool `trident jannocoalesce`, which merges information from a source .janno file to a target .janno file.
 - V 1.4.0.4:
     - Added better error messages for generic cassava parsing (e.g. for broken Int and Double fields) in .janno files.
     - Added better error handling and messages for inconsistent `Date_*`, `Contamination_*` and `Relation_*` columns in .janno files using an `Except` & `Writer` monad stack.

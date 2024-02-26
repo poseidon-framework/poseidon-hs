@@ -9,7 +9,8 @@ import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge)
 import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
                                              runGenoconvert)
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
-import           Poseidon.CLI.Jannocoalesce (JannoCoalesceOptions (..),
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             JannoCoalesceOptions (..),
                                              JannoSourceSpec (..),
                                              runJannocoalesce)
 import           Poseidon.CLI.List          (ListEntity (..), ListOptions (..),
@@ -1086,16 +1087,45 @@ testPipelineListRemote testDir checkFilePath = do
 
 testPipelineJannocoalesce :: FilePath -> FilePath -> IO ()
 testPipelineJannocoalesce testDir checkFilePath = do
+    -- simple coalesce
     let jannocoalesceOpts1 = JannoCoalesceOptions {
             _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/normal_subset.janno",
-            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "targetNoFieldsNoOverride.janno"),
-            _jannocoalesceFillColumns      = [],
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target1.janno"),
+            _jannocoalesceJannoColumns     = AllJannoColumns,
             _jannocoalesceOverwriteColumns = False,
             _jannocoalesceSourceKey        = "Poseidon_ID",
             _jannocoalesceTargetKey        = "Poseidon_ID",
             _jannocoalesceIdStrip          = Nothing
         }
     runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts1) "jannocoalesce" [
-          "jannocoalesce" </> "targetNoFieldsNoOverride.janno"
+          "jannocoalesce" </> "target1.janno"
+        ]
+    -- only coalesce certain columns (--includeColumns)
+    let jannocoalesceOpts2 = JannoCoalesceOptions {
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target2.janno"),
+            _jannocoalesceJannoColumns     = IncludeJannoColumns ["Latitude", "Longitude"],
+            _jannocoalesceOverwriteColumns = False,
+            _jannocoalesceSourceKey        = "Poseidon_ID",
+            _jannocoalesceTargetKey        = "Poseidon_ID",
+            _jannocoalesceIdStrip          = Nothing
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts2) "jannocoalesce" [
+          "jannocoalesce" </> "target2.janno"
+        ]
+    -- do not coalesce certain columns (--excludeColumns)
+    let jannocoalesceOpts3 = JannoCoalesceOptions {
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target3.janno"),
+            _jannocoalesceJannoColumns     = ExcludeJannoColumns ["Latitude", "Longitude"],
+            _jannocoalesceOverwriteColumns = False,
+            _jannocoalesceSourceKey        = "Poseidon_ID",
+            _jannocoalesceTargetKey        = "Poseidon_ID",
+            _jannocoalesceIdStrip          = Nothing
+        }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runJannocoalesce jannocoalesceOpts3) "jannocoalesce" [
+          "jannocoalesce" </> "target3.janno"
         ]

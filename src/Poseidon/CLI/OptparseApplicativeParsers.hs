@@ -3,7 +3,8 @@
 module Poseidon.CLI.OptparseApplicativeParsers where
 
 import           Poseidon.CLI.Chronicle     (ChronOperation (..))
-import           Poseidon.CLI.Jannocoalesce (JannoSourceSpec (..))
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             JannoSourceSpec (..))
 import           Poseidon.CLI.List          (ListEntity (..),
                                              RepoLocationSpec (..))
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
@@ -25,6 +26,7 @@ import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
 
 import           Control.Applicative        ((<|>))
+import qualified Data.ByteString.Char8      as BSC
 import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
@@ -33,7 +35,6 @@ import           System.FilePath            (dropExtension, takeExtension,
                                              (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
-
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -797,13 +798,21 @@ parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
             \If not specified, change the target file in place."
     )
 
-parseJannocoalFillColumns :: OP.Parser [String]
-parseJannocoalFillColumns = OP.option (splitOn "," <$> OP.str) (
-    OP.long "fillColumns" <>
-    OP.value [] <>
-    OP.help "A comma-separated list of .janno field names. \
-            \If not specified, fill all columns that can be found in the source and target."
-    )
+parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec
+parseJannocoalJannoColumns = includeJannoColumns OP.<|> excludeJannoColumns OP.<|> pure AllJannoColumns
+    where
+        includeJannoColumns = OP.option (IncludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
+            OP.long "includeColumns" <>
+            OP.help "A comma-separated list of .janno column names to coalesce. \
+                    \If not specified, all columns that can be found in the source \
+                    \and target will get filled."
+            )
+        excludeJannoColumns = OP.option (ExcludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
+            OP.long "excludeColumns" <>
+            OP.help "A comma-separated list of .janno column names NOT to coalesce. \
+                    \All columns that can be found in the source and target will get filled, \
+                    \except the ones listed here."
+            )
 
 parseJannocoalOverride :: OP.Parser Bool
 parseJannocoalOverride = OP.switch (

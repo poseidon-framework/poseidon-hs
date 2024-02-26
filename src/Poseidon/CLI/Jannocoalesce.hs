@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Poseidon.CLI.Jannocoalesce where
 
@@ -9,14 +10,16 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          getJointJanno,
                                          readPoseidonPackageCollection)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
-                                         logDebug, logInfo)
+                                         logDebug, logInfo, logWarning)
 
-import           Control.Monad          (filterM, forM, forM_)
+import           Control.Monad          (filterM, forM_, when)
 import           Control.Monad.Catch    (MonadThrow, throwM)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
+import qualified Data.IORef             as R
+import           Data.List              ((\\))
 import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
@@ -25,11 +28,16 @@ import           Text.Regex.TDFA        ((=~))
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
 
+data CoalesceJannoColumnSpec =
+      AllJannoColumns
+    | IncludeJannoColumns [BSC.ByteString]
+    | ExcludeJannoColumns [BSC.ByteString]
+
 data JannoCoalesceOptions = JannoCoalesceOptions
     { _jannocoalesceSource           :: JannoSourceSpec
     , _jannocoalesceTarget           :: FilePath
     , _jannocoalesceOutSpec          :: Maybe FilePath -- Nothing means "in place"
-    , _jannocoalesceFillColumns      :: [String] -- empty list means All
+    , _jannocoalesceJannoColumns     :: CoalesceJannoColumnSpec
     , _jannocoalesceOverwriteColumns :: Bool
     , _jannocoalesceSourceKey        :: String -- by default set to "Poseidon_ID"
     , _jannocoalesceTargetKey        :: String -- by default set to "Poseidon_ID"
@@ -58,18 +66,33 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
         createDirectoryIfMissing True (takeDirectory outPath)
         writeJannoFile outPath (JannoRows newJanno)
 
-makeNewJannoRows :: [JannoRow] -> [JannoRow] -> [String] -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
+type CounterMismatches = R.IORef Int
+type CounterCopied     = R.IORef Int
+
+makeNewJannoRows :: [JannoRow] -> [JannoRow] -> CoalesceJannoColumnSpec -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
 makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip = do
     logInfo "Starting to coalesce..."
-    forM targetRows $ \targetRow -> do
-        posId <- getKeyFromJanno targetRow tKey
-        sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
-        case sourceRowCandidates of
-            [] -> do
-                logInfo $ "no match for target " ++ posId ++ " in source"
-                return targetRow
-            [keyRow] -> mergeRow targetRow keyRow fields overwrite sKey tKey
-            _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
+    counterMismatches <- liftIO $ R.newIORef 0
+    counterCopied <- liftIO $ R.newIORef 0
+    newRows <- mapM (makeNewJannoRow counterMismatches counterCopied) targetRows
+    counterCopiedVal <- liftIO $ R.readIORef counterCopied
+    counterMismatchesVal <- liftIO $ R.readIORef counterMismatches
+    logInfo $ "Copied " ++ show counterCopiedVal ++ " values"
+    when (counterMismatchesVal > 0) $
+        logWarning $ "Failed to find matches for " ++ show counterMismatchesVal ++ " target rows in source"
+    return newRows
+    where
+        makeNewJannoRow :: CounterMismatches -> CounterCopied -> JannoRow -> PoseidonIO JannoRow
+        makeNewJannoRow cm cp targetRow = do
+            posId <- getKeyFromJanno targetRow tKey
+            sourceRowCandidates <- filterM (\r -> (matchWithOptionalStrip maybeStrip posId) <$> getKeyFromJanno r sKey) sourceRows
+            case sourceRowCandidates of
+                [] -> do
+                    logWarning $ "no match for target " ++ posId ++ " in source"
+                    liftIO $ R.modifyIORef cm (+1)
+                    return targetRow
+                [keyRow] -> mergeRow cp targetRow keyRow fields overwrite sKey tKey
+                _ -> throwM $ PoseidonGenericException $ "source file contains multiple rows with key " ++ posId
 
 getKeyFromJanno :: (MonadThrow m) => JannoRow -> String -> m String
 getKeyFromJanno jannoRow key = do
@@ -92,28 +115,47 @@ matchWithOptionalStrip maybeRegex id1 id2 =
         let match = s =~ r
         in  if null match then s else unpack $ replace (pack match) "" (pack s)
 
-mergeRow :: JannoRow -> JannoRow -> [String] -> Bool -> String -> String -> PoseidonIO JannoRow
-mergeRow targetRow sourceRow fields overwrite sKey tKey = do
-    let targetRowRecord = Csv.toNamedRecord targetRow
-        sourceRowRecord = Csv.toNamedRecord sourceRow
-        newRowRecord    = HM.unionWithKey mergeIfMissing targetRowRecord sourceRowRecord
-        parseResult     = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
-    logInfo $ "matched target " ++ BSC.unpack (targetRowRecord HM.! (BSC.pack tKey)) ++
-              " with source " ++ BSC.unpack (sourceRowRecord HM.! (BSC.pack sKey))
+mergeRow :: CounterCopied -> JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
+mergeRow cp targetRow sourceRow fields overwrite sKey tKey = do
+    let sourceKeys        = HM.keys sourceRowRecord
+        sourceKeysDesired = determineDesiredSourceKeys sourceKeys fields
+        -- fill in the target row with dummy values for desired fields that might not be present yet
+        targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
+        newRowRecord      = HM.mapWithKey fillFromSource targetComplete
+        parseResult       = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
+    logInfo $ "matched target " ++ BSC.unpack (targetComplete  HM.! BSC.pack tKey) ++
+              " with source "   ++ BSC.unpack (sourceRowRecord HM.! BSC.pack sKey)
     case parseResult of
         Left err -> throwM . PoseidonGenericException $ ".janno row-merge error: " ++ err
         Right r  -> do
-            let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetRowRecord
+            let newFields = HM.differenceWith (\v1 v2 -> if v1 == v2 then Nothing else Just v1) newRowRecord targetComplete
             if HM.null newFields then do
                 logDebug "-- no changes"
             else do
-                forM_ (HM.toList newFields) $ \(key, val) ->
+                forM_ (HM.toList newFields) $ \(key, val) -> do
+                    liftIO $ R.modifyIORef cp (+1)
                     logDebug $ "-- copied \"" ++ BSC.unpack val ++ "\" from column " ++ BSC.unpack key
             return r
   where
-    mergeIfMissing :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString -> BSC.ByteString
-    mergeIfMissing key targetVal sourceVal =
-        if key /= BSC.pack tKey && (null fields || (BSC.unpack key `elem` fields)) && (targetVal `elem` ["n/a", ""] || overwrite) then
-            sourceVal
-        else
-            targetVal
+    targetRowRecord :: Csv.NamedRecord
+    targetRowRecord = Csv.toNamedRecord targetRow
+    sourceRowRecord :: Csv.NamedRecord
+    sourceRowRecord = Csv.toNamedRecord sourceRow
+    determineDesiredSourceKeys :: [BSC.ByteString] -> CoalesceJannoColumnSpec -> [BSC.ByteString]
+    determineDesiredSourceKeys keys  AllJannoColumns               = keys
+    determineDesiredSourceKeys _    (IncludeJannoColumns included) = included
+    determineDesiredSourceKeys keys (ExcludeJannoColumns excluded) = keys \\ excluded
+    fillFromSource :: BSC.ByteString -> BSC.ByteString -> BSC.ByteString
+    fillFromSource key targetVal =
+           -- don't overwrite key
+        if key /= BSC.pack tKey
+           -- overwrite field only if it's requested
+           && includeField key fields
+           -- overwrite only empty fields, except overwrite is set
+           && (targetVal `elem` ["n/a", "", BSC.empty] || overwrite)
+        then HM.findWithDefault "" key sourceRowRecord
+        else targetVal
+    includeField :: BSC.ByteString -> CoalesceJannoColumnSpec -> Bool
+    includeField _    AllJannoColumns         = True
+    includeField key (IncludeJannoColumns xs) = key `elem` xs
+    includeField key (ExcludeJannoColumns xs) = key `notElem` xs
