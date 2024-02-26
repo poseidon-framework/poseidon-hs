@@ -1,16 +1,48 @@
 ### V 1.4.1.0
 
-This release improves the error messages for broken `.janno` files and adds an entirely new subcommand to merge two `.janno` files: `jannocoalecse`.
+This release adds an entirely new subcommand to merge two `.janno` files (`jannocoalecse`) and improves the error messages for broken `.janno` files. 
 
 #### Merging `.janno` files with `jannocoalesce`
 
-The need for a tool to combine the information of two `.janno` files arose in the Poseidon ecosystem as we started to conceptualize the Poseidon [Minotaur Archive](https://www.poseidon-adna.org/#/archive_overview?id=the-poseidon-minotaur-archive-pma). This archive will be populated by paper-wise Poseidon packages for which the genotype data was regenerated through the Minotaur workflow (work in progress). We plan to reprocess various packages that are already in the [Poseidon Community Archive](https://www.poseidon-adna.org/#/archive_overview?id=the-poseidon-community-archive-pca) and want to copy for these packages e.g. spatiotemporal information from the already available `.janno` files. `jannocoalesce` is the answer to this specific need, but can also be useful for various other applications.
+The need for a tool to combine the information of two `.janno` files arose in the Poseidon ecosystem as we started to conceptualize the Poseidon [Minotaur Archive](https://github.com/poseidon-framework/minotaur-archive). This archive will be populated by paper-wise Poseidon packages for which the genotype data was regenerated through the Minotaur workflow (work in progress). We plan to reprocess various packages that are already in the [Poseidon Community Archive](https://github.com/poseidon-framework/community-archive) and for these packages we want to copy e.g. spatiotemporal information from the already available `.janno` files. `jannocoalesce` is the answer to this specific need, but can also be useful for various other applications.
 
-It generally works by reading a source `.janno` file with `-s|--sourceFile` (or all `.janno` files in a `-d|--baseDir`) and a target `.janno` file with `-t|--targetFile`. It then merges these files by a key column in each of these files, which can be selected with `--sourceKey` and `--targetKey`. The default for both of these is the `Poseidon_ID` column. In case the entries in these key columns slightly and systematically differ, e.g. because the `Poseidon_ID`s in either have a special suffix (for example `_SG`), then the `--stripIdRegex` option allows to strip these with a regular expression.
+It generally works by reading a source `.janno` file with `-s|--sourceFile` (or all `.janno` files in a `-d|--baseDir`) and a target `.janno` file with `-t|--targetFile`. It then merges these files by a key column, which can be selected with `--sourceKey` and `--targetKey`. The default for both of these key columns is the `Poseidon_ID`. In case the entries in the key columns slightly and systematically differ, e.g. because the `Poseidon_ID`s in either have a special suffix (for example `_SG`), then the `--stripIdRegex` option allows to strip these with a regular expression.
 
-`jannocoalesce` generally attempts to fill all empty cells in the target `.janno` file with information from the source. `--includeColumns` and `--excludeColumns` allow to select specific columns for which this should be done. In some cases it may be desirable to not just fill empty fields in the target, but overwrite the information already there with the `-f|--force` option. If the target file should be preserved, then the output can be directed to a new output `.janno` file with `-o|--outFile`.
+`jannocoalesce` generally attempts to fill **all** empty cells in the target `.janno` file with information from the source. `--includeColumns` and `--excludeColumns` allow to select specific columns for which this should be done. In some cases it may be desirable to not just fill empty fields in the target, but overwrite the information already there with the `-f|--force` option. If the target file should be preserved, then the output can be directed to a new output `.janno` file with `-o|--outFile`.
 
+#### Better error messages for broken `.janno` files
 
+`.janno` file validation is a core feature of `trident`. With this release we try to improve the error messages for a two common situations:
+
+1. Broken number fields. This can happen, if some text or wrong character ends up in a number field.
+
+So far the error messages for this case have been pretty technical. Here for example if an integer field is filled with `430;`, where the integer number `430` is accidentally written with a trailing `;`:
+
+```
+parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
+```
+
+The new error message is more clear:
+
+```
+parse error in one column (expected data type: Int, broken value: "430;", problematic characters: ";")
+```
+
+2. Inconsistent `Date_*`, `Contamination_*` and `Relation_*` columns. These sets of columns have to be cross-consistent, following a logic that is especially complex for the `Date_*` fields (see [here](https://www.poseidon-adna.org/#/janno_details?id=the-columns-in-detail)).
+
+So far any inconsistency was reported with this generic error message:
+
+```
+The Date_* columns are not consistent
+```
+
+Now we include far more precise messages, like e.g.:
+
+```
+Date_Type is not "C14", but either Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty.
+```
+
+This should simplify tedious `.janno` file debugging in the future.
 
 ### V 1.4.0.3
 
