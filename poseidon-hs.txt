@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.4.0.4
+@version 1.4.1.0
 
 module Poseidon.Contributor
 
@@ -362,6 +362,8 @@ INSDCRun :: String -> AccessionID
 INSDCAnalysis :: String -> AccessionID
 OtherID :: String -> AccessionID
 makeAccessionID :: MonadFail m => String -> m AccessionID
+makeLatitude :: MonadFail m => Double -> m Latitude
+makeLongitude :: MonadFail m => Double -> m Longitude
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 
 -- | A function to load one janno file
@@ -369,6 +371,9 @@ readJannoFile :: FilePath -> PoseidonIO JannoRows
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
+
+-- | A function to create an empty janno row for an individual
+createMinimalSample :: EigenstratIndEntry -> JannoRow
 jannoHeaderString :: [String]
 
 -- | A datatype to collect additional, unpecified .janno file columns (a
@@ -1301,6 +1306,32 @@ printFrequencyMaybeString :: String -> [(Maybe String, Int)] -> String
 -- | As maybeShow, but without additional quoting of strings
 maybeShowString :: Maybe String -> String
 
+module Poseidon.CLI.Jannocoalesce
+data JannoSourceSpec
+JannoSourceSingle :: FilePath -> JannoSourceSpec
+JannoSourceBaseDirs :: [FilePath] -> JannoSourceSpec
+data CoalesceJannoColumnSpec
+AllJannoColumns :: CoalesceJannoColumnSpec
+IncludeJannoColumns :: [ByteString] -> CoalesceJannoColumnSpec
+ExcludeJannoColumns :: [ByteString] -> CoalesceJannoColumnSpec
+data JannoCoalesceOptions
+JannoCoalesceOptions :: JannoSourceSpec -> FilePath -> Maybe FilePath -> CoalesceJannoColumnSpec -> Bool -> String -> String -> Maybe String -> JannoCoalesceOptions
+[_jannocoalesceSource] :: JannoCoalesceOptions -> JannoSourceSpec
+[_jannocoalesceTarget] :: JannoCoalesceOptions -> FilePath
+[_jannocoalesceOutSpec] :: JannoCoalesceOptions -> Maybe FilePath
+[_jannocoalesceJannoColumns] :: JannoCoalesceOptions -> CoalesceJannoColumnSpec
+[_jannocoalesceOverwriteColumns] :: JannoCoalesceOptions -> Bool
+[_jannocoalesceSourceKey] :: JannoCoalesceOptions -> String
+[_jannocoalesceTargetKey] :: JannoCoalesceOptions -> String
+[_jannocoalesceIdStrip] :: JannoCoalesceOptions -> Maybe String
+runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
+type CounterMismatches = IORef Int
+type CounterCopied = IORef Int
+makeNewJannoRows :: [JannoRow] -> [JannoRow] -> CoalesceJannoColumnSpec -> Bool -> String -> String -> Maybe String -> PoseidonIO [JannoRow]
+getKeyFromJanno :: MonadThrow m => JannoRow -> String -> m String
+matchWithOptionalStrip :: Maybe String -> String -> String -> Bool
+mergeRow :: CounterCopied -> JannoRow -> JannoRow -> CoalesceJannoColumnSpec -> Bool -> String -> String -> PoseidonIO JannoRow
+
 module Poseidon.CLI.Init
 data InitOptions
 InitOptions :: GenotypeDataSpec -> FilePath -> Maybe String -> Bool -> InitOptions
@@ -1612,4 +1643,12 @@ parseChainFile :: Parser FilePath
 parseCertFile :: Parser FilePath
 parseArchiveBasePaths :: Parser [(String, FilePath)]
 parseMaybeArchiveName :: Parser (Maybe String)
+parseJannocoalSourceSpec :: Parser JannoSourceSpec
+parseJannocoalTargetFile :: Parser FilePath
+parseJannocoalOutSpec :: Parser (Maybe FilePath)
+parseJannocoalJannoColumns :: Parser CoalesceJannoColumnSpec
+parseJannocoalOverride :: Parser Bool
+parseJannocoalSourceKey :: Parser String
+parseJannocoalTargetKey :: Parser String
+parseJannocoalIdStripRegex :: Parser (Maybe String)
 instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
