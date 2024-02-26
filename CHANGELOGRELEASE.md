@@ -4,9 +4,9 @@ This release adds an entirely new subcommand to merge two `.janno` files (`janno
 
 #### Merging `.janno` files with `jannocoalesce`
 
-The need for a tool to combine the information of two `.janno` files arose in the Poseidon ecosystem as we started to conceptualize the Poseidon [Minotaur Archive](https://github.com/poseidon-framework/minotaur-archive). This archive will be populated by paper-wise Poseidon packages for which the genotype data was regenerated through the Minotaur workflow (work in progress). We plan to reprocess various packages that are already in the [Poseidon Community Archive](https://github.com/poseidon-framework/community-archive) and for these packages we want to copy e.g. spatiotemporal information from the already available `.janno` files. `jannocoalesce` is the answer to this specific need, but can also be useful for various other applications.
+The need for a tool to combine the information of two `.janno` files arose in the Poseidon ecosystem as we started to conceptualize the Poseidon [Minotaur Archive](https://github.com/poseidon-framework/minotaur-archive). This archive will be populated by paper-wise Poseidon packages for which the genotype data was regenerated through the Minotaur workflow (work in progress). We plan to reprocess various packages that are already in the Poseidon [Community Archive](https://github.com/poseidon-framework/community-archive) and for these packages we want to copy e.g. spatiotemporal information from the already available `.janno` files. `jannocoalesce` is the answer to this specific need, but can also be useful for various other applications.
 
-It generally works by reading a source `.janno` file with `-s|--sourceFile` (or all `.janno` files in a `-d|--baseDir`) and a target `.janno` file with `-t|--targetFile`. It then merges these files by a key column, which can be selected with `--sourceKey` and `--targetKey`. The default for both of these key columns is the `Poseidon_ID`. In case the entries in the key columns slightly and systematically differ, e.g. because the `Poseidon_ID`s in either have a special suffix (for example `_SG`), then the `--stripIdRegex` option allows to strip these with a regular expression.
+It generally works by reading a source `.janno` file with `-s|--sourceFile` (or all `.janno` files in a `-d|--baseDir`) and a target `.janno` file with `-t|--targetFile`. It then merges these files by a key column, which can be selected with `--sourceKey` and `--targetKey`. The default for both of these key columns is the `Poseidon_ID`. In case the entries in the key columns slightly and systematically differ, e.g. because the `Poseidon_ID`s in either have a special suffix (for example `_SG`), then the `--stripIdRegex` option allows to strip these with a regular expression to thus match the keys.
 
 `jannocoalesce` generally attempts to fill **all** empty cells in the target `.janno` file with information from the source. `--includeColumns` and `--excludeColumns` allow to select specific columns for which this should be done. In some cases it may be desirable to not just fill empty fields in the target, but overwrite the information already there with the `-f|--force` option. If the target file should be preserved, then the output can be directed to a new output `.janno` file with `-o|--outFile`.
 
@@ -14,7 +14,7 @@ It generally works by reading a source `.janno` file with `-s|--sourceFile` (or 
 
 `.janno` file validation is a core feature of `trident`. With this release we try to improve the error messages for a two common situations:
 
-1. Broken number fields. This can happen, if some text or wrong character ends up in a number field.
+1. Broken number fields. This can happen if some text or wrong character ends up in a number field.
 
 So far the error messages for this case have been pretty technical. Here for example if an integer field is filled with `430;`, where the integer number `430` is accidentally written with a trailing `;`:
 
