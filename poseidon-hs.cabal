@@ -27,7 +27,7 @@ library
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
-                        vector, pipes-ordered-zip, table-layout, mtl, split, warp, warp-tls, wai-cors,
+                        vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
                         -- scotty is set to < 0.20.0, because the current stackage resolver 21.17 does not have the latest version, but cabal uses it in the release action, if this constraint is not set
                         scotty < 0.20.0, cassava, pureMD5, wai, githash,
                         http-conduit, conduit, http-types, zip-archive,
