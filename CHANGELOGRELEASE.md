@@ -1,6 +1,6 @@
 ### V 1.4.1.0
 
-This release adds an entirely new subcommand to merge two `.janno` files (`jannocoalecse`) and improves the error messages for broken `.janno` files. 
+This release adds an entirely new subcommand to merge two `.janno` files (`jannocoalesce`) and improves the error messages for broken `.janno` files.
 
 #### Merging `.janno` files with `jannocoalesce`
 
