@@ -38,7 +38,8 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              PacNameAndVersion (..),
                                              determineRelevantPackages,
                                              isLatestInCollection,
-                                             makePacNameAndVersion, renderNameWithVersion)
+                                             makePacNameAndVersion,
+                                             renderNameWithVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
