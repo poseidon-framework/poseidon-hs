@@ -38,7 +38,7 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              PacNameAndVersion (..),
                                              determineRelevantPackages,
                                              isLatestInCollection,
-                                             makePacNameAndVersion)
+                                             makePacNameAndVersion, renderNameWithVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -175,6 +175,10 @@ instance ToJSON PoseidonYamlStruct where
         "readmeFile"      .= _posYamlReadmeFile x,
         "changelogFile"   .= _posYamlChangelogFile x
         ]
+
+instance HasNameAndVersion PoseidonYamlStruct where
+    getPacName     = _posYamlTitle
+    getPacVersion  = _posYamlPackageVersion
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -361,6 +365,7 @@ readPoseidonPackage opts ymlPath = do
     yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
+    checkYML yml
 
     -- file existence and checksum test
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
@@ -399,6 +404,12 @@ readPoseidonPackage opts ymlPath = do
 
     -- return complete, valid package
     return pac
+
+checkYML :: PoseidonYamlStruct -> PoseidonIO ()
+checkYML yml = do
+    let contributors = _posYamlContributor yml
+    when (null contributors) $ do
+        logWarning $ "Contributor missing in POSEIDON.yml file of package " ++ renderNameWithVersion yml
 
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
