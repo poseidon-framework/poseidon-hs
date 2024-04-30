@@ -21,7 +21,7 @@ jobs:
           stack-arguments: --coverage
       # prepare and upload test coverage report
       - name: Create codecov coverage report
-        uses: 8c6794b6/hpc-codecov-action@v3
+        uses: 8c6794b6/hpc-codecov-action@v4
         with:
           target: stack:poseidon-tools-tests
       - name: Upload coverage to codecov
