@@ -4,6 +4,9 @@ description: Genetic data published in Schiffels et al. 2016
 contributor:
 - name: Stephan Schiffels
   email: schiffels@institute.org
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
 packageVersion: 1.0.1
 lastModified: 2021-11-09
 genotypeData:

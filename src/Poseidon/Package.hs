@@ -23,7 +23,6 @@ module Poseidon.Package (
     readPoseidonPackage,
     makePseudoPackageFromGenotypeData,
     getJannoRowsFromPac,
-    dummyContributor,
     packagesToPackageInfos,
     getAllGroupInfo,
     validateGeno,
@@ -32,14 +31,15 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
+import           Poseidon.Contributor       (ContributorSpec (..))
 import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
                                              IndividualInfoCollection,
                                              PacNameAndVersion (..),
                                              determineRelevantPackages,
                                              isLatestInCollection,
-                                             makePacNameAndVersion)
+                                             makePacNameAndVersion,
+                                             renderNameWithVersion)
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
@@ -176,6 +176,10 @@ instance ToJSON PoseidonYamlStruct where
         "readmeFile"      .= _posYamlReadmeFile x,
         "changelogFile"   .= _posYamlChangelogFile x
         ]
+
+instance HasNameAndVersion PoseidonYamlStruct where
+    getPacName     = _posYamlTitle
+    getPacVersion  = _posYamlPackageVersion
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage = PoseidonPackage
@@ -362,6 +366,7 @@ readPoseidonPackage opts ymlPath = do
     yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
+    checkYML yml
 
     -- file existence and checksum test
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
@@ -400,6 +405,12 @@ readPoseidonPackage opts ymlPath = do
 
     -- return complete, valid package
     return pac
+
+checkYML :: PoseidonYamlStruct -> PoseidonIO ()
+checkYML yml = do
+    let contributors = _posYamlContributor yml
+    when (null contributors) $ do
+        logWarning $ "Contributor missing in POSEIDON.yml file of package " ++ renderNameWithVersion yml
 
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
@@ -685,13 +696,6 @@ makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_
                then baseDirGeno
                else throwM $ PoseidonUnequalBaseDirException g s i
 
-dummyContributor :: ContributorSpec
-dummyContributor =
-    ContributorSpec
-        "Josiah Carberry"
-        "carberry@brown.edu"
-        (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
-
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
 -- the directory into which the YAML file will be written
@@ -708,7 +712,7 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
     let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
         fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
-        ,   posPacContributor = [dummyContributor]
+        ,   posPacContributor = []
         ,   posPacNameAndVersion = PacNameAndVersion name (Just $ makeVersion [0, 1, 0])
         ,   posPacLastModified = Just today
         }

@@ -1,3 +1,7 @@
+- V 1.5.0.0
+    - Removed Josiah Carberry from `newPackageTemplate`, so that he doesn't get added any more to new packages created by `init` and `forge` - the contributor field is missing in the output of these commands now.
+    - Adjusted the golden test output accordingly, but also added Josiah to one of the test packages (`test/testDat/testPackages/ancient/Schiffels_2016`) to keep him around at least in one way and make sure that the ORCID parser runs in the tests.
+    - Added a new warning to the package reading process to point out an empty contributor field.
 - V 1.4.1.0:
     - Added new tool `trident jannocoalesce`, which merges information from a source .janno file to a target .janno file.
 - V 1.4.0.4:

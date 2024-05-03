@@ -53,6 +53,7 @@ import           GHC.IO.Handle              (hClose, hDuplicate, hDuplicateTo)
 import           Poseidon.CLI.Chronicle     (ChronOperation (..),
                                              ChronicleOptions (..),
                                              runChronicle)
+import           Poseidon.Contributor       (ORCID (..))
 import           Poseidon.EntityTypes       (PacNameAndVersion (..))
 import           SequenceFormats.Plink      (PlinkPopNameMode (..))
 import           System.Directory           (copyFile, createDirectory,
@@ -485,7 +486,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
         , _rectifyChecksums = ChecksumNone
         , _rectifyNewContributors = Just [
-              ContributorSpec "Berta Testfrau" "berta@testfrau.org" Nothing
+              ContributorSpec "Josiah Carberry" "carberry@brown.edu" (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
         , _rectifyOnlyLatest = False
