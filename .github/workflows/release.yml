@@ -40,6 +40,10 @@ jobs:
           tagRegex: "v(.*)"
           tagRegexGroup: 1
 
+      - name: Install stack on macOS, where it is not present
+        if: ${{ runner.os == 'macOS' }}
+        run: curl -sSL https://get.haskellstack.org/ | sh
+
       - name: Build executable
         uses: freckle/stack-action@v4
         id: stack
