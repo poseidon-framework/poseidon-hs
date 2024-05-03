@@ -41,7 +41,7 @@ jobs:
           tagRegexGroup: 1
 
       - name: Build executable
-        uses: freckle/stack-action@v5
+        uses: freckle/stack-action@v4
         id: stack
         with:
           stack-arguments: --copy-bins
