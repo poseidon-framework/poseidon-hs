@@ -48,7 +48,8 @@ jobs:
         uses: freckle/stack-action@v5
         id: stack
         with:
-          stack-build-arguments: --copy-bins --ghc-options="-O2" --test --no-run-tests
+          test: false
+          stack-build-arguments: --copy-bins --ghc-options="-O2"
 
       - name: Set binary path name
         id: binarypath
