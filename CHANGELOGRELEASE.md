@@ -1,3 +1,23 @@
+### V 1.5.0.0
+
+This is a minor, but technically breaking release. It removes the example contributor *Josiah Carberry* from new packages created by `trident init` and `trident forge` 
+
+Previously every package created by `init` or `forge` included an example entry in the `contributor` field of the `POSEIDON.yml` file:
+
+```yml
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
+```
+
+This served the purpose of reminding users to actually set a contributor and giving an example how to do so. To simplify scripting with Poseidon packages we now remove this slightly gimmicky default.
+
+To encourage setting the contributor field we instead introduce a reading/validation warning in case the `contributor` field is empty:
+
+```
+[Warning] Contributor missing in POSEIDON.yml file of package 2010_RasmussenNature-2.1.1
+```
+
 ### V 1.4.1.0
 
 This release adds an entirely new subcommand to merge two `.janno` files (`jannocoalesce`) and improves the error messages for broken `.janno` files.
