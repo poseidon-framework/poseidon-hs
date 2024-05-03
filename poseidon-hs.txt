@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.4.1.0
+@version 1.5.0.0
 
 module Poseidon.Contributor
 
@@ -1221,7 +1221,6 @@ defaultPackageReadOptions :: PackageReadOptions
 readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonIO PoseidonPackage
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
-dummyContributor :: ContributorSpec
 packagesToPackageInfos :: MonadThrow m => [PoseidonPackage] -> m [PackageInfo]
 getAllGroupInfo :: MonadThrow m => [PoseidonPackage] -> m [GroupInfo]
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
@@ -1239,6 +1238,7 @@ instance GHC.Classes.Ord Poseidon.Package.PoseidonPackage
 instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.Package.PoseidonPackage
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PoseidonYamlStruct
+instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.Package.PoseidonYamlStruct
 
 module Poseidon.CLI.Survey
 

@@ -46,50 +46,50 @@
 </span><span id="line-43"></span><span class="annot"><span class="hs-comment">-- | The main function running the janno command</span></span><span>
 </span><span id="line-44"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#runSurvey"><span class="hs-identifier hs-type">runSurvey</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-type">SurveyOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-45"></span><span id="runSurvey"><span class="annot"><span class="annottext">runSurvey :: SurveyOptions -&gt; PoseidonIO ()
-</span><a href="Poseidon.CLI.Survey.html#runSurvey"><span class="hs-identifier hs-var hs-var">runSurvey</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-type">SurveyOptions</span></a></span><span> </span><span id="local-6989586621679498972"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679498972"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679498973"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679498973"><span class="hs-identifier hs-var">rawOutput</span></a></span></span><span> </span><span id="local-6989586621679498974"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679498974"><span class="hs-identifier hs-var">onlyLatest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-46"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679498975"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
-</span><a href="#local-6989586621679498975"><span class="hs-identifier hs-var hs-var">pacReadOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
+</span><a href="Poseidon.CLI.Survey.html#runSurvey"><span class="hs-identifier hs-var hs-var">runSurvey</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Survey.html#SurveyOptions"><span class="hs-identifier hs-type">SurveyOptions</span></a></span><span> </span><span id="local-6989586621679499018"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679499018"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679499019"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499019"><span class="hs-identifier hs-var">rawOutput</span></a></span></span><span> </span><span id="local-6989586621679499020"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499020"><span class="hs-identifier hs-var">onlyLatest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499021"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
+</span><a href="#local-6989586621679499021"><span class="hs-identifier hs-var hs-var">pacReadOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.Package.html#defaultPackageReadOptions"><span class="hs-identifier hs-var">defaultPackageReadOptions</span></a></span><span> </span><span class="hs-special">{</span><span>
 </span><span id="line-47"></span><span>          </span><span class="annot"><span class="annottext">_readOptIgnoreChecksums :: Bool
-</span><a href="#local-6989586621679498976"><span class="hs-identifier hs-var">_readOptIgnoreChecksums</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499022"><span class="hs-identifier hs-var">_readOptIgnoreChecksums</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span>
 </span><span id="line-48"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptIgnoreGeno :: Bool
-</span><a href="#local-6989586621679498977"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499023"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span>
 </span><span id="line-49"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptGenoCheck :: Bool
-</span><a href="#local-6989586621679498978"><span class="hs-identifier hs-var">_readOptGenoCheck</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499024"><span class="hs-identifier hs-var">_readOptGenoCheck</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span>
 </span><span id="line-50"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_readOptOnlyLatest :: Bool
-</span><a href="#local-6989586621679498979"><span class="hs-identifier hs-var">_readOptOnlyLatest</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679498974"><span class="hs-identifier hs-var">onlyLatest</span></a></span><span>
+</span><a href="#local-6989586621679499025"><span class="hs-identifier hs-var">_readOptOnlyLatest</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499020"><span class="hs-identifier hs-var">onlyLatest</span></a></span><span>
 </span><span id="line-51"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-52"></span><span>    </span><span id="local-6989586621679498980"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679498980"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [String] -&gt; PoseidonIO [PoseidonPackage]
+</span><span id="line-52"></span><span>    </span><span id="local-6989586621679499026"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679499026"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [String] -&gt; PoseidonIO [PoseidonPackage]
 </span><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier hs-var">readPoseidonPackageCollection</span></a></span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
-</span><a href="#local-6989586621679498975"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679498972"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><a href="#local-6989586621679499021"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679499018"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
 </span><span id="line-53"></span><span>    </span><span class="hs-comment">-- collect information</span><span>
-</span><span id="line-54"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679498981"><span class="annot"><span class="annottext">packageNames :: [PacNameAndVersion]
-</span><a href="#local-6989586621679498981"><span class="hs-identifier hs-var hs-var">packageNames</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; PacNameAndVersion)
+</span><span id="line-54"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499027"><span class="annot"><span class="annottext">packageNames :: [PacNameAndVersion]
+</span><a href="#local-6989586621679499027"><span class="hs-identifier hs-var hs-var">packageNames</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; PacNameAndVersion)
 -&gt; [PoseidonPackage] -&gt; [PacNameAndVersion]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; PacNameAndVersion
 </span><a href="Poseidon.Package.html#posPacNameAndVersion"><span class="hs-identifier hs-var">posPacNameAndVersion</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679498980"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><a href="#local-6989586621679499026"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
 </span><span id="line-55"></span><span>    </span><span class="hs-comment">-- geno</span><span>
-</span><span id="line-56"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679498983"><span class="annot"><span class="annottext">genotypeDataTuples :: [(String, GenotypeDataSpec)]
-</span><a href="#local-6989586621679498983"><span class="hs-identifier hs-var hs-var">genotypeDataTuples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
+</span><span id="line-56"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499029"><span class="annot"><span class="annottext">genotypeDataTuples :: [(String, GenotypeDataSpec)]
+</span><a href="#local-6989586621679499029"><span class="hs-identifier hs-var hs-var">genotypeDataTuples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 </span><a href="Poseidon.Package.html#posPacBaseDir"><span class="hs-identifier hs-var">posPacBaseDir</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679498985"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; GenotypeDataSpec
+</span><a href="#local-6989586621679499031"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; GenotypeDataSpec
 </span><a href="Poseidon.Package.html#posPacGenotypeData"><span class="hs-identifier hs-var">posPacGenotypeData</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679498985"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679498985"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679498985"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679498980"><span class="hs-identifier hs-var">allPackages</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-57"></span><span>    </span><span id="local-6989586621679498987"><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679498987"><span class="hs-identifier hs-var">genoFilesExist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Bool] -&gt; ReaderT Env IO [Bool]
+</span><a href="#local-6989586621679499031"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679499031"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679499031"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679499026"><span class="hs-identifier hs-var">allPackages</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-57"></span><span>    </span><span id="local-6989586621679499033"><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679499033"><span class="hs-identifier hs-var">genoFilesExist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Bool] -&gt; ReaderT Env IO [Bool]
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [Bool] -&gt; ReaderT Env IO [Bool])
@@ -102,15 +102,15 @@ t (m a) -&gt; m (t a)
 forall (m :: * -&gt; *) a. Monad m =&gt; [m a] -&gt; m [a]
 </span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; IO Bool
 </span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679498989"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679499035"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; String
 </span><a href="Poseidon.GenotypeData.html#genoFile"><span class="hs-identifier hs-var">genoFile</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679498991"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679498989"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679498989"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679498991"><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679498991"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, GenotypeDataSpec)]
-</span><a href="#local-6989586621679498983"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-58"></span><span>    </span><span id="local-6989586621679498992"><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679498992"><span class="hs-identifier hs-var">snpFilesExist</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Bool] -&gt; ReaderT Env IO [Bool]
+</span><a href="#local-6989586621679499037"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679499035"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679499035"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499037"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679499037"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, GenotypeDataSpec)]
+</span><a href="#local-6989586621679499029"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span>    </span><span id="local-6989586621679499038"><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679499038"><span class="hs-identifier hs-var">snpFilesExist</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Bool] -&gt; ReaderT Env IO [Bool]
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [Bool] -&gt; ReaderT Env IO [Bool])
@@ -123,15 +123,15 @@ t (m a) -&gt; m (t a)
 forall (m :: * -&gt; *) a. Monad m =&gt; [m a] -&gt; m [a]
 </span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; IO Bool
 </span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679498993"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679499039"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; String
 </span><a href="Poseidon.GenotypeData.html#snpFile"><span class="hs-identifier hs-var">snpFile</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679498995"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679498993"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679498993"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679498995"><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679498995"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, GenotypeDataSpec)]
-</span><a href="#local-6989586621679498983"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-59"></span><span>    </span><span id="local-6989586621679498996"><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679498996"><span class="hs-identifier hs-var">indFilesExist</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Bool] -&gt; ReaderT Env IO [Bool]
+</span><a href="#local-6989586621679499041"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679499039"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679499039"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499041"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679499041"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, GenotypeDataSpec)]
+</span><a href="#local-6989586621679499029"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-59"></span><span>    </span><span id="local-6989586621679499042"><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679499042"><span class="hs-identifier hs-var">indFilesExist</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Bool] -&gt; ReaderT Env IO [Bool]
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [Bool] -&gt; ReaderT Env IO [Bool])
@@ -144,64 +144,64 @@ t (m a) -&gt; m (t a)
 forall (m :: * -&gt; *) a. Monad m =&gt; [m a] -&gt; m [a]
 </span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; IO Bool
 </span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679498997"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679499043"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; String
 </span><a href="Poseidon.GenotypeData.html#indFile"><span class="hs-identifier hs-var">indFile</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679498999"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679498997"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679498997"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679498999"><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679498999"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, GenotypeDataSpec)]
-</span><a href="#local-6989586621679498983"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-60"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499000"><span class="annot"><span class="annottext">genoTypeDataExists :: [Bool]
-</span><a href="#local-6989586621679499000"><span class="hs-identifier hs-var hs-var">genoTypeDataExists</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Bool, Bool, Bool) -&gt; Bool) -&gt; [(Bool, Bool, Bool)] -&gt; [Bool]
+</span><a href="#local-6989586621679499045"><span class="hs-identifier hs-var">gd</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679499043"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679499043"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499045"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679499045"><span class="hs-identifier hs-var">gd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, GenotypeDataSpec)]
+</span><a href="#local-6989586621679499029"><span class="hs-identifier hs-var">genotypeDataTuples</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499046"><span class="annot"><span class="annottext">genoTypeDataExists :: [Bool]
+</span><a href="#local-6989586621679499046"><span class="hs-identifier hs-var hs-var">genoTypeDataExists</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Bool, Bool, Bool) -&gt; Bool) -&gt; [(Bool, Bool, Bool)] -&gt; [Bool]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679499001"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499001"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679499002"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499002"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679499003"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499003"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499001"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679499047"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499047"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679499048"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499048"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679499049"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499049"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499047"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499002"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679499048"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499003"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([(Bool, Bool, Bool)] -&gt; [Bool]) -&gt; [(Bool, Bool, Bool)] -&gt; [Bool]
+</span><a href="#local-6989586621679499049"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([(Bool, Bool, Bool)] -&gt; [Bool]) -&gt; [(Bool, Bool, Bool)] -&gt; [Bool]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Bool] -&gt; [Bool] -&gt; [Bool] -&gt; [(Bool, Bool, Bool)]
 forall a b c. [a] -&gt; [b] -&gt; [c] -&gt; [(a, b, c)]
 </span><span class="hs-identifier hs-var">zip3</span></span><span> </span><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679498987"><span class="hs-identifier hs-var">genoFilesExist</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679498992"><span class="hs-identifier hs-var">snpFilesExist</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679498996"><span class="hs-identifier hs-var">indFilesExist</span></a></span><span>
+</span><a href="#local-6989586621679499033"><span class="hs-identifier hs-var">genoFilesExist</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679499038"><span class="hs-identifier hs-var">snpFilesExist</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679499042"><span class="hs-identifier hs-var">indFilesExist</span></a></span><span>
 </span><span id="line-61"></span><span>    </span><span class="hs-comment">-- janno</span><span>
-</span><span id="line-62"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499006"><span class="annot"><span class="annottext">jannos :: [JannoRows]
-</span><a href="#local-6989586621679499006"><span class="hs-identifier hs-var hs-var">jannos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; JannoRows) -&gt; [PoseidonPackage] -&gt; [JannoRows]
+</span><span id="line-62"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499052"><span class="annot"><span class="annottext">jannos :: [JannoRows]
+</span><a href="#local-6989586621679499052"><span class="hs-identifier hs-var hs-var">jannos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; JannoRows) -&gt; [PoseidonPackage] -&gt; [JannoRows]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; JannoRows
 </span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679498980"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><a href="#local-6989586621679499026"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
 </span><span id="line-63"></span><span>    </span><span class="hs-comment">-- ssf</span><span>
-</span><span id="line-64"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499008"><span class="annot"><span class="annottext">ssfs :: [SeqSourceRows]
-</span><a href="#local-6989586621679499008"><span class="hs-identifier hs-var hs-var">ssfs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; SeqSourceRows)
+</span><span id="line-64"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499054"><span class="annot"><span class="annottext">ssfs :: [SeqSourceRows]
+</span><a href="#local-6989586621679499054"><span class="hs-identifier hs-var hs-var">ssfs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; SeqSourceRows)
 -&gt; [PoseidonPackage] -&gt; [SeqSourceRows]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; SeqSourceRows
 </span><a href="Poseidon.Package.html#posPacSeqSource"><span class="hs-identifier hs-var">posPacSeqSource</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679498980"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><a href="#local-6989586621679499026"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
 </span><span id="line-65"></span><span>    </span><span class="hs-comment">-- bib</span><span>
-</span><span id="line-66"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499010"><span class="annot"><span class="annottext">bibs :: [BibTeX]
-</span><a href="#local-6989586621679499010"><span class="hs-identifier hs-var hs-var">bibs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; BibTeX) -&gt; [PoseidonPackage] -&gt; [BibTeX]
+</span><span id="line-66"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499056"><span class="annot"><span class="annottext">bibs :: [BibTeX]
+</span><a href="#local-6989586621679499056"><span class="hs-identifier hs-var hs-var">bibs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; BibTeX) -&gt; [PoseidonPackage] -&gt; [BibTeX]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; BibTeX
 </span><a href="Poseidon.Package.html#posPacBib"><span class="hs-identifier hs-var">posPacBib</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679498980"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><a href="#local-6989586621679499026"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
 </span><span id="line-67"></span><span>    </span><span class="hs-comment">-- print information</span><span>
-</span><span id="line-68"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679499012"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679499012"><span class="hs-identifier hs-var">tableH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499013"><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679499013"><span class="hs-identifier hs-var">tableB</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-69"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499016"><span class="annot"><span class="annottext">tableH :: [String]
-</span><a href="#local-6989586621679499016"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span id="line-68"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679499058"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679499058"><span class="hs-identifier hs-var">tableH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499059"><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679499059"><span class="hs-identifier hs-var">tableB</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-69"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499062"><span class="annot"><span class="annottext">tableH :: [String]
+</span><a href="#local-6989586621679499062"><span class="hs-identifier hs-var hs-var">tableH</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Package&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Survey&quot;</span></span><span class="hs-special">]</span><span>
-</span><span id="line-70"></span><span>        </span><span id="local-6989586621679499017"><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679499017"><span class="hs-identifier hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(PacNameAndVersion, Bool, JannoRows, SeqSourceRows, BibTeX)]
+</span><span id="line-70"></span><span>        </span><span id="local-6989586621679499063"><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679499063"><span class="hs-identifier hs-var">tableB</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(PacNameAndVersion, Bool, JannoRows, SeqSourceRows, BibTeX)]
 -&gt; ((PacNameAndVersion, Bool, JannoRows, SeqSourceRows, BibTeX)
     -&gt; ReaderT Env IO [String])
 -&gt; ReaderT Env IO [[String]]
@@ -217,43 +217,43 @@ t a -&gt; (a -&gt; m b) -&gt; m (t b)
 forall a b c d e.
 [a] -&gt; [b] -&gt; [c] -&gt; [d] -&gt; [e] -&gt; [(a, b, c, d, e)]
 </span><span class="hs-identifier hs-var">zip5</span></span><span> </span><span class="annot"><span class="annottext">[PacNameAndVersion]
-</span><a href="#local-6989586621679498981"><span class="hs-identifier hs-var">packageNames</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
-</span><a href="#local-6989586621679499000"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRows]
-</span><a href="#local-6989586621679499006"><span class="hs-identifier hs-var">jannos</span></a></span><span> </span><span class="annot"><span class="annottext">[SeqSourceRows]
-</span><a href="#local-6989586621679499008"><span class="hs-identifier hs-var">ssfs</span></a></span><span> </span><span class="annot"><span class="annottext">[BibTeX]
-</span><a href="#local-6989586621679499010"><span class="hs-identifier hs-var">bibs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(((PacNameAndVersion, Bool, JannoRows, SeqSourceRows, BibTeX)
+</span><a href="#local-6989586621679499027"><span class="hs-identifier hs-var">packageNames</span></a></span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><a href="#local-6989586621679499046"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRows]
+</span><a href="#local-6989586621679499052"><span class="hs-identifier hs-var">jannos</span></a></span><span> </span><span class="annot"><span class="annottext">[SeqSourceRows]
+</span><a href="#local-6989586621679499054"><span class="hs-identifier hs-var">ssfs</span></a></span><span> </span><span class="annot"><span class="annottext">[BibTeX]
+</span><a href="#local-6989586621679499056"><span class="hs-identifier hs-var">bibs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(((PacNameAndVersion, Bool, JannoRows, SeqSourceRows, BibTeX)
   -&gt; ReaderT Env IO [String])
  -&gt; ReaderT Env IO [[String]])
 -&gt; ((PacNameAndVersion, Bool, JannoRows, SeqSourceRows, BibTeX)
     -&gt; ReaderT Env IO [String])
 -&gt; ReaderT Env IO [[String]]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679499018"><span class="annot"><span class="annottext">PacNameAndVersion
-</span><a href="#local-6989586621679499018"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499019"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499019"><span class="hs-identifier hs-var">g</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499020"><span class="annot"><span class="annottext">JannoRows
-</span><a href="#local-6989586621679499020"><span class="hs-identifier hs-var">j</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499021"><span class="annot"><span class="annottext">SeqSourceRows
-</span><a href="#local-6989586621679499021"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499022"><span class="annot"><span class="annottext">BibTeX
-</span><a href="#local-6989586621679499022"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679499064"><span class="annot"><span class="annottext">PacNameAndVersion
+</span><a href="#local-6989586621679499064"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499065"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499065"><span class="hs-identifier hs-var">g</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499066"><span class="annot"><span class="annottext">JannoRows
+</span><a href="#local-6989586621679499066"><span class="hs-identifier hs-var">j</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499067"><span class="annot"><span class="annottext">SeqSourceRows
+</span><a href="#local-6989586621679499067"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679499068"><span class="annot"><span class="annottext">BibTeX
+</span><a href="#local-6989586621679499068"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-71"></span><span>            </span><span class="annot"><span class="annottext">[String] -&gt; ReaderT Env IO [String]
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PacNameAndVersion -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">PacNameAndVersion
-</span><a href="#local-6989586621679499018"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; JannoRows -&gt; SeqSourceRows -&gt; BibTeX -&gt; String
+</span><a href="#local-6989586621679499064"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; JannoRows -&gt; SeqSourceRows -&gt; BibTeX -&gt; String
 </span><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-var">renderPackageWithCompleteness</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499019"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRows
-</span><a href="#local-6989586621679499020"><span class="hs-identifier hs-var">j</span></a></span><span> </span><span class="annot"><span class="annottext">SeqSourceRows
-</span><a href="#local-6989586621679499021"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">BibTeX
-</span><a href="#local-6989586621679499022"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679499065"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRows
+</span><a href="#local-6989586621679499066"><span class="hs-identifier hs-var">j</span></a></span><span> </span><span class="annot"><span class="annottext">SeqSourceRows
+</span><a href="#local-6989586621679499067"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">BibTeX
+</span><a href="#local-6989586621679499068"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-72"></span><span>        </span><span class="annot"><span class="annottext">([String], [[String]]) -&gt; ReaderT Env IO ([String], [[String]])
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679499016"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679499017"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-73"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499031"><span class="annot"><span class="annottext">colSpecs :: [ColSpec]
-</span><a href="#local-6989586621679499031"><span class="hs-identifier hs-var hs-var">colSpecs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ColSpec -&gt; [ColSpec]
+</span><a href="#local-6989586621679499062"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679499063"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499077"><span class="annot"><span class="annottext">colSpecs :: [ColSpec]
+</span><a href="#local-6989586621679499077"><span class="hs-identifier hs-var hs-var">colSpecs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ColSpec -&gt; [ColSpec]
 forall a. Int -&gt; a -&gt; [a]
 </span><span class="hs-identifier hs-var">replicate</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LenSpec -&gt; Position H -&gt; AlignSpec -&gt; CutMark -&gt; ColSpec
@@ -267,7 +267,7 @@ forall a. Default a =&gt; a
 forall a. Default a =&gt; a
 </span><span class="hs-identifier hs-var">def</span></span><span class="hs-special">)</span><span>
 </span><span id="line-74"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679498973"><span class="hs-identifier hs-var">rawOutput</span></a></span><span>
+</span><a href="#local-6989586621679499019"><span class="hs-identifier hs-var">rawOutput</span></a></span><span>
 </span><span id="line-75"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -283,9 +283,9 @@ forall a. [a] -&gt; [[a]] -&gt; [a]
 forall a. [a] -&gt; [[a]] -&gt; [a]
 </span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;\t&quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679499034"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679499034"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679499034"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679499013"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679499080"><span class="hs-identifier hs-var">row</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679499080"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679499080"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679499059"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-76"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -300,13 +300,13 @@ forall a.
 Cell a =&gt;
 [ColSpec] -&gt; TableStyle -&gt; HeaderSpec -&gt; [RowGroup a] -&gt; String
 </span><span class="hs-identifier hs-var">tableString</span></span><span> </span><span class="annot"><span class="annottext">[ColSpec]
-</span><a href="#local-6989586621679499031"><span class="hs-identifier hs-var">colSpecs</span></a></span><span> </span><span class="annot"><span class="annottext">TableStyle
+</span><a href="#local-6989586621679499077"><span class="hs-identifier hs-var">colSpecs</span></a></span><span> </span><span class="annot"><span class="annottext">TableStyle
 </span><span class="hs-identifier hs-var">asciiRoundS</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; HeaderSpec
 </span><span class="hs-identifier hs-var">titlesH</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679499012"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[[String]] -&gt; RowGroup String
+</span><a href="#local-6989586621679499058"><span class="hs-identifier hs-var">tableH</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[[String]] -&gt; RowGroup String
 forall a. [Row a] -&gt; RowGroup a
 </span><span class="hs-identifier hs-var">rowsG</span></span><span> </span><span class="annot"><span class="annottext">[[String]]
-</span><a href="#local-6989586621679499013"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679499059"><span class="hs-identifier hs-var">tableB</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-77"></span><span>    </span><span class="hs-comment">-- print help</span><span>
 </span><span id="line-78"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">String
@@ -314,13 +314,13 @@ forall a. [Row a] -&gt; RowGroup a
 </span><span id="line-79"></span><span>
 </span><span id="line-80"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-type">renderPackageWithCompleteness</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.SequencingSource.html#SeqSourceRows"><span class="hs-identifier hs-type">SeqSourceRows</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibTeX"><span class="hs-identifier hs-type">BibTeX</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-81"></span><span id="renderPackageWithCompleteness"><span class="annot"><span class="annottext">renderPackageWithCompleteness :: Bool -&gt; JannoRows -&gt; SeqSourceRows -&gt; BibTeX -&gt; String
-</span><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-var hs-var">renderPackageWithCompleteness</span></a></span></span><span> </span><span id="local-6989586621679499035"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499035"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span></span><span> </span><span id="local-6989586621679499036"><span class="annot"><span class="annottext">JannoRows
-</span><a href="#local-6989586621679499036"><span class="hs-identifier hs-var">janno</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.SequencingSource.html#SeqSourceRows"><span class="hs-identifier hs-type">SeqSourceRows</span></a></span><span> </span><span id="local-6989586621679499038"><span class="annot"><span class="annottext">[SeqSourceRow]
-</span><a href="#local-6989586621679499038"><span class="hs-identifier hs-var">seqSource</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679499039"><span class="annot"><span class="annottext">BibTeX
-</span><a href="#local-6989586621679499039"><span class="hs-identifier hs-var">bib</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.CLI.Survey.html#renderPackageWithCompleteness"><span class="hs-identifier hs-var hs-var">renderPackageWithCompleteness</span></a></span></span><span> </span><span id="local-6989586621679499081"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679499081"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span></span><span> </span><span id="local-6989586621679499082"><span class="annot"><span class="annottext">JannoRows
+</span><a href="#local-6989586621679499082"><span class="hs-identifier hs-var">janno</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.SequencingSource.html#SeqSourceRows"><span class="hs-identifier hs-type">SeqSourceRows</span></a></span><span> </span><span id="local-6989586621679499084"><span class="annot"><span class="annottext">[SeqSourceRow]
+</span><a href="#local-6989586621679499084"><span class="hs-identifier hs-var">seqSource</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679499085"><span class="annot"><span class="annottext">BibTeX
+</span><a href="#local-6989586621679499085"><span class="hs-identifier hs-var">bib</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-82"></span><span>       </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679499035"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679499081"><span class="hs-identifier hs-var">genoTypeDataExists</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;G&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-83"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
@@ -330,7 +330,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[SeqSourceRow]
-</span><a href="#local-6989586621679499038"><span class="hs-identifier hs-var">seqSource</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679499084"><span class="hs-identifier hs-var">seqSource</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;S&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-84"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
@@ -340,7 +340,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">BibTeX
-</span><a href="#local-6989586621679499039"><span class="hs-identifier hs-var">bib</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679499085"><span class="hs-identifier hs-var">bib</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;B&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span>
 </span><span id="line-85"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
@@ -351,34 +351,34 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Char -&gt; String -&gt; String
 forall a. Int -&gt; a -&gt; [a] -&gt; [a]
-</span><a href="#local-6989586621679499042"><span class="hs-identifier hs-var">insertEveryN</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679499088"><span class="hs-identifier hs-var">insertEveryN</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">5</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'|'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">JannoRows -&gt; String
 </span><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-var">renderJannoCompleteness</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRows
-</span><a href="#local-6989586621679499036"><span class="hs-identifier hs-var">janno</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679499082"><span class="hs-identifier hs-var">janno</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-87"></span><span>    </span><span class="hs-keyword">where</span><span>
 </span><span id="line-88"></span><span>        </span><span class="hs-comment">-- https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list</span><span>
-</span><span id="line-89"></span><span>        </span><span id="local-6989586621679498696"><span class="annot"><a href="#local-6989586621679499042"><span class="hs-identifier hs-type">insertEveryN</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679498696"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498696"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498696"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
-</span><span id="line-90"></span><span>        </span><span id="local-6989586621679499042"><span class="annot"><span class="annottext">insertEveryN :: forall a. Int -&gt; a -&gt; [a] -&gt; [a]
-</span><a href="#local-6989586621679499042"><span class="hs-identifier hs-var hs-var">insertEveryN</span></a></span></span><span> </span><span id="local-6989586621679499044"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679499044"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679499045"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679499045"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679499046"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499046"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [a]
+</span><span id="line-89"></span><span>        </span><span id="local-6989586621679498742"><span class="annot"><a href="#local-6989586621679499088"><span class="hs-identifier hs-type">insertEveryN</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679498742"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498742"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498742"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-90"></span><span>        </span><span id="local-6989586621679499088"><span class="annot"><span class="annottext">insertEveryN :: forall a. Int -&gt; a -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679499088"><span class="hs-identifier hs-var hs-var">insertEveryN</span></a></span></span><span> </span><span id="local-6989586621679499090"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679499090"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679499091"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679499091"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679499092"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679499092"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [a]
 forall a. [a] -&gt; [[a]] -&gt; [a]
 </span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679499045"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">([[a]] -&gt; [a]) -&gt; ([a] -&gt; [[a]]) -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679499091"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">([[a]] -&gt; [a]) -&gt; ([a] -&gt; [[a]]) -&gt; [a] -&gt; [a]
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; [[a]]
 forall {a}. Int -&gt; [a] -&gt; [[a]]
-</span><a href="#local-6989586621679499048"><span class="hs-identifier hs-var">groups</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679499044"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [a]) -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679499094"><span class="hs-identifier hs-var">groups</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679499090"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [a]) -&gt; [a] -&gt; [a]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499046"><span class="hs-identifier hs-var">xs</span></a></span><span>
-</span><span id="line-91"></span><span>            </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679499048"><span class="annot"><span class="annottext">groups :: Int -&gt; [a] -&gt; [[a]]
-</span><a href="#local-6989586621679499048"><span class="hs-identifier hs-var hs-var">groups</span></a></span></span><span> </span><span id="local-6989586621679499050"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679499050"><span class="hs-identifier hs-var">n_</span></a></span></span><span> </span><span id="local-6989586621679499051"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499051"><span class="hs-identifier hs-var">xs_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Bool) -&gt; [[a]] -&gt; [[a]]
+</span><a href="#local-6989586621679499092"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-91"></span><span>            </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679499094"><span class="annot"><span class="annottext">groups :: Int -&gt; [a] -&gt; [[a]]
+</span><a href="#local-6989586621679499094"><span class="hs-identifier hs-var hs-var">groups</span></a></span></span><span> </span><span id="local-6989586621679499096"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679499096"><span class="hs-identifier hs-var">n_</span></a></span></span><span> </span><span id="local-6989586621679499097"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679499097"><span class="hs-identifier hs-var">xs_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Bool) -&gt; [[a]] -&gt; [[a]]
 forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">takeWhile</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; ([a] -&gt; Bool) -&gt; [a] -&gt; Bool
@@ -398,38 +398,38 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; ([a], [a])
 forall a. Int -&gt; [a] -&gt; ([a], [a])
 </span><span class="hs-identifier hs-var">splitAt</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679499050"><span class="hs-identifier hs-var">n_</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [[a]]) -&gt; [a] -&gt; [[a]]
+</span><a href="#local-6989586621679499096"><span class="hs-identifier hs-var">n_</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [[a]]) -&gt; [a] -&gt; [[a]]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499051"><span class="hs-identifier hs-var">xs_</span></a></span><span>
+</span><a href="#local-6989586621679499097"><span class="hs-identifier hs-var">xs_</span></a></span><span>
 </span><span id="line-92"></span><span>
 </span><span id="line-93"></span><span class="annot"><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-type">renderJannoCompleteness</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-94"></span><span id="renderJannoCompleteness"><span class="annot"><span class="annottext">renderJannoCompleteness :: JannoRows -&gt; String
-</span><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-var hs-var">renderJannoCompleteness</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span> </span><span id="local-6989586621679499055"><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679499055"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-95"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499056"><span class="annot"><span class="annottext">ratioString :: String
-</span><a href="#local-6989586621679499056"><span class="hs-identifier hs-var hs-var">ratioString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Ratio Int -&gt; Char) -&gt; [Ratio Int] -&gt; String
+</span><a href="Poseidon.CLI.Survey.html#renderJannoCompleteness"><span class="hs-identifier hs-var hs-var">renderJannoCompleteness</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span> </span><span id="local-6989586621679499101"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">rows</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499102"><span class="annot"><span class="annottext">ratioString :: String
+</span><a href="#local-6989586621679499102"><span class="hs-identifier hs-var hs-var">ratioString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Ratio Int -&gt; Char) -&gt; [Ratio Int] -&gt; String
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Char
-</span><a href="#local-6989586621679499057"><span class="hs-identifier hs-var">prop2Char</span></a></span><span> </span><span class="annot"><span class="annottext">([Ratio Int] -&gt; String) -&gt; [Ratio Int] -&gt; String
+</span><a href="#local-6989586621679499103"><span class="hs-identifier hs-var">prop2Char</span></a></span><span> </span><span class="annot"><span class="annottext">([Ratio Int] -&gt; String) -&gt; [Ratio Int] -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[JannoRow] -&gt; [Ratio Int]
 forall a (xs :: [*]).
 (Generic a, Code a ~ '[xs], All PresenceCountable xs) =&gt;
 [a] -&gt; [Ratio Int]
-</span><a href="#local-6989586621679499058"><span class="hs-identifier hs-var">getRatiosForEachField</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679499055"><span class="hs-identifier hs-var">rows</span></a></span><span>
+</span><a href="#local-6989586621679499104"><span class="hs-identifier hs-var">getRatiosForEachField</span></a></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">rows</span></a></span><span>
 </span><span id="line-96"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
 forall a. HasCallStack =&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">init</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679499056"><span class="hs-identifier hs-var">ratioString</span></a></span><span> </span><span class="hs-comment">-- remove last entry covering the additional columns (CsvNamedRecord)</span><span>
+</span><a href="#local-6989586621679499102"><span class="hs-identifier hs-var">ratioString</span></a></span><span> </span><span class="hs-comment">-- remove last entry covering the additional columns (CsvNamedRecord)</span><span>
 </span><span id="line-97"></span><span>    </span><span class="hs-keyword">where</span><span>
 </span><span id="line-98"></span><span>        </span><span class="hs-comment">-- the following magic was heavily inspired by https://stackoverflow.com/a/41524511/3216883</span><span>
-</span><span id="line-99"></span><span>        </span><span id="local-6989586621679498707"><span id="local-6989586621679498708"><span class="annot"><a href="#local-6989586621679499058"><span class="hs-identifier hs-type">getRatiosForEachField</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Generics.SOP.Generic</span></span><span> </span><span class="annot"><a href="#local-6989586621679498707"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Code</span></span><span> </span><span class="annot"><a href="#local-6989586621679498707"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="hs-special">'</span><span class="hs-special">[</span><span> </span><span class="annot"><a href="#local-6989586621679498708"><span class="hs-identifier hs-type">xs</span></a></span><span> </span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">All</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679498708"><span class="hs-identifier hs-type">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498707"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Ratio</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span></span></span><span>
-</span><span id="line-100"></span><span>        </span><span id="local-6989586621679499058"><span class="annot"><span class="annottext">getRatiosForEachField :: forall a (xs :: [*]).
+</span><span id="line-99"></span><span>        </span><span id="local-6989586621679498753"><span id="local-6989586621679498754"><span class="annot"><a href="#local-6989586621679499104"><span class="hs-identifier hs-type">getRatiosForEachField</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Generics.SOP.Generic</span></span><span> </span><span class="annot"><a href="#local-6989586621679498753"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Code</span></span><span> </span><span class="annot"><a href="#local-6989586621679498753"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="hs-special">'</span><span class="hs-special">[</span><span> </span><span class="annot"><a href="#local-6989586621679498754"><span class="hs-identifier hs-type">xs</span></a></span><span> </span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">All</span></span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679498754"><span class="hs-identifier hs-type">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498753"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Ratio</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-100"></span><span>        </span><span id="local-6989586621679499104"><span class="annot"><span class="annottext">getRatiosForEachField :: forall a (xs :: [*]).
 (Generic a, Code a ~ '[xs], All PresenceCountable xs) =&gt;
 [a] -&gt; [Ratio Int]
-</span><a href="#local-6989586621679499058"><span class="hs-identifier hs-var hs-var">getRatiosForEachField</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621679499104"><span class="hs-identifier hs-var hs-var">getRatiosForEachField</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-101"></span><span>            </span><span class="annot"><span class="annottext">NP (K (Ratio Int)) xs -&gt; [Ratio Int]
 NP (K (Ratio Int)) xs -&gt; CollapseTo NP (Ratio Int)
 forall (xs :: [*]) a.
@@ -461,13 +461,13 @@ forall k a (b :: k). a -&gt; K a b
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Ratio Int
 forall a. PresenceCountable a =&gt; [a] -&gt; Ratio Int
-</span><a href="#local-6989586621679499077"><span class="hs-identifier hs-var">measureFillState</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679499123"><span class="hs-identifier hs-var">measureFillState</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-103"></span><span>          </span><span class="annot"><span class="annottext">(NP [] xs -&gt; NP (K (Ratio Int)) xs)
 -&gt; ([a] -&gt; NP [] xs) -&gt; [a] -&gt; NP (K (Ratio Int)) xs
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[NP I xs] -&gt; NP [] xs
 forall (xs :: [*]). SListI xs =&gt; [NP I xs] -&gt; NP [] xs
-</span><a href="#local-6989586621679499078"><span class="hs-identifier hs-var">hunzip</span></a></span><span>
+</span><a href="#local-6989586621679499124"><span class="hs-identifier hs-var">hunzip</span></a></span><span>
 </span><span id="line-104"></span><span>          </span><span class="annot"><span class="annottext">([NP I xs] -&gt; NP [] xs) -&gt; ([a] -&gt; [NP I xs]) -&gt; [a] -&gt; NP [] xs
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; NP I xs) -&gt; [a] -&gt; [NP I xs]
@@ -486,9 +486,9 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 a -&gt; Rep a
 forall a. Generic a =&gt; a -&gt; Rep a
 </span><span class="hs-identifier hs-var">from</span></span><span class="hs-special">)</span><span>
-</span><span id="line-105"></span><span>        </span><span id="local-6989586621679498750"><span class="annot"><a href="#local-6989586621679499078"><span class="hs-identifier hs-type">hunzip</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SListI</span></span><span> </span><span class="annot"><a href="#local-6989586621679498750"><span class="hs-identifier hs-type">xs</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">NP</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">I</span></span><span> </span><span class="annot"><a href="#local-6989586621679498750"><span class="hs-identifier hs-type">xs</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NP</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><a href="#local-6989586621679498750"><span class="hs-identifier hs-type">xs</span></a></span></span><span>
-</span><span id="line-106"></span><span>        </span><span id="local-6989586621679499078"><span class="annot"><span class="annottext">hunzip :: forall (xs :: [*]). SListI xs =&gt; [NP I xs] -&gt; NP [] xs
-</span><a href="#local-6989586621679499078"><span class="hs-identifier hs-var hs-var">hunzip</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(NP I xs -&gt; NP [] xs -&gt; NP [] xs)
+</span><span id="line-105"></span><span>        </span><span id="local-6989586621679498796"><span class="annot"><a href="#local-6989586621679499124"><span class="hs-identifier hs-type">hunzip</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SListI</span></span><span> </span><span class="annot"><a href="#local-6989586621679498796"><span class="hs-identifier hs-type">xs</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">NP</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">I</span></span><span> </span><span class="annot"><a href="#local-6989586621679498796"><span class="hs-identifier hs-type">xs</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NP</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><a href="#local-6989586621679498796"><span class="hs-identifier hs-type">xs</span></a></span></span><span>
+</span><span id="line-106"></span><span>        </span><span id="local-6989586621679499124"><span class="annot"><span class="annottext">hunzip :: forall (xs :: [*]). SListI xs =&gt; [NP I xs] -&gt; NP [] xs
+</span><a href="#local-6989586621679499124"><span class="hs-identifier hs-var hs-var">hunzip</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(NP I xs -&gt; NP [] xs -&gt; NP [] xs)
 -&gt; NP [] xs -&gt; [NP I xs] -&gt; NP [] xs
 forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
 forall (t :: * -&gt; *) a b.
@@ -513,18 +513,18 @@ forall k l (h :: (k -&gt; *) -&gt; l -&gt; *) (xs :: l) (f :: k -&gt; *).
 (HPure h, SListIN h xs) =&gt;
 (forall (a :: k). f a) -&gt; h f xs
 </span><span class="hs-identifier hs-var">hpure</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-107"></span><span>        </span><span id="local-6989586621679498748"><span class="annot"><a href="#local-6989586621679499077"><span class="hs-identifier hs-type">measureFillState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679498748"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498748"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ratio</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span><span>
-</span><span id="line-108"></span><span>        </span><span id="local-6989586621679499077"><span class="annot"><span class="annottext">measureFillState :: forall a. PresenceCountable a =&gt; [a] -&gt; Ratio Int
-</span><a href="#local-6989586621679499077"><span class="hs-identifier hs-var hs-var">measureFillState</span></a></span></span><span> </span><span id="local-6989586621679499095"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499095"><span class="hs-identifier hs-var">vals</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-109"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499096"><span class="annot"><span class="annottext">nrValues :: Int
-</span><a href="#local-6989586621679499096"><span class="hs-identifier hs-var hs-var">nrValues</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
+</span><span id="line-107"></span><span>        </span><span id="local-6989586621679498794"><span class="annot"><a href="#local-6989586621679499123"><span class="hs-identifier hs-type">measureFillState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679498794"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679498794"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ratio</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span><span>
+</span><span id="line-108"></span><span>        </span><span id="local-6989586621679499123"><span class="annot"><span class="annottext">measureFillState :: forall a. PresenceCountable a =&gt; [a] -&gt; Ratio Int
+</span><a href="#local-6989586621679499123"><span class="hs-identifier hs-var hs-var">measureFillState</span></a></span></span><span> </span><span id="local-6989586621679499141"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679499141"><span class="hs-identifier hs-var">vals</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-109"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679499142"><span class="annot"><span class="annottext">nrValues :: Int
+</span><a href="#local-6989586621679499142"><span class="hs-identifier hs-var hs-var">nrValues</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499095"><span class="hs-identifier hs-var">vals</span></a></span><span>
-</span><span id="line-110"></span><span>                </span><span id="local-6989586621679499098"><span class="annot"><span class="annottext">nrFilledValues :: Int
-</span><a href="#local-6989586621679499098"><span class="hs-identifier hs-var hs-var">nrFilledValues</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int
+</span><a href="#local-6989586621679499141"><span class="hs-identifier hs-var">vals</span></a></span><span>
+</span><span id="line-110"></span><span>                </span><span id="local-6989586621679499144"><span class="annot"><span class="annottext">nrFilledValues :: Int
+</span><a href="#local-6989586621679499144"><span class="hs-identifier hs-var hs-var">nrFilledValues</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int
 forall a. Num a =&gt; [a] -&gt; a
 forall (t :: * -&gt; *) a. (Foldable t, Num a) =&gt; t a -&gt; a
 </span><span class="hs-identifier hs-var">sum</span></span><span> </span><span class="annot"><span class="annottext">([Int] -&gt; Int) -&gt; [Int] -&gt; Int
@@ -534,42 +534,42 @@ forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Int
 forall a. PresenceCountable a =&gt; a -&gt; Int
 </span><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-var">countPresence</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679499095"><span class="hs-identifier hs-var">vals</span></a></span><span>
+</span><a href="#local-6989586621679499141"><span class="hs-identifier hs-var">vals</span></a></span><span>
 </span><span id="line-111"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679499098"><span class="hs-identifier hs-var">nrFilledValues</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Ratio Int
+</span><a href="#local-6989586621679499144"><span class="hs-identifier hs-var">nrFilledValues</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Ratio Int
 forall a. Integral a =&gt; a -&gt; a -&gt; Ratio a
 </span><span class="hs-operator hs-var">%</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679499096"><span class="hs-identifier hs-var">nrValues</span></a></span><span>
-</span><span id="line-112"></span><span>        </span><span class="annot"><a href="#local-6989586621679499057"><span class="hs-identifier hs-type">prop2Char</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ratio</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
-</span><span id="line-113"></span><span>        </span><span id="local-6989586621679499057"><span class="annot"><span class="annottext">prop2Char :: Ratio Int -&gt; Char
-</span><a href="#local-6989586621679499057"><span class="hs-identifier hs-var hs-var">prop2Char</span></a></span></span><span> </span><span id="local-6989586621679499101"><span class="annot"><span class="annottext">Ratio Int
-</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">r</span></a></span></span><span>
+</span><a href="#local-6989586621679499142"><span class="hs-identifier hs-var">nrValues</span></a></span><span>
+</span><span id="line-112"></span><span>        </span><span class="annot"><a href="#local-6989586621679499103"><span class="hs-identifier hs-type">prop2Char</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ratio</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-113"></span><span>        </span><span id="local-6989586621679499103"><span class="annot"><span class="annottext">prop2Char :: Ratio Int -&gt; Char
+</span><a href="#local-6989586621679499103"><span class="hs-identifier hs-var hs-var">prop2Char</span></a></span></span><span> </span><span id="local-6989586621679499147"><span class="annot"><span class="annottext">Ratio Int
+</span><a href="#local-6989586621679499147"><span class="hs-identifier hs-var">r</span></a></span></span><span>
 </span><span id="line-114"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Ratio Int
-</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
+</span><a href="#local-6989586621679499147"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Ratio Int
 </span><span class="hs-number">0</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'.'</span></span><span>
 </span><span id="line-115"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Ratio Int
-</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
+</span><a href="#local-6989586621679499147"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Ratio Int
 </span><span class="hs-number">0.25</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'&#9617;'</span></span><span>
 </span><span id="line-116"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Ratio Int
-</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
+</span><a href="#local-6989586621679499147"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Ratio Int
 </span><span class="hs-number">0.5</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'&#9618;'</span></span><span>
 </span><span id="line-117"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Ratio Int
-</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
+</span><a href="#local-6989586621679499147"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Ratio Int
 </span><span class="hs-number">1</span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'&#9619;'</span></span><span>
 </span><span id="line-118"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Ratio Int
-</span><a href="#local-6989586621679499101"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
+</span><a href="#local-6989586621679499147"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Ratio Int -&gt; Ratio Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Ratio Int
 </span><span class="hs-number">1</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
@@ -579,10 +579,10 @@ forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-char">'?'</span></span><span>
 </span><span id="line-120"></span><span>
 </span><span id="line-121"></span><span class="hs-comment">-- A typeclass to determine if a field in a .janno row is filled</span><span>
-</span><span id="line-122"></span><span class="hs-keyword">class</span><span> </span><span id="PresenceCountable"><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-var">PresenceCountable</span></a></span></span><span> </span><span id="local-6989586621679498786"><span class="annot"><a href="#local-6989586621679498786"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-123"></span><span>    </span><span id="countPresence"><span class="annot"><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-type">countPresence</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679498786"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-124"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498641"><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679498641"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-125"></span><span>    </span><span id="local-6989586621679499105"><span class="annot"><span class="annottext">countPresence :: Maybe a -&gt; Int
+</span><span id="line-122"></span><span class="hs-keyword">class</span><span> </span><span id="PresenceCountable"><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-var">PresenceCountable</span></a></span></span><span> </span><span id="local-6989586621679498832"><span class="annot"><a href="#local-6989586621679498832"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-123"></span><span>    </span><span id="countPresence"><span class="annot"><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-type">countPresence</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679498832"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-124"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679498687"><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679498687"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-125"></span><span>    </span><span id="local-6989586621679499151"><span class="annot"><span class="annottext">countPresence :: Maybe a -&gt; Int
 </span><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-var hs-var hs-var hs-var">countPresence</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span>
@@ -590,22 +590,22 @@ forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span>
 </span><span id="line-127"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-128"></span><span>    </span><span id="local-6989586621679499107"><span class="annot"><span class="annottext">countPresence :: String -&gt; Int
+</span><span id="line-128"></span><span>    </span><span id="local-6989586621679499153"><span class="annot"><span class="annottext">countPresence :: String -&gt; Int
 </span><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-var hs-var hs-var hs-var">countPresence</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span>
 </span><span id="line-129"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoSex"><span class="hs-identifier hs-type">JannoSex</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-130"></span><span>    </span><span id="local-6989586621679499109"><span class="annot"><span class="annottext">countPresence :: JannoSex -&gt; Int
+</span><span id="line-130"></span><span>    </span><span id="local-6989586621679499155"><span class="annot"><span class="annottext">countPresence :: JannoSex -&gt; Int
 </span><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-var hs-var hs-var hs-var">countPresence</span></a></span></span><span> </span><span class="annot"><span class="annottext">JannoSex
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span>
 </span><span id="line-131"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoStringList"><span class="hs-identifier hs-type">JannoStringList</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-132"></span><span>    </span><span id="local-6989586621679499111"><span class="annot"><span class="annottext">countPresence :: JannoStringList -&gt; Int
+</span><span id="line-132"></span><span>    </span><span id="local-6989586621679499157"><span class="annot"><span class="annottext">countPresence :: JannoStringList -&gt; Int
 </span><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-var hs-var hs-var hs-var">countPresence</span></a></span></span><span> </span><span class="annot"><span class="annottext">JannoStringList
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span>
 </span><span id="line-133"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.CLI.Survey.html#PresenceCountable"><span class="hs-identifier hs-type">PresenceCountable</span></a></span><span> </span><span class="annot"><a href="Poseidon.Janno.html#CsvNamedRecord"><span class="hs-identifier hs-type">CsvNamedRecord</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-134"></span><span>    </span><span id="local-6989586621679499113"><span class="annot"><span class="annottext">countPresence :: CsvNamedRecord -&gt; Int
+</span><span id="line-134"></span><span>    </span><span id="local-6989586621679499159"><span class="annot"><span class="annottext">countPresence :: CsvNamedRecord -&gt; Int
 </span><a href="Poseidon.CLI.Survey.html#countPresence"><span class="hs-identifier hs-var hs-var hs-var hs-var">countPresence</span></a></span></span><span> </span><span class="annot"><span class="annottext">CsvNamedRecord
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span>
