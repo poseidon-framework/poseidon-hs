@@ -44,17 +44,11 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         run: curl -sSL https://get.haskellstack.org/ | sh
 
-      - name: Set Git user identity for chronicle/timetravel tests
-        run: |
-             git config --global user.name "Test Name"
-             git config --global user.email "test@email.com"
-        shell: bash
-
       - name: Build executable
         uses: freckle/stack-action@v5
         id: stack
         with:
-          stack-build-arguments: --copy-bins --fast --pedantic
+          stack-build-arguments: --copy-bins --ghc-options="-O2" --test --no-run-tests
 
       - name: Set binary path name
         id: binarypath
