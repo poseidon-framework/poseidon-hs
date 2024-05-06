@@ -1,3 +1,4 @@
+- V 1.5.0.1: Changed the release pipeline: `trident-macOS` was replaced by `trident-macOS-X64` and `trident-macOS-ARM64`.
 - V 1.5.0.0
     - Removed Josiah Carberry from `newPackageTemplate`, so that he doesn't get added any more to new packages created by `init` and `forge` - the contributor field is missing in the output of these commands now.
     - Adjusted the golden test output accordingly, but also added Josiah to one of the test packages (`test/testDat/testPackages/ancient/Schiffels_2016`) to keep him around at least in one way and make sure that the ORCID parser runs in the tests.

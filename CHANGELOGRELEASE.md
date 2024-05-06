@@ -1,3 +1,13 @@
+### V 1.5.0.1
+
+This very minor release only affects the static `trident` executables produced for every release.
+
+It introduces a distinction between pre-built `X64` and `ARM64` executables for macOS, where changes in the main processor architecture have recently rendered old builds invalid for new systems and vice versa.
+
+That means the executable `trident-macOS` will henceforward not longer exist, but instead the executables `trident-macOS-X64` and `trident-macOS-ARM64`.
+
+In the past we have not explicitly documented changes in the compilation pipeline - v1.5.0.0, for example, came with a major overhaul of the pipeline - but in this case a small version bump seems to be in order to announce the split in available artefacts.
+
 ### V 1.5.0.0
 
 This is a minor, but technically breaking release. It removes the example contributor *Josiah Carberry* from new packages created by `trident init` and `trident forge` 
