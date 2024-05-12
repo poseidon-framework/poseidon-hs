@@ -322,7 +322,7 @@ testPipelineList testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals ["Country", "Nr_SNPs"]
+          _listListEntity    = ListIndividuals (Just ["Country", "Nr_SNPs"])
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {
@@ -1060,7 +1060,7 @@ testPipelineListRemote testDir checkFilePath = do
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
         let listOpts3 = listOpts1 {
-              _listListEntity    = ListIndividuals ["Publication"]
+              _listListEntity    = ListIndividuals (Just ["Publication"])
             , _listRawOutput     = True
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3

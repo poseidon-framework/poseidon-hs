@@ -104,14 +104,20 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
                     getExtendedIndividualInfo pacCollection maybeMoreJannoColumns
 
-            -- warning in case the additional Columns do not exist in the entire janno dataset
             let addJannoCols = case extIndInfos of -- get all add-column names from first extIndInfo
                     [] -> []
                     (e:_) -> map fst . extIndInfoAddCols $ e
-            forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
-                -- check entries in all individuals for that key
-                let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
-                when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
+
+            -- warning in case the additional Columns do not exist in the entire janno dataset,
+            -- we only output this warning if the columns were requested explicitly. Not if 
+            -- all columns were requested. We consider such a request to mean "all columns that are present".
+            case maybeMoreJannoColumns of
+                Just (e:_) -> do
+                    forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
+                        -- check entries in all individuals for that key
+                        let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
+                        when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
+                Nothing -> return ()
 
             let tableH = ["Individual", "Group", "Package", "PackageVersion", "Is Latest"] ++ addJannoCols
                 tableB = do
