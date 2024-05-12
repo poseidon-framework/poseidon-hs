@@ -105,13 +105,12 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     getExtendedIndividualInfo pacCollection maybeMoreJannoColumns
 
             -- warning in case the additional Columns do not exist in the entire janno dataset
-            let addJannoCols = case extIndInfos of
+            let addJannoCols = case extIndInfos of -- get all add-column names from first extIndInfo
                     [] -> []
-                    (e:es) -> map fst . extIndInfoAddCols $ e
+                    (e:_) -> map fst . extIndInfoAddCols $ e
             forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
                 -- check entries in all individuals for that key
                 let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
-                logInfo $ columnKey ++ ": " ++ show nonEmptyEntries
                 when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
 
             let tableH = ["Individual", "Group", "Package", "PackageVersion", "Is Latest"] ++ addJannoCols
