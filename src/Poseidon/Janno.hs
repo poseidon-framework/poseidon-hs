@@ -808,7 +808,7 @@ cleanInput (Just rawInputBS) = transNA $ trimWS . removeNoBreakSpace $ rawInputB
         transNA x     = Just x
 
 instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord j = (Csv.namedRecord . filter ((/= "") . snd) $ [
+    toNamedRecord j = Csv.namedRecord [
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
         , "Group_Name"                      Csv..= jGroupName j
@@ -856,7 +856,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Note"                            Csv..= jComments j
         , "Keywords"                        Csv..= jKeywords j
         -- beyond that add what is in the hashmap of additional columns
-        ]) `HM.union` (getCsvNR $ jAdditionalColumns j)
+        ] `HM.union` (getCsvNR $ jAdditionalColumns j)
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> JannoRows

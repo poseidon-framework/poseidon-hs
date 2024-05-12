@@ -333,6 +333,10 @@ testPipelineList testDir checkFilePath = do
           _listOnlyLatest     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "list" 5
+    let listOpts6 = listOpts1 {
+          _listListEntity    = ListIndividuals Nothing
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts6) "list" 6
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
@@ -1073,6 +1077,12 @@ testPipelineListRemote testDir checkFilePath = do
             , _listOnlyLatest   = False
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
+
+        let listOpts5 = listOpts1 {
+              _listListEntity    = ListIndividuals Nothing
+            , _listRawOutput     = True
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "listRemote" 5
         ) (
         killThread threadID
         )

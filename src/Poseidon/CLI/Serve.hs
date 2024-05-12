@@ -27,7 +27,7 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (nub, sortOn, (\\))
+import           Data.List                    (nub, sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))

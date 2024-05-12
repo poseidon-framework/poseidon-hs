@@ -21,6 +21,7 @@ b18847f5498ae55882689b75916fdf64 list list/list2
 63ef5f277f6f29163192382234211224 list list/list3
 1c1f24de305405ece44393d378c0e15a list list/list4
 bc636b9c03ea9359acd254a9911e5af3 list list/list5
+ad5590b0ad65e64d6b2c8d874571c9f8 list list/list6
 b197fb8dd883c7469a4791e4a677f1c0 summarise summarise/summarise1
 d9e4b3f15d4e129a365d2064198d95b6 summarise summarise/summarise2
 a1186fdad9ed555dff4dd61dc9838645 survey survey/survey1
@@ -113,3 +114,4 @@ b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_2/Lamnidis_2018-1.0.
 0ddad9ea097bca0253e0c3c6157efa68 listRemote listRemote/listRemote2
 b2286cf9af7c6c8757b8109a1f58e2d9 listRemote listRemote/listRemote3
 0433b2a80ee5a2eb5bf8c6404130e562 listRemote listRemote/listRemote4
+8a13e5b31acabca6839100f411c38453 listRemote listRemote/listRemote5

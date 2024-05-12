@@ -110,14 +110,14 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
 
             -- warning in case the additional Columns do not exist in the entire janno dataset,
             -- we only output this warning if the columns were requested explicitly. Not if 
-            -- all columns were requested. We consider such a request to mean "all columns that are present".
+            -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
             case maybeMoreJannoColumns of
-                Just (e:_) -> do
+                Just (_:_) -> do
                     forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
                         -- check entries in all individuals for that key
                         let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
                         when (null nonEmptyEntries) . logWarning $ "Column Name " ++ columnKey ++ " not present in any individual"
-                Nothing -> return ()
+                _ -> return ()
 
             let tableH = ["Individual", "Group", "Package", "PackageVersion", "Is Latest"] ++ addJannoCols
                 tableB = do
