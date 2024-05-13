@@ -105,11 +105,11 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     getExtendedIndividualInfo pacCollection maybeMoreJannoColumns
 
             let addJannoCols = case extIndInfos of -- get all add-column names from first extIndInfo
-                    [] -> []
+                    []    -> []
                     (e:_) -> map fst . extIndInfoAddCols $ e
 
             -- warning in case the additional Columns do not exist in the entire janno dataset,
-            -- we only output this warning if the columns were requested explicitly. Not if 
+            -- we only output this warning if the columns were requested explicitly. Not if
             -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
             case maybeMoreJannoColumns of
                 Just (_:_) -> do

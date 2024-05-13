@@ -47,8 +47,8 @@ import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
                                              JannoUDG (..), createMinimalJanno,
-                                             jannoHeaderString,
-                                             getMaybeJannoList, readJannoFile)
+                                             getMaybeJannoList,
+                                             jannoHeaderString, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
@@ -833,7 +833,7 @@ getExtendedIndividualInfo allPackages maybeAdditionalJannoColumns = sequence $ d
         colNames = case maybeAdditionalJannoColumns of
             Nothing -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
-            Just c -> c
+            Just c  -> c
         additionalColumnEntries = [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
