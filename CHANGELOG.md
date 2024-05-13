@@ -1,3 +1,6 @@
+- V 1.4.1.0:
+    - A new option `list --individuals --fullJanno` adds all standard columns from the Janno to the per-individual output.
+    - A new API option `/individuals?additionalJannoColumns=ALL` triggers the same behaviour for the Web API.
 - V 1.4.0.3:
     - Fixed a severe performance leak in code around `resolveEntityIndices`, which was called in various functions and wastefully recomputed `isLatestInCollection` way too often. This affected simple commands, like fetching a few packages from the server, forging, and has effects also in xerxes.
     - Bumped to a newer Compiler (GHC 9.4.7) and new Stackage Snapshot (LTS-21.17)
