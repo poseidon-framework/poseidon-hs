@@ -1,6 +1,17 @@
-- V 1.4.1.0:
+- V 1.5.1.0:
     - A new option `list --individuals --fullJanno` adds all standard columns from the Janno to the per-individual output.
     - A new API option `/individuals?additionalJannoColumns=ALL` triggers the same behaviour for the Web API.
+- V 1.5.0.1: Changed the release pipeline: `trident-macOS` was replaced by `trident-macOS-X64` and `trident-macOS-ARM64`.
+- V 1.5.0.0
+    - Removed Josiah Carberry from `newPackageTemplate`, so that he doesn't get added any more to new packages created by `init` and `forge` - the contributor field is missing in the output of these commands now.
+    - Adjusted the golden test output accordingly, but also added Josiah to one of the test packages (`test/testDat/testPackages/ancient/Schiffels_2016`) to keep him around at least in one way and make sure that the ORCID parser runs in the tests.
+    - Added a new warning to the package reading process to point out an empty contributor field.
+- V 1.4.1.0:
+    - Added new tool `trident jannocoalesce`, which merges information from a source .janno file to a target .janno file.
+- V 1.4.0.4:
+    - Added better error messages for generic cassava parsing (e.g. for broken Int and Double fields) in .janno files.
+    - Added better error handling and messages for inconsistent `Date_*`, `Contamination_*` and `Relation_*` columns in .janno files using an `Except` & `Writer` monad stack.
+    - Cleaned a bit in the `SequencingSource` module.
 - V 1.4.0.3:
     - Fixed a severe performance leak in code around `resolveEntityIndices`, which was called in various functions and wastefully recomputed `isLatestInCollection` way too often. This affected simple commands, like fetching a few packages from the server, forging, and has effects also in xerxes.
     - Bumped to a newer Compiler (GHC 9.4.7) and new Stackage Snapshot (LTS-21.17)

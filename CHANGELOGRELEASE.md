@@ -1,3 +1,79 @@
+### V 1.5.0.1
+
+This very minor release only affects the static `trident` executables produced for every release.
+
+It introduces a distinction between pre-built `X64` and `ARM64` executables for macOS, where changes in the main processor architecture have recently rendered old builds invalid for new systems and vice versa.
+
+That means the executable `trident-macOS` will henceforward not longer exist, but instead the executables `trident-macOS-X64` and `trident-macOS-ARM64`.
+
+In the past we have not explicitly documented changes in the compilation pipeline - v1.5.0.0, for example, came with a major overhaul of the pipeline - but in this case a small version bump seems to be in order to announce the split in available artefacts.
+
+### V 1.5.0.0
+
+This is a minor, but technically breaking release. It removes the example contributor *Josiah Carberry* from new packages created by `trident init` and `trident forge` 
+
+Previously every package created by `init` or `forge` included an example entry in the `contributor` field of the `POSEIDON.yml` file:
+
+```yml
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
+```
+
+This served the purpose of reminding users to actually set a contributor and giving an example how to do so. To simplify scripting with Poseidon packages we now remove this slightly gimmicky default.
+
+To encourage setting the contributor field we instead introduce a reading/validation warning in case the `contributor` field is empty:
+
+```
+[Warning] Contributor missing in POSEIDON.yml file of package 2010_RasmussenNature-2.1.1
+```
+
+### V 1.4.1.0
+
+This release adds an entirely new subcommand to merge two `.janno` files (`jannocoalesce`) and improves the error messages for broken `.janno` files.
+
+#### Merging `.janno` files with `jannocoalesce`
+
+The need for a tool to combine the information of two `.janno` files arose in the Poseidon ecosystem as we started to conceptualize the Poseidon [Minotaur Archive](https://github.com/poseidon-framework/minotaur-archive). This archive will be populated by paper-wise Poseidon packages for which the genotype data was regenerated through the Minotaur workflow (work in progress). We plan to reprocess various packages that are already in the Poseidon [Community Archive](https://github.com/poseidon-framework/community-archive) and for these packages we want to copy e.g. spatiotemporal information from the already available `.janno` files. `jannocoalesce` is the answer to this specific need, but can also be useful for various other applications.
+
+It generally works by reading a source `.janno` file with `-s|--sourceFile` (or all `.janno` files in a `-d|--baseDir`) and a target `.janno` file with `-t|--targetFile`. It then merges these files by a key column, which can be selected with `--sourceKey` and `--targetKey`. The default for both of these key columns is the `Poseidon_ID`. In case the entries in the key columns slightly and systematically differ, e.g. because the `Poseidon_ID`s in either have a special suffix (for example `_SG`), then the `--stripIdRegex` option allows to strip these with a regular expression to thus match the keys.
+
+`jannocoalesce` generally attempts to fill **all** empty cells in the target `.janno` file with information from the source. `--includeColumns` and `--excludeColumns` allow to select specific columns for which this should be done. In some cases it may be desirable to not just fill empty fields in the target, but overwrite the information already there with the `-f|--force` option. If the target file should be preserved, then the output can be directed to a new output `.janno` file with `-o|--outFile`.
+
+#### Better error messages for broken `.janno` files
+
+`.janno` file validation is a core feature of `trident`. With this release we try to improve the error messages for a two common situations:
+
+1. Broken number fields. This can happen if some text or wrong character ends up in a number field.
+
+So far the error messages for this case have been pretty technical. Here for example if an integer field is filled with `430;`, where the integer number `430` is accidentally written with a trailing `;`:
+
+```
+parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
+```
+
+The new error message is more clear:
+
+```
+parse error in one column (expected data type: Int, broken value: "430;", problematic characters: ";")
+```
+
+2. Inconsistent `Date_*`, `Contamination_*` and `Relation_*` columns. These sets of columns have to be cross-consistent, following a logic that is especially complex for the `Date_*` fields (see [here](https://www.poseidon-adna.org/#/janno_details?id=the-columns-in-detail)).
+
+So far any inconsistency was reported with this generic error message:
+
+```
+The Date_* columns are not consistent
+```
+
+Now we include far more precise messages, like e.g.:
+
+```
+Date_Type is not "C14", but either Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty.
+```
+
+This should simplify tedious `.janno` file debugging in the future.
+
 ### V 1.4.0.3
 
 This small release fixes a performance issue related to finding the latest version of all packages. The bug had severe detrimental effects on `forge` and `fetch`, which are now resolved.

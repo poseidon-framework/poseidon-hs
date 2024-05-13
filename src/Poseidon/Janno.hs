@@ -27,9 +27,11 @@ module Poseidon.Janno (
     JannoLibraryBuilt (..),
     AccessionID (..),
     makeAccessionID,
+    makeLatitude, makeLongitude,
     writeJannoFile,
     readJannoFile,
     createMinimalJanno,
+    createMinimalSample,
     jannoHeaderString,
     CsvNamedRecord (..),
     JannoRows (..),
@@ -41,19 +43,23 @@ module Poseidon.Janno (
     decodingOptions,
     explicitNA,
     removeUselessSuffix,
+    parseCsvParseError,
+    renderCsvParseError,
     getMaybeJannoList
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
-                                                       logError,
+                                                       logError, logWarning,
                                                        renderPoseidonException)
 
 
 import           Control.Applicative                  (empty)
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
+import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
+import qualified Control.Monad.Writer                 as W
 import           Country                              (Country, alphaTwoUpper,
                                                        decodeAlphaTwo)
 import           Data.Aeson                           (FromJSON, Options (..),
@@ -66,14 +72,14 @@ import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (isSpace, ord)
+import           Data.Char                            (chr, isSpace, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        (\\))
-import           Data.Maybe                           (fromJust, isNothing)
+import           Data.Maybe                           (fromJust)
 import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
@@ -84,6 +90,8 @@ import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
+import qualified Text.Parsec                          as P
+import qualified Text.Parsec.String                   as P
 import qualified Text.Regex.TDFA                      as Reg
 
 -- | A datatype for genetic sex
@@ -996,15 +1004,27 @@ findSimilarNames reference = map (findSimilar reference)
 -- | A function to load one row of a janno file
 readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException JannoRow)
 readJannoFileRow jannoPath (lineNumber, row) = do
-    case Csv.decodeByNameWith decodingOptions row of
+    let decoded = Csv.decodeByNameWith decodingOptions row
+        simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
+    case simplifiedDecoded of
         Left e -> do
-            return $ Left $ PoseidonFileRowException jannoPath lineNumber $ removeUselessSuffix e
-        Right (_, jannoRow :: V.Vector JannoRow) -> do
-            case checkJannoRowConsistency jannoPath lineNumber $ V.head jannoRow of
-                Left e -> do
-                    return $ Left e
-                Right (pS :: JannoRow) -> do
-                    return $ Right pS
+            let betterError = case P.parse parseCsvParseError "" e of
+                    Left _       -> removeUselessSuffix e
+                    Right result -> renderCsvParseError result
+            return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
+        Right jannoRow -> do
+            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
+            mapM_ (logWarning . renderWarning) warnings
+            case errOrJannoRow of
+                Left e  -> return $ Left $ PoseidonFileRowException jannoPath renderLocation e
+                Right r -> return $ Right r
+            where
+                renderWarning :: String -> String
+                renderWarning e = "Issue in " ++ jannoPath ++ " " ++
+                                  "in line " ++ renderLocation ++ ": " ++ e
+                renderLocation :: String
+                renderLocation =  show lineNumber ++
+                                  " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
 
 decodingOptions :: Csv.DecodeOptions
 decodingOptions = Csv.defaultDecodeOptions {
@@ -1013,6 +1033,33 @@ decodingOptions = Csv.defaultDecodeOptions {
 
 removeUselessSuffix :: String -> String
 removeUselessSuffix = unpack . replace " at \"\"" "" . pack
+
+-- reformat the parser error
+-- from: parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
+-- to:   parse error in one column (expected data type: Int, broken value: "430;", problematic characters: ";")
+
+data CsvParseError = CsvParseError {
+      _expected :: String
+    , _actual   :: String
+    , _leftover :: String
+} deriving Show
+
+parseCsvParseError :: P.Parser CsvParseError
+parseCsvParseError = do
+    _ <- P.string "parse error (Failed reading: conversion error: expected "
+    expected <- P.manyTill P.anyChar (P.try (P.string ", got "))
+    actual <- P.manyTill P.anyChar (P.try (P.string " (incomplete field parse, leftover: ["))
+    leftoverList <- P.sepBy (read <$> P.many1 P.digit) (P.char ',')
+    _ <- P.char ']'
+    _ <- P.many P.anyChar
+    return $ CsvParseError expected actual (map chr leftoverList)
+
+renderCsvParseError :: CsvParseError -> String
+renderCsvParseError (CsvParseError expected actual leftover) =
+    "parse error in one column (" ++
+    "expected data type: " ++ expected ++ ", " ++
+    "broken value: " ++ actual ++ ", " ++
+    "problematic characters: " ++ show leftover ++ ")"
 
 -- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
 explicitNA :: Bch.ByteString -> Bch.ByteString
@@ -1026,7 +1073,7 @@ replaceInJannoBytestring from to tsv =
         tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
    in Bch.unlines tsvRowsUpdated
 
--- Janno consistency checks
+-- Global janno consistency checks
 
 checkJannoConsistency :: FilePath -> JannoRows -> Either PoseidonException JannoRows
 checkJannoConsistency jannoPath xs
@@ -1037,23 +1084,27 @@ checkJannoConsistency jannoPath xs
 checkIndividualUnique :: JannoRows -> Bool
 checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
-checkJannoRowConsistency :: FilePath -> Int -> JannoRow -> Either PoseidonException JannoRow
-checkJannoRowConsistency jannoPath row x
-    | not $ checkMandatoryStringNotEmpty x = Left $ PoseidonFileRowException jannoPath row
-          "The mandatory columns Poseidon_ID and Group_Name contain empty values"
-    | not $ checkC14ColsConsistent x = Left $ PoseidonFileRowException jannoPath row
-          "The Date_* columns are not consistent"
-    | not $ checkContamColsConsistent x = Left $ PoseidonFileRowException jannoPath row
-          "The Contamination_* columns are not consistent"
-    | not $ checkRelationColsConsistent x = Left $ PoseidonFileRowException jannoPath row
-          "The Relation_* columns are not consistent"
-    | otherwise = Right x
+-- Row-wise janno consistency checks
 
-checkMandatoryStringNotEmpty :: JannoRow -> Bool
+type JannoRowWarnings = [String]
+type JannoRowLog = E.ExceptT String (W.Writer JannoRowWarnings)
+
+checkJannoRowConsistency :: JannoRow -> JannoRowLog JannoRow
+checkJannoRowConsistency x =
+    return x
+    >>= checkMandatoryStringNotEmpty
+    >>= checkC14ColsConsistent
+    >>= checkContamColsConsistent
+    >>= checkRelationColsConsistent
+
+checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
 checkMandatoryStringNotEmpty x =
-    (not . null . jPoseidonID $ x)
-    && (not . null . getJannoList . jGroupName $ x)
-    && (not . null . head . getJannoList . jGroupName $ x)
+    let notEmpty = (not . null . jPoseidonID $ x) &&
+                   (not . null . getJannoList . jGroupName $ x) &&
+                   (not . null . head . getJannoList . jGroupName $ x)
+    in case notEmpty of
+        False -> E.throwError "Poseidon_ID or Group_Name are empty"
+        True  -> return x
 
 getCellLength :: Maybe (JannoList a) -> Int
 getCellLength = maybe 0 (length . getJannoList)
@@ -1062,33 +1113,50 @@ allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
 allEqual x  = length (nub x) == 1
 
-checkC14ColsConsistent :: JannoRow -> Bool
+checkC14ColsConsistent :: JannoRow -> JannoRowLog JannoRow
 checkC14ColsConsistent x =
-    let lLabnr          = getCellLength $ jDateC14Labnr x
-        lUncalBP        = getCellLength $ jDateC14UncalBP x
-        lUncalBPErr     = getCellLength $ jDateC14UncalBPErr x
-        shouldBeTypeC14 = lUncalBP > 0
-        isTypeC14       = jDateType x == Just C14
-    in
-        (lLabnr == 0 || lUncalBP == 0 || lLabnr == lUncalBP)
-        && (lLabnr == 0 || lUncalBPErr == 0 || lLabnr == lUncalBPErr)
-        && lUncalBP == lUncalBPErr
-        && (not shouldBeTypeC14 || isTypeC14)
+    let isTypeC14        = jDateType x == Just C14
+        lLabnr           = getCellLength $ jDateC14Labnr x
+        lUncalBP         = getCellLength $ jDateC14UncalBP x
+        lUncalBPErr      = getCellLength $ jDateC14UncalBPErr x
+        anyMainColFilled = lUncalBP > 0 || lUncalBPErr > 0
+        anyMainColEmpty  = lUncalBP == 0 || lUncalBPErr == 0
+        allSameLength    = allEqual [lLabnr, lUncalBP, lUncalBPErr] ||
+                          (lLabnr == 0 && lUncalBP == lUncalBPErr)
+    in case (isTypeC14, anyMainColFilled, anyMainColEmpty, allSameLength) of
+        (False, False, _, _ )   -> return x
+        (False, True, _, _ )    -> E.throwError "Date_Type is not \"C14\", but either \
+                                         \Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are not empty"
+        (True, _, False, False) -> E.throwError "Date_C14_Labnr, Date_C14_Uncal_BP and Date_C14_Uncal_BP_Err \
+                                         \do not have the same lengths"
+        (True, _, False, True ) -> return x
+        -- this should be an error, but we have legacy packages with this issue, so it's only a warning
+        (True, _, True, _ )     -> do
+            W.tell ["Date_Type is \"C14\", but either Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"]
+            return x
 
-checkContamColsConsistent :: JannoRow -> Bool
+checkContamColsConsistent :: JannoRow -> JannoRowLog JannoRow
 checkContamColsConsistent x =
-  let lContamination      = getCellLength $ jContamination x
-      lContaminationErr   = getCellLength $ jContaminationErr x
-      lContaminationMeas  = getCellLength $ jContaminationMeas x
-  in allEqual [lContamination, lContaminationErr, lContaminationMeas]
+    let lContamination      = getCellLength $ jContamination x
+        lContaminationErr   = getCellLength $ jContaminationErr x
+        lContaminationMeas  = getCellLength $ jContaminationMeas x
+        allSameLength       = allEqual [lContamination, lContaminationErr, lContaminationMeas]
+    in case allSameLength of
+        False -> E.throwError "Contamination, Contamination_Err and Contamination_Meas \
+                      \do not have the same lengths"
+        True  -> return x
 
-checkRelationColsConsistent :: JannoRow -> Bool
+checkRelationColsConsistent :: JannoRow -> JannoRowLog JannoRow
 checkRelationColsConsistent x =
-  let lRelationTo     = getCellLength $ jRelationTo x
-      lRelationDegree = getCellLength $ jRelationDegree x
-      lRelationType   = getCellLength $ jRelationType x
-  in allEqual [lRelationTo, lRelationType, lRelationDegree]
-     || (allEqual [lRelationTo, lRelationDegree] && isNothing (jRelationType x))
+    let lRelationTo     = getCellLength $ jRelationTo x
+        lRelationDegree = getCellLength $ jRelationDegree x
+        lRelationType   = getCellLength $ jRelationType x
+        allSameLength   = allEqual [lRelationTo, lRelationDegree, lRelationType] ||
+                          (allEqual [lRelationTo, lRelationDegree] && lRelationType == 0)
+    in case allSameLength of
+        False -> E.throwError "Relation_To, Relation_Degree and Relation_Type \
+                      \do not have the same lengths. Relation_Type can be empty"
+        True  -> return x
 
 -- deriving with TemplateHaskell necessary for the generics magic in the Survey module
 deriveGeneric ''JannoRow

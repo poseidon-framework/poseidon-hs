@@ -2,33 +2,39 @@
 
 module Poseidon.CLI.OptparseApplicativeParsers where
 
-import           Poseidon.CLI.Chronicle (ChronOperation (..))
-import           Poseidon.CLI.List      (ListEntity (..), RepoLocationSpec (..))
-import           Poseidon.CLI.Rectify   (ChecksumsToRectify (..),
-                                         PackageVersionUpdate (..))
-import           Poseidon.CLI.Validate  (ValidatePlan (..))
-import           Poseidon.Contributor   (ContributorSpec (..),
-                                         contributorSpecParser)
-import           Poseidon.EntityTypes   (EntitiesList, EntityInput (..),
-                                         PoseidonEntity, SignedEntitiesList,
-                                         SignedEntity, readEntitiesFromString)
-import           Poseidon.GenotypeData  (GenoDataSource (..),
-                                         GenotypeDataSpec (..),
-                                         GenotypeFormatSpec (..),
-                                         SNPSetSpec (..))
-import           Poseidon.ServerClient  (ArchiveEndpoint (..))
-import           Poseidon.Utils         (LogMode (..), TestMode (..))
-import           Poseidon.Version       (VersionComponent (..), parseVersion)
+import           Poseidon.CLI.Chronicle     (ChronOperation (..))
+import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+                                             JannoSourceSpec (..))
+import           Poseidon.CLI.List          (ListEntity (..),
+                                             RepoLocationSpec (..))
+import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
+                                             PackageVersionUpdate (..))
+import           Poseidon.CLI.Validate      (ValidatePlan (..))
+import           Poseidon.Contributor       (ContributorSpec (..),
+                                             contributorSpecParser)
+import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
+                                             PoseidonEntity, SignedEntitiesList,
+                                             SignedEntity,
+                                             readEntitiesFromString)
+import           Poseidon.GenotypeData      (GenoDataSource (..),
+                                             GenotypeDataSpec (..),
+                                             GenotypeFormatSpec (..),
+                                             SNPSetSpec (..))
+import           Poseidon.ServerClient      (ArchiveEndpoint (..))
+import           Poseidon.Utils             (LogMode (..), TestMode (..))
+import           Poseidon.Version           (VersionComponent (..),
+                                             parseVersion)
 
-import           Control.Applicative    ((<|>))
-import           Data.List.Split        (splitOn)
-import           Data.Version           (Version)
-import qualified Options.Applicative    as OP
-import           SequenceFormats.Plink  (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath        (dropExtension, takeExtension, (<.>))
-import qualified Text.Parsec            as P
-import           Text.Read              (readMaybe)
-
+import           Control.Applicative        ((<|>))
+import qualified Data.ByteString.Char8      as BSC
+import           Data.List.Split            (splitOn)
+import           Data.Version               (Version)
+import qualified Options.Applicative        as OP
+import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
+import           System.FilePath            (dropExtension, takeExtension,
+                                             (<.>))
+import qualified Text.Parsec                as P
+import           Text.Read                  (readMaybe)
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -763,3 +769,81 @@ parseMaybeArchiveName = OP.option (Just <$> OP.str) (
     OP.value Nothing <>
     OP.showDefault
     )
+
+parseJannocoalSourceSpec :: OP.Parser JannoSourceSpec
+parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <$> parseBasePaths)
+  where
+    parseJannocoalSingleSource = OP.option (JannoSourceSingle <$> OP.str) (
+        OP.long "sourceFile" <>
+        OP.short 's' <>
+        OP.metavar "FILE" <>
+        OP.help "The source .janno file."
+        )
+
+parseJannocoalTargetFile :: OP.Parser FilePath
+parseJannocoalTargetFile = OP.strOption (
+    OP.long "targetFile" <>
+    OP.short 't' <>
+    OP.metavar "FILE" <>
+    OP.help "The target .janno file to fill."
+    )
+
+parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
+parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
+    OP.long "outFile" <>
+    OP.short 'o' <>
+    OP.metavar "FILE" <>
+    OP.value Nothing <>
+    OP.showDefault <>
+    OP.help "An optional file to write the results to. \
+            \If not specified, change the target file in place."
+    )
+
+parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec
+parseJannocoalJannoColumns = includeJannoColumns OP.<|> excludeJannoColumns OP.<|> pure AllJannoColumns
+    where
+        includeJannoColumns = OP.option (IncludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
+            OP.long "includeColumns" <>
+            OP.help "A comma-separated list of .janno column names to coalesce. \
+                    \If not specified, all columns that can be found in the source \
+                    \and target will get filled."
+            )
+        excludeJannoColumns = OP.option (ExcludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
+            OP.long "excludeColumns" <>
+            OP.help "A comma-separated list of .janno column names NOT to coalesce. \
+                    \All columns that can be found in the source and target will get filled, \
+                    \except the ones listed here."
+            )
+
+parseJannocoalOverride :: OP.Parser Bool
+parseJannocoalOverride = OP.switch (
+    OP.long "force" <>
+    OP.short 'f' <>
+    OP.help "With this option, potential non-missing content in target columns gets overridden \
+            \with non-missing content in source columns. By default, only missing data gets filled-in."
+    )
+
+parseJannocoalSourceKey :: OP.Parser String
+parseJannocoalSourceKey = OP.strOption (
+    OP.long "sourceKey" <>
+    OP.help "The .janno column to use as the source key." <>
+    OP.value "Poseidon_ID" <>
+    OP.showDefault
+    )
+
+parseJannocoalTargetKey :: OP.Parser String
+parseJannocoalTargetKey = OP.strOption (
+    OP.long "targetKey" <>
+    OP.help "The .janno column to use as the target key." <>
+    OP.value "Poseidon_ID" <>
+    OP.showDefault
+    )
+
+parseJannocoalIdStripRegex :: OP.Parser (Maybe String)
+parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (
+    OP.long "stripIdRegex" <>
+    OP.help "An optional regular expression to identify parts of the IDs to strip \
+            \before matching between source and target. Uses POSIX Extended regular expressions." <>
+    OP.value Nothing
+    )
+

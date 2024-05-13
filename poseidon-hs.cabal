@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.4.1.0
+version:             1.5.1.0
 synopsis:            A package with tools for working with Poseidon Genotype Data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -21,12 +21,13 @@ library
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
                         Poseidon.CLI.Rectify, Poseidon.CLI.Fetch, Poseidon.CLI.Genoconvert,
-                        Poseidon.CLI.OptparseApplicativeParsers, Poseidon.CLI.Timetravel
+                        Poseidon.CLI.OptparseApplicativeParsers, Poseidon.CLI.Timetravel,
+                        Poseidon.CLI.Jannocoalesce
     other-modules:      Paths_poseidon_hs
     hs-source-dirs:     src
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
-                        vector, pipes-ordered-zip, table-layout, mtl, split, warp, warp-tls, wai-cors,
+                        vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
                         -- scotty is set to < 0.20.0, because the current stackage resolver 21.17 does not have the latest version, but cabal uses it in the release action, if this constraint is not set
                         scotty < 0.20.0, cassava, pureMD5, wai, githash,
                         http-conduit, conduit, http-types, zip-archive,
@@ -52,7 +53,7 @@ Test-Suite poseidon-tools-tests
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
                         unordered-containers, cassava, containers, process
     other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
-                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec,
+                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec, Poseidon.JannocoalesceSpec,
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
                         PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.ChronicleSpec,
