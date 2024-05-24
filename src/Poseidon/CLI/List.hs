@@ -9,12 +9,12 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          getExtendedIndividualInfo,
                                          packagesToPackageInfos,
                                          readPoseidonPackageCollection)
-import           Poseidon.ServerClient  (ApiReturnData (..),
+import           Poseidon.ServerClient  (AddJannoColSpec (..),
+                                         ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          ExtendedIndividualInfo (..),
                                          GroupInfo (..), PackageInfo (..),
-                                         processApiResponse, qDefault,
-                                         AddJannoColSpec(..))
+                                         processApiResponse, qDefault)
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad          (forM_, when)

@@ -34,7 +34,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.ServerClient      (ArchiveEndpoint (..), AddJannoColSpec(..))
+import           Poseidon.ServerClient      (AddJannoColSpec (..),
+                                             ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
                                              getChecksum, testLog,
                                              usePoseidonLogger)

@@ -15,9 +15,9 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                packagesToPackageInfos,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
-import           Poseidon.ServerClient        (ApiReturnData (..),
-                                               ServerApiReturnType (..),
-                                               AddJannoColSpec(..))
+import           Poseidon.ServerClient        (AddJannoColSpec (..),
+                                               ApiReturnData (..),
+                                               ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
 

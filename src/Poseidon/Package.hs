@@ -56,8 +56,9 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
-import           Poseidon.ServerClient      (ExtendedIndividualInfo (..),
-                                             GroupInfo (..), PackageInfo (..), AddJannoColSpec(..))
+import           Poseidon.ServerClient      (AddJannoColSpec (..),
+                                             ExtendedIndividualInfo (..),
+                                             GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
