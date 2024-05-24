@@ -134,7 +134,7 @@ parseErrorLength :: OP.Parser ErrorLength
 parseErrorLength = OP.option (OP.eitherReader readErrorLengthString) (
     OP.long "errLength" <>
     OP.metavar "INT" <>
-    OP.help "After how many characters should a potential error \
+    OP.help "After how many characters should a potential genotype data parsing error \
             \message be truncated. \"Inf\" for no truncation." <>
     OP.value (CharCount 1500) <>
     OP.showDefault
