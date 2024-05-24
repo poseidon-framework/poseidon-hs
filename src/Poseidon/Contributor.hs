@@ -6,6 +6,7 @@ module Poseidon.Contributor (
     ORCID (..)
 ) where
 
+import           Poseidon.Utils     (showParsecErr)
 
 import           Control.Monad      (guard, mzero)
 import           Data.Aeson         (FromJSON, ToJSON (..), Value (String),
@@ -61,7 +62,7 @@ data ORCID = ORCID
 
 instance FromJSON ORCID where
     parseJSON (String s) = case P.runParser parseORCID () "" (unpack s) of
-        Left err -> fail $ show err
+        Left err -> fail $ showParsecErr err
         Right x  -> pure x
     parseJSON _          = mzero
 

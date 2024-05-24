@@ -20,7 +20,7 @@ module Poseidon.EntityTypes (
     resolveEntityIndices, reportDuplicateIndividuals) where
 
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
-                                         logError)
+                                         logError, showParsecErr)
 import           Poseidon.Version       (parseVersion)
 
 import           Control.Applicative    ((<|>))
@@ -229,7 +229,7 @@ instance ToJSON   SignedEntity   where toJSON e = String (pack $ show e)
 
 aesonParseEntitySpec :: (EntitySpec e) => Text -> Parser e
 aesonParseEntitySpec t = case P.runParser entitySpecParser () "" (unpack t) of
-    Left err -> fail (show err)
+    Left err -> fail $ showParsecErr err
     Right p' -> return p'
 
 -- | a minimal datatype representing an individual in a collection of packages

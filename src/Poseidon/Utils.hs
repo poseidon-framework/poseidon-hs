@@ -46,7 +46,8 @@ import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Version           (showVersion)
-import           Data.Yaml              (ParseException)
+import           Data.Yaml              (ParseException,
+                                         prettyPrintParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           Network.HTTP.Conduit   (HttpException (..))
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
@@ -183,12 +184,12 @@ instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
 renderPoseidonException (PoseidonYamlParseException fn e) =
-    "Could not parse YAML file " ++ fn ++ ": " ++ show e
+    "Could not parse YAML file " ++ fn ++ ":\n" ++ prettyPrintParseException e
 renderPoseidonException (PoseidonPackageException s) =
-    "Encountered a logical error with a poseidon package: " ++ s
+    "Encountered a logical error with a package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++
-    ". This package is build according to poseidon schema v" ++ s ++
+    ". This package is build according to Poseidon schema v" ++ s ++
     ", which is not supported by poseidon-hs v" ++ showVersion version ++
     ". Modify the package, or switch to a newer (or older) version of this software."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
