@@ -13,7 +13,8 @@ import           Poseidon.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          ExtendedIndividualInfo (..),
                                          GroupInfo (..), PackageInfo (..),
-                                         processApiResponse, qDefault)
+                                         processApiResponse, qDefault,
+                                         AddJannoColSpec(..))
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad          (forM_, when)
@@ -38,7 +39,7 @@ data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
     | ListGroups
-    | ListIndividuals (Maybe [String]) -- Nothing means all Janno columns. Just [] means none.
+    | ListIndividuals AddJannoColSpec
 
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonIO ()
@@ -89,20 +90,21 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     True <- return (not onlyLatest || isLatest)
                     return [groupName, getPacName gi, showMaybeVersion (getPacVersion gi), show isLatest, show nrInds]
             return (tableH, tableB)
-        ListIndividuals maybeMoreJannoColumns -> do
+        ListIndividuals addJannoColSpec -> do
             extIndInfos <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
-                    let addJannoColFlag = case maybeMoreJannoColumns of
-                            Nothing -> "&additionalJannoColumns=ALL"
-                            Just moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
+                    let addJannoColFlag = case addJannoColSpec of
+                            AddJannoColAll -> "&additionalJannoColumns=ALL"
+                            AddJannoColList [] -> ""
+                            AddJannoColList moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ addJannoColFlag) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo indInfo -> return indInfo
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
-                    getExtendedIndividualInfo pacCollection maybeMoreJannoColumns
+                    getExtendedIndividualInfo pacCollection addJannoColSpec
 
             let addJannoCols = case extIndInfos of -- get all add-column names from first extIndInfo
                     []    -> []
@@ -111,8 +113,8 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
             -- warning in case the additional Columns do not exist in the entire janno dataset,
             -- we only output this warning if the columns were requested explicitly. Not if
             -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
-            case maybeMoreJannoColumns of
-                Just (_:_) -> do
+            case addJannoColSpec of
+                AddJannoColList (_:_) -> do
                     forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
                         -- check entries in all individuals for that key
                         let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]

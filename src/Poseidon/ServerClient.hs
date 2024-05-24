@@ -8,7 +8,8 @@ module Poseidon.ServerClient (
     ArchiveEndpoint(..),
     PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo(..),
     extIndInfo2IndInfoCollection,
-    qDefault, qArchive, qPacVersion, (+&+)
+    qDefault, qArchive, qPacVersion, (+&+),
+    AddJannoColSpec(..)
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -225,3 +226,7 @@ extIndInfo2IndInfoCollection extIndInfos =
     let indInfos  = [IndividualInfo n g p | ExtendedIndividualInfo n g p _ _ <- extIndInfos]
         areLatest = map extIndInfoIsLatest extIndInfos
     in  (indInfos, areLatest)
+
+-- type needed to specify additional Janno Columns to be queried from packages
+data AddJannoColSpec = AddJannoColList [String] | AddJannoColAll
+

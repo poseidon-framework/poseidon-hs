@@ -20,7 +20,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.ServerClient      (ArchiveEndpoint (..))
+import           Poseidon.ServerClient      (ArchiveEndpoint (..), AddJannoColSpec(..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..))
 import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
@@ -600,8 +600,8 @@ parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividual
     parseListIndividualsDummy = OP.flag' () (
         OP.long "individuals" <>
         OP.help "List all individuals/samples.")
-    parseListIndividualsExtraCols = ListIndividuals <$> (parseAllJannoCols <|> (Just <$> OP.many parseExtraCol))
-    parseAllJannoCols = OP.flag' Nothing (OP.long "fullJanno" <> OP.help "output all Janno Columns")
+    parseListIndividualsExtraCols = ListIndividuals <$> (parseAllJannoCols <|> (AddJannoColList <$> OP.many parseExtraCol))
+    parseAllJannoCols = OP.flag' AddJannoColAll (OP.long "fullJanno" <> OP.help "output all Janno Columns")
     parseExtraCol = OP.strOption (
         OP.short 'j' <>
         OP.long "jannoColumn" <>

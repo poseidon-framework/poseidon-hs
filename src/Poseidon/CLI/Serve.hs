@@ -16,7 +16,8 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.ServerClient        (ApiReturnData (..),
-                                               ServerApiReturnType (..))
+                                               ServerApiReturnType (..),
+                                               AddJannoColSpec(..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
 
@@ -121,11 +122,11 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
             indInfo <- case maybeAdditionalColumnsString of
-                    Just "ALL" -> getExtendedIndividualInfo pacs Nothing -- Nothing means all Janno Columns
+                    Just "ALL" -> getExtendedIndividualInfo pacs AddJannoColAll -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
-                        in  getExtendedIndividualInfo pacs (Just additionalColumnNames)
-                    Nothing -> getExtendedIndividualInfo pacs (Just [])
+                        in  getExtendedIndividualInfo pacs (AddJannoColList additionalColumnNames)
+                    Nothing -> getExtendedIndividualInfo pacs (AddJannoColList [])
             let retData = ApiReturnExtIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
 

@@ -57,7 +57,7 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
 import           Poseidon.ServerClient      (ExtendedIndividualInfo (..),
-                                             GroupInfo (..), PackageInfo (..))
+                                             GroupInfo (..), PackageInfo (..), AddJannoColSpec(..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, envLogAction,
@@ -824,16 +824,16 @@ getJointIndividualInfo packages = do
     return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
 
 
-getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> Maybe [String] -> m [ExtendedIndividualInfo]
-getExtendedIndividualInfo allPackages maybeAdditionalJannoColumns = sequence $ do -- list monad
+getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> AddJannoColSpec -> m [ExtendedIndividualInfo]
+getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list monad
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
     let name = jPoseidonID jannoRow
         groups = getJannoList . jGroupName $ jannoRow
-        colNames = case maybeAdditionalJannoColumns of
-            Nothing -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
+        colNames = case addJannoColSpec of
+            AddJannoColAll -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
-            Just c  -> c
+            AddJannoColList c  -> c
         additionalColumnEntries = [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
