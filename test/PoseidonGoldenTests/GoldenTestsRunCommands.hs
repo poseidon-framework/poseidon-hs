@@ -55,6 +55,7 @@ import           Poseidon.CLI.Chronicle     (ChronOperation (..),
                                              runChronicle)
 import           Poseidon.Contributor       (ORCID (..))
 import           Poseidon.EntityTypes       (PacNameAndVersion (..))
+import           Poseidon.Utils             (ErrorLength (..))
 import           SequenceFormats.Plink      (PlinkPopNameMode (..))
 import           System.Directory           (copyFile, createDirectory,
                                              createDirectoryIfMissing,
@@ -904,7 +905,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
         , _chronicleOperation = CreateChron $ testDir </> "chronicle" </> "chronicle2.yml"
     }
     -- here we don't want testLog, but a custom environment with TestMode Production
-    usePoseidonLogger NoLog Production PlinkPopNameAsFamily (runChronicle chronicleOpts2)
+    usePoseidonLogger NoLog Production PlinkPopNameAsFamily CharInf (runChronicle chronicleOpts2)
     -- add an additional poseidon package from the init directory
     copyDirectoryRecursive (testDir </> "init" </> "Schiffels") (testDir </> "chronicle" </> "Schiffels")
     -- delete a poseidon package
@@ -917,7 +918,7 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
           _chronicleBaseDirs  = [testDir </> "chronicle"]
         , _chronicleOperation = UpdateChron $ testDir </> "chronicle" </> "chronicle2.yml"
     }
-    usePoseidonLogger NoLog Production PlinkPopNameAsFamily  (runChronicle chronicleOpts3)
+    usePoseidonLogger NoLog Production PlinkPopNameAsFamily CharInf (runChronicle chronicleOpts3)
     -- and a final git commit to tie everything together
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " add --all"
     callCommand $ "git -C " ++ (testDir </> "chronicle") ++ " commit -m \"third commit\" --quiet"

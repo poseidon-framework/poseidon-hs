@@ -8,6 +8,7 @@ module Poseidon.Utils (
     PoseidonIO,
     envLogAction,
     envInputPlinkMode,
+    envErrorLength,
     LogMode (..),
     checkFile,
     getChecksum,
@@ -24,7 +25,8 @@ module Poseidon.Utils (
     TestMode(..),
     Env(..),
     uniquePO, uniqueRO,
-    showParsecErr
+    showParsecErr,
+    ErrorLength(..)
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -62,20 +64,22 @@ data TestMode = Testing | Production deriving Show
 data Env = Env {
     _envLogAction      :: LogA,
     _envTestMode       :: TestMode,
-    _envInputPlinkMode :: PlinkPopNameMode
+    _envInputPlinkMode :: PlinkPopNameMode,
+    _envErrorLength    :: ErrorLength
 }
 
 defaultEnv :: LogA -> Env
-defaultEnv logA = Env logA Production PlinkPopNameAsFamily
+defaultEnv logA = Env logA Production PlinkPopNameAsFamily CharInf
 
 type PoseidonIO = ReaderT Env IO
 
--- just two convenience helper functions
+-- just convenience helper functions
 envLogAction :: PoseidonIO LogA
 envLogAction = asks _envLogAction
-
 envInputPlinkMode :: PoseidonIO PlinkPopNameMode
 envInputPlinkMode = asks _envInputPlinkMode
+envErrorLength :: PoseidonIO ErrorLength
+envErrorLength = asks _envErrorLength
 
 data LogMode = NoLog
     | SimpleLog
@@ -84,15 +88,15 @@ data LogMode = NoLog
     | VerboseLog
     deriving Show
 
-usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
-usePoseidonLogger NoLog      testMode plinkMode = flip runReaderT (Env noLog testMode plinkMode)
-usePoseidonLogger SimpleLog  testMode plinkMode = flip runReaderT (Env simpleLog testMode plinkMode)
-usePoseidonLogger DefaultLog testMode plinkMode = flip runReaderT (Env defaultLog testMode plinkMode)
-usePoseidonLogger ServerLog  testMode plinkMode = flip runReaderT (Env serverLog testMode plinkMode)
-usePoseidonLogger VerboseLog testMode plinkMode = flip runReaderT (Env verboseLog testMode plinkMode)
+usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
+usePoseidonLogger NoLog      testMode plinkMode errLength = flip runReaderT (Env noLog testMode plinkMode errLength)
+usePoseidonLogger SimpleLog  testMode plinkMode errLength = flip runReaderT (Env simpleLog testMode plinkMode errLength)
+usePoseidonLogger DefaultLog testMode plinkMode errLength = flip runReaderT (Env defaultLog testMode plinkMode errLength)
+usePoseidonLogger ServerLog  testMode plinkMode errLength = flip runReaderT (Env serverLog testMode plinkMode errLength)
+usePoseidonLogger VerboseLog testMode plinkMode errLength = flip runReaderT (Env verboseLog testMode plinkMode errLength)
 
 testLog :: PoseidonIO a -> IO a
-testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily
+testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily CharInf
 --testLog = usePoseidonLogger VerboseLog Testing PlinkPopNameAsFamily
 
 noLog      :: LogA
@@ -148,6 +152,15 @@ logError = logMsg Error
 logWithEnv :: (MonadIO m) => LogA -> PoseidonIO () -> m ()
 logWithEnv logA = liftIO . flip runReaderT (defaultEnv logA)
 
+-- | A data type for error length settings
+data ErrorLength = CharInf | CharCount Int deriving Show
+
+truncateErr :: ErrorLength -> String -> String
+truncateErr CharInf         s = s
+truncateErr (CharCount len) s
+    | length s > len          = take len s ++ "... (see more with --errLength)"
+    | otherwise               = s
+
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException =
       PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
@@ -156,7 +169,7 @@ data PoseidonException =
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
-    | PoseidonGenotypeExceptionForward SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
+    | PoseidonGenotypeExceptionForward ErrorLength SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
     | PoseidonHttpExceptionForward HttpException -- ^ An exception to represent errors in the remote data loading forwarded from simpleHttp
     | PoseidonFileRowException FilePath String String -- ^ An exception to represent errors when trying to parse the janno or seqSource file
     | PoseidonFileConsistencyException FilePath String -- ^ An exception to represent consistency errors in janno or seqSource files
@@ -199,8 +212,8 @@ renderPoseidonException (PoseidonIndSearchException s) =
     show s
 renderPoseidonException (PoseidonGenotypeException s) =
     "Genotype data structurally inconsistent: " ++ show s
-renderPoseidonException (PoseidonGenotypeExceptionForward e) =
-    "Issues in genotype data parsing: " ++ show e
+renderPoseidonException (PoseidonGenotypeExceptionForward errLength e) =
+    "Issues in genotype data parsing: " ++ truncateErr errLength (show e)
 renderPoseidonException (PoseidonHttpExceptionForward (HttpExceptionRequest _ content)) =
     "Issues in HTTP-communication with server:\n" ++
     show content

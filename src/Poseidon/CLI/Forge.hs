@@ -38,8 +38,9 @@ import           Poseidon.SequencingSource   (SeqSourceRow (..),
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
-                                              envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning, uniqueRO)
+                                              envErrorLength, envInputPlinkMode,
+                                              envLogAction, logInfo, logWarning,
+                                              uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
@@ -200,6 +201,7 @@ runForge (
     logA <- envLogAction
     inPlinkPopMode <- envInputPlinkMode
     currentTime <- liftIO getCurrentTime
+    errLength <- envErrorLength
     newNrSNPs <- liftIO $ catch (
         runSafeT $ do
             (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logA intersect_ inPlinkPopMode relevantPackages maybeSnpFile
@@ -217,7 +219,7 @@ runForge (
                     P.tee outConsumer
             let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
             P.foldM sumNonMissingSNPs startAcc return forgePipe
-        ) (throwIO . PoseidonGenotypeExceptionForward)
+        ) (throwIO . PoseidonGenotypeExceptionForward errLength)
     logInfo "Done"
     -- janno (with updated SNP numbers)
     unless (minimal || onlyGeno) $ do

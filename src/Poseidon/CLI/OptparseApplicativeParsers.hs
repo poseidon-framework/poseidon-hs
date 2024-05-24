@@ -21,7 +21,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (ArchiveEndpoint (..))
-import           Poseidon.Utils             (LogMode (..), TestMode (..),
+import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
+                                             TestMode (..),
                                              renderPoseidonException,
                                              showParsecErr)
 import           Poseidon.Version           (VersionComponent (..),
@@ -128,8 +129,6 @@ parseTestMode = OP.option (OP.eitherReader readTestMode) (
             "Testing"    -> Right Testing
             "Production" -> Right Production
             _            -> Left "must be Testing or Production"
-
-data ErrorLength = CharInf | CharCount Int deriving Show
 
 parseErrorLength :: OP.Parser ErrorLength
 parseErrorLength = OP.option (OP.eitherReader readErrorLengthString) (
