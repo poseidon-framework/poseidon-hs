@@ -23,7 +23,8 @@ module Poseidon.Utils (
     PlinkPopNameMode(..),
     TestMode(..),
     Env(..),
-    uniquePO, uniqueRO
+    uniquePO, uniqueRO,
+    showParsecErr
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -51,6 +52,7 @@ import           Network.HTTP.Conduit   (HttpException (..))
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
+import qualified Text.Parsec.Error      as P
 
 type LogA = LogAction IO Message
 
@@ -163,7 +165,7 @@ data PoseidonException =
     | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
-    | PoseidonPoseidonEntityParsingException String -- ^ An exception to indicate failed entity parsing
+    | PoseidonPoseidonEntityParsingException P.ParseError -- ^ An exception to indicate failed entity parsing
     | PoseidonForgeEntitiesException String -- ^ An exception to indicate issues in the forge selection
     | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
@@ -219,8 +221,8 @@ renderPoseidonException (PoseidonFStatsFormatException s) =
     "Fstat specification error: " ++ s
 renderPoseidonException (PoseidonBibTeXException f s) =
     "BibTex problem in file " ++ f ++ ": " ++ s
-renderPoseidonException (PoseidonPoseidonEntityParsingException s) =
-    "Error when parsing the forge selection: " ++ s
+renderPoseidonException (PoseidonPoseidonEntityParsingException e) =
+    "Error when parsing the forge selection (either -f or --forgeFile): " ++ showParsecErr e
 renderPoseidonException (PoseidonForgeEntitiesException s) =
     "Error in the forge selection: " ++ s
 renderPoseidonException PoseidonEmptyForgeException =
@@ -302,3 +304,11 @@ uniquePO = go Set.empty
 -- reorderes the list according to the Ord instance of a
 uniqueRO :: (Ord a) => [a] -> [a]
 uniqueRO = Set.toList . Set.fromList
+
+-- helper function to render parsec errors neatly
+showParsecErr :: P.ParseError -> String
+showParsecErr err =
+    P.showErrorMessages
+        "or" "unknown parse error"
+        "expecting" "unexpected" "end of input"
+        (P.errorMessages err)

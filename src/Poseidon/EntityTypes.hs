@@ -301,7 +301,7 @@ checkIfAllEntitiesExist entities indInfoCollection = do
 -- parsing code to read entities from files
 readEntitiesFromString :: (EntitySpec a) => String -> Either PoseidonException [a]
 readEntitiesFromString s = case P.runParser (entitiesListP <* P.eof) () "" s of
-    Left p  -> Left $ PoseidonPoseidonEntityParsingException (show p)
+    Left p  -> Left $ PoseidonPoseidonEntityParsingException p
     Right x -> Right x
 
 readEntityInputs :: (MonadIO m, EntitySpec a, Eq a) => [EntityInput a] -> m [a] -- An empty list means that entities are wanted.
@@ -342,5 +342,5 @@ readEntitiesFromFile :: (EntitySpec a) => FilePath -> IO [a]
 readEntitiesFromFile entitiesFile = do
     eitherParseResult <- P.parseFromFile (entitiesListMultilineP <* P.eof) entitiesFile
     case eitherParseResult of
-        Left err -> throwIO (PoseidonPoseidonEntityParsingException (show err))
-        Right r  -> return r
+        Left e  -> throwIO (PoseidonPoseidonEntityParsingException e)
+        Right r -> return r

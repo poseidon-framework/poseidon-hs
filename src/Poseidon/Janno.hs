@@ -84,8 +84,8 @@ import           Data.Text                            (pack, replace, unpack)
 import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
-import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
+import           Generics.SOP.TH                      (deriveGeneric)
 import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),

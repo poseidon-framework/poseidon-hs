@@ -21,7 +21,9 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (ArchiveEndpoint (..))
-import           Poseidon.Utils             (LogMode (..), TestMode (..))
+import           Poseidon.Utils             (LogMode (..), TestMode (..),
+                                             renderPoseidonException,
+                                             showParsecErr)
 import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
 
@@ -82,7 +84,7 @@ parseMaybePoseidonVersion = OP.option (Just <$> OP.eitherReader readPoseidonVers
     where
         readPoseidonVersionString :: String -> Either String Version
         readPoseidonVersionString s = case P.runParser parseVersion () "" s of
-            Left p  -> Left (show p)
+            Left p  -> Left (showParsecErr p)
             Right x -> Right x
 
 parseDebugMode :: OP.Parser LogMode
@@ -229,7 +231,7 @@ parseContributors = OP.option (OP.eitherReader readContributorString) (
 
 readContributorString :: String -> Either String [ContributorSpec]
 readContributorString s = case P.runParser contributorSpecParser () "" s of
-    Left p  -> Left (show p)
+    Left p  -> Left (showParsecErr p)
     Right x -> Right x
 
 
@@ -302,7 +304,7 @@ parseForgeEntitiesDirect = OP.option (OP.eitherReader readSignedEntities) (
         \source package, they can be specified with the special syntax \"<package:group:individual>\".")
   where
     readSignedEntities s = case readEntitiesFromString s of
-        Left e  -> Left (show e)
+        Left e  -> Left $ renderPoseidonException e
         Right e -> Right e
 
 parseFetchEntitiesDirect :: OP.Parser EntitiesList
@@ -317,7 +319,7 @@ parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (
         \specified, then packages which include these groups or individuals are included in the download.")
   where
     readEntities s = case readEntitiesFromString s of
-        Left e  -> Left (show e)
+        Left e  -> Left $ renderPoseidonException e
         Right e -> Right e
 
 parseForgeEntitiesFromFile :: OP.Parser FilePath
