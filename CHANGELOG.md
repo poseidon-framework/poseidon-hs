@@ -1,3 +1,7 @@
+- V 1.5.2.0:
+    - Better error messages for parsec operations on command line input
+    - Better error messages for YML file parsing
+    - Refactored `--errLength` to exclusively cover exceptions of type `PoseidonGenotypeExceptionForward` emerging during genotype data parsing
 - V 1.5.0.1: Changed the release pipeline: `trident-macOS` was replaced by `trident-macOS-X64` and `trident-macOS-ARM64`.
 - V 1.5.0.0
     - Removed Josiah Carberry from `newPackageTemplate`, so that he doesn't get added any more to new packages created by `init` and `forge` - the contributor field is missing in the output of these commands now.
