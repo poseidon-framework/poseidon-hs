@@ -32,7 +32,8 @@ import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
                                          withText)
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
-import           Data.List              (groupBy, intercalate, nub, sortOn, (\\))
+import           Data.List              (groupBy, intercalate, nub, sortOn,
+                                         (\\))
 import           Data.Maybe             (isJust, isNothing, mapMaybe)
 import           Data.Text              (Text, pack, unpack)
 import           Data.Version           (Version, showVersion)
@@ -264,7 +265,7 @@ reportDuplicateIndividuals individuals = do -- loop over duplication groups
     return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
 
 resolveEntityIndices :: (EntitySpec a) => Bool -> [a] -> IndividualInfoCollection -> [Int]
-resolveEntityIndices True = resolveEntityIndicesOrdered
+resolveEntityIndices True  = resolveEntityIndicesOrdered
 resolveEntityIndices False = resolveEntityIndicesUnordered
 
 -- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
