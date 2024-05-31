@@ -904,17 +904,18 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatPlink
-        , _forgeOutMinimal   = True
+        , _forgeOutMinimal   = False
         , _forgeOutOnlyGeno  = False
-        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac2"
-        , _forgeOutPacName   = Nothing
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac18"
+        , _forgeOutPacName   = Just "ForgePac18"
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
         , _forgeOutputOrdered = True
     }
     let action18 = testLog (runForge forgeOpts18) >> patchLastModified testDir ("forge" </> "ForgePac18" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action18 "forge" [
-          "forge" </> "ForgePac18" </> "ForgePac18.janno"
+          "forge" </> "ForgePac18" </> "ForgePac18.janno",
+          "forge" </> "ForgePac18" </> "ForgePac18.fam"
         ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
