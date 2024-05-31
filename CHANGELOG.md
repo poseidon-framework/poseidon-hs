@@ -1,3 +1,6 @@
+- V 1.5.1.0:
+    - A new option `list --individuals --fullJanno` adds all standard columns from the Janno to the per-individual output.
+    - A new API option `/individuals?additionalJannoColumns=ALL` triggers the same behaviour for the Web API.
 - V 1.5.0.1: Changed the release pipeline: `trident-macOS` was replaced by `trident-macOS-X64` and `trident-macOS-ARM64`.
 - V 1.5.0.0
     - Removed Josiah Carberry from `newPackageTemplate`, so that he doesn't get added any more to new packages created by `init` and `forge` - the contributor field is missing in the output of these commands now.
