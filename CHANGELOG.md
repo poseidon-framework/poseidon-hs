@@ -1,3 +1,5 @@
+- V 1.5.2.0:
+    - A new option `forge --ordered` was added, which outputs the resulting package with individuals ordered according to the entered entities.
 - V 1.5.1.0:
     - A new option `list --individuals --fullJanno` adds all standard columns from the Janno to the per-individual output.
     - A new API option `/individuals?additionalJannoColumns=ALL` triggers the same behaviour for the Web API.
