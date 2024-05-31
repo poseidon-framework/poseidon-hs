@@ -32,7 +32,7 @@ import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
                                          withText)
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
-import           Data.List              (groupBy, intercalate, nub, sortOn)
+import           Data.List              (groupBy, intercalate, nub, sortOn, (\\))
 import           Data.Maybe             (isJust, isNothing, mapMaybe)
 import           Data.Text              (Text, pack, unpack)
 import           Data.Version           (Version, showVersion)
@@ -263,15 +263,35 @@ reportDuplicateIndividuals individuals = do -- loop over duplication groups
     duplicateGroup@(firstInd : _) <- filter ((>1) . length) . groupBy (\a b -> indInfoName a == indInfoName b) . sortOn indInfoName $ individuals
     return (firstInd, [SpecificInd n' (head g) p | IndividualInfo n' g p <- duplicateGroup])
 
--- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
-resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [Int]
-resolveEntityIndices entities (indInfos, areLatest) = do
-    let relevantIndizes = [ i | (i, ind, l) <- zip3 [0..] indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
-    return relevantIndizes
+resolveEntityIndices :: (EntitySpec a) => Bool -> [a] -> IndividualInfoCollection -> [Int]
+resolveEntityIndices True = resolveEntityIndicesOrdered
+resolveEntityIndices False = resolveEntityIndicesUnordered
 
-resolveUniqueEntityIndices :: (EntitySpec a) => [a] -> IndividualInfoCollection -> PoseidonIO [Int]
-resolveUniqueEntityIndices entities indInfoCollection = do
-    relevantIndices <- resolveEntityIndices entities indInfoCollection
+-- | this finds the indices of all individuals from an individual-list which are specified in the Entity list
+resolveEntityIndicesUnordered :: (EntitySpec a) => [a] -> IndividualInfoCollection -> [Int]
+resolveEntityIndicesUnordered entities (indInfos, areLatest) =
+    [ i | (i, ind, l) <- zip3 [0..] indInfos areLatest, indInfoConformsToEntitySpecs ind l entities ]
+
+-- | this finds the indices of all individuals from an individual-list which are specified in the Entity list, ordered by the entity list
+resolveEntityIndicesOrdered :: (EntitySpec a) => [a] -> IndividualInfoCollection -> [Int]
+resolveEntityIndicesOrdered entities (indInfos, areLatest) = go [] entities
+  where
+    go :: (EntitySpec a) => [Int] -> [a] -> [Int]
+    go selectedIndices [] = selectedIndices
+    go selectedIndices (entity:restEntities)=
+        -- We first check whether any already selected indices are removed due to the new entity (can happen if the entity is signed and negative)
+        let selectedInds   = map (indInfos!!) selectedIndices
+            selectedLatest = map (areLatest!!) selectedIndices
+            selectedUpdated = [i | (i, ind, l) <- zip3 selectedIndices selectedInds selectedLatest, indInfoConformsToEntitySpec ind l entity /= Just False]
+            -- We then check which indices are found according to the new entity...
+            additionalIndicesAll = [ i | (i, ind, l) <- zip3 [0..] indInfos areLatest, indInfoConformsToEntitySpec ind l entity == Just True]
+            -- ... and use only the ones that are not already selected:
+            additionalIndicesNew = additionalIndicesAll \\ selectedUpdated
+        in  go (selectedUpdated ++ additionalIndicesNew) restEntities
+
+resolveUniqueEntityIndices :: (EntitySpec a) => Bool -> [a] -> IndividualInfoCollection -> PoseidonIO [Int]
+resolveUniqueEntityIndices isOrdered entities indInfoCollection = do
+    let relevantIndices = resolveEntityIndices isOrdered entities indInfoCollection
     let duplicateReport = reportDuplicateIndividuals . map ((fst indInfoCollection) !!) $ relevantIndices
     -- check if there still are duplicates and if yes, then stop
     unless (null duplicateReport) $ do
@@ -285,13 +305,13 @@ resolveUniqueEntityIndices entities indInfoCollection = do
     return relevantIndices
 
 -- | this returns a list of entities which could not be found
-determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m EntitiesList
-determineNonExistentEntities entities indInfoCollection = do
-    return [ entity | entity <- map underlyingEntity entities, indices <- resolveEntityIndices [entity] indInfoCollection, null indices]
+determineNonExistentEntities :: (EntitySpec a) => [a] -> IndividualInfoCollection -> EntitiesList
+determineNonExistentEntities entities indInfoCollection =
+    [ entity | entity <- map underlyingEntity entities, null (resolveEntityIndices False [entity] indInfoCollection)]
 
 checkIfAllEntitiesExist :: (EntitySpec a) => [a] -> IndividualInfoCollection -> PoseidonIO ()
 checkIfAllEntitiesExist entities indInfoCollection = do
-    nonExistentEntities <- determineNonExistentEntities entities indInfoCollection
+    let nonExistentEntities = determineNonExistentEntities entities indInfoCollection
     unless (null nonExistentEntities) $ do
         logError "The following entities could not be found in the dataset"
         forM_ nonExistentEntities (logError . show)

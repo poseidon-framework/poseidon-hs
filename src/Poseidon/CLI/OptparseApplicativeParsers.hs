@@ -848,3 +848,5 @@ parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (
     OP.value Nothing
     )
 
+parseOutputOrdered :: OP.Parser Bool
+parseOutputOrdered = OP.switch (OP.long "ordered" <> OP.help "With this option, the output of forge is ordered according to the entities given.")

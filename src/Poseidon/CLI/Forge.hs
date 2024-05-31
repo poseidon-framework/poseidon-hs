@@ -77,6 +77,7 @@ data ForgeOptions = ForgeOptions
     , _forgeOutPacName         :: Maybe String
     , _forgePackageWise        :: Bool
     , _forgeOutputPlinkPopMode :: PlinkPopNameMode
+    , _forgeOutputOrdered      :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -93,6 +94,7 @@ runForge (
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
                  packageWise outPlinkPopMode
+                 outputOrdered
     ) = do
 
     -- load packages --
@@ -137,7 +139,7 @@ runForge (
             else entities
 
     -- determine indizes of relevant individuals
-    relevantIndices <- resolveUniqueEntityIndices relevantEntities indInfoCollection
+    relevantIndices <- resolveUniqueEntityIndices outputOrdered relevantEntities indInfoCollection
 
     -- collect data --
     -- janno
