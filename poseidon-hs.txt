@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.0.1
+@version 1.5.1.0
 
 module Poseidon.Contributor
 
@@ -973,6 +973,9 @@ qDefault :: Maybe String -> String
 qArchive :: Maybe String -> String
 qPacVersion :: Maybe Version -> String
 (+&+) :: String -> String -> String
+data AddJannoColSpec
+AddJannoColList :: [String] -> AddJannoColSpec
+AddJannoColAll :: AddJannoColSpec
 instance GHC.Classes.Ord Poseidon.ServerClient.PackageInfo
 instance GHC.Classes.Eq Poseidon.ServerClient.PackageInfo
 instance GHC.Classes.Eq Poseidon.ServerClient.GroupInfo
@@ -1201,7 +1204,7 @@ readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions -> [FilePat
 getJointGenotypeData :: MonadSafe m => LogA -> Bool -> PlinkPopNameMode -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointIndividualInfo :: MonadThrow m => [PoseidonPackage] -> m IndividualInfoCollection
-getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> [String] -> m [ExtendedIndividualInfo]
+getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> AddJannoColSpec -> m [ExtendedIndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
@@ -1394,13 +1397,15 @@ ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> Bool -> ListOptions
 
 -- | whether to output raw TSV instead of a nicely formatted table
 [_listRawOutput] :: ListOptions -> Bool
+
+-- | whether to show only latest versions of packages
 [_listOnlyLatest] :: ListOptions -> Bool
 
 -- | A datatype to represent the options what to list
 data ListEntity
 ListPackages :: ListEntity
 ListGroups :: ListEntity
-ListIndividuals :: [String] -> ListEntity
+ListIndividuals :: AddJannoColSpec -> ListEntity
 data RepoLocationSpec
 RepoLocal :: [FilePath] -> RepoLocationSpec
 RepoRemote :: ArchiveEndpoint -> RepoLocationSpec
