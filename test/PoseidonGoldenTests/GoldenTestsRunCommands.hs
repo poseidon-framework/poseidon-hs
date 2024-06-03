@@ -915,7 +915,8 @@ testPipelineForge testDir checkFilePath = do
     let action18 = testLog (runForge forgeOpts18) >> patchLastModified testDir ("forge" </> "ForgePac18" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action18 "forge" [
           "forge" </> "ForgePac18" </> "ForgePac18.janno",
-          "forge" </> "ForgePac18" </> "ForgePac18.fam"
+          "forge" </> "ForgePac18" </> "ForgePac18.fam",
+          "forge" </> "ForgePac18" </> "ForgePac18.bed"
         ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()

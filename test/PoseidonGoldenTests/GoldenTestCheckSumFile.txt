@@ -95,6 +95,7 @@ c3ea6ad176514659f44ffb71291117d0 forge forge/ForgePac16/ForgePac16.janno
 4e3c2fcf7c1f3b2de916666c3abdd53c forge forge/ForgePac17/ForgePac17.janno
 8ad890117500b83c206729a8126d8a51 forge forge/ForgePac18/ForgePac18.janno
 3fc77f5a5b83ac4fc7b082c9b3ee4ba1 forge forge/ForgePac18/ForgePac18.fam
+842885ffe256819b264991384020c2ac forge forge/ForgePac18/ForgePac18.bed
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
