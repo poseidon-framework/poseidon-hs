@@ -220,6 +220,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
                               <*> parseOutputPlinkPopMode
+                              <*> parseOutputOrdered
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
