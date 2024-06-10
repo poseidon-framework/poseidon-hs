@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.1.0
+@version 1.5.2.0
 
 module Poseidon.Contributor
 
@@ -880,7 +880,7 @@ isLatestInCollection :: (MonadThrow m, HasNameAndVersion a) => [a] -> a -> m Boo
 -- | A class to generalise signed and unsigned Entity Lists. Both have the
 --   feature that they can be used to filter individuals.
 class EntitySpec a
-resolveUniqueEntityIndices :: EntitySpec a => [a] -> IndividualInfoCollection -> PoseidonIO [Int]
+resolveUniqueEntityIndices :: EntitySpec a => Bool -> [a] -> IndividualInfoCollection -> PoseidonIO [Int]
 
 -- | this function checks whether a given individual info is selected by a
 --   given list of entities.
@@ -891,7 +891,7 @@ readEntitiesFromFile :: EntitySpec a => FilePath -> IO [a]
 readEntitiesFromString :: EntitySpec a => String -> Either PoseidonException [a]
 
 -- | this returns a list of entities which could not be found
-determineNonExistentEntities :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m EntitiesList
+determineNonExistentEntities :: EntitySpec a => [a] -> IndividualInfoCollection -> EntitiesList
 
 -- | determine all packages with versions that contain individuals covered
 --   by the given entities
@@ -902,10 +902,7 @@ EntitiesDirect :: [a] -> EntityInput a
 EntitiesFromFile :: FilePath -> EntityInput a
 readEntityInputs :: (MonadIO m, EntitySpec a, Eq a) => [EntityInput a] -> m [a]
 checkIfAllEntitiesExist :: EntitySpec a => [a] -> IndividualInfoCollection -> PoseidonIO ()
-
--- | this finds the indices of all individuals from an individual-list
---   which are specified in the Entity list
-resolveEntityIndices :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [Int]
+resolveEntityIndices :: EntitySpec a => Bool -> [a] -> IndividualInfoCollection -> [Int]
 
 -- | takes a list of selected individuals, checks for duplicates and
 --   reports a list of individuals with suggested Entity specifications
@@ -1429,7 +1426,7 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
@@ -1441,6 +1438,7 @@ ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgePackageWise] :: ForgeOptions -> Bool
 [_forgeOutputPlinkPopMode] :: ForgeOptions -> PlinkPopNameMode
+[_forgeOutputOrdered] :: ForgeOptions -> Bool
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
@@ -1656,4 +1654,5 @@ parseJannocoalOverride :: Parser Bool
 parseJannocoalSourceKey :: Parser String
 parseJannocoalTargetKey :: Parser String
 parseJannocoalIdStripRegex :: Parser (Maybe String)
+parseOutputOrdered :: Parser Bool
 instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
