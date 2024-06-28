@@ -4,7 +4,9 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.EntityTypes        (EntityInput, PoseidonEntity (..),
+import           Poseidon.EntityTypes        (EntityInput,
+                                              PacNameAndVersion (..),
+                                              PoseidonEntity (..),
                                               SignedEntity (..),
                                               checkIfAllEntitiesExist,
                                               isLatestInCollection,
@@ -36,10 +38,10 @@ import           Poseidon.SequencingSource   (SeqSourceRow (..),
                                               SeqSourceRows (..),
                                               writeSeqSourceFile)
 import           Poseidon.Utils              (PoseidonException (..),
-                                              PoseidonIO,
+                                              PoseidonIO, checkFile,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning, uniqueRO, checkFile)
+                                              logInfo, logWarning, uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
@@ -59,7 +61,8 @@ import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
 import           SequenceFormats.Plink       (PlinkPopNameMode,
                                               eigenstratInd2PlinkFam,
                                               writePlink)
-import           System.Directory            (createDirectoryIfMissing, copyFile)
+import           System.Directory            (copyFile,
+                                              createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
 
@@ -175,7 +178,7 @@ runForge (
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create package
     logInfo "Creating new package entity"
-    pacAutochthonous <- 
+    pacAutochthonous <-
             if minimal
             then return $ newMinimalPackageTemplate outPath outName genotypeData
             else newPackageTemplate
@@ -191,10 +194,12 @@ runForge (
             if preservePyml
             then
                 pacAutochthonous {
-                    posPacDescription   = posPacDescription pacSource
-                ,   posPacContributor   = posPacContributor pacSource
-                ,   posPacReadmeFile    = posPacReadmeFile pacSource
-                ,   posPacChangelogFile = posPacChangelogFile pacSource
+                    posPacNameAndVersion = (posPacNameAndVersion pacSource) {panavName = outName}
+                ,   posPacDescription    = posPacDescription pacSource
+                ,   posPacLastModified   = posPacLastModified pacSource
+                ,   posPacContributor    = posPacContributor pacSource
+                ,   posPacReadmeFile     = posPacReadmeFile pacSource
+                ,   posPacChangelogFile  = posPacChangelogFile pacSource
                 }
             else pacAutochthonous
 
