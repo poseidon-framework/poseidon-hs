@@ -849,4 +849,15 @@ parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (
     )
 
 parseOutputOrdered :: OP.Parser Bool
-parseOutputOrdered = OP.switch (OP.long "ordered" <> OP.help "With this option, the output of forge is ordered according to the entities given.")
+parseOutputOrdered = OP.switch (
+    OP.long "ordered" <>
+    OP.help "With this option, the output of forge is ordered according to the entities given."
+    )
+
+parsePreservePyml :: OP.Parser Bool
+parsePreservePyml = OP.switch (
+    OP.long "preservePyml" <>
+    OP.help "With this option, some fields of the source package's POSEIDON.yml file, \
+            \its README file and its CHANGELOG file (if available) are copied \
+            \to the output package. Only works in case of a single source package."
+    )
