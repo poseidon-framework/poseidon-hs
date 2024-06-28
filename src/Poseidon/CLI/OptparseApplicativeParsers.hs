@@ -20,7 +20,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.ServerClient      (AddJannoColSpec (..), ArchiveEndpoint (..))
+import           Poseidon.ServerClient      (AddJannoColSpec (..),
+                                             ArchiveEndpoint (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              TestMode (..),
                                              renderPoseidonException,
