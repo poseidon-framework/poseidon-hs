@@ -39,7 +39,7 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning, uniqueRO)
+                                              logInfo, logWarning, uniqueRO, checkFile)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
@@ -59,7 +59,7 @@ import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
 import           SequenceFormats.Plink       (PlinkPopNameMode,
                                               eigenstratInd2PlinkFam,
                                               writePlink)
-import           System.Directory            (createDirectoryIfMissing)
+import           System.Directory            (createDirectoryIfMissing, copyFile)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
 
@@ -78,6 +78,7 @@ data ForgeOptions = ForgeOptions
     , _forgePackageWise        :: Bool
     , _forgeOutputPlinkPopMode :: PlinkPopNameMode
     , _forgeOutputOrdered      :: Bool
+    , _forgePreservePyml       :: Bool
     }
 
 pacReadOpts :: PackageReadOptions
@@ -94,7 +95,7 @@ runForge (
                  entityInputs maybeSnpFile intersect_
                  outFormat minimal onlyGeno outPathRaw maybeOutName
                  packageWise outPlinkPopMode
-                 outputOrdered
+                 outputOrdered preservePyml
     ) = do
 
     -- load packages --
@@ -128,6 +129,7 @@ runForge (
     relevantPackages <- filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
+    when (length relevantPackages > 1 && preservePyml) $ liftIO $ throwIO PoseidonCantPreserveException
 
     -- get all individuals from the relevant packages
     indInfoCollection <- getJointIndividualInfo relevantPackages
@@ -173,15 +175,28 @@ runForge (
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
     -- create package
     logInfo "Creating new package entity"
-    pac <- if minimal
-        then return $ newMinimalPackageTemplate outPath outName genotypeData
-        else newPackageTemplate
+    pacAutochthonous <- 
+            if minimal
+            then return $ newMinimalPackageTemplate outPath outName genotypeData
+            else newPackageTemplate
                     outPath
                     outName
                     genotypeData
                     (Just (Right newJanno))
                     relevantSeqSourceRows
                     relevantBibEntries
+    -- adjust template in case of preservePyml
+    let pacSource = head relevantPackages
+    let pac =
+            if preservePyml
+            then
+                pacAutochthonous {
+                    posPacDescription   = posPacDescription pacSource
+                ,   posPacContributor   = posPacContributor pacSource
+                ,   posPacReadmeFile    = posPacReadmeFile pacSource
+                ,   posPacChangelogFile = posPacChangelogFile pacSource
+                }
+            else pacAutochthonous
 
     -- write new package to the file system --
     -- POSEIDON.yml
@@ -196,6 +211,22 @@ runForge (
     unless (minimal || onlyGeno || null relevantBibEntries) $ do
         logInfo "Creating .bib file"
         liftIO $ writeBibTeXFile (outPath </> outName <.> "bib") relevantBibEntries
+    -- README
+    case (preservePyml, posPacReadmeFile pacSource) of
+        (True, Just path) -> do
+            logInfo "Copying README file from source package"
+            let fullSourcePath = posPacBaseDir pacSource </> path
+            liftIO $ checkFile fullSourcePath Nothing
+            liftIO $ copyFile fullSourcePath $ outPath </> path
+        (_,_) -> return ()
+    -- CHANGELOG
+    case (preservePyml, posPacChangelogFile pacSource) of
+        (True, Just path) -> do
+            logInfo "Copying CHANGELOG file from source package"
+            let fullSourcePath = posPacBaseDir pacSource </> path
+            liftIO $ checkFile fullSourcePath Nothing
+            liftIO $ copyFile fullSourcePath $ outPath </> path
+        (_,_) -> return ()
     -- genotype data
     logInfo "Compiling genotype data"
     logInfo "Processing SNPs..."
