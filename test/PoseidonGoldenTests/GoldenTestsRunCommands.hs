@@ -34,7 +34,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.ServerClient      (ArchiveEndpoint (..))
+import           Poseidon.ServerClient      (AddJannoColSpec (..),
+                                             ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
                                              getChecksum, testLog,
                                              usePoseidonLogger)
@@ -332,7 +333,7 @@ testPipelineList testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals ["Country", "Nr_SNPs"]
+          _listListEntity    = ListIndividuals (AddJannoColList ["Country", "Nr_SNPs"])
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {
@@ -343,6 +344,10 @@ testPipelineList testDir checkFilePath = do
           _listOnlyLatest     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "list" 5
+    let listOpts6 = listOpts1 {
+          _listListEntity    = ListIndividuals AddJannoColAll
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts6) "list" 6
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
@@ -513,6 +518,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac1"
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action1 = testLog (runForge forgeOpts1) >> patchLastModified testDir ("forge" </> "ForgePac1" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "forge" [
@@ -535,6 +541,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action2 = testLog (runForge forgeOpts2) >> patchLastModified testDir ("forge" </> "ForgePac2" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "forge" [
@@ -554,6 +561,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action3 = testLog (runForge forgeOpts3) >> patchLastModified testDir ("forge" </> "ForgePac3" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "forge" [
@@ -577,6 +585,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action4 = testLog (runForge forgeOpts4) >> patchLastModified testDir ("forge" </> "ForgePac4" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "forge" [
@@ -600,6 +609,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgePackageWise  = False
         , _forgeSnpFile      = Nothing
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action5 = testLog (runForge forgeOpts5) >> patchLastModified testDir ("forge" </> "ForgePac5" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action5 "forge" [
@@ -644,6 +654,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgePackageWise  = False
         , _forgeSnpFile      = Nothing
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action6 = testLog (runForge forgeOpts6)
     runAndChecksumFiles checkFilePath testDir action6 "forge" [
@@ -677,6 +688,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgePackageWise  = False
         , _forgeSnpFile      = Nothing
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action7 = testLog (runForge forgeOpts7) >> patchLastModified testDir ("forge" </> "ForgePac7" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action7 "forge" [
@@ -698,6 +710,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac8"
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action8 = testLog (runForge forgeOpts8) >> patchLastModified testDir ("forge" </> "ForgePac8" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action8 "forge" [
@@ -717,6 +730,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac9"
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action9 = testLog (runForge forgeOpts9) >> patchLastModified testDir ("forge" </> "ForgePac9" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action9 "forge" [
@@ -737,6 +751,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac10"
         , _forgePackageWise    = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action10 = testLog (runForge forgeOpts10) >> patchLastModified testDir ("forge" </> "ForgePac10" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action10 "forge" [
@@ -758,6 +773,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac11"
         , _forgePackageWise  = True
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action11 = testLog (runForge forgeOpts11) >> patchLastModified testDir ("forge" </> "ForgePac11" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action11 "forge" [
@@ -778,6 +794,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac12"
         , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action12 = testLog (runForge forgeOpts12) >> patchLastModified testDir ("forge" </> "ForgePac12" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action12 "forge" [
@@ -796,6 +813,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac13"
         , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action13 = testLog (runForge forgeOpts13) >> patchLastModified testDir ("forge" </> "ForgePac13" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action13 "forge" [
@@ -815,6 +833,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac14"
         , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action14 = testLog (runForge forgeOpts14) >> patchLastModified testDir ("forge" </> "ForgePac14" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action14 "forge" [
@@ -834,6 +853,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac15"
         , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action15 = testLog (runForge forgeOpts15) >> patchLastModified testDir ("forge" </> "ForgePac15" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action15 "forge" [
@@ -853,6 +873,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac16"
         , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action16 = testLog (runForge forgeOpts16) >> patchLastModified testDir ("forge" </> "ForgePac16" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action16 "forge" [
@@ -872,10 +893,31 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacName   = Just "ForgePac17"
         , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
     }
     let action17 = testLog (runForge forgeOpts17) >> patchLastModified testDir ("forge" </> "ForgePac17" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action17 "forge" [
           "forge" </> "ForgePac17" </> "ForgePac17.janno"
+        ]
+    let forgeOpts18 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3,<XXX004>,<XXX006>,<XXX003>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeOutMinimal   = False
+        , _forgeOutOnlyGeno  = False
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac18"
+        , _forgeOutPacName   = Just "ForgePac18"
+        , _forgePackageWise    = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = True
+    }
+    let action18 = testLog (runForge forgeOpts18) >> patchLastModified testDir ("forge" </> "ForgePac18" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action18 "forge" [
+          "forge" </> "ForgePac18" </> "ForgePac18.janno",
+          "forge" </> "ForgePac18" </> "ForgePac18.fam",
+          "forge" </> "ForgePac18" </> "ForgePac18.bed"
         ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
@@ -1070,7 +1112,7 @@ testPipelineListRemote testDir checkFilePath = do
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
         let listOpts3 = listOpts1 {
-              _listListEntity    = ListIndividuals ["Publication"]
+              _listListEntity    = ListIndividuals (AddJannoColList ["Publication"])
             , _listRawOutput     = True
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
@@ -1083,6 +1125,12 @@ testPipelineListRemote testDir checkFilePath = do
             , _listOnlyLatest   = False
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
+
+        let listOpts5 = listOpts1 {
+              _listListEntity    = ListIndividuals AddJannoColAll
+            , _listRawOutput     = True
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "listRemote" 5
         ) (
         killThread threadID
         )

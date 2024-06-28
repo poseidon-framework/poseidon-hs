@@ -21,6 +21,7 @@ b18847f5498ae55882689b75916fdf64 list list/list2
 63ef5f277f6f29163192382234211224 list list/list3
 1c1f24de305405ece44393d378c0e15a list list/list4
 bc636b9c03ea9359acd254a9911e5af3 list list/list5
+ad5590b0ad65e64d6b2c8d874571c9f8 list list/list6
 b197fb8dd883c7469a4791e4a677f1c0 summarise summarise/summarise1
 d9e4b3f15d4e129a365d2064198d95b6 summarise summarise/summarise2
 a1186fdad9ed555dff4dd61dc9838645 survey survey/survey1
@@ -92,6 +93,9 @@ d2d112d9de2e45a113ac206f64a0667e forge forge/ForgePac13/ForgePac13.janno
 c3ea6ad176514659f44ffb71291117d0 forge forge/ForgePac15/ForgePac15.janno
 c3ea6ad176514659f44ffb71291117d0 forge forge/ForgePac16/ForgePac16.janno
 4e3c2fcf7c1f3b2de916666c3abdd53c forge forge/ForgePac17/ForgePac17.janno
+8ad890117500b83c206729a8126d8a51 forge forge/ForgePac18/ForgePac18.janno
+3fc77f5a5b83ac4fc7b082c9b3ee4ba1 forge forge/ForgePac18/ForgePac18.fam
+842885ffe256819b264991384020c2ac forge forge/ForgePac18/ForgePac18.bed
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
@@ -113,6 +117,7 @@ b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_2/Lamnidis_2018-1.0.
 0ddad9ea097bca0253e0c3c6157efa68 listRemote listRemote/listRemote2
 b2286cf9af7c6c8757b8109a1f58e2d9 listRemote listRemote/listRemote3
 0433b2a80ee5a2eb5bf8c6404130e562 listRemote listRemote/listRemote4
+8a13e5b31acabca6839100f411c38453 listRemote listRemote/listRemote5
 282cedf121f37e81c1e45ec0dfb97560 jannocoalesce jannocoalesce/target1.janno
 df34d0542c0a94cf9556619bff2e301d jannocoalesce jannocoalesce/target2.janno
 a202f0c1636d55258454ad0a0dfea977 jannocoalesce jannocoalesce/target3.janno

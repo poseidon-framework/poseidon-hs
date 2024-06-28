@@ -20,7 +20,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.ServerClient      (ArchiveEndpoint (..))
+import           Poseidon.ServerClient      (AddJannoColSpec (..), ArchiveEndpoint (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              TestMode (..),
                                              renderPoseidonException,
@@ -601,7 +601,8 @@ parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividual
     parseListIndividualsDummy = OP.flag' () (
         OP.long "individuals" <>
         OP.help "List all individuals/samples.")
-    parseListIndividualsExtraCols = ListIndividuals <$> OP.many parseExtraCol
+    parseListIndividualsExtraCols = ListIndividuals <$> (parseAllJannoCols <|> (AddJannoColList <$> OP.many parseExtraCol))
+    parseAllJannoCols = OP.flag' AddJannoColAll (OP.long "fullJanno" <> OP.help "output all Janno Columns")
     parseExtraCol = OP.strOption (
         OP.short 'j' <>
         OP.long "jannoColumn" <>
@@ -847,3 +848,5 @@ parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (
     OP.value Nothing
     )
 
+parseOutputOrdered :: OP.Parser Bool
+parseOutputOrdered = OP.switch (OP.long "ordered" <> OP.help "With this option, the output of forge is ordered according to the entities given.")
