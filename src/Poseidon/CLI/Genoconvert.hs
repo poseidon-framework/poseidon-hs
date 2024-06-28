@@ -15,8 +15,9 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
-import           Poseidon.Utils             (PoseidonIO, envInputPlinkMode,
-                                             envLogAction, logInfo, logWarning)
+import           Poseidon.Utils             (PoseidonIO, envErrorLength,
+                                             envInputPlinkMode, envLogAction,
+                                             logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
@@ -96,6 +97,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
             logInfo "Processing SNPs..."
             logA <- envLogAction
             currentTime <- liftIO getCurrentTime
+            errLength <- envErrorLength
             liftIO $ catch (
                 runSafeT $ do
                     (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) inPlinkPopMode
@@ -103,7 +105,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
                             GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
                             GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
                     runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
-                ) (throwIO . PoseidonGenotypeExceptionForward)
+                ) (throwIO . PoseidonGenotypeExceptionForward errLength)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || isJust outPath) $ do

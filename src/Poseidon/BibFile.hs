@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
 
-import           Poseidon.Utils                     (PoseidonException (..))
+import           Poseidon.Utils                     (PoseidonException (..),
+                                                     showParsecErr)
 
 import           Control.Exception                  (throwIO)
 import           Control.Monad                      (forM_, liftM2, liftM3)
@@ -52,7 +53,7 @@ readBibTeXFile :: FilePath -> IO BibTeX
 readBibTeXFile bibPath = do
     res <- parseFromFile bibFileParser bibPath
     case res of
-        Left err   -> throwIO $ PoseidonBibTeXException bibPath (show err)
+        Left err   -> throwIO $ PoseidonBibTeXException bibPath $ showParsecErr err
         Right res_ -> return res_
 
 {-
