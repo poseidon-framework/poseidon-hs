@@ -91,13 +91,13 @@ data ForgeOutMode =
 
 onlyGeno :: ForgeOutMode -> Bool
 onlyGeno GenoOut = True
-onlyGeno _ = False
+onlyGeno _       = False
 minimal :: ForgeOutMode -> Bool
 minimal MinimalOut = True
-minimal _ = False
+minimal _          = False
 preservePyml :: ForgeOutMode -> Bool
 preservePyml PreservePymlOut = True
-preservePyml _ = False
+preservePyml _               = False
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -191,7 +191,7 @@ runForge (
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
     let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
-    
+
     -- assemble and write result depending on outMode --
     logInfo "Creating new package entity"
     let pacSource = head relevantPackages

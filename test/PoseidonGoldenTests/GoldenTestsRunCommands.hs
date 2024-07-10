@@ -5,7 +5,9 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
     ) where
 
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge, ForgeOutMode (NormalOut, MinimalOut, GenoOut))
+import           Poseidon.CLI.Forge         (ForgeOptions (..),
+                                             ForgeOutMode (GenoOut, MinimalOut, NormalOut),
+                                             runForge)
 import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
                                              runGenoconvert)
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)

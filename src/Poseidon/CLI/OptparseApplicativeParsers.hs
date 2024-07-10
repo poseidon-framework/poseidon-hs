@@ -3,6 +3,7 @@
 module Poseidon.CLI.OptparseApplicativeParsers where
 
 import           Poseidon.CLI.Chronicle     (ChronOperation (..))
+import           Poseidon.CLI.Forge         (ForgeOutMode (..))
 import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              JannoSourceSpec (..))
 import           Poseidon.CLI.List          (ListEntity (..),
@@ -25,7 +26,6 @@ import           Poseidon.ServerClient      (AddJannoColSpec (..),
 import           Poseidon.Utils             (LogMode (..), TestMode (..))
 import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
-import Poseidon.CLI.Forge (ForgeOutMode (..))
 
 import           Control.Applicative        ((<|>))
 import qualified Data.ByteString.Char8      as BSC
