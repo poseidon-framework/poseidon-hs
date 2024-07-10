@@ -196,7 +196,7 @@ runForge (
     logInfo "Creating new package entity"
     let pacSource = head relevantPackages
     case outMode of
-        GenoOut    -> do
+        GenoOut -> do
             _ <- compileGenotypeData outPath (outInd, outSnp, outGeno) relevantPackages relevantIndices
             return ()
         MinimalOut -> do
@@ -224,7 +224,7 @@ runForge (
             writingJannoFile outPath outName newNrSnps relevantJannoRows
         NormalOut  -> do
             pac <- newPackageTemplate outPath outName genotypeData
-                        (Just (Right newJanno)) relevantSeqSourceRows relevantBibEntries
+                    (Just (Right newJanno)) relevantSeqSourceRows relevantBibEntries
             writePoseidonYmlFile pac
             writeSSFile outPath outName relevantSeqSourceRows
             writeBibFile outPath outName relevantBibEntries

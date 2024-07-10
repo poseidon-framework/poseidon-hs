@@ -215,7 +215,6 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
                               <*> parseForgeOutMode
-                              <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
