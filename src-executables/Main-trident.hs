@@ -214,14 +214,13 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
-                              <*> parseMinimalOutput
+                              <*> parseForgeOutMode
                               <*> parseOutOnlyGeno
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
                               <*> parseOutputPlinkPopMode
                               <*> parseOutputOrdered
-                              <*> parsePreservePyml
 
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
