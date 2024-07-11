@@ -1,7 +1,11 @@
+- V 1.5.4.0:
+    - Better error messages for parsec operations on command line input.
+    - Better error messages for YML file parsing.
+    - Refactored `--errLength` to exclusively cover exceptions of type `PoseidonGenotypeExceptionForward` emerging during genotype data parsing.
 - V 1.5.3.0:
-    - Better error messages for parsec operations on command line input
-    - Better error messages for YML file parsing
-    - Refactored `--errLength` to exclusively cover exceptions of type `PoseidonGenotypeExceptionForward` emerging during genotype data parsing
+    - Introduced a new output option `forge --preservePyml` to preserve certain features of the input package, in case there is only one.
+    - Refactored the out mode selection in `forge` to replace an increasingly complex boolean logic with a clear separation of modes based on the new type `ForgeOutMode`.
+    - Thus made the output modes `--onlyGeno`, `--minimal`, `--preservePyml` and the default mutually exclusive to rule out (increasingly complex) interactions.
 - V 1.5.2.0:
     - A new option `forge --ordered` was added, which outputs the resulting package with individuals ordered according to the entered entities.
 - V 1.5.1.0:

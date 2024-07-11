@@ -3,6 +3,7 @@
 module Poseidon.CLI.OptparseApplicativeParsers where
 
 import           Poseidon.CLI.Chronicle     (ChronOperation (..))
+import           Poseidon.CLI.Forge         (ForgeOutMode (..))
 import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              JannoSourceSpec (..))
 import           Poseidon.CLI.List          (ListEntity (..),
@@ -553,16 +554,40 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     OP.showDefault
     )
 
-parseMinimalOutput :: OP.Parser Bool
-parseMinimalOutput = OP.switch (
-    OP.long "minimal" <>
-    OP.help "Should the output data be reduced to a necessary minimum and omit empty scaffolding?")
+parseForgeOutMode :: OP.Parser ForgeOutMode
+parseForgeOutMode =
+        parseOutOnlyGenoFlag
+    <|> parseMinimalOutputFlag
+    <|> parsePreservePymlFlag
+    <|> pure NormalOut
 
-parseOutOnlyGeno :: OP.Parser Bool
-parseOutOnlyGeno = OP.switch (
+parseOutOnlyGenoFlag :: OP.Parser ForgeOutMode
+parseOutOnlyGenoFlag = OP.flag' GenoOut onlyGenoOutputDocu
+parseOutOnlyGenoSwitch :: OP.Parser Bool
+parseOutOnlyGenoSwitch = OP.switch onlyGenoOutputDocu
+onlyGenoOutputDocu :: OP.Mod OP.FlagFields a
+onlyGenoOutputDocu =
     OP.long "onlyGeno" <>
     OP.help "Should only the resulting genotype data be returned? This means the output will not \
-            \be a Poseidon package.")
+            \be a Poseidon package."
+
+parseMinimalOutputFlag :: OP.Parser ForgeOutMode
+parseMinimalOutputFlag = OP.flag' MinimalOut minimalOutputDocu
+parseMinimalOutputSwitch :: OP.Parser Bool
+parseMinimalOutputSwitch = OP.switch minimalOutputDocu
+minimalOutputDocu :: OP.Mod OP.FlagFields a
+minimalOutputDocu =
+    OP.long "minimal" <>
+    OP.help "Should the output Poseidon package be reduced to a necessary minimum?"
+
+parsePreservePymlFlag :: OP.Parser ForgeOutMode
+parsePreservePymlFlag = OP.flag' PreservePymlOut (
+    OP.long "preservePyml" <>
+    OP.help "Should the output Poseidon package mimic the input package? \
+            \With this option some fields of the source package's POSEIDON.yml file, \
+            \its README file and its CHANGELOG file (if available) are copied \
+            \to the output package. Only works for a singular source package."
+    )
 
 parsePackageWise :: OP.Parser Bool
 parsePackageWise = OP.switch (
@@ -850,4 +875,7 @@ parseJannocoalIdStripRegex = OP.option (Just <$> OP.str) (
     )
 
 parseOutputOrdered :: OP.Parser Bool
-parseOutputOrdered = OP.switch (OP.long "ordered" <> OP.help "With this option, the output of forge is ordered according to the entities given.")
+parseOutputOrdered = OP.switch (
+    OP.long "ordered" <>
+    OP.help "With this option, the output of forge is ordered according to the entities given."
+    )

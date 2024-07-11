@@ -1,0 +1,22 @@
+poseidonVersion: 2.7.1
+title: ForgePac19
+description: Genetic data published in Schiffels et al. 2016
+contributor:
+- name: Stephan Schiffels
+  email: schiffels@institute.org
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
+packageVersion: 1.0.1
+lastModified: 1970-01-01
+genotypeData:
+  format: PLINK
+  genoFile: ForgePac19.bed
+  snpFile: ForgePac19.bim
+  indFile: ForgePac19.fam
+  snpSet: Other
+jannoFile: ForgePac19.janno
+sequencingSourceFile: ForgePac19.ssf
+bibFile: ForgePac19.bib
+readmeFile: README.md
+changelogFile: CHANGELOG.md

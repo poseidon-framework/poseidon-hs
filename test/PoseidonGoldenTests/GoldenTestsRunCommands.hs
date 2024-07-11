@@ -5,7 +5,9 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
     ) where
 
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
-import           Poseidon.CLI.Forge         (ForgeOptions (..), runForge)
+import           Poseidon.CLI.Forge         (ForgeOptions (..),
+                                             ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreservePymlOut),
+                                             runForge)
 import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
                                              runGenoconvert)
 import           Poseidon.CLI.Init          (InitOptions (..), runInit)
@@ -512,8 +514,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
         , _forgePackageWise    = False
@@ -535,8 +536,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatPlink
-        , _forgeOutMinimal   = True
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = MinimalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac2"
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
@@ -555,8 +555,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac3"
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
@@ -579,8 +578,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatPlink
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac4"
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
@@ -602,8 +600,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = []
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac5"
         , _forgeOutPacName   = Just "ForgePac5"
         , _forgePackageWise  = False
@@ -647,8 +644,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = True
+        , _forgeOutMode      = GenoOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac6"
         , _forgeOutPacName   = Just "ForgePac6"
         , _forgePackageWise  = False
@@ -681,8 +677,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac7"
         , _forgeOutPacName   = Just "ForgePac7"
         , _forgePackageWise  = False
@@ -704,8 +699,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac8"
         , _forgeOutPacName   = Just "ForgePac8"
         , _forgePackageWise    = False
@@ -724,8 +718,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac9"
         , _forgeOutPacName   = Just "ForgePac9"
         , _forgePackageWise    = False
@@ -745,8 +738,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac10"
         , _forgeOutPacName   = Just "ForgePac10"
         , _forgePackageWise    = False
@@ -767,8 +759,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac11"
         , _forgeOutPacName   = Just "ForgePac11"
         , _forgePackageWise  = True
@@ -788,8 +779,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac12"
         , _forgeOutPacName   = Just "ForgePac12"
         , _forgePackageWise  = False
@@ -807,8 +797,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac13"
         , _forgeOutPacName   = Just "ForgePac13"
         , _forgePackageWise  = False
@@ -827,8 +816,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac14"
         , _forgeOutPacName   = Just "ForgePac14"
         , _forgePackageWise  = False
@@ -847,8 +835,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac15"
         , _forgeOutPacName   = Just "ForgePac15"
         , _forgePackageWise  = False
@@ -867,8 +854,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac16"
         , _forgeOutPacName   = Just "ForgePac16"
         , _forgePackageWise  = False
@@ -887,8 +873,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatEigenstrat
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac17"
         , _forgeOutPacName   = Just "ForgePac17"
         , _forgePackageWise  = False
@@ -905,11 +890,10 @@ testPipelineForge testDir checkFilePath = do
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
         , _forgeOutFormat    = GenotypeFormatPlink
-        , _forgeOutMinimal   = False
-        , _forgeOutOnlyGeno  = False
+        , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac18"
         , _forgeOutPacName   = Just "ForgePac18"
-        , _forgePackageWise    = False
+        , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
         , _forgeOutputOrdered = True
     }
@@ -918,6 +902,31 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac18" </> "ForgePac18.janno",
           "forge" </> "ForgePac18" </> "ForgePac18.fam",
           "forge" </> "ForgePac18" </> "ForgePac18.bed"
+        ]
+    let forgeOpts19 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX004>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeOutMode      = PreservePymlOut
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac19"
+        , _forgeOutPacName   = Just "ForgePac19"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
+    }
+    let action19 = testLog (runForge forgeOpts19) >> patchLastModified testDir ("forge" </> "ForgePac19" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action19 "forge" [
+          "forge" </> "ForgePac19" </> "POSEIDON.yml",
+          "forge" </> "ForgePac19" </> "ForgePac19.ssf",
+          "forge" </> "ForgePac19" </> "ForgePac19.bib",
+          "forge" </> "ForgePac19" </> "README.md",
+          "forge" </> "ForgePac19" </> "CHANGELOG.md",
+          "forge" </> "ForgePac19" </> "ForgePac19.bed",
+          "forge" </> "ForgePac19" </> "ForgePac19.bim",
+          "forge" </> "ForgePac19" </> "ForgePac19.fam",
+          "forge" </> "ForgePac19" </> "ForgePac19.janno"
         ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
