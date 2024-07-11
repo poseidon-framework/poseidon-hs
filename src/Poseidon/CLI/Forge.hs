@@ -258,7 +258,7 @@ runForge (
                     liftIO $ copyFile fullSourcePath $ outPath </> path
         copyCHANGELOGFile :: FilePath -> PoseidonPackage -> PoseidonIO ()
         copyCHANGELOGFile outPath pacSource = do
-            case posPacReadmeFile pacSource of
+            case posPacChangelogFile pacSource of
                 Nothing -> return ()
                 (Just path) -> do
                     logInfo "Copying CHANGELOG file from source package"

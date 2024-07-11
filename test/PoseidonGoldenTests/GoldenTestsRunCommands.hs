@@ -6,7 +6,7 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
 
 import           Poseidon.CLI.Fetch         (FetchOptions (..), runFetch)
 import           Poseidon.CLI.Forge         (ForgeOptions (..),
-                                             ForgeOutMode (GenoOut, MinimalOut, NormalOut),
+                                             ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreservePymlOut),
                                              runForge)
 import           Poseidon.CLI.Genoconvert   (GenoconvertOptions (..),
                                              runGenoconvert)
@@ -892,7 +892,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutMode      = NormalOut
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac18"
         , _forgeOutPacName   = Just "ForgePac18"
-        , _forgePackageWise    = False
+        , _forgePackageWise  = False
         , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
         , _forgeOutputOrdered = True
     }
@@ -901,6 +901,31 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac18" </> "ForgePac18.janno",
           "forge" </> "ForgePac18" </> "ForgePac18.fam",
           "forge" </> "ForgePac18" </> "ForgePac18.bed"
+        ]
+    let forgeOpts19 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX004>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = GenotypeFormatPlink
+        , _forgeOutMode      = PreservePymlOut
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac19"
+        , _forgeOutPacName   = Just "ForgePac19"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
+    }
+    let action19 = testLog (runForge forgeOpts19) >> patchLastModified testDir ("forge" </> "ForgePac19" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action19 "forge" [
+          "forge" </> "ForgePac19" </> "POSEIDON.yml",
+          "forge" </> "ForgePac19" </> "ForgePac19.ssf",
+          "forge" </> "ForgePac19" </> "ForgePac19.bib",
+          "forge" </> "ForgePac19" </> "README.md",
+          "forge" </> "ForgePac19" </> "CHANGELOG.md",
+          "forge" </> "ForgePac19" </> "ForgePac19.bed",
+          "forge" </> "ForgePac19" </> "ForgePac19.bim",
+          "forge" </> "ForgePac19" </> "ForgePac19.fam",
+          "forge" </> "ForgePac19" </> "ForgePac19.janno"
         ]
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
