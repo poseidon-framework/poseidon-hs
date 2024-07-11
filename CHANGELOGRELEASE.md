@@ -1,3 +1,60 @@
+### V 1.5.4.0
+
+This bigger release adds a number of useful features to `trident`, some of them long requested. The highlights are ordered output for `forge`, a new Web-API option to return the content of all available `.janno` columns, and better error messages for common `trident` issues.
+
+#### Ordered `forge` output with `--ordered`
+
+The order of samples in a Poseidon package created with `trident forge` depends on the order in which the relevant source packages are discovered by `trident` (e.g. when it crawls for packages in the `-d` base directories) and then the sample order within these packages. This mechanism did not allow for any convenient way to manually set the output order.
+
+This release now adds a new option `--ordered`, which causes `trident` to output the resulting package with samples ordered according to the selection in `-f` or `--forgeFile`. This works through an alternative, slower sample selection algorithm that loops through the list of entities and checks for each entity which samples it adds or removes respectively from the final selection.
+
+For simple, positive selection, packages, groups and samples are added as expected. Negative selection removes samples from the list again. If an entity is selected twice via positive selection, then its first occurence will be considered for the ordering.
+
+#### Preserve the source package in `forge` with `--preservePyml`
+
+For the specific task of subsetting an existing Poseidon package it can be useful to preserve some fields of the `POSEIDON.yml` file of the singular source package, as well as supplementary information in the `README.md` and the `CHANGELOG.md` file. These are typically discarded by `forge`, but can now be copied over to the output package with the new `--preservePyml` output mode. Naturally this only works with a single source package.
+
+It specifically preserves the following `POSEIDON.yml` fields:
+
+- `description`
+- `contributor`
+- `packageVersion`
+- `lastModified`
+- `readmeFile`
+- `changelogFile`
+
+Note that this does not include the package `title`, but this can be easily set to be identical to the source with `-n` or `-o` if it is desired. The `poseidonVersion` field is also not copied, because `trident` can only ever produce output packages with the latest Poseidon schema version. `--preservePyml` also copies the `README` and the `CHANGELOG` files to the output package.
+
+One particular application of `--preservePyml` is the reordering of samples in an existing Poseidon package `MyPac` with the new `--ordered` flag. We suggest the following workflow for this application:
+
+1. Generate a `--forgeFile` with the desired order of the samples in `MyPac`. This can be done manually or with any tool. Here is an example how to employ `qjanno` to generate a `forge` selection, where the samples are ordered alphabetically and descendingly by their `Poseidon_ID`:
+
+```bash
+qjanno "SELECT '<'||Poseidon_ID||'>' FROM d(MyPac) ORDER BY Poseidon_ID DESC" --raw --noOutHeader > myOrder.txt
+```
+
+2. Use `trident forge` with `--ordered` and `--preservePyml` to create the package with the specified order:
+
+```bash
+trident forge -d "MyPac" --forgeFile myOrder.txt -o "MyPac2" --ordered --preservePyml
+```
+
+3. Apply `trident rectify` to increment the package version number and document the reordering:
+
+```bash
+trident rectify -d "MyPac2" --packageVersion Minor --logText "reordered the samples according to ..."
+```
+
+`MyPac2` then acts as a stand-in replacement for `MyPac` and only differ in the order of samples (and maybe variables/fields in the `POSEIDON.yml`, `.janno`, `.ssf` or `.bib` files). This workflow is not as convenient as an in-place reordering -- but much safer.
+
+#### Request all `.janno` columns from the Web-API with `?additionalJannoColumns=ALL`
+
+#### Better error messages
+
+
+
+
+
 ### V 1.5.0.1
 
 This very minor release only affects the static `trident` executables produced for every release.
