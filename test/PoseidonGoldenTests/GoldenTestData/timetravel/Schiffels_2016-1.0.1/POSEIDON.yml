@@ -23,4 +23,5 @@ jannoFileChkSum: 09e65688bbb0d315648ccc7de0bf03e8
 sequencingSourceFile: ena_table.ssf
 bibFile: sources.bib
 bibFileChkSum: 59f4419dd96989c6185823e93f1aee0a
+readmeFile: README.md
 changelogFile: CHANGELOG.md

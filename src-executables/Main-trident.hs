@@ -195,7 +195,7 @@ initOptParser :: OP.Parser InitOptions
 initOptParser = InitOptions <$> parseInGenotypeDataset
                             <*> parseOutPackagePath
                             <*> parseMaybeOutPackageName
-                            <*> parseMinimalOutput
+                            <*> parseMinimalOutputSwitch
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseRepoLocation
@@ -214,8 +214,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
-                              <*> parseMinimalOutput
-                              <*> parseOutOnlyGeno
+                              <*> parseForgeOutMode
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
@@ -225,7 +224,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
 genoconvertOptParser :: OP.Parser GenoconvertOptions
 genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseOutGenotypeFormat False
-                                          <*> parseOutOnlyGeno
+                                          <*> parseOutOnlyGenoSwitch
                                           <*> parseMaybeOutPackagePath
                                           <*> parseRemoveOld
                                           <*> parseOutputPlinkPopMode

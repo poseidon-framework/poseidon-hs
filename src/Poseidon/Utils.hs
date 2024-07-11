@@ -175,6 +175,7 @@ data PoseidonException =
     | PoseidonUnzipException SomeException -- ^ An exception for unzipping issues in fetch
     | PoseidonChronicleException String -- ^ An exception for issues in chronicle
     | PoseidonGitException FilePath String -- ^ An exception for issues with git
+    | PoseidonCantPreserveException -- ^ An exception for issues with --preservePyml
     deriving (Show)
 
 instance Exception PoseidonException
@@ -244,6 +245,8 @@ renderPoseidonException (PoseidonChronicleException s) =
     "Error when preparing the chronicle file: "  ++ s
 renderPoseidonException (PoseidonGitException p s) =
     "Failed to load .git directory in " ++ p ++ ": " ++ s
+renderPoseidonException PoseidonCantPreserveException =
+    "Can't used --preservePyml if there is more than one relevant source package."
 
 -- helper function to check if a file exists
 checkFile :: FilePath -> Maybe String -> IO ()
