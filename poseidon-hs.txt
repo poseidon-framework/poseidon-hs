@@ -8,38 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.3.0
-
-module Poseidon.Contributor
-
--- | A data type to represent a contributor
-data ContributorSpec
-ContributorSpec :: String -> String -> Maybe ORCID -> ContributorSpec
-
--- | the name of a contributor
-[contributorName] :: ContributorSpec -> String
-
--- | the email address of a contributor
-[contributorEmail] :: ContributorSpec -> String
-
--- | the ORCID of a contributor
-[contributorORCID] :: ContributorSpec -> Maybe ORCID
-contributorSpecParser :: Parser [ContributorSpec]
-
--- | A data type to represent an ORCID see
---   <a>https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier</a>
-data ORCID
-ORCID :: [Char] -> Char -> ORCID
-[_orcidNums] :: ORCID -> [Char]
-[_orcidChecksum] :: ORCID -> Char
-instance GHC.Classes.Eq Poseidon.Contributor.ORCID
-instance GHC.Show.Show Poseidon.Contributor.ORCID
-instance GHC.Classes.Eq Poseidon.Contributor.ContributorSpec
-instance GHC.Show.Show Poseidon.Contributor.ContributorSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ContributorSpec
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Contributor.ContributorSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ORCID
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Contributor.ORCID
+@version 1.5.4.0
 
 module Poseidon.MathHelpers
 
@@ -100,7 +69,7 @@ PoseidonGenotypeException :: String -> PoseidonException
 
 -- | An exception to represent errors in the genotype data forwarded from
 --   the sequence-formats library
-PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
+PoseidonGenotypeExceptionForward :: ErrorLength -> SomeException -> PoseidonException
 
 -- | An exception to represent errors in the remote data loading forwarded
 --   from simpleHttp
@@ -135,7 +104,7 @@ PoseidonFStatsFormatException :: String -> PoseidonException
 PoseidonBibTeXException :: FilePath -> String -> PoseidonException
 
 -- | An exception to indicate failed entity parsing
-PoseidonPoseidonEntityParsingException :: String -> PoseidonException
+PoseidonPoseidonEntityParsingException :: ParseError -> PoseidonException
 
 -- | An exception to indicate issues in the forge selection
 PoseidonForgeEntitiesException :: String -> PoseidonException
@@ -174,11 +143,12 @@ PoseidonGitException :: FilePath -> String -> PoseidonException
 -- | An exception for issues with --preservePyml
 PoseidonCantPreserveException :: PoseidonException
 renderPoseidonException :: PoseidonException -> String
-usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
+usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
 type PoseidonIO = ReaderT Env IO
 envLogAction :: PoseidonIO LogA
 envInputPlinkMode :: PoseidonIO PlinkPopNameMode
+envErrorLength :: PoseidonIO ErrorLength
 data LogMode
 NoLog :: LogMode
 SimpleLog :: LogMode
@@ -205,14 +175,22 @@ data TestMode
 Testing :: TestMode
 Production :: TestMode
 data Env
-Env :: LogA -> TestMode -> PlinkPopNameMode -> Env
+Env :: LogA -> TestMode -> PlinkPopNameMode -> ErrorLength -> Env
 [_envLogAction] :: Env -> LogA
 [_envTestMode] :: Env -> TestMode
 [_envInputPlinkMode] :: Env -> PlinkPopNameMode
+[_envErrorLength] :: Env -> ErrorLength
 uniquePO :: Ord a => [a] -> [a]
 uniqueRO :: Ord a => [a] -> [a]
+showParsecErr :: ParseError -> String
+
+-- | A data type for error length settings
+data ErrorLength
+CharInf :: ErrorLength
+CharCount :: Int -> ErrorLength
 instance GHC.Show.Show Poseidon.Utils.TestMode
 instance GHC.Show.Show Poseidon.Utils.LogMode
+instance GHC.Show.Show Poseidon.Utils.ErrorLength
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
 
@@ -785,6 +763,37 @@ instance GHC.Show.Show Poseidon.GenotypeData.GenotypeFormatSpec
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.GenotypeData.GenotypeFormatSpec
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.GenotypeFormatSpec
 
+module Poseidon.Contributor
+
+-- | A data type to represent a contributor
+data ContributorSpec
+ContributorSpec :: String -> String -> Maybe ORCID -> ContributorSpec
+
+-- | the name of a contributor
+[contributorName] :: ContributorSpec -> String
+
+-- | the email address of a contributor
+[contributorEmail] :: ContributorSpec -> String
+
+-- | the ORCID of a contributor
+[contributorORCID] :: ContributorSpec -> Maybe ORCID
+contributorSpecParser :: Parser [ContributorSpec]
+
+-- | A data type to represent an ORCID see
+--   <a>https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier</a>
+data ORCID
+ORCID :: [Char] -> Char -> ORCID
+[_orcidNums] :: ORCID -> [Char]
+[_orcidChecksum] :: ORCID -> Char
+instance GHC.Classes.Eq Poseidon.Contributor.ORCID
+instance GHC.Show.Show Poseidon.Contributor.ORCID
+instance GHC.Classes.Eq Poseidon.Contributor.ContributorSpec
+instance GHC.Show.Show Poseidon.Contributor.ContributorSpec
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ContributorSpec
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Contributor.ContributorSpec
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ORCID
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Contributor.ORCID
+
 module Poseidon.BibFile
 dummyBibEntry :: BibEntry
 readBibTeXFile :: FilePath -> IO BibTeX
@@ -1098,7 +1107,7 @@ PoseidonGenotypeException :: String -> PoseidonException
 
 -- | An exception to represent errors in the genotype data forwarded from
 --   the sequence-formats library
-PoseidonGenotypeExceptionForward :: SomeException -> PoseidonException
+PoseidonGenotypeExceptionForward :: ErrorLength -> SomeException -> PoseidonException
 
 -- | An exception to represent errors in the remote data loading forwarded
 --   from simpleHttp
@@ -1133,7 +1142,7 @@ PoseidonFStatsFormatException :: String -> PoseidonException
 PoseidonBibTeXException :: FilePath -> String -> PoseidonException
 
 -- | An exception to indicate failed entity parsing
-PoseidonPoseidonEntityParsingException :: String -> PoseidonException
+PoseidonPoseidonEntityParsingException :: ParseError -> PoseidonException
 
 -- | An exception to indicate issues in the forge selection
 PoseidonForgeEntitiesException :: String -> PoseidonException
@@ -1585,9 +1594,6 @@ parseMaybePoseidonVersion :: Parser (Maybe Version)
 parseDebugMode :: Parser LogMode
 parseLogMode :: Parser LogMode
 parseTestMode :: Parser TestMode
-data ErrorLength
-CharInf :: ErrorLength
-CharCount :: Int -> ErrorLength
 parseErrorLength :: Parser ErrorLength
 parseRemoveOld :: Parser Bool
 parseChecksumsToRectify :: Parser ChecksumsToRectify
@@ -1674,4 +1680,3 @@ parseJannocoalSourceKey :: Parser String
 parseJannocoalTargetKey :: Parser String
 parseJannocoalIdStripRegex :: Parser (Maybe String)
 parseOutputOrdered :: Parser Bool
-instance GHC.Show.Show Poseidon.CLI.OptparseApplicativeParsers.ErrorLength
