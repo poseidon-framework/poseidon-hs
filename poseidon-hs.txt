@@ -2,13 +2,13 @@
 -- See Hoogle, http://www.haskell.org/hoogle/
 
 
--- | A package with tools for working with Poseidon Genotype Data
+-- | A package with tools for working with Poseidon genotype data
 --   
 --   The tools in this package read and analyse Poseidon-formatted genotype
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.2.0
+@version 1.5.3.0
 
 module Poseidon.Contributor
 
@@ -170,6 +170,9 @@ PoseidonChronicleException :: String -> PoseidonException
 
 -- | An exception for issues with git
 PoseidonGitException :: FilePath -> String -> PoseidonException
+
+-- | An exception for issues with --preservePyml
+PoseidonCantPreserveException :: PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
@@ -1165,6 +1168,9 @@ PoseidonChronicleException :: String -> PoseidonException
 
 -- | An exception for issues with git
 PoseidonGitException :: FilePath -> String -> PoseidonException
+
+-- | An exception for issues with --preservePyml
+PoseidonCantPreserveException :: PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
 
@@ -1426,19 +1432,26 @@ module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> Bool -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> ForgeOutMode -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
 [_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
-[_forgeOutMinimal] :: ForgeOptions -> Bool
-[_forgeOutOnlyGeno] :: ForgeOptions -> Bool
+[_forgeOutMode] :: ForgeOptions -> ForgeOutMode
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgePackageWise] :: ForgeOptions -> Bool
 [_forgeOutputPlinkPopMode] :: ForgeOptions -> PlinkPopNameMode
 [_forgeOutputOrdered] :: ForgeOptions -> Bool
+
+-- | Different output modes ordered from more minimal to more complete
+data ForgeOutMode
+GenoOut :: ForgeOutMode
+MinimalOut :: ForgeOutMode
+PreservePymlOut :: ForgeOutMode
+NormalOut :: ForgeOutMode
+preservePyml :: ForgeOutMode -> Bool
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
@@ -1621,8 +1634,14 @@ parseGenotypeSNPSet :: Parser (Maybe SNPSetSpec)
 parseOutPackagePath :: Parser FilePath
 parseMaybeOutPackagePath :: Parser (Maybe FilePath)
 parseMaybeOutPackageName :: Parser (Maybe String)
-parseMinimalOutput :: Parser Bool
-parseOutOnlyGeno :: Parser Bool
+parseForgeOutMode :: Parser ForgeOutMode
+parseOutOnlyGenoFlag :: Parser ForgeOutMode
+parseOutOnlyGenoSwitch :: Parser Bool
+onlyGenoOutputDocu :: Mod FlagFields a
+parseMinimalOutputFlag :: Parser ForgeOutMode
+parseMinimalOutputSwitch :: Parser Bool
+minimalOutputDocu :: Mod FlagFields a
+parsePreservePymlFlag :: Parser ForgeOutMode
 parsePackageWise :: Parser Bool
 parseMaybeSnpFile :: Parser (Maybe FilePath)
 parseListEntity :: Parser ListEntity
