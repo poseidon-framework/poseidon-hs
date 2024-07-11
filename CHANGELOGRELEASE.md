@@ -25,6 +25,8 @@ It specifically preserves the following `POSEIDON.yml` fields:
 
 Note that this does not include the package `title`, but this can be easily set to be identical to the source with `-n` or `-o` if it is desired. The `poseidonVersion` field is also not copied, because `trident` can only ever produce output packages with the latest Poseidon schema version. `--preservePyml` also copies the `README` and the `CHANGELOG` files to the output package.
 
+While implementing this we clearly separated the different `forge` output modes (`--onlyGeno`, `--minimal`, `--preservePyml` and the default) and made them mutually exclusive. We did so to avoid an increasingly complex set of interactions for the future.
+
 One particular application of `--preservePyml` is the reordering of samples in an existing Poseidon package `MyPac` with the new `--ordered` flag. We suggest the following workflow for this application:
 
 1. Generate a `--forgeFile` with the desired order of the samples in `MyPac`. This can be done manually or with any tool. Here is an example, where we employ `qjanno` to generate a `forge` selection so that the samples are ordered alphabetically and descendingly by their `Poseidon_ID`:
@@ -69,9 +71,9 @@ https://server.poseidon-adna.org/individuals?additionalJannoColumns=ALL
 
 #### Better error messages
 
+In previous `trident` versions some common error messages were not well rendered on the command line. This concerned particularly errors when parsing command line input, the `POSEIDON.yml` file or genotype data. We applied multiple changes here to improve the cli output.
 
-
-
+The behaviour of the global `trident` option `--errLength` was also changed. It now only truncates genotype data-related messages, but does so as well if these are raised on the `[Warning]` log level. This change should make the `trident` output upon broken genotype data much more readable.
 
 ### V 1.5.0.1
 
