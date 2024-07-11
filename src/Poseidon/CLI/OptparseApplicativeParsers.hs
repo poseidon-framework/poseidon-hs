@@ -554,24 +554,33 @@ parseMaybeOutPackageName = OP.option (Just <$> OP.str) (
     )
 
 parseForgeOutMode :: OP.Parser ForgeOutMode
-parseForgeOutMode = fmap (const GenoOut) parseOutOnlyGeno
-                <|> fmap (const MinimalOut) parseMinimalOutput
-                <|> fmap (const PreservePymlOut) parsePreservePyml
-                <|> pure NormalOut
+parseForgeOutMode =
+        parseOutOnlyGenoFlag
+    <|> parseMinimalOutputFlag
+    <|> parsePreservePymlFlag
+    <|> pure NormalOut
 
-parseOutOnlyGeno :: OP.Parser Bool
-parseOutOnlyGeno = OP.switch (
+parseOutOnlyGenoFlag :: OP.Parser ForgeOutMode
+parseOutOnlyGenoFlag = OP.flag' GenoOut onlyGenoOutputDocu
+parseOutOnlyGenoSwitch :: OP.Parser Bool
+parseOutOnlyGenoSwitch = OP.switch onlyGenoOutputDocu
+onlyGenoOutputDocu :: OP.Mod OP.FlagFields a
+onlyGenoOutputDocu =
     OP.long "onlyGeno" <>
     OP.help "Should only the resulting genotype data be returned? This means the output will not \
-            \be a Poseidon package.")
+            \be a Poseidon package."
 
-parseMinimalOutput :: OP.Parser Bool
-parseMinimalOutput = OP.switch (
+parseMinimalOutputFlag :: OP.Parser ForgeOutMode
+parseMinimalOutputFlag = OP.flag' MinimalOut minimalOutputDocu
+parseMinimalOutputSwitch :: OP.Parser Bool
+parseMinimalOutputSwitch = OP.switch minimalOutputDocu
+minimalOutputDocu :: OP.Mod OP.FlagFields a
+minimalOutputDocu =
     OP.long "minimal" <>
-    OP.help "Should the output Poseidon package be reduced to a necessary minimum?")
+    OP.help "Should the output Poseidon package be reduced to a necessary minimum?"
 
-parsePreservePyml :: OP.Parser Bool
-parsePreservePyml = OP.switch (
+parsePreservePymlFlag :: OP.Parser ForgeOutMode
+parsePreservePymlFlag = OP.flag' PreservePymlOut (
     OP.long "preservePyml" <>
     OP.help "Should the output Poseidon package mimic the input package? \
             \With this option some fields of the source package's POSEIDON.yml file, \

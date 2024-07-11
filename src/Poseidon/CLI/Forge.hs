@@ -41,7 +41,7 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO, checkFile,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning, uniqueRO)
+                                              logInfo, logWarning, uniqueRO, logError)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
@@ -89,12 +89,6 @@ data ForgeOutMode =
     | PreservePymlOut
     | NormalOut
 
-onlyGeno :: ForgeOutMode -> Bool
-onlyGeno GenoOut = True
-onlyGeno _       = False
-minimal :: ForgeOutMode -> Bool
-minimal MinimalOut = True
-minimal _          = False
 preservePyml :: ForgeOutMode -> Bool
 preservePyml PreservePymlOut = True
 preservePyml _               = False
