@@ -41,7 +41,7 @@ import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO, checkFile,
                                               determinePackageOutName,
                                               envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning, uniqueRO, logError)
+                                              logInfo, logWarning, uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
