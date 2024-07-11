@@ -1,6 +1,6 @@
 ### V 1.5.4.0
 
-This bigger release adds a number of useful features to `trident`, some of them long requested. The highlights are ordered output for `forge`, a new Web-API option to return the content of all available `.janno` columns, and better error messages for common `trident` issues.
+This bigger release adds a number of useful features to `trident`, some of them long requested. The highlights are ordered output for `forge`, a way to preserve key information if `forge` is applied to a singular source package, a new Web-API option to return the content of all available `.janno` columns, and better error messages for common `trident` issues.
 
 #### Ordered `forge` output with `--ordered`
 
@@ -27,7 +27,7 @@ Note that this does not include the package `title`, but this can be easily set 
 
 One particular application of `--preservePyml` is the reordering of samples in an existing Poseidon package `MyPac` with the new `--ordered` flag. We suggest the following workflow for this application:
 
-1. Generate a `--forgeFile` with the desired order of the samples in `MyPac`. This can be done manually or with any tool. Here is an example how to employ `qjanno` to generate a `forge` selection, where the samples are ordered alphabetically and descendingly by their `Poseidon_ID`:
+1. Generate a `--forgeFile` with the desired order of the samples in `MyPac`. This can be done manually or with any tool. Here is an example, where we employ `qjanno` to generate a `forge` selection so that the samples are ordered alphabetically and descendingly by their `Poseidon_ID`:
 
 ```bash
 qjanno "SELECT '<'||Poseidon_ID||'>' FROM d(MyPac) ORDER BY Poseidon_ID DESC" --raw --noOutHeader > myOrder.txt
@@ -36,18 +36,36 @@ qjanno "SELECT '<'||Poseidon_ID||'>' FROM d(MyPac) ORDER BY Poseidon_ID DESC" --
 2. Use `trident forge` with `--ordered` and `--preservePyml` to create the package with the specified order:
 
 ```bash
-trident forge -d "MyPac" --forgeFile myOrder.txt -o "MyPac2" --ordered --preservePyml
+trident forge -d MyPac --forgeFile myOrder.txt -o MyPac2 --ordered --preservePyml
 ```
 
 3. Apply `trident rectify` to increment the package version number and document the reordering:
 
 ```bash
-trident rectify -d "MyPac2" --packageVersion Minor --logText "reordered the samples according to ..."
+trident rectify -d MyPac2 --packageVersion Minor --logText "reordered the samples according to ..."
 ```
 
 `MyPac2` then acts as a stand-in replacement for `MyPac` and only differ in the order of samples (and maybe variables/fields in the `POSEIDON.yml`, `.janno`, `.ssf` or `.bib` files). This workflow is not as convenient as an in-place reordering -- but much safer.
 
-#### Request all `.janno` columns from the Web-API with `?additionalJannoColumns=ALL`
+#### Request all `.janno` columns in `list` and the Web-API
+
+`trident list --individuals` allows to acces per-sample information for Poseidon packages on the command line. The `-j` option allows to add arbitrary additional columns from the `.janno` files, here, for example, the `Country` and the `Genetic_Sex` columns:
+
+```
+ trident list -d 2010_RasmussenNature --individuals -j "Country" -j "Genetic_Sex"
+
+.------------.---------------------.----------------------.----------------.-----------.-----------.-------------.
+| Individual |        Group        |       Package        | PackageVersion | Is Latest |  Country  | Genetic_Sex |
+:============:=====================:======================:================:===========:===========:=============:
+| Inuk.SG    | Greenland_Saqqaq.SG | 2010_RasmussenNature | 2.1.1          | True      | Greenland | M           |
+'------------'---------------------'----------------------'----------------'-----------'-----------'-------------'
+```
+
+This release adds a `--fullJanno` flag to request all columns at once, without having to list them individually with many `-j` arguments.
+
+This convenience feature was also added to the Web-API, where it can be triggered with `?additionalJannoColumns=ALL` on the `/individuals` endpoint:
+
+https://server.poseidon-adna.org/individuals?additionalJannoColumns=ALL
 
 #### Better error messages
 
