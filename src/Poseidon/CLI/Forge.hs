@@ -40,8 +40,9 @@ import           Poseidon.SequencingSource   (SeqSourceRow (..),
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO, checkFile,
                                               determinePackageOutName,
-                                              envInputPlinkMode, envLogAction,
-                                              logInfo, logWarning, uniqueRO)
+                                              envErrorLength, envInputPlinkMode,
+                                              envLogAction, logInfo, logWarning,
+                                              uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
@@ -266,6 +267,7 @@ runForge (
             logA <- envLogAction
             inPlinkPopMode <- envInputPlinkMode
             currentTime <- liftIO getCurrentTime
+            errLength <- envErrorLength
             newNrSNPs <- liftIO $ catch (
                 runSafeT $ do
                     (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logA intersect_ inPlinkPopMode relevantPackages maybeSnpFile
@@ -283,7 +285,7 @@ runForge (
                             P.tee outConsumer
                     let startAcc = liftIO $ VUM.replicate (length newEigenstratIndEntries) 0
                     P.foldM sumNonMissingSNPs startAcc return forgePipe
-                ) (throwIO . PoseidonGenotypeExceptionForward)
+                ) (throwIO . PoseidonGenotypeExceptionForward errLength)
             logInfo "Done"
             return newNrSNPs
         writingJannoFile :: FilePath -> String -> (VUM.MVector VUM.RealWorld Int) -> [JannoRow] -> PoseidonIO ()

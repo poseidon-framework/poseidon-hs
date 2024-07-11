@@ -61,9 +61,9 @@ import           Poseidon.ServerClient      (AddJannoColSpec (..),
                                              GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
-                                             envInputPlinkMode, envLogAction,
-                                             logDebug, logError, logInfo,
-                                             logWarning, logWithEnv,
+                                             envErrorLength, envInputPlinkMode,
+                                             envLogAction, logDebug, logError,
+                                             logInfo, logWarning, logWithEnv,
                                              renderPoseidonException)
 
 import           Control.DeepSeq            (($!!))
@@ -418,6 +418,7 @@ validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
     logA <- envLogAction
     plinkMode <- envInputPlinkMode
+    errLength <- envErrorLength
     --let jannoRows = getJannoRowsFromPac pac
     --let ploidyList = map jGenotypePloidy jannoRows
     --let indivNames = map jPoseidonID jannoRows
@@ -435,7 +436,7 @@ validateGeno pac checkFullGeno = do
             else
                 --runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
                 runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
-        ) (throwIO . PoseidonGenotypeExceptionForward)
+        ) (throwIO . PoseidonGenotypeExceptionForward errLength)
   -- where
   --   checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
   --       let illegals =

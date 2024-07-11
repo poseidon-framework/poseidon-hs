@@ -8,6 +8,7 @@ module Poseidon.Utils (
     PoseidonIO,
     envLogAction,
     envInputPlinkMode,
+    envErrorLength,
     LogMode (..),
     checkFile,
     getChecksum,
@@ -23,7 +24,9 @@ module Poseidon.Utils (
     PlinkPopNameMode(..),
     TestMode(..),
     Env(..),
-    uniquePO, uniqueRO
+    uniquePO, uniqueRO,
+    showParsecErr,
+    ErrorLength(..)
 ) where
 
 import           Paths_poseidon_hs      (version)
@@ -45,12 +48,14 @@ import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Version           (showVersion)
-import           Data.Yaml              (ParseException)
+import           Data.Yaml              (ParseException,
+                                         prettyPrintParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
 import           Network.HTTP.Conduit   (HttpException (..))
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
+import qualified Text.Parsec.Error      as P
 
 type LogA = LogAction IO Message
 
@@ -59,20 +64,22 @@ data TestMode = Testing | Production deriving Show
 data Env = Env {
     _envLogAction      :: LogA,
     _envTestMode       :: TestMode,
-    _envInputPlinkMode :: PlinkPopNameMode
+    _envInputPlinkMode :: PlinkPopNameMode,
+    _envErrorLength    :: ErrorLength
 }
 
 defaultEnv :: LogA -> Env
-defaultEnv logA = Env logA Production PlinkPopNameAsFamily
+defaultEnv logA = Env logA Production PlinkPopNameAsFamily CharInf
 
 type PoseidonIO = ReaderT Env IO
 
--- just two convenience helper functions
+-- just convenience helper functions
 envLogAction :: PoseidonIO LogA
 envLogAction = asks _envLogAction
-
 envInputPlinkMode :: PoseidonIO PlinkPopNameMode
 envInputPlinkMode = asks _envInputPlinkMode
+envErrorLength :: PoseidonIO ErrorLength
+envErrorLength = asks _envErrorLength
 
 data LogMode = NoLog
     | SimpleLog
@@ -81,15 +88,15 @@ data LogMode = NoLog
     | VerboseLog
     deriving Show
 
-usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> PoseidonIO a -> IO a
-usePoseidonLogger NoLog      testMode plinkMode = flip runReaderT (Env noLog testMode plinkMode)
-usePoseidonLogger SimpleLog  testMode plinkMode = flip runReaderT (Env simpleLog testMode plinkMode)
-usePoseidonLogger DefaultLog testMode plinkMode = flip runReaderT (Env defaultLog testMode plinkMode)
-usePoseidonLogger ServerLog  testMode plinkMode = flip runReaderT (Env serverLog testMode plinkMode)
-usePoseidonLogger VerboseLog testMode plinkMode = flip runReaderT (Env verboseLog testMode plinkMode)
+usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
+usePoseidonLogger NoLog      testMode plinkMode errLength = flip runReaderT (Env noLog testMode plinkMode errLength)
+usePoseidonLogger SimpleLog  testMode plinkMode errLength = flip runReaderT (Env simpleLog testMode plinkMode errLength)
+usePoseidonLogger DefaultLog testMode plinkMode errLength = flip runReaderT (Env defaultLog testMode plinkMode errLength)
+usePoseidonLogger ServerLog  testMode plinkMode errLength = flip runReaderT (Env serverLog testMode plinkMode errLength)
+usePoseidonLogger VerboseLog testMode plinkMode errLength = flip runReaderT (Env verboseLog testMode plinkMode errLength)
 
 testLog :: PoseidonIO a -> IO a
-testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily
+testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily CharInf
 --testLog = usePoseidonLogger VerboseLog Testing PlinkPopNameAsFamily
 
 noLog      :: LogA
@@ -145,6 +152,15 @@ logError = logMsg Error
 logWithEnv :: (MonadIO m) => LogA -> PoseidonIO () -> m ()
 logWithEnv logA = liftIO . flip runReaderT (defaultEnv logA)
 
+-- | A data type for error length settings
+data ErrorLength = CharInf | CharCount Int deriving Show
+
+truncateErr :: ErrorLength -> String -> String
+truncateErr CharInf         s = s
+truncateErr (CharCount len) s
+    | length s > len          = take len s ++ "... (see more with --errLength)"
+    | otherwise               = s
+
 -- | A Poseidon Exception data type with several concrete constructors
 data PoseidonException =
       PoseidonYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
@@ -153,7 +169,7 @@ data PoseidonException =
     | PoseidonPackageMissingVersionException FilePath -- ^ An exception to indicate a missing poseidonVersion field
     | PoseidonIndSearchException String -- ^ An exception to represent an error when searching for individuals or populations
     | PoseidonGenotypeException String -- ^ An exception to represent errors in the genotype data
-    | PoseidonGenotypeExceptionForward SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
+    | PoseidonGenotypeExceptionForward ErrorLength SomeException -- ^ An exception to represent errors in the genotype data forwarded from the sequence-formats library
     | PoseidonHttpExceptionForward HttpException -- ^ An exception to represent errors in the remote data loading forwarded from simpleHttp
     | PoseidonFileRowException FilePath String String -- ^ An exception to represent errors when trying to parse the janno or seqSource file
     | PoseidonFileConsistencyException FilePath String -- ^ An exception to represent consistency errors in janno or seqSource files
@@ -163,7 +179,7 @@ data PoseidonException =
     | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
     | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
-    | PoseidonPoseidonEntityParsingException String -- ^ An exception to indicate failed entity parsing
+    | PoseidonPoseidonEntityParsingException P.ParseError -- ^ An exception to indicate failed entity parsing
     | PoseidonForgeEntitiesException String -- ^ An exception to indicate issues in the forge selection
     | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
     | PoseidonNewPackageConstructionException String -- ^ An exception to indicate an issue in newPackageTemplate
@@ -182,12 +198,12 @@ instance Exception PoseidonException
 
 renderPoseidonException :: PoseidonException -> String
 renderPoseidonException (PoseidonYamlParseException fn e) =
-    "Could not parse YAML file " ++ fn ++ ": " ++ show e
+    "Could not parse YAML file " ++ fn ++ ":\n" ++ prettyPrintParseException e
 renderPoseidonException (PoseidonPackageException s) =
-    "Encountered a logical error with a poseidon package: " ++ s
+    "Encountered a logical error with a package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++
-    ". This package is build according to poseidon schema v" ++ s ++
+    ". This package is build according to Poseidon schema v" ++ s ++
     ", which is not supported by poseidon-hs v" ++ showVersion version ++
     ". Modify the package, or switch to a newer (or older) version of this software."
 renderPoseidonException (PoseidonPackageMissingVersionException p) =
@@ -197,8 +213,8 @@ renderPoseidonException (PoseidonIndSearchException s) =
     show s
 renderPoseidonException (PoseidonGenotypeException s) =
     "Genotype data structurally inconsistent: " ++ show s
-renderPoseidonException (PoseidonGenotypeExceptionForward e) =
-    "Issues in genotype data parsing: " ++ show e
+renderPoseidonException (PoseidonGenotypeExceptionForward errLength e) =
+    "Issues in genotype data parsing: " ++ truncateErr errLength (show e)
 renderPoseidonException (PoseidonHttpExceptionForward (HttpExceptionRequest _ content)) =
     "Issues in HTTP-communication with server:\n" ++
     show content
@@ -220,8 +236,8 @@ renderPoseidonException (PoseidonFStatsFormatException s) =
     "Fstat specification error: " ++ s
 renderPoseidonException (PoseidonBibTeXException f s) =
     "BibTex problem in file " ++ f ++ ": " ++ s
-renderPoseidonException (PoseidonPoseidonEntityParsingException s) =
-    "Error when parsing the forge selection: " ++ s
+renderPoseidonException (PoseidonPoseidonEntityParsingException e) =
+    "Error when parsing the forge selection (either -f or --forgeFile): " ++ showParsecErr e
 renderPoseidonException (PoseidonForgeEntitiesException s) =
     "Error in the forge selection: " ++ s
 renderPoseidonException PoseidonEmptyForgeException =
@@ -305,3 +321,11 @@ uniquePO = go Set.empty
 -- reorderes the list according to the Ord instance of a
 uniqueRO :: (Ord a) => [a] -> [a]
 uniqueRO = Set.toList . Set.fromList
+
+-- helper function to render parsec errors neatly
+showParsecErr :: P.ParseError -> String
+showParsecErr err =
+    P.showErrorMessages
+        "or" "unknown parse error"
+        "expecting" "unexpected" "end of input"
+        (P.errorMessages err)
