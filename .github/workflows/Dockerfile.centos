@@ -1,4 +1,4 @@
-FROM centos:7
+FROM quay.io/condaforge/linux-anvil-cos7-x86_64
 
 RUN yum -y update
 RUN yum -y install zlib-devel wget ncurses-devel ncurses-compat-libs make gcc gcc-c++
