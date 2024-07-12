@@ -2,19 +2,19 @@
 
 This bigger release adds a number of useful features to `trident`, some of them long requested. The highlights are ordered output for `forge`, a way to preserve key information if `forge` is applied to a singular source package, a new Web-API option to return the content of all available `.janno` columns, and better error messages for common `trident` issues.
 
-#### Ordered `forge` output with `--ordered`
+#### Order `forge` output with `--ordered`
 
 The order of samples in a Poseidon package created with `trident forge` depends on the order in which the relevant source packages are discovered by `trident` (e.g. when it crawls for packages in the `-d` base directories) and then the sample order within these packages. This mechanism did not allow for any convenient way to manually set the output order.
 
-This release now adds a new option `--ordered`, which causes `trident` to output the resulting package with samples ordered according to the selection in `-f` or `--forgeFile`. This works through an alternative, slower sample selection algorithm that loops through the list of entities and checks for each entity which samples it adds or removes respectively from the final selection.
+v1.5.4.0 adds a new option `--ordered`, which causes `trident` to output the resulting package with samples ordered according to the selection in `-f` or `--forgeFile`. This works through an alternative, slower sample selection algorithm that loops through the list of entities and checks for each entity which samples it adds or removes respectively from the final selection.
 
-For simple, positive selection, packages, groups and samples are added as expected. Negative selection removes samples from the list again. If an entity is selected twice via positive selection, then its first occurence will be considered for the ordering.
+For simple, positive selection, packages, groups and samples are added as expected. Negative selection removes samples from the list again. If an entity is selected twice via positive selection, then its first occurrence is considered for the ordering.
 
 #### Preserve the source package in `forge` with `--preservePyml`
 
-For the specific task of subsetting an existing Poseidon package it can be useful to preserve some fields of the `POSEIDON.yml` file of the singular source package, as well as supplementary information in the `README.md` and the `CHANGELOG.md` file. These are typically discarded by `forge`, but can now be copied over to the output package with the new `--preservePyml` output mode. Naturally this only works with a single source package.
+For the specific task of subsetting a singular, existing Poseidon package it can be useful to preserve some fields of the `POSEIDON.yml` file of the source package, as well as supplementary information in the `README.md` and the `CHANGELOG.md` file. These are typically discarded by `forge`, but can now be copied over to the output package with the new `--preservePyml` output mode. Naturally this only works with a single source package!
 
-It specifically preserves the following `POSEIDON.yml` fields:
+`--preservePyml` specifically preserves the following `POSEIDON.yml` fields:
 
 - `description`
 - `contributor`
@@ -23,16 +23,16 @@ It specifically preserves the following `POSEIDON.yml` fields:
 - `readmeFile`
 - `changelogFile`
 
-Note that this does not include the package `title`, but this can be easily set to be identical to the source with `-n` or `-o` if it is desired. The `poseidonVersion` field is also not copied, because `trident` can only ever produce output packages with the latest Poseidon schema version. `--preservePyml` also copies the `README` and the `CHANGELOG` files to the output package.
+Note that this does not include the package `title`, which can be easily set to be identical to the source with `-n` or `-o` if it is desired. The `poseidonVersion` field is also not copied, because `trident` can only ever produce output packages with the latest Poseidon schema version.
 
-While implementing this we clearly separated the different `forge` output modes (`--onlyGeno`, `--minimal`, `--preservePyml` and the default) and made them mutually exclusive. We did so to avoid an increasingly complex set of interactions for the future.
+While implementing this we clearly separated the different `forge` output modes (`--onlyGeno`, `--minimal`, `--preservePyml` and the default) and made them mutually exclusive. We did so to avoid an increasingly complex set of interactions between them for the future.
 
 One particular application of `--preservePyml` is the reordering of samples in an existing Poseidon package `MyPac` with the new `--ordered` flag. We suggest the following workflow for this application:
 
-1. Generate a `--forgeFile` with the desired order of the samples in `MyPac`. This can be done manually or with any tool. Here is an example, where we employ `qjanno` to generate a `forge` selection so that the samples are ordered alphabetically and descendingly by their `Poseidon_ID`:
+1. Generate a `--forgeFile` with the desired order of the samples in `MyPac`. This can be done manually or with any suitable tool. Here is an example, where we employ `qjanno` to generate a `forge` selection so that the samples are ordered alphabetically by their `Poseidon_ID`:
 
 ```bash
-qjanno "SELECT '<'||Poseidon_ID||'>' FROM d(MyPac) ORDER BY Poseidon_ID DESC" --raw --noOutHeader > myOrder.txt
+qjanno "SELECT '<'||Poseidon_ID||'>' FROM d(MyPac) ORDER BY Poseidon_ID" --raw --noOutHeader > myOrder.txt
 ```
 
 2. Use `trident forge` with `--ordered` and `--preservePyml` to create the package with the specified order:
@@ -44,14 +44,14 @@ trident forge -d MyPac --forgeFile myOrder.txt -o MyPac2 --ordered --preservePym
 3. Apply `trident rectify` to increment the package version number and document the reordering:
 
 ```bash
-trident rectify -d MyPac2 --packageVersion Minor --logText "reordered the samples according to ..."
+trident rectify -d MyPac2 --packageVersion Minor --logText "reordered the samples alphabetically by Poseidon_ID"
 ```
 
-`MyPac2` then acts as a stand-in replacement for `MyPac` and only differ in the order of samples (and maybe variables/fields in the `POSEIDON.yml`, `.janno`, `.ssf` or `.bib` files). This workflow is not as convenient as an in-place reordering -- but much safer.
+`MyPac2` then acts as a stand-in replacement for `MyPac` that only differs in the order of samples (and maybe the order of variables/fields in the `POSEIDON.yml`, `.janno`, `.ssf` or `.bib` files). This workflow is not as convenient as in-place reordering would be -- but much safer.
 
 #### Request all `.janno` columns in `list` and the Web-API
 
-`trident list --individuals` allows to acces per-sample information for Poseidon packages on the command line. The `-j` option allows to add arbitrary additional columns from the `.janno` files, here, for example, the `Country` and the `Genetic_Sex` columns:
+`trident list --individuals` allows to access per-sample information for Poseidon packages on the command line. With the `-j` option arbitrary additional columns from the `.janno` files can be appended to the output. Here, for example, the `Country` and the `Genetic_Sex` columns:
 
 ```
  trident list -d 2010_RasmussenNature --individuals -j "Country" -j "Genetic_Sex"
@@ -63,7 +63,7 @@ trident rectify -d MyPac2 --packageVersion Minor --logText "reordered the sample
 '------------'---------------------'----------------------'----------------'-----------'-----------'-------------'
 ```
 
-This release adds a `--fullJanno` flag to request all columns at once, without having to list them individually with many `-j` arguments.
+v1.5.4.0 adds a `--fullJanno` flag to request all columns at once, without having to list them individually with many `-j` arguments.
 
 This convenience feature was also added to the Web-API, where it can be triggered with `?additionalJannoColumns=ALL` on the `/individuals` endpoint:
 
@@ -73,7 +73,7 @@ https://server.poseidon-adna.org/individuals?additionalJannoColumns=ALL
 
 In previous `trident` versions some common error messages were not well rendered on the command line. This concerned particularly errors when parsing command line input, the `POSEIDON.yml` file or genotype data. We applied multiple changes here to improve the cli output.
 
-The behaviour of the global `trident` option `--errLength` was also changed. It now only truncates genotype data-related messages, but does so as well if these are raised on the `[Warning]` log level. This change should make the `trident` output upon broken genotype data much more readable.
+The behaviour of the global `trident` option `--errLength` was also changed. It now only truncates genotype data-related messages, but does so as well if these are raised on the `[Warning]` log level. This should make the previously often illegible `trident` output upon broken genotype data more readable.
 
 ### V 1.5.0.1
 
