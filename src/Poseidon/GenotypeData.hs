@@ -7,7 +7,8 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              logInfo, logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM)
+import           Control.Monad              (forM, unless)
+import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -32,7 +33,7 @@ import           SequenceFormats.Plink      (plinkFam2EigenstratInd,
                                              readFamFile, readPlink)
 import           SequenceFormats.VCF        (VCFentry (..), VCFheader (..),
                                              readVCFfromFile, vcfToFreqSumEntry)
-import           System.FilePath            ((</>))
+import           System.FilePath            ((</>), takeFileName, takeDirectory)
 
 data GenoDataSource = PacBaseDir
     { getPacBaseDir :: FilePath
@@ -161,6 +162,27 @@ snpSetMerge SNPSet1240K         SNPSetHumanOrigins  True  = SNPSetHumanOrigins
 snpSetMerge SNPSetHumanOrigins  SNPSet1240K         True  = SNPSetHumanOrigins
 snpSetMerge SNPSet1240K         SNPSetHumanOrigins  False = SNPSet1240K
 snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
+
+-- | removes directories of all filenames and returns a tuple of the basename and a modified GenotypeDataSpec with pure filenames
+-- In case basedirectories do not match, this function will throw an exception
+reduceGenotypeFilepaths :: (MonadThrow m) => GenotypeDataSpec -> m (FilePath, GenotypeDataSpec)
+reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _) = do
+    (baseDir, newGfileSpec) <- case gFileSpec of
+        GenotypeEigenstrat genoF _ snpF _ indF _ -> do
+            let baseDirs  = map takeDirectory   [genoF, snpF, indF]
+                fileNames = map takeFileName [genoF, snpF, indF]
+            unless (all (==(head baseDirs)) baseDirs) . throwM $ PoseidonUnequalBaseDirException genoF snpF indF
+            return (head baseDirs, gFileSpec {_esGenoFile = fileNames !! 0, _esSnpFile = fileNames !! 1, _esIndFile = fileNames !! 2})
+        GenotypePlink genoF _ snpF _ indF _ -> do
+            let baseDirs  = map takeDirectory   [genoF, snpF, indF]
+                fileNames = map takeFileName [genoF, snpF, indF]
+            unless (all (==(head baseDirs)) baseDirs) . throwM $ PoseidonUnequalBaseDirException genoF snpF indF
+            return (head baseDirs, gFileSpec {_plGenoFile = fileNames !! 0, _plSnpFile = fileNames !! 1, _plIndFile = fileNames !! 2})
+        GenotypeVCF genoF _ -> do
+            let baseDir  = takeDirectory   genoF
+                fileName = takeFileName genoF
+            return (baseDir, gFileSpec {_vcfGenoFile = fileName})
+    return (baseDir, gd {genotypeFileSpec = newGfileSpec})
 
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory

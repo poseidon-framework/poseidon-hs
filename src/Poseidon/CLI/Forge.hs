@@ -15,7 +15,6 @@ import           Poseidon.EntityTypes        (EntityInput,
                                               resolveUniqueEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
-                                              GenotypeFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
@@ -74,7 +73,7 @@ data ForgeOptions = ForgeOptions
     , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
     , _forgeSnpFile            :: Maybe FilePath
     , _forgeIntersect          :: Bool
-    , _forgeOutFormat          :: GenotypeFormatSpec
+    , _forgeOutFormat          :: String
     , _forgeOutMode            :: ForgeOutMode
     , _forgeOutPacPath         :: FilePath
     , _forgeOutPacName         :: Maybe String
@@ -177,8 +176,9 @@ runForge (
     liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
     let (outInd, outSnp, outGeno) = case outFormat of
-            GenotypeFormatEigenstrat -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
-            GenotypeFormatPlink -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
+            "EIGENSTRAT" -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
+            "PLINK"      -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
+            _  -> throwM $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
     -- output warning if any snpSet is set to Other
     snpSetList <- fillMissingSnpSets relevantPackages
     let newSNPSet = case
@@ -270,12 +270,13 @@ runForge (
             errLength <- envErrorLength
             newNrSNPs <- liftIO $ catch (
                 runSafeT $ do
-                    (eigenstratIndEntries, eigenstratProd) <- getJointGenotypeData logA intersect_ inPlinkPopMode relevantPackages maybeSnpFile
+                    eigenstratProd <- getJointGenotypeData logA intersect_ relevantPackages maybeSnpFile
                     let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
                     let (outG, outS, outI) = (outPath </> outGeno, outPath </> outSnp, outPath </> outInd)
                     let outConsumer = case outFormat of
-                            GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                            GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
+                            "EIGENSTRAT" -> writeEigenstrat outG outS outI newEigenstratIndEntries
+                            "PLINK" -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
+                            _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
                     -- define main forge pipe including file output.
                     -- The final tee forwards the results to be used in the snpCounting-fold

@@ -40,9 +40,10 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              isLatestInCollection,
                                              makePacNameAndVersion,
                                              renderNameWithVersion)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
+import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+                                             GenotypeFileSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
-                                             printSNPCopyProgress)
+                                             printSNPCopyProgress, reduceGenotypeFilepaths)
 import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
@@ -119,7 +120,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlContributor         :: [ContributorSpec]
     , _posYamlPackageVersion      :: Maybe Version
     , _posYamlLastModified        :: Maybe Day
-    , _posYamlGenotypeData        :: GenotypeDataYamlSpec
+    , _posYamlGenotypeData        :: GenotypeDataSpec
     , _posYamlJannoFile           :: Maybe FilePath
     , _posYamlJannoFileChkSum     :: Maybe String
     , _posYamlSeqSourceFile       :: Maybe FilePath
@@ -284,7 +285,7 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     logInfo "Initializing packages... "
     eitherPackages <- mapM tryDecodePoseidonPackage $ zip [1..] posFiles
     -- notifying the users of package problems
-    skipIndicator <- if (null . lefts $ eitherPackages) then return False else do
+    skipIndicator <- if null . lefts $ eitherPackages then return False else do
         logWarning "Some packages were skipped due to issues:"
         forM_ (zip posFiles eitherPackages) $ \(posF, epac) -> do
             case epac of
@@ -426,7 +427,7 @@ validateGeno pac checkFullGeno = do
         runSafeT $ do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            (_, eigenstratProd) <- getJointGenotypeData logA False plinkMode [pac] Nothing
+            eigenstratProd <- getJointGenotypeData logA False [pac] Nothing
             -- check all or only the first 100 SNPs
             if checkFullGeno
             then do
@@ -482,15 +483,31 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
     unless ignoreGenotypeFilesMissing $ do
         let gd = _posYamlGenotypeData yml
             d = baseDir
-        if ignoreChecksums
-        then do
-            checkFile (d </> genoFile gd) Nothing
-            checkFile (d </> snpFile gd) Nothing
-            checkFile (d </> indFile gd) Nothing
-        else do
-            checkFile (d </> genoFile gd) $ genoFileChkSum gd
-            checkFile (d </> snpFile gd) $ snpFileChkSum gd
-            checkFile (d </> indFile gd) $ indFileChkSum gd
+        case genotypeFileSpec gd of
+            GenotypeEigenstrat genoF genoFc snpF snpFc indF indFc -> do
+                if ignoreChecksums
+                then do
+                    checkFile (d </> genoF) Nothing
+                    checkFile (d </> snpF)  Nothing
+                    checkFile (d </> indF)  Nothing
+                else do
+                    checkFile (d </> genoF) genoFc
+                    checkFile (d </> snpF)  snpFc
+                    checkFile (d </> indF)  indFc
+            GenotypePlink genoF genoFc snpF snpFc indF indFc -> do
+                if ignoreChecksums
+                then do
+                    checkFile (d </> genoF) Nothing
+                    checkFile (d </> snpF)  Nothing
+                    checkFile (d </> indF)  Nothing
+                else do
+                    checkFile (d </> genoF) genoFc
+                    checkFile (d </> snpF)  snpFc
+                    checkFile (d </> indF)  indFc
+            GenotypeVCF genoF genoFc -> do
+                if ignoreChecksums
+                then checkFile (d </> genoF) Nothing
+                else checkFile (d </> genoF) genoFc
 
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> IO ()
 checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
@@ -597,18 +614,15 @@ findAllPoseidonYmlFiles baseDir = do
 getJointGenotypeData :: MonadSafe m =>
                         LogA -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
-                     -> PlinkPopNameMode -- ^ how to read population labels from Plink
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
-                     -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+                     -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logA intersect popMode pacs maybeSnpFile = do
-    genotypeTuples <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) popMode | pac <- pacs]
-    let indEntries      = map fst genotypeTuples
-        jointIndEntries = concat indEntries
-        nrInds          = map length indEntries
+getJointGenotypeData logA intersect pacs maybeSnpFile = do
+    genotypeProducers <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
+    let nrInds          = map (length . getJannoRows . posPacJanno) pacs
         pacNames        = map getPacName pacs
-        prod            = (orderedZipAll compFunc . map snd) genotypeTuples >->
+        prod            = orderedZipAll compFunc genotypeProducers >->
                                 P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
@@ -616,7 +630,7 @@ getJointGenotypeData logA intersect popMode pacs maybeSnpFile = do
         Just fn -> do
             let snpProd = loadBimOrSnpFile fn >-> orderCheckPipe compFunc3
             return $ (orderedZip compFunc2 snpProd prod >> return [()]) >-> selectSnps (sum nrInds)
-    return (jointIndEntries, void jointProducer)
+    return (void jointProducer) -- the void here just replaces a list of return values [(), (), ()] from the orderedZip to a single ()
   where
     compFunc :: (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine) -> Ordering
     compFunc (EigenstratSnpEntry c1 p1 _ _ _ _, _) (EigenstratSnpEntry c2 p2 _ _ _ _, _) = compare (c1, p1) (c2, p2)
@@ -656,16 +670,17 @@ loadBimOrSnpFile fn
     | otherwise                  = throwM (PoseidonGenotypeException "option snpFile requires file endings to be *.snp or *.bim or *.snp.gz or *.bim.gz")
 
 -- | A function to create a minimal POSEIDON package
-newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
-newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ ind _ snpSet_) =
-    PoseidonPackage {
+newMinimalPackageTemplate :: (MonadThrow m) => FilePath -> String -> GenotypeDataSpec -> m PoseidonPackage
+newMinimalPackageTemplate baseDir name gd = do
+    (baseDir, reducedGD) <- reduceGenotypeFilepaths gd
+    return $ PoseidonPackage {
         posPacBaseDir = baseDir
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
     ,   posPacNameAndVersion = PacNameAndVersion name Nothing
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
     ,   posPacLastModified = Nothing
-    ,   posPacGenotypeData = GenotypeDataSpec format_ (takeFileName geno) Nothing (takeFileName snp) Nothing (takeFileName ind) Nothing snpSet_
+    ,   posPacGenotypeData = reducedGD
     ,   posPacJannoFile = Nothing
     ,   posPacJanno = mempty
     ,   posPacJannoFileChkSum = Nothing
@@ -680,24 +695,14 @@ newMinimalPackageTemplate baseDir name (GenotypeDataSpec format_ geno _ snp _ in
     }
 
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
-makePseudoPackageFromGenotypeData (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = do
-    let baseDir      = getBaseDir genoFile_ snpFile_ indFile_
-        outInd       = takeFileName indFile_
-        outSnp       = takeFileName snpFile_
-        outGeno      = takeFileName genoFile_
-        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
-        pacName      = takeBaseName genoFile_
-    inds <- loadIndividuals baseDir genotypeData
-    newPackageTemplate baseDir pacName genotypeData (Just (Left inds)) mempty []
-    where
-        getBaseDir :: FilePath -> FilePath -> FilePath -> FilePath
-        getBaseDir g s i =
-            let baseDirGeno = takeDirectory genoFile_
-                baseDirSnp = takeDirectory snpFile_
-                baseDirInd = takeDirectory indFile_
-            in if baseDirGeno == baseDirSnp && baseDirSnp == baseDirInd
-               then baseDirGeno
-               else throwM $ PoseidonUnequalBaseDirException g s i
+makePseudoPackageFromGenotypeData gd = do
+    (baseDir, reducedGenotypeDataSpec) <- reduceGenotypeFilepaths gd
+    let pacName = case genotypeFileSpec reducedGenotypeDataSpec of
+            GenotypeEigenstrat fn _ _ _ _ _ -> takeBaseName fn
+            GenotypePlink      fn _ _ _ _ _ -> takeBaseName fn
+            GenotypeVCF        fn _         -> takeBaseName fn
+    inds <- loadIndividuals baseDir reducedGenotypeDataSpec
+    newPackageTemplate baseDir pacName reducedGenotypeDataSpec (Just (Left inds)) mempty []
 
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
@@ -712,8 +717,8 @@ newPackageTemplate ::
     -> PoseidonIO PoseidonPackage
 newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
     (UTCTime today _) <- liftIO getCurrentTime
-    let minimalTemplate = newMinimalPackageTemplate baseDir name genoData
-        fluffedUpTemplate = minimalTemplate {
+    minimalTemplate <- newMinimalPackageTemplate baseDir name genoData
+    let fluffedUpTemplate = minimalTemplate {
             posPacDescription = Just "Empty package template. Please add a description"
         ,   posPacContributor = []
         ,   posPacNameAndVersion = PacNameAndVersion name (Just $ makeVersion [0, 1, 0])
