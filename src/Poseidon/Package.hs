@@ -119,7 +119,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlContributor         :: [ContributorSpec]
     , _posYamlPackageVersion      :: Maybe Version
     , _posYamlLastModified        :: Maybe Day
-    , _posYamlGenotypeData        :: GenotypeDataSpec
+    , _posYamlGenotypeData        :: GenotypeDataYamlSpec
     , _posYamlJannoFile           :: Maybe FilePath
     , _posYamlJannoFileChkSum     :: Maybe String
     , _posYamlSeqSourceFile       :: Maybe FilePath

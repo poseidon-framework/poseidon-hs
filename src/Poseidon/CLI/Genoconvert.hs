@@ -53,7 +53,7 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
         , _readOptOnlyLatest       = onlyLatest
     }
     -- load packages
-    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
+    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDir x | x@PacBaseDir {} <- genoSources]
     inPlinkPopMode <- envInputPlinkMode
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData [getGenoDirect x | x@GenoDirect {} <- genoSources]
 
