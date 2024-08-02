@@ -14,13 +14,14 @@ import           Poseidon.EntityTypes        (EntityInput,
                                               readEntityInputs,
                                               resolveUniqueEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
+                                              GenotypeFileSpec(..),
                                               GenotypeDataSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               JannoRows (..), getMaybeJannoList,
-                                              writeJannoFile)
+                                              writeJannoFile, jannoRows2EigenstratIndEntries)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
@@ -174,30 +175,37 @@ runForge (
     -- create new directory
     logInfo $ "Writing to directory (will be created if missing): " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath
-    -- compile genotype data structure
-    let (outInd, outSnp, outGeno) = case outFormat of
-            "EIGENSTRAT" -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
-            "PLINK"      -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
-            _  -> throwM $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
     -- output warning if any snpSet is set to Other
     snpSetList <- fillMissingSnpSets relevantPackages
     let newSNPSet = case
             maybeSnpFile of
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
-    let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (Just newSNPSet)
+    -- compile genotype data structure
+    genotypeFileData <- case outFormat of
+            "EIGENSTRAT" -> return $
+                GenotypeEigenstrat (outName <.> ".geno")  Nothing
+                                   (outName <.> ".snp")  Nothing
+                                   (outName <.> ".ind") Nothing
+            "PLINK"      -> return $
+                GenotypePlink      (outName <.> ".bed")  Nothing
+                                   (outName <.> ".bim")  Nothing
+                                   (outName <.> ".fam")  Nothing
+            _  -> liftIO . throwIO $
+                PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+    let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet)
 
     -- assemble and write result depending on outMode --
     logInfo "Creating new package entity"
     let pacSource = head relevantPackages
     case outMode of
         GenoOut -> do
-            _ <- compileGenotypeData outPath (outInd, outSnp, outGeno) relevantPackages relevantIndices
+            _ <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
             return ()
         MinimalOut -> do
-            let pac = newMinimalPackageTemplate outPath outName genotypeData
+            pac <- newMinimalPackageTemplate outPath outName genotypeData
             writePoseidonYmlFile pac
-            _ <- compileGenotypeData outPath (outInd, outSnp, outGeno) relevantPackages relevantIndices
+            _ <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
             return ()
         PreservePymlOut -> do
             normalPac <- newPackageTemplate outPath outName genotypeData
@@ -215,7 +223,7 @@ runForge (
             writeBibFile outPath outName relevantBibEntries
             copyREADMEFile outPath pacSource
             copyCHANGELOGFile outPath pacSource
-            newNrSnps <- compileGenotypeData outPath (outInd, outSnp, outGeno) relevantPackages relevantIndices
+            newNrSnps <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
             writingJannoFile outPath outName newNrSnps relevantJannoRows
         NormalOut  -> do
             pac <- newPackageTemplate outPath outName genotypeData
@@ -223,7 +231,7 @@ runForge (
             writePoseidonYmlFile pac
             writeSSFile outPath outName relevantSeqSourceRows
             writeBibFile outPath outName relevantBibEntries
-            newNrSnps <- compileGenotypeData outPath (outInd, outSnp, outGeno) relevantPackages relevantIndices
+            newNrSnps <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
             writingJannoFile outPath outName newNrSnps relevantJannoRows
 
     where
@@ -260,8 +268,8 @@ runForge (
                     let fullSourcePath = posPacBaseDir pacSource </> path
                     liftIO $ checkFile fullSourcePath Nothing
                     liftIO $ copyFile fullSourcePath $ outPath </> path
-        compileGenotypeData :: FilePath -> (String,String,String) -> [PoseidonPackage] -> [Int] ->  PoseidonIO (VUM.IOVector Int)
-        compileGenotypeData outPath (outInd, outSnp, outGeno) relevantPackages relevantIndices = do
+        compileGenotypeData :: FilePath -> GenotypeFileSpec -> [PoseidonPackage] -> [Int] ->  PoseidonIO (VUM.IOVector Int)
+        compileGenotypeData outPath genotypeFileSpec relevantPackages relevantIndices = do
             logInfo "Compiling genotype data"
             logInfo "Processing SNPs..."
             logA <- envLogAction
@@ -271,11 +279,11 @@ runForge (
             newNrSNPs <- liftIO $ catch (
                 runSafeT $ do
                     eigenstratProd <- getJointGenotypeData logA intersect_ relevantPackages maybeSnpFile
+                    let eigenstratIndEntries = jannoRows2EigenstratIndEntries . getJointJanno $ relevantPackages
                     let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
-                    let (outG, outS, outI) = (outPath </> outGeno, outPath </> outSnp, outPath </> outInd)
-                    let outConsumer = case outFormat of
-                            "EIGENSTRAT" -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                            "PLINK" -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
+                    let outConsumer = case genotypeFileSpec of
+                            GenotypeEigenstrat outG _ outS _ outI _ -> writeEigenstrat outG outS outI newEigenstratIndEntries
+                            GenotypePlink outG _ outS _ outI _ -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
                             _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
                     -- define main forge pipe including file output.
@@ -289,7 +297,7 @@ runForge (
                 ) (throwIO . PoseidonGenotypeExceptionForward errLength)
             logInfo "Done"
             return newNrSNPs
-        writingJannoFile :: FilePath -> String -> (VUM.MVector VUM.RealWorld Int) -> [JannoRow] -> PoseidonIO ()
+        writingJannoFile :: FilePath -> String -> VUM.MVector VUM.RealWorld Int -> [JannoRow] -> PoseidonIO ()
         writingJannoFile outPath outName newNrSNPs rows = do
             logInfo "Creating .janno file"
             snpList <- liftIO $ VU.freeze newNrSNPs
@@ -327,7 +335,7 @@ filterBibEntries (JannoRows rows) references_ =
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
 fillMissingSnpSets packages = forM packages $ \pac -> do
     let pac_ = posPacNameAndVersion pac
-        maybeSnpSet = snpSet . posPacGenotypeData $ pac
+        maybeSnpSet = genotypeSnpSet . posPacGenotypeData $ pac
     case maybeSnpSet of
         Just s -> return s
         Nothing -> do

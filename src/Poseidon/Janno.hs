@@ -45,7 +45,8 @@ module Poseidon.Janno (
     removeUselessSuffix,
     parseCsvParseError,
     renderCsvParseError,
-    getMaybeJannoList
+    getMaybeJannoList,
+    jannoRows2EigenstratIndEntries
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
