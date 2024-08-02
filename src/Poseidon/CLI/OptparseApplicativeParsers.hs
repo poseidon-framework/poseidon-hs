@@ -36,7 +36,6 @@ import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.Directory           (doesFileExist)
 import           System.FilePath            (dropExtension, takeExtension,
                                              (<.>))
 import qualified Text.Parsec                as P

@@ -45,7 +45,8 @@ spec = do
     testGetChecksum
     testRenderMismatch
     testZipWithPadding
-    testGetJoinGenotypeData
+    testGetJointGenotypeData
+    testGetJointGzippedGenotypeData
     testThrowOnRead
 
 testPacReadOpts :: PackageReadOptions
@@ -269,8 +270,8 @@ testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
   where
     zwp = zipWithPadding ("?" :: String) ("!" :: String)
 
-testGetJoinGenotypeData :: Spec
-testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
+testGetJointGenotypeData :: Spec
+testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                     "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load genotype data without intersect" $ do
@@ -322,6 +323,21 @@ testGetJoinGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
+
+testGetJointGzippedGenotypeData :: Spec
+testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
+    let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_gzipped.yml",
+                    "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
+    it "should correctly load gzipped and non-gzipped genotype data without intersect" $ do
+        pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        jointDat <- runSafeT $ do
+            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs Nothing
+            P.toListM jointProd
+        length jointDat `shouldBe` 10
+        jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
+                                  V.fromList $ [Het, Het, HomAlt, Het, HomRef, HomRef, Het, HomRef, HomRef, HomAlt] ++ replicate 10 Missing)
+        jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.026288 "2_1018704" 'A' 'G',
+                                  V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
 
 testThrowOnRead :: Spec
 testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
