@@ -50,7 +50,7 @@ runInit (InitOptions genotypeDataIn outPathRaw maybeOutName minimal) = do
     outName <- liftIO $ determinePackageOutName maybeOutName outPath
     inds <- loadIndividuals outPath genotypeDataOut
     pac <- if minimal
-           then return $ newMinimalPackageTemplate outPath outName genotypeDataOut
+           then newMinimalPackageTemplate outPath outName genotypeDataOut
            else newPackageTemplate outPath outName genotypeDataOut (Just (Left inds)) mempty [dummyBibEntry]
     -- POSEIDON.yml
     logInfo "Creating POSEIDON.yml"
