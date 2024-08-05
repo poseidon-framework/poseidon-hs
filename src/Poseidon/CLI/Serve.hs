@@ -6,7 +6,7 @@ module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) whe
 import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                PacNameAndVersion,
                                                renderNameWithVersion)
-import           Poseidon.GenotypeData        (GenotypeDataSpec (..))
+import           Poseidon.GenotypeData        (GenotypeDataSpec (..), GenotypeFileSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
@@ -25,7 +25,7 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                (forM, when)
+import           Control.Monad                (forM, when, foldM)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (nub, sortOn)
@@ -229,12 +229,11 @@ checkZipFileOutdated pac fn = do
             Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
             Nothing  -> return False
         let gd = posPacGenotypeData pac
-        genoOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> genoFile gd)
-        snpOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> snpFile gd)
-        indOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> indFile gd)
-        return $ or [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated,
-                     changelogOutdated, genoOutdated, snpOutdated, indOutdated,
-                     ssfOutdated]
+        genoFilesOutdated <- case  genotypeFileSpec gd of
+            GenotypeEigenstrat gf _ sf _ i _ -> mapM (checkOutdated zipModTime . (posPacBaseDir pac </>)) [gf, sf, i]
+            GenotypePlink gf _ sf _ i _      -> mapM (checkOutdated zipModTime . (posPacBaseDir pac </>)) [gf, sf, i]
+            GenotypeVCF gf _                 -> mapM (checkOutdated zipModTime . (posPacBaseDir pac </>)) [gf]
+        return . or $ [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated, changelogOutdated, ssfOutdated] ++ genoFilesOutdated
     else
         return True
   where
@@ -242,30 +241,21 @@ checkZipFileOutdated pac fn = do
 
 makeZipArchive :: PoseidonPackage -> IO Archive
 makeZipArchive pac =
-    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addInd >>= addSnp >>= addGeno >>= addSSF
+    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addGenos >>= addSSF
   where
-    addYaml = addFN "POSEIDON.yml" (posPacBaseDir pac)
-    addJanno = case posPacJannoFile pac of
-        Nothing -> return
-        Just fn -> addFN fn (posPacBaseDir pac)
-    addBib = case posPacBibFile pac of
-        Nothing -> return
-        Just fn -> addFN fn (posPacBaseDir pac)
-    addReadme = case posPacReadmeFile pac of
-        Nothing -> return
-        Just fn -> addFN fn (posPacBaseDir pac)
-    addChangelog = case posPacChangelogFile pac of
-        Nothing -> return
-        Just fn -> addFN fn (posPacBaseDir pac)
-    addSSF = case posPacSeqSourceFile pac of
-        Nothing -> return
-        Just fn -> addFN fn (posPacBaseDir pac)
-    addInd = addFN (indFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
-    addSnp = addFN (snpFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
-    addGeno = addFN (genoFile . posPacGenotypeData $ pac) (posPacBaseDir pac)
-    addFN :: FilePath -> FilePath -> Archive -> IO Archive
-    addFN fn baseDir a = do
-        let fullFN = baseDir </> fn
+    addYaml      = addFN "POSEIDON.yml"
+    addJanno     = maybe return addFN (posPacJannoFile pac)
+    addBib       = maybe return addFN (posPacBibFile pac)
+    addReadme    = maybe return addFN (posPacReadmeFile pac)
+    addChangelog = maybe return addFN (posPacChangelogFile pac)
+    addSSF       = maybe return addFN (posPacSeqSourceFile pac)
+    addGenos archive = case genotypeFileSpec . posPacGenotypeData $ pac of
+        GenotypeEigenstrat gf _ sf _ i _ -> foldM (flip addFN) archive [gf, sf, i]
+        GenotypePlink gf _ sf _ i _      -> foldM (flip addFN) archive [gf, sf, i]
+        GenotypeVCF gf _                 -> addFN gf archive
+    addFN :: FilePath -> Archive -> IO Archive
+    addFN fn a = do
+        let fullFN = posPacBaseDir pac </> fn
         raw <- B.readFile fullFN
         modTime <- round . utcTimeToPOSIXSeconds <$> getModificationTime fullFN
         let zipEntry = toEntry fn modTime raw
