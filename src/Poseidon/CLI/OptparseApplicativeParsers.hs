@@ -19,7 +19,7 @@ import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
                                              readEntitiesFromString)
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..),
+                                             GenotypeFileSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (AddJannoColSpec (..),
                                              ArchiveEndpoint (..))
@@ -32,11 +32,12 @@ import           Poseidon.Version           (VersionComponent (..),
 
 import           Control.Applicative        ((<|>))
 import qualified Data.ByteString.Char8      as BSC
+import           Data.List                  (intercalate)
 import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath            (dropExtension, takeExtension,
+import           System.FilePath            (dropExtensions, takeExtensions,
                                              (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
@@ -355,27 +356,22 @@ parseRemoteDummy = OP.flag' () (
     OP.long "remote" <>
     OP.help "List packages from a remote server instead the local file system.")
 
-parseOutGenotypeFormat :: Bool -> OP.Parser GenotypeFormatSpec
+parseOutGenotypeFormat :: Bool -> OP.Parser String
 parseOutGenotypeFormat withDefault =
   if withDefault
-  then OP.option (OP.eitherReader readGenotypeFormat) settingsWithDefault
-  else OP.option (OP.eitherReader readGenotypeFormat) settingsWithoutDefault
+  then OP.strOption settingsWithDefault
+  else OP.strOption settingsWithoutDefault
   where
     settingsWithDefault =
         OP.long "outFormat" <>
         OP.metavar "FORMAT" <>
         OP.help "The format of the output genotype data: EIGENSTRAT or PLINK." <>
-        OP.value GenotypeFormatPlink <>
+        OP.value "PLINK" <>
         OP.showDefault
     settingsWithoutDefault =
         OP.long "outFormat" <>
         OP.metavar "FORMAT" <>
         OP.help "the format of the output genotype data: EIGENSTRAT or PLINK."
-    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
-    readGenotypeFormat s = case s of
-        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
-        "PLINK"      -> Right GenotypeFormatPlink
-        _            -> Left "must be EIGENSTRAT or PLINK"
 
 parseGenoDataSources :: OP.Parser [GenoDataSource]
 parseGenoDataSources = OP.some parseGenoDataSource
@@ -438,87 +434,70 @@ parseBasePath = OP.strOption (
     OP.help "A base directory to search for Poseidon packages.")
 
 parseInGenoWithoutSNPSet :: OP.Parser GenotypeDataSpec
-parseInGenoWithoutSNPSet = createGeno <$> (parseInGenoOne <|> parseInGenoSep)
-    where
-        createGeno :: GenoInput -> GenotypeDataSpec
-        createGeno (a,b,c,d) = GenotypeDataSpec a b Nothing c Nothing d Nothing Nothing
+parseInGenoWithoutSNPSet = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> pure Nothing
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset = createGeno <$> (parseInGenoOne <|> parseInGenoSep) <*> parseGenotypeSNPSet
-    where
-        createGeno :: GenoInput -> Maybe SNPSetSpec -> GenotypeDataSpec
-        createGeno (a,b,c,d) = GenotypeDataSpec a b Nothing c Nothing d Nothing
+parseInGenotypeDataset = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> (Just <$> parseGenotypeSNPSet)
 
-type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
-
-parseInGenoOne :: OP.Parser GenoInput
+parseInGenoOne :: OP.Parser GenotypeFileSpec
 parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         OP.long "genoOne" <>
         OP.short 'p' <>
         OP.metavar "FILE" <>
         OP.help "One of the input genotype data files. \
                 \Expects .bed or .bed.gz for PLINK, or \
-                \.geno, or .geno.gz for EIGENSTRAT. \
+                \.geno, or .geno.gz for EIGENSTRAT, or \
+                \.vcf or .vcf.gz    for VCF. \
                 \The other files must be in the same directory \
                 \and must have the same base name. If a gzipped genotype file is given, it is assumed that the \
                 \corresponding .snp.gz or .bim.gz file is also gzipped (but not the .fam or .ind file)")
     where
-        readGenoInput :: FilePath -> Either String GenoInput
-        readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
+        readGenoInput :: FilePath -> Either String GenotypeFileSpec
+        readGenoInput p = makeGenoInput (dropExtensions p) (takeExtensions p)
         makeGenoInput path ".geno" =
-            Right (GenotypeFormatEigenstrat, path <.> "geno",    path <.> "snp",    path <.> "ind")
+            Right $ GenotypeEigenstrat (path <.> "geno") Nothing (path <.> "snp") Nothing (path <.> "ind") Nothing
         makeGenoInput path ".geno.gz" =
-            Right (GenotypeFormatEigenstrat, path <.> "geno.gz", path <.> "snp.gz", path <.> "ind")
+            Right $ GenotypeEigenstrat (path <.> "geno.gz") Nothing (path <.> "snp.gz") Nothing (path <.> "ind") Nothing
         makeGenoInput path ".bed" =
-            Right (GenotypeFormatPlink,      path <.> "bed",     path <.> "bim",    path <.> "fam")
+            Right $ GenotypePlink (path <.> "bed") Nothing (path <.> "bim") Nothing (path <.> "fam") Nothing
         makeGenoInput path ".bed.gz" =
-            Right (GenotypeFormatPlink,      path <.> "bed.gz",  path <.> "bim.gz", path <.> "fam")
-        makeGenoInput _    ext         =
+            Right $ GenotypePlink (path <.> "bed.gz") Nothing (path <.> "bim.gz") Nothing (path <.> "fam") Nothing
+        makeGenoInput path ".vcf" =
+            Right $ GenotypeVCF (path <.> "vcf") Nothing
+        makeGenoInput path ".vcf.gz" =
+            Right $ GenotypeVCF (path <.> "vcf.gz") Nothing
+        makeGenoInput _    ext      =
             Left $ "unknown file extension: " ++ ext
 
-parseInGenoSep :: OP.Parser GenoInput
-parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile
-
-parseInGenotypeFormat :: OP.Parser GenotypeFormatSpec
-parseInGenotypeFormat = OP.option (OP.eitherReader readGenotypeFormat) (
-    OP.long "inFormat" <>
-    OP.metavar "FORMAT" <>
-    OP.help "The format of the input genotype data: EIGENSTRAT or PLINK. \
-            \Only necessary for data input with --genoFile + --snpFile + --indFile.")
+parseInGenoSep :: OP.Parser GenotypeFileSpec
+parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
   where
-    readGenotypeFormat :: String -> Either String GenotypeFormatSpec
-    readGenotypeFormat s = case s of
-        "EIGENSTRAT" -> Right GenotypeFormatEigenstrat
-        "PLINK"      -> Right GenotypeFormatPlink
-        _            -> Left "must be EIGENSTRAT or PLINK"
+    parseEigenstrat = GenotypeEigenstrat <$> parseFileWithEndings "genoFile" [".geno", ".geno.gz"] <*> pure Nothing
+                                         <*> parseFileWithEndings "snpFile"  [".snp",  ".snp.gz"]  <*> pure Nothing
+                                         <*> parseFileWithEndings "indFile"  [".ind"]              <*> pure Nothing
+    parsePlink      = GenotypeEigenstrat <$> parseFileWithEndings "bedFile"  [".bed", ".bed.gz"]   <*> pure Nothing
+                                         <*> parseFileWithEndings "bimFile"  [".bim",  ".bim.gz"]  <*> pure Nothing
+                                         <*> parseFileWithEndings "bamFile"  [".fam"]              <*> pure Nothing
+    parseVCF        = GenotypeVCF        <$> parseFileWithEndings "vcfFile"  [".vcf", ".vcf.gz"]   <*> pure Nothing
 
-parseInGenoFile :: OP.Parser FilePath
-parseInGenoFile = OP.strOption (
-    OP.long "genoFile" <>
-    OP.metavar "FILE" <>
-    OP.help "Path to the input geno file.")
+parseFileWithEndings :: String -> [String] -> OP.Parser FilePath
+parseFileWithEndings long endings = OP.option (OP.maybeReader fileEndingReader) (
+    OP.long long <>
+    OP.help ("Accepted file endings are " ++ intercalate ", " endings) <>
+    OP.metavar "FILE")
+  where
+    fileEndingReader :: String -> Maybe FilePath
+    fileEndingReader optString = if takeExtensions optString `elem` endings then Just (dropExtensions optString) else Nothing
 
-parseInSnpFile :: OP.Parser FilePath
-parseInSnpFile = OP.strOption (
-    OP.long "snpFile" <>
-    OP.metavar "FILE" <>
-    OP.help "Path to the input snp file.")
-
-parseInIndFile :: OP.Parser FilePath
-parseInIndFile = OP.strOption (
-    OP.long "indFile" <>
-    OP.metavar "FILE" <>
-    OP.help "Path to the input ind file.")
-
-parseGenotypeSNPSet :: OP.Parser (Maybe SNPSetSpec)
-parseGenotypeSNPSet = OP.option (Just <$> OP.eitherReader readSnpSet) (
+parseGenotypeSNPSet :: OP.Parser SNPSetSpec
+parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (
     OP.long "snpSet" <>
     OP.metavar "SET" <>
     OP.help "The snpSet of the package: 1240K, HumanOrigins or Other. \
             \Only relevant for data input with -p|--genoOne or --genoFile + --snpFile + --indFile, \
             \because the packages in a -d|--baseDir already have this information in their respective \
             \POSEIDON.yml files. (default: Other)" <>
-    OP.value (Just SNPSetOther))
+    OP.value SNPSetOther)
   where
     readSnpSet :: String -> Either String SNPSetSpec
     readSnpSet s = case s of
