@@ -282,9 +282,12 @@ runForge (
                     let eigenstratIndEntries = jannoRows2EigenstratIndEntries . getJointJanno $ relevantPackages
                     let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
                     let outConsumer = case genotypeFileSpec of
-                            GenotypeEigenstrat outG _ outS _ outI _ -> writeEigenstrat outG outS outI newEigenstratIndEntries
-                            GenotypePlink outG _ outS _ outI _ -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
-                            _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                            GenotypeEigenstrat outG _ outS _ outI _ ->
+                                writeEigenstrat outG outS outI newEigenstratIndEntries
+                            GenotypePlink      outG _ outS _ outI _ ->
+                                writePlink      outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
+                            _  -> liftIO . throwIO $
+                                PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
                     -- define main forge pipe including file output.
                     -- The final tee forwards the results to be used in the snpCounting-fold

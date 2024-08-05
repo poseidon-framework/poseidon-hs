@@ -18,7 +18,8 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              writePoseidonPackage)
 import           Poseidon.Utils             (PoseidonIO, envErrorLength,
                                              envInputPlinkMode, envLogAction,
-                                             logInfo, logWarning)
+                                             logInfo, logWarning,
+                                             PoseidonException(..))
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
@@ -75,9 +76,9 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
         ++ ":"
     -- compile file names paths
     let outName = getPacName . posPacNameAndVersion $ pac
-    let (outInd, outSnp, outGeno) = case outFormat of
-            "EIGENSTRAT" -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
-            "PLINK"      -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
+    (outInd, outSnp, outGeno) <- case outFormat of
+            "EIGENSTRAT" -> return (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
+            "PLINK"      -> return (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
             _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
     -- check if genotype data needs conversion
     if getFormat (genotypeFileSpec (posPacGenotypeData pac)) == outFormat
@@ -113,20 +114,20 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || isJust outPath) $ do
-                let gFileSpec = case outFormat of
-                        "EIGENSTRAT" -> GenotypeEigenstrat outGeno Nothing outSnp Nothing outInd Nothing
-                        "PLINK"      -> GenotypePlink      outGeno Nothing outSnp Nothing outInd Nothing
+                gFileSpec <- case outFormat of
+                        "EIGENSTRAT" -> return $ GenotypeEigenstrat outGeno Nothing outSnp Nothing outInd Nothing
+                        "PLINK"      -> return $ GenotypePlink      outGeno Nothing outSnp Nothing outInd Nothing
                         _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
-                let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
+                let genotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
                     newPac = pac { posPacGenotypeData = genotypeData }
                 logInfo "Adjusting POSEIDON.yml..."
                 liftIO $ writePoseidonPackage newPac
             -- delete now replaced input genotype data
-            when removeOld $ liftIO $ mapM_ removeFile [
-                  posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
-                , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
-                , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
-                ]
+            let filesToDelete = case genotypeFileSpec . posPacGenotypeData $ pac of
+                    GenotypeEigenstrat g _ s _ i _ -> [g, s, i]
+                    GenotypePlink      g _ s _ i _ -> [g, s, i]
+                    GenotypeVCF        g _         -> [g]
+            when removeOld . liftIO . mapM_ (removeFile . (posPacBaseDir pac </>)) $ filesToDelete
   where
     checkFile :: FilePath -> PoseidonIO Bool
     checkFile fn = do
@@ -136,4 +137,4 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
     getFormat :: GenotypeFileSpec -> String
     getFormat (GenotypeEigenstrat _ _ _ _ _ _) = "EIGENSTRAT"
     getFormat (GenotypePlink      _ _ _ _ _ _) = "PLINK"
-    getFormat (GenotypePlink      _ _ _ _ _ _) = "VCF"
+    getFormat (GenotypeVCF        _ _        ) = "VCF"
