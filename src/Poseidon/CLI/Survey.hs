@@ -8,7 +8,7 @@
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
-import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
+import           Poseidon.GenotypeData     (GenotypeDataSpec (..), GenotypeFileSpec (..))
 import           Poseidon.Janno            (CsvNamedRecord, JannoRows (..),
                                             JannoSex, JannoStringList)
 import           Poseidon.Package          (PackageReadOptions (..),
@@ -53,11 +53,11 @@ runSurvey (SurveyOptions baseDirs rawOutput onlyLatest) = do
     -- collect information
     let packageNames = map posPacNameAndVersion allPackages
     -- geno
-    let genotypeDataTuples = [(posPacBaseDir pac, posPacGenotypeData pac) | pac <- allPackages]
-    genoFilesExist <- liftIO $ sequence [doesFileExist (d </> genoFile gd) | (d, gd) <- genotypeDataTuples]
-    snpFilesExist  <- liftIO $ sequence [doesFileExist (d </> snpFile gd) | (d, gd) <- genotypeDataTuples]
-    indFilesExist  <- liftIO $ sequence [doesFileExist (d </> indFile gd) | (d, gd) <- genotypeDataTuples]
-    let genoTypeDataExists = map (\(a,b,c) -> a && b && c) $ zip3 genoFilesExist snpFilesExist indFilesExist
+    genoTypeDataExists <- forM allPackages $ \pac -> do
+        case genotypeFileSpec . posPacGenotypeData $ pac of
+            GenotypeEigenstrat gf _ sf _ i _ -> and <$> mapM (liftIO . doesFileExist . (posPacBaseDir pac </>)) [gf, sf, i]
+            GenotypePlink      gf _ sf _ i _ -> and <$> mapM (liftIO . doesFileExist . (posPacBaseDir pac </>)) [gf, sf, i]
+            GenotypeVCF        gf _          ->               liftIO . doesFileExist $  posPacBaseDir pac </>    gf
     -- janno
     let jannos = map posPacJanno allPackages
     -- ssf
