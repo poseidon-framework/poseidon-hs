@@ -103,7 +103,9 @@ updateChecksums checksumSetting pac = do
                 then do
                     logDebug "Updating genotype data checksums"
                     let gd = posPacGenotypeData pac
-                    genoExists <- exists (d </> genoFile gd)
+                    case genotypeFileSpec gd of
+                        GenotypeEigenstrat gfile _ sfile _ ifile _ -> do
+                            genoExists <- exists (d </> genoFile gd)
                     genoChkSum <- if genoExists
                         then Just <$!!> getChk (d </> genoFile gd)
                         else return $ genoFileChkSum gd
