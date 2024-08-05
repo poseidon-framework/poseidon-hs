@@ -40,7 +40,7 @@ import           Poseidon.SequencingSource   (SeqSourceRow (..),
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO, checkFile,
                                               determinePackageOutName,
-                                              envErrorLength, envInputPlinkMode,
+                                              envErrorLength,
                                               envLogAction, logInfo, logWarning,
                                               uniqueRO)
 
@@ -269,11 +269,10 @@ runForge (
                     liftIO $ checkFile fullSourcePath Nothing
                     liftIO $ copyFile fullSourcePath $ outPath </> path
         compileGenotypeData :: FilePath -> GenotypeFileSpec -> [PoseidonPackage] -> [Int] ->  PoseidonIO (VUM.IOVector Int)
-        compileGenotypeData outPath genotypeFileSpec relevantPackages relevantIndices = do
+        compileGenotypeData outPath gFileSpec relevantPackages relevantIndices = do
             logInfo "Compiling genotype data"
             logInfo "Processing SNPs..."
             logA <- envLogAction
-            inPlinkPopMode <- envInputPlinkMode
             currentTime <- liftIO getCurrentTime
             errLength <- envErrorLength
             newNrSNPs <- liftIO $ catch (
@@ -281,11 +280,11 @@ runForge (
                     eigenstratProd <- getJointGenotypeData logA intersect_ relevantPackages maybeSnpFile
                     let eigenstratIndEntries = jannoRows2EigenstratIndEntries . getJointJanno $ relevantPackages
                     let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
-                    let outConsumer = case genotypeFileSpec of
+                    let outConsumer = case gFileSpec of
                             GenotypeEigenstrat outG _ outS _ outI _ ->
-                                writeEigenstrat outG outS outI newEigenstratIndEntries
+                                writeEigenstrat (outPath </> outG) (outPath </> outS) (outPath </> outI) newEigenstratIndEntries
                             GenotypePlink      outG _ outS _ outI _ ->
-                                writePlink      outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
+                                writePlink      (outPath </> outG) (outPath </> outS) (outPath </> outI) (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
                             _  -> liftIO . throwIO $
                                 PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)

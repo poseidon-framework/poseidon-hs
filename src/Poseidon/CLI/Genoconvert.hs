@@ -10,14 +10,13 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              printSNPCopyProgress)
 import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
 import           Poseidon.Package           (PackageReadOptions (..),
-                                             PoseidonException (PoseidonGenotypeExceptionForward),
                                              PoseidonPackage (..),
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
 import           Poseidon.Utils             (PoseidonIO, envErrorLength,
-                                             envInputPlinkMode, envLogAction,
+                                             envLogAction,
                                              logInfo, logWarning,
                                              PoseidonException(..))
 
@@ -56,17 +55,16 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
     }
     -- load packages
     properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDir x | x@PacBaseDir {} <- genoSources]
-    inPlinkPopMode <- envInputPlinkMode
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData [getGenoDirect x | x@GenoDirect {} <- genoSources]
 
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode) properPackages
-    mapM_ (convertGenoTo outFormat True outPath removeOld inPlinkPopMode outPlinkPopMode) pseudoPackages
+    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode) properPackages
+    mapM_ (convertGenoTo outFormat True outPath removeOld outPlinkPopMode) pseudoPackages
 
-convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode ->
+convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool ->
     PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
-convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode pac = do
+convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
     -- start message
     logInfo $
         "Converting genotype data in "

@@ -62,7 +62,7 @@ import           Poseidon.ServerClient      (AddJannoColSpec (..),
                                              GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
-                                             envErrorLength, envInputPlinkMode,
+                                             envErrorLength,
                                              envLogAction, logDebug, logError,
                                              logInfo, logWarning, logWithEnv,
                                              renderPoseidonException)
@@ -105,7 +105,7 @@ import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine,
                                              readEigenstratSnpFile)
-import           SequenceFormats.Plink      (PlinkPopNameMode (..), readBimFile)
+import           SequenceFormats.Plink      (readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
 import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
@@ -418,7 +418,6 @@ checkYML yml = do
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
     logA <- envLogAction
-    plinkMode <- envInputPlinkMode
     errLength <- envErrorLength
     --let jannoRows = getJannoRowsFromPac pac
     --let ploidyList = map jGenotypePloidy jannoRows
@@ -672,7 +671,7 @@ loadBimOrSnpFile fn
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: (MonadThrow m) => FilePath -> String -> GenotypeDataSpec -> m PoseidonPackage
 newMinimalPackageTemplate baseDir name gd = do
-    (baseDir, reducedGD) <- reduceGenotypeFilepaths gd
+    reducedGD <- snd <$> reduceGenotypeFilepaths gd
     return $ PoseidonPackage {
         posPacBaseDir = baseDir
     ,   posPacPoseidonVersion = asVersion latestPoseidonVersion

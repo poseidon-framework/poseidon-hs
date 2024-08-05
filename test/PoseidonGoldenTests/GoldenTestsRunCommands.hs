@@ -34,7 +34,6 @@ import           Poseidon.EntityTypes       (EntityInput (..),
                                              readEntitiesFromString)
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (AddJannoColSpec (..),
                                              ArchiveEndpoint (..))
