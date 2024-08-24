@@ -16,6 +16,8 @@ import Data.ByteString as S
 import GHC.Generics (Generic)
 import Data.Typeable (Typeable)
 import Data.Aeson.Types (Parser)
+import           Country                              (Country, alphaTwoUpper,
+                                                       decodeAlphaTwo)
 
 -- a typeclass for types associated to a column name
 class HasColName a where
@@ -43,7 +45,7 @@ makeJannoSex x
     | x == "F"  = pure (JannoSex Female)
     | x == "M"  = pure (JannoSex Male)
     | x == "U"  = pure (JannoSex Unknown)
-    | otherwise = fail $ "Genetic_Sex is set to " ++ show x ++ "." ++
+    | otherwise = fail $ "Genetic_Sex is set to " ++ show x ++ ". " ++
                          "That is not in the allowed set [F, M, U]."
 
 instance Show JannoSex where
@@ -108,8 +110,8 @@ instance Makeable JannoRelationDegree where
                                                -- relations of type "unrelated" don't have to be
                                                -- listed explicitly
         | x == "other"        = pure OtherDegree
-        | otherwise           = fail $ "Relation_Degree is set to " ++ show x ++ "." ++
-                                       "That is not in the allowed set [identical, first, second, thirdToFifth, sixthToTenth, other]"
+        | otherwise           = fail $ "Relation_Degree is set to " ++ show x ++ ". " ++
+                                       "That is not in the allowed set [identical, first, second, thirdToFifth, sixthToTenth, other]."
 instance Show JannoRelationDegree where
     show Identical    = "identical"
     show First        = "first"
@@ -144,3 +146,43 @@ instance Csv.ToField JannoRelationNote where   toField (JannoRelationNote x) = C
 instance Csv.FromField JannoRelationNote where parseField = parseTypeCSV
 instance ToJSON JannoRelationNote where        toJSON (JannoRelationNote x) = String x
 instance FromJSON JannoRelationNote where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Collection_ID .janno column
+newtype JannoCollectionID = JannoCollectionID T.Text deriving (Eq)
+
+instance HasColName JannoCollectionID where    colname _ = "Collection_ID"
+instance Makeable JannoCollectionID where      make = pure . JannoCollectionID
+instance Show JannoCollectionID where          show (JannoCollectionID x) = T.unpack x
+instance Csv.ToField JannoCollectionID where   toField (JannoCollectionID x) = Csv.toField x
+instance Csv.FromField JannoCollectionID where parseField = parseTypeCSV
+instance ToJSON JannoCollectionID where        toJSON (JannoCollectionID x) = String x
+instance FromJSON JannoCollectionID where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Collection_ID .janno column
+newtype JannoCountry = JannoCountry T.Text deriving (Eq, Ord)
+
+instance HasColName JannoCountry where    colname _ = "Country"
+instance Makeable JannoCountry where      make = pure . JannoCountry
+instance Show JannoCountry where          show (JannoCountry x) = T.unpack x
+instance Csv.ToField JannoCountry where   toField (JannoCountry x) = Csv.toField x
+instance Csv.FromField JannoCountry where parseField = parseTypeCSV
+instance ToJSON JannoCountry where        toJSON (JannoCountry x) = String x
+instance FromJSON JannoCountry where      parseJSON = parseTypeJSON
+
+-- | A datatype for countries in ISO-alpha2 code format
+newtype JannoCountryISO = JannoCountryISO Country deriving (Eq, Ord)
+
+instance HasColName JannoCountryISO where colname _ = "Country_ISO"
+instance Show JannoCountryISO where
+    show (JannoCountryISO x) = T.unpack $ alphaTwoUpper x
+instance Makeable JannoCountryISO where
+    make x = case decodeAlphaTwo x of
+        Nothing -> fail $
+            "Country_ISO is set to " ++ show x ++ ". " ++
+            "That is not a valid ISO-alpha2 code describing an existing country."
+        Just c  -> return $ JannoCountryISO c
+instance Csv.ToField JannoCountryISO where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoCountryISO where parseField = parseTypeCSV
+instance ToJSON JannoCountryISO where        toJSON x  = String $ T.pack $ show x
+instance FromJSON JannoCountryISO where      parseJSON = parseTypeJSON
+

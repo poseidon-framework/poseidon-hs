@@ -59,7 +59,8 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Nr Countries"
                 , uniqueNumber . mapMaybe jCountry $ rows],
                 ["Countries"
-                , printFrequencyMaybeString ", " . frequency . map jCountry $ rows],
+                --, printFrequencyMaybeString ", " . frequency . map jCountry $ rows
+                ],
                 ["Mean age BC/AD"
                 , meanAndSdInteger . map (\(BCADAge x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
                 ["Dating type"

@@ -13,8 +13,7 @@ module Poseidon.Janno (
     JannoList (..),
     Sex (..),
     BCADAge (..),
-    JannoCountry (..),
-    makeJannoCountryUnsafe,
+    JannoCountryISO (..),
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
@@ -59,14 +58,12 @@ import           Control.Monad                        (unless, when)
 import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
-import           Country                              (Country, alphaTwoUpper,
-                                                       decodeAlphaTwo)
 import           Data.Aeson                           (FromJSON, Options (..),
                                                        ToJSON, Value (..),
                                                        defaultOptions,
                                                        genericToEncoding,
                                                        parseJSON, toEncoding,
-                                                       toJSON, withText)
+                                                       toJSON)
 import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
@@ -80,7 +77,6 @@ import           Data.List                            (elemIndex, foldl',
                                                        (\\))
 import           Data.Maybe                           (fromJust)
 import           Data.Text                            (pack, replace, unpack)
-import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
@@ -284,38 +280,6 @@ instance ToJSON JannoLibraryBuilt where
     --toEncoding x = text $ T.pack $ show x
 instance FromJSON JannoLibraryBuilt --where
     --parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
-
--- | A datatype for countries in ISO-alpha2 code format
-newtype JannoCountry = JannoCountry Country
-    deriving (Eq, Ord)
-
-instance Show JannoCountry where
-    show (JannoCountry x) = T.unpack $ alphaTwoUpper x
-
-makeJannoCountryEither :: String -> Either PoseidonException JannoCountry
-makeJannoCountryEither x =
-    case decodeAlphaTwo (T.pack x) of
-        Just c  -> Right $ JannoCountry c
-        Nothing -> Left . PoseidonGenericException $ x ++ " is not a valid ISO-alpha2 code describing an existing country"
-
-makeJannoCountryUnsafe :: String -> JannoCountry
-makeJannoCountryUnsafe x = case makeJannoCountryEither x of
-    Left e  -> error . show $ e
-    Right r -> r
-
-makeJannoCountry :: (MonadFail m) => String -> m JannoCountry
-makeJannoCountry x = case makeJannoCountryEither x of
-    Left e  -> fail . show $ e
-    Right r -> return r
-
-instance Csv.ToField JannoCountry where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JannoCountry where
-    parseField x = Csv.parseField x >>= makeJannoCountry
-instance ToJSON JannoCountry where
-    toJSON x  = String $ T.pack $ show x
-instance FromJSON JannoCountry where
-    parseJSON = withText "JannoCountry" (makeJannoCountry . T.unpack)
 
 -- | A datatype for Latitudes
 newtype Latitude =
@@ -536,9 +500,9 @@ data JannoRow = JannoRow
     , jRelationDegree             :: Maybe (JannoList JannoRelationDegree)
     , jRelationType               :: Maybe (JannoList JannoRelationType)
     , jRelationNote               :: Maybe JannoRelationNote
-    , jCollectionID               :: Maybe String
-    , jCountry                    :: Maybe String
-    , jCountryISO                 :: Maybe JannoCountry
+    , jCollectionID               :: Maybe JannoCollectionID
+    , jCountry                    :: Maybe JannoCountry
+    , jCountryISO                 :: Maybe JannoCountryISO
     , jLocation                   :: Maybe String
     , jSite                       :: Maybe String
     , jLatitude                   :: Maybe Latitude
