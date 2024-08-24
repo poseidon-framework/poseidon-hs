@@ -534,8 +534,8 @@ data JannoRow = JannoRow
     , jAlternativeIDs             :: Maybe (JannoList JannoAlternativeID)
     , jRelationTo                 :: Maybe (JannoList JannoRelationTo)
     , jRelationDegree             :: Maybe (JannoList JannoRelationDegree)
-    , jRelationType               :: Maybe JannoStringList
-    , jRelationNote               :: Maybe String
+    , jRelationType               :: Maybe (JannoList JannoRelationType)
+    , jRelationNote               :: Maybe JannoRelationNote
     , jCollectionID               :: Maybe String
     , jCountry                    :: Maybe String
     , jCountryISO                 :: Maybe JannoCountry
