@@ -129,23 +129,25 @@ instance FromJSON JannoSex where
     parseJSON = withText "JannoSex" (makeJannoSex . T.unpack)
 
 -- | A datatype for the Alternative_IDs .janno column
-newtype JannoAlternativeID = JannoAlternativeID String
+newtype JannoAlternativeID = JannoAlternativeID T.Text
     deriving (Eq)
 
 instance Show JannoAlternativeID where
-    show (JannoAlternativeID x)  = x
+    show (JannoAlternativeID x)  = T.unpack x
 
-makeJannoAlternativeID :: MonadFail m => String -> m JannoAlternativeID
+makeJannoAlternativeID :: MonadFail m => T.Text -> m JannoAlternativeID
 makeJannoAlternativeID x = pure $ JannoAlternativeID x
 
 instance Csv.ToField JannoAlternativeID where
     toField (JannoAlternativeID x) = Csv.toField x
 instance Csv.FromField JannoAlternativeID where
-    parseField x = Csv.parseField x >>= makeJannoAlternativeID
+    parseField x = case T.decodeUtf8' x of
+        Left e  -> fail $ show e ++ " in column Alternative_IDs"
+        Right t -> makeJannoAlternativeID t
 instance ToJSON JannoAlternativeID where
-    toJSON (JannoAlternativeID x) = String $ T.pack x
+    toJSON (JannoAlternativeID x) = String x
 instance FromJSON JannoAlternativeID where
-    parseJSON = withText "Alternative_IDs" (makeJannoAlternativeID . T.unpack)
+    parseJSON = withText "Alternative_IDs" makeJannoAlternativeID
 
 -- | A datatype for BC-AD ages
 newtype BCADAge =
