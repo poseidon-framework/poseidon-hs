@@ -23,7 +23,7 @@ module Poseidon.Janno (
     Percent (..),
     JannoUDG (..),
     JURI (..),
-    RelationDegree (..),
+    JannoRelationDegree (..),
     JannoLibraryBuilt (..),
     AccessionID (..),
     makeAccessionID,
@@ -406,52 +406,6 @@ instance ToJSON JURI where
 instance FromJSON JURI-- where
     --parseJSON = withText "JURI" (makeJURI . T.unpack)
 
--- |A datatype to represent Relationship degree lists in a janno file
-type JannoRelationDegreeList = JannoList RelationDegree
-
-data RelationDegree =
-      Identical
-    | First
-    | Second
-    | ThirdToFifth
-    | SixthToTenth
-    | Unrelated
-    | OtherDegree
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show RelationDegree where
-    show Identical    = "identical"
-    show First        = "first"
-    show Second       = "second"
-    show ThirdToFifth = "thirdToFifth"
-    show SixthToTenth = "sixthToTenth"
-    show Unrelated    = "unrelated"
-    show OtherDegree  = "other"
-
-makeRelationDegree :: MonadFail m => String -> m RelationDegree
-makeRelationDegree x
-    | x == "identical"    = pure Identical
-    | x == "first"        = pure First
-    | x == "second"       = pure Second
-    | x == "thirdToFifth" = pure ThirdToFifth
-    | x == "sixthToTenth" = pure SixthToTenth
-    | x == "unrelated"    = pure Unrelated -- this should be omitted in the documentation
-                                           -- relations of type "unrelated" don't have to be
-                                           -- listed explicitly
-    | x == "other"        = pure OtherDegree
-    | otherwise           = fail $ "Relation degree " ++ show x ++
-                                   " not in [identical, first, second, thirdToFifth, sixthToTenth, other]"
-
-instance Csv.ToField RelationDegree where
-    toField x = Csv.toField $ show x
-instance Csv.FromField RelationDegree where
-    parseField x = Csv.parseField x >>= makeRelationDegree
-instance ToJSON RelationDegree where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON RelationDegree-- where
-    --parseJSON = withText "RelationDegree" (makeRelationDegree . T.unpack)
-
 -- |A datatype to represent AccessionIDs in a janno file
 data AccessionID =
       INSDCProject String
@@ -578,8 +532,8 @@ data JannoRow = JannoRow
     , jGeneticSex                 :: JannoSex
     , jGroupName                  :: JannoStringList
     , jAlternativeIDs             :: Maybe (JannoList JannoAlternativeID)
-    , jRelationTo                 :: Maybe JannoStringList
-    , jRelationDegree             :: Maybe JannoRelationDegreeList
+    , jRelationTo                 :: Maybe (JannoList JannoRelationTo)
+    , jRelationDegree             :: Maybe (JannoList JannoRelationDegree)
     , jRelationType               :: Maybe JannoStringList
     , jRelationNote               :: Maybe String
     , jCollectionID               :: Maybe String
