@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Poseidon.JannoTypes where
 
@@ -13,15 +14,20 @@ import           Data.Aeson                           (FromJSON,
                                                        toJSON, withText, toEncoding, genericToEncoding, defaultOptions)
 import Data.ByteString as S
 import GHC.Generics (Generic)
+import Data.Typeable (Typeable)
 
 -- a typeclass for types with smart constructors
 class Makeable a where
     make :: MonadFail m => T.Text -> m a
 
+-- a typeclass for types associated to a column name
+class HasColName a where
+    colname :: a -> String
+
 -- helper functions
-parseType :: (MonadFail m, Makeable a) => String -> S.ByteString -> m a
-parseType colName x = case T.decodeUtf8' x of
-        Left e  -> fail $ show e ++ " in column " ++ colName
+parseType :: forall a m. (MonadFail m, Makeable a, HasColName a, Typeable a) => S.ByteString -> m a
+parseType x = case T.decodeUtf8' x of
+        Left e  -> fail $ show e ++ " in column " ++ colname (undefined :: a)
         Right t -> make t
 
 -- | A datatype for the Genetic_Sex .janno column
@@ -56,20 +62,22 @@ instance FromJSON JannoSex where      parseJSON    = withText "JannoSex" (makeJa
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)
 
+instance HasColName JannoAlternativeID where colname _ = "Alternative_IDs"
 instance Makeable JannoAlternativeID where      make = pure . JannoAlternativeID
 instance Show JannoAlternativeID where          show (JannoAlternativeID x) = T.unpack x
 instance Csv.ToField JannoAlternativeID where   toField (JannoAlternativeID x) = Csv.toField x
-instance Csv.FromField JannoAlternativeID where parseField = parseType "Alternative_IDs"
+instance Csv.FromField JannoAlternativeID where parseField = parseType
 instance ToJSON JannoAlternativeID where        toJSON (JannoAlternativeID x) = String x
 instance FromJSON JannoAlternativeID where      parseJSON = withText "Alternative_IDs" make
 
 -- | A datatype for the Relation_To .janno column
 newtype JannoRelationTo = JannoRelationTo T.Text deriving (Eq)
 
+instance HasColName JannoRelationTo where colname _ = "Relation_To"
 instance Makeable JannoRelationTo where      make = pure . JannoRelationTo
 instance Show JannoRelationTo where          show (JannoRelationTo x) = T.unpack x
 instance Csv.ToField JannoRelationTo where   toField (JannoRelationTo x) = Csv.toField x
-instance Csv.FromField JannoRelationTo where parseField = parseType "Relation_To"
+instance Csv.FromField JannoRelationTo where parseField = parseType
 instance ToJSON JannoRelationTo where        toJSON (JannoRelationTo x) = String x
 instance FromJSON JannoRelationTo where      parseJSON = withText "Relation_To" make
 
@@ -84,6 +92,7 @@ data JannoRelationDegree =
     | OtherDegree
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
+instance HasColName JannoRelationDegree where colname _ = "Relation_Degree"
 instance Makeable JannoRelationDegree where
     make x
         | x == "identical"    = pure Identical
@@ -106,6 +115,6 @@ instance Show JannoRelationDegree where
     show Unrelated    = "unrelated"
     show OtherDegree  = "other"
 instance Csv.ToField JannoRelationDegree where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoRelationDegree where parseField = parseType "Relation_Degree"
+instance Csv.FromField JannoRelationDegree where parseField = parseType
 instance ToJSON JannoRelationDegree where        toEncoding = genericToEncoding defaultOptions
 instance FromJSON JannoRelationDegree
