@@ -26,7 +26,6 @@ module Poseidon.Janno (
     JannoLibraryBuilt (..),
     AccessionID (..),
     makeAccessionID,
-    makeLatitude, makeLongitude,
     writeJannoFile,
     readJannoFile,
     createMinimalJanno,
@@ -281,50 +280,6 @@ instance ToJSON JannoLibraryBuilt where
 instance FromJSON JannoLibraryBuilt --where
     --parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
 
--- | A datatype for Latitudes
-newtype Latitude =
-        Latitude Double
-    deriving (Eq, Ord, Generic)
-
-instance Show Latitude where
-    show (Latitude x) = show x
-
-makeLatitude :: MonadFail m => Double -> m Latitude
-makeLatitude x
-    | x >= -90 && x <= 90 = pure (Latitude x)
-    | otherwise           = fail $ "Latitude " ++ show x ++ " not between -90 and 90"
-
-instance Csv.ToField Latitude where
-    toField (Latitude x) = Csv.toField x
-instance Csv.FromField Latitude where
-    parseField x = Csv.parseField x >>= makeLatitude
-instance ToJSON Latitude where
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON Latitude-- where
-    --parseJSON = withScientific "Latitude" $ \n -> (makeLatitude . toRealFloat) n
-
--- | A datatype for Longitudes
-newtype Longitude =
-        Longitude Double
-    deriving (Eq, Ord, Generic)
-
-instance Show Longitude where
-    show (Longitude x) = show x
-
-makeLongitude :: MonadFail m => Double -> m Longitude
-makeLongitude x
-    | x >= -180 && x <= 180 = pure (Longitude x)
-    | otherwise             = fail $ "Longitude " ++ show x ++ " not between -180 and 180"
-
-instance Csv.ToField Longitude where
-    toField (Longitude x) = Csv.toField x
-instance Csv.FromField Longitude where
-    parseField x = Csv.parseField x >>= makeLongitude
-instance ToJSON Longitude where
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON Longitude-- where
-    --parseJSON = withScientific "Longitude" $ \n -> (makeLongitude . toRealFloat) n
-
 -- | A datatype for Percent values
 newtype Percent =
         Percent Double
@@ -503,8 +458,8 @@ data JannoRow = JannoRow
     , jCollectionID               :: Maybe JannoCollectionID
     , jCountry                    :: Maybe JannoCountry
     , jCountryISO                 :: Maybe JannoCountryISO
-    , jLocation                   :: Maybe String
-    , jSite                       :: Maybe String
+    , jLocation                   :: Maybe JannoLocation
+    , jSite                       :: Maybe JannoSite
     , jLatitude                   :: Maybe Latitude
     , jLongitude                  :: Maybe Longitude
     , jDateType                   :: Maybe JannoDateType

@@ -18,6 +18,7 @@ import Data.Typeable (Typeable)
 import Data.Aeson.Types (Parser)
 import           Country                              (Country, alphaTwoUpper,
                                                        decodeAlphaTwo)
+import qualified Data.Text.Read as T
 
 -- a typeclass for types associated to a column name
 class HasColName a where
@@ -186,3 +187,62 @@ instance Csv.FromField JannoCountryISO where parseField = parseTypeCSV
 instance ToJSON JannoCountryISO where        toJSON x  = String $ T.pack $ show x
 instance FromJSON JannoCountryISO where      parseJSON = parseTypeJSON
 
+-- | A datatype for the Location .janno column
+newtype JannoLocation = JannoLocation T.Text deriving (Eq)
+
+instance HasColName JannoLocation where    colname _ = "Collection_ID"
+instance Makeable JannoLocation where      make = pure . JannoLocation
+instance Show JannoLocation where          show (JannoLocation x) = T.unpack x
+instance Csv.ToField JannoLocation where   toField (JannoLocation x) = Csv.toField x
+instance Csv.FromField JannoLocation where parseField = parseTypeCSV
+instance ToJSON JannoLocation where        toJSON (JannoLocation x) = String x
+instance FromJSON JannoLocation where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Site .janno column
+newtype JannoSite = JannoSite T.Text deriving (Eq, Ord)
+
+instance HasColName JannoSite where    colname _ = "Country"
+instance Makeable JannoSite where      make = pure . JannoSite
+instance Show JannoSite where          show (JannoSite x) = T.unpack x
+instance Csv.ToField JannoSite where   toField (JannoSite x) = Csv.toField x
+instance Csv.FromField JannoSite where parseField = parseTypeCSV
+instance ToJSON JannoSite where        toJSON (JannoSite x) = String x
+instance FromJSON JannoSite where      parseJSON = parseTypeJSON
+
+-- | A datatype for Latitudes
+newtype Latitude = Latitude Double deriving (Eq, Ord, Generic)
+
+instance HasColName Latitude where    colname _ = "Latitude"
+instance Makeable Latitude where
+    make x =
+        case T.double x of
+            Left e -> fail $ "Latitude can not be converted to Double because " ++ e
+            Right (num, "") ->
+                if num >= -90 && num <= 90
+                then pure (Latitude num)
+                else fail $ "Latitude " ++ show x ++ " not between -90 and 90"
+            Right (_, rest) -> fail $ "Latitude can not be converted to Double, because of a trailing " ++ show rest
+instance Show Latitude where          show (Latitude x) = show x
+instance Csv.ToField Latitude where   toField (Latitude x) = Csv.toField x
+instance Csv.FromField Latitude where parseField = parseTypeCSV
+instance ToJSON Latitude where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON Latitude
+
+-- | A datatype for Longitudes
+newtype Longitude = Longitude Double deriving (Eq, Ord, Generic)
+
+instance HasColName Longitude where    colname _ = "Longitude"
+instance Makeable Longitude where
+    make x =
+        case T.double x of
+            Left e -> fail $ "Longitude can not be converted to Double because " ++ e
+            Right (num, "") ->
+                if num >= -180 && num <= 180
+                then pure (Longitude num)
+                else fail $ "Longitude " ++ show x ++ " not between -180 and 180"
+            Right (_, rest) -> fail $ "Longitude can not be converted to Double, because of a trailing " ++ show rest
+instance Show Longitude where          show (Longitude x) = show x
+instance Csv.ToField Longitude where   toField (Longitude x) = Csv.toField x
+instance Csv.FromField Longitude where parseField = parseTypeCSV
+instance ToJSON Longitude where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON Longitude
