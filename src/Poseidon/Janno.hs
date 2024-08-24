@@ -53,8 +53,6 @@ import           Poseidon.Utils                       (PoseidonException (..),
                                                        logError, logWarning,
                                                        renderPoseidonException)
 
-
-import           Control.Applicative                  (empty)
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
 import qualified Control.Monad.Except                 as E
@@ -799,7 +797,9 @@ instance Csv.FromNamedRecord JannoRow where
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = maybe empty Csv.parseField . cleanInput $ HM.lookup name m
+filterLookup m name = case cleanInput $ HM.lookup name m of
+    Nothing -> fail "Missing value in mandatory column (Poseidon_ID, Genetic_Sex, Group_Name)"
+    Just x  -> Csv.parseField  x
 
 filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
 filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
