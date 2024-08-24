@@ -12,11 +12,11 @@ module Poseidon.Janno (
     JannoSex (..),
     JannoList (..),
     Sex (..),
-    BCADAge (..),
     JannoCountryISO (..),
     Latitude (..),
     Longitude (..),
     JannoDateType (..),
+    DateBCADMedian (..),
     JannoCaptureType (..),
     JannoGenotypePloidy (..),
     Percent (..),
@@ -43,7 +43,7 @@ module Poseidon.Janno (
     removeUselessSuffix,
     parseCsvParseError,
     renderCsvParseError,
-    getMaybeJannoList
+    getMaybeJannoList,
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -87,63 +87,6 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
 import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
 import qualified Text.Regex.TDFA                      as Reg
-
--- | A datatype for BC-AD ages
-newtype BCADAge =
-        BCADAge Int
-    deriving (Eq, Ord, Generic)
-
-instance Show BCADAge where
-    show (BCADAge x) = show x
-
-makeBCADAge :: MonadFail m => Int -> m BCADAge
-makeBCADAge x =
-    let curYear = 2023 -- the current year
-    in if x >= curYear
-       then fail $ "Age " ++ show x ++ " later than " ++ show curYear ++ ", which is impossible. " ++
-                   "Did you accidentally enter a BP date?"
-      else pure (BCADAge x)
-
-instance Csv.ToField BCADAge where
-    toField (BCADAge x) = Csv.toField x
-instance Csv.FromField BCADAge where
-    parseField x = Csv.parseField x >>= makeBCADAge
-instance ToJSON BCADAge where
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON BCADAge-- where
-    --parseJSON = withScientific "BCADAge" $ \n ->
-    --    case toBoundedInteger n of
-    --        Nothing -> fail $ "Number" ++ show n ++ "doesn't fit into a bounded integer."
-    --        Just x -> makeBCADAge x
-
--- |A datatype to represent Date_Type in a janno file
-data JannoDateType =
-      C14
-    | Contextual
-    | Modern
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show JannoDateType where
-    show C14        = "C14"
-    show Contextual = "contextual"
-    show Modern     = "modern"
-
-makeJannoDateType :: MonadFail m => String -> m JannoDateType
-makeJannoDateType x
-    | x == "C14"        = pure C14
-    | x == "contextual" = pure Contextual
-    | x == "modern"     = pure Modern
-    | otherwise         = fail $ "Date_Type " ++ show x ++ " not in [C14, contextual, modern]"
-
-instance Csv.ToField JannoDateType where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JannoDateType where
-    parseField x = Csv.parseField x >>= makeJannoDateType
-instance ToJSON JannoDateType where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JannoDateType-- where
-    --parseJSON = withText "JannoDateType" (makeJannoDateType . T.unpack)
 
 -- |A datatype to represent Capture_Type in a janno file
 data JannoCaptureType =
@@ -379,7 +322,6 @@ getMaybeJannoList Nothing  = []
 getMaybeJannoList (Just x) = getJannoList x
 
 type JannoStringList = JannoList String
-type JannoIntList = JannoList Int
 
 instance (Csv.ToField a, Show a) => Csv.ToField (JannoList a) where
     toField x = Bchs.intercalate ";" $ map Csv.toField $ getJannoList x
@@ -463,12 +405,12 @@ data JannoRow = JannoRow
     , jLatitude                   :: Maybe Latitude
     , jLongitude                  :: Maybe Longitude
     , jDateType                   :: Maybe JannoDateType
-    , jDateC14Labnr               :: Maybe JannoStringList
-    , jDateC14UncalBP             :: Maybe JannoIntList
-    , jDateC14UncalBPErr          :: Maybe JannoIntList
-    , jDateBCADStart              :: Maybe BCADAge
-    , jDateBCADMedian             :: Maybe BCADAge
-    , jDateBCADStop               :: Maybe BCADAge
+    , jDateC14Labnr               :: Maybe (JannoList JannoDateC14Labnr)
+    , jDateC14UncalBP             :: Maybe (JannoList JannoDateC14UncalBP)
+    , jDateC14UncalBPErr          :: Maybe (JannoList JannoDateC14UncalBPErr)
+    , jDateBCADStart              :: Maybe DateBCADStart
+    , jDateBCADMedian             :: Maybe DateBCADMedian
+    , jDateBCADStop               :: Maybe DateBCADStop
     , jDateNote                   :: Maybe String
     , jMTHaplogroup               :: Maybe String
     , jYHaplogroup                :: Maybe String

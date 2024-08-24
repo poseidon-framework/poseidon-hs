@@ -246,3 +246,134 @@ instance Csv.ToField Longitude where   toField (Longitude x) = Csv.toField x
 instance Csv.FromField Longitude where parseField = parseTypeCSV
 instance ToJSON Longitude where        toEncoding = genericToEncoding defaultOptions
 instance FromJSON Longitude
+
+-- | A datatype for the Date_Type .janno column
+data JannoDateType =
+      C14
+    | Contextual
+    | Modern
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance HasColName JannoDateType where    colname _ = "Date_Type"
+instance Makeable JannoDateType where
+    make x
+        | x == "C14"        = pure C14
+        | x == "contextual" = pure Contextual
+        | x == "modern"     = pure Modern
+        | otherwise         = fail $ "Date_Type is set to " ++ show x ++ ". " ++
+                                     "That is not in the allowed set [C14, contextual, modern]."
+instance Show JannoDateType where
+    show C14        = "C14"
+    show Contextual = "contextual"
+    show Modern     = "modern"
+instance Csv.ToField JannoDateType where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoDateType where parseField = parseTypeCSV
+instance ToJSON JannoDateType where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoDateType
+
+-- | A datatype for the Date_C14_Labnr .janno column
+newtype JannoDateC14Labnr = JannoDateC14Labnr T.Text deriving (Eq)
+
+instance HasColName JannoDateC14Labnr where    colname _ = "Date_C14_Labnr"
+instance Makeable JannoDateC14Labnr where      make = pure . JannoDateC14Labnr
+instance Show JannoDateC14Labnr where          show (JannoDateC14Labnr x) = T.unpack x
+instance Csv.ToField JannoDateC14Labnr where   toField (JannoDateC14Labnr x) = Csv.toField x
+instance Csv.FromField JannoDateC14Labnr where parseField = parseTypeCSV
+instance ToJSON JannoDateC14Labnr where        toJSON (JannoDateC14Labnr x) = String x
+instance FromJSON JannoDateC14Labnr where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Date_C14_Uncal_BP .janno column
+newtype JannoDateC14UncalBP = JannoDateC14UncalBP Int deriving (Eq, Ord, Generic)
+
+instance HasColName JannoDateC14UncalBP where    colname _ = "Date_C14_Uncal_BP"
+instance Makeable JannoDateC14UncalBP where
+    make x =
+        case T.decimal x of
+            Left e -> fail $ "Date_C14_Uncal_BP can not be converted to Int because " ++ e
+            Right (num, "") -> pure $ JannoDateC14UncalBP num
+            Right (_, rest) -> fail $ "Date_C14_Uncal_BP can not be converted to Int, because of a trailing " ++ show rest
+instance Show JannoDateC14UncalBP where          show (JannoDateC14UncalBP x) = show x
+instance Csv.ToField JannoDateC14UncalBP where   toField (JannoDateC14UncalBP x) = Csv.toField x
+instance Csv.FromField JannoDateC14UncalBP where parseField = parseTypeCSV
+instance ToJSON JannoDateC14UncalBP where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoDateC14UncalBP
+
+-- | A datatype for the Date_C14_Uncal_BP_Err .janno column
+newtype JannoDateC14UncalBPErr = JannoDateC14UncalBPErr Int deriving (Eq, Ord, Generic)
+
+instance HasColName JannoDateC14UncalBPErr where    colname _ = "Date_C14_Uncal_BP_Err"
+instance Makeable JannoDateC14UncalBPErr where
+    make x =
+        case T.decimal x of
+            Left e -> fail $ "Date_C14_Uncal_BP_Err can not be converted to Int because " ++ e
+            Right (num, "") -> pure $ JannoDateC14UncalBPErr num
+            Right (_, rest) -> fail $ "Date_C14_Uncal_BP_Err can not be converted to Int, because of a trailing " ++ show rest
+instance Show JannoDateC14UncalBPErr where          show (JannoDateC14UncalBPErr x) = show x
+instance Csv.ToField JannoDateC14UncalBPErr where   toField (JannoDateC14UncalBPErr x) = Csv.toField x
+instance Csv.FromField JannoDateC14UncalBPErr where parseField = parseTypeCSV
+instance ToJSON JannoDateC14UncalBPErr where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoDateC14UncalBPErr
+
+-- | A datatype for the Date_BC_AD_Start .janno column
+newtype DateBCADStart = DateBCADStart Int deriving (Eq, Ord, Generic)
+
+instance HasColName DateBCADStart where    colname _ = "Date_BC_AD_Start"
+instance Makeable DateBCADStart where
+    make x =
+        let curYear = 2024 -- the current year
+        in case T.signed T.decimal x of
+            Left e -> fail $ "Date_BC_AD_Start can not be converted to Int because " ++ e
+            Right (num, "") ->
+                if num >= curYear
+                then fail $ "Date_BC_AD_Start " ++ show x ++ " later than " ++ show curYear ++ ", which is impossible. " ++
+                   "Did you accidentally enter a BP date?"
+                else pure $ DateBCADStart num
+            Right (_, rest) -> fail $ "Date_BC_AD_Start can not be converted to Int, because of a trailing " ++ show rest
+instance Show DateBCADStart where          show (DateBCADStart x) = show x
+instance Csv.ToField DateBCADStart where   toField (DateBCADStart x) = Csv.toField x
+instance Csv.FromField DateBCADStart where parseField = parseTypeCSV
+instance ToJSON DateBCADStart where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON DateBCADStart
+
+-- | A datatype for the Date_BC_AD_Median .janno column
+newtype DateBCADMedian = DateBCADMedian Int deriving (Eq, Ord, Generic)
+
+instance HasColName DateBCADMedian where    colname _ = "Date_BC_AD_Median"
+instance Makeable DateBCADMedian where
+    make x =
+        let curYear = 2024 -- the current year
+        in case T.signed T.decimal x of
+            Left e -> fail $ "Date_BC_AD_Median can not be converted to Int because " ++ e
+            Right (num, "") ->
+                if num >= curYear
+                then fail $ "Date_BC_AD_Median " ++ show x ++ " later than " ++ show curYear ++ ", which is impossible. " ++
+                   "Did you accidentally enter a BP date?"
+                else pure $ DateBCADMedian num
+            Right (_, rest) -> fail $ "Date_BC_AD_Median can not be converted to Int, because of a trailing " ++ show rest
+instance Show DateBCADMedian where          show (DateBCADMedian x) = show x
+instance Csv.ToField DateBCADMedian where   toField (DateBCADMedian x) = Csv.toField x
+instance Csv.FromField DateBCADMedian where parseField = parseTypeCSV
+instance ToJSON DateBCADMedian where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON DateBCADMedian
+
+-- | A datatype for the Date_BC_AD_Stop .janno column
+newtype DateBCADStop = DateBCADStop Int deriving (Eq, Ord, Generic)
+
+instance HasColName DateBCADStop where    colname _ = "Date_BC_AD_Stop"
+instance Makeable DateBCADStop where
+    make x =
+        let curYear = 2024 -- the current year
+        in case T.signed T.decimal x of
+            Left e -> fail $ "Date_BC_AD_Stop can not be converted to Int because " ++ e
+            Right (num, "") ->
+                if num >= curYear
+                then fail $ "Date_BC_AD_Stop " ++ show x ++ " later than " ++ show curYear ++ ", which is impossible. " ++
+                   "Did you accidentally enter a BP date?"
+                else pure $ DateBCADStop num
+            Right (_, rest) -> fail $ "Date_BC_AD_Stop can not be converted to Int, because of a trailing " ++ show rest
+instance Show DateBCADStop where          show (DateBCADStop x) = show x
+instance Csv.ToField DateBCADStop where   toField (DateBCADStop x) = Csv.toField x
+instance Csv.FromField DateBCADStop where parseField = parseTypeCSV
+instance ToJSON DateBCADStop where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON DateBCADStop
+

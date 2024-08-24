@@ -1,8 +1,8 @@
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (BCADAge (..), JannoList (..),
+import           Poseidon.Janno         (JannoList (..),
                                          JannoRow (..), JannoRows (..),
-                                         Percent (..))
+                                         Percent (..), DateBCADMedian (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -62,7 +62,7 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 --, printFrequencyMaybeString ", " . frequency . map jCountry $ rows
                 ],
                 ["Mean age BC/AD"
-                , meanAndSdInteger . map (\(BCADAge x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
+                , meanAndSdInteger . map (\(DateBCADMedian x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
                 ["Dating type"
                 , printFrequencyMaybe ", " . frequency . map jDateType $ rows],
                 ["Sex distribution"
