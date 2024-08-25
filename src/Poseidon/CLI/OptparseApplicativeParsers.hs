@@ -467,10 +467,10 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         readGenoInput :: FilePath -> Either String GenoInput
         readGenoInput p = makeGenoInput (dropExtensions p) (takeExtensions p)
         makeGenoInput path ext
-            | ext `elem` ["geno",    "snp",   "ind"] = Right (GenotypeFormatEigenstrat, path <.> "geno",    path <.> "snp",    path <.> "ind")
-            | ext `elem` ["geno.gz", "snp.gz"      ] = Right (GenotypeFormatEigenstrat, path <.> "geno.gz", path <.> "snp.gz", path <.> "ind")
-            | ext `elem` ["bed",     "bim",   "fam"] = Right (GenotypeFormatPlink,      path <.> "bed",     path <.> "bim",    path <.> "fam")
-            | ext `elem` ["bed.gz",  "bim.gz"      ] = Right (GenotypeFormatPlink,      path <.> "bed.gz",  path <.> "bim.gz", path <.> "fam")
+            | ext `elem` [".geno",    ".snp",   ".ind"] = Right (GenotypeFormatEigenstrat, path <.> ".geno",    path <.> ".snp",    path <.> ".ind")
+            | ext `elem` [".geno.gz", ".snp.gz"       ] = Right (GenotypeFormatEigenstrat, path <.> ".geno.gz", path <.> ".snp.gz", path <.> ".ind")
+            | ext `elem` [".bed",     ".bim",   ".fam"] = Right (GenotypeFormatPlink,      path <.> ".bed",     path <.> ".bim",    path <.> ".fam")
+            | ext `elem` [".bed.gz",  ".bim.gz"       ] = Right (GenotypeFormatPlink,      path <.> ".bed.gz",  path <.> ".bim.gz", path <.> ".fam")
             | otherwise                              = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenoInput
