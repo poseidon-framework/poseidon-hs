@@ -19,6 +19,7 @@ import Data.Aeson.Types (Parser)
 import           Country                              (Country, alphaTwoUpper,
                                                        decodeAlphaTwo)
 import qualified Data.Text.Read as T
+import           Network.URI                          (isURIReference)
 
 -- a typeclass for types associated to a column name
 class HasColName a where
@@ -201,7 +202,7 @@ instance FromJSON JannoLocation where      parseJSON = parseTypeJSON
 -- | A datatype for the Site .janno column
 newtype JannoSite = JannoSite T.Text deriving (Eq, Ord)
 
-instance HasColName JannoSite where    colname _ = "Country"
+instance HasColName JannoSite where    colname _ = "Site"
 instance Makeable JannoSite where      make = pure . JannoSite
 instance Show JannoSite where          show (JannoSite x) = T.unpack x
 instance Csv.ToField JannoSite where   toField (JannoSite x) = Csv.toField x
@@ -376,4 +377,207 @@ instance Csv.ToField DateBCADStop where   toField (DateBCADStop x) = Csv.toField
 instance Csv.FromField DateBCADStop where parseField = parseTypeCSV
 instance ToJSON DateBCADStop where        toEncoding = genericToEncoding defaultOptions
 instance FromJSON DateBCADStop
+
+-- | A datatype for the Date_Note .janno column
+newtype JannoDateNote = JannoDateNote T.Text deriving (Eq, Ord)
+
+instance HasColName JannoDateNote where    colname _ = "Date_Note"
+instance Makeable JannoDateNote where      make = pure . JannoDateNote
+instance Show JannoDateNote where          show (JannoDateNote x) = T.unpack x
+instance Csv.ToField JannoDateNote where   toField (JannoDateNote x) = Csv.toField x
+instance Csv.FromField JannoDateNote where parseField = parseTypeCSV
+instance ToJSON JannoDateNote where        toJSON (JannoDateNote x) = String x
+instance FromJSON JannoDateNote where      parseJSON = parseTypeJSON
+
+-- | A datatype for the MT_Haplogroup .janno column
+newtype JannoMTHaplogroup = JannoMTHaplogroup T.Text deriving (Eq, Ord)
+
+instance HasColName JannoMTHaplogroup where    colname _ = "MT_Haplogroup"
+instance Makeable JannoMTHaplogroup where      make = pure . JannoMTHaplogroup
+instance Show JannoMTHaplogroup where          show (JannoMTHaplogroup x) = T.unpack x
+instance Csv.ToField JannoMTHaplogroup where   toField (JannoMTHaplogroup x) = Csv.toField x
+instance Csv.FromField JannoMTHaplogroup where parseField = parseTypeCSV
+instance ToJSON JannoMTHaplogroup where        toJSON (JannoMTHaplogroup x) = String x
+instance FromJSON JannoMTHaplogroup where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Y_Haplogroup .janno column
+newtype JannoYHaplogroup = JannoYHaplogroup T.Text deriving (Eq, Ord)
+
+instance HasColName JannoYHaplogroup where    colname _ = "Y_Haplogroup"
+instance Makeable JannoYHaplogroup where      make = pure . JannoYHaplogroup
+instance Show JannoYHaplogroup where          show (JannoYHaplogroup x) = T.unpack x
+instance Csv.ToField JannoYHaplogroup where   toField (JannoYHaplogroup x) = Csv.toField x
+instance Csv.FromField JannoYHaplogroup where parseField = parseTypeCSV
+instance ToJSON JannoYHaplogroup where        toJSON (JannoYHaplogroup x) = String x
+instance FromJSON JannoYHaplogroup where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Source_Tissue .janno column
+newtype JannoSourceTissue = JannoSourceTissue T.Text deriving (Eq)
+
+instance HasColName JannoSourceTissue where    colname _ = "Source_Tissue"
+instance Makeable JannoSourceTissue where      make = pure . JannoSourceTissue
+instance Show JannoSourceTissue where          show (JannoSourceTissue x) = T.unpack x
+instance Csv.ToField JannoSourceTissue where   toField (JannoSourceTissue x) = Csv.toField x
+instance Csv.FromField JannoSourceTissue where parseField = parseTypeCSV
+instance ToJSON JannoSourceTissue where        toJSON (JannoSourceTissue x) = String x
+instance FromJSON JannoSourceTissue where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Nr_Libraries .janno column
+newtype JannoNrLibraries = JannoNrLibraries Int deriving (Eq, Ord, Generic)
+
+instance HasColName JannoNrLibraries where    colname _ = "Nr_Libraries"
+instance Makeable JannoNrLibraries where
+    make x =
+        case T.signed T.decimal x of
+            Left e -> fail $ "Nr_Libraries can not be converted to Int because " ++ e
+            Right (num, "") ->
+                if num < 1
+                then fail $ "Nr_Libraries " ++ show x ++ " lower than 1, which is impossible."
+                else pure $ JannoNrLibraries num
+            Right (_, rest) -> fail $ "Nr_Libraries can not be converted to Int, because of a trailing " ++ show rest
+instance Show JannoNrLibraries where          show (JannoNrLibraries x) = show x
+instance Csv.ToField JannoNrLibraries where   toField (JannoNrLibraries x) = Csv.toField x
+instance Csv.FromField JannoNrLibraries where parseField = parseTypeCSV
+instance ToJSON JannoNrLibraries where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoNrLibraries
+
+-- | A datatype for the Library_Names .janno column
+newtype JannoLibraryNames = JannoLibraryNames T.Text deriving (Eq)
+
+instance HasColName JannoLibraryNames where    colname _ = "Library_Names"
+instance Makeable JannoLibraryNames where      make = pure . JannoLibraryNames
+instance Show JannoLibraryNames where          show (JannoLibraryNames x) = T.unpack x
+instance Csv.ToField JannoLibraryNames where   toField (JannoLibraryNames x) = Csv.toField x
+instance Csv.FromField JannoLibraryNames where parseField = parseTypeCSV
+instance ToJSON JannoLibraryNames where        toJSON (JannoLibraryNames x) = String x
+instance FromJSON JannoLibraryNames where      parseJSON = parseTypeJSON
+
+-- | A datatype for the Capture_Type .janno column
+data JannoCaptureType =
+      Shotgun
+    | A1240K
+    | ArborComplete
+    | ArborPrimePlus
+    | ArborAncestralPlus
+    | TwistAncientDNA
+    | OtherCapture
+    | ReferenceGenome
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance HasColName JannoCaptureType where colname _ = "Capture_Type"
+instance Makeable JannoCaptureType where
+    make x
+        | x == "Shotgun"            = pure Shotgun
+        | x == "1240K"              = pure A1240K
+        | x == "ArborComplete"      = pure ArborComplete
+        | x == "ArborPrimePlus"     = pure ArborPrimePlus
+        | x == "ArborAncestralPlus" = pure ArborAncestralPlus
+        | x == "TwistAncientDNA"    = pure TwistAncientDNA
+        | x == "OtherCapture"       = pure OtherCapture
+        | x == "ReferenceGenome"    = pure ReferenceGenome
+        | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
+                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]."
+instance Show JannoCaptureType where
+    show Shotgun            = "Shotgun"
+    show A1240K             = "1240K"
+    show ArborComplete      = "ArborComplete"
+    show ArborPrimePlus     = "ArborPrimePlus"
+    show ArborAncestralPlus = "ArborAncestralPlus"
+    show TwistAncientDNA    = "TwistAncientDNA"
+    show OtherCapture       = "OtherCapture"
+    show ReferenceGenome    = "ReferenceGenome"
+instance Csv.ToField JannoCaptureType where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoCaptureType where parseField = parseTypeCSV
+instance ToJSON JannoCaptureType where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoCaptureType
+
+-- | A datatype for the UDG .janno column
+data JannoUDG =
+      Minus
+    | Half
+    | Plus
+    | Mixed
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance HasColName JannoUDG where colname _ = "UDG"
+instance Makeable JannoUDG where
+    make x
+        | x == "minus" = pure Minus
+        | x == "half"  = pure Half
+        | x == "plus"  = pure Plus
+        | x == "mixed" = pure Mixed
+        | otherwise    = fail $ "UDG is set to " ++ show x ++ ". " ++
+                                "That is not in the allowed set [minus, half, plus, mixed]."
+instance Show JannoUDG where
+    show Minus = "minus"
+    show Half  = "half"
+    show Plus  = "plus"
+    show Mixed = "mixed"
+instance Csv.ToField JannoUDG where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoUDG where parseField = parseTypeCSV
+instance ToJSON JannoUDG where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoUDG
+
+-- | A datatype for the Library_Built .janno column
+data JannoLibraryBuilt =
+      DS
+    | SS
+    | MixedSSDS
+    | Other -- the "other" option is deprecated and should be removed at some point
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance HasColName JannoLibraryBuilt where colname _ = "Library_Built"
+instance Makeable JannoLibraryBuilt where
+    make x
+        | x == "ds"    = pure DS
+        | x == "ss"    = pure SS
+        | x == "mixed" = pure MixedSSDS
+        | x == "other" = pure Other
+        | otherwise    = fail $ "Library_Built is set to " ++ show x ++ ". " ++
+                                "That is not in the allowed set [ds, ss, mixed]."
+instance Show JannoLibraryBuilt where
+    show DS        = "ds"
+    show SS        = "ss"
+    show MixedSSDS = "mixed"
+    show Other     = "other"
+instance Csv.ToField JannoLibraryBuilt where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoLibraryBuilt where parseField = parseTypeCSV
+instance ToJSON JannoLibraryBuilt where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoLibraryBuilt
+
+-- | A datatype for the Genotype_Ploidy .janno column
+data JannoGenotypePloidy =
+      Diploid
+    | Haploid
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance HasColName JannoGenotypePloidy where colname _ = "Genotype_Ploidy"
+instance Makeable JannoGenotypePloidy where
+    make x
+        | x == "diploid" = pure Diploid
+        | x == "haploid" = pure Haploid
+        | otherwise      = fail $ "Genotype_Ploidy is set to " ++ show x ++ ". " ++
+                                  "That is not in the allowed set [diploid, haploid]."
+instance Show JannoGenotypePloidy where
+    show Diploid = "diploid"
+    show Haploid = "haploid"
+instance Csv.ToField JannoGenotypePloidy where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoGenotypePloidy where parseField = parseTypeCSV
+instance ToJSON JannoGenotypePloidy where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoGenotypePloidy
+
+-- | A datatype for the Genotype_Ploidy .janno column
+newtype JannoDataPreparationPipelineURL = JannoDataPreparationPipelineURL T.Text deriving (Eq, Ord, Generic)
+
+instance HasColName JannoDataPreparationPipelineURL where colname _ = "Data_Preparation_Pipeline_URL"
+instance Makeable JannoDataPreparationPipelineURL where
+    make x
+        | isURIReference (T.unpack x) = pure $ JannoDataPreparationPipelineURL x
+        | otherwise                   = fail $ "Data_Preparation_Pipeline_URL " ++ show x ++ " is not a well structured URI."
+instance Show JannoDataPreparationPipelineURL where          show (JannoDataPreparationPipelineURL x) = T.unpack x
+instance Csv.ToField JannoDataPreparationPipelineURL where   toField (JannoDataPreparationPipelineURL x) = Csv.toField x
+instance Csv.FromField JannoDataPreparationPipelineURL where parseField = parseTypeCSV
+instance ToJSON JannoDataPreparationPipelineURL where        toJSON (JannoDataPreparationPipelineURL x) = String x
+instance FromJSON JannoDataPreparationPipelineURL where      parseJSON = parseTypeJSON
+
 

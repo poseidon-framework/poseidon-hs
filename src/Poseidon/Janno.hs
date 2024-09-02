@@ -21,7 +21,6 @@ module Poseidon.Janno (
     JannoGenotypePloidy (..),
     Percent (..),
     JannoUDG (..),
-    JURI (..),
     JannoRelationDegree (..),
     JannoLibraryBuilt (..),
     AccessionID (..),
@@ -80,148 +79,12 @@ import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
-import           Network.URI                          (isURIReference)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
 import qualified Text.Regex.TDFA                      as Reg
-
--- |A datatype to represent Capture_Type in a janno file
-data JannoCaptureType =
-      Shotgun
-    | A1240K
-    | ArborComplete
-    | ArborPrimePlus
-    | ArborAncestralPlus
-    | TwistAncientDNA
-    | OtherCapture
-    | ReferenceGenome
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show JannoCaptureType where
-    show Shotgun            = "Shotgun"
-    show A1240K             = "1240K"
-    show ArborComplete      = "ArborComplete"
-    show ArborPrimePlus     = "ArborPrimePlus"
-    show ArborAncestralPlus = "ArborAncestralPlus"
-    show TwistAncientDNA    = "TwistAncientDNA"
-    show OtherCapture       = "OtherCapture"
-    show ReferenceGenome    = "ReferenceGenome"
-
-makeJannoCaptureType :: MonadFail m => String -> m JannoCaptureType
-makeJannoCaptureType x
-    | x == "Shotgun"            = pure Shotgun
-    | x == "1240K"              = pure A1240K
-    | x == "ArborComplete"      = pure ArborComplete
-    | x == "ArborPrimePlus"     = pure ArborPrimePlus
-    | x == "ArborAncestralPlus" = pure ArborAncestralPlus
-    | x == "TwistAncientDNA"    = pure TwistAncientDNA
-    | x == "OtherCapture"       = pure OtherCapture
-    | x == "ReferenceGenome"    = pure ReferenceGenome
-    | otherwise                 = fail $ "Capture_Type " ++ show x ++
-                                      " not in [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]"
-
-instance Csv.ToField JannoCaptureType where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JannoCaptureType where
-    parseField x = Csv.parseField x >>= makeJannoCaptureType
-instance ToJSON JannoCaptureType where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JannoCaptureType-- where
-    --parseJSON = withText "JannoCaptureType" (makeJannoCaptureType . T.unpack)
-
--- |A datatype to represent Genotype_Ploidy in a janno file
-data JannoGenotypePloidy =
-      Diploid
-    | Haploid
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show JannoGenotypePloidy where
-    show Diploid = "diploid"
-    show Haploid = "haploid"
-
-makeJannoGenotypePloidy :: MonadFail m => String -> m JannoGenotypePloidy
-makeJannoGenotypePloidy x
-    | x == "diploid" = pure Diploid
-    | x == "haploid" = pure Haploid
-    | otherwise      = fail $ "Genotype_Ploidy " ++ show x ++ " not in [diploid, haploid]"
-
-instance Csv.ToField JannoGenotypePloidy where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JannoGenotypePloidy where
-    parseField x = Csv.parseField x >>= makeJannoGenotypePloidy
-instance ToJSON JannoGenotypePloidy where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JannoGenotypePloidy-- where
-    --parseJSON = withText "JannoGenotypePloidy" (makeJannoGenotypePloidy . T.unpack)
-
--- |A datatype to represent UDG in a janno file
-data JannoUDG =
-      Minus
-    | Half
-    | Plus
-    | Mixed
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show JannoUDG where
-    show Minus = "minus"
-    show Half  = "half"
-    show Plus  = "plus"
-    show Mixed = "mixed"
-
-makeJannoUDG :: MonadFail m => String -> m JannoUDG
-makeJannoUDG x
-    | x == "minus" = pure Minus
-    | x == "half"  = pure Half
-    | x == "plus"  = pure Plus
-    | x == "mixed" = pure Mixed
-    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus, mixed]"
-
-instance Csv.ToField JannoUDG where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JannoUDG where
-    parseField x = Csv.parseField x >>= makeJannoUDG
-instance ToJSON JannoUDG where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JannoUDG-- where
-    --parseJSON = withText "JannoUDG" (makeJannoUDG . T.unpack)
-
--- |A datatype to represent Library_Built in a janno file
-data JannoLibraryBuilt =
-      DS
-    | SS
-    | MixedSSDS
-    | Other -- the "other" option is deprecated and should be removed at some point
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show JannoLibraryBuilt where
-    show DS        = "ds"
-    show SS        = "ss"
-    show MixedSSDS = "mixed"
-    show Other     = "other"
-
-makeJannoLibraryBuilt :: MonadFail m => String -> m JannoLibraryBuilt
-makeJannoLibraryBuilt x
-    | x == "ds"    = pure DS
-    | x == "ss"    = pure SS
-    | x == "mixed" = pure MixedSSDS
-    | x == "other" = pure Other
-    | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss, mixed]"
-
-instance Csv.ToField JannoLibraryBuilt where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JannoLibraryBuilt where
-    parseField x = Csv.parseField x >>= makeJannoLibraryBuilt
-instance ToJSON JannoLibraryBuilt where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JannoLibraryBuilt --where
-    --parseJSON = withText "JannoLibraryBuilt" (makeJannoLibraryBuilt . T.unpack)
 
 -- | A datatype for Percent values
 newtype Percent =
@@ -244,29 +107,6 @@ instance ToJSON Percent where
     toEncoding = genericToEncoding defaultOptions
 instance FromJSON Percent-- where
     --parseJSON = withScientific "Percent" $ \n -> (makePercent . toRealFloat) n
-
--- | A datatype to represent URIs in a janno file
-newtype JURI =
-        JURI String
-    deriving (Eq, Ord, Generic)
-
-instance Show JURI where
-    show (JURI x) = x
-
-makeJURI :: MonadFail m => String -> m JURI
-makeJURI x
-    | isURIReference x   = pure $ JURI x
-    | otherwise          = fail $ "URI " ++ show x ++ " not well structured"
-
-instance Csv.ToField JURI where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JURI where
-    parseField x = Csv.parseField x >>= makeJURI
-instance ToJSON JURI where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JURI-- where
-    --parseJSON = withText "JURI" (makeJURI . T.unpack)
 
 -- |A datatype to represent AccessionIDs in a janno file
 data AccessionID =
@@ -411,17 +251,17 @@ data JannoRow = JannoRow
     , jDateBCADStart              :: Maybe DateBCADStart
     , jDateBCADMedian             :: Maybe DateBCADMedian
     , jDateBCADStop               :: Maybe DateBCADStop
-    , jDateNote                   :: Maybe String
-    , jMTHaplogroup               :: Maybe String
-    , jYHaplogroup                :: Maybe String
-    , jSourceTissue               :: Maybe JannoStringList
-    , jNrLibraries                :: Maybe Int
-    , jLibraryNames               :: Maybe JannoStringList
+    , jDateNote                   :: Maybe JannoDateNote
+    , jMTHaplogroup               :: Maybe JannoMTHaplogroup
+    , jYHaplogroup                :: Maybe JannoYHaplogroup
+    , jSourceTissue               :: Maybe (JannoList JannoSourceTissue)
+    , jNrLibraries                :: Maybe JannoNrLibraries
+    , jLibraryNames               :: Maybe (JannoList JannoLibraryNames)
     , jCaptureType                :: Maybe (JannoList JannoCaptureType)
     , jUDG                        :: Maybe JannoUDG
     , jLibraryBuilt               :: Maybe JannoLibraryBuilt
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
-    , jDataPreparationPipelineURL :: Maybe JURI
+    , jDataPreparationPipelineURL :: Maybe JannoDataPreparationPipelineURL
     , jEndogenous                 :: Maybe Percent
     , jNrSNPs                     :: Maybe Int
     , jCoverageOnTargets          :: Maybe Double

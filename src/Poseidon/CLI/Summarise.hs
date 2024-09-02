@@ -15,6 +15,7 @@ import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
+import Poseidon.JannoTypes (JannoMTHaplogroup(..), JannoYHaplogroup (..))
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -68,9 +69,9 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Sex distribution"
                 , printFrequency ", " . frequency . map jGeneticSex $ rows],
                 ["MT haplogroups"
-                , printFrequencyMaybeString ", " . frequency . map jMTHaplogroup $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap (\(JannoMTHaplogroup x) -> show x) . jMTHaplogroup) $ rows],
                 ["Y haplogroups"
-                , printFrequencyMaybeString ", " . frequency . map jYHaplogroup $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap (\(JannoYHaplogroup x) -> show x) . jYHaplogroup) $ rows],
                 ["% endogenous DNA"
                 , meanAndSdRoundTo 2 . map (\(Percent x) -> x) . mapMaybe jEndogenous $ rows],
                 ["Nr of SNPs"

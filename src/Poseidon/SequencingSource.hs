@@ -5,7 +5,7 @@
 module Poseidon.SequencingSource where
 
 import           Poseidon.Janno             (AccessionID (..),
-                                             CsvNamedRecord (..), JURI,
+                                             CsvNamedRecord (..),
                                              JannoList (..), JannoStringList,
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
@@ -42,6 +42,30 @@ import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
+import           Network.URI                          (isURIReference)
+
+-- | A datatype to represent URIs in a ssf file
+newtype JURI =
+        JURI String
+    deriving (Eq, Ord, Generic)
+
+instance Show JURI where
+    show (JURI x) = x
+
+makeJURI :: MonadFail m => String -> m JURI
+makeJURI x
+    | isURIReference x   = pure $ JURI x
+    | otherwise          = fail $ "URI " ++ show x ++ " not well structured"
+
+instance Csv.ToField JURI where
+    toField x = Csv.toField $ show x
+instance Csv.FromField JURI where
+    parseField x = Csv.parseField x >>= makeJURI
+instance ToJSON JURI where
+    toEncoding = genericToEncoding defaultOptions
+    --toEncoding x = text $ T.pack $ show x
+instance FromJSON JURI-- where
+    --parseJSON = withText "JURI" (makeJURI . T.unpack)
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
