@@ -2,7 +2,7 @@ module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (JannoList (..),
                                          JannoRow (..), JannoRows (..),
-                                         Percent (..), DateBCADMedian (..))
+                                         DateBCADMedian (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -15,7 +15,7 @@ import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
-import Poseidon.JannoTypes (JannoMTHaplogroup(..), JannoYHaplogroup (..))
+import Poseidon.JannoTypes (JannoMTHaplogroup(..), JannoYHaplogroup (..), JannoEndogenous (JannoEndogenous), JannoCoverageOnTargets (..), JannoNrSNPs (JannoNrSNPs))
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions
@@ -73,11 +73,11 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Y haplogroups"
                 , printFrequencyMaybeString ", " . frequency . map (fmap (\(JannoYHaplogroup x) -> show x) . jYHaplogroup) $ rows],
                 ["% endogenous DNA"
-                , meanAndSdRoundTo 2 . map (\(Percent x) -> x) . mapMaybe jEndogenous $ rows],
+                , meanAndSdRoundTo 2 . map (\(JannoEndogenous x) -> x) . mapMaybe jEndogenous $ rows],
                 ["Nr of SNPs"
-                , meanAndSdInteger . map fromIntegral . mapMaybe jNrSNPs $ rows],
+                , meanAndSdInteger . map fromIntegral . mapMaybe (fmap (\(JannoNrSNPs x) -> x) . jNrSNPs) $ rows],
                 ["Coverage on target"
-                , meanAndSdRoundTo 2 . mapMaybe jCoverageOnTargets $ rows],
+                , meanAndSdRoundTo 2 . mapMaybe (fmap (\(JannoCoverageOnTargets x) -> x) .  jCoverageOnTargets) $ rows],
                 ["Library type"
                 , printFrequencyMaybe ", " . frequency . map jLibraryBuilt $ rows],
                 ["UDG treatment"

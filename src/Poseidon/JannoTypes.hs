@@ -580,4 +580,76 @@ instance Csv.FromField JannoDataPreparationPipelineURL where parseField = parseT
 instance ToJSON JannoDataPreparationPipelineURL where        toJSON (JannoDataPreparationPipelineURL x) = String x
 instance FromJSON JannoDataPreparationPipelineURL where      parseJSON = parseTypeJSON
 
+-- | A datatype for the Endogenous .janno column
+newtype JannoEndogenous = JannoEndogenous Double deriving (Eq, Ord, Generic)
+
+instance HasColName JannoEndogenous where colname _ = "Endogenous"
+instance Makeable JannoEndogenous where
+    make x =
+        case T.double x of
+            Left e -> fail $ "Endogenous can not be converted to Double because " ++ e
+            Right (num, "") ->
+                if num >= 0 && num <= 100
+                then pure (JannoEndogenous num)
+                else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
+            Right (_, rest) -> fail $ "Endogenous can not be converted to Double, because of a trailing " ++ show rest
+instance Show JannoEndogenous where          show (JannoEndogenous x) = show x
+instance Csv.ToField JannoEndogenous where   toField (JannoEndogenous x) = Csv.toField x
+instance Csv.FromField JannoEndogenous where parseField = parseTypeCSV
+instance ToJSON JannoEndogenous where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoEndogenous
+
+-- | A datatype for the Damage .janno column
+newtype JannoDamage = JannoDamage Double deriving (Eq, Ord, Generic)
+
+instance HasColName JannoDamage where colname _ = "Damage"
+instance Makeable JannoDamage where
+    make x =
+        case T.double x of
+            Left e -> fail $ "Damage can not be converted to Double because " ++ e
+            Right (num, "") ->
+                if num >= 0 && num <= 100
+                then pure (JannoDamage num)
+                else fail $ "Damage " ++ show x ++ " not between 0 and 100."
+            Right (_, rest) -> fail $ "Damage can not be converted to Double, because of a trailing " ++ show rest
+instance Show JannoDamage where          show (JannoDamage x) = show x
+instance Csv.ToField JannoDamage where   toField (JannoDamage x) = Csv.toField x
+instance Csv.FromField JannoDamage where parseField = parseTypeCSV
+instance ToJSON JannoDamage where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoDamage
+
+-- | A datatype for the Nr_SNPs .janno column
+newtype JannoNrSNPs = JannoNrSNPs Int deriving (Eq, Ord, Generic)
+
+instance HasColName JannoNrSNPs where    colname _ = "Nr_SNPs"
+instance Makeable JannoNrSNPs where
+    make x =
+        case T.signed T.decimal x of
+            Left e -> fail $ "Nr_SNPs can not be converted to Int because " ++ e
+            Right (num, "") ->
+                if num < 1
+                then fail $ "Nr_SNPs " ++ show x ++ " lower than 1, which is not meaningful."
+                else pure $ JannoNrSNPs num
+            Right (_, rest) -> fail $ "Nr_SNPs can not be converted to Int, because of a trailing " ++ show rest
+instance Show JannoNrSNPs where          show (JannoNrSNPs x) = show x
+instance Csv.ToField JannoNrSNPs where   toField (JannoNrSNPs x) = Csv.toField x
+instance Csv.FromField JannoNrSNPs where parseField = parseTypeCSV
+instance ToJSON JannoNrSNPs where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoNrSNPs
+
+-- | A datatype for the Coverage_on_Target_SNPs .janno column
+newtype JannoCoverageOnTargets = JannoCoverageOnTargets Double deriving (Eq, Ord, Generic)
+
+instance HasColName JannoCoverageOnTargets where colname _ = "Coverage_on_Target_SNPs"
+instance Makeable JannoCoverageOnTargets where
+    make x =
+        case T.double x of
+            Left e -> fail $ "Coverage_on_Target_SNPs can not be converted to Double because " ++ e
+            Right (num, "") ->  pure (JannoCoverageOnTargets num)
+            Right (_, rest) -> fail $ "Coverage_on_Target_SNPs can not be converted to Double, because of a trailing " ++ show rest
+instance Show JannoCoverageOnTargets where          show (JannoCoverageOnTargets x) = show x
+instance Csv.ToField JannoCoverageOnTargets where   toField (JannoCoverageOnTargets x) = Csv.toField x
+instance Csv.FromField JannoCoverageOnTargets where parseField = parseTypeCSV
+instance ToJSON JannoCoverageOnTargets where        toEncoding = genericToEncoding defaultOptions
+instance FromJSON JannoCoverageOnTargets
 

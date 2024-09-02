@@ -66,6 +66,7 @@ import           System.Directory            (copyFile,
                                               createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
+import Poseidon.JannoTypes (JannoNrSNPs(..))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
@@ -293,7 +294,7 @@ runForge (
             logInfo "Creating .janno file"
             snpList <- liftIO $ VU.freeze newNrSNPs
             let jannoRowsWithNewSNPNumbers =
-                    zipWith (\x y -> x {jNrSNPs = Just y}) rows (VU.toList snpList)
+                    zipWith (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)}) rows (VU.toList snpList)
             liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoRows jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)

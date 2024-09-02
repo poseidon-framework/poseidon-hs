@@ -19,7 +19,6 @@ module Poseidon.Janno (
     DateBCADMedian (..),
     JannoCaptureType (..),
     JannoGenotypePloidy (..),
-    Percent (..),
     JannoUDG (..),
     JannoRelationDegree (..),
     JannoLibraryBuilt (..),
@@ -262,10 +261,10 @@ data JannoRow = JannoRow
     , jLibraryBuilt               :: Maybe JannoLibraryBuilt
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
     , jDataPreparationPipelineURL :: Maybe JannoDataPreparationPipelineURL
-    , jEndogenous                 :: Maybe Percent
-    , jNrSNPs                     :: Maybe Int
-    , jCoverageOnTargets          :: Maybe Double
-    , jDamage                     :: Maybe Percent
+    , jEndogenous                 :: Maybe JannoEndogenous
+    , jNrSNPs                     :: Maybe JannoNrSNPs
+    , jCoverageOnTargets          :: Maybe JannoCoverageOnTargets
+    , jDamage                     :: Maybe JannoDamage
     , jContamination              :: Maybe JannoStringList
     , jContaminationErr           :: Maybe JannoStringList
     , jContaminationMeas          :: Maybe JannoStringList
