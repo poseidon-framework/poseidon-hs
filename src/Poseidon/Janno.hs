@@ -9,7 +9,8 @@
 
 module Poseidon.Janno (
     JannoRow(..),
-    JannoSex (..),
+    GeneticSex (..),
+    GroupName (..),
     JannoList (..),
     Sex (..),
     JannoCountryISO (..),
@@ -71,7 +72,7 @@ import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        (\\))
 import           Data.Maybe                           (fromJust)
-import           Data.Text                            (pack, replace, unpack)
+import qualified Data.Text                            as T
 import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
@@ -159,8 +160,8 @@ instance FromJSON JannoRows
 -- for more details
 data JannoRow = JannoRow
     { jPoseidonID                 :: String
-    , jGeneticSex                 :: JannoSex
-    , jGroupName                  :: JannoStringList
+    , jGeneticSex                 :: GeneticSex
+    , jGroupName                  :: JannoList GroupName
     , jAlternativeIDs             :: Maybe (JannoList JannoAlternativeID)
     , jRelationTo                 :: Maybe (JannoList JannoRelationTo)
     , jRelationDegree             :: Maybe (JannoList JannoRelationDegree)
@@ -405,8 +406,8 @@ createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow {
           jPoseidonID                   = id_
-        , jGeneticSex                   = JannoSex sex
-        , jGroupName                    = JannoList [pop]
+        , jGeneticSex                   = GeneticSex sex
+        , jGroupName                    = JannoList [GroupName $ T.pack pop]
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
@@ -561,7 +562,7 @@ decodingOptions = Csv.defaultDecodeOptions {
 }
 
 removeUselessSuffix :: String -> String
-removeUselessSuffix = unpack . replace " at \"\"" "" . pack
+removeUselessSuffix = T.unpack . T.replace " at \"\"" "" . T.pack
 
 -- reformat the parser error
 -- from: parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
@@ -630,7 +631,7 @@ checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
 checkMandatoryStringNotEmpty x =
     let notEmpty = (not . null . jPoseidonID $ x) &&
                    (not . null . getJannoList . jGroupName $ x) &&
-                   (not . null . head . getJannoList . jGroupName $ x)
+                   (not . null . show . head . getJannoList . jGroupName $ x)
     in case notEmpty of
         False -> E.throwError "Poseidon_ID or Group_Name are empty"
         True  -> return x

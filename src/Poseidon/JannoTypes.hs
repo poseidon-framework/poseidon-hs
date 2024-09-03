@@ -40,33 +40,43 @@ parseTypeJSON :: forall a. (Makeable a, HasColName a, Typeable a) => Value -> Pa
 parseTypeJSON = withText (colname (undefined :: a)) make
 
 -- | A datatype for the Genetic_Sex .janno column
-newtype JannoSex = JannoSex { sfSex :: Sex }
-    deriving (Eq)
+newtype GeneticSex = GeneticSex { sfSex :: Sex } deriving (Eq)
 
-makeJannoSex :: MonadFail m => String -> m JannoSex
-makeJannoSex x
-    | x == "F"  = pure (JannoSex Female)
-    | x == "M"  = pure (JannoSex Male)
-    | x == "U"  = pure (JannoSex Unknown)
-    | otherwise = fail $ "Genetic_Sex is set to " ++ show x ++ ". " ++
-                         "That is not in the allowed set [F, M, U]."
+instance HasColName GeneticSex where    colname _ = "Genetic_Sex"
+instance Makeable GeneticSex where
+    make x
+        | x == "F"  = pure (GeneticSex Female)
+        | x == "M"  = pure (GeneticSex Male)
+        | x == "U"  = pure (GeneticSex Unknown)
+        | otherwise = fail $ "Genetic_Sex is set to " ++ show x ++ ". " ++
+                             "That is not in the allowed set [F, M, U]."
+instance Show GeneticSex where
+    show (GeneticSex Female)  = "F"
+    show (GeneticSex Male)    = "M"
+    show (GeneticSex Unknown) = "U"
+instance Ord GeneticSex where
+    compare (GeneticSex Female) (GeneticSex Male)    = GT
+    compare (GeneticSex Male) (GeneticSex Female)    = LT
+    compare (GeneticSex Male) (GeneticSex Unknown)   = GT
+    compare (GeneticSex Unknown) (GeneticSex Male)   = LT
+    compare (GeneticSex Female) (GeneticSex Unknown) = GT
+    compare (GeneticSex Unknown) (GeneticSex Female) = LT
+    compare _ _                                      = EQ
+instance Csv.ToField GeneticSex where   toField x  = Csv.toField $ show x
+instance Csv.FromField GeneticSex where parseField = parseTypeCSV
+instance ToJSON GeneticSex where        toJSON x   = String $ T.pack $ show x
+instance FromJSON GeneticSex where      parseJSON  = withText "JannoSex" make
 
-instance Show JannoSex where
-    show (JannoSex Female)  = "F"
-    show (JannoSex Male)    = "M"
-    show (JannoSex Unknown) = "U"
-instance Ord JannoSex where
-    compare (JannoSex Female) (JannoSex Male)    = GT
-    compare (JannoSex Male) (JannoSex Female)    = LT
-    compare (JannoSex Male) (JannoSex Unknown)   = GT
-    compare (JannoSex Unknown) (JannoSex Male)   = LT
-    compare (JannoSex Female) (JannoSex Unknown) = GT
-    compare (JannoSex Unknown) (JannoSex Female) = LT
-    compare _ _                                  = EQ
-instance Csv.ToField JannoSex where   toField x    = Csv.toField $ show x
-instance Csv.FromField JannoSex where parseField x = Csv.parseField x >>= makeJannoSex
-instance ToJSON JannoSex where        toJSON x     = String $ T.pack $ show x
-instance FromJSON JannoSex where      parseJSON    = withText "JannoSex" (makeJannoSex . T.unpack)
+-- | A datatype for the Group_Name .janno column
+newtype GroupName = GroupName T.Text deriving (Eq, Ord)
+
+instance HasColName GroupName where    colname _ = "Group_Name"
+instance Makeable GroupName where      make = pure . GroupName
+instance Show GroupName where          show (GroupName x) = T.unpack x
+instance Csv.ToField GroupName where   toField (GroupName x) = Csv.toField x
+instance Csv.FromField GroupName where parseField = parseTypeCSV
+instance ToJSON GroupName where        toJSON (GroupName x) = String x
+instance FromJSON GroupName where      parseJSON = parseTypeJSON
 
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)

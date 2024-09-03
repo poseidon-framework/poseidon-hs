@@ -30,7 +30,7 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe (["a", "b", "c"] :: [String])
         checkEnDe ([1, 2, 3] :: [Int])
         -- self defined instances
-        checkEnDe [JannoSex Female, JannoSex Male, JannoSex Unknown]
+        checkEnDe [GeneticSex Female, GeneticSex Male, GeneticSex Unknown]
         checkEnDe [DateBCADStart (-100), DateBCADStart 100]
         checkEnDe (enumFrom minBound :: [JannoDateType]) -- get all constructors for JannoDateType in a list
         checkEnDe (enumFrom minBound :: [JannoCaptureType])
@@ -90,8 +90,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateType janno                     `shouldBe` [Nothing, Nothing, Nothing]
         map jCaptureType janno                  `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno               `shouldBe` [Nothing, Nothing, Nothing]
-        map jGroupName janno                    `shouldBe` [JannoList ["POP1"], JannoList ["POP2"], JannoList ["POP1"]]
-        map jGeneticSex janno                   `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
+        map jGroupName janno                    `shouldBe` [JannoList [GroupName "POP1"], JannoList [GroupName "POP2"], JannoList [GroupName "POP1"]]
+        map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno                          `shouldBe` [Nothing, Nothing, Nothing]
         map jLibraryBuilt janno                 `shouldBe` [Nothing, Nothing, Nothing]
@@ -116,8 +116,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jLibraryNames janno                 `shouldBe` [Just $ JannoList [JannoLibraryName "Lib1", JannoLibraryName "Lib2"], Just $ JannoList [JannoLibraryName "Lib3"], Nothing]
         map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
         map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
-        map jGroupName janno                    `shouldBe` [JannoList ["POP1", "POP3"], JannoList ["POP2"], JannoList ["POP1"]]
-        map jGeneticSex janno                   `shouldBe` [JannoSex Male, JannoSex Female, JannoSex Male]
+        map jGroupName janno                    `shouldBe` [JannoList [GroupName "POP1", GroupName "POP3"], JannoList [GroupName "POP2"], JannoList [GroupName "POP1"]]
+        map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Just $ JannoCoverageOnTargets 0, Just $ JannoCoverageOnTargets 0, Just $ JannoCoverageOnTargets 0]
         map jUDG janno                          `shouldBe` [Just Minus, Just Half, Just Plus]
         map jLibraryBuilt janno                 `shouldBe` [Just DS, Just SS, Just MixedSSDS]

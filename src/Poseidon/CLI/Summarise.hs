@@ -53,7 +53,7 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Nr Primary Groups"
                 , uniqueNumber . map (head . getJannoList . jGroupName) $ rows],
                 ["Primary Groups"
-                , printFrequencyString ", " . frequency . map (head . getJannoList . jGroupName) $ rows],
+                , printFrequencyString ", " . frequency . map (show . head . getJannoList . jGroupName) $ rows],
                 ["Nr Publications"
                 , uniqueNumber . concatMap getJannoList . mapMaybe jPublication $ rows],
                 ["Publications"

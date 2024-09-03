@@ -43,10 +43,11 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress)
-import           Poseidon.Janno             (JannoLibraryBuilt (..),
+import           Poseidon.Janno             (GeneticSex (..),
+                                             JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
-                                             JannoRows (..), JannoSex (..),
-                                             JannoUDG (..), createMinimalJanno,
+                                             JannoRows (..), JannoUDG (..),
+                                             createMinimalJanno,
                                              getMaybeJannoList,
                                              jannoHeaderString, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
@@ -499,7 +500,7 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
     let jannoIDs        = map jPoseidonID rows
         jannoSexs       = map (sfSex . jGeneticSex) rows
-        jannoGroups     = map (head . getJannoList . jGroupName) rows
+        jannoGroups     = map (show . head . getJannoList . jGroupName) rows
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -807,7 +808,7 @@ getAllGroupInfo packages = do
             [(g, makePacNameAndVersion pac) | g <- groups]
     -- loop over pairs of groups and pacNames
     forM ((group . sort) individualInfoUnnested) $ \group_ -> do
-        let groupName   = head . map fst $ group_
+        let groupName   = show . head . map fst $ group_
             groupPac    = head . map snd $ group_
             groupNrInds = length group_
         isLatest <- isLatestInCollection (map makePacNameAndVersion packages) groupPac
@@ -820,7 +821,7 @@ getJointIndividualInfo packages = do
         forM (getJannoRowsFromPac pac) $ \jannoRow -> do
             let indInfo = IndividualInfo
                     (jPoseidonID jannoRow)
-                    ((getJannoList . jGroupName) jannoRow)
+                    ((map show . getJannoList . jGroupName) jannoRow)
                     (makePacNameAndVersion pac)
             return (indInfo, isLatest)
     return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
@@ -831,7 +832,7 @@ getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list mo
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
     let name = jPoseidonID jannoRow
-        groups = getJannoList . jGroupName $ jannoRow
+        groups = map show $ getJannoList . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
             AddJannoColAll -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
