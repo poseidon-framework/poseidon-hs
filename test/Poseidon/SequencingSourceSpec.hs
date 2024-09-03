@@ -2,15 +2,14 @@
 
 module Poseidon.SequencingSourceSpec (spec) where
 
-import           Poseidon.Janno            (
-                                            CsvNamedRecord (..), 
-                                            JannoList (..))
+import           Poseidon.Janno            (CsvNamedRecord (..), JannoList (..))
 import           Poseidon.JannoSpec        (checkEnDe)
-import           Poseidon.SequencingSource (AccessionID (..), JURI (..), AccessionIDRun (..),
+import           Poseidon.SequencingSource (AccessionID (..),
+                                            AccessionIDRun (..),
                                             AccessionIDSample (..),
-                                            AccessionIDStudy (..), MD5 (..),
-                                            SSFLibraryBuilt (..), SSFUDG (..),
-                                            SeqSourceRow (..),
+                                            AccessionIDStudy (..), JURI (..),
+                                            MD5 (..), SSFLibraryBuilt (..),
+                                            SSFUDG (..), SeqSourceRow (..),
                                             SeqSourceRows (..), SimpleDate (..),
                                             readSeqSourceFile)
 import           Poseidon.Utils            (testLog)

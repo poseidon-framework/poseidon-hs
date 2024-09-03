@@ -14,9 +14,7 @@ import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
 import           Poseidon.JannoTypes    (JannoCoverageOnTargets (..),
                                          JannoEndogenous (JannoEndogenous),
-                                         JannoMTHaplogroup (..),
-                                         JannoNrSNPs (JannoNrSNPs),
-                                         JannoYHaplogroup (..))
+                                         JannoNrSNPs (..))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -63,7 +61,7 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Nr Countries"
                 , uniqueNumber . mapMaybe jCountry $ rows],
                 ["Countries"
-                --, printFrequencyMaybeString ", " . frequency . map jCountry $ rows
+                , printFrequencyMaybeString ", " . frequency . map (fmap show . jCountry) $ rows
                 ],
                 ["Mean age BC/AD"
                 , meanAndSdInteger . map (\(DateBCADMedian x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
@@ -72,9 +70,9 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Sex distribution"
                 , printFrequency ", " . frequency . map jGeneticSex $ rows],
                 ["MT haplogroups"
-                , printFrequencyMaybeString ", " . frequency . map (fmap (\(JannoMTHaplogroup x) -> show x) . jMTHaplogroup) $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap show . jMTHaplogroup) $ rows],
                 ["Y haplogroups"
-                , printFrequencyMaybeString ", " . frequency . map (fmap (\(JannoYHaplogroup x) -> show x) . jYHaplogroup) $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap show . jYHaplogroup) $ rows],
                 ["% endogenous DNA"
                 , meanAndSdRoundTo 2 . map (\(JannoEndogenous x) -> x) . mapMaybe jEndogenous $ rows],
                 ["Nr of SNPs"

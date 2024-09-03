@@ -12,9 +12,11 @@ import           Poseidon.Utils             (testLog)
 import           Control.Monad.IO.Class     (liftIO)
 import qualified Data.HashMap.Strict        as HM
 import qualified Data.IORef                 as R
+import           Poseidon.JannoTypes        (JannoCountry (..),
+                                             JannoDateNote (..), JannoSite (..),
+                                             make)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           Test.Hspec
-import Poseidon.JannoTypes (make, JannoCountry (..), JannoSite (..), JannoDateNote (..))
 
 spec :: Spec
 spec = do

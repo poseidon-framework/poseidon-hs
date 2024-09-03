@@ -2,23 +2,21 @@
 
 module Poseidon.JannoSpec (spec, checkEnDe) where
 
-import           Poseidon.Janno      (
-                                      CsvNamedRecord (..),
-                                      JannoRow (..), JannoRows (..),
-                                      Sex (..), JannoList(..),
-                                      readJannoFile)
-import           Poseidon.Utils      (testLog)
-import Poseidon.JannoTypes
-import Poseidon.SequencingSource (JURI(..))
+import           Poseidon.Janno            (CsvNamedRecord (..), JannoList (..),
+                                            JannoRow (..), JannoRows (..),
+                                            Sex (..), readJannoFile)
+import           Poseidon.JannoTypes
+import           Poseidon.SequencingSource (JURI (..))
+import           Poseidon.Utils            (testLog)
 
-import           Control.Applicative (liftA2)
-import qualified Data.Aeson          as A
-import qualified Data.Csv            as C
-import           Data.HashMap.Strict (fromList)
-import           System.FilePath     ((</>))
-import           Test.Hspec          (Expectation, Spec, anyException, describe,
-                                      it, shouldBe, shouldThrow)
-import           Country                    (decodeAlphaTwo)
+import           Control.Applicative       (liftA2)
+import           Country                   (decodeAlphaTwo)
+import qualified Data.Aeson                as A
+import qualified Data.Csv                  as C
+import           Data.HashMap.Strict       (fromList)
+import           System.FilePath           ((</>))
+import           Test.Hspec                (Expectation, Spec, anyException,
+                                            describe, it, shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do
