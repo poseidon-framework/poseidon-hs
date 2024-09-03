@@ -56,7 +56,7 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Nr Publications"
                 , uniqueNumber . concatMap getJannoList . mapMaybe jPublication $ rows],
                 ["Publications"
-                , paste . uniquePO . concatMap getJannoList . mapMaybe jPublication $ rows],
+                , paste . map show . uniquePO . concatMap getJannoList . mapMaybe jPublication $ rows],
                 ["Nr Countries"
                 , uniqueNumber . mapMaybe jCountry $ rows],
                 ["Countries"

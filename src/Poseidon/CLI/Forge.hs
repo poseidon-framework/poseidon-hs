@@ -321,7 +321,7 @@ filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
 
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 filterBibEntries (JannoRows rows) references_ =
-    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ rows
+    let relevantPublications = map show . nub . concatMap getJannoList . mapMaybe jPublication $ rows
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]

@@ -22,8 +22,6 @@ module Poseidon.Janno (
     JannoUDG (..),
     JannoRelationDegree (..),
     JannoLibraryBuilt (..),
-    AccessionID (..),
-    makeAccessionID,
     writeJannoFile,
     readJannoFile,
     createMinimalJanno,
@@ -83,74 +81,6 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
-import qualified Text.Regex.TDFA                      as Reg
-
--- | A datatype for Percent values
-newtype Percent =
-        Percent Double
-    deriving (Eq, Ord, Generic)
-
-instance Show Percent where
-    show (Percent x) = show x
-
-makePercent :: MonadFail m => Double -> m Percent
-makePercent x
-    | x >= 0 && x <= 100 = pure (Percent x)
-    | otherwise          = fail $ "Percentage " ++ show x ++ " not between 0 and 100"
-
-instance Csv.ToField Percent where
-    toField (Percent x) = Csv.toField x
-instance Csv.FromField Percent where
-    parseField x = Csv.parseField x >>= makePercent
-instance ToJSON Percent where
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON Percent-- where
-    --parseJSON = withScientific "Percent" $ \n -> (makePercent . toRealFloat) n
-
--- |A datatype to represent AccessionIDs in a janno file
-data AccessionID =
-      INSDCProject String
-    | INSDCStudy String
-    | INSDCBioSample String
-    | INSDCSample String
-    | INSDCExperiment String
-    | INSDCRun String
-    | INSDCAnalysis String
-    | OtherID String
-    deriving (Eq, Ord, Generic)
-
-instance Show AccessionID where
-    show (INSDCProject x)    = x
-    show (INSDCStudy x)      = x
-    show (INSDCBioSample x)  = x
-    show (INSDCSample x)     = x
-    show (INSDCExperiment x) = x
-    show (INSDCRun x)        = x
-    show (INSDCAnalysis x)   = x
-    show (OtherID x)         = x
-
--- the patterns are documented at:
--- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
-makeAccessionID :: MonadFail m => String -> m AccessionID
-makeAccessionID x
-    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = pure $ INSDCProject x
-    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = pure $ INSDCStudy x
-    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = pure $ INSDCBioSample x
-    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = pure $ INSDCSample x
-    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = pure $ INSDCExperiment x
-    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = pure $ INSDCRun x
-    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = pure $ INSDCAnalysis x
-    | otherwise                                   = pure $ OtherID x
-
-instance Csv.ToField AccessionID where
-    toField x = Csv.toField $ show x
-instance Csv.FromField AccessionID where
-    parseField x = Csv.parseField x >>= makeAccessionID
-instance ToJSON AccessionID where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON AccessionID-- where
-    --parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
 
 -- | A general datatype for janno list columns
 newtype JannoList a = JannoList {getJannoList :: [a]}
@@ -255,7 +185,7 @@ data JannoRow = JannoRow
     , jYHaplogroup                :: Maybe JannoYHaplogroup
     , jSourceTissue               :: Maybe (JannoList JannoSourceTissue)
     , jNrLibraries                :: Maybe JannoNrLibraries
-    , jLibraryNames               :: Maybe (JannoList JannoLibraryNames)
+    , jLibraryNames               :: Maybe (JannoList JannoLibraryName)
     , jCaptureType                :: Maybe (JannoList JannoCaptureType)
     , jUDG                        :: Maybe JannoUDG
     , jLibraryBuilt               :: Maybe JannoLibraryBuilt
@@ -265,15 +195,15 @@ data JannoRow = JannoRow
     , jNrSNPs                     :: Maybe JannoNrSNPs
     , jCoverageOnTargets          :: Maybe JannoCoverageOnTargets
     , jDamage                     :: Maybe JannoDamage
-    , jContamination              :: Maybe JannoStringList
-    , jContaminationErr           :: Maybe JannoStringList
-    , jContaminationMeas          :: Maybe JannoStringList
-    , jContaminationNote          :: Maybe String
-    , jGeneticSourceAccessionIDs  :: Maybe (JannoList AccessionID)
-    , jPrimaryContact             :: Maybe String
-    , jPublication                :: Maybe JannoStringList
-    , jComments                   :: Maybe String
-    , jKeywords                   :: Maybe JannoStringList
+    , jContamination              :: Maybe (JannoList JannoContamination)
+    , jContaminationErr           :: Maybe (JannoList JannoContaminationErr)
+    , jContaminationMeas          :: Maybe (JannoList JannoContaminationMeas)
+    , jContaminationNote          :: Maybe JannoContaminationNote
+    , jGeneticSourceAccessionIDs  :: Maybe (JannoList JannoGeneticSourceAccessionID)
+    , jPrimaryContact             :: Maybe JannoPrimaryContact
+    , jPublication                :: Maybe (JannoList JannoPublication)
+    , jComments                   :: Maybe JannoComment
+    , jKeywords                   :: Maybe (JannoList JannoKeyword)
     , jAdditionalColumns          :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
@@ -285,43 +215,21 @@ jannoHeader = [
     , "Genetic_Sex"
     , "Group_Name"
     , "Alternative_IDs"
-    , "Relation_To"
-    , "Relation_Degree"
-    , "Relation_Type"
-    , "Relation_Note"
+    , "Relation_To", "Relation_Degree", "Relation_Type", "Relation_Note"
     , "Collection_ID"
-    , "Country"
-    , "Country_ISO"
-    , "Location"
-    , "Site"
-    , "Latitude"
-    , "Longitude"
+    , "Country", "Country_ISO"
+    , "Location", "Site", "Latitude", "Longitude"
     , "Date_Type"
-    , "Date_C14_Labnr"
-    , "Date_C14_Uncal_BP"
-    , "Date_C14_Uncal_BP_Err"
-    , "Date_BC_AD_Start"
-    , "Date_BC_AD_Median"
-    , "Date_BC_AD_Stop"
+    , "Date_C14_Labnr", "Date_C14_Uncal_BP", "Date_C14_Uncal_BP_Err"
+    , "Date_BC_AD_Start", "Date_BC_AD_Median", "Date_BC_AD_Stop"
     , "Date_Note"
-    , "MT_Haplogroup"
-    , "Y_Haplogroup"
+    , "MT_Haplogroup", "Y_Haplogroup"
     , "Source_Tissue"
-    , "Nr_Libraries"
-    , "Library_Names"
-    , "Capture_Type"
-    , "UDG"
-    , "Library_Built"
-    , "Genotype_Ploidy"
+    , "Nr_Libraries", "Library_Names"
+    , "Capture_Type", "UDG", "Library_Built", "Genotype_Ploidy"
     , "Data_Preparation_Pipeline_URL"
-    , "Endogenous"
-    , "Nr_SNPs"
-    , "Coverage_on_Target_SNPs"
-    , "Damage"
-    , "Contamination"
-    , "Contamination_Err"
-    , "Contamination_Meas"
-    , "Contamination_Note"
+    , "Endogenous", "Nr_SNPs", "Coverage_on_Target_SNPs", "Damage"
+    , "Contamination", "Contamination_Err", "Contamination_Meas", "Contamination_Note"
     , "Genetic_Source_Accession_IDs"
     , "Primary_Contact"
     , "Publication"

@@ -4,13 +4,12 @@
 
 module Poseidon.SequencingSource where
 
-import           Poseidon.Janno             (AccessionID (..),
+import           Poseidon.Janno             (
                                              CsvNamedRecord (..),
                                              JannoList (..), JannoStringList,
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
-                                             makeAccessionID,
                                              parseCsvParseError,
                                              removeUselessSuffix,
                                              renderCsvParseError)
@@ -43,6 +42,52 @@ import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
 import           Network.URI                          (isURIReference)
+import qualified Text.Regex.TDFA                      as Reg
+
+-- |A datatype to represent AccessionIDs in a ssf file
+data AccessionID =
+      INSDCProject String
+    | INSDCStudy String
+    | INSDCBioSample String
+    | INSDCSample String
+    | INSDCExperiment String
+    | INSDCRun String
+    | INSDCAnalysis String
+    | OtherID String
+    deriving (Eq, Ord, Generic)
+
+instance Show AccessionID where
+    show (INSDCProject x)    = x
+    show (INSDCStudy x)      = x
+    show (INSDCBioSample x)  = x
+    show (INSDCSample x)     = x
+    show (INSDCExperiment x) = x
+    show (INSDCRun x)        = x
+    show (INSDCAnalysis x)   = x
+    show (OtherID x)         = x
+
+-- the patterns are documented at:
+-- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
+makeAccessionID :: MonadFail m => String -> m AccessionID
+makeAccessionID x
+    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = pure $ INSDCProject x
+    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = pure $ INSDCStudy x
+    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = pure $ INSDCBioSample x
+    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = pure $ INSDCSample x
+    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = pure $ INSDCExperiment x
+    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = pure $ INSDCRun x
+    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = pure $ INSDCAnalysis x
+    | otherwise                                   = pure $ OtherID x
+
+instance Csv.ToField AccessionID where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionID where
+    parseField x = Csv.parseField x >>= makeAccessionID
+instance ToJSON AccessionID where
+    toEncoding = genericToEncoding defaultOptions
+    --toEncoding x = text $ T.pack $ show x
+instance FromJSON AccessionID-- where
+    --parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
 
 -- | A datatype to represent URIs in a ssf file
 newtype JURI =

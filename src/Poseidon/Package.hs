@@ -578,7 +578,7 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
 checkJannoBibConsistency :: String -> JannoRows -> BibTeX -> IO ()
 checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = nub . concatMap getJannoList . mapMaybe jPublication $ rows
+    let literatureInJanno = map show $ nub . concatMap getJannoList . mapMaybe jPublication $ rows
         literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
