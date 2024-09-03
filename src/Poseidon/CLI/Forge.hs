@@ -56,6 +56,7 @@ import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (SafeT, runSafeT)
+import           Poseidon.JannoTypes         (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
@@ -66,7 +67,6 @@ import           System.Directory            (copyFile,
                                               createDirectoryIfMissing)
 import           System.FilePath             (dropTrailingPathSeparator, (<.>),
                                               (</>))
-import Poseidon.JannoTypes (JannoNrSNPs(..))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions

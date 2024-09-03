@@ -1,8 +1,7 @@
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (JannoList (..),
-                                         JannoRow (..), JannoRows (..),
-                                         DateBCADMedian (..))
+import           Poseidon.Janno         (DateBCADMedian (..), JannoList (..),
+                                         JannoRow (..), JannoRows (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -13,9 +12,13 @@ import           Poseidon.Utils         (PoseidonIO, logInfo, uniquePO)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
+import           Poseidon.JannoTypes    (JannoCoverageOnTargets (..),
+                                         JannoEndogenous (JannoEndogenous),
+                                         JannoMTHaplogroup (..),
+                                         JannoNrSNPs (JannoNrSNPs),
+                                         JannoYHaplogroup (..))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
-import Poseidon.JannoTypes (JannoMTHaplogroup(..), JannoYHaplogroup (..), JannoEndogenous (JannoEndogenous), JannoCoverageOnTargets (..), JannoNrSNPs (JannoNrSNPs))
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions

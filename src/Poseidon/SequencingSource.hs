@@ -4,8 +4,7 @@
 
 module Poseidon.SequencingSource where
 
-import           Poseidon.Janno             (
-                                             CsvNamedRecord (..),
+import           Poseidon.Janno             (CsvNamedRecord (..),
                                              JannoList (..), JannoStringList,
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
@@ -40,9 +39,9 @@ import           Data.Time.Format           (defaultTimeLocale, formatTime,
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
+import           Network.URI                (isURIReference)
 import qualified Text.Parsec                as P
-import           Network.URI                          (isURIReference)
-import qualified Text.Regex.TDFA                      as Reg
+import qualified Text.Regex.TDFA            as Reg
 
 -- |A datatype to represent AccessionIDs in a ssf file
 data AccessionID =

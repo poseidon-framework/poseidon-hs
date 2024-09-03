@@ -42,11 +42,11 @@ module Poseidon.Janno (
     getMaybeJannoList,
 ) where
 
+import           Poseidon.JannoTypes
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
                                                        logError, logWarning,
                                                        renderPoseidonException)
-import Poseidon.JannoTypes
 
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)

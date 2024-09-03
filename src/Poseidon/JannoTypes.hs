@@ -1,26 +1,26 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Poseidon.JannoTypes where
 
-import qualified Data.Csv                             as Csv
-import           SequenceFormats.Eigenstrat           (Sex (..))
-import qualified Data.Text                            as T
-import qualified Data.Text.Encoding                   as T
-import           Data.Aeson                           (FromJSON,
-                                                       ToJSON, Value (..),
-                                                       parseJSON,
-                                                       toJSON, withText, toEncoding, genericToEncoding, defaultOptions)
-import Data.ByteString as S
-import GHC.Generics (Generic)
-import Data.Typeable (Typeable)
-import Data.Aeson.Types (Parser)
-import           Country                              (Country, alphaTwoUpper,
-                                                       decodeAlphaTwo)
-import qualified Data.Text.Read as T
-import           Network.URI                          (isURIReference)
-import qualified Text.Regex.TDFA                      as Reg
+import           Country                    (Country, alphaTwoUpper,
+                                             decodeAlphaTwo)
+import           Data.Aeson                 (FromJSON, ToJSON, Value (..),
+                                             defaultOptions, genericToEncoding,
+                                             parseJSON, toEncoding, toJSON,
+                                             withText)
+import           Data.Aeson.Types           (Parser)
+import           Data.ByteString            as S
+import qualified Data.Csv                   as Csv
+import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as T
+import qualified Data.Text.Read             as T
+import           Data.Typeable              (Typeable)
+import           GHC.Generics               (Generic)
+import           Network.URI                (isURIReference)
+import           SequenceFormats.Eigenstrat (Sex (..))
+import qualified Text.Regex.TDFA            as Reg
 
 -- a typeclass for types associated to a column name
 class HasColName a where
