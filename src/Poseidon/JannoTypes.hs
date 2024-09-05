@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Poseidon.JannoTypes where
 
-import Poseidon.JannoTypesTH
+import           Poseidon.JannoTypesTH
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)

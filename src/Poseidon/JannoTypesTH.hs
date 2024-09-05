@@ -1,17 +1,19 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 
 module Poseidon.JannoTypesTH where
 
-import Language.Haskell.TH (Name, DecsQ, conP, conT, varP, varE, mkName, Info (..), Dec (..), Con (..), reify, conE)
-import           Data.Typeable              (Typeable)
-import           Data.ByteString            as S
-import           Data.Aeson                 (FromJSON, ToJSON, toJSON, Value (..), parseJSON, withText)
-import           Data.Aeson.Types           (Parser)
-import qualified Data.Text                  as T
-import qualified Data.Csv                   as Csv
-import qualified Data.Text.Encoding         as T
+import           Data.Aeson          (FromJSON, ToJSON, Value (..), parseJSON,
+                                      toJSON, withText)
+import           Data.Aeson.Types    (Parser)
+import           Data.ByteString     as S
+import qualified Data.Csv            as Csv
+import qualified Data.Text           as T
+import qualified Data.Text.Encoding  as T
+import           Data.Typeable       (Typeable)
+import           Language.Haskell.TH (Con (..), Dec (..), DecsQ, Info (..),
+                                      Name, conE, conP, conT, mkName, reify,
+                                      varE, varP)
 
 -- a typeclass for types associated to a column name
 class HasColName a where
