@@ -1,8 +1,8 @@
 module Poseidon.CLI.Summarise where
 
-import           Poseidon.Janno         (BCADAge (..), JannoList (..),
+import           Poseidon.Janno         (JannoDateBCADMedian (..),
                                          JannoRow (..), JannoRows (..),
-                                         Percent (..))
+                                         ListColumn (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -13,6 +13,9 @@ import           Poseidon.Utils         (PoseidonIO, logInfo, uniquePO)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
+import           Poseidon.ColumnTypes   (JannoCoverageOnTargets (..),
+                                         JannoEndogenous (JannoEndogenous),
+                                         JannoNrSNPs (..))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -49,33 +52,34 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Samples"
                 , paste . sort . map jPoseidonID $ rows],
                 ["Nr Primary Groups"
-                , uniqueNumber . map (head . getJannoList . jGroupName) $ rows],
+                , uniqueNumber . map (head . getListColumn . jGroupName) $ rows],
                 ["Primary Groups"
-                , printFrequencyString ", " . frequency . map (head . getJannoList . jGroupName) $ rows],
+                , printFrequencyString ", " . frequency . map (show . head . getListColumn . jGroupName) $ rows],
                 ["Nr Publications"
-                , uniqueNumber . concatMap getJannoList . mapMaybe jPublication $ rows],
+                , uniqueNumber . concatMap getListColumn . mapMaybe jPublication $ rows],
                 ["Publications"
-                , paste . uniquePO . concatMap getJannoList . mapMaybe jPublication $ rows],
+                , paste . map show . uniquePO . concatMap getListColumn . mapMaybe jPublication $ rows],
                 ["Nr Countries"
                 , uniqueNumber . mapMaybe jCountry $ rows],
                 ["Countries"
-                , printFrequencyMaybeString ", " . frequency . map jCountry $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap show . jCountry) $ rows
+                ],
                 ["Mean age BC/AD"
-                , meanAndSdInteger . map (\(BCADAge x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
+                , meanAndSdInteger . map (\(JannoDateBCADMedian x) -> fromIntegral x) . mapMaybe jDateBCADMedian $ rows],
                 ["Dating type"
                 , printFrequencyMaybe ", " . frequency . map jDateType $ rows],
                 ["Sex distribution"
                 , printFrequency ", " . frequency . map jGeneticSex $ rows],
                 ["MT haplogroups"
-                , printFrequencyMaybeString ", " . frequency . map jMTHaplogroup $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap show . jMTHaplogroup) $ rows],
                 ["Y haplogroups"
-                , printFrequencyMaybeString ", " . frequency . map jYHaplogroup $ rows],
+                , printFrequencyMaybeString ", " . frequency . map (fmap show . jYHaplogroup) $ rows],
                 ["% endogenous DNA"
-                , meanAndSdRoundTo 2 . map (\(Percent x) -> x) . mapMaybe jEndogenous $ rows],
+                , meanAndSdRoundTo 2 . map (\(JannoEndogenous x) -> x) . mapMaybe jEndogenous $ rows],
                 ["Nr of SNPs"
-                , meanAndSdInteger . map fromIntegral . mapMaybe jNrSNPs $ rows],
+                , meanAndSdInteger . map fromIntegral . mapMaybe (fmap (\(JannoNrSNPs x) -> x) . jNrSNPs) $ rows],
                 ["Coverage on target"
-                , meanAndSdRoundTo 2 . mapMaybe jCoverageOnTargets $ rows],
+                , meanAndSdRoundTo 2 . mapMaybe (fmap (\(JannoCoverageOnTargets x) -> x) .  jCoverageOnTargets) $ rows],
                 ["Library type"
                 , printFrequencyMaybe ", " . frequency . map jLibraryBuilt $ rows],
                 ["UDG treatment"

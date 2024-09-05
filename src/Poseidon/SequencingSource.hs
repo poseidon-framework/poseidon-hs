@@ -4,13 +4,11 @@
 
 module Poseidon.SequencingSource where
 
-import           Poseidon.Janno             (AccessionID (..),
-                                             CsvNamedRecord (..), JURI,
-                                             JannoList (..), JannoStringList,
+import           Poseidon.Janno             (CsvNamedRecord (..),
+                                             JannoStringList, ListColumn (..),
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
-                                             makeAccessionID,
                                              parseCsvParseError,
                                              removeUselessSuffix,
                                              renderCsvParseError)
@@ -41,7 +39,77 @@ import           Data.Time.Format           (defaultTimeLocale, formatTime,
 import qualified Data.Vector                as V
 import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
+import           Network.URI                (isURIReference)
 import qualified Text.Parsec                as P
+import qualified Text.Regex.TDFA            as Reg
+
+-- |A datatype to represent AccessionIDs in a ssf file
+data AccessionID =
+      INSDCProject String
+    | INSDCStudy String
+    | INSDCBioSample String
+    | INSDCSample String
+    | INSDCExperiment String
+    | INSDCRun String
+    | INSDCAnalysis String
+    | OtherID String
+    deriving (Eq, Ord, Generic)
+
+instance Show AccessionID where
+    show (INSDCProject x)    = x
+    show (INSDCStudy x)      = x
+    show (INSDCBioSample x)  = x
+    show (INSDCSample x)     = x
+    show (INSDCExperiment x) = x
+    show (INSDCRun x)        = x
+    show (INSDCAnalysis x)   = x
+    show (OtherID x)         = x
+
+-- the patterns are documented at:
+-- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
+makeAccessionID :: MonadFail m => String -> m AccessionID
+makeAccessionID x
+    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = pure $ INSDCProject x
+    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = pure $ INSDCStudy x
+    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = pure $ INSDCBioSample x
+    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = pure $ INSDCSample x
+    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = pure $ INSDCExperiment x
+    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = pure $ INSDCRun x
+    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = pure $ INSDCAnalysis x
+    | otherwise                                   = pure $ OtherID x
+
+instance Csv.ToField AccessionID where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionID where
+    parseField x = Csv.parseField x >>= makeAccessionID
+instance ToJSON AccessionID where
+    toEncoding = genericToEncoding defaultOptions
+    --toEncoding x = text $ T.pack $ show x
+instance FromJSON AccessionID-- where
+    --parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
+
+-- | A datatype to represent URIs in a ssf file
+newtype JURI =
+        JURI String
+    deriving (Eq, Ord, Generic)
+
+instance Show JURI where
+    show (JURI x) = x
+
+makeJURI :: MonadFail m => String -> m JURI
+makeJURI x
+    | isURIReference x   = pure $ JURI x
+    | otherwise          = fail $ "URI " ++ show x ++ " not well structured"
+
+instance Csv.ToField JURI where
+    toField x = Csv.toField $ show x
+instance Csv.FromField JURI where
+    parseField x = Csv.parseField x >>= makeJURI
+instance ToJSON JURI where
+    toEncoding = genericToEncoding defaultOptions
+    --toEncoding x = text $ T.pack $ show x
+instance FromJSON JURI-- where
+    --parseJSON = withText "JURI" (makeJURI . T.unpack)
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -259,12 +327,12 @@ data SeqSourceRow = SeqSourceRow
     , sInstrumentPlatform       :: Maybe String
     , sLibraryName              :: Maybe String
     , sLibraryStrategy          :: Maybe String
-    , sFastqFTP                 :: Maybe (JannoList JURI)
-    , sFastqASPERA              :: Maybe (JannoList JURI)
-    , sFastqBytes               :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                 :: Maybe (JannoList MD5)
+    , sFastqFTP                 :: Maybe (ListColumn JURI)
+    , sFastqASPERA              :: Maybe (ListColumn JURI)
+    , sFastqBytes               :: Maybe (ListColumn Integer) -- integer, not int, because it can be a very large number
+    , sFastqMD5                 :: Maybe (ListColumn MD5)
     , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
-    , sSubmittedFTP             :: Maybe (JannoList JURI)
+    , sSubmittedFTP             :: Maybe (ListColumn JURI)
     , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
