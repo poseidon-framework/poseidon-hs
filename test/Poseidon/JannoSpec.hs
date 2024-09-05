@@ -31,15 +31,15 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe ([1, 2, 3] :: [Int])
         -- self defined instances
         checkEnDe [GeneticSex Female, GeneticSex Male, GeneticSex Unknown]
-        checkEnDe [DateBCADStart (-100), DateBCADStart 100]
+        checkEnDe [JannoDateBCADStart (-100), JannoDateBCADStart 100]
         checkEnDe (enumFrom minBound :: [JannoDateType]) -- get all constructors for JannoDateType in a list
         checkEnDe (enumFrom minBound :: [JannoCaptureType])
         checkEnDe (enumFrom minBound :: [JannoGenotypePloidy])
         checkEnDe (enumFrom minBound :: [JannoUDG])
         checkEnDe (enumFrom minBound :: [JannoLibraryBuilt])
         checkEnDe [JannoCountryISO <$> decodeAlphaTwo "DE", JannoCountryISO <$> decodeAlphaTwo "FR", JannoCountryISO <$> decodeAlphaTwo "KE"]
-        checkEnDe [Latitude (-45), Latitude 45]
-        checkEnDe [Longitude (-100), Longitude 100]
+        checkEnDe [JannoLatitude (-45), JannoLatitude 45]
+        checkEnDe [JannoLongitude (-100), JannoLongitude 100]
         checkEnDe [JannoEndogenous 0, JannoEndogenous 100]
         checkEnDe [JURI "http://www.google.de"]
         checkEnDe (enumFrom minBound :: [JannoRelationDegree])
@@ -48,7 +48,7 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe [JannoList ([1, 2, 3] :: [Int])]
         checkEnDe [JannoList (enumFrom minBound :: [JannoUDG])] -- to test if JannoList is really fully general
         -- with Maybe
-        checkEnDe ([Nothing, Just $ Latitude (-45), Just $ Latitude 45] :: [Maybe Latitude])
+        checkEnDe ([Nothing, Just $ JannoLatitude (-45), Just $ JannoLatitude 45] :: [Maybe JannoLatitude])
 
 -- infrastructure to check an en- and decoding cycle
 checkEnDe :: (Show a, Eq a, A.FromJSON a, A.ToJSON a, C.FromField a, C.ToField a) => [a] -> IO ()
@@ -107,11 +107,11 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jSourceTissue janno                 `shouldBe` [Just (JannoList [JannoSourceTissue "xxx", JannoSourceTissue "yyy"]), Just (JannoList [JannoSourceTissue "xxx"]), Just (JannoList [JannoSourceTissue "xxx"])]
         map jCountry janno                      `shouldBe` [Just (JannoCountry "xxx"), Just (JannoCountry "xxx"), Just (JannoCountry "xxx")]
         map jCountryISO janno                   `shouldBe` [JannoCountryISO <$> decodeAlphaTwo "DE", JannoCountryISO <$> decodeAlphaTwo "FR", JannoCountryISO <$> decodeAlphaTwo "EG"]
-        map jLatitude janno                     `shouldBe` [Just (Latitude 0), Just (Latitude (-90)), Just (Latitude 90)]
-        map jLongitude janno                    `shouldBe` [Just (Longitude 0), Just (Longitude (-180)), Just (Longitude 180)]
+        map jLatitude janno                     `shouldBe` [Just (JannoLatitude 0), Just (JannoLatitude (-90)), Just (JannoLatitude 90)]
+        map jLongitude janno                    `shouldBe` [Just (JannoLongitude 0), Just (JannoLongitude (-180)), Just (JannoLongitude 180)]
         map jDateC14Labnr janno                 `shouldBe` [Just (JannoList [JannoDateC14Labnr "A-1", JannoDateC14Labnr "A-2", JannoDateC14Labnr "A-3"]), Nothing, Nothing]
         map jDateC14UncalBP janno               `shouldBe` [Just (JannoList [JannoDateC14UncalBP 3000, JannoDateC14UncalBP 3100, JannoDateC14UncalBP 2900]), Nothing, Nothing]
-        map jDateBCADMedian janno               `shouldBe` [Just (DateBCADMedian (-1000)), Just (DateBCADMedian (-5000)), Just (DateBCADMedian 2000)]
+        map jDateBCADMedian janno               `shouldBe` [Just (JannoDateBCADMedian (-1000)), Just (JannoDateBCADMedian (-5000)), Just (JannoDateBCADMedian 2000)]
         map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
         map jLibraryNames janno                 `shouldBe` [Just $ JannoList [JannoLibraryName "Lib1", JannoLibraryName "Lib2"], Just $ JannoList [JannoLibraryName "Lib3"], Nothing]
         map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]

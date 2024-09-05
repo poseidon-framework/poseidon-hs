@@ -4,6 +4,9 @@ module Poseidon.JannocoalesceSpec (spec) where
 
 import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              makeNewJannoRows, mergeRow)
+import           Poseidon.ColumnTypes       (JannoCountry (..),
+                                             JannoDateNote (..), JannoSite (..))
+import           Poseidon.ColumnTypesUtils  (make)
 import           Poseidon.Janno             (CsvNamedRecord (..),
                                              GroupName (..), JannoList (..),
                                              JannoRow (..), createMinimalSample)
@@ -12,9 +15,6 @@ import           Poseidon.Utils             (testLog)
 import           Control.Monad.IO.Class     (liftIO)
 import qualified Data.HashMap.Strict        as HM
 import qualified Data.IORef                 as R
-import           Poseidon.ColumnTypes       (JannoCountry (..),
-                                             JannoDateNote (..), JannoSite (..),
-                                             make)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           Test.Hspec
 

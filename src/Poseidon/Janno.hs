@@ -14,10 +14,10 @@ module Poseidon.Janno (
     JannoList (..),
     Sex (..),
     JannoCountryISO (..),
-    Latitude (..),
-    Longitude (..),
+    JannoLatitude (..),
+    JannoLongitude (..),
     JannoDateType (..),
-    DateBCADMedian (..),
+    JannoDateBCADMedian (..),
     JannoCaptureType (..),
     JannoGenotypePloidy (..),
     JannoUDG (..),
@@ -172,15 +172,15 @@ data JannoRow = JannoRow
     , jCountryISO                 :: Maybe JannoCountryISO
     , jLocation                   :: Maybe JannoLocation
     , jSite                       :: Maybe JannoSite
-    , jLatitude                   :: Maybe Latitude
-    , jLongitude                  :: Maybe Longitude
+    , jLatitude                   :: Maybe JannoLatitude
+    , jLongitude                  :: Maybe JannoLongitude
     , jDateType                   :: Maybe JannoDateType
     , jDateC14Labnr               :: Maybe (JannoList JannoDateC14Labnr)
     , jDateC14UncalBP             :: Maybe (JannoList JannoDateC14UncalBP)
     , jDateC14UncalBPErr          :: Maybe (JannoList JannoDateC14UncalBPErr)
-    , jDateBCADStart              :: Maybe DateBCADStart
-    , jDateBCADMedian             :: Maybe DateBCADMedian
-    , jDateBCADStop               :: Maybe DateBCADStop
+    , jDateBCADStart              :: Maybe JannoDateBCADStart
+    , jDateBCADMedian             :: Maybe JannoDateBCADMedian
+    , jDateBCADStop               :: Maybe JannoDateBCADStop
     , jDateNote                   :: Maybe JannoDateNote
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
