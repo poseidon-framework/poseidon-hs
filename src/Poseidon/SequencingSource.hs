@@ -5,7 +5,7 @@
 module Poseidon.SequencingSource where
 
 import           Poseidon.Janno             (CsvNamedRecord (..),
-                                             JannoList (..), JannoStringList,
+                                             JannoStringList, ListColumn (..),
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
@@ -327,12 +327,12 @@ data SeqSourceRow = SeqSourceRow
     , sInstrumentPlatform       :: Maybe String
     , sLibraryName              :: Maybe String
     , sLibraryStrategy          :: Maybe String
-    , sFastqFTP                 :: Maybe (JannoList JURI)
-    , sFastqASPERA              :: Maybe (JannoList JURI)
-    , sFastqBytes               :: Maybe (JannoList Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                 :: Maybe (JannoList MD5)
+    , sFastqFTP                 :: Maybe (ListColumn JURI)
+    , sFastqASPERA              :: Maybe (ListColumn JURI)
+    , sFastqBytes               :: Maybe (ListColumn Integer) -- integer, not int, because it can be a very large number
+    , sFastqMD5                 :: Maybe (ListColumn MD5)
     , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
-    , sSubmittedFTP             :: Maybe (JannoList JURI)
+    , sSubmittedFTP             :: Maybe (ListColumn JURI)
     , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)

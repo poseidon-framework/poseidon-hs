@@ -19,8 +19,9 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
-import           Poseidon.Janno              (JannoList (..), JannoRow (..),
-                                              JannoRows (..), getMaybeJannoList,
+import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
+                                              ListColumn (..),
+                                              getMaybeListColumn,
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
@@ -316,12 +317,12 @@ filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
     where
         hasAPoseidonID :: [String] -> SeqSourceRow -> Bool
         hasAPoseidonID jIDs seqSourceRow =
-            let sIDs = getMaybeJannoList $ sPoseidonID seqSourceRow
+            let sIDs = getMaybeListColumn $ sPoseidonID seqSourceRow
             in any (`elem` jIDs) sIDs
 
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 filterBibEntries (JannoRows rows) references_ =
-    let relevantPublications = map show . nub . concatMap getJannoList . mapMaybe jPublication $ rows
+    let relevantPublications = map show . nub . concatMap getListColumn . mapMaybe jPublication $ rows
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]

@@ -10,7 +10,7 @@ module Poseidon.CLI.Survey where
 import           Poseidon.BibFile          (BibTeX)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
 import           Poseidon.Janno            (CsvNamedRecord, GeneticSex,
-                                            JannoList (..), JannoRows (..))
+                                            JannoRows (..), ListColumn (..))
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
@@ -128,7 +128,7 @@ instance PresenceCountable String where
     countPresence _ = 1
 instance PresenceCountable GeneticSex where
     countPresence _ = 1
-instance PresenceCountable (JannoList a) where
+instance PresenceCountable (ListColumn a) where
     countPresence _ = 1
 instance PresenceCountable CsvNamedRecord where
     countPresence _ = 0

@@ -45,10 +45,10 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..), joinEntries,
                                              printSNPCopyProgress)
 import           Poseidon.Janno             (GeneticSex (..),
                                              JannoLibraryBuilt (..),
-                                             JannoList (..), JannoRow (..),
-                                             JannoRows (..), JannoUDG (..),
+                                             JannoRow (..), JannoRows (..),
+                                             JannoUDG (..), ListColumn (..),
                                              createMinimalJanno,
-                                             getMaybeJannoList,
+                                             getMaybeListColumn,
                                              jannoHeaderString, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
@@ -500,7 +500,7 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
     let jannoIDs        = map jPoseidonID rows
         jannoSexs       = map (sfSex . jGeneticSex) rows
-        jannoGroups     = map (show . head . getJannoList . jGroupName) rows
+        jannoGroups     = map (show . head . getListColumn . jGroupName) rows
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -535,7 +535,7 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
     checkUDGandLibraryBuiltOverlap
     where
         js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
-        ss = map (\r -> (getMaybeJannoList $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        ss = map (\r -> (getMaybeListColumn $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
         checkPoseidonIDOverlap :: PoseidonIO ()
         checkPoseidonIDOverlap = do
             let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
@@ -579,7 +579,7 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
 checkJannoBibConsistency :: String -> JannoRows -> BibTeX -> IO ()
 checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
     -- Cross-file consistency
-    let literatureInJanno = map show $ nub . concatMap getJannoList . mapMaybe jPublication $ rows
+    let literatureInJanno = map show $ nub . concatMap getListColumn . mapMaybe jPublication $ rows
         literatureInBib = nub $ map bibEntryId bibtex
         literatureNotInBibButInJanno = literatureInJanno \\ literatureInBib
     unless (null literatureNotInBibButInJanno) $ throwM $ PoseidonCrossFileConsistencyException pacName $
@@ -804,7 +804,7 @@ getAllGroupInfo packages = do
     let individualInfoUnnested = do
             pac <- packages
             jannoRow <- getJannoRowsFromPac pac
-            let groups = getJannoList . jGroupName $ jannoRow
+            let groups = getListColumn . jGroupName $ jannoRow
             [(g, makePacNameAndVersion pac) | g <- groups]
     -- loop over pairs of groups and pacNames
     forM ((group . sort) individualInfoUnnested) $ \group_ -> do
@@ -821,7 +821,7 @@ getJointIndividualInfo packages = do
         forM (getJannoRowsFromPac pac) $ \jannoRow -> do
             let indInfo = IndividualInfo
                     (jPoseidonID jannoRow)
-                    ((map show . getJannoList . jGroupName) jannoRow)
+                    ((map show . getListColumn . jGroupName) jannoRow)
                     (makePacNameAndVersion pac)
             return (indInfo, isLatest)
     return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
@@ -832,7 +832,7 @@ getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list mo
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
     let name = jPoseidonID jannoRow
-        groups = map show $ getJannoList . jGroupName $ jannoRow
+        groups = map show $ getListColumn . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
             AddJannoColAll -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit

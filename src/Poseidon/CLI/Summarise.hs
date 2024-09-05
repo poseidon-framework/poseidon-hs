@@ -1,8 +1,8 @@
 module Poseidon.CLI.Summarise where
 
 import           Poseidon.Janno         (JannoDateBCADMedian (..),
-                                         JannoList (..), JannoRow (..),
-                                         JannoRows (..))
+                                         JannoRow (..), JannoRows (..),
+                                         ListColumn (..))
 import           Poseidon.MathHelpers   (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
@@ -52,13 +52,13 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Samples"
                 , paste . sort . map jPoseidonID $ rows],
                 ["Nr Primary Groups"
-                , uniqueNumber . map (head . getJannoList . jGroupName) $ rows],
+                , uniqueNumber . map (head . getListColumn . jGroupName) $ rows],
                 ["Primary Groups"
-                , printFrequencyString ", " . frequency . map (show . head . getJannoList . jGroupName) $ rows],
+                , printFrequencyString ", " . frequency . map (show . head . getListColumn . jGroupName) $ rows],
                 ["Nr Publications"
-                , uniqueNumber . concatMap getJannoList . mapMaybe jPublication $ rows],
+                , uniqueNumber . concatMap getListColumn . mapMaybe jPublication $ rows],
                 ["Publications"
-                , paste . map show . uniquePO . concatMap getJannoList . mapMaybe jPublication $ rows],
+                , paste . map show . uniquePO . concatMap getListColumn . mapMaybe jPublication $ rows],
                 ["Nr Countries"
                 , uniqueNumber . mapMaybe jCountry $ rows],
                 ["Countries"

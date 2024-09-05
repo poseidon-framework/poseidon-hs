@@ -3,8 +3,8 @@
 module Poseidon.JannoSpec (spec, checkEnDe) where
 
 import           Poseidon.ColumnTypes
-import           Poseidon.Janno            (CsvNamedRecord (..), JannoList (..),
-                                            JannoRow (..), JannoRows (..),
+import           Poseidon.Janno            (CsvNamedRecord (..), JannoRow (..),
+                                            JannoRows (..), ListColumn (..),
                                             Sex (..), readJannoFile)
 import           Poseidon.SequencingSource (JURI (..))
 import           Poseidon.Utils            (testLog)
@@ -44,9 +44,9 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe [JURI "http://www.google.de"]
         checkEnDe (enumFrom minBound :: [JannoRelationDegree])
         checkEnDe [INSDCProject "PRJEA0", INSDCStudy "ERP000000"]
-        checkEnDe [JannoList (["a", "b", "c"] :: [String])]
-        checkEnDe [JannoList ([1, 2, 3] :: [Int])]
-        checkEnDe [JannoList (enumFrom minBound :: [JannoUDG])] -- to test if JannoList is really fully general
+        checkEnDe [ListColumn (["a", "b", "c"] :: [String])]
+        checkEnDe [ListColumn ([1, 2, 3] :: [Int])]
+        checkEnDe [ListColumn (enumFrom minBound :: [JannoUDG])] -- to test if ListColumn is really fully general
         -- with Maybe
         checkEnDe ([Nothing, Just $ JannoLatitude (-45), Just $ JannoLatitude 45] :: [Maybe JannoLatitude])
 
@@ -90,7 +90,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateType janno                     `shouldBe` [Nothing, Nothing, Nothing]
         map jCaptureType janno                  `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno               `shouldBe` [Nothing, Nothing, Nothing]
-        map jGroupName janno                    `shouldBe` [JannoList [GroupName "POP1"], JannoList [GroupName "POP2"], JannoList [GroupName "POP1"]]
+        map jGroupName janno                    `shouldBe` [ListColumn [GroupName "POP1"], ListColumn [GroupName "POP2"], ListColumn [GroupName "POP1"]]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno                          `shouldBe` [Nothing, Nothing, Nothing]
@@ -102,27 +102,27 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
-        map jRelationDegree janno               `shouldBe` [Just (JannoList [First, Second]), Just (JannoList [First]), Just (JannoList [SixthToTenth])]
+        map jRelationDegree janno               `shouldBe` [Just (ListColumn [First, Second]), Just (ListColumn [First]), Just (ListColumn [SixthToTenth])]
         map jCollectionID janno                 `shouldBe` [Nothing, Nothing, Nothing]
-        map jSourceTissue janno                 `shouldBe` [Just (JannoList [JannoSourceTissue "xxx", JannoSourceTissue "yyy"]), Just (JannoList [JannoSourceTissue "xxx"]), Just (JannoList [JannoSourceTissue "xxx"])]
+        map jSourceTissue janno                 `shouldBe` [Just (ListColumn [JannoSourceTissue "xxx", JannoSourceTissue "yyy"]), Just (ListColumn [JannoSourceTissue "xxx"]), Just (ListColumn [JannoSourceTissue "xxx"])]
         map jCountry janno                      `shouldBe` [Just (JannoCountry "xxx"), Just (JannoCountry "xxx"), Just (JannoCountry "xxx")]
         map jCountryISO janno                   `shouldBe` [JannoCountryISO <$> decodeAlphaTwo "DE", JannoCountryISO <$> decodeAlphaTwo "FR", JannoCountryISO <$> decodeAlphaTwo "EG"]
         map jLatitude janno                     `shouldBe` [Just (JannoLatitude 0), Just (JannoLatitude (-90)), Just (JannoLatitude 90)]
         map jLongitude janno                    `shouldBe` [Just (JannoLongitude 0), Just (JannoLongitude (-180)), Just (JannoLongitude 180)]
-        map jDateC14Labnr janno                 `shouldBe` [Just (JannoList [JannoDateC14Labnr "A-1", JannoDateC14Labnr "A-2", JannoDateC14Labnr "A-3"]), Nothing, Nothing]
-        map jDateC14UncalBP janno               `shouldBe` [Just (JannoList [JannoDateC14UncalBP 3000, JannoDateC14UncalBP 3100, JannoDateC14UncalBP 2900]), Nothing, Nothing]
+        map jDateC14Labnr janno                 `shouldBe` [Just (ListColumn [JannoDateC14Labnr "A-1", JannoDateC14Labnr "A-2", JannoDateC14Labnr "A-3"]), Nothing, Nothing]
+        map jDateC14UncalBP janno               `shouldBe` [Just (ListColumn [JannoDateC14UncalBP 3000, JannoDateC14UncalBP 3100, JannoDateC14UncalBP 2900]), Nothing, Nothing]
         map jDateBCADMedian janno               `shouldBe` [Just (JannoDateBCADMedian (-1000)), Just (JannoDateBCADMedian (-5000)), Just (JannoDateBCADMedian 2000)]
         map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
-        map jLibraryNames janno                 `shouldBe` [Just $ JannoList [JannoLibraryName "Lib1", JannoLibraryName "Lib2"], Just $ JannoList [JannoLibraryName "Lib3"], Nothing]
-        map jCaptureType janno                  `shouldBe` [Just (JannoList [Shotgun, A1240K]), Just (JannoList [A1240K]), Just (JannoList [ReferenceGenome])]
+        map jLibraryNames janno                 `shouldBe` [Just $ ListColumn [JannoLibraryName "Lib1", JannoLibraryName "Lib2"], Just $ ListColumn [JannoLibraryName "Lib3"], Nothing]
+        map jCaptureType janno                  `shouldBe` [Just (ListColumn [Shotgun, A1240K]), Just (ListColumn [A1240K]), Just (ListColumn [ReferenceGenome])]
         map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
-        map jGroupName janno                    `shouldBe` [JannoList [GroupName "POP1", GroupName "POP3"], JannoList [GroupName "POP2"], JannoList [GroupName "POP1"]]
+        map jGroupName janno                    `shouldBe` [ListColumn [GroupName "POP1", GroupName "POP3"], ListColumn [GroupName "POP2"], ListColumn [GroupName "POP1"]]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Just $ JannoCoverageOnTargets 0, Just $ JannoCoverageOnTargets 0, Just $ JannoCoverageOnTargets 0]
         map jUDG janno                          `shouldBe` [Just Minus, Just Half, Just Plus]
         map jLibraryBuilt janno                 `shouldBe` [Just DS, Just SS, Just MixedSSDS]
         map jDamage janno                       `shouldBe` [Just (JannoDamage 0), Just (JannoDamage 100), Just (JannoDamage 50)]
-        map jContamination janno                `shouldBe` [Just (JannoList [JannoContamination "10"]), Just (JannoList [JannoContamination "20", JannoContamination "50", JannoContamination "70"]), Nothing]
+        map jContamination janno                `shouldBe` [Just (ListColumn [JannoContamination "10"]), Just (ListColumn [JannoContamination "20", JannoContamination "50", JannoContamination "70"]), Nothing]
         map jDataPreparationPipelineURL janno   `shouldBe` [Just (JannoDataPreparationPipelineURL "ftp://test.test"),
                                                             Just (JannoDataPreparationPipelineURL "https://www.google.de"),
                                                             Just (JannoDataPreparationPipelineURL "http://huhu.org/23&test")

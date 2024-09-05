@@ -2,7 +2,8 @@
 
 module Poseidon.SequencingSourceSpec (spec) where
 
-import           Poseidon.Janno            (CsvNamedRecord (..), JannoList (..))
+import           Poseidon.Janno            (CsvNamedRecord (..),
+                                            ListColumn (..))
 import           Poseidon.JannoSpec        (checkEnDe)
 import           Poseidon.SequencingSource (AccessionID (..),
                                             AccessionIDRun (..),
@@ -47,7 +48,7 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
     it "should read normal .ssf files correctly" $ do
         (SeqSourceRows s) <- testLog $ readSeqSourceFile normalFullSeqSourcePath
         length s `shouldBe` 3
-        map sPoseidonID s                `shouldBe` [Just $ JannoList ["Ash033.SG"], Just $ JannoList ["Ash002.SG"], Just $ JannoList ["Ash040.SG"]]
+        map sPoseidonID s                `shouldBe` [Just $ ListColumn ["Ash033.SG"], Just $ ListColumn ["Ash002.SG"], Just $ ListColumn ["Ash040.SG"]]
         map sUDG s                       `shouldBe` [Just SSFMinus, Just SSFHalf, Just SSFPlus]
         map sLibraryBuilt s              `shouldBe` [Just SSFSS, Just SSFDS, Just SSFDS]
         map sSampleAccession s           `shouldBe` [ Just $ AccessionIDSample $ INSDCBioSample "SAMEA7050454"
@@ -78,32 +79,32 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
         map sInstrumentPlatform s        `shouldBe` [Just "ILLUMINA", Just "ILLUMINA", Just "ILLUMINA"]
         map sLibraryName s               `shouldBe` [Just "Ash033_all", Just "Ash002_all", Just "Ash040_all"]
         map sLibraryStrategy s           `shouldBe` [Just "WGS", Just "WGS", Just "WGS"]
-        map sFastqFTP s                  `shouldBe` [ Just $ JannoList [JURI "ftp.sra.ebi.ac.uk/vol1/fastq/ERR433/006/ERR4331996/ERR4331996.fastq.gz"]
-                                                    , Just $ JannoList [JURI "ftp.sra.ebi.ac.uk/vol1/fastq/ERR433/002/ERR4332592/ERR4332592.fastq.gz"]
-                                                    , Just $ JannoList [
+        map sFastqFTP s                  `shouldBe` [ Just $ ListColumn [JURI "ftp.sra.ebi.ac.uk/vol1/fastq/ERR433/006/ERR4331996/ERR4331996.fastq.gz"]
+                                                    , Just $ ListColumn [JURI "ftp.sra.ebi.ac.uk/vol1/fastq/ERR433/002/ERR4332592/ERR4332592.fastq.gz"]
+                                                    , Just $ ListColumn [
                                                           JURI "ftp.sra.ebi.ac.uk/vol1/fastq/ERR433/003/ERR4332593/ERR4332593.fastq.gz"
                                                         , JURI "ftp.sra.ebi.ac.uk/vol1/fastq/testdummy.fastq.gz"
                                                         ]
                                                     ]
-        map sFastqASPERA s               `shouldBe` [ Just $ JannoList [JURI "fasp.sra.ebi.ac.uk:/vol1/fastq/ERR433/006/ERR4331996/ERR4331996.fastq.gz"]
-                                                    , Just $ JannoList [JURI "fasp.sra.ebi.ac.uk:/vol1/fastq/ERR433/002/ERR4332592/ERR4332592.fastq.gz"]
-                                                    , Just $ JannoList [
+        map sFastqASPERA s               `shouldBe` [ Just $ ListColumn [JURI "fasp.sra.ebi.ac.uk:/vol1/fastq/ERR433/006/ERR4331996/ERR4331996.fastq.gz"]
+                                                    , Just $ ListColumn [JURI "fasp.sra.ebi.ac.uk:/vol1/fastq/ERR433/002/ERR4332592/ERR4332592.fastq.gz"]
+                                                    , Just $ ListColumn [
                                                           JURI "fasp.sra.ebi.ac.uk:/vol1/fastq/ERR433/003/ERR4332593/ERR4332593.fastq.gz"
                                                         , JURI "fasp.sra.ebi.ac.uk:/vol1/fastq/testdummy.fastq.gz"
                                                         ]
                                                     ]
-        map sFastqBytes s                `shouldBe` [Just $ JannoList [649563861], Just $ JannoList [194164761], Just $ JannoList [276693447, 3]]
-        map sFastqMD5 s                  `shouldBe` [ Just $ JannoList [MD5 "9bd0fceb5ab46cb894ea33765c122e83"]
-                                                    , Just $ JannoList [MD5 "6d8831f5bb8ba9870cb55f834e98ab4d"]
-                                                    , Just $ JannoList [
+        map sFastqBytes s                `shouldBe` [Just $ ListColumn [649563861], Just $ ListColumn [194164761], Just $ ListColumn [276693447, 3]]
+        map sFastqMD5 s                  `shouldBe` [ Just $ ListColumn [MD5 "9bd0fceb5ab46cb894ea33765c122e83"]
+                                                    , Just $ ListColumn [MD5 "6d8831f5bb8ba9870cb55f834e98ab4d"]
+                                                    , Just $ ListColumn [
                                                           MD5 "539852f3d7fb574b2a1e4f1c0059f163"
                                                         , MD5 "539852f3d7fb574b2a1e4f1c0059f165"
                                                         ]
                                                     ]
         map sReadCount s                 `shouldBe` [Just 23386349, Just 6471092, Just 9442394]
-        map sSubmittedFTP s              `shouldBe` [ Just $ JannoList [JURI "ftp.sra.ebi.ac.uk/vol1/run/ERR433/ERR4331996/Ash033_all.merged.hs37d5.fa.cons.90perc.bam"]
-                                                    , Just $ JannoList [JURI "ftp.sra.ebi.ac.uk/vol1/run/ERR433/ERR4332592/Ash002_all.merged.hs37d5.fa.cons.90perc.bam"]
-                                                    , Just $ JannoList [
+        map sSubmittedFTP s              `shouldBe` [ Just $ ListColumn [JURI "ftp.sra.ebi.ac.uk/vol1/run/ERR433/ERR4331996/Ash033_all.merged.hs37d5.fa.cons.90perc.bam"]
+                                                    , Just $ ListColumn [JURI "ftp.sra.ebi.ac.uk/vol1/run/ERR433/ERR4332592/Ash002_all.merged.hs37d5.fa.cons.90perc.bam"]
+                                                    , Just $ ListColumn [
                                                           JURI "ftp.sra.ebi.ac.uk/vol1/run/ERR433/ERR4332593/Ash040_all.merged.hs37d5.fa.cons.90perc.bam"
                                                         , JURI "ftp.sra.ebi.ac.uk/vol1/run/testdummy.bam"
                                                         ]

@@ -11,7 +11,7 @@ module Poseidon.Janno (
     JannoRow(..),
     GeneticSex (..),
     GroupName (..),
-    JannoList (..),
+    ListColumn (..),
     Sex (..),
     JannoCountryISO (..),
     JannoLatitude (..),
@@ -40,7 +40,7 @@ module Poseidon.Janno (
     removeUselessSuffix,
     parseCsvParseError,
     renderCsvParseError,
-    getMaybeJannoList,
+    getMaybeListColumn,
 ) where
 
 import           Poseidon.ColumnTypes
@@ -84,25 +84,25 @@ import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
 
 -- | A general datatype for janno list columns
-newtype JannoList a = JannoList {getJannoList :: [a]}
+newtype ListColumn a = ListColumn {getListColumn :: [a]}
     deriving (Eq, Ord, Generic, Show)
 
-getMaybeJannoList :: Maybe (JannoList a) -> [a]
-getMaybeJannoList Nothing  = []
-getMaybeJannoList (Just x) = getJannoList x
+getMaybeListColumn :: Maybe (ListColumn a) -> [a]
+getMaybeListColumn Nothing  = []
+getMaybeListColumn (Just x) = getListColumn x
 
-type JannoStringList = JannoList String
+type JannoStringList = ListColumn String
 
-instance (Csv.ToField a, Show a) => Csv.ToField (JannoList a) where
-    toField x = Bchs.intercalate ";" $ map Csv.toField $ getJannoList x
-instance (Csv.FromField a) => Csv.FromField (JannoList a) where
-    parseField x = fmap JannoList . mapM Csv.parseField $ Bchs.splitWith (==';') x
-instance (ToJSON a) => ToJSON (JannoList a) where
-    toEncoding (JannoList x) = toEncoding x
-instance (FromJSON a) => FromJSON (JannoList a) where
+instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
+    toField x = Bchs.intercalate ";" $ map Csv.toField $ getListColumn x
+instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
+    parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
+instance (ToJSON a) => ToJSON (ListColumn a) where
+    toEncoding (ListColumn x) = toEncoding x
+instance (FromJSON a) => FromJSON (ListColumn a) where
     parseJSON x
-        | isAesonString x = JannoList . singleton <$> parseJSON x
-        | otherwise = JannoList <$> parseJSON x
+        | isAesonString x = ListColumn . singleton <$> parseJSON x
+        | otherwise = ListColumn <$> parseJSON x
         where
             isAesonString (String _) = True
             isAesonString _          = False
@@ -161,11 +161,11 @@ instance FromJSON JannoRows
 data JannoRow = JannoRow
     { jPoseidonID                 :: String
     , jGeneticSex                 :: GeneticSex
-    , jGroupName                  :: JannoList GroupName
-    , jAlternativeIDs             :: Maybe (JannoList JannoAlternativeID)
-    , jRelationTo                 :: Maybe (JannoList JannoRelationTo)
-    , jRelationDegree             :: Maybe (JannoList JannoRelationDegree)
-    , jRelationType               :: Maybe (JannoList JannoRelationType)
+    , jGroupName                  :: ListColumn GroupName
+    , jAlternativeIDs             :: Maybe (ListColumn JannoAlternativeID)
+    , jRelationTo                 :: Maybe (ListColumn JannoRelationTo)
+    , jRelationDegree             :: Maybe (ListColumn JannoRelationDegree)
+    , jRelationType               :: Maybe (ListColumn JannoRelationType)
     , jRelationNote               :: Maybe JannoRelationNote
     , jCollectionID               :: Maybe JannoCollectionID
     , jCountry                    :: Maybe JannoCountry
@@ -175,19 +175,19 @@ data JannoRow = JannoRow
     , jLatitude                   :: Maybe JannoLatitude
     , jLongitude                  :: Maybe JannoLongitude
     , jDateType                   :: Maybe JannoDateType
-    , jDateC14Labnr               :: Maybe (JannoList JannoDateC14Labnr)
-    , jDateC14UncalBP             :: Maybe (JannoList JannoDateC14UncalBP)
-    , jDateC14UncalBPErr          :: Maybe (JannoList JannoDateC14UncalBPErr)
+    , jDateC14Labnr               :: Maybe (ListColumn JannoDateC14Labnr)
+    , jDateC14UncalBP             :: Maybe (ListColumn JannoDateC14UncalBP)
+    , jDateC14UncalBPErr          :: Maybe (ListColumn JannoDateC14UncalBPErr)
     , jDateBCADStart              :: Maybe JannoDateBCADStart
     , jDateBCADMedian             :: Maybe JannoDateBCADMedian
     , jDateBCADStop               :: Maybe JannoDateBCADStop
     , jDateNote                   :: Maybe JannoDateNote
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
-    , jSourceTissue               :: Maybe (JannoList JannoSourceTissue)
+    , jSourceTissue               :: Maybe (ListColumn JannoSourceTissue)
     , jNrLibraries                :: Maybe JannoNrLibraries
-    , jLibraryNames               :: Maybe (JannoList JannoLibraryName)
-    , jCaptureType                :: Maybe (JannoList JannoCaptureType)
+    , jLibraryNames               :: Maybe (ListColumn JannoLibraryName)
+    , jCaptureType                :: Maybe (ListColumn JannoCaptureType)
     , jUDG                        :: Maybe JannoUDG
     , jLibraryBuilt               :: Maybe JannoLibraryBuilt
     , jGenotypePloidy             :: Maybe JannoGenotypePloidy
@@ -196,15 +196,15 @@ data JannoRow = JannoRow
     , jNrSNPs                     :: Maybe JannoNrSNPs
     , jCoverageOnTargets          :: Maybe JannoCoverageOnTargets
     , jDamage                     :: Maybe JannoDamage
-    , jContamination              :: Maybe (JannoList JannoContamination)
-    , jContaminationErr           :: Maybe (JannoList JannoContaminationErr)
-    , jContaminationMeas          :: Maybe (JannoList JannoContaminationMeas)
+    , jContamination              :: Maybe (ListColumn JannoContamination)
+    , jContaminationErr           :: Maybe (ListColumn JannoContaminationErr)
+    , jContaminationMeas          :: Maybe (ListColumn JannoContaminationMeas)
     , jContaminationNote          :: Maybe JannoContaminationNote
-    , jGeneticSourceAccessionIDs  :: Maybe (JannoList JannoGeneticSourceAccessionID)
+    , jGeneticSourceAccessionIDs  :: Maybe (ListColumn JannoGeneticSourceAccessionID)
     , jPrimaryContact             :: Maybe JannoPrimaryContact
-    , jPublication                :: Maybe (JannoList JannoPublication)
+    , jPublication                :: Maybe (ListColumn JannoPublication)
     , jComments                   :: Maybe JannoComment
-    , jKeywords                   :: Maybe (JannoList JannoKeyword)
+    , jKeywords                   :: Maybe (ListColumn JannoKeyword)
     , jAdditionalColumns          :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
@@ -407,7 +407,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow {
           jPoseidonID                   = id_
         , jGeneticSex                   = GeneticSex sex
-        , jGroupName                    = JannoList [GroupName $ T.pack pop]
+        , jGroupName                    = ListColumn [GroupName $ T.pack pop]
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
@@ -630,14 +630,14 @@ checkJannoRowConsistency x =
 checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
 checkMandatoryStringNotEmpty x =
     let notEmpty = (not . null . jPoseidonID $ x) &&
-                   (not . null . getJannoList . jGroupName $ x) &&
-                   (not . null . show . head . getJannoList . jGroupName $ x)
+                   (not . null . getListColumn . jGroupName $ x) &&
+                   (not . null . show . head . getListColumn . jGroupName $ x)
     in case notEmpty of
         False -> E.throwError "Poseidon_ID or Group_Name are empty"
         True  -> return x
 
-getCellLength :: Maybe (JannoList a) -> Int
-getCellLength = maybe 0 (length . getJannoList)
+getCellLength :: Maybe (ListColumn a) -> Int
+getCellLength = maybe 0 (length . getListColumn)
 
 allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
