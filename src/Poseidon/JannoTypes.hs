@@ -1,8 +1,10 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Poseidon.JannoTypes where
+
+import Poseidon.JannoTypesTH
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)
@@ -10,34 +12,13 @@ import           Data.Aeson                 (FromJSON, ToJSON, Value (..),
                                              defaultOptions, genericToEncoding,
                                              parseJSON, toEncoding, toJSON,
                                              withText)
-import           Data.Aeson.Types           (Parser)
-import           Data.ByteString            as S
 import qualified Data.Csv                   as Csv
 import qualified Data.Text                  as T
-import qualified Data.Text.Encoding         as T
 import qualified Data.Text.Read             as T
-import           Data.Typeable              (Typeable)
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
 import           SequenceFormats.Eigenstrat (Sex (..))
 import qualified Text.Regex.TDFA            as Reg
-
--- a typeclass for types associated to a column name
-class HasColName a where
-    colname :: a -> String
-
--- a typeclass for types with smart constructors
-class Makeable a where
-    make :: MonadFail m => T.Text -> m a
-
--- helper functions
-parseTypeCSV :: forall a m. (MonadFail m, Makeable a, HasColName a, Typeable a) => S.ByteString -> m a
-parseTypeCSV x = case T.decodeUtf8' x of
-        Left e  -> fail $ show e ++ " in column " ++ colname (undefined :: a)
-        Right t -> make t
-
-parseTypeJSON :: forall a. (Makeable a, HasColName a, Typeable a) => Value -> Parser a
-parseTypeJSON = withText (colname (undefined :: a)) make
 
 -- | A datatype for the Genetic_Sex .janno column
 newtype GeneticSex = GeneticSex { sfSex :: Sex } deriving (Eq)
@@ -69,36 +50,15 @@ instance FromJSON GeneticSex where      parseJSON  = withText "JannoSex" make
 
 -- | A datatype for the Group_Name .janno column
 newtype GroupName = GroupName T.Text deriving (Eq, Ord)
-
-instance HasColName GroupName where    colname _ = "Group_Name"
-instance Makeable GroupName where      make = pure . GroupName
-instance Show GroupName where          show (GroupName x) = T.unpack x
-instance Csv.ToField GroupName where   toField (GroupName x) = Csv.toField x
-instance Csv.FromField GroupName where parseField = parseTypeCSV
-instance ToJSON GroupName where        toJSON (GroupName x) = String x
-instance FromJSON GroupName where      parseJSON = parseTypeJSON
+$(makeInstances ''GroupName "Group_Name")
 
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)
-
-instance HasColName JannoAlternativeID where    colname _ = "Alternative_IDs"
-instance Makeable JannoAlternativeID where      make = pure . JannoAlternativeID
-instance Show JannoAlternativeID where          show (JannoAlternativeID x) = T.unpack x
-instance Csv.ToField JannoAlternativeID where   toField (JannoAlternativeID x) = Csv.toField x
-instance Csv.FromField JannoAlternativeID where parseField = parseTypeCSV
-instance ToJSON JannoAlternativeID where        toJSON (JannoAlternativeID x) = String x
-instance FromJSON JannoAlternativeID where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoAlternativeID "Alternative_IDs")
 
 -- | A datatype for the Relation_To .janno column
 newtype JannoRelationTo = JannoRelationTo T.Text deriving (Eq)
-
-instance HasColName JannoRelationTo where    colname _ = "Relation_To"
-instance Makeable JannoRelationTo where      make = pure . JannoRelationTo
-instance Show JannoRelationTo where          show (JannoRelationTo x) = T.unpack x
-instance Csv.ToField JannoRelationTo where   toField (JannoRelationTo x) = Csv.toField x
-instance Csv.FromField JannoRelationTo where parseField = parseTypeCSV
-instance ToJSON JannoRelationTo where        toJSON (JannoRelationTo x) = String x
-instance FromJSON JannoRelationTo where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoRelationTo "Relation_To")
 
 -- | A datatype for the Relation_Degree .janno column
 data JannoRelationDegree =
@@ -140,47 +100,19 @@ instance FromJSON JannoRelationDegree
 
 -- | A datatype for the Relation_Type .janno column
 newtype JannoRelationType = JannoRelationType T.Text deriving (Eq)
-
-instance HasColName JannoRelationType where    colname _ = "Relation_Type"
-instance Makeable JannoRelationType where      make = pure . JannoRelationType
-instance Show JannoRelationType where          show (JannoRelationType x) = T.unpack x
-instance Csv.ToField JannoRelationType where   toField (JannoRelationType x) = Csv.toField x
-instance Csv.FromField JannoRelationType where parseField = parseTypeCSV
-instance ToJSON JannoRelationType where        toJSON (JannoRelationType x) = String x
-instance FromJSON JannoRelationType where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoRelationType "Relation_Type")
 
 -- | A datatype for the Relation_Note .janno column
 newtype JannoRelationNote = JannoRelationNote T.Text deriving (Eq)
-
-instance HasColName JannoRelationNote where    colname _ = "Relation_Note"
-instance Makeable JannoRelationNote where      make = pure . JannoRelationNote
-instance Show JannoRelationNote where          show (JannoRelationNote x) = T.unpack x
-instance Csv.ToField JannoRelationNote where   toField (JannoRelationNote x) = Csv.toField x
-instance Csv.FromField JannoRelationNote where parseField = parseTypeCSV
-instance ToJSON JannoRelationNote where        toJSON (JannoRelationNote x) = String x
-instance FromJSON JannoRelationNote where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoRelationNote "Relation_Note")
 
 -- | A datatype for the Collection_ID .janno column
 newtype JannoCollectionID = JannoCollectionID T.Text deriving (Eq)
+$(makeInstances ''JannoCollectionID "Collection_ID")
 
-instance HasColName JannoCollectionID where    colname _ = "Collection_ID"
-instance Makeable JannoCollectionID where      make = pure . JannoCollectionID
-instance Show JannoCollectionID where          show (JannoCollectionID x) = T.unpack x
-instance Csv.ToField JannoCollectionID where   toField (JannoCollectionID x) = Csv.toField x
-instance Csv.FromField JannoCollectionID where parseField = parseTypeCSV
-instance ToJSON JannoCollectionID where        toJSON (JannoCollectionID x) = String x
-instance FromJSON JannoCollectionID where      parseJSON = parseTypeJSON
-
--- | A datatype for the Collection_ID .janno column
+-- | A datatype for the Country .janno column
 newtype JannoCountry = JannoCountry T.Text deriving (Eq, Ord)
-
-instance HasColName JannoCountry where    colname _ = "Country"
-instance Makeable JannoCountry where      make = pure . JannoCountry
-instance Show JannoCountry where          show (JannoCountry x) = T.unpack x
-instance Csv.ToField JannoCountry where   toField (JannoCountry x) = Csv.toField x
-instance Csv.FromField JannoCountry where parseField = parseTypeCSV
-instance ToJSON JannoCountry where        toJSON (JannoCountry x) = String x
-instance FromJSON JannoCountry where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoCountry "Country")
 
 -- | A datatype for countries in ISO-alpha2 code format
 newtype JannoCountryISO = JannoCountryISO Country deriving (Eq, Ord)
@@ -201,25 +133,11 @@ instance FromJSON JannoCountryISO where      parseJSON = parseTypeJSON
 
 -- | A datatype for the Location .janno column
 newtype JannoLocation = JannoLocation T.Text deriving (Eq)
-
-instance HasColName JannoLocation where    colname _ = "Collection_ID"
-instance Makeable JannoLocation where      make = pure . JannoLocation
-instance Show JannoLocation where          show (JannoLocation x) = T.unpack x
-instance Csv.ToField JannoLocation where   toField (JannoLocation x) = Csv.toField x
-instance Csv.FromField JannoLocation where parseField = parseTypeCSV
-instance ToJSON JannoLocation where        toJSON (JannoLocation x) = String x
-instance FromJSON JannoLocation where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoLocation "Location")
 
 -- | A datatype for the Site .janno column
 newtype JannoSite = JannoSite T.Text deriving (Eq, Ord)
-
-instance HasColName JannoSite where    colname _ = "Site"
-instance Makeable JannoSite where      make = pure . JannoSite
-instance Show JannoSite where          show (JannoSite x) = T.unpack x
-instance Csv.ToField JannoSite where   toField (JannoSite x) = Csv.toField x
-instance Csv.FromField JannoSite where parseField = parseTypeCSV
-instance ToJSON JannoSite where        toJSON (JannoSite x) = String x
-instance FromJSON JannoSite where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoSite "Site")
 
 -- | A datatype for Latitudes
 newtype Latitude = Latitude Double deriving (Eq, Ord, Generic)
@@ -285,14 +203,7 @@ instance FromJSON JannoDateType
 
 -- | A datatype for the Date_C14_Labnr .janno column
 newtype JannoDateC14Labnr = JannoDateC14Labnr T.Text deriving (Eq)
-
-instance HasColName JannoDateC14Labnr where    colname _ = "Date_C14_Labnr"
-instance Makeable JannoDateC14Labnr where      make = pure . JannoDateC14Labnr
-instance Show JannoDateC14Labnr where          show (JannoDateC14Labnr x) = T.unpack x
-instance Csv.ToField JannoDateC14Labnr where   toField (JannoDateC14Labnr x) = Csv.toField x
-instance Csv.FromField JannoDateC14Labnr where parseField = parseTypeCSV
-instance ToJSON JannoDateC14Labnr where        toJSON (JannoDateC14Labnr x) = String x
-instance FromJSON JannoDateC14Labnr where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoDateC14Labnr "Date_C14_Labnr")
 
 -- | A datatype for the Date_C14_Uncal_BP .janno column
 newtype JannoDateC14UncalBP = JannoDateC14UncalBP Int deriving (Eq, Ord, Generic)
@@ -391,47 +302,19 @@ instance FromJSON DateBCADStop
 
 -- | A datatype for the Date_Note .janno column
 newtype JannoDateNote = JannoDateNote T.Text deriving (Eq, Ord)
-
-instance HasColName JannoDateNote where    colname _ = "Date_Note"
-instance Makeable JannoDateNote where      make = pure . JannoDateNote
-instance Show JannoDateNote where          show (JannoDateNote x) = T.unpack x
-instance Csv.ToField JannoDateNote where   toField (JannoDateNote x) = Csv.toField x
-instance Csv.FromField JannoDateNote where parseField = parseTypeCSV
-instance ToJSON JannoDateNote where        toJSON (JannoDateNote x) = String x
-instance FromJSON JannoDateNote where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoDateNote "Date_Note")
 
 -- | A datatype for the MT_Haplogroup .janno column
 newtype JannoMTHaplogroup = JannoMTHaplogroup T.Text deriving (Eq, Ord)
-
-instance HasColName JannoMTHaplogroup where    colname _ = "MT_Haplogroup"
-instance Makeable JannoMTHaplogroup where      make = pure . JannoMTHaplogroup
-instance Show JannoMTHaplogroup where          show (JannoMTHaplogroup x) = T.unpack x
-instance Csv.ToField JannoMTHaplogroup where   toField (JannoMTHaplogroup x) = Csv.toField x
-instance Csv.FromField JannoMTHaplogroup where parseField = parseTypeCSV
-instance ToJSON JannoMTHaplogroup where        toJSON (JannoMTHaplogroup x) = String x
-instance FromJSON JannoMTHaplogroup where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoMTHaplogroup "MT_Haplogroup")
 
 -- | A datatype for the Y_Haplogroup .janno column
 newtype JannoYHaplogroup = JannoYHaplogroup T.Text deriving (Eq, Ord)
-
-instance HasColName JannoYHaplogroup where    colname _ = "Y_Haplogroup"
-instance Makeable JannoYHaplogroup where      make = pure . JannoYHaplogroup
-instance Show JannoYHaplogroup where          show (JannoYHaplogroup x) = T.unpack x
-instance Csv.ToField JannoYHaplogroup where   toField (JannoYHaplogroup x) = Csv.toField x
-instance Csv.FromField JannoYHaplogroup where parseField = parseTypeCSV
-instance ToJSON JannoYHaplogroup where        toJSON (JannoYHaplogroup x) = String x
-instance FromJSON JannoYHaplogroup where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoYHaplogroup "Y_Haplogroup")
 
 -- | A datatype for the Source_Tissue .janno column
 newtype JannoSourceTissue = JannoSourceTissue T.Text deriving (Eq)
-
-instance HasColName JannoSourceTissue where    colname _ = "Source_Tissue"
-instance Makeable JannoSourceTissue where      make = pure . JannoSourceTissue
-instance Show JannoSourceTissue where          show (JannoSourceTissue x) = T.unpack x
-instance Csv.ToField JannoSourceTissue where   toField (JannoSourceTissue x) = Csv.toField x
-instance Csv.FromField JannoSourceTissue where parseField = parseTypeCSV
-instance ToJSON JannoSourceTissue where        toJSON (JannoSourceTissue x) = String x
-instance FromJSON JannoSourceTissue where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoSourceTissue "Source_Tissue")
 
 -- | A datatype for the Nr_Libraries .janno column
 newtype JannoNrLibraries = JannoNrLibraries Int deriving (Eq, Ord, Generic)
@@ -454,14 +337,7 @@ instance FromJSON JannoNrLibraries
 
 -- | A datatype for the Library_Names .janno column
 newtype JannoLibraryName = JannoLibraryName T.Text deriving (Eq)
-
-instance HasColName JannoLibraryName where    colname _ = "Library_Names"
-instance Makeable JannoLibraryName where      make = pure . JannoLibraryName
-instance Show JannoLibraryName where          show (JannoLibraryName x) = T.unpack x
-instance Csv.ToField JannoLibraryName where   toField (JannoLibraryName x) = Csv.toField x
-instance Csv.FromField JannoLibraryName where parseField = parseTypeCSV
-instance ToJSON JannoLibraryName where        toJSON (JannoLibraryName x) = String x
-instance FromJSON JannoLibraryName where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoLibraryName "Library_Names")
 
 -- | A datatype for the Capture_Type .janno column
 data JannoCaptureType =
@@ -666,47 +542,19 @@ instance FromJSON JannoDamage
 
 -- | A datatype for the Contamination .janno column
 newtype JannoContamination = JannoContamination T.Text deriving (Eq)
-
-instance HasColName JannoContamination where    colname _ = "Contamination"
-instance Makeable JannoContamination where      make = pure . JannoContamination
-instance Show JannoContamination where          show (JannoContamination x) = T.unpack x
-instance Csv.ToField JannoContamination where   toField (JannoContamination x) = Csv.toField x
-instance Csv.FromField JannoContamination where parseField = parseTypeCSV
-instance ToJSON JannoContamination where        toJSON (JannoContamination x) = String x
-instance FromJSON JannoContamination where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoContamination "Contamination")
 
 -- | A datatype for the Contamination_Err .janno column
 newtype JannoContaminationErr = JannoContaminationErr T.Text deriving (Eq)
-
-instance HasColName JannoContaminationErr where    colname _ = "Contamination_Err"
-instance Makeable JannoContaminationErr where      make = pure . JannoContaminationErr
-instance Show JannoContaminationErr where          show (JannoContaminationErr x) = T.unpack x
-instance Csv.ToField JannoContaminationErr where   toField (JannoContaminationErr x) = Csv.toField x
-instance Csv.FromField JannoContaminationErr where parseField = parseTypeCSV
-instance ToJSON JannoContaminationErr where        toJSON (JannoContaminationErr x) = String x
-instance FromJSON JannoContaminationErr where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoContaminationErr "Contamination_Err")
 
 -- | A datatype for the Contamination_Meas .janno column
 newtype JannoContaminationMeas = JannoContaminationMeas T.Text deriving (Eq)
-
-instance HasColName JannoContaminationMeas where    colname _ = "Contamination_Meas"
-instance Makeable JannoContaminationMeas where      make = pure . JannoContaminationMeas
-instance Show JannoContaminationMeas where          show (JannoContaminationMeas x) = T.unpack x
-instance Csv.ToField JannoContaminationMeas where   toField (JannoContaminationMeas x) = Csv.toField x
-instance Csv.FromField JannoContaminationMeas where parseField = parseTypeCSV
-instance ToJSON JannoContaminationMeas where        toJSON (JannoContaminationMeas x) = String x
-instance FromJSON JannoContaminationMeas where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoContaminationMeas "Contamination_Meas")
 
 -- | A datatype for the Contamination_Note .janno column
 newtype JannoContaminationNote = JannoContaminationNote T.Text deriving (Eq)
-
-instance HasColName JannoContaminationNote where    colname _ = "Contamination_Note"
-instance Makeable JannoContaminationNote where      make = pure . JannoContaminationNote
-instance Show JannoContaminationNote where          show (JannoContaminationNote x) = T.unpack x
-instance Csv.ToField JannoContaminationNote where   toField (JannoContaminationNote x) = Csv.toField x
-instance Csv.FromField JannoContaminationNote where parseField = parseTypeCSV
-instance ToJSON JannoContaminationNote where        toJSON (JannoContaminationNote x) = String x
-instance FromJSON JannoContaminationNote where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoContaminationNote "Contamination_Note")
 
 -- | A datatype for the Genetic_Source_Accession_IDs .janno column
 data JannoGeneticSourceAccessionID =
@@ -747,44 +595,16 @@ instance FromJSON JannoGeneticSourceAccessionID
 
 -- | A datatype for the Primary_Contact .janno column
 newtype JannoPrimaryContact = JannoPrimaryContact T.Text deriving (Eq)
-
-instance HasColName JannoPrimaryContact where    colname _ = "Primary_Contact"
-instance Makeable JannoPrimaryContact where      make = pure . JannoPrimaryContact
-instance Show JannoPrimaryContact where          show (JannoPrimaryContact x) = T.unpack x
-instance Csv.ToField JannoPrimaryContact where   toField (JannoPrimaryContact x) = Csv.toField x
-instance Csv.FromField JannoPrimaryContact where parseField = parseTypeCSV
-instance ToJSON JannoPrimaryContact where        toJSON (JannoPrimaryContact x) = String x
-instance FromJSON JannoPrimaryContact where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoPrimaryContact "Primary_Contact")
 
 -- | A datatype for the Publication .janno column
 newtype JannoPublication = JannoPublication T.Text deriving (Eq, Ord)
-
-instance HasColName JannoPublication where    colname _ = "Publication"
-instance Makeable JannoPublication where      make = pure . JannoPublication
-instance Show JannoPublication where          show (JannoPublication x) = T.unpack x
-instance Csv.ToField JannoPublication where   toField (JannoPublication x) = Csv.toField x
-instance Csv.FromField JannoPublication where parseField = parseTypeCSV
-instance ToJSON JannoPublication where        toJSON (JannoPublication x) = String x
-instance FromJSON JannoPublication where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoPublication "Publication")
 
 -- | A datatype for the Note .janno column
 newtype JannoComment = JannoComment T.Text deriving (Eq)
-
-instance HasColName JannoComment where    colname _ = "Note"
-instance Makeable JannoComment where      make = pure . JannoComment
-instance Show JannoComment where          show (JannoComment x) = T.unpack x
-instance Csv.ToField JannoComment where   toField (JannoComment x) = Csv.toField x
-instance Csv.FromField JannoComment where parseField = parseTypeCSV
-instance ToJSON JannoComment where        toJSON (JannoComment x) = String x
-instance FromJSON JannoComment where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoComment "Note")
 
 -- | A datatype for the Keywords .janno column
 newtype JannoKeyword = JannoKeyword T.Text deriving (Eq)
-
-instance HasColName JannoKeyword where    colname _ = "Keywords"
-instance Makeable JannoKeyword where      make = pure . JannoKeyword
-instance Show JannoKeyword where          show (JannoKeyword x) = T.unpack x
-instance Csv.ToField JannoKeyword where   toField (JannoKeyword x) = Csv.toField x
-instance Csv.FromField JannoKeyword where parseField = parseTypeCSV
-instance ToJSON JannoKeyword where        toJSON (JannoKeyword x) = String x
-instance FromJSON JannoKeyword where      parseJSON = parseTypeJSON
+$(makeInstances ''JannoKeyword "Keywords")
