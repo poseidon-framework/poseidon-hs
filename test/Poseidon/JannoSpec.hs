@@ -2,10 +2,10 @@
 
 module Poseidon.JannoSpec (spec, checkEnDe) where
 
+import           Poseidon.ColumnTypes
 import           Poseidon.Janno            (CsvNamedRecord (..), JannoList (..),
                                             JannoRow (..), JannoRows (..),
                                             Sex (..), readJannoFile)
-import           Poseidon.JannoTypes
 import           Poseidon.SequencingSource (JURI (..))
 import           Poseidon.Utils            (testLog)
 

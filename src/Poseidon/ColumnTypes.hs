@@ -2,9 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Poseidon.JannoTypes where
+module Poseidon.ColumnTypes where
 
-import           Poseidon.JannoTypesTH
+import           Poseidon.ColumnTypesUtils
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)

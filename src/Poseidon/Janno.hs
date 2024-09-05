@@ -43,7 +43,7 @@ module Poseidon.Janno (
     getMaybeJannoList,
 ) where
 
-import           Poseidon.JannoTypes
+import           Poseidon.ColumnTypes
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
                                                        logError, logWarning,

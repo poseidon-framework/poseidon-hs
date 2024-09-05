@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-module Poseidon.JannoTypesTH where
+module Poseidon.ColumnTypesUtils where
 
 import           Data.Aeson          (FromJSON, ToJSON, Value (..), parseJSON,
                                       toJSON, withText)
@@ -43,6 +43,6 @@ makeInstances name col = do
       instance Show $(conT name) where          show $(conP conName [varP x]) = T.unpack $(varE x)
       instance Csv.ToField $(conT name) where   toField $(conP conName [varP x]) = Csv.toField $(varE x)
       instance Csv.FromField $(conT name) where parseField = parseTypeCSV
-      instance ToJSON $(conT name) where        toJSON ($(conP conName [varP x])) = String $(varE x)
+      instance ToJSON $(conT name) where        toJSON $(conP conName [varP x]) = String $(varE x)
       instance FromJSON $(conT name) where      parseJSON = parseTypeJSON
       |]
