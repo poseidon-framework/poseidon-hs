@@ -77,7 +77,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
     (outInd, outSnp, outGeno) <- case outFormat of
             "EIGENSTRAT" -> return (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
             "PLINK"      -> return (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
-            _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+            _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
     -- check if genotype data needs conversion
     if getFormat (genotypeFileSpec (posPacGenotypeData pac)) == outFormat
     then logWarning "The genotype data is already in the requested format"
@@ -106,7 +106,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
                     let outConsumer = case outFormat of
                             "EIGENSTRAT" -> writeEigenstrat outG outS outI eigenstratIndEntries
                             "PLINK"      -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
-                            _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                            _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
                     runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
                 ) (throwIO . PoseidonGenotypeExceptionForward errLength)
             logInfo "Done"
@@ -115,7 +115,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
                 gFileSpec <- case outFormat of
                         "EIGENSTRAT" -> return $ GenotypeEigenstrat outGeno Nothing outSnp Nothing outInd Nothing
                         "PLINK"      -> return $ GenotypePlink      outGeno Nothing outSnp Nothing outInd Nothing
-                        _  -> liftIO . throwIO $ PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                        _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
                 let genotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
                     newPac = pac { posPacGenotypeData = genotypeData }
                 logInfo "Adjusting POSEIDON.yml..."

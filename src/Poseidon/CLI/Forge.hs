@@ -192,7 +192,7 @@ runForge (
                                    (outName <.> ".bim")  Nothing
                                    (outName <.> ".fam")  Nothing
             _  -> liftIO . throwIO $
-                PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
     let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet)
 
     -- assemble and write result depending on outMode --

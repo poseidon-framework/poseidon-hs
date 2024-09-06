@@ -406,7 +406,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         ]
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
-        , _genoConvertOutFormat = "PLINKE"
+        , _genoConvertOutFormat = "PLINK"
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
         , _genoconvertRemoveOld = False

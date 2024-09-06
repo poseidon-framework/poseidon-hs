@@ -80,7 +80,7 @@ instance FromJSON GenotypeDataSpec where
                 <*> v .:? "snpFileChkSum"
                 <*> v .:  "indFile"
                 <*> v .:? "indFileChkSum"
-            "PLINK" -> GenotypeEigenstrat
+            "PLINK" -> GenotypePlink
                 <$> v .:  "genoFile"
                 <*> v .:? "genoFileChkSum"
                 <*> v .:  "snpFile"
