@@ -445,29 +445,21 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         OP.short 'p' <>
         OP.metavar "FILE" <>
         OP.help "One of the input genotype data files. \
-                \Expects .bed or .bed.gz for PLINK, or \
-                \.geno, or .geno.gz for EIGENSTRAT, or \
-                \.vcf or .vcf.gz    for VCF. \
+                \Expects .bed, .bed.gz, .bim, .bim.gz or .fam for PLINK, or \
+                \.geno, .geno.gz, .snp, .snp.gz or .ind for EIGENSTRAT. \
                 \The other files must be in the same directory \
-                \and must have the same base name. If a gzipped genotype file is given, it is assumed that the \
-                \corresponding .snp.gz or .bim.gz file is also gzipped (but not the .fam or .ind file)")
+                \and must have the same base name. If a gzipped file is given, it is assumed that the \
+                \file pairs (.geno.gz, .snp.gz) or (.bim.gz, .bed.gz) are both zipped, but not the .fam or .ind file. \
+                \If a .ind or .fam file is given, it is assumed that none of the file triples is zipped.")
     where
-        readGenoInput :: FilePath -> Either String GenotypeFileSpec
+        readGenoInput :: FilePath -> Either String GenoInput
         readGenoInput p = makeGenoInput (dropExtensions p) (takeExtensions p)
-        makeGenoInput path ".geno" =
-            Right $ GenotypeEigenstrat (path <.> "geno") Nothing (path <.> "snp") Nothing (path <.> "ind") Nothing
-        makeGenoInput path ".geno.gz" =
-            Right $ GenotypeEigenstrat (path <.> "geno.gz") Nothing (path <.> "snp.gz") Nothing (path <.> "ind") Nothing
-        makeGenoInput path ".bed" =
-            Right $ GenotypePlink (path <.> "bed") Nothing (path <.> "bim") Nothing (path <.> "fam") Nothing
-        makeGenoInput path ".bed.gz" =
-            Right $ GenotypePlink (path <.> "bed.gz") Nothing (path <.> "bim.gz") Nothing (path <.> "fam") Nothing
-        makeGenoInput path ".vcf" =
-            Right $ GenotypeVCF (path <.> "vcf") Nothing
-        makeGenoInput path ".vcf.gz" =
-            Right $ GenotypeVCF (path <.> "vcf.gz") Nothing
-        makeGenoInput _    ext      =
-            Left $ "unknown file extension: " ++ ext
+        makeGenoInput path ext
+            | ext `elem` [".geno",    ".snp",   ".ind"] = Right (GenotypeFormatEigenstrat, path <.> ".geno",    path <.> ".snp",    path <.> ".ind")
+            | ext `elem` [".geno.gz", ".snp.gz"       ] = Right (GenotypeFormatEigenstrat, path <.> ".geno.gz", path <.> ".snp.gz", path <.> ".ind")
+            | ext `elem` [".bed",     ".bim",   ".fam"] = Right (GenotypeFormatPlink,      path <.> ".bed",     path <.> ".bim",    path <.> ".fam")
+            | ext `elem` [".bed.gz",  ".bim.gz"       ] = Right (GenotypeFormatPlink,      path <.> ".bed.gz",  path <.> ".bim.gz", path <.> ".fam")
+            | otherwise                              = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenotypeFileSpec
 parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
