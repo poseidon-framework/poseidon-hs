@@ -450,16 +450,29 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
                 \The other files must be in the same directory \
                 \and must have the same base name. If a gzipped file is given, it is assumed that the \
                 \file pairs (.geno.gz, .snp.gz) or (.bim.gz, .bed.gz) are both zipped, but not the .fam or .ind file. \
-                \If a .ind or .fam file is given, it is assumed that none of the file triples is zipped.")
+                \If a .ind or .fam file is given, it is assumed that none of the file triples is zipped. \
+                \For VCF please see option --vcfFile")
     where
-        readGenoInput :: FilePath -> Either String GenoInput
+        readGenoInput :: FilePath -> Either String GenotypeFileSpec
         readGenoInput p = makeGenoInput (dropExtensions p) (takeExtensions p)
         makeGenoInput path ext
-            | ext `elem` [".geno",    ".snp",   ".ind"] = Right (GenotypeFormatEigenstrat, path <.> ".geno",    path <.> ".snp",    path <.> ".ind")
-            | ext `elem` [".geno.gz", ".snp.gz"       ] = Right (GenotypeFormatEigenstrat, path <.> ".geno.gz", path <.> ".snp.gz", path <.> ".ind")
-            | ext `elem` [".bed",     ".bim",   ".fam"] = Right (GenotypeFormatPlink,      path <.> ".bed",     path <.> ".bim",    path <.> ".fam")
-            | ext `elem` [".bed.gz",  ".bim.gz"       ] = Right (GenotypeFormatPlink,      path <.> ".bed.gz",  path <.> ".bim.gz", path <.> ".fam")
-            | otherwise                              = Left $ "unknown file extension: " ++ ext
+            | ext `elem` [".geno",    ".snp",   ".ind"] =
+                Right $ GenotypeEigenstrat (path <.> ".geno")    Nothing
+                                           (path <.> ".snp")     Nothing
+                                           (path <.> ".ind")     Nothing 
+            | ext `elem` [".geno.gz", ".snp.gz"       ] =
+                Right $ GenotypeEigenstrat (path <.> ".geno.gz") Nothing
+                                           (path <.> ".snp.gz")  Nothing
+                                           (path <.> ".ind")     Nothing 
+            | ext `elem` [".bed",     ".bim",   ".fam"] =
+                Right $ GenotypePlink      (path <.> ".bed")     Nothing
+                                           (path <.> ".bim")     Nothing
+                                           (path <.> ".fam")     Nothing 
+            | ext `elem` [".bed.gz",  ".bim.gz"       ] =
+                Right $ GenotypePlink      (path <.> ".bed.gz")  Nothing
+                                           (path <.> ".bim.gz")  Nothing
+                                           (path <.> ".fam")     Nothing 
+            | otherwise = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenotypeFileSpec
 parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
