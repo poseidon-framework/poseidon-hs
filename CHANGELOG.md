@@ -1,8 +1,6 @@
 - V 1.6.0.0:
     - Linked to sequence-formats 1.8.1.0, which adds reading support for gzipped Plink (*.bed and *.bim) and Eigenstrat (.geno and .snp) files.
-    - gzipped files are recognised automatically by their file ending
-    - A mild but technically breaking change is the behaviour of init, genoconvert and forge with the `-p, --genoOne` flag, where we now allow only
-      `.bed`, `.bed.gz`, `.geno` or `.geno.gz` files to define the trio of genotype files.
+    - gzipped files are recognised automatically by their file ending.
 - V 1.5.4.0:
     - Better error messages for parsec operations on command line input.
     - Better error messages for YML file parsing.
