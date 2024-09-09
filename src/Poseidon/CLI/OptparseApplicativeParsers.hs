@@ -36,7 +36,7 @@ import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath            (dropExtension, takeExtension,
+import           System.FilePath            (dropExtensions, takeExtensions,
                                              (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
@@ -457,19 +457,21 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         OP.short 'p' <>
         OP.metavar "FILE" <>
         OP.help "One of the input genotype data files. \
-                \Expects .bed, .bim or .fam for PLINK and \
-                \.geno, .snp or .ind for EIGENSTRAT. \
+                \Expects .bed, .bed.gz, .bim, .bim.gz or .fam for PLINK, or \
+                \.geno, .geno.gz, .snp, .snp.gz or .ind for EIGENSTRAT. \
                 \The other files must be in the same directory \
-                \and must have the same base name.")
+                \and must have the same base name. If a gzipped file is given, it is assumed that the \
+                \file pairs (.geno.gz, .snp.gz) or (.bim.gz, .bed.gz) are both zipped, but not the .fam or .ind file. \
+                \If a .ind or .fam file is given, it is assumed that none of the file triples is zipped.")
     where
         readGenoInput :: FilePath -> Either String GenoInput
-        readGenoInput p = makeGenoInput (dropExtension p) (takeExtension p)
+        readGenoInput p = makeGenoInput (dropExtensions p) (takeExtensions p)
         makeGenoInput path ext
-            | ext `elem` [".geno", ".snp", ".ind"] =
-                Right (GenotypeFormatEigenstrat, path <.> "geno", path <.> "snp", path <.> "ind")
-            | ext `elem` [".bed", ".bim", ".fam"]  =
-                Right (GenotypeFormatPlink,      path <.> "bed",  path <.> "bim", path <.> "fam")
-            | otherwise = Left $ "unknown file extension: " ++ ext
+            | ext `elem` [".geno",    ".snp",   ".ind"] = Right (GenotypeFormatEigenstrat, path <.> ".geno",    path <.> ".snp",    path <.> ".ind")
+            | ext `elem` [".geno.gz", ".snp.gz"       ] = Right (GenotypeFormatEigenstrat, path <.> ".geno.gz", path <.> ".snp.gz", path <.> ".ind")
+            | ext `elem` [".bed",     ".bim",   ".fam"] = Right (GenotypeFormatPlink,      path <.> ".bed",     path <.> ".bim",    path <.> ".fam")
+            | ext `elem` [".bed.gz",  ".bim.gz"       ] = Right (GenotypeFormatPlink,      path <.> ".bed.gz",  path <.> ".bim.gz", path <.> ".fam")
+            | otherwise                              = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenoInput
 parseInGenoSep = (,,,) <$> parseInGenotypeFormat <*> parseInGenoFile <*> parseInSnpFile <*> parseInIndFile
@@ -607,7 +609,7 @@ parseMaybeSnpFile = OP.option (Just <$> OP.str) (
     OP.long "selectSnps" <>
     OP.metavar "FILE" <>
     OP.help "To extract specific SNPs during this forge operation, provide a Snp file. \
-            \Can be either Eigenstrat (file ending must be '.snp') or Plink (file ending must be '.bim'). \
+            \Can be either Eigenstrat (file ending must be '.snp' or '.snp.gz') or Plink (file ending must be '.bim' or '.bim.gz'). \
             \When this option is set, the output package will have exactly the SNPs listed in this file. \
             \Any SNP not listed in the file will be excluded. If option '--intersect' is also set, only \
             \the SNPs overlapping between the SNP file and the forged packages are output." <>

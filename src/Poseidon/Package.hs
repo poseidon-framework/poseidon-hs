@@ -651,9 +651,9 @@ joinEntryPipe logA nrInds pacNames = for cat $ \maybeEntries -> do
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
-    | takeExtension fn == ".snp" = readEigenstratSnpFile fn
-    | takeExtension fn == ".bim" = readBimFile fn
-    | otherwise                  = throwM (PoseidonGenotypeException "option snpFile requires snp or bim file endings")
+    | takeExtension fn `elem` [".snp", ".snp.gz"] = readEigenstratSnpFile fn
+    | takeExtension fn `elem` [".bim", ".bim.gz"] = readBimFile fn
+    | otherwise                  = throwM (PoseidonGenotypeException "option snpFile requires file endings to be *.snp or *.bim or *.snp.gz or *.bim.gz")
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
