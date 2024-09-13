@@ -93,7 +93,7 @@ instance Show JannoRelationDegree where
 instance Csv.ToField JannoRelationDegree where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoRelationDegree where parseField = parseTypeCSV "Relation_Degree"
 instance ToJSON JannoRelationDegree where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoRelationDegree where      parseJSON = parseTypeJSON "Relation_Degree"
+instance FromJSON JannoRelationDegree
 
 -- | A datatype for the Relation_Type .janno column
 newtype JannoRelationType = JannoRelationType T.Text deriving (Eq)
@@ -151,7 +151,7 @@ instance Show JannoLatitude where          show (JannoLatitude x) = show x
 instance Csv.ToField JannoLatitude where   toField (JannoLatitude x) = Csv.toField x
 instance Csv.FromField JannoLatitude where parseField = parseTypeCSV "Latitude"
 instance ToJSON JannoLatitude where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoLatitude where      parseJSON = parseTypeJSON "Latitude"
+instance FromJSON JannoLatitude
 
 -- | A datatype for the Longitude .janno column
 newtype JannoLongitude = JannoLongitude Double deriving (Eq, Ord, Generic)
@@ -169,7 +169,7 @@ instance Show JannoLongitude where          show (JannoLongitude x) = show x
 instance Csv.ToField JannoLongitude where   toField (JannoLongitude x) = Csv.toField x
 instance Csv.FromField JannoLongitude where parseField = parseTypeCSV "Longitude"
 instance ToJSON JannoLongitude where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoLongitude where      parseJSON  = parseTypeJSON "Longitude"
+instance FromJSON JannoLongitude
 
 -- | A datatype for the Date_Type .janno column
 data JannoDateType =
@@ -192,7 +192,7 @@ instance Show JannoDateType where
 instance Csv.ToField JannoDateType where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoDateType where parseField = parseTypeCSV "Date_Type"
 instance ToJSON JannoDateType where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDateType where      parseJSON  = parseTypeJSON "Date_Type"
+instance FromJSON JannoDateType
 
 -- | A datatype for the Date_C14_Labnr .janno column
 newtype JannoDateC14Labnr = JannoDateC14Labnr T.Text deriving (Eq)
@@ -211,7 +211,7 @@ instance Show JannoDateC14UncalBP where          show (JannoDateC14UncalBP x) = 
 instance Csv.ToField JannoDateC14UncalBP where   toField (JannoDateC14UncalBP x) = Csv.toField x
 instance Csv.FromField JannoDateC14UncalBP where parseField = parseTypeCSV "Date_C14_Uncal_BP"
 instance ToJSON JannoDateC14UncalBP where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDateC14UncalBP where      parseJSON  = parseTypeJSON "Date_C14_Uncal_BP"
+instance FromJSON JannoDateC14UncalBP
 
 -- | A datatype for the Date_C14_Uncal_BP_Err .janno column
 newtype JannoDateC14UncalBPErr = JannoDateC14UncalBPErr Int deriving (Eq, Ord, Generic)
@@ -226,7 +226,7 @@ instance Show JannoDateC14UncalBPErr where          show (JannoDateC14UncalBPErr
 instance Csv.ToField JannoDateC14UncalBPErr where   toField (JannoDateC14UncalBPErr x) = Csv.toField x
 instance Csv.FromField JannoDateC14UncalBPErr where parseField = parseTypeCSV "Date_C14_Uncal_BP_Err"
 instance ToJSON JannoDateC14UncalBPErr where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDateC14UncalBPErr where      parseJSON = parseTypeJSON "Date_C14_Uncal_BP_Err"
+instance FromJSON JannoDateC14UncalBPErr
 
 -- | A datatype for the Date_BC_AD_Start .janno column
 newtype JannoDateBCADStart = JannoDateBCADStart Int deriving (Eq, Ord, Generic)
@@ -246,7 +246,7 @@ instance Show JannoDateBCADStart where          show (JannoDateBCADStart x) = sh
 instance Csv.ToField JannoDateBCADStart where   toField (JannoDateBCADStart x) = Csv.toField x
 instance Csv.FromField JannoDateBCADStart where parseField = parseTypeCSV "Date_BC_AD_Start"
 instance ToJSON JannoDateBCADStart where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDateBCADStart where      parseJSON = parseTypeJSON "Date_BC_AD_Start"
+instance FromJSON JannoDateBCADStart
 
 -- | A datatype for the Date_BC_AD_Median .janno column
 newtype JannoDateBCADMedian = JannoDateBCADMedian Int deriving (Eq, Ord, Generic)
@@ -266,7 +266,7 @@ instance Show JannoDateBCADMedian where          show (JannoDateBCADMedian x) = 
 instance Csv.ToField JannoDateBCADMedian where   toField (JannoDateBCADMedian x) = Csv.toField x
 instance Csv.FromField JannoDateBCADMedian where parseField = parseTypeCSV "Date_BC_AD_Median"
 instance ToJSON JannoDateBCADMedian where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDateBCADMedian where      parseJSON = parseTypeJSON "Date_BC_AD_Median"
+instance FromJSON JannoDateBCADMedian
 
 -- | A datatype for the Date_BC_AD_Stop .janno column
 newtype JannoDateBCADStop = JannoDateBCADStop Int deriving (Eq, Ord, Generic)
@@ -286,7 +286,7 @@ instance Show JannoDateBCADStop where          show (JannoDateBCADStop x) = show
 instance Csv.ToField JannoDateBCADStop where   toField (JannoDateBCADStop x) = Csv.toField x
 instance Csv.FromField JannoDateBCADStop where parseField = parseTypeCSV "Date_BC_AD_Stop"
 instance ToJSON JannoDateBCADStop where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDateBCADStop where      parseJSON = parseTypeJSON "Date_BC_AD_Stop"
+instance FromJSON JannoDateBCADStop
 
 -- | A datatype for the Date_Note .janno column
 newtype JannoDateNote = JannoDateNote T.Text deriving (Eq, Ord)
@@ -320,7 +320,7 @@ instance Show JannoNrLibraries where          show (JannoNrLibraries x) = show x
 instance Csv.ToField JannoNrLibraries where   toField (JannoNrLibraries x) = Csv.toField x
 instance Csv.FromField JannoNrLibraries where parseField = parseTypeCSV "Nr_Libraries"
 instance ToJSON JannoNrLibraries where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoNrLibraries where      parseJSON = parseTypeJSON "Nr_Libraries"
+instance FromJSON JannoNrLibraries
 
 -- | A datatype for the Library_Names .janno column
 newtype JannoLibraryName = JannoLibraryName T.Text deriving (Eq)
@@ -362,7 +362,7 @@ instance Show JannoCaptureType where
 instance Csv.ToField JannoCaptureType where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoCaptureType where parseField = parseTypeCSV "Capture_Type"
 instance ToJSON JannoCaptureType where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoCaptureType where      parseJSON = parseTypeJSON "Capture_Type"
+instance FromJSON JannoCaptureType
 
 -- | A datatype for the UDG .janno column
 data JannoUDG =
@@ -388,7 +388,7 @@ instance Show JannoUDG where
 instance Csv.ToField JannoUDG where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoUDG where parseField = parseTypeCSV "UDG"
 instance ToJSON JannoUDG where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoUDG where      parseJSON = parseTypeJSON "UDG"
+instance FromJSON JannoUDG
 
 -- | A datatype for the Library_Built .janno column
 data JannoLibraryBuilt =
@@ -414,7 +414,7 @@ instance Show JannoLibraryBuilt where
 instance Csv.ToField JannoLibraryBuilt where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoLibraryBuilt where parseField = parseTypeCSV "Library_Built"
 instance ToJSON JannoLibraryBuilt where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoLibraryBuilt where      parseJSON = parseTypeJSON "Library_Built"
+instance FromJSON JannoLibraryBuilt
 
 -- | A datatype for the Genotype_Ploidy .janno column
 data JannoGenotypePloidy =
@@ -434,7 +434,7 @@ instance Show JannoGenotypePloidy where
 instance Csv.ToField JannoGenotypePloidy where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoGenotypePloidy where parseField = parseTypeCSV "Genotype_Ploidy"
 instance ToJSON JannoGenotypePloidy where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoGenotypePloidy where      parseJSON = parseTypeJSON "Genotype_Ploidy"
+instance FromJSON JannoGenotypePloidy
 
 -- | A datatype for the Genotype_Ploidy .janno column
 newtype JannoDataPreparationPipelineURL = JannoDataPreparationPipelineURL T.Text deriving (Eq, Ord, Generic)
@@ -447,7 +447,7 @@ instance Show JannoDataPreparationPipelineURL where          show (JannoDataPrep
 instance Csv.ToField JannoDataPreparationPipelineURL where   toField (JannoDataPreparationPipelineURL x) = Csv.toField x
 instance Csv.FromField JannoDataPreparationPipelineURL where parseField = parseTypeCSV "Data_Preparation_Pipeline_URL"
 instance ToJSON JannoDataPreparationPipelineURL where        toJSON (JannoDataPreparationPipelineURL x) = String x
-instance FromJSON JannoDataPreparationPipelineURL where      parseJSON = parseTypeJSON "Data_Preparation_Pipeline_URL"
+instance FromJSON JannoDataPreparationPipelineURL
 
 -- | A datatype for the Endogenous .janno column
 newtype JannoEndogenous = JannoEndogenous Double deriving (Eq, Ord, Generic)
@@ -465,7 +465,7 @@ instance Show JannoEndogenous where          show (JannoEndogenous x) = show x
 instance Csv.ToField JannoEndogenous where   toField (JannoEndogenous x) = Csv.toField x
 instance Csv.FromField JannoEndogenous where parseField = parseTypeCSV "Endogenous"
 instance ToJSON JannoEndogenous where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoEndogenous where      parseJSON = parseTypeJSON "Endogenous"
+instance FromJSON JannoEndogenous
 
 -- | A datatype for the Nr_SNPs .janno column
 newtype JannoNrSNPs = JannoNrSNPs Int deriving (Eq, Ord, Generic)
@@ -483,7 +483,7 @@ instance Show JannoNrSNPs where          show (JannoNrSNPs x) = show x
 instance Csv.ToField JannoNrSNPs where   toField (JannoNrSNPs x) = Csv.toField x
 instance Csv.FromField JannoNrSNPs where parseField = parseTypeCSV "Nr_SNPs"
 instance ToJSON JannoNrSNPs where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoNrSNPs where      parseJSON = parseTypeJSON "Nr_SNPs"
+instance FromJSON JannoNrSNPs
 
 -- | A datatype for the Coverage_on_Target_SNPs .janno column
 newtype JannoCoverageOnTargets = JannoCoverageOnTargets Double deriving (Eq, Ord, Generic)
@@ -498,7 +498,7 @@ instance Show JannoCoverageOnTargets where          show (JannoCoverageOnTargets
 instance Csv.ToField JannoCoverageOnTargets where   toField (JannoCoverageOnTargets x) = Csv.toField x
 instance Csv.FromField JannoCoverageOnTargets where parseField = parseTypeCSV "Coverage_on_Target_SNPs"
 instance ToJSON JannoCoverageOnTargets where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoCoverageOnTargets where      parseJSON = parseTypeJSON "Coverage_on_Target_SNPs"
+instance FromJSON JannoCoverageOnTargets
 
 -- | A datatype for the Damage .janno column
 newtype JannoDamage = JannoDamage Double deriving (Eq, Ord, Generic)
@@ -516,7 +516,7 @@ instance Show JannoDamage where          show (JannoDamage x) = show x
 instance Csv.ToField JannoDamage where   toField (JannoDamage x) = Csv.toField x
 instance Csv.FromField JannoDamage where parseField = parseTypeCSV "Damage"
 instance ToJSON JannoDamage where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoDamage where      parseJSON = parseTypeJSON "Damage"
+instance FromJSON JannoDamage
 
 -- | A datatype for the Contamination .janno column
 newtype JannoContamination = JannoContamination T.Text deriving (Eq)
@@ -568,7 +568,7 @@ instance Show JannoGeneticSourceAccessionID where
 instance Csv.ToField JannoGeneticSourceAccessionID where   toField x  = Csv.toField $ show x
 instance Csv.FromField JannoGeneticSourceAccessionID where parseField = parseTypeCSV "Genetic_Source_Accession_IDs"
 instance ToJSON JannoGeneticSourceAccessionID where        toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoGeneticSourceAccessionID where      parseJSON = parseTypeJSON "Genetic_Source_Accession_IDs"
+instance FromJSON JannoGeneticSourceAccessionID
 
 -- | A datatype for the Primary_Contact .janno column
 newtype JannoPrimaryContact = JannoPrimaryContact T.Text deriving (Eq)
