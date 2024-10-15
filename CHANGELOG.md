@@ -1,3 +1,6 @@
+- V 1.5.5.0:
+    - Linked to sequence-formats 1.8.1.0, which adds reading support for gzipped Plink (*.bed and *.bim) and Eigenstrat (.geno and .snp) files.
+    - gzipped files are recognised automatically by their file ending.
 - V 1.5.4.0:
     - Better error messages for parsec operations on command line input.
     - Better error messages for YML file parsing.
