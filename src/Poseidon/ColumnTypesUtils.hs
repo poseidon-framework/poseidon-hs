@@ -3,9 +3,6 @@
 
 module Poseidon.ColumnTypesUtils where
 
-import           Data.Aeson          (FromJSON, ToJSON, Value (..), parseJSON,
-                                      toJSON, withText)
-import           Data.Aeson.Types    (Parser)
 import           Data.ByteString     as S
 import qualified Data.Csv            as Csv
 import qualified Data.Text           as T
@@ -25,9 +22,6 @@ parseTypeCSV colname x = case T.decodeUtf8' x of
         Left e  -> fail $ show e ++ " in column " ++ colname
         Right t -> make t
 
-parseTypeJSON :: forall a. (Makeable a, Typeable a) => String -> Value -> Parser a
-parseTypeJSON colname = withText colname make
-
 -- template haskell function to generate repetitive instances
 makeInstances :: Name -> String -> DecsQ
 makeInstances name col = do
@@ -38,6 +32,4 @@ makeInstances name col = do
       instance Show $(conT name) where          show $(conP conName [varP x]) = T.unpack $(varE x)
       instance Csv.ToField $(conT name) where   toField $(conP conName [varP x]) = Csv.toField $(varE x)
       instance Csv.FromField $(conT name) where parseField = parseTypeCSV col
-      instance ToJSON $(conT name) where        toJSON $(conP conName [varP x]) = String $(varE x)
-      instance FromJSON $(conT name) where      parseJSON = parseTypeJSON col
       |]

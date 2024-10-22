@@ -19,10 +19,6 @@ import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
 import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.Aeson                 (FromJSON, Options (..), ToJSON,
-                                             defaultOptions, genericToEncoding,
-                                             toEncoding, withText)
-import           Data.Aeson.Encoding        (text)
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
@@ -32,12 +28,10 @@ import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
 import           Data.Maybe                 (isJust, mapMaybe)
-import qualified Data.Text                  as T
 import           Data.Time                  (Day)
 import           Data.Time.Format           (defaultTimeLocale, formatTime,
                                              parseTimeM)
 import qualified Data.Vector                as V
-import           Data.Yaml.Aeson            (FromJSON (..))
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
 import qualified Text.Parsec                as P
@@ -82,11 +76,6 @@ instance Csv.ToField AccessionID where
     toField x = Csv.toField $ show x
 instance Csv.FromField AccessionID where
     parseField x = Csv.parseField x >>= makeAccessionID
-instance ToJSON AccessionID where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON AccessionID-- where
-    --parseJSON = withText "AccessionID" (makeAccessionID . T.unpack)
 
 -- | A datatype to represent URIs in a ssf file
 newtype JURI =
@@ -105,11 +94,6 @@ instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
 instance Csv.FromField JURI where
     parseField x = Csv.parseField x >>= makeJURI
-instance ToJSON JURI where
-    toEncoding = genericToEncoding defaultOptions
-    --toEncoding x = text $ T.pack $ show x
-instance FromJSON JURI-- where
-    --parseJSON = withText "JURI" (makeJURI . T.unpack)
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -134,10 +118,6 @@ instance Csv.ToField SSFUDG where
     toField x = Csv.toField $ show x
 instance Csv.FromField SSFUDG where
     parseField x = Csv.parseField x >>= makeSSFUDG
-instance ToJSON SSFUDG where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON SSFUDG where
-    parseJSON = withText "SSFUDG" (makeSSFUDG . T.unpack)
 
 -- |A datatype to represent Library_Built in a janno file
 data SSFLibraryBuilt =
@@ -159,10 +139,6 @@ instance Csv.ToField SSFLibraryBuilt where
     toField x = Csv.toField $ show x
 instance Csv.FromField SSFLibraryBuilt where
     parseField x = Csv.parseField x >>= makeSSFLibraryBuilt
-instance ToJSON SSFLibraryBuilt where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON SSFLibraryBuilt where
-    parseJSON = withText "SSFLibraryBuilt" (makeSSFLibraryBuilt . T.unpack)
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
@@ -187,10 +163,6 @@ instance Monoid SeqSourceRows where
     mempty = SeqSourceRows []
     mconcat = foldl' mappend mempty
 
-instance ToJSON SeqSourceRows where
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON SeqSourceRows
-
 -- A data type to represent a run accession ID
 newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}
     deriving (Eq, Generic)
@@ -209,10 +181,6 @@ instance Csv.ToField AccessionIDRun where
     toField x = Csv.toField $ show x
 instance Csv.FromField AccessionIDRun where
     parseField x = Csv.parseField x >>= makeAccessionIDRun
-instance ToJSON AccessionIDRun where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON AccessionIDRun where
-    parseJSON = withText "AccessionIDRun" (makeAccessionIDRun . T.unpack)
 
 -- A data type to represent a sample accession ID
 newtype AccessionIDSample = AccessionIDSample {getSampleAccession :: AccessionID}
@@ -233,10 +201,6 @@ instance Csv.ToField AccessionIDSample where
     toField x = Csv.toField $ show x
 instance Csv.FromField AccessionIDSample where
     parseField x = Csv.parseField x >>= makeAccessionIDSample
-instance ToJSON AccessionIDSample where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON AccessionIDSample where
-    parseJSON = withText "AccessionIDSample" (makeAccessionIDSample . T.unpack)
 
 -- A data type to represent a study accession ID
 newtype AccessionIDStudy = AccessionIDStudy {getStudyAccession :: AccessionID}
@@ -257,10 +221,6 @@ instance Csv.ToField AccessionIDStudy where
     toField x = Csv.toField $ show x
 instance Csv.FromField AccessionIDStudy where
     parseField x = Csv.parseField x >>= makeAccessionIDStudy
-instance ToJSON AccessionIDStudy where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON AccessionIDStudy where
-    parseJSON = withText "AccessionIDStudy" (makeAccessionIDStudy . T.unpack)
 
 -- | A datatype for calendar dates
 newtype SimpleDate = SimpleDate Day
@@ -278,10 +238,6 @@ instance Csv.ToField SimpleDate where
     toField (SimpleDate x) = Csv.toField $ show x
 instance Csv.FromField SimpleDate where
     parseField x = Csv.parseField x >>= makeSimpleDate
-instance ToJSON SimpleDate where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON SimpleDate where
-    parseJSON = withText "SimpleDate" (makeSimpleDate . T.unpack)
 
 -- | A datatype to represent MD5 hashes
 newtype MD5 = MD5 String
@@ -302,10 +258,6 @@ instance Csv.ToField MD5 where
     toField x = Csv.toField $ show x
 instance Csv.FromField MD5 where
     parseField x = Csv.parseField x >>= makeMD5
-instance ToJSON MD5 where
-    toEncoding x = text $ T.pack $ show x
-instance FromJSON MD5 where
-    parseJSON = withText "MD5" (makeMD5 . T.unpack)
 
 -- | A data type to represent a row in the seqSourceFile
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
@@ -373,11 +325,6 @@ seqSourceHeaderString = map Bchs.unpack seqSourceHeader
 -- This hashmap represents an empty seqSourceFile with all normal, specified columns
 seqSourceRefHashMap :: HM.HashMap Bchs.ByteString ()
 seqSourceRefHashMap = HM.fromList $ map (\x -> (x, ())) seqSourceHeader
-
-instance ToJSON SeqSourceRow where
-    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
-
-instance FromJSON SeqSourceRow
 
 instance Csv.FromNamedRecord SeqSourceRow where
     parseNamedRecord m = SeqSourceRow
