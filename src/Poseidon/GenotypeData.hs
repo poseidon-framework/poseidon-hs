@@ -199,7 +199,7 @@ loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
             map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> fn)
         GenotypeVCF fn fnChk -> do
             liftIO $ checkFile (d </> fn) fnChk
-            (VCFheader _ sampleNames , _) <- liftIO . runSafeT . readVCFfromFile $ fn
+            (VCFheader _ sampleNames , _) <- liftIO . runSafeT . readVCFfromFile $ (d </> fn)
             --neither Sex nor population name is part of a VCF file, so we fill dummy values:
             return [EigenstratIndEntry s Unknown "unknown" | s <- sampleNames]
 
@@ -214,7 +214,7 @@ loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _) =
         GenotypeEigenstrat genoF _ snpF _ indF _ -> snd <$> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypePlink      genoF _ snpF _ indF _ -> snd <$> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypeVCF fn _ -> do
-            vcfProd <- snd <$> readVCFfromFile fn
+            vcfProd <- snd <$> readVCFfromFile (baseDir </> fn)
             return $ vcfProd >-> vcf2eigenstratPipe
 
 vcf2eigenstratPipe :: (MonadIO m) => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r

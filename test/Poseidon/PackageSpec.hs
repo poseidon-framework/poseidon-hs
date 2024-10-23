@@ -47,6 +47,7 @@ spec = do
     testZipWithPadding
     testGetJointGenotypeData
     testGetJointGzippedGenotypeData
+    testGetVCFdata
     testThrowOnRead
 
 testPacReadOpts :: PackageReadOptions
@@ -339,6 +340,21 @@ testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeDat
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
                                   V.fromList $ [Het, Het, HomAlt, Het, HomRef, HomRef, Het, HomRef, HomRef, HomAlt] ++ replicate 10 Missing)
         jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.026288 "2_1018704" 'A' 'G',
+                                  V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
+
+testGetVCFdata :: Spec
+testGetVCFdata = describe "Poseidon.Package.getJointGenotypeData" $ do
+    let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
+                    "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON_vcf.yml"]
+    it "should correctly load VCF and Eigenstrat genotype data" $ do
+        pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        jointDat <- runSafeT $ do
+            jointProd <- getJointGenotypeData noLog False pacs Nothing
+            P.toListM jointProd
+        length jointDat `shouldBe` 10
+        jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
+                                  V.fromList $ [Het, Het, HomAlt, Het, HomRef, HomRef, Het, HomRef, HomRef, HomAlt] ++ replicate 10 Missing)
+        jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.0 "2_1018704" 'A' 'G',
                                   V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
 
 testThrowOnRead :: Spec

@@ -1,0 +1,20 @@
+poseidonVersion: 2.7.1
+title: Schiffels_2016
+description: Genetic data published in Schiffels et al. 2016
+contributor:
+- name: Stephan Schiffels
+  email: schiffels@institute.org
+- name: Josiah Carberry
+  email: carberry@brown.edu
+  orcid: 0000-0002-1825-0097
+packageVersion: 1.0.1
+lastModified: 2021-11-09
+genotypeData:
+  format: VCF
+  genoFile: geno.vcf
+  snpSet: Other
+jannoFile: Schiffels_2016.janno
+sequencingSourceFile: ena_table.ssf
+bibFile: sources.bib
+readmeFile: README.md
+changelogFile: CHANGELOG.md

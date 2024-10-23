@@ -376,12 +376,16 @@ readPoseidonPackage opts ymlPath = do
 
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
+    let (checkSex, checkGroups) = case genotypeFileSpec geno of
+            GenotypeVCF _ _ -> (False, False)
+            _               -> (True, True)
+
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
         Just p -> do
             loadedJanno <- readJannoFile p
-            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries
+            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries checkSex checkGroups
             return loadedJanno
 
     -- read seqSource
@@ -508,8 +512,10 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
                 then checkFile (d </> genoF) Nothing
                 else checkFile (d </> genoF) genoFc
 
-checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> IO ()
-checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
+-- the final two flags are important for reading VCFs, which lack group and sex information. So
+-- we want to skip these checks in this case, see client code in readPoseidonPackage
+checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> Bool -> IO ()
+checkJannoIndConsistency pacName (JannoRows rows) indEntries checkGroups checkSex = do
     let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
@@ -522,10 +528,10 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries = do
     when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch genoIDs jannoIDs
-    when sexMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when (sexMis && checkSex) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
-    when groupMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when (groupMis && checkGroups) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
         \that this could be due to a wrong Plink file population-name encoding \
         \(see the --inPlinkPopName option). " ++
