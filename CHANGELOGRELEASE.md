@@ -1,3 +1,34 @@
+### V 1.5.6.0
+
+This release further improves `.janno` parsing error messages and adds reading support for gzipped PLINK (`.bed` and `.bim`) and EIGENSTRAT (`.geno` and `.snp`) files.
+
+#### Better .janno error messages
+
+Working with Poseidon packages generally involves reading and validation of `.janno` files. `trident` parses them carefully and reports structural issues that compromise their machine-readability. So far the error reports generally only included the line and type of an offending entry. This made it sometimes hard to determine which column exactly is broken. For this release we introduced individual data types for all specified `.janno` columns, which allows more precises error messages.
+
+To demonstrate this we modified an existing `.janno` file in the Poseidon community archive (`2012_MeyerScience`) and broke some of its columns. We added non-UTF8 encoded characters in the `Relation_Note` column of line 2, a trailing `;` in the `Coverage_on_Target_SNPs` column of line 3, and a leading `x` to the `Latitude` column of line 7.
+
+Here is how these issues were previously reported and how they are shown now:
+
+```diff
+[Error]   Can't read sample in 2012_MeyerScience/2012_MeyerScience2.csv in line 2:
+-parse error (Failed reading: conversion error: Cannot decode byte '\x80': Data.Text.Encoding: Invalid UTF-8 stream)
++parse error (Failed reading: conversion error: Cannot decode byte '\x80': Data.Text.Encoding: Invalid UTF-8 stream in column Relation_Note)
+[Error]   Can't read sample in 2012_MeyerScience/2012_MeyerScience2.csv in line 3:
+-parse error in one column (expected data type: Double, broken value: "32.12;", problematic characters: ";")
++parse error (Failed reading: conversion error: Coverage_on_Target_SNPs can not be converted to Double, because of a trailing ";")
+[Error]   Can't read sample in 2012_MeyerScience/2012_MeyerScience2.csv in line 7:
+-parse error (Failed reading: conversion error: expected Double, got "x18.93726" (Failed reading: takeWhile1))
++parse error (Failed reading: conversion error: Latitude can not be converted to Double because input does not start with a digit)
+```
+
+The error messages now include the relevant column name and are more concrete and easy to understand.
+
+#### Reading support for gzipped genotype data
+
+...
+
+
 ### V 1.5.4.0
 
 This bigger release adds a number of useful features to `trident`, some of them long requested. The highlights are ordered output for `forge`, a way to preserve key information if `forge` is applied to a singular source package, a new Web-API option to return the content of all available `.janno` columns, and better error messages for common `trident` issues.
