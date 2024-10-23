@@ -13,8 +13,8 @@ import           Country                   (decodeAlphaTwo)
 import qualified Data.Csv                  as C
 import           Data.HashMap.Strict       (fromList)
 import           System.FilePath           ((</>))
-import           Test.Hspec                (Spec, anyException,
-                                            describe, it, shouldBe, shouldThrow)
+import           Test.Hspec                (Spec, anyException, describe, it,
+                                            shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do
