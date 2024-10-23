@@ -3,7 +3,9 @@
 module Poseidon.CLI.Init where
 
 import           Poseidon.BibFile       (dummyBibEntry, writeBibTeXFile)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..), loadIndividuals)
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..),
+                                         GenotypeFileSpec (..), loadIndividuals,
+                                         reduceGenotypeFilepaths)
 import           Poseidon.Janno         (writeJannoFile)
 import           Poseidon.Package       (PoseidonPackage (..),
                                          newMinimalPackageTemplate,
@@ -12,7 +14,7 @@ import           Poseidon.Package       (PoseidonPackage (..),
 import           Poseidon.Utils         (PoseidonIO, checkFile,
                                          determinePackageOutName, logInfo)
 
-import           Control.Monad          (unless)
+import           Control.Monad          (forM_, unless)
 import           Control.Monad.IO.Class (liftIO)
 import           System.Directory       (copyFile, createDirectoryIfMissing)
 import           System.FilePath        (dropTrailingPathSeparator,
@@ -26,32 +28,30 @@ data InitOptions = InitOptions
     }
 
 runInit :: InitOptions -> PoseidonIO ()
-runInit (InitOptions gd outPathRaw maybeOutName minimal) = do
-    let (GenotypeDataSpec format_ genoFile_ _ snpFile_ _ indFile_ _ snpSet_) = gd
+runInit (InitOptions genotypeDataIn outPathRaw maybeOutName minimal) = do
     -- create new directory
     let outPath = dropTrailingPathSeparator outPathRaw
     logInfo $ "Creating new package directory: " ++ outPath
     liftIO $ createDirectoryIfMissing True outPath
     -- compile genotype data structure
-    let outInd = takeFileName indFile_
-        outSnp = takeFileName snpFile_
-        outGeno = takeFileName genoFile_
-        genotypeData = GenotypeDataSpec format_ outGeno Nothing outSnp Nothing outInd Nothing snpSet_
+    genotypeDataOut <- snd <$> reduceGenotypeFilepaths genotypeDataIn
     -- genotype data
     logInfo "Copying genotype data"
-    liftIO $ checkFile indFile_ Nothing
-    liftIO $ checkFile snpFile_ Nothing
-    liftIO $ checkFile genoFile_ Nothing
-    liftIO $ copyFile indFile_ $ outPath </> outInd
-    liftIO $ copyFile snpFile_ $ outPath </> outSnp
-    liftIO $ copyFile genoFile_ $ outPath </> outGeno
+    let sourceFiles = case genotypeFileSpec genotypeDataIn of
+            GenotypeEigenstrat genoFile _ snpFile _ indFile _ -> [genoFile, snpFile, indFile]
+            GenotypePlink      genoFile _ snpFile _ indFile _ -> [genoFile, snpFile, indFile]
+            GenotypeVCF        vcfFile  _                     -> [vcfFile]
+    forM_ sourceFiles $ \sourceFile -> do
+        liftIO $ checkFile sourceFile Nothing
+        let targetFile = outPath </> takeFileName sourceFile
+        liftIO $ copyFile sourceFile targetFile
     -- create new package
     logInfo "Creating new package entity"
     outName <- liftIO $ determinePackageOutName maybeOutName outPath
-    inds <- loadIndividuals outPath genotypeData
+    inds <- loadIndividuals outPath genotypeDataOut
     pac <- if minimal
-           then return $ newMinimalPackageTemplate outPath outName genotypeData
-           else newPackageTemplate outPath outName genotypeData (Just (Left inds)) mempty [dummyBibEntry]
+           then newMinimalPackageTemplate outPath outName genotypeDataOut
+           else newPackageTemplate outPath outName genotypeDataOut (Just (Left inds)) mempty [dummyBibEntry]
     -- POSEIDON.yml
     logInfo "Creating POSEIDON.yml"
     liftIO $ writePoseidonPackage pac

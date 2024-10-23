@@ -45,7 +45,8 @@ module Poseidon.Janno (
     removeUselessSuffix,
     parseCsvParseError,
     renderCsvParseError,
-    getMaybeJannoList
+    getMaybeJannoList,
+    jannoRows2EigenstratIndEntries
 ) where
 
 import           Poseidon.Utils                       (PoseidonException (..),
@@ -579,7 +580,7 @@ instance FromJSON CsvNamedRecord where
             pure $ CsvNamedRecord $ HM.fromList listOfBSTuples
 
 -- | A  data type to represent a janno file
-newtype JannoRows = JannoRows [JannoRow]
+newtype JannoRows = JannoRows {getJannoRows :: [JannoRow]}
     deriving (Show, Eq, Generic)
 
 instance Semigroup JannoRows where
@@ -1160,3 +1161,9 @@ checkRelationColsConsistent x =
 
 -- deriving with TemplateHaskell necessary for the generics magic in the Survey module
 deriveGeneric ''JannoRow
+
+-- | a convenience function to construct Eigenstrat Ind entries out of jannoRows
+jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
+jannoRows2EigenstratIndEntries (JannoRows jannoRows) = do -- list monad
+    jannoRow <- jannoRows -- looping over jannoRows
+    return $ EigenstratIndEntry (jPoseidonID jannoRow) (sfSex (jGeneticSex jannoRow)) (head . getJannoList $ jGroupName jannoRow)
