@@ -54,13 +54,6 @@ import           Control.Monad                        (unless, when)
 import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
-import           Data.Aeson                           (FromJSON, Options (..),
-                                                       ToJSON, Value (..),
-                                                       defaultOptions,
-                                                       genericToEncoding,
-                                                       parseJSON, toEncoding,
-                                                       toJSON)
-import           Data.Aeson.Types                     (emptyObject)
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
@@ -73,7 +66,6 @@ import           Data.List                            (elemIndex, foldl',
                                                        (\\))
 import           Data.Maybe                           (fromJust)
 import qualified Data.Text                            as T
-import qualified Data.Text.Encoding                   as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
@@ -97,36 +89,12 @@ instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
     toField x = Bchs.intercalate ";" $ map Csv.toField $ getListColumn x
 instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
     parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
-instance (ToJSON a) => ToJSON (ListColumn a) where
-    toEncoding (ListColumn x) = toEncoding x
-instance (FromJSON a) => FromJSON (ListColumn a) where
-    parseJSON x
-        | isAesonString x = ListColumn . singleton <$> parseJSON x
-        | otherwise = ListColumn <$> parseJSON x
-        where
-            isAesonString (String _) = True
-            isAesonString _          = False
-            singleton a = [a]
 
 -- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
 
 getCsvNR :: CsvNamedRecord -> Csv.NamedRecord
 getCsvNR (CsvNamedRecord x) = x
-
--- Aeson does not encode ByteStrings, so that's why we have to go through Text
-instance ToJSON CsvNamedRecord where
-    toJSON (CsvNamedRecord x) =
-        let listOfBSTuples = HM.toList x
-            listOfTextTuples = map (\(a,b) -> (T.decodeUtf8 a, T.decodeUtf8 b)) listOfBSTuples
-        in toJSON listOfTextTuples
-instance FromJSON CsvNamedRecord where
-    parseJSON x
-        | x == emptyObject = pure $ CsvNamedRecord $ HM.fromList []
-        | otherwise = do
-            listOfTextTuples <- parseJSON x -- :: [(T.Text, T.Text)]
-            let listOfBSTuples = map (\(a,b) -> (T.encodeUtf8 a, T.encodeUtf8 b)) listOfTextTuples
-            pure $ CsvNamedRecord $ HM.fromList listOfBSTuples
 
 -- | A  data type to represent a janno file
 newtype JannoRows = JannoRows [JannoRow]
@@ -150,10 +118,6 @@ instance Semigroup JannoRows where
 instance Monoid JannoRows where
     mempty = JannoRows []
     mconcat = foldl' mappend mempty
-
-instance ToJSON JannoRows where
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON JannoRows
 
 -- | A data type to represent a sample/janno file row
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
@@ -247,11 +211,6 @@ jannoHeaderString = map Bchs.unpack jannoHeader
 -- This hashmap represents an empty janno file with all normal, specified columns
 jannoRefHashMap :: HM.HashMap Bchs.ByteString ()
 jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
-
-instance ToJSON JannoRow where
-    toEncoding = genericToEncoding (defaultOptions {omitNothingFields = True})
-
-instance FromJSON JannoRow
 
 instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = JannoRow
