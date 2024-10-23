@@ -4,7 +4,8 @@
 module Poseidon.CLI.Validate where
 
 import           Poseidon.BibFile          (readBibTeXFile)
-import           Poseidon.GenotypeData     (GenotypeDataSpec (..), GenotypeFileSpec (..))
+import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
+                                            GenotypeFileSpec (..))
 import           Poseidon.Janno            (JannoRows (..), readJannoFile)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonException (..),

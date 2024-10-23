@@ -14,7 +14,7 @@ import           Poseidon.Package       (PoseidonPackage (..),
 import           Poseidon.Utils         (PoseidonIO, checkFile,
                                          determinePackageOutName, logInfo)
 
-import           Control.Monad          (unless, forM_)
+import           Control.Monad          (forM_, unless)
 import           Control.Monad.IO.Class (liftIO)
 import           System.Directory       (copyFile, createDirectoryIfMissing)
 import           System.FilePath        (dropTrailingPathSeparator,

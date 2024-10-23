@@ -5,7 +5,7 @@ module Poseidon.PackageSpec (spec) where
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFileSpec(..),
+                                             GenotypeFileSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),

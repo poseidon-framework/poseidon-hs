@@ -6,7 +6,8 @@ module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) whe
 import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                PacNameAndVersion,
                                                renderNameWithVersion)
-import           Poseidon.GenotypeData        (GenotypeDataSpec (..), GenotypeFileSpec (..))
+import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
+                                               GenotypeFileSpec (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
@@ -25,7 +26,7 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                (forM, when, foldM)
+import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (nub, sortOn)

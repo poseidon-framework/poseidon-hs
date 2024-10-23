@@ -43,7 +43,8 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
-                                             printSNPCopyProgress, reduceGenotypeFilepaths)
+                                             printSNPCopyProgress,
+                                             reduceGenotypeFilepaths)
 import           Poseidon.Janno             (JannoLibraryBuilt (..),
                                              JannoList (..), JannoRow (..),
                                              JannoRows (..), JannoSex (..),
@@ -62,9 +63,9 @@ import           Poseidon.ServerClient      (AddJannoColSpec (..),
                                              GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
-                                             envErrorLength,
-                                             envLogAction, logDebug, logError,
-                                             logInfo, logWarning, logWithEnv,
+                                             envErrorLength, envLogAction,
+                                             logDebug, logError, logInfo,
+                                             logWarning, logWithEnv,
                                              renderPoseidonException)
 
 import           Control.DeepSeq            (($!!))

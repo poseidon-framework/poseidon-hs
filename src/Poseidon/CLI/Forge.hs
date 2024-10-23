@@ -14,14 +14,15 @@ import           Poseidon.EntityTypes        (EntityInput,
                                               readEntityInputs,
                                               resolveUniqueEntityIndices)
 import           Poseidon.GenotypeData       (GenoDataSource (..),
-                                              GenotypeFileSpec(..),
                                               GenotypeDataSpec (..),
+                                              GenotypeFileSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoList (..), JannoRow (..),
                                               JannoRows (..), getMaybeJannoList,
-                                              writeJannoFile, jannoRows2EigenstratIndEntries)
+                                              jannoRows2EigenstratIndEntries,
+                                              writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
@@ -40,9 +41,8 @@ import           Poseidon.SequencingSource   (SeqSourceRow (..),
 import           Poseidon.Utils              (PoseidonException (..),
                                               PoseidonIO, checkFile,
                                               determinePackageOutName,
-                                              envErrorLength,
-                                              envLogAction, logInfo, logWarning,
-                                              uniqueRO)
+                                              envErrorLength, envLogAction,
+                                              logInfo, logWarning, uniqueRO)
 
 import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,

@@ -459,19 +459,19 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
             | ext `elem` [".geno",    ".snp",   ".ind"] =
                 Right $ GenotypeEigenstrat (path <.> ".geno")    Nothing
                                            (path <.> ".snp")     Nothing
-                                           (path <.> ".ind")     Nothing 
+                                           (path <.> ".ind")     Nothing
             | ext `elem` [".geno.gz", ".snp.gz"       ] =
                 Right $ GenotypeEigenstrat (path <.> ".geno.gz") Nothing
                                            (path <.> ".snp.gz")  Nothing
-                                           (path <.> ".ind")     Nothing 
+                                           (path <.> ".ind")     Nothing
             | ext `elem` [".bed",     ".bim",   ".fam"] =
                 Right $ GenotypePlink      (path <.> ".bed")     Nothing
                                            (path <.> ".bim")     Nothing
-                                           (path <.> ".fam")     Nothing 
+                                           (path <.> ".fam")     Nothing
             | ext `elem` [".bed.gz",  ".bim.gz"       ] =
                 Right $ GenotypePlink      (path <.> ".bed.gz")  Nothing
                                            (path <.> ".bim.gz")  Nothing
-                                           (path <.> ".fam")     Nothing 
+                                           (path <.> ".fam")     Nothing
             | otherwise = Left $ "unknown file extension: " ++ ext
 
 parseInGenoSep :: OP.Parser GenotypeFileSpec
