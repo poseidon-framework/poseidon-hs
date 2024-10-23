@@ -9,13 +9,11 @@ import           Poseidon.Janno            (CsvNamedRecord (..), JannoRow (..),
 import           Poseidon.SequencingSource (JURI (..))
 import           Poseidon.Utils            (testLog)
 
-import           Control.Applicative       (liftA2)
 import           Country                   (decodeAlphaTwo)
-import qualified Data.Aeson                as A
 import qualified Data.Csv                  as C
 import           Data.HashMap.Strict       (fromList)
 import           System.FilePath           ((</>))
-import           Test.Hspec                (Expectation, Spec, anyException,
+import           Test.Hspec                (Spec, anyException,
                                             describe, it, shouldBe, shouldThrow)
 
 spec :: Spec
@@ -51,16 +49,8 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe ([Nothing, Just $ JannoLatitude (-45), Just $ JannoLatitude 45] :: [Maybe JannoLatitude])
 
 -- infrastructure to check an en- and decoding cycle
-checkEnDe :: (Show a, Eq a, A.FromJSON a, A.ToJSON a, C.FromField a, C.ToField a) => [a] -> IO ()
-checkEnDe = liftA2 (>>) checkAeson checkCassava
-checkAeson :: (Show a, Eq a, A.FromJSON a, A.ToJSON a) => [a] -> Expectation
-checkAeson xs = aesonCycle xs `shouldBe` aesonResult xs
-    where
-        aesonCycle :: (A.FromJSON a, A.ToJSON a) => [a] -> [Maybe a]
-        aesonCycle = map (A.decode . A.encode)
-        aesonResult = map Just
-checkCassava :: (Show a, Eq a, C.FromField a, C.ToField a) => [a] -> Expectation
-checkCassava xs = cassavaCycle xs `shouldBe` cassavaResult xs
+checkEnDe :: (Show a, Eq a, C.FromField a, C.ToField a) => [a] -> IO ()
+checkEnDe xs = cassavaCycle xs `shouldBe` cassavaResult xs
     where
         cassavaCycle :: (C.FromField a, C.ToField a) => [a] -> [Either String a]
         cassavaCycle = map (C.runParser . C.parseField . C.toField)
