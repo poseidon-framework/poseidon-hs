@@ -17,7 +17,6 @@ import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          IndividualInfoCollection,
                                          PacNameAndVersion (..))
-import           Poseidon.Janno         (JannoRows)
 import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)
 
@@ -29,7 +28,6 @@ import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
                                          toJSON, withObject, (.:), (.=))
 import           Data.Time              (Day)
 import           Data.Version           (Version, showVersion)
-import           GHC.Generics           (Generic)
 import           Network.HTTP.Conduit   (simpleHttp)
 
 --  Client Server Communication types and functions
@@ -77,7 +75,6 @@ instance FromJSON ServerApiReturnType where
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
                    | ApiReturnExtIndividualInfo [ExtendedIndividualInfo]
-                   | ApiReturnJanno [(String, JannoRows)] deriving (Generic)
 
 instance ToJSON ApiReturnData where
     toJSON (ApiReturnPackageInfo pacInfo) =
@@ -95,11 +92,6 @@ instance ToJSON ApiReturnData where
             "constructor" .= String "ApiReturnExtIndividualInfo",
             "extIndInfo" .= indInfo
         ]
-    toJSON (ApiReturnJanno janno) =
-        object [
-            "constructor" .= String "ApiReturnJanno",
-            "janno" .= janno
-        ]
 
 instance FromJSON ApiReturnData where
     parseJSON = withObject "ApiReturnData" $ \v -> do
@@ -108,7 +100,6 @@ instance FromJSON ApiReturnData where
             "ApiReturnPackageInfo"       -> ApiReturnPackageInfo       <$> v .: "packageInfo"
             "ApiReturnGroupInfo"         -> ApiReturnGroupInfo         <$> v .: "groupInfo"
             "ApiReturnExtIndividualInfo" -> ApiReturnExtIndividualInfo <$> v .: "extIndInfo"
-            "ApiReturnJanno"             -> ApiReturnJanno             <$> v .: "janno"
             _                            -> error $ "cannot parse ApiReturnType with constructor " ++ constr
 
 
