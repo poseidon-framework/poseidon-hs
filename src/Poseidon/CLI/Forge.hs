@@ -19,8 +19,9 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
-import           Poseidon.Janno              (JannoList (..), JannoRow (..),
-                                              JannoRows (..), getMaybeJannoList,
+import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
+                                              ListColumn (..),
+                                              getMaybeListColumn,
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
@@ -56,6 +57,7 @@ import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (SafeT, runSafeT)
+import           Poseidon.ColumnTypes        (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)
@@ -293,7 +295,7 @@ runForge (
             logInfo "Creating .janno file"
             snpList <- liftIO $ VU.freeze newNrSNPs
             let jannoRowsWithNewSNPNumbers =
-                    zipWith (\x y -> x {jNrSNPs = Just y}) rows (VU.toList snpList)
+                    zipWith (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)}) rows (VU.toList snpList)
             liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoRows jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
@@ -315,12 +317,12 @@ filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
     where
         hasAPoseidonID :: [String] -> SeqSourceRow -> Bool
         hasAPoseidonID jIDs seqSourceRow =
-            let sIDs = getMaybeJannoList $ sPoseidonID seqSourceRow
+            let sIDs = getMaybeListColumn $ sPoseidonID seqSourceRow
             in any (`elem` jIDs) sIDs
 
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 filterBibEntries (JannoRows rows) references_ =
-    let relevantPublications = nub . concatMap getJannoList . mapMaybe jPublication $ rows
+    let relevantPublications = map show . nub . concatMap getListColumn . mapMaybe jPublication $ rows
     in filter (\x-> bibEntryId x `elem` relevantPublications) references_
 
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
