@@ -477,18 +477,27 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
 parseInGenoSep :: OP.Parser GenotypeFileSpec
 parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
   where
-    parseEigenstrat = GenotypeEigenstrat <$> parseFileWithEndings "genoFile" [".geno", ".geno.gz"] <*> pure Nothing
-                                         <*> parseFileWithEndings "snpFile"  [".snp",  ".snp.gz"]  <*> pure Nothing
-                                         <*> parseFileWithEndings "indFile"  [".ind"]              <*> pure Nothing
-    parsePlink      = GenotypeEigenstrat <$> parseFileWithEndings "bedFile"  [".bed", ".bed.gz"]   <*> pure Nothing
-                                         <*> parseFileWithEndings "bimFile"  [".bim",  ".bim.gz"]  <*> pure Nothing
-                                         <*> parseFileWithEndings "bamFile"  [".fam"]              <*> pure Nothing
-    parseVCF        = GenotypeVCF        <$> parseFileWithEndings "vcfFile"  [".vcf", ".vcf.gz"]   <*> pure Nothing
+    parseEigenstrat = GenotypeEigenstrat <$>
+        parseFileWithEndings "Eigenstrat genotype matrix, optionally gzipped" "genoFile" [".geno", ".geno.gz"] <*>
+        pure Nothing <*>
+        parseFileWithEndings "Eigenstrat snp positions file" "snpFile, optionally gzipped" [".snp",  ".snp.gz"]  <*>
+        pure Nothing <*>
+        parseFileWithEndings "Eigenstrat individual file" "indFile" [".ind"] <*>
+        pure Nothing
+    parsePlink = GenotypeEigenstrat <$>
+        parseFileWithEndings "Plink genotype matrix, optionally gzipped" "bedFile" [".bed", ".bed.gz"] <*>
+        pure Nothing <*>
+        parseFileWithEndings "Plink snp positions file" "bimFile, optionally gzipped" [".bim",  ".bim.gz"] <*>
+        pure Nothing <*>
+        parseFileWithEndings "Plink individual file" "famFile" [".fam"] <*> pure Nothing
+    parseVCF = GenotypeVCF <$>
+        parseFileWithEndings "VCF (Variant Call Format) file, optionall gzipped" "vcfFile" [".vcf", ".vcf.gz"] <*>
+        pure Nothing
 
-parseFileWithEndings :: String -> [String] -> OP.Parser FilePath
-parseFileWithEndings long endings = OP.option (OP.maybeReader fileEndingReader) (
+parseFileWithEndings :: String -> String -> [String] -> OP.Parser FilePath
+parseFileWithEndings help long endings = OP.option (OP.maybeReader fileEndingReader) (
     OP.long long <>
-    OP.help ("Accepted file endings are " ++ intercalate ", " endings) <>
+    OP.help (help ++ ". Accepted file endings are " ++ intercalate ", " endings) <>
     OP.metavar "FILE")
   where
     fileEndingReader :: String -> Maybe FilePath

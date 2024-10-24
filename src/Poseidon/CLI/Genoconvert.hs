@@ -7,7 +7,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              loadGenotypeData,
-                                             printSNPCopyProgress)
+                                             printSNPCopyProgress,
+                                             getFormat)
 import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
