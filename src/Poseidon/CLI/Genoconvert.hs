@@ -131,7 +131,3 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
         fe <- liftIO $ doesFileExist fn
         when fe $ logWarning $ "File " ++ fn ++ " exists"
         return fe
-    getFormat :: GenotypeFileSpec -> String
-    getFormat (GenotypeEigenstrat _ _ _ _ _ _) = "EIGENSTRAT"
-    getFormat (GenotypePlink      _ _ _ _ _ _) = "PLINK"
-    getFormat (GenotypeVCF        _ _        ) = "VCF"
