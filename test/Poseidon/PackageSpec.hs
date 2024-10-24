@@ -329,7 +329,7 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
 
 testGetJointGzippedGenotypeData :: Spec
 testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
-    let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_gzipped.yml",
+    let pacFiles = ["test/testDat/testPackages/other_test_packages/Lamnidis_2018_gzipped/POSEIDON.yml",
                     "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load gzipped and non-gzipped genotype data without intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
@@ -345,7 +345,7 @@ testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeDat
 testGetVCFdata :: Spec
 testGetVCFdata = describe "Poseidon.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
-                    "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON_vcf.yml"]
+                    "test/testDat/testPackages/other_test_packages/Schiffels_2016_vcf/POSEIDON.yml"]
     it "should correctly load VCF and Eigenstrat genotype data" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
@@ -361,7 +361,7 @@ testThrowOnRead :: Spec
 testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
     it "should throw if bibentries aren't found" $ do
         let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
-        let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
+        let ymlPath = "test/testDat/testPackages/other_test_packages/Lamnidis_2018_nobib/POSEIDON.yml"
         testLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should throw if Plink Setting is not correct" $ do
         let opts = defaultPackageReadOptions
@@ -369,7 +369,7 @@ testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
         usePoseidonLogger NoLog Testing PlinkPopNameAsPhenotype CharInf (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should not throw if Plink Setting is correct" $ do
         let opts = defaultPackageReadOptions
-        let ymlPath = "test/testDat/testPackages/ancient/Wang_2020/POSEIDON_otherPlinkEncoding.yml"
+        let ymlPath = "test/testDat/testPackages/other_test_packages/Wang_2020_otherPlinkEncoding/POSEIDON.yml"
         _ <- usePoseidonLogger NoLog Testing PlinkPopNameAsPhenotype CharInf (readPoseidonPackage opts ymlPath)
         return ()
   where
