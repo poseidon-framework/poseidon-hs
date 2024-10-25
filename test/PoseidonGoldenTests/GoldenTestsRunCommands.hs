@@ -81,6 +81,8 @@ dynamicCheckSumFile :: FilePath
 dynamicCheckSumFile = "/tmp/poseidon_trident_dynamicCheckSumFile.txt"
 testPacsDir         :: FilePath
 testPacsDir         = "test/testDat/testPackages/ancient"
+testPacsDirOther    :: FilePath
+testPacsDirOther    = "test/testDat/testPackages/other_test_packages"
 testEntityFiles     :: FilePath
 testEntityFiles     = "test/testDat/testEntityFiles"
 
@@ -225,6 +227,7 @@ testPipelineInit testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.txt"
         , "init" </> "Schiffels" </> "Schiffels.bib"
         ]
+    
     let initOpts2 = InitOptions {
           _initGenoData  = GenotypeDataSpec {
             genotypeFileSpec = GenotypePlink {
@@ -247,6 +250,28 @@ testPipelineInit testDir checkFilePath = do
           "init" </> "Wang" </> "POSEIDON.yml"
         , "init" </> "Wang" </> "Wang_2020.bed"
         ]
+    
+    let initOpts3 = InitOptions {
+          _initGenoData  = GenotypeDataSpec {
+              genotypeFileSpec = GenotypeVCF {
+                _vcfGenoFile = testPacsDirOther </> "Schiffels_2016_vcf" </> "geno.vcf"
+              , _vcfGenoFileChkSum = Nothing
+              }
+            , genotypeSnpSet   = Just SNPSetOther
+            }
+        , _initPacPath      = testDir </> "init_vcf" </> "Schiffels_vcf"
+        , _initPacName      = Just "Schiffels"
+        , _initMinimal      = False
+    }
+    let action3 = testLog (runInit initOpts3) >>
+                 patchLastModified testDir ("init_vcf" </> "Schiffels_vcf" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action3 "init" [
+          "init_vcf" </> "Schiffels_vcf" </> "POSEIDON.yml"
+        , "init_vcf" </> "Schiffels_vcf" </> "Schiffels.janno"
+        , "init_vcf" </> "Schiffels_vcf" </> "geno.vcf"
+        , "init_vcf" </> "Schiffels_vcf" </> "Schiffels.bib"
+        ]
+
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
@@ -404,6 +429,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "genoconvert" </> "Schiffels" </> "Schiffels_2016.bim"
         , "genoconvert" </> "Schiffels" </> "Schiffels_2016.fam"
         ]
+
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
@@ -418,6 +444,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.bim"
         , "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.fam"
         ]
+
     -- in-place conversion
     let genoconvertOpts3 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testDir </> "init" </> "Wang"]
@@ -433,6 +460,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init" </> "Wang" </> "Wang.snp"
         , "init" </> "Wang" </> "Wang.ind"
         ]
+
     let genoconvertOpts4 = GenoconvertOptions {
           _genoconvertGenoSources = [
             GenoDirect $
@@ -460,6 +488,30 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.bim"
         , "init" </> "Schiffels" </> "geno.fam"
         ]
+    
+    -- let genoconvertOpts5 = GenoconvertOptions {
+    --       _genoconvertGenoSources = [
+    --         GenoDirect $
+    --           GenotypeDataSpec {
+    --               genotypeFileSpec = GenotypeVCF {
+    --                 _vcfGenoFile = testDir </> "init" </> "Schiffels_vcf" </> "geno.vcf"
+    --               , _vcfGenoFileChkSum = Nothing
+    --             }
+    --             , genotypeSnpSet   = Just SNPSetOther
+    --           }
+    --       ]
+    --     , _genoConvertOutFormat = "PLINK"
+    --     , _genoConvertOutOnlyGeno = True
+    --     , _genoMaybeOutPackagePath = Nothing
+    --     , _genoconvertRemoveOld = False
+    --     , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+    --     , _genoconvertOnlyLatest = False
+    -- }
+    -- runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts5) "genoconvert" [
+    --       "init" </> "Schiffels_vcf" </> "geno.bed"
+    --     , "init" </> "Schiffels_vcf" </> "geno.bim"
+    --     , "init" </> "Schiffels_vcf" </> "geno.fam"
+    --     ]
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do

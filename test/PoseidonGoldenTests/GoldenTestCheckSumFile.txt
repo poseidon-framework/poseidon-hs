@@ -7,6 +7,10 @@ fd632717ecaf337a39cfd7a828a54e99 init init/Schiffels/Schiffels.janno
 9edc4a757f785a8ecb59c54d16c5690a init init/Schiffels/Schiffels.bib
 c35421d9be15aa66fa3a3c46df1f746c init init/Wang/POSEIDON.yml
 ae66d851301f4a761b819f97ec28fa55 init init/Wang/Wang_2020.bed
+956c7bf4c6999cc322ad8407d8bef776 init init_vcf/Schiffels_vcf/POSEIDON.yml
+02386e2064f92c68d4be8fea2e2f923c init init_vcf/Schiffels_vcf/Schiffels.janno
+b60795356b27b5e35002e44fcb24b0a7 init init_vcf/Schiffels_vcf/geno.vcf
+9edc4a757f785a8ecb59c54d16c5690a init init_vcf/Schiffels_vcf/Schiffels.bib
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate1
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate2
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate3
