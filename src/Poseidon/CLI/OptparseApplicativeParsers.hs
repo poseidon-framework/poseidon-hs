@@ -480,14 +480,14 @@ parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
     parseEigenstrat = GenotypeEigenstrat <$>
         parseFileWithEndings "Eigenstrat genotype matrix, optionally gzipped" "genoFile" [".geno", ".geno.gz"] <*>
         pure Nothing <*>
-        parseFileWithEndings "Eigenstrat snp positions file" "snpFile, optionally gzipped" [".snp",  ".snp.gz"]  <*>
+        parseFileWithEndings "Eigenstrat snp positions file, optionally gzipped" "snpFile" [".snp",  ".snp.gz"]  <*>
         pure Nothing <*>
         parseFileWithEndings "Eigenstrat individual file" "indFile" [".ind"] <*>
         pure Nothing
     parsePlink = GenotypeEigenstrat <$>
         parseFileWithEndings "Plink genotype matrix, optionally gzipped" "bedFile" [".bed", ".bed.gz"] <*>
         pure Nothing <*>
-        parseFileWithEndings "Plink snp positions file" "bimFile, optionally gzipped" [".bim",  ".bim.gz"] <*>
+        parseFileWithEndings "Plink snp positions file, optionally gzipped" "bimFile" [".bim",  ".bim.gz"] <*>
         pure Nothing <*>
         parseFileWithEndings "Plink individual file" "famFile" [".fam"] <*> pure Nothing
     parseVCF = GenotypeVCF <$>
