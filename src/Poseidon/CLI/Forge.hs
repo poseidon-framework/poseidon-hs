@@ -20,7 +20,7 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList)
 import           Poseidon.Janno              (JannoRow (..), ListColumn (..),
-                                              JannoRows (..), getMaybeJannoList,
+                                              JannoRows (..), getMaybeListColumn,
                                               jannoRows2EigenstratIndEntries,
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),

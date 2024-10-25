@@ -655,4 +655,5 @@ deriveGeneric ''JannoRow
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
 jannoRows2EigenstratIndEntries (JannoRows jannoRows) = do -- list monad
     jannoRow <- jannoRows -- looping over jannoRows
-    return $ EigenstratIndEntry (jPoseidonID jannoRow) (sfSex (jGeneticSex jannoRow)) (head . getJannoList $ jGroupName jannoRow)
+    let GroupName gText = head . getListColumn . jGroupName $ jannoRow
+    return $ EigenstratIndEntry (jPoseidonID jannoRow) (sfSex (jGeneticSex jannoRow)) (T.unpack gText)
