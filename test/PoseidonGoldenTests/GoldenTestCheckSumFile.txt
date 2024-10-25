@@ -43,6 +43,9 @@ b46831b007c2d53a12b472484b7b00b4 genoconvert init/Wang/Wang.snp
 3c38f40efe215a047c02f4e98e0390da genoconvert init/Schiffels/geno.bed
 8538ffd971ebb12cf5ef6e338da27970 genoconvert init/Schiffels/geno.bim
 a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert init/Schiffels/geno.fam
+70941762e1a2cb0852af797c70fe0a77 genoconvert init_vcf/Schiffels_vcf/geno.bed
+d8d1e5dd679ae256c40340e726a0cdc5 genoconvert init_vcf/Schiffels_vcf/geno.bim
+9d880883cfc0783508fdf1ac980711a3 genoconvert init_vcf/Schiffels_vcf/geno.fam
 72c7a584feefddb31f817c205355dd14 rectify init/Schiffels/POSEIDON.yml
 4aeae97cfc44b55b2a8005425d786148 rectify init/Schiffels/CHANGELOG.md
 da981f8d52f60ec4d96865b224648c92 rectify init/Schiffels/POSEIDON.yml

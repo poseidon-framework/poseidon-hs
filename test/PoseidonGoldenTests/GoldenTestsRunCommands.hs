@@ -489,29 +489,29 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.fam"
         ]
     
-    -- let genoconvertOpts5 = GenoconvertOptions {
-    --       _genoconvertGenoSources = [
-    --         GenoDirect $
-    --           GenotypeDataSpec {
-    --               genotypeFileSpec = GenotypeVCF {
-    --                 _vcfGenoFile = testDir </> "init" </> "Schiffels_vcf" </> "geno.vcf"
-    --               , _vcfGenoFileChkSum = Nothing
-    --             }
-    --             , genotypeSnpSet   = Just SNPSetOther
-    --           }
-    --       ]
-    --     , _genoConvertOutFormat = "PLINK"
-    --     , _genoConvertOutOnlyGeno = True
-    --     , _genoMaybeOutPackagePath = Nothing
-    --     , _genoconvertRemoveOld = False
-    --     , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
-    --     , _genoconvertOnlyLatest = False
-    -- }
-    -- runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts5) "genoconvert" [
-    --       "init" </> "Schiffels_vcf" </> "geno.bed"
-    --     , "init" </> "Schiffels_vcf" </> "geno.bim"
-    --     , "init" </> "Schiffels_vcf" </> "geno.fam"
-    --     ]
+    let genoconvertOpts5 = GenoconvertOptions {
+          _genoconvertGenoSources = [
+            GenoDirect $
+              GenotypeDataSpec {
+                  genotypeFileSpec = GenotypeVCF {
+                    _vcfGenoFile = testDir </> "init_vcf" </> "Schiffels_vcf" </> "geno.vcf"
+                  , _vcfGenoFileChkSum = Nothing
+                }
+                , genotypeSnpSet   = Just SNPSetOther
+              }
+          ]
+        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutOnlyGeno = True
+        , _genoMaybeOutPackagePath = Nothing
+        , _genoconvertRemoveOld = False
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
+    }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts5) "genoconvert" [
+          "init_vcf" </> "Schiffels_vcf" </> "geno.bed"
+        , "init_vcf" </> "Schiffels_vcf" </> "geno.bim"
+        , "init_vcf" </> "Schiffels_vcf" </> "geno.fam"
+        ]
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do
