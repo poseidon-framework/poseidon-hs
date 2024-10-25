@@ -5,10 +5,9 @@ module Poseidon.CLI.Genoconvert where
 import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
-                                             GenotypeFileSpec (..),
+                                             GenotypeFileSpec (..), getFormat,
                                              loadGenotypeData,
-                                             printSNPCopyProgress,
-                                             getFormat)
+                                             printSNPCopyProgress)
 import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),

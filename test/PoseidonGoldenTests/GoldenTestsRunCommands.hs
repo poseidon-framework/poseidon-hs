@@ -227,7 +227,7 @@ testPipelineInit testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.txt"
         , "init" </> "Schiffels" </> "Schiffels.bib"
         ]
-    
+
     let initOpts2 = InitOptions {
           _initGenoData  = GenotypeDataSpec {
             genotypeFileSpec = GenotypePlink {
@@ -250,7 +250,7 @@ testPipelineInit testDir checkFilePath = do
           "init" </> "Wang" </> "POSEIDON.yml"
         , "init" </> "Wang" </> "Wang_2020.bed"
         ]
-    
+
     let initOpts3 = InitOptions {
           _initGenoData  = GenotypeDataSpec {
               genotypeFileSpec = GenotypeVCF {
@@ -488,7 +488,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init" </> "Schiffels" </> "geno.bim"
         , "init" </> "Schiffels" </> "geno.fam"
         ]
-    
+
     let genoconvertOpts5 = GenoconvertOptions {
           _genoconvertGenoSources = [
             GenoDirect $
