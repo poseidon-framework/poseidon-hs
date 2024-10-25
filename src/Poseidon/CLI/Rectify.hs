@@ -8,7 +8,8 @@ import           Poseidon.Contributor   (ContributorSpec (..))
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          PacNameAndVersion (..),
                                          renderNameWithVersion)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..))
+import           Poseidon.GenotypeData  (GenotypeDataSpec (..),
+                                         GenotypeFileSpec (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -20,7 +21,7 @@ import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
 
 import           Control.DeepSeq        ((<$!!>))
-import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List              (nub)
 import           Data.Maybe             (fromJust)
 import           Data.Time              (UTCTime (..), getCurrentTime)
@@ -98,29 +99,24 @@ updateChecksums checksumSetting pac = do
         update :: Bool -> Bool -> Bool -> Bool -> PoseidonIO PoseidonPackage
         update g j s b = do
             let d = posPacBaseDir pac
-            newGenotypeDataSection <-
+            let gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
+            newGenotypeFileSpec <-
                 if g
                 then do
                     logDebug "Updating genotype data checksums"
-                    let gd = posPacGenotypeData pac
-                    genoExists <- exists (d </> genoFile gd)
-                    genoChkSum <- if genoExists
-                        then Just <$!!> getChk (d </> genoFile gd)
-                        else return $ genoFileChkSum gd
-                    snpExists <-  exists (d </> snpFile gd)
-                    snpChkSum <-  if snpExists
-                        then Just <$!!> getChk (d </> snpFile gd)
-                        else return $ snpFileChkSum gd
-                    indExists <-  exists (d </> indFile gd)
-                    indChkSum <-  if indExists
-                        then Just <$!!> getChk (d </> indFile gd)
-                        else return $ indFileChkSum gd
-                    return $ gd {
-                        genoFileChkSum = genoChkSum,
-                        snpFileChkSum  = snpChkSum,
-                        indFileChkSum  = indChkSum
-                    }
-                else return $ posPacGenotypeData pac
+                    case gFileSpec of
+                        GenotypeEigenstrat gf gfc sf sfc if_ ifc -> do
+                            [genoChkSum, snpChkSum, indChkSum] <-
+                                sequence [testAndGetChecksum f c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+                            return $ GenotypeEigenstrat gf genoChkSum sf snpChkSum if_ indChkSum
+                        GenotypePlink gf gfc sf sfc if_ ifc -> do
+                            [genoChkSum, snpChkSum, indChkSum] <-
+                                sequence [testAndGetChecksum f c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+                            return $ GenotypePlink gf genoChkSum sf snpChkSum if_ indChkSum
+                        GenotypeVCF gf gfc -> do
+                            genoChkSum <- testAndGetChecksum gf gfc
+                            return $ GenotypeVCF gf genoChkSum
+                else return gFileSpec
             newJannoChkSum <-
                 if j
                 then do
@@ -145,14 +141,21 @@ updateChecksums checksumSetting pac = do
                         Nothing -> return $ posPacBibFileChkSum pac
                         Just fn -> Just <$!!> getChk (d </> fn)
                 else return $ posPacBibFileChkSum pac
+            let gd = posPacGenotypeData pac
             return $ pac {
-                    posPacGenotypeData = newGenotypeDataSection,
+                    posPacGenotypeData = gd {genotypeFileSpec = newGenotypeFileSpec},
                     posPacJannoFileChkSum = newJannoChkSum,
                     posPacSeqSourceFileChkSum = newSeqSourceChkSum,
                     posPacBibFileChkSum = newBibChkSum
                 }
+        getChk :: (MonadIO m) => FilePath -> m String
         getChk = liftIO . getChecksum
-        exists = liftIO . doesFileExist
+        testAndGetChecksum :: (MonadIO m) => FilePath -> Maybe String -> m (Maybe String)
+        testAndGetChecksum file defaultChkSum = do
+            e <- liftIO . doesFileExist $ file
+            if e then Just <$!!> getChk file else return defaultChkSum
+
+
 
 completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
 completeAndWritePackage Nothing pac = do

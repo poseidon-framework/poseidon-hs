@@ -1,7 +1,7 @@
 module Poseidon.InterfaceSpec (spec) where
 
 import           Poseidon.CLI.OptparseApplicativeParsers
-import           Poseidon.GenotypeData                   (GenotypeFormatSpec (..))
+import           Poseidon.GenotypeData                   (GenotypeFileSpec (..))
 
 import qualified Options.Applicative                     as OP
 import           Test.Hspec
@@ -18,7 +18,13 @@ testParseInGenoOne = describe
     "Poseidon.OptparseApplicativeParsers.parseInGenoOne" $ do
         it "should detect zipped files correctly" $ do
             let maybeValEigenstrat = runParser parseInGenoOne ["-p", "path/to/file.geno.gz"]
-            maybeValEigenstrat `shouldBe` Just (GenotypeFormatEigenstrat, "path/to/file.geno.gz", "path/to/file.snp.gz", "path/to/file.ind")
+            maybeValEigenstrat `shouldBe`
+                Just (GenotypeEigenstrat "path/to/file.geno.gz" Nothing
+                                         "path/to/file.snp.gz"  Nothing
+                                         "path/to/file.ind"     Nothing)
             let maybeValPlink = runParser parseInGenoOne ["-p", "path/to/file.bim.gz"]
-            maybeValPlink `shouldBe` Just (GenotypeFormatPlink, "path/to/file.bed.gz", "path/to/file.bim.gz", "path/to/file.fam")
+            maybeValPlink `shouldBe`
+                Just (GenotypePlink "path/to/file.bed.gz" Nothing
+                                    "path/to/file.bim.gz" Nothing
+                                    "path/to/file.fam"    Nothing)
 

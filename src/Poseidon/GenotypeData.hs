@@ -7,7 +7,8 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              logInfo, logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM)
+import           Control.Monad              (forM, unless)
+import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
@@ -20,91 +21,114 @@ import qualified Data.Text                  as T
 import           Data.Time                  (NominalDiffTime, UTCTime,
                                              diffUTCTime, getCurrentTime)
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, cat, for, yield)
-import           Pipes.Safe                 (MonadSafe)
+import           Pipes                      (Pipe, Producer, cat, for, yield,
+                                             (>->))
+import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine,
+                                             GenoEntry (..), GenoLine, Sex (..),
                                              readEigenstrat, readEigenstratInd)
-import           SequenceFormats.Plink      (PlinkPopNameMode,
-                                             plinkFam2EigenstratInd,
+import           SequenceFormats.FreqSum    (FreqSumEntry (..))
+import           SequenceFormats.Plink      (plinkFam2EigenstratInd,
                                              readFamFile, readPlink)
-import           System.FilePath            ((</>))
+import           SequenceFormats.VCF        (VCFentry (..), VCFheader (..),
+                                             readVCFfromFile, vcfToFreqSumEntry)
+import           System.FilePath            (takeDirectory, takeFileName, (</>))
 
 data GenoDataSource = PacBaseDir
-    { getPacBaseDirs :: FilePath
+    { getPacBaseDir :: FilePath
     }
     | GenoDirect
     { getGenoDirect :: GenotypeDataSpec
     }
     deriving Show
 
--- | A datatype to specify genotype files
-data GenotypeDataSpec = GenotypeDataSpec
-    { format         :: GenotypeFormatSpec
-    -- ^ the genotype format
-    , genoFile       :: FilePath
-    -- ^ path to the geno file
-    , genoFileChkSum :: Maybe String
-    -- ^ the optional checksum for the geno file
-    , snpFile        :: FilePath
-    -- ^ path to the snp file
-    , snpFileChkSum  :: Maybe String
-    -- ^ the optional checksum for the Snp file
-    , indFile        :: FilePath
-    -- ^ path to the ind file
-    , indFileChkSum  :: Maybe String
-    -- ^ the optional checksum for the indfile
-    , snpSet         :: Maybe SNPSetSpec
-    -- ^ the SNP set de facto listed in the genotype data
-    }
-    deriving (Show, Eq)
+data GenotypeDataSpec = GenotypeDataSpec {
+    genotypeFileSpec :: GenotypeFileSpec,
+    genotypeSnpSet   :: Maybe SNPSetSpec
+} deriving (Show, Eq)
+
+data GenotypeFileSpec = GenotypeEigenstrat {
+    _esGenoFile       :: FilePath,
+    _esGenoFileChkSum :: Maybe String,
+    _esSnpFile        :: FilePath,
+    _esSnpFileChkSum  :: Maybe String,
+    _esIndFile        :: FilePath,
+    _esIndFileChkSum  :: Maybe String
+} | GenotypePlink {
+    _plGenoFile       :: FilePath,
+    _plGenoFileChkSum :: Maybe String,
+    _plSnpFile        :: FilePath,
+    _plSnpFileChkSum  :: Maybe String,
+    _plIndFile        :: FilePath,
+    _plIndFileChkSum  :: Maybe String
+} | GenotypeVCF {
+    _vcfGenoFile       :: FilePath,
+    _vcfGenoFileChkSum :: Maybe String
+} deriving (Show, Eq)
+
+getFormat :: GenotypeFileSpec -> String
+getFormat (GenotypeEigenstrat _ _ _ _ _ _) = "EIGENSTRAT"
+getFormat (GenotypePlink      _ _ _ _ _ _) = "PLINK"
+getFormat (GenotypeVCF        _ _        ) = "VCF"
 
 -- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
 instance FromJSON GenotypeDataSpec where
-    parseJSON = withObject "GenotypeData" $ \v -> GenotypeDataSpec
-        <$> v .:  "format"
-        <*> v .:  "genoFile"
-        <*> v .:? "genoFileChkSum"
-        <*> v .:  "snpFile"
-        <*> v .:? "snpFileChkSum"
-        <*> v .:  "indFile"
-        <*> v .:? "indFileChkSum"
-        <*> v .:? "snpSet"
+    parseJSON = withObject "GenotypeData" $ \v -> do
+        gformat <- v .: "format"
+        gfileSpec <- case gformat of
+            "EIGENSTRAT" -> GenotypeEigenstrat
+                <$> v .:  "genoFile"
+                <*> v .:? "genoFileChkSum"
+                <*> v .:  "snpFile"
+                <*> v .:? "snpFileChkSum"
+                <*> v .:  "indFile"
+                <*> v .:? "indFileChkSum"
+            "PLINK" -> GenotypePlink
+                <$> v .:  "genoFile"
+                <*> v .:? "genoFileChkSum"
+                <*> v .:  "snpFile"
+                <*> v .:? "snpFileChkSum"
+                <*> v .:  "indFile"
+                <*> v .:? "indFileChkSum"
+            "VCF" -> GenotypeVCF
+                <$> v .:  "genoFile"
+                <*> v .:? "genoFileChkSum"
+            _ -> fail ("unknown format " ++ T.unpack gformat)
+        snpSet <- v .:? "snpSet"
+        return $ GenotypeDataSpec gfileSpec snpSet
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
-    toJSON x = object [
-        "format"        .= format x,
-        "genoFile"      .= genoFile x,
-        "genoFileChkSum".= genoFileChkSum x,
-        "snpFile"       .= snpFile x,
-        "snpFileChkSum" .= snpFileChkSum x,
-        "indFile"       .= indFile x,
-        "indFileChkSum" .= indFileChkSum x,
-        "snpSet"        .= snpSet x
-        ]
-
--- | A data type representing the options fo the genotype format
-data GenotypeFormatSpec = GenotypeFormatEigenstrat
-    | GenotypeFormatPlink
-    deriving (Eq)
-
-instance Show GenotypeFormatSpec where
-    show GenotypeFormatPlink      = "PLINK"
-    show GenotypeFormatEigenstrat = "EIGENSTRAT"
-
--- | To facilitate automatic parsing of GenotypeFormatSpec from JSON files
-instance FromJSON GenotypeFormatSpec where
-    parseJSON = withText "format" $ \v -> case v of
-        "EIGENSTRAT" -> pure GenotypeFormatEigenstrat
-        "PLINK"      -> pure GenotypeFormatPlink
-        _            -> fail ("unknown format " ++ T.unpack v)
-
-instance ToJSON GenotypeFormatSpec where
-    toJSON a = case a of
-        GenotypeFormatPlink      -> "PLINK"
-        GenotypeFormatEigenstrat -> "EIGENSTRAT"
+    toJSON (GenotypeDataSpec gfileSpec snpSet) = case gfileSpec of
+        GenotypeEigenstrat genoF genoFchk snpF snpFchk indF indFchk ->
+            object [
+                "format"        .= ("EIGENSTRAT" :: String),
+                "genoFile"      .= genoF,
+                "genoFileChkSum".= genoFchk,
+                "snpFile"       .= snpF,
+                "snpFileChkSum" .= snpFchk,
+                "indFile"       .= indF,
+                "indFileChkSum" .= indFchk,
+                "snpSet"        .= snpSet
+            ]
+        GenotypePlink genoF genoFchk snpF snpFchk indF indFchk ->
+            object [
+                "format"        .= ("PLINK" :: String),
+                "genoFile"      .= genoF,
+                "genoFileChkSum".= genoFchk,
+                "snpFile"       .= snpF,
+                "snpFileChkSum" .= snpFchk,
+                "indFile"       .= indF,
+                "indFileChkSum" .= indFchk,
+                "snpSet"        .= snpSet
+            ]
+        GenotypeVCF genoF genoFchk ->
+            object [
+                "format"        .= ("VCF" :: String),
+                "genoFile"      .= genoF,
+                "genoFileChkSum".= genoFchk
+            ]
 
 data SNPSetSpec = SNPSet1240K
     | SNPSetHumanOrigins
@@ -143,30 +167,75 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         True  = SNPSetHumanOrigins
 snpSetMerge SNPSet1240K         SNPSetHumanOrigins  False = SNPSet1240K
 snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 
+-- | removes directories of all filenames and returns a tuple of the basename and a modified GenotypeDataSpec with pure filenames
+-- In case basedirectories do not match, this function will throw an exception
+reduceGenotypeFilepaths :: (MonadThrow m) => GenotypeDataSpec -> m (FilePath, GenotypeDataSpec)
+reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _) = do
+    (baseDir, newGfileSpec) <- case gFileSpec of
+        GenotypeEigenstrat genoF _ snpF _ indF _ -> do
+            let baseDirs  = map takeDirectory   [genoF, snpF, indF]
+                fileNames = map takeFileName [genoF, snpF, indF]
+            unless (all (==(head baseDirs)) baseDirs) . throwM $ PoseidonUnequalBaseDirException genoF snpF indF
+            return (head baseDirs, gFileSpec {_esGenoFile = fileNames !! 0, _esSnpFile = fileNames !! 1, _esIndFile = fileNames !! 2})
+        GenotypePlink genoF _ snpF _ indF _ -> do
+            let baseDirs  = map takeDirectory   [genoF, snpF, indF]
+                fileNames = map takeFileName [genoF, snpF, indF]
+            unless (all (==(head baseDirs)) baseDirs) . throwM $ PoseidonUnequalBaseDirException genoF snpF indF
+            return (head baseDirs, gFileSpec {_plGenoFile = fileNames !! 0, _plSnpFile = fileNames !! 1, _plIndFile = fileNames !! 2})
+        GenotypeVCF genoF _ -> do
+            let baseDir  = takeDirectory   genoF
+                fileName = takeFileName genoF
+            return (baseDir, gFileSpec {_vcfGenoFile = fileName})
+    return (baseDir, gd {genotypeFileSpec = newGfileSpec})
+
 -- | A function to return a list of all individuals in the genotype files of a package.
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
                -> PoseidonIO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d gd = do
+loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
     popMode <- envInputPlinkMode
-    liftIO $ checkFile (d </> indFile gd) Nothing
-    case format gd of
-        GenotypeFormatEigenstrat -> readEigenstratInd (d </> indFile gd)
-        GenotypeFormatPlink      -> map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> indFile gd)
+    case gFileSpec of
+        GenotypeEigenstrat _ _ _ _ fn fnChk -> do
+            liftIO $ checkFile (d </> fn) fnChk
+            readEigenstratInd (d </> fn)
+        GenotypePlink _ _ _ _ fn fnChk -> do
+            liftIO $ checkFile (d </> fn) fnChk
+            map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> fn)
+        GenotypeVCF fn fnChk -> do
+            liftIO $ checkFile (d </> fn) fnChk
+            (VCFheader _ sampleNames , _) <- liftIO . runSafeT . readVCFfromFile $ (d </> fn)
+            --neither Sex nor population name is part of a VCF file, so we fill dummy values:
+            return [EigenstratIndEntry s Unknown "unknown" | s <- sampleNames]
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: (MonadSafe m) =>
                    FilePath -- ^ the base path
                 -> GenotypeDataSpec -- ^ the genotype spec
-                -> PlinkPopNameMode -- ^ The Plink PopName Mode
-                -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
-                -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line.
-loadGenotypeData baseDir (GenotypeDataSpec format_ genoF _ snpF _ indF _ _) popMode =
-    case format_ of
-        GenotypeFormatEigenstrat -> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
-        GenotypeFormatPlink      -> do
-            (famEntries, prod) <- readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
-            return (map (plinkFam2EigenstratInd popMode) famEntries, prod)
+                -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
+                -- ^ a Producer over the Snp position values and the genotype line.
+loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _) =
+    case gFileSpec of
+        GenotypeEigenstrat genoF _ snpF _ indF _ -> snd <$> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
+        GenotypePlink      genoF _ snpF _ indF _ -> snd <$> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
+        GenotypeVCF fn _ -> do
+            vcfProd <- snd <$> readVCFfromFile (baseDir </> fn)
+            return $ vcfProd >-> vcf2eigenstratPipe
+
+vcf2eigenstratPipe :: (MonadIO m) => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
+vcf2eigenstratPipe = for cat $ \vcfEntry -> do
+    case vcfToFreqSumEntry vcfEntry of --freqSum is a useful intermediate format. This function already does a bunch of checks of the VCF data.
+        Right (FreqSumEntry chrom pos snpId_ geneticPos ref alt alleleCounts) -> do
+            let eigenstratSnpEntry = EigenstratSnpEntry chrom pos (maybe 0.0 id geneticPos) (maybe "" id snpId_) ref alt
+            genoLine <- V.fromList <$> forM alleleCounts (\alleleCount -> do
+                    case alleleCount of
+                        Nothing -> return Missing
+                        Just 0  -> return HomRef
+                        Just 1  -> return Het
+                        Just 2  -> return HomAlt
+                        _       -> liftIO . throwIO . PoseidonGenotypeException $
+                            "illegal dosage (" ++ show alleleCount ++ ") in VCF file at chrom " ++ show chrom ++ ", position " ++ show pos)
+            yield (eigenstratSnpEntry, genoLine)
+        Left err -> liftIO . throwIO . PoseidonGenotypeException $ err
 
 joinEntries :: (MonadIO m) => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries logA nrInds pacNames maybeTupleList = do

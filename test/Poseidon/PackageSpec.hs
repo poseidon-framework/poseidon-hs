@@ -5,7 +5,7 @@ module Poseidon.PackageSpec (spec) where
 import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
 import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..),
+                                             GenotypeFileSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
@@ -47,6 +47,7 @@ spec = do
     testZipWithPadding
     testGetJointGenotypeData
     testGetJointGzippedGenotypeData
+    testGetVCFdata
     testThrowOnRead
 
 testPacReadOpts :: PackageReadOptions
@@ -96,14 +97,15 @@ truePackageRelPaths = PoseidonYamlStruct {
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
     _posYamlGenotypeData    = GenotypeDataSpec {
-        format   = GenotypeFormatPlink,
-        genoFile = "Schiffels_2016.bed",
-        genoFileChkSum = Nothing,
-        snpFile  = "Schiffels_2016.bim",
-        snpFileChkSum = Nothing,
-        indFile  = "Schiffels_2016.fam",
-        indFileChkSum = Nothing,
-        snpSet = Just SNPSet1240K
+        genotypeFileSpec   = GenotypePlink {
+            _plGenoFile = "Schiffels_2016.bed",
+            _plGenoFileChkSum = Nothing,
+            _plSnpFile  = "Schiffels_2016.bim",
+            _plSnpFileChkSum = Nothing,
+            _plIndFile  = "Schiffels_2016.fam",
+            _plIndFileChkSum = Nothing
+        },
+        genotypeSnpSet = Just SNPSet1240K
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -153,7 +155,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             p_ = fromRight dummyPackageYamlStruct $ decodeTest yamlPackage2
             gd = _posYamlGenotypeData p_
             gdTrue = _posYamlGenotypeData truePackageRelPaths
-        gd `shouldBe` gdTrue {snpSet = Nothing}
+        gd `shouldBe` gdTrue {genotypeSnpSet = Nothing}
     it "should parse missing contributor field as empty list" $ do
         let yamlPackage2 = replace
                 "contributor:\n  - name: Stephan Schiffels\n    email: schiffels@institute.org\n    orcid: 0000-0002-1017-9150" "" yamlPackage
@@ -176,14 +178,15 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             _posYamlPackageVersion  = Nothing,
             _posYamlLastModified    = Nothing,
             _posYamlGenotypeData    = GenotypeDataSpec {
-                format   = GenotypeFormatPlink,
-                genoFile = "test.bed",
-                genoFileChkSum = Nothing,
-                snpFile  = "test.bim",
-                snpFileChkSum = Nothing,
-                indFile  = "test.fam",
-                indFileChkSum = Nothing,
-                snpSet = Nothing
+                genotypeFileSpec   = GenotypePlink {
+                    _plGenoFile = "test.bed",
+                    _plGenoFileChkSum = Nothing,
+                    _plSnpFile  = "test.bim",
+                    _plSnpFileChkSum = Nothing,
+                    _plIndFile  = "test.fam",
+                    _plIndFileChkSum = Nothing
+                },
+                genotypeSnpSet = Nothing
             },
             _posYamlJannoFile       = Nothing,
             _posYamlJannoFileChkSum = Nothing,
@@ -277,7 +280,7 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     it "should correctly load genotype data without intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs Nothing
+            jointProd <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
@@ -287,7 +290,7 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     it "should correctly load genotype data with intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog True PlinkPopNameAsFamily pacs Nothing
+            jointProd <- getJointGenotypeData noLog True pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
@@ -297,19 +300,19 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs (Just "test/testDat/snpFile.snp")
+            jointProd <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 6
     it "should correctly load the right nr of SNPs with snpFile and intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog True PlinkPopNameAsFamily pacs (Just "test/testDat/snpFile.snp")
+            jointProd <- getJointGenotypeData noLog True pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 4
     it "should fail with unordered SNP input file" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         let makeJointDat = runSafeT $ do
-                (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs (Just "test/testDat/snpFile_unordered.snp")
+                jointProd <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile_unordered.snp")
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
     it "should skip incongruent alleles" $ do
@@ -317,7 +320,7 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                          "test/testDat/testPackages/test_incongruent_snps/POSEIDON.yml"]
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs Nothing
+            jointProd <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 7
   where
@@ -326,12 +329,12 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
 
 testGetJointGzippedGenotypeData :: Spec
 testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
-    let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_gzipped.yml",
+    let pacFiles = ["test/testDat/testPackages/other_test_packages/Lamnidis_2018_gzipped/POSEIDON.yml",
                     "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load gzipped and non-gzipped genotype data without intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            (_, jointProd) <- getJointGenotypeData noLog False PlinkPopNameAsFamily pacs Nothing
+            jointProd <- getJointGenotypeData noLog False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
@@ -339,11 +342,26 @@ testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeDat
         jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.026288 "2_1018704" 'A' 'G',
                                   V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
 
+testGetVCFdata :: Spec
+testGetVCFdata = describe "Poseidon.Package.getJointGenotypeData" $ do
+    let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
+                    "test/testDat/testPackages/other_test_packages/Schiffels_2016_vcf/POSEIDON.yml"]
+    it "should correctly load VCF and Eigenstrat genotype data" $ do
+        pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
+        jointDat <- runSafeT $ do
+            jointProd <- getJointGenotypeData noLog False pacs Nothing
+            P.toListM jointProd
+        length jointDat `shouldBe` 10
+        jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
+                                  V.fromList $ [Het, Het, HomAlt, Het, HomRef, HomRef, Het, HomRef, HomRef, HomAlt] ++ replicate 10 Missing)
+        jointDat !! 5 `shouldBe` (EigenstratSnpEntry (Chrom "2") 1018704 0.0 "2_1018704" 'A' 'G',
+                                  V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
+
 testThrowOnRead :: Spec
 testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
     it "should throw if bibentries aren't found" $ do
         let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
-        let ymlPath = "test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON_nobib.yml"
+        let ymlPath = "test/testDat/testPackages/other_test_packages/Lamnidis_2018_nobib/POSEIDON.yml"
         testLog (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should throw if Plink Setting is not correct" $ do
         let opts = defaultPackageReadOptions
@@ -351,7 +369,7 @@ testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
         usePoseidonLogger NoLog Testing PlinkPopNameAsPhenotype CharInf (readPoseidonPackage opts ymlPath) `shouldThrow` isPoseidonCrossFileConsistencyException
     it "should not throw if Plink Setting is correct" $ do
         let opts = defaultPackageReadOptions
-        let ymlPath = "test/testDat/testPackages/ancient/Wang_2020/POSEIDON_otherPlinkEncoding.yml"
+        let ymlPath = "test/testDat/testPackages/other_test_packages/Wang_2020_otherPlinkEncoding/POSEIDON.yml"
         _ <- usePoseidonLogger NoLog Testing PlinkPopNameAsPhenotype CharInf (readPoseidonPackage opts ymlPath)
         return ()
   where

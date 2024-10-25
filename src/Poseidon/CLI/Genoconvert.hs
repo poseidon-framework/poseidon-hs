@@ -5,18 +5,18 @@ module Poseidon.CLI.Genoconvert where
 import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
-                                             GenotypeFormatSpec (..),
+                                             GenotypeFileSpec (..), getFormat,
                                              loadGenotypeData,
                                              printSNPCopyProgress)
+import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
 import           Poseidon.Package           (PackageReadOptions (..),
-                                             PoseidonException (PoseidonGenotypeExceptionForward),
                                              PoseidonPackage (..),
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
-import           Poseidon.Utils             (PoseidonIO, envErrorLength,
-                                             envInputPlinkMode, envLogAction,
+import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
+                                             envErrorLength, envLogAction,
                                              logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
@@ -36,7 +36,7 @@ import           System.FilePath            (dropTrailingPathSeparator, (<.>),
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
     { _genoconvertGenoSources     :: [GenoDataSource]
-    , _genoConvertOutFormat       :: GenotypeFormatSpec
+    , _genoConvertOutFormat       :: String
     , _genoConvertOutOnlyGeno     :: Bool
     , _genoMaybeOutPackagePath    :: Maybe FilePath
     , _genoconvertRemoveOld       :: Bool
@@ -53,18 +53,17 @@ runGenoconvert (GenoconvertOptions genoSources outFormat onlyGeno outPath remove
         , _readOptOnlyLatest       = onlyLatest
     }
     -- load packages
-    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDirs x | x@PacBaseDir {} <- genoSources]
-    inPlinkPopMode <- envInputPlinkMode
+    properPackages <- readPoseidonPackageCollection pacReadOpts $ [getPacBaseDir x | x@PacBaseDir {} <- genoSources]
     pseudoPackages <- mapM makePseudoPackageFromGenotypeData [getGenoDirect x | x@GenoDirect {} <- genoSources]
 
     logInfo $ "Unpackaged genotype data files loaded: " ++ show (length pseudoPackages)
     -- convert
-    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode) properPackages
-    mapM_ (convertGenoTo outFormat True outPath removeOld inPlinkPopMode outPlinkPopMode) pseudoPackages
+    mapM_ (convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode) properPackages
+    mapM_ (convertGenoTo outFormat True outPath removeOld outPlinkPopMode) pseudoPackages
 
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode ->
+convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool ->
     PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
-convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMode pac = do
+convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
     -- start message
     logInfo $
         "Converting genotype data in "
@@ -74,11 +73,12 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
         ++ ":"
     -- compile file names paths
     let outName = getPacName . posPacNameAndVersion $ pac
-    let (outInd, outSnp, outGeno) = case outFormat of
-            GenotypeFormatEigenstrat -> (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
-            GenotypeFormatPlink -> (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
+    (outInd, outSnp, outGeno) <- case outFormat of
+            "EIGENSTRAT" -> return (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
+            "PLINK"      -> return (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
+            _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
     -- check if genotype data needs conversion
-    if format (posPacGenotypeData pac) == outFormat
+    if getFormat (genotypeFileSpec (posPacGenotypeData pac)) == outFormat
     then logWarning "The genotype data is already in the requested format"
     else do
         -- create new genotype data files
@@ -98,27 +98,33 @@ convertGenoTo outFormat onlyGeno outPath removeOld inPlinkPopMode outPlinkPopMod
             logA <- envLogAction
             currentTime <- liftIO getCurrentTime
             errLength <- envErrorLength
+            let eigenstratIndEntries = jannoRows2EigenstratIndEntries . posPacJanno $ pac
             liftIO $ catch (
                 runSafeT $ do
-                    (eigenstratIndEntries, eigenstratProd) <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) inPlinkPopMode
+                    eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
                     let outConsumer = case outFormat of
-                            GenotypeFormatEigenstrat -> writeEigenstrat outG outS outI eigenstratIndEntries
-                            GenotypeFormatPlink -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
+                            "EIGENSTRAT" -> writeEigenstrat outG outS outI eigenstratIndEntries
+                            "PLINK"      -> writePlink outG outS outI (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
+                            _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
                     runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
                 ) (throwIO . PoseidonGenotypeExceptionForward errLength)
             logInfo "Done"
             -- overwrite genotype data field in POSEIDON.yml file
             unless (onlyGeno || isJust outPath) $ do
-                let genotypeData = GenotypeDataSpec outFormat outGeno Nothing outSnp Nothing outInd Nothing (snpSet . posPacGenotypeData $ pac)
+                gFileSpec <- case outFormat of
+                        "EIGENSTRAT" -> return $ GenotypeEigenstrat outGeno Nothing outSnp Nothing outInd Nothing
+                        "PLINK"      -> return $ GenotypePlink      outGeno Nothing outSnp Nothing outInd Nothing
+                        _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
+                let genotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
                     newPac = pac { posPacGenotypeData = genotypeData }
                 logInfo "Adjusting POSEIDON.yml..."
                 liftIO $ writePoseidonPackage newPac
             -- delete now replaced input genotype data
-            when removeOld $ liftIO $ mapM_ removeFile [
-                  posPacBaseDir pac </> genoFile (posPacGenotypeData pac)
-                , posPacBaseDir pac </> snpFile  (posPacGenotypeData pac)
-                , posPacBaseDir pac </> indFile  (posPacGenotypeData pac)
-                ]
+            let filesToDelete = case genotypeFileSpec . posPacGenotypeData $ pac of
+                    GenotypeEigenstrat g _ s _ i _ -> [g, s, i]
+                    GenotypePlink      g _ s _ i _ -> [g, s, i]
+                    GenotypeVCF        g _         -> [g]
+            when removeOld . liftIO . mapM_ (removeFile . (posPacBaseDir pac </>)) $ filesToDelete
   where
     checkFile :: FilePath -> PoseidonIO Bool
     checkFile fn = do

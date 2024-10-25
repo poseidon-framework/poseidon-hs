@@ -4,7 +4,8 @@
 module Poseidon.CLI.Validate where
 
 import           Poseidon.BibFile          (readBibTeXFile)
-import           Poseidon.GenotypeData     (GenotypeDataSpec (..))
+import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
+                                            GenotypeFileSpec (..))
 import           Poseidon.Janno            (JannoRows (..), readJannoFile)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonException (..),
@@ -90,7 +91,11 @@ runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode _) = do
     logInfo $ "Read .yml file of package " ++ _posYamlTitle yml
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanGeno geno) noExitCode _) = do
-    logInfo $ "Validating: " ++ genoFile geno
+    let gFile = case genotypeFileSpec geno of
+            GenotypeEigenstrat gf _ _ _ _ _ -> gf
+            GenotypePlink      gf _ _ _ _ _ -> gf
+            GenotypeVCF        gf _         -> gf
+    logInfo $ "Validating: " ++ gFile
     pac <- makePseudoPackageFromGenotypeData geno
     validateGeno pac True
     conclude True noExitCode
