@@ -1,6 +1,6 @@
-### V 1.5.6.0
+### V 1.5.7.0
 
-This release further improves `.janno` parsing error messages and adds reading support for gzipped PLINK (`.bed` and `.bim`) and EIGENSTRAT (`.geno` and `.snp`) files.
+This release further improves `.janno` parsing error messages and adds reading support for gzipped PLINK (`.bed` and `.bim`) and EIGENSTRAT (`.geno` and `.snp`) files. We also added (experimental) support for reading VCF files.
 
 #### Better .janno error messages
 
@@ -26,7 +26,28 @@ The error messages now include the relevant column name and are more concrete an
 
 #### Reading support for gzipped genotype data
 
-...
+Although not yet part of the Poseidon 2.7.1 standard, Janno packages can now contain gzipped genotype files. Specifically, for EIGENSTRAT-formatted genotype data, the genotype matrix file (`.geno`) and the snp-list file (`.snp`) can now also be zipped. This strictly requires file endings with `.gz`, so `.geno.gz` and `.snp.gz`, respectively. Similarly, for PLINK-formatted genotype data, we now also accept `.bed.gz` and `.bim.gz`. Any such files with the `gz` file ending are assumed to be gzipped, and are decoded on the fly using stream-processing. Gzipped and unzipped files can also be mixed within the same package.
+
+For commands that support the `--genoOne` option (`init`, `forge` and `genoconvert`), note that we make some assumptions, which are summarised in the help text for the option:
+
+```
+ -p,--genoOne FILE        One of the input genotype data files. Expects .bed,
+                           .bed.gz, .bim, .bim.gz or .fam for PLINK, or .geno,
+                           .geno.gz, .snp, .snp.gz or .ind for EIGENSTRAT. The
+                           other files must be in the same directory and must
+                           have the same base name. If a gzipped file is given,
+                           it is assumed that the file pairs (.geno.gz, .snp.gz)
+                           or (.bim.gz, .bed.gz) are both zipped, but not the
+                           .fam or .ind file. If a .ind or .fam file is given,
+                           it is assumed that none of the file triples is
+                           zipped. For VCF please see option --vcfFile
+```
+
+#### VCF support for genotype data
+
+ALthough not yet part of the Poseidon 2.7.1 standard, Janno package can now contain VCF (Variant Call Format) files as genotype data, optionally gzipped. In contrast to EIGENSTRAT and PLINK format, which require triples of files, the VCF format requires just one file with ending `.vcf` or `.vcf.gz`. VCF files contain sample names, but no information about Sex or group-names. This information is usually provided in Janno-files, so there is no loss of information in Poseidon packages. For `trident init`, which constructs a minimal Janno-file from the genotype-file, we set the `Genetic_Sex` column to "U", and the `Group_Name` column to "unknown". 
+
+The VCF file format is very flexible and can encode a large amount of information (see https://samtools.github.io/hts-specs/VCFv4.2.pdf). We do not consider our parsing of VCF files to be complete. The feature is for now considered experimental, since future users may encounter valid VCF files that cause parsing errors in edge cases. Do not hesitate to file an issue in such a case: https://github.com/poseidon-framework/poseidon-hs/issues.
 
 
 ### V 1.5.4.0
