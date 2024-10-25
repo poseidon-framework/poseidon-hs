@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.6.0
+@version 1.5.7.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -852,6 +852,7 @@ CsvNamedRecord :: NamedRecord -> CsvNamedRecord
 -- | A data type to represent a janno file
 newtype JannoRows
 JannoRows :: [JannoRow] -> JannoRows
+[getJannoRows] :: JannoRows -> [JannoRow]
 type JannoStringList = ListColumn String
 filterLookup :: FromField a => NamedRecord -> ByteString -> Parser a
 filterLookupOptional :: FromField a => NamedRecord -> ByteString -> Parser (Maybe a)
@@ -866,6 +867,10 @@ removeUselessSuffix :: String -> String
 parseCsvParseError :: Parser CsvParseError
 renderCsvParseError :: CsvParseError -> String
 getMaybeListColumn :: Maybe (ListColumn a) -> [a]
+
+-- | a convenience function to construct Eigenstrat Ind entries out of
+--   jannoRows
+jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
 instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
 instance GHC.Show.Show a => GHC.Show.Show (Poseidon.Janno.ListColumn a)
@@ -1063,42 +1068,32 @@ instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionID
 module Poseidon.GenotypeData
 data GenoDataSource
 PacBaseDir :: FilePath -> GenoDataSource
-[getPacBaseDirs] :: GenoDataSource -> FilePath
+[getPacBaseDir] :: GenoDataSource -> FilePath
 GenoDirect :: GenotypeDataSpec -> GenoDataSource
 [getGenoDirect] :: GenoDataSource -> GenotypeDataSpec
-
--- | A datatype to specify genotype files
 data GenotypeDataSpec
-GenotypeDataSpec :: GenotypeFormatSpec -> FilePath -> Maybe String -> FilePath -> Maybe String -> FilePath -> Maybe String -> Maybe SNPSetSpec -> GenotypeDataSpec
-
--- | the genotype format
-[format] :: GenotypeDataSpec -> GenotypeFormatSpec
-
--- | path to the geno file
-[genoFile] :: GenotypeDataSpec -> FilePath
-
--- | the optional checksum for the geno file
-[genoFileChkSum] :: GenotypeDataSpec -> Maybe String
-
--- | path to the snp file
-[snpFile] :: GenotypeDataSpec -> FilePath
-
--- | the optional checksum for the Snp file
-[snpFileChkSum] :: GenotypeDataSpec -> Maybe String
-
--- | path to the ind file
-[indFile] :: GenotypeDataSpec -> FilePath
-
--- | the optional checksum for the indfile
-[indFileChkSum] :: GenotypeDataSpec -> Maybe String
-
--- | the SNP set de facto listed in the genotype data
-[snpSet] :: GenotypeDataSpec -> Maybe SNPSetSpec
-
--- | A data type representing the options fo the genotype format
-data GenotypeFormatSpec
-GenotypeFormatEigenstrat :: GenotypeFormatSpec
-GenotypeFormatPlink :: GenotypeFormatSpec
+GenotypeDataSpec :: GenotypeFileSpec -> Maybe SNPSetSpec -> GenotypeDataSpec
+[genotypeFileSpec] :: GenotypeDataSpec -> GenotypeFileSpec
+[genotypeSnpSet] :: GenotypeDataSpec -> Maybe SNPSetSpec
+data GenotypeFileSpec
+GenotypeEigenstrat :: FilePath -> Maybe String -> FilePath -> Maybe String -> FilePath -> Maybe String -> GenotypeFileSpec
+[_esGenoFile] :: GenotypeFileSpec -> FilePath
+[_esGenoFileChkSum] :: GenotypeFileSpec -> Maybe String
+[_esSnpFile] :: GenotypeFileSpec -> FilePath
+[_esSnpFileChkSum] :: GenotypeFileSpec -> Maybe String
+[_esIndFile] :: GenotypeFileSpec -> FilePath
+[_esIndFileChkSum] :: GenotypeFileSpec -> Maybe String
+GenotypePlink :: FilePath -> Maybe String -> FilePath -> Maybe String -> FilePath -> Maybe String -> GenotypeFileSpec
+[_plGenoFile] :: GenotypeFileSpec -> FilePath
+[_plGenoFileChkSum] :: GenotypeFileSpec -> Maybe String
+[_plSnpFile] :: GenotypeFileSpec -> FilePath
+[_plSnpFileChkSum] :: GenotypeFileSpec -> Maybe String
+[_plIndFile] :: GenotypeFileSpec -> FilePath
+[_plIndFileChkSum] :: GenotypeFileSpec -> Maybe String
+GenotypeVCF :: FilePath -> Maybe String -> GenotypeFileSpec
+[_vcfGenoFile] :: GenotypeFileSpec -> FilePath
+[_vcfGenoFileChkSum] :: GenotypeFileSpec -> Maybe String
+getFormat :: GenotypeFileSpec -> String
 data SNPSetSpec
 SNPSet1240K :: SNPSetSpec
 SNPSetHumanOrigins :: SNPSetSpec
@@ -1106,18 +1101,25 @@ SNPSetOther :: SNPSetSpec
 snpSetMergeList :: [SNPSetSpec] -> Bool -> SNPSetSpec
 snpSetMerge :: SNPSetSpec -> SNPSetSpec -> Bool -> SNPSetSpec
 
+-- | removes directories of all filenames and returns a tuple of the
+--   basename and a modified GenotypeDataSpec with pure filenames In case
+--   basedirectories do not match, this function will throw an exception
+reduceGenotypeFilepaths :: MonadThrow m => GenotypeDataSpec -> m (FilePath, GenotypeDataSpec)
+
 -- | A function to return a list of all individuals in the genotype files
 --   of a package.
 loadIndividuals :: FilePath -> GenotypeDataSpec -> PoseidonIO [EigenstratIndEntry]
 
 -- | A function to read the genotype data of a package
-loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> PlinkPopNameMode -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
+vcf2eigenstratPipe :: MonadIO m => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
 joinEntries :: MonadIO m => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 getConsensusSnpEntry :: MonadIO m => LogA -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
 printSNPCopyProgress :: MonadIO m => LogA -> UTCTime -> Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
-instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFormatSpec
+instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFileSpec
+instance GHC.Show.Show Poseidon.GenotypeData.GenotypeFileSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.SNPSetSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeDataSpec
 instance GHC.Show.Show Poseidon.GenotypeData.GenotypeDataSpec
@@ -1127,9 +1129,6 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.GenotypeDataSpec
 instance GHC.Show.Show Poseidon.GenotypeData.SNPSetSpec
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.GenotypeData.SNPSetSpec
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.SNPSetSpec
-instance GHC.Show.Show Poseidon.GenotypeData.GenotypeFormatSpec
-instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.GenotypeData.GenotypeFormatSpec
-instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.GenotypeFormatSpec
 
 module Poseidon.Contributor
 
@@ -1579,13 +1578,13 @@ readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO 
 readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions -> [FilePath] -> PoseidonIO ([PoseidonPackage], Bool)
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: MonadSafe m => LogA -> Bool -> PlinkPopNameMode -> [PoseidonPackage] -> Maybe FilePath -> m ([EigenstratIndEntry], Producer (EigenstratSnpEntry, GenoLine) m ())
+getJointGenotypeData :: MonadSafe m => LogA -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointIndividualInfo :: MonadThrow m => [PoseidonPackage] -> m IndividualInfoCollection
 getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> AddJannoColSpec -> m [ExtendedIndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
-newMinimalPackageTemplate :: FilePath -> String -> GenotypeDataSpec -> PoseidonPackage
+newMinimalPackageTemplate :: MonadThrow m => FilePath -> String -> GenotypeDataSpec -> m PoseidonPackage
 
 -- | A function to create a more complete POSEIDON package This will take
 --   only the filenames of the provided files, so it assumes that the files
@@ -1792,27 +1791,27 @@ module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions
-GenoconvertOptions :: [GenoDataSource] -> GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> GenoconvertOptions
+GenoconvertOptions :: [GenoDataSource] -> String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> GenoconvertOptions
 [_genoconvertGenoSources] :: GenoconvertOptions -> [GenoDataSource]
-[_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeFormatSpec
+[_genoConvertOutFormat] :: GenoconvertOptions -> String
 [_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
 [_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
 [_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
 [_genoconvertOutPlinkPopMode] :: GenoconvertOptions -> PlinkPopNameMode
 [_genoconvertOnlyLatest] :: GenoconvertOptions -> Bool
 runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
-convertGenoTo :: GenotypeFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
+convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
 
 module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeFormatSpec -> ForgeOutMode -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> String -> ForgeOutMode -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
-[_forgeOutFormat] :: ForgeOptions -> GenotypeFormatSpec
+[_forgeOutFormat] :: ForgeOptions -> String
 [_forgeOutMode] :: ForgeOptions -> ForgeOutMode
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
@@ -1981,7 +1980,7 @@ parseForgeEntitiesFromFile :: Parser FilePath
 parseFetchEntitiesFromFile :: Parser FilePath
 parseIntersect :: Parser Bool
 parseRemoteDummy :: Parser ()
-parseOutGenotypeFormat :: Bool -> Parser GenotypeFormatSpec
+parseOutGenotypeFormat :: Bool -> Parser String
 parseGenoDataSources :: Parser [GenoDataSource]
 parseGenoDataSource :: Parser GenoDataSource
 parseRepoLocation :: Parser RepoLocationSpec
@@ -1995,14 +1994,10 @@ parseBasePaths :: Parser [FilePath]
 parseBasePath :: Parser FilePath
 parseInGenoWithoutSNPSet :: Parser GenotypeDataSpec
 parseInGenotypeDataset :: Parser GenotypeDataSpec
-type GenoInput = (GenotypeFormatSpec, FilePath, FilePath, FilePath)
-parseInGenoOne :: Parser GenoInput
-parseInGenoSep :: Parser GenoInput
-parseInGenotypeFormat :: Parser GenotypeFormatSpec
-parseInGenoFile :: Parser FilePath
-parseInSnpFile :: Parser FilePath
-parseInIndFile :: Parser FilePath
-parseGenotypeSNPSet :: Parser (Maybe SNPSetSpec)
+parseInGenoOne :: Parser GenotypeFileSpec
+parseInGenoSep :: Parser GenotypeFileSpec
+parseFileWithEndings :: String -> String -> [String] -> Parser FilePath
+parseGenotypeSNPSet :: Parser SNPSetSpec
 parseOutPackagePath :: Parser FilePath
 parseMaybeOutPackagePath :: Parser (Maybe FilePath)
 parseMaybeOutPackageName :: Parser (Maybe String)
