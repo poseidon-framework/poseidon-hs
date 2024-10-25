@@ -57,6 +57,11 @@ dc322649188ce2995cea8a46a7f97f3e rectify init/Schiffels/POSEIDON.yml
 8846333d9a1de6510f25a3816cc70fef forge forge/ForgePac1/ForgePac1.janno
 9089f5d5602937bb7713e1dc8d7a8f2d forge forge/ForgePac1/ForgePac1.ssf
 b4f71aff4fbc11594008c3811781cc43 forge forge/ForgePac1/ForgePac1.bib
+15ea8dd8b98172e3554732ceb2adfe09 forge forge/ForgePac1_vcf/POSEIDON.yml
+9e0c33410f399caf99446f01a7ed7809 forge forge/ForgePac1_vcf/ForgePac1_vcf.geno
+8846333d9a1de6510f25a3816cc70fef forge forge/ForgePac1_vcf/ForgePac1_vcf.janno
+9089f5d5602937bb7713e1dc8d7a8f2d forge forge/ForgePac1_vcf/ForgePac1_vcf.ssf
+b4f71aff4fbc11594008c3811781cc43 forge forge/ForgePac1_vcf/ForgePac1_vcf.bib
 47485dc1f997a30c61cd2f72fe259013 forge forge/ForgePac2/POSEIDON.yml
 6010163f73dc9cf5185933fc7a0333df forge forge/ForgePac2/ForgePac2.bed
 0542b6a5a04a74237f1c1d02783c87e1 forge forge/ForgePac3/POSEIDON.yml

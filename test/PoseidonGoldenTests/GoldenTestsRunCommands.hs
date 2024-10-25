@@ -585,6 +585,30 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac1" </> "ForgePac1.ssf"
         , "forge" </> "ForgePac1" </> "ForgePac1.bib"
         ]
+
+    -- forge test 1 with VCF
+    let forgeOpts1vcf = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDirOther </> "Schiffels_2016_vcf", PacBaseDir $ testPacsDir </> "Wang_2020"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutMode      = NormalOut
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1_vcf"
+        , _forgeOutPacName   = Just "ForgePac1_vcf"
+        , _forgePackageWise    = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
+    }
+    let action1vcf = testLog (runForge forgeOpts1vcf) >> patchLastModified testDir ("forge" </> "ForgePac1_vcf" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action1vcf "forge" [
+          "forge" </> "ForgePac1_vcf" </> "POSEIDON.yml"
+        , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.geno"
+        , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.janno"
+        , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.ssf"
+        , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.bib"
+        ]
+
     -- forge test 2
     let forgeOpts2 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Wang_2020"]
@@ -604,6 +628,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac2" </> "POSEIDON.yml"
         , "forge" </> "ForgePac2" </> "ForgePac2.bed"
         ]
+
     -- forge test 3
     let forgeOpts3 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Wang_2020"]
@@ -627,6 +652,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac3" </> "ForgePac3.janno"
         , "forge" </> "ForgePac3" </> "ForgePac3.ssf"
         ]
+
     -- forge test 4
     let forgeOpts4 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Wang_2020"]
@@ -650,6 +676,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac4" </> "ForgePac4.janno"
         , "forge" </> "ForgePac4" </> "ForgePac4.ssf"
         ]
+
     -- forge test 5
     let forgeOpts5 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Wang_2020"]
@@ -671,6 +698,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac5" </> "ForgePac5.janno"
         , "forge" </> "ForgePac5" </> "ForgePac5.ssf"
         ]
+
     -- forge test 6 (direct genotype data input interface)
     let forgeOpts6 = ForgeOptions {
           _forgeGenoSources = [
@@ -716,6 +744,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac6" </> "ForgePac6.snp"
         , "forge" </> "ForgePac6" </> "ForgePac6.ind"
         ]
+
     -- forge test 7 (mixed data input interface)
     let forgeOpts7 = ForgeOptions {
           _forgeGenoSources  = [
@@ -751,6 +780,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac7" </> "ForgePac7.ind"
         , "forge" </> "ForgePac7" </> "ForgePac7.janno"
         ]
+
     -- forge test 8 (combining additional janno columns from separate source janno files)
     let forgeOpts8 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Lamnidis_2018_newVersion"]
@@ -770,6 +800,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac8" </> "ForgePac8.janno"
         , "forge" </> "ForgePac8" </> "ForgePac8.ssf"
         ]
+
     -- forge test 9 (duplicates are handled correctly if an individual is properly specified)
     let forgeOpts9 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
@@ -790,6 +821,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac9" </> "ForgePac9.janno"
         , "forge" </> "ForgePac9" </> "ForgePac9.ssf"
         ]
+
     -- forge test 10 (duplicates can also be resolved with negative selection)
     let forgeOpts10 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
@@ -811,6 +843,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac10" </> "ForgePac10.ssf"
         , "forge" </> "ForgePac10" </> "ForgePac10.bib"
         ]
+
     -- forge test 11 (--packagewise works as expected)
     let forgeOpts11 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Schmid_2028"]
@@ -831,6 +864,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac11" </> "ForgePac11.janno"
         , "forge" </> "ForgePac11" </> "ForgePac11.ssf"
         ]
+
     -- simple package version selection
     let forgeOpts12 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
@@ -849,6 +883,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action12 "forge" [
           "forge" </> "ForgePac12" </> "ForgePac12.ind"
         ]
+
     -- merge an explicitly versioned package with another package
     let forgeOpts13 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
@@ -867,6 +902,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action13 "forge" [
           "forge" </> "ForgePac13" </> "ForgePac13.janno"
         ]
+
     -- use the SpecificInd interface to merge individuals from the same package across different versions
     let forgeOpts14 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
@@ -886,6 +922,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action14 "forge" [
           "forge" </> "ForgePac14" </> "ForgePac14.janno"
         ]
+
     -- -- negative selection with different package versions - use versioned to cancel versioned
     let forgeOpts15 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
@@ -905,6 +942,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action15 "forge" [
           "forge" </> "ForgePac15" </> "ForgePac15.janno"
         ]
+
     -- negative selection with different package versions - use unversioned to cancel versioned
     let forgeOpts16 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
@@ -924,6 +962,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action16 "forge" [
           "forge" </> "ForgePac16" </> "ForgePac16.janno"
         ]
+
     -- negative selection with different package versions - using the SpecificInd interface
     let forgeOpts17 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir]
@@ -943,6 +982,7 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action17 "forge" [
           "forge" </> "ForgePac17" </> "ForgePac17.janno"
         ]
+
     let forgeOpts18 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3,<XXX004>,<XXX006>,<XXX003>")]
@@ -962,6 +1002,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac18" </> "ForgePac18.fam",
           "forge" </> "ForgePac18" </> "ForgePac18.bed"
         ]
+
     let forgeOpts19 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX004>")]

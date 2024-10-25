@@ -1,0 +1,14 @@
+poseidonVersion: 2.7.1
+title: ForgePac1_vcf
+description: Empty package template. Please add a description
+packageVersion: 0.1.0
+lastModified: 1970-01-01
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: ForgePac1_vcf.geno
+  snpFile: ForgePac1_vcf.snp
+  indFile: ForgePac1_vcf.ind
+  snpSet: Other
+jannoFile: ForgePac1_vcf.janno
+sequencingSourceFile: ForgePac1_vcf.ssf
+bibFile: ForgePac1_vcf.bib
