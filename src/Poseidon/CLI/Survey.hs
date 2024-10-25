@@ -11,7 +11,7 @@ import           Poseidon.BibFile          (BibTeX)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
 import           Poseidon.Janno            (CsvNamedRecord, JannoRows (..),
-                                            JannoSex, JannoStringList)
+                                            GeneticSex, ListColumn (..))
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
@@ -127,9 +127,9 @@ instance PresenceCountable (Maybe a) where
     countPresence (Just _) = 1
 instance PresenceCountable String where
     countPresence _ = 1
-instance PresenceCountable JannoSex where
+instance PresenceCountable GeneticSex where
     countPresence _ = 1
-instance PresenceCountable JannoStringList where
+instance PresenceCountable (ListColumn a) where
     countPresence _ = 1
 instance PresenceCountable CsvNamedRecord where
     countPresence _ = 0

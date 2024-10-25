@@ -1,3 +1,10 @@
+- V 1.5.6.0:
+    - Introduced individual `Janno...` types for every .janno column (except Poseidon_ID) in a new module `ColumnTypes`. This was done to improve .janno validation error messages.
+    - Defined a typeclass `Makeable` with a function `make` to write smart constructors for the column types.
+    - Added a bit TemplateHaskell to automatically create instance definitions for `Makeable` and cassava `ToField`/`FromField` typeclasses in a new module `ColumnTypeUtils`.
+    - Switched to `Text` for the string types and as an intermediate format, so that we can reliably check for non UTF-8 characters with `T.decodeUtf8'`.
+    - The general .csv field parsing sequence is now as follows: Transform `Bytestring` to UTF-8 encoded `Text` and fail upon exceptions. Then transform `Text` to the desired type with a `make` constructor function. This function does additional validation and fails if the checks can not be satisfied.
+    - Removed the many unused aeson `ToJSON`/`FromJSON` instances for .janno column types.
 - V 1.5.5.0:
     - Linked to sequence-formats 1.8.1.0, which adds reading support for gzipped Plink (*.bed and *.bim) and Eigenstrat (.geno and .snp) files.
     - gzipped files are recognised automatically by their file ending.
