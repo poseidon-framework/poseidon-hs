@@ -130,6 +130,13 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                     Nothing -> getExtendedIndividualInfo pacs (AddJannoColList [])
             let retData = ApiReturnExtIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
+        
+        get "/bibliography" . conditionOnClientVersion $ do
+            logRequest logA
+            pacs <- getItemFromArchiveStore archiveStore
+            let bibEntries = concatMap posPacBib pacs
+            let retData = ApiReturnBibInfo bibEntries
+            return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
         when (isJust maybeZipPath) . get "/zip_file/:package_name" $ do

@@ -13,6 +13,7 @@ module Poseidon.ServerClient (
 ) where
 
 import           Paths_poseidon_hs      (version)
+import           Poseidon.BibFile       (BibEntry (..))
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          IndividualInfoCollection,
@@ -75,6 +76,7 @@ instance FromJSON ServerApiReturnType where
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
                    | ApiReturnExtIndividualInfo [ExtendedIndividualInfo]
+                   | ApiReturnBibInfo [BibEntry]
 
 instance ToJSON ApiReturnData where
     toJSON (ApiReturnPackageInfo pacInfo) =
@@ -92,6 +94,11 @@ instance ToJSON ApiReturnData where
             "constructor" .= String "ApiReturnExtIndividualInfo",
             "extIndInfo" .= indInfo
         ]
+    toJSON (ApiReturnBibInfo bibInfo) =
+        object [
+            "constructor" .= String "ApiReturnBibInfo",
+            "bibEntries"  .= bibInfo
+        ]
 
 instance FromJSON ApiReturnData where
     parseJSON = withObject "ApiReturnData" $ \v -> do
@@ -100,6 +107,7 @@ instance FromJSON ApiReturnData where
             "ApiReturnPackageInfo"       -> ApiReturnPackageInfo       <$> v .: "packageInfo"
             "ApiReturnGroupInfo"         -> ApiReturnGroupInfo         <$> v .: "groupInfo"
             "ApiReturnExtIndividualInfo" -> ApiReturnExtIndividualInfo <$> v .: "extIndInfo"
+            "ApiReturnBibInfo"           -> ApiReturnBibInfo           <$> v .: "bibEntries"
             _                            -> error $ "cannot parse ApiReturnType with constructor " ++ constr
 
 
@@ -221,3 +229,15 @@ extIndInfo2IndInfoCollection extIndInfos =
 -- type needed to specify additional Janno Columns to be queried from packages
 data AddJannoColSpec = AddJannoColList [String] | AddJannoColAll
 
+data BibliographyInfo = BibliographyInfo {
+    bibInfoPackageNames :: [PacNameAndVersion],
+    bibInfoNrSamples    :: Int,
+    bibInfoBibEntry     :: BibEntry
+}
+
+instance ToJSON BibliographyInfo where
+    toJSON e = object [
+        "packageNames" .= bibInfoPackageNames e,
+        "nrSamples"    .= bibInfoNrSamples e,
+        "bibEntry"     .= bibInfoBibEntry e
+    ]
