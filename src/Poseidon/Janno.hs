@@ -58,7 +58,7 @@ import qualified Control.Monad.Writer                 as W
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (chr, isSpace, ord)
+import           Data.Char                            (chr, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
@@ -275,10 +275,8 @@ filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 cleanInput Nothing           = Nothing
-cleanInput (Just rawInputBS) = transNA $ trimWS . removeNoBreakSpace $ rawInputBS
+cleanInput (Just rawInputBS) = transNA $ removeNoBreakSpace $ rawInputBS
     where
-        trimWS :: Bchs.ByteString -> Bchs.ByteString
-        trimWS = Bchs.dropWhile isSpace . Bchs.dropWhileEnd isSpace
         removeNoBreakSpace :: Bchs.ByteString -> Bchs.ByteString
         removeNoBreakSpace x
             | not $ Bchs.isInfixOf "\194\160" x = x
