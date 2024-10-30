@@ -275,29 +275,8 @@ filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 cleanInput Nothing           = Nothing
-cleanInput (Just rawInputBS) = transNA $ removeNoBreakSpace $ rawInputBS
+cleanInput (Just rawInputBS) = transNA rawInputBS
     where
-        removeNoBreakSpace :: Bchs.ByteString -> Bchs.ByteString
-        removeNoBreakSpace x
-            | not $ Bchs.isInfixOf "\194\160" x = x
-            | otherwise = removeNoBreakSpace $ (\(a,b) -> a <> Bchs.drop 2 b) $ Bchs.breakSubstring "\194\160" x
-            -- When a unicode string with the No-Break Space character is loaded, parsed
-            -- and written by cassava (in encodeByNameWith) it is unexpectedly expanded:
-            -- "MAMS-47224\194\160" becomes "MAMS-47224\195\130\194\160
-            -- This was surprisingly hard to fix. We decided to remove No-Break Space chars
-            -- entirely before parsing them.
-            -- Here are some resources to see, which unicode characters are actually in a string:
-            -- https://www.soscisurvey.de/tools/view-chars.php
-            -- https://qaz.wtf/u/show.cgi
-            -- https://onlineunicodetools.com/convert-unicode-to-bytes
-            -- The following code removes the characters \194 and \160 independently.
-            -- This breaks other unicode characters and therefore does not solve the problem
-            --Bchs.filter (\y -> y /= '\194' && y /= '\160') x -- \160 is No-Break Space
-            -- The following code allows to debug the issue more precisely
-            --let !a = unsafePerformIO $ putStrLn $ show x
-            --    b = ...
-            --    !c = unsafePerformIO $ putStrLn $ show b
-            --in b
         transNA :: Bchs.ByteString -> Maybe Bchs.ByteString
         transNA ""    = Nothing
         transNA "n/a" = Nothing
