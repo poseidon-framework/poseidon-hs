@@ -1030,6 +1030,8 @@ testPipelineForge testDir checkFilePath = do
         ]
     
     -- the .janno file in Schmid_2028_utf8 includes various utf-8 encoding related issues
+    -- some old versions of trident failed on "testà" and "MAMS-47224 "
+    -- or turned it into "testÃ" and "MAMS-47224Â "
     let forgeOpts20 = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDirOther </> "Schmid_2028_utf8"]
         , _forgeEntityInput  = []
