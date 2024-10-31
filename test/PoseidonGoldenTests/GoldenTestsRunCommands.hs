@@ -1028,7 +1028,7 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac19" </> "ForgePac19.fam",
           "forge" </> "ForgePac19" </> "ForgePac19.janno"
         ]
-    
+
     -- the .janno file in Schmid_2028_utf8 includes various utf-8 encoding related issues
     -- some old versions of trident failed on "testà" and "MAMS-47224 "
     -- or turned it into "testÃ" and "MAMS-47224Â "
