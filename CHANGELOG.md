@@ -1,6 +1,10 @@
+- V 1.5.7.1:
+    - Fixed a bug in the .janno reading triggered by trailing `à` characters and caused by premature whitespace trimming.
+    - Removed the hacky `removeNoBreakSpace` function from the .janno reading pipeline. It is not necessary any more.
+    - Added a golden test that ensures both changes perform as expected.
 - V 1.5.7.0:
     - Added support for VCF files (Variant Call Format) in Janno-packages.
-    - restructured test package structure, affecting some of the unit- and golden tests.
+    - Restructured test package structure, affecting some of the unit- and golden tests.
 - V 1.5.6.0:
     - Introduced individual `Janno...` types for every .janno column (except Poseidon_ID) in a new module `ColumnTypes`. This was done to improve .janno validation error messages.
     - Defined a typeclass `Makeable` with a function `make` to write smart constructors for the column types.
