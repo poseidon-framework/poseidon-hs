@@ -1028,6 +1028,27 @@ testPipelineForge testDir checkFilePath = do
           "forge" </> "ForgePac19" </> "ForgePac19.fam",
           "forge" </> "ForgePac19" </> "ForgePac19.janno"
         ]
+    
+    -- the .janno file in Schmid_2028_utf8 includes various utf-8 encoding related issues
+    let forgeOpts20 = ForgeOptions {
+          _forgeGenoSources  = [PacBaseDir $ testPacsDirOther </> "Schmid_2028_utf8"]
+        , _forgeEntityInput  = []
+        , _forgeSnpFile      = Nothing
+        , _forgeIntersect    = False
+        , _forgeOutFormat    = "PLINK"
+        , _forgeOutMode      = NormalOut
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac20"
+        , _forgeOutPacName   = Just "ForgePac20"
+        , _forgePackageWise  = False
+        , _forgeOutputPlinkPopMode = PlinkPopNameAsFamily
+        , _forgeOutputOrdered = False
+    }
+    let action20 = testLog (runForge forgeOpts20) >> patchLastModified testDir ("forge" </> "ForgePac20" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action20 "forge" [
+          "forge" </> "ForgePac20" </> "POSEIDON.yml",
+          "forge" </> "ForgePac20" </> "ForgePac20.janno"
+        ]
+
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do

@@ -117,6 +117,8 @@ ad7e56177aad0a720f0bde13d47f2ac1 forge forge/ForgePac19/CHANGELOG.md
 8538ffd971ebb12cf5ef6e338da27970 forge forge/ForgePac19/ForgePac19.bim
 9b22cab26cdae87bd79d24c289e48433 forge forge/ForgePac19/ForgePac19.fam
 b7b649620cd37bd4a6d6f0f31c1c56da forge forge/ForgePac19/ForgePac19.janno
+b36b3ca509c235d0f15571c96195e801 forge forge/ForgePac20/POSEIDON.yml
+f0f374dea59b7a8518a4c6cc37fe38a1 forge forge/ForgePac20/ForgePac20.janno
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
@@ -139,6 +141,6 @@ b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_2/Lamnidis_2018-1.0.
 b2286cf9af7c6c8757b8109a1f58e2d9 listRemote listRemote/listRemote3
 0433b2a80ee5a2eb5bf8c6404130e562 listRemote listRemote/listRemote4
 8a13e5b31acabca6839100f411c38453 listRemote listRemote/listRemote5
-be7bf5a4526b61e731a0bd6caf799eaa jannocoalesce jannocoalesce/target1.janno
+eb610918796e03da3b0035655e9f8faa jannocoalesce jannocoalesce/target1.janno
 df34d0542c0a94cf9556619bff2e301d jannocoalesce jannocoalesce/target2.janno
-7443518b40ca0f60d4402d47861a295e jannocoalesce jannocoalesce/target3.janno
+cc76b2bf0ad6637ea6502fdefcca3508 jannocoalesce jannocoalesce/target3.janno
