@@ -37,8 +37,9 @@ import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath            (dropExtensions, takeExtensions, takeExtension, splitExtension, splitExtensions,
-                                             (<.>))
+import           System.FilePath            (dropExtensions, splitExtension,
+                                             splitExtensions, takeExtension,
+                                             takeExtensions, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
 
@@ -481,7 +482,7 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
 -- This is important because users may submit files with multiple dots in their name, in which case takeExtensions would return
 -- more than we need and the file-ending checks and classifiers would erroneously fail.
 splitExtensionsOptGz :: FilePath -> (FilePath, String)
-splitExtensionsOptGz fp = 
+splitExtensionsOptGz fp =
     if takeExtension fp /= ".gz" then -- if the file doesn't end with gz, split at a single ending
         splitExtension fp
     else --if the file ends with ".gz" ...
