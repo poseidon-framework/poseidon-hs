@@ -1,3 +1,5 @@
+- V 1.5.7.1: 
+    - Fixed a bug introduced in Version 1.5.5.0, where input using option "-p" (for example in init) would not behave correctly if input files have multiple file endings, separated by dots.
 - V 1.5.7.0:
     - Added support for VCF files (Variant Call Format) in Janno-packages.
     - restructured test package structure, affecting some of the unit- and golden tests.
