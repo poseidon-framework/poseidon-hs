@@ -37,7 +37,7 @@ import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath            (dropExtensions, takeExtensions,
+import           System.FilePath            (dropExtensions, takeExtensions, takeExtension, splitExtension, splitExtensions,
                                              (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
@@ -454,7 +454,9 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
                 \For VCF please see option --vcfFile")
     where
         readGenoInput :: FilePath -> Either String GenotypeFileSpec
-        readGenoInput p = makeGenoInput (dropExtensions p) (takeExtensions p)
+        readGenoInput p =
+            let (path, extension) = splitExtensionsOptGz p
+            in  makeGenoInput path extension
         makeGenoInput path ext
             | ext `elem` [".geno",    ".snp",   ".ind"] =
                 Right $ GenotypeEigenstrat (path <.> ".geno")    Nothing
@@ -473,6 +475,25 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
                                            (path <.> ".bim.gz")  Nothing
                                            (path <.> ".fam")     Nothing
             | otherwise = Left $ "unknown file extension: " ++ ext
+
+-- a "smarter" version of `takeExtensions` and `dropExtensions, which splits a filepath at two extensions
+-- if the last one is ".gz" but otherwise splits only one.
+-- This is important because users may submit files with multiple dots in their name, in which case takeExtensions would return
+-- more than we need and the file-ending checks and classifiers would erroneously fail.
+splitExtensionsOptGz :: FilePath -> (FilePath, String)
+splitExtensionsOptGz fp = 
+    if takeExtension fp /= ".gz" then -- if the file doesn't end with gz, split at a single ending
+        splitExtension fp
+    else --if the file ends with ".gz" ...
+        let (path, allExtensions) = splitExtensions fp
+            extensionsList = drop 1 . splitOn "." $ allExtensions
+        in  case extensionsList of
+                ["gz"]    -> splitExtension fp -- ... and .gz is the only ending, split there!
+                [_, "gz"] -> splitExtensions fp -- ... and there are two endings with gz, use the default splitExtensions function
+                _ -> --otherwise split at two endings from the end:
+                    let doubleExtension  = ("." ++) . intercalate "." . reverse . take 2 . reverse $ extensionsList
+                        extendedPath = path ++ "." ++ (intercalate "." . reverse . drop 2 . reverse $ extensionsList)
+                    in (extendedPath, doubleExtension)
 
 parseInGenoSep :: OP.Parser GenotypeFileSpec
 parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
