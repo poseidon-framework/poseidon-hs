@@ -1,3 +1,5 @@
+- V 1.5.7.3:
+    - Allowed `0` in the `Nr_SNPs` .janno column.
 - V 1.5.7.1:
     - Fixed a bug in the .janno reading triggered by trailing `à` characters and caused by premature whitespace trimming.
     - Removed the hacky `removeNoBreakSpace` function from the .janno reading pipeline. It is not necessary any more.
