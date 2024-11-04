@@ -272,7 +272,6 @@ testPipelineInit testDir checkFilePath = do
         , "init_vcf" </> "Schiffels_vcf" </> "Schiffels.bib"
         ]
 
-
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
     let validateOpts1 = ValidateOptions {
