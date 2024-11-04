@@ -1,3 +1,5 @@
+- V 1.5.7.3:
+    - Allowed `0` in the `Nr_SNPs` .janno column.
 - V 1.5.7.2: 
     - Fixed a bug introduced in Version 1.5.5.0, where input using option "-p" (for example in init) would not behave correctly if input files have multiple file endings, separated by dots.
 - V 1.5.7.1:

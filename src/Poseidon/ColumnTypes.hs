@@ -436,8 +436,8 @@ instance Makeable JannoNrSNPs where
         case T.signed T.decimal x of
             Left e -> fail $ "Nr_SNPs can not be converted to Int because " ++ e
             Right (num, "") ->
-                if num < 1
-                then fail $ "Nr_SNPs " ++ show x ++ " lower than 1, which is not meaningful."
+                if num < 0
+                then fail $ "Nr_SNPs " ++ show x ++ " lower than 0, which is not meaningful."
                 else pure $ JannoNrSNPs num
             Right (_, rest) -> fail $ "Nr_SNPs can not be converted to Int, because of a trailing " ++ show rest
 instance Show JannoNrSNPs where          show (JannoNrSNPs x) = show x
