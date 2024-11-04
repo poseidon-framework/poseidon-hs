@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.7.1
+@version 1.5.7.2
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -1995,6 +1995,7 @@ parseBasePath :: Parser FilePath
 parseInGenoWithoutSNPSet :: Parser GenotypeDataSpec
 parseInGenotypeDataset :: Parser GenotypeDataSpec
 parseInGenoOne :: Parser GenotypeFileSpec
+splitExtensionsOptGz :: FilePath -> (FilePath, String)
 parseInGenoSep :: Parser GenotypeFileSpec
 parseFileWithEndings :: String -> String -> [String] -> Parser FilePath
 parseGenotypeSNPSet :: Parser SNPSetSpec

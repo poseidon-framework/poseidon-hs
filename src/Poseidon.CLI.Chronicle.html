@@ -37,48 +37,48 @@
 </span><span id="line-25"></span><span>
 </span><span id="line-26"></span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#runChronicle"><span class="hs-identifier hs-type">runChronicle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#ChronicleOptions"><span class="hs-identifier hs-type">ChronicleOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-27"></span><span id="runChronicle"><span class="annot"><span class="annottext">runChronicle :: ChronicleOptions -&gt; PoseidonIO ()
-</span><a href="Poseidon.CLI.Chronicle.html#runChronicle"><span class="hs-identifier hs-var hs-var">runChronicle</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#ChronicleOptions"><span class="hs-identifier hs-type">ChronicleOptions</span></a></span><span> </span><span id="local-6989586621679408228"><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679408228"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679408229"><span class="annot"><span class="annottext">ChronOperation
-</span><a href="#local-6989586621679408229"><span class="hs-identifier hs-var">operation</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-28"></span><span>    </span><span id="local-6989586621679408230"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679408230"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [FilePath] -&gt; PoseidonIO [PoseidonPackage]
+</span><a href="Poseidon.CLI.Chronicle.html#runChronicle"><span class="hs-identifier hs-var hs-var">runChronicle</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#ChronicleOptions"><span class="hs-identifier hs-type">ChronicleOptions</span></a></span><span> </span><span id="local-6989586621679408380"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679408380"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679408381"><span class="annot"><span class="annottext">ChronOperation
+</span><a href="#local-6989586621679408381"><span class="hs-identifier hs-var">operation</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-28"></span><span>    </span><span id="local-6989586621679408382"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679408382"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [FilePath] -&gt; PoseidonIO [PoseidonPackage]
 </span><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier hs-var">readPoseidonPackageCollection</span></a></span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.CLI.Chronicle.html#pacReadOpts"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
-</span><a href="#local-6989586621679408228"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><a href="#local-6989586621679408380"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
 </span><span id="line-29"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ChronOperation
-</span><a href="#local-6989586621679408229"><span class="hs-identifier hs-var">operation</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-30"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#CreateChron"><span class="hs-identifier hs-type">CreateChron</span></a></span><span> </span><span id="local-6989586621679408231"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408231"><span class="hs-identifier hs-var">outPath</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-31"></span><span>            </span><span id="local-6989586621679408232"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408232"><span class="hs-identifier hs-var">newChronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679408381"><span class="hs-identifier hs-var">operation</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-30"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#CreateChron"><span class="hs-identifier hs-type">CreateChron</span></a></span><span> </span><span id="local-6989586621679408383"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679408383"><span class="hs-identifier hs-var">outPath</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-31"></span><span>            </span><span id="local-6989586621679408384"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408384"><span class="hs-identifier hs-var">newChronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath
 -&gt; [PoseidonPackage] -&gt; PoseidonIO PoseidonPackageChronicle
 </span><a href="Poseidon.Chronicle.html#makeChronicle"><span class="hs-identifier hs-var">makeChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408231"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679408230"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><a href="#local-6989586621679408383"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679408382"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
 </span><span id="line-32"></span><span>            </span><span class="annot"><span class="annottext">FilePath -&gt; PoseidonPackageChronicle -&gt; PoseidonIO ()
 </span><a href="Poseidon.Chronicle.html#writeChronicle"><span class="hs-identifier hs-var">writeChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408231"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408232"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
-</span><span id="line-33"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#UpdateChron"><span class="hs-identifier hs-type">UpdateChron</span></a></span><span> </span><span id="local-6989586621679408233"><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408233"><span class="hs-identifier hs-var">inPath</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-34"></span><span>            </span><span id="local-6989586621679408234"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408234"><span class="hs-identifier hs-var">newChronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679408383"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408384"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
+</span><span id="line-33"></span><span>        </span><span class="annot"><a href="Poseidon.CLI.Chronicle.html#UpdateChron"><span class="hs-identifier hs-type">UpdateChron</span></a></span><span> </span><span id="local-6989586621679408385"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679408385"><span class="hs-identifier hs-var">inPath</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-34"></span><span>            </span><span id="local-6989586621679408386"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408386"><span class="hs-identifier hs-var">newChronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath
 -&gt; [PoseidonPackage] -&gt; PoseidonIO PoseidonPackageChronicle
 </span><a href="Poseidon.Chronicle.html#makeChronicle"><span class="hs-identifier hs-var">makeChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408233"><span class="hs-identifier hs-var">inPath</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679408230"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
-</span><span id="line-35"></span><span>            </span><span id="local-6989586621679408235"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408235"><span class="hs-identifier hs-var">oldChronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; PoseidonIO PoseidonPackageChronicle
+</span><a href="#local-6989586621679408385"><span class="hs-identifier hs-var">inPath</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679408382"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-35"></span><span>            </span><span id="local-6989586621679408387"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408387"><span class="hs-identifier hs-var">oldChronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; PoseidonIO PoseidonPackageChronicle
 </span><a href="Poseidon.Chronicle.html#readChronicle"><span class="hs-identifier hs-var">readChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408233"><span class="hs-identifier hs-var">inPath</span></a></span><span>
-</span><span id="line-36"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679408236"><span class="annot"><span class="annottext">updatedChronicle :: PoseidonPackageChronicle
-</span><a href="#local-6989586621679408236"><span class="hs-identifier hs-var hs-var">updatedChronicle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408385"><span class="hs-identifier hs-var">inPath</span></a></span><span>
+</span><span id="line-36"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679408388"><span class="annot"><span class="annottext">updatedChronicle :: PoseidonPackageChronicle
+</span><a href="#local-6989586621679408388"><span class="hs-identifier hs-var hs-var">updatedChronicle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
 -&gt; PoseidonPackageChronicle -&gt; PoseidonPackageChronicle
 </span><a href="Poseidon.Chronicle.html#updateChronicle"><span class="hs-identifier hs-var">updateChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408235"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408234"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
+</span><a href="#local-6989586621679408387"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408386"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
 </span><span id="line-37"></span><span>            </span><span class="annot"><span class="annottext">FilePath -&gt; PoseidonPackageChronicle -&gt; PoseidonIO ()
 </span><a href="Poseidon.Chronicle.html#writeChronicle"><span class="hs-identifier hs-var">writeChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
-</span><a href="#local-6989586621679408233"><span class="hs-identifier hs-var">inPath</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679408236"><span class="hs-identifier hs-var">updatedChronicle</span></a></span><span>
+</span><a href="#local-6989586621679408385"><span class="hs-identifier hs-var">inPath</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679408388"><span class="hs-identifier hs-var">updatedChronicle</span></a></span><span>
 </span><span id="line-38"></span></pre></body></html>
