@@ -1,3 +1,11 @@
+### V 1.5.7.3
+
+This patch release fixes three minor bugs, some of which were accidentally introduced with the big changes in v1.5.7.0.
+
+1. Fixed a bug in the .janno reading triggered by trailing `à` characters.
+2. Reverted unspecified behaviour: `0` is again allowed in the `Nr_SNPs` .janno column.
+3. Fixed a bug introduced in v1.5.5.0, where command line input using the `-p` option would not behave correctly if the input files have multiple file endings, separated by dots.
+
 ### V 1.5.7.0
 
 This release further improves `.janno` parsing error messages and adds reading support for gzipped PLINK (`.bed` and `.bim`) and EIGENSTRAT (`.geno` and `.snp`) files. We also added (experimental) support for reading VCF files.
