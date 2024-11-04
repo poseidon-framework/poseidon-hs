@@ -20,7 +20,7 @@ class Makeable a where
 parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => String -> S.ByteString -> m a
 parseTypeCSV colname x = case T.decodeUtf8' x of
         Left e  -> fail $ show e ++ " in column " ++ colname
-        Right t -> make t
+        Right t -> make $ T.strip t
 
 -- template haskell function to generate repetitive instances
 makeInstances :: Name -> String -> DecsQ
