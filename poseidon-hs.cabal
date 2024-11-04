@@ -58,8 +58,7 @@ Test-Suite poseidon-tools-tests
                         Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
                         Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
                         PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.ChronicleSpec,
-                        Poseidon.SequencingSourceSpec, Poseidon.InterfaceSpec,
-                        Poseidon.OptParseApplicativeParsersSpec
+                        Poseidon.SequencingSourceSpec, Poseidon.InterfaceSpec
   default-language:     Haskell2010
 
 executable poseidon-devtools
