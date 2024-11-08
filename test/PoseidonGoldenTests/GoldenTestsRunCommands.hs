@@ -530,7 +530,7 @@ testPipelineGenoconvert testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6) "genoconvert" [
           "genoconvert" </> "Schiffels" </> "Schiffels_2016.bed.gz"
         , "genoconvert" </> "Schiffels" </> "Schiffels_2016.bim.gz"
-        , "genoconvert" </> "Schiffels" </> "Schiffels_2016.fam.gz"
+        , "genoconvert" </> "Schiffels" </> "Schiffels_2016.fam"
         ]
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
