@@ -1,3 +1,5 @@
+- V 1.8.0.0:
+    - Added support to write gzipped EIGENSTRAT and PLINK files with `genoconvert` and `forge`. Both commands get a new option `-z` which creates gzipped output.
 - V 1.5.7.3:
     - Allowed `0` in the `Nr_SNPs` .janno column.
 - V 1.5.7.2: 
