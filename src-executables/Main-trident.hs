@@ -211,6 +211,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseIntersect
                               <*> parseOutGenotypeFormat True
                               <*> parseForgeOutMode
+                              <*> parseZipOut
                               <*> parseOutPackagePath
                               <*> parseMaybeOutPackageName
                               <*> parsePackageWise
@@ -225,6 +226,7 @@ genoconvertOptParser = GenoconvertOptions <$> parseGenoDataSources
                                           <*> parseRemoveOld
                                           <*> parseOutputPlinkPopMode
                                           <*> parseOnlyLatest
+                                          <*> parseZipOut
 
 summariseOptParser :: OP.Parser SummariseOptions
 summariseOptParser = SummariseOptions <$> parseBasePaths
