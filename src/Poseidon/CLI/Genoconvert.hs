@@ -5,7 +5,7 @@ module Poseidon.CLI.Genoconvert where
 import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
-                                             GenotypeFileSpec (..), getFormat,
+                                             GenotypeFileSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress)
 import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
@@ -42,6 +42,7 @@ data GenoconvertOptions = GenoconvertOptions
     , _genoconvertRemoveOld       :: Bool
     , _genoconvertOutPlinkPopMode :: PlinkPopNameMode
     , _genoconvertOnlyLatest      :: Bool
+    , _genoconvertOutZip          :: Bool
     }
 
 runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
@@ -73,12 +74,15 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode pac = do
         ++ ":"
     -- compile file names paths
     let outName = getPacName . posPacNameAndVersion $ pac
-    (outInd, outSnp, outGeno) <- case outFormat of
-            "EIGENSTRAT" -> return (outName <.> ".ind", outName <.> ".snp", outName <.> ".geno")
-            "PLINK"      -> return (outName <.> ".fam", outName <.> ".bim", outName <.> ".bed")
-            _  -> liftIO . throwIO $ PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
+    (outInd, outSnp, outGeno) <- case (outFormat, outZip) of
+            ("EIGENSTRAT", False) -> return (outName <.> ".ind", outName <.> ".snp"   , outName <.> ".geno"   )
+            ("EIGENSTRAT", True ) -> return (outName <.> ".ind", outName <.> ".snp.gz", outName <.> ".geno.gz")
+            ("PLINK",      False) -> return (outName <.> ".fam", outName <.> ".bim"   , outName <.> ".bed"    )
+            ("PLINK",      True ) -> return (outName <.> ".fam", outName <.> ".bim.gz", outName <.> ".bed.gz" )
+            _                     -> liftIO . throwIO $
+                PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
     -- check if genotype data needs conversion
-    if getFormat (genotypeFileSpec (posPacGenotypeData pac)) == outFormat
+    if getFormat (genotypeFileSpec (posPacGenotypeData pac)) == (outFormat, outZip)
     then logWarning "The genotype data is already in the requested format"
     else do
         -- create new genotype data files

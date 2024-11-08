@@ -78,6 +78,7 @@ data ForgeOptions = ForgeOptions
     , _forgeIntersect          :: Bool
     , _forgeOutFormat          :: String
     , _forgeOutMode            :: ForgeOutMode
+    , _forgeOutZip             :: Bool
     , _forgeOutPacPath         :: FilePath
     , _forgeOutPacName         :: Maybe String
     , _forgePackageWise        :: Bool
@@ -108,7 +109,7 @@ runForge :: ForgeOptions -> PoseidonIO ()
 runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_
-                 outFormat outMode outPathRaw maybeOutName
+                 outFormat outMode outZip outPathRaw maybeOutName
                  packageWise outPlinkPopMode
                  outputOrdered
     ) = do
@@ -184,14 +185,22 @@ runForge (
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
     -- compile genotype data structure
-    genotypeFileData <- case outFormat of
-            "EIGENSTRAT" -> return $
+    genotypeFileData <- case (outFormat, outZip) of
+            ("EIGENSTRAT", False) -> return $
                 GenotypeEigenstrat (outName <.> ".geno")  Nothing
                                    (outName <.> ".snp")  Nothing
                                    (outName <.> ".ind") Nothing
-            "PLINK"      -> return $
+            ("EIGENSTRAT", True) -> return $
+                GenotypeEigenstrat (outName <.> ".geno.gz")  Nothing
+                                   (outName <.> ".snp.gz")  Nothing
+                                   (outName <.> ".ind") Nothing
+            ("PLINK", False)      -> return $
                 GenotypePlink      (outName <.> ".bed")  Nothing
                                    (outName <.> ".bim")  Nothing
+                                   (outName <.> ".fam")  Nothing
+            ("PLINK", True)      -> return $
+                GenotypePlink      (outName <.> ".bed.gz")  Nothing
+                                   (outName <.> ".bim.gz")  Nothing
                                    (outName <.> ".fam")  Nothing
             _  -> liftIO . throwIO $
                 PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
@@ -270,7 +279,7 @@ runForge (
                     let fullSourcePath = posPacBaseDir pacSource </> path
                     liftIO $ checkFile fullSourcePath Nothing
                     liftIO $ copyFile fullSourcePath $ outPath </> path
-        compileGenotypeData :: FilePath -> GenotypeFileSpec -> [PoseidonPackage] -> [Int] ->  PoseidonIO (VUM.IOVector Int)
+        compileGenotypeData :: FilePath -> GenotypeFileSpec -> [PoseidonPackage] -> [Int] -> PoseidonIO (VUM.IOVector Int)
         compileGenotypeData outPath gFileSpec relevantPackages relevantIndices = do
             logInfo "Compiling genotype data"
             logInfo "Processing SNPs..."
