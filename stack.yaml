@@ -6,9 +6,9 @@ extra-deps:
 - table-layout-0.9.1.0
 - data-default-instances-base-0.1.0.1
 # - sequence-formats-1.8.1.1
-- /Users/stephan_schiffels/dev/sequence-formats
-# - git: https://github.com/stschiff/sequence-formats
-#   commit: d0ff76452b2df20ab49f651d587eca55e793130e
+# - /Users/stephan_schiffels/dev/sequence-formats
+- git: https://github.com/stschiff/sequence-formats
+  commit: 1465192c1e7b4a7e3c7f19a29007d2b933b78fa9
 - pipes-zlib-0.4.4.2
 - pipes-ordered-zip-1.2.1
 - co-log-0.6.0.2

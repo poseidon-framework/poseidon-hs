@@ -516,6 +516,22 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init_vcf" </> "Schiffels_vcf" </> "geno.bim"
         , "init_vcf" </> "Schiffels_vcf" </> "geno.fam"
         ]
+    
+    let genoconvertOpts6 = GenoconvertOptions {
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutOnlyGeno = False
+        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
+        , _genoconvertRemoveOld = False
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = True
+    }
+    runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6) "genoconvert" [
+          "genoconvert" </> "Schiffels" </> "Schiffels_2016.bed.gz"
+        , "genoconvert" </> "Schiffels" </> "Schiffels_2016.bim.gz"
+        , "genoconvert" </> "Schiffels" </> "Schiffels_2016.fam.gz"
+        ]
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do

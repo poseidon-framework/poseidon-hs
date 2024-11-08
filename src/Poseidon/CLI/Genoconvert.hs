@@ -110,16 +110,17 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         currentTime <- liftIO getCurrentTime
         errLength <- envErrorLength
         let eigenstratIndEntries = jannoRows2EigenstratIndEntries . posPacJanno $ pac
+        let zipEnding = if outZip then ".gz" else "" -- we need this to trigger the zipping
         liftIO $ catch (
             runSafeT $ do
                 eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
                 let outConsumer = case outFormat of
-                        "EIGENSTRAT" -> writeEigenstrat (outG ++ ".gconvert")
-                                                        (outS ++ ".gconvert")
+                        "EIGENSTRAT" -> writeEigenstrat (outG ++ ".gconvert" ++ zipEnding)
+                                                        (outS ++ ".gconvert" ++ zipEnding)
                                                         (outI ++ ".gconvert")
                                                         eigenstratIndEntries
-                        "PLINK"      -> writePlink (outG ++ ".gconvert")
-                                                   (outS ++ ".gconvert")
+                        "PLINK"      -> writePlink (outG ++ ".gconvert" ++ zipEnding)
+                                                   (outS ++ ".gconvert" ++ zipEnding)
                                                    (outI ++ ".gconvert")
                                                    (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
                         _  -> liftIO . throwIO . PoseidonGenericException $
@@ -128,8 +129,8 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                 runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
             ) (throwIO . PoseidonGenotypeExceptionForward errLength)
         -- the following will just override if the file already exists.
-        liftIO $ renameFile (outG ++ ".gconvert") outG
-        liftIO $ renameFile (outS ++ ".gconvert") outS
+        liftIO $ renameFile (outG ++ ".gconvert" ++ zipEnding) outG
+        liftIO $ renameFile (outS ++ ".gconvert" ++ zipEnding) outS
         liftIO $ renameFile (outI ++ ".gconvert") outI
         logInfo "Done"
         -- overwrite genotype data field in POSEIDON.yml file

@@ -19,6 +19,17 @@ packages:
   original:
     hackage: data-default-instances-base-0.1.0.1
 - completed:
+    commit: 1465192c1e7b4a7e3c7f19a29007d2b933b78fa9
+    git: https://github.com/stschiff/sequence-formats
+    name: sequence-formats
+    pantry-tree:
+      sha256: 80a4494352d8bb4cf3b1c7d5eb2aa81990caf9b80ade12b5c5f9228c3c6a757c
+      size: 3134
+    version: 1.10.0.0
+  original:
+    commit: 1465192c1e7b4a7e3c7f19a29007d2b933b78fa9
+    git: https://github.com/stschiff/sequence-formats
+- completed:
     hackage: pipes-zlib-0.4.4.2@sha256:eabd5aa29a030ecdeade80cfeb1787adc181bcf8fd378cb7b695b2af6cb26af6,1947
     pantry-tree:
       sha256: 83893890ab982e322bf7f446cc1d17fc19ce0b9b8041b10b296d86c7622ec050
