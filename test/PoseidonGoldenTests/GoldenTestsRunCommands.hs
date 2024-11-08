@@ -607,7 +607,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac1" </> "ForgePac1.bib"
         ]
 
-    -- forge test 1 with VCF
+    -- forge test 1 with VCF and zip output
     let forgeOpts1vcf = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDirOther </> "Schiffels_2016_vcf", PacBaseDir $ testPacsDir </> "Wang_2020"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
@@ -615,7 +615,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
-        , _forgeOutZip       = False
+        , _forgeOutZip       = True
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1_vcf"
         , _forgeOutPacName   = Just "ForgePac1_vcf"
         , _forgePackageWise    = False
