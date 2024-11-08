@@ -516,7 +516,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "init_vcf" </> "Schiffels_vcf" </> "geno.bim"
         , "init_vcf" </> "Schiffels_vcf" </> "geno.fam"
         ]
-    
+
     let genoconvertOpts6 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
