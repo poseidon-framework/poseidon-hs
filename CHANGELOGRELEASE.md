@@ -1,4 +1,17 @@
+### V 1.5.7.3
+
+This patch release fixes three minor bugs, some of which were accidentally introduced with the big changes in v1.5.7.0.
+
+1. Fixed a bug in the .janno reading triggered by trailing `à` characters.
+2. Reverted unspecified behaviour: `0` is again allowed in the `Nr_SNPs` .janno column.
+3. Fixed a bug introduced in v1.5.5.0, where command line input using the `-p` option would not behave correctly if the input files have multiple file endings, separated by dots.
+
 ### V 1.5.7.0
+
+> [!WARNING]
+> On 2024/11/06 we realized that this release includes a breaking change that is not documented below.
+> The command line input interface for unpackaged genotype data was modified from previously `--inFormat EIGENSTRAT|PLINK + --genoFile + --snpFile + --indFile` to now `--genoFile + --snpFile + --indFile` and `--bedFile + --bimFile + --famFile`. So the format selection with the `--inFormat` argument was removed and replaced with separate file selectors for EIGENSTRAT and PLINK data.
+> This affects all `trident` subcommands that allow reading of unpackaged genotype data, namely `init`, `forge`, `genoconvert` and `validate`.
 
 This release further improves `.janno` parsing error messages and adds reading support for gzipped PLINK (`.bed` and `.bim`) and EIGENSTRAT (`.geno` and `.snp`) files. We also added (experimental) support for reading VCF files.
 
