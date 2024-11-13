@@ -529,7 +529,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertOutZip     = True
     }
     testLog $ runGenoconvert genoconvertOpts6zipping
-    
+
     let genoconvertOpts6unzipping = GenoconvertOptions {
           _genoconvertGenoSources =
               let gSpec = GenotypePlink (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed.gz") Nothing
