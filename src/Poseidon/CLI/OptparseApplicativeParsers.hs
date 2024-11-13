@@ -39,7 +39,7 @@ import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath            (dropExtensions, splitExtension,
                                              splitExtensions, takeExtension,
-                                             takeExtensions, (<.>))
+                                             takeExtensions)
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
 
@@ -446,13 +446,13 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
         OP.short 'p' <>
         OP.metavar "FILE" <>
         OP.help "One of the input genotype data files. \
-                \Expects .bed, .bed.gz, .bim, .bim.gz or .fam for PLINK, or \
-                \.geno, .geno.gz, .snp, .snp.gz or .ind for EIGENSTRAT. \
-                \The other files must be in the same directory \
+                \Expects .bed, .bed.gz, .bim, .bim.gz or .fam for PLINK, \
+                \.geno, .geno.gz, .snp, .snp.gz or .ind for EIGENSTRAT, or\
+                \.vcf or .vcf.gz for VCF. \
+                \In case of EIGENSTRAT and PLINK, the two other files must be in the same directory \
                 \and must have the same base name. If a gzipped file is given, it is assumed that the \
                 \file pairs (.geno.gz, .snp.gz) or (.bim.gz, .bed.gz) are both zipped, but not the .fam or .ind file. \
-                \If a .ind or .fam file is given, it is assumed that none of the file triples is zipped. \
-                \For VCF please see option --vcfFile")
+                \If a .ind or .fam file is given, it is assumed that none of the file triples is zipped.")
     where
         readGenoInput :: FilePath -> Either String GenotypeFileSpec
         readGenoInput p =
@@ -460,21 +460,23 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
             in  makeGenoInput path extension
         makeGenoInput path ext
             | ext `elem` [".geno",    ".snp",   ".ind"] =
-                Right $ GenotypeEigenstrat (path <.> ".geno")    Nothing
-                                           (path <.> ".snp")     Nothing
-                                           (path <.> ".ind")     Nothing
+                Right $ GenotypeEigenstrat (path <> ".geno")    Nothing
+                                           (path <> ".snp")     Nothing
+                                           (path <> ".ind")     Nothing
             | ext `elem` [".geno.gz", ".snp.gz"       ] =
-                Right $ GenotypeEigenstrat (path <.> ".geno.gz") Nothing
-                                           (path <.> ".snp.gz")  Nothing
-                                           (path <.> ".ind")     Nothing
+                Right $ GenotypeEigenstrat (path <> ".geno.gz") Nothing
+                                           (path <> ".snp.gz")  Nothing
+                                           (path <> ".ind")     Nothing
             | ext `elem` [".bed",     ".bim",   ".fam"] =
-                Right $ GenotypePlink      (path <.> ".bed")     Nothing
-                                           (path <.> ".bim")     Nothing
-                                           (path <.> ".fam")     Nothing
+                Right $ GenotypePlink      (path <> ".bed")     Nothing
+                                           (path <> ".bim")     Nothing
+                                           (path <> ".fam")     Nothing
             | ext `elem` [".bed.gz",  ".bim.gz"       ] =
-                Right $ GenotypePlink      (path <.> ".bed.gz")  Nothing
-                                           (path <.> ".bim.gz")  Nothing
-                                           (path <.> ".fam")     Nothing
+                Right $ GenotypePlink      (path <> ".bed.gz")  Nothing
+                                           (path <> ".bim.gz")  Nothing
+                                           (path <> ".fam")     Nothing
+            | ext `elem` [".vcf", ".vcf.gz"           ] =
+                Right $ GenotypeVCF        (path <> ext)         Nothing
             | otherwise = Left $ "unknown file extension: " ++ ext
 
 -- a "smarter" version of `takeExtensions` and `dropExtensions, which splits a filepath at two extensions
