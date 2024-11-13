@@ -522,7 +522,7 @@ testPipelineGenoconvert testDir checkFilePath = do
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
         , _genoConvertOutOnlyGeno = False
-        , _genoMaybeOutPackagePath = Nothing
+        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "zip_roundtrip"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
@@ -531,7 +531,11 @@ testPipelineGenoconvert testDir checkFilePath = do
     testLog $ runGenoconvert genoconvertOpts6zipping
     
     let genoconvertOpts6unzipping = GenoconvertOptions {
-          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+          _genoconvertGenoSources =
+              let gSpec = GenotypePlink (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed.gz") Nothing
+                                        (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim.gz") Nothing
+                                        (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam") Nothing
+              in  [GenoDirect $ GenotypeDataSpec gSpec Nothing]
         , _genoConvertOutFormat = "PLINK"
         , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Nothing
@@ -540,11 +544,12 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertOnlyLatest = False
         , _genoconvertOutZip     = False
     }
+    testLog $ runGenoconvert genoconvertOpts6unzipping
 
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6unzipping) "genoconvert" [
-          "genoconvert" </> "Schiffels_zipRoundTrip" </> "Schiffels_2016.bed"
-        , "genoconvert" </> "Schiffels_zipRoundTrip" </> "Schiffels_2016.bim"
-        , "genoconvert" </> "Schiffels_zipRoundTrip" </> "Schiffels_2016.fam"
+          "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed"
+        , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim"
+        , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam"
         ]
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
