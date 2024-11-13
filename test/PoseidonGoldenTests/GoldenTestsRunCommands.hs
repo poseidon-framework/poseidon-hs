@@ -522,7 +522,7 @@ testPipelineGenoconvert testDir checkFilePath = do
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
         , _genoConvertOutOnlyGeno = False
-        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_zipRoundTrip"
+        , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
@@ -531,10 +531,10 @@ testPipelineGenoconvert testDir checkFilePath = do
     testLog $ runGenoconvert genoconvertOpts6zipping
     
     let genoconvertOpts6unzipping = GenoconvertOptions {
-          _genoconvertGenoSources = [PacBaseDir $ testDir </> "genoconvert" </> "Schiffels_zipRoundTrip"]
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
         , _genoConvertOutOnlyGeno = False
-        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_zipRoundTrip"
+        , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = True
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
