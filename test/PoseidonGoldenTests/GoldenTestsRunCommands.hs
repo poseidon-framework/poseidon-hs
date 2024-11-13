@@ -634,7 +634,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
-        , _forgeOutZip       = True
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1_vcf"
         , _forgeOutPacName   = Just "ForgePac1_vcf"
         , _forgePackageWise    = False
@@ -644,7 +644,7 @@ testPipelineForge testDir checkFilePath = do
     let action1vcf = testLog (runForge forgeOpts1vcf) >> patchLastModified testDir ("forge" </> "ForgePac1_vcf" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1vcf "forge" [
           "forge" </> "ForgePac1_vcf" </> "POSEIDON.yml"
-        , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.geno.gz"
+        , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.geno"
         , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.janno"
         , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.ssf"
         , "forge" </> "ForgePac1_vcf" </> "ForgePac1_vcf.bib"

@@ -5,8 +5,8 @@ packageVersion: 0.1.0
 lastModified: 1970-01-01
 genotypeData:
   format: EIGENSTRAT
-  genoFile: ForgePac1_vcf.geno.gz
-  snpFile: ForgePac1_vcf.snp.gz
+  genoFile: ForgePac1_vcf.geno
+  snpFile: ForgePac1_vcf.snp
   indFile: ForgePac1_vcf.ind
   snpSet: Other
 jannoFile: ForgePac1_vcf.janno
