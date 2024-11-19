@@ -29,7 +29,7 @@ import           Control.Monad          (forM, forM_, unless, when)
 import           Control.Monad.Catch    (MonadThrow, throwM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson             (FromJSON (..), ToJSON (..), Value (..),
-                                         withText)
+                                         withText, object, (.=))
 import           Data.Aeson.Types       (Parser)
 import           Data.Char              (isSpace)
 import           Data.List              (groupBy, intercalate, nub, sortOn,
@@ -84,6 +84,11 @@ instance HasNameAndVersion PacNameAndVersion where
 
 instance Show PacNameAndVersion where
     show a = "*" ++ renderNameWithVersion a ++ "*"
+
+instance ToJSON PacNameAndVersion where
+    toJSON e = object [
+        "packageName"    .= panavName e,
+        "packageVersion" .= panavVersion e]
 
 -- | a function to normalise any instance of HasNameAndVersion to the minimal concrete type PacNameAndVersion
 makePacNameAndVersion :: (HasNameAndVersion a) => a -> PacNameAndVersion

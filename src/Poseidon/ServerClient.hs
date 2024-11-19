@@ -239,5 +239,4 @@ instance ToJSON BibliographyInfo where
     toJSON e = object [
         "packageNames" .= bibInfoPackageNames e,
         "nrSamples"    .= bibInfoNrSamples e,
-        "bibEntry"     .= bibInfoBibEntry e
-    ]
+        "bibEntry"     .= bibInfoBibEntry e ]
