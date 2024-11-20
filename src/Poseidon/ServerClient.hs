@@ -236,8 +236,6 @@ extIndInfo2IndInfoCollection extIndInfos =
 data AddColSpec = AddColList [String] | AddColAll
 
 data BibliographyInfo = BibliographyInfo {
-    bibInfoPac       :: PacNameAndVersion,
-    bibInfoIsLatest  :: Bool,
     bibInfoNrSamples :: Int,
     bibInfoKey       :: String,
     bibInfoTitle     :: Maybe String,
@@ -248,15 +246,8 @@ data BibliographyInfo = BibliographyInfo {
     bibInfoAddCols   :: [(String, Maybe String)]
 } deriving (Eq)
 
-instance HasNameAndVersion BibliographyInfo where
-    getPacName = getPacName . bibInfoPac
-    getPacVersion = getPacVersion . bibInfoPac
-
 instance ToJSON BibliographyInfo where
     toJSON e = removeNulls $ object [
-        "packageTitle"         .= (getPacName     . bibInfoPac $ e),
-        "packageVersion"       .= (getPacVersion  . bibInfoPac $ e),
-        "isLatest"             .= bibInfoIsLatest e,
         "nrSamples"            .= bibInfoNrSamples e,
         "bibKey"               .= bibInfoKey e,
         "bibTitle"             .= bibInfoTitle e,
@@ -268,9 +259,7 @@ instance ToJSON BibliographyInfo where
 
 instance FromJSON BibliographyInfo where
         parseJSON = withObject "BibliographyInfo" $ \v -> BibliographyInfo
-            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .:? "packageVersion"))
-            <*> v .: "isLatest"
-            <*> v .: "nrSamples"
+            <$> v .: "nrSamples"
             <*> v .: "bibKey"
             <*> v .:? "bibTitle"
             <*> v .:? "bibAuthor"

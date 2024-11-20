@@ -865,24 +865,26 @@ filterToRelevantPackages entities packages = do
     return $ filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
 
 getBibliographyInfo :: (MonadThrow m) => [PoseidonPackage] -> AddColSpec -> m [BibliographyInfo]
-getBibliographyInfo allPackages addColSpec = sequence $ do
-    pac <- allPackages -- loop over packages, concatenating inner loops
-    (BibEntry _ bibId bibFields) <- posPacBib pac --loop over bib-entries
-    let nrSamples = length $ do -- list monad over samples
-            jannoRow <- getJannoRowsFromPac pac
-            let bibKeys = case jPublication jannoRow of
-                    Nothing -> []
-                    Just jannoPubList -> map (\(JannoPublication p) -> unpack p) $ getListColumn jannoPubList
-            True <- return $ bibId `elem` bibKeys
-            return ()
-    isLatest <- isLatestInCollection allPackages pac
-    let addBibEntries = case addColSpec of
-            -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
-            AddColAll -> [(k, Just v) | (k, v) <- bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
-            -- with a selecton of colNames we just query the bib-fields for those exact fields.
-            AddColList colNames -> [(colName, colName `lookup` bibFields) | colName <- colNames]
-    return . return $ BibliographyInfo (makePacNameAndVersion pac) isLatest nrSamples bibId ("title" `lookup` bibFields)
-        ("author" `lookup` bibFields) ("year" `lookup` bibFields) ("journal" `lookup` bibFields)
-        ("doi" `lookup` bibFields) addBibEntries
+getBibliographyInfo allPackages addColSpec = do
+    allLatestPacs <- filterM (isLatestInCollection allPackages) allPackages
+    -- we use only latest packages for this particular feature, otherwise interpretability gets weird.
+    let allBibEntries = nub . sortOn bibEntryId . concatMap posPacBib $ allLatestPacs
+    let jointJanno = getJannoRows $ getJointJanno allLatestPacs
+    forM allBibEntries $ \(BibEntry _ bibId bibFields) -> do
+        let nrSamples = length $ do -- list monad over samples
+                jannoRow <- jointJanno
+                let bibKeys = case jPublication jannoRow of
+                        Nothing -> []
+                        Just jannoPubList -> map (\(JannoPublication p) -> unpack p) $ getListColumn jannoPubList
+                True <- return $ bibId `elem` bibKeys
+                return ()
+        let addBibEntries = case addColSpec of
+                -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
+                AddColAll -> [(k, Just v) | (k, v) <- bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
+                -- with a selecton of colNames we just query the bib-fields for those exact fields.
+                AddColList colNames -> [(colName, colName `lookup` bibFields) | colName <- colNames]
+        return $ BibliographyInfo nrSamples bibId ("title" `lookup` bibFields)
+            ("author" `lookup` bibFields) ("year" `lookup` bibFields) ("journal" `lookup` bibFields)
+            ("doi" `lookup` bibFields) addBibEntries
 
 

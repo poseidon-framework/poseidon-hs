@@ -613,7 +613,10 @@ parseMaybeSnpFile = OP.option (Just <$> OP.str) (
     OP.value Nothing)
 
 parseListEntity :: OP.Parser ListEntity
-parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividualsDummy *> parseListIndividualsExtraCols)
+parseListEntity = parseListPackages <|>
+                  parseListGroups <|>
+                  (parseListIndividualsDummy *> parseListIndividualsExtraCols) <|>
+                  (parseListBibliographyDummy *> parseListBibliographyExtraFields)
   where
     parseListPackages = OP.flag' ListPackages (
         OP.long "packages" <>
@@ -632,7 +635,16 @@ parseListEntity = parseListPackages <|> parseListGroups <|> (parseListIndividual
         OP.long "jannoColumn" <>
         OP.metavar "COLNAME" <>
         OP.help "List additional fields from the janno files, using the .janno column heading name, such as \
-        \\"Country\", \"Site\", \"Date_C14_Uncal_BP\", etc..")
+        \\"Country\", \"Site\", \"Date_C14_Uncal_BP\", etc... Can be given multiple times")
+    parseListBibliographyDummy = OP.flag' () (
+        OP.long "bibliography" <> OP.help "output bibliography information for packages")
+    parseListBibliographyExtraFields = ListBibliography <$>
+        (parseAllBibFields <|> (AddColList <$> OP.many parseExtraBibFields))
+    parseAllBibFields = OP.flag' AddColAll (OP.long "fullBib" <> OP.help "output all bibliography fields found in any bibliography item")
+    parseExtraBibFields = OP.strOption (
+        OP.short 'b' <> OP.long "bibField" <> OP.metavar "BIB-FIELD" <>
+        OP.help "List information from the given bibliography field, for example \"abstract\" or \"publisher\". Can \
+        \be given multiple times.")
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
