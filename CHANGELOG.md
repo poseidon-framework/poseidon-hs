@@ -1,3 +1,6 @@
+- V 1.5.9.0:
+    - Added a feature to list bibliography information via `trident list --bibliography`.
+    - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
 - V 1.5.7.0:
     - Added support for VCF files (Variant Call Format) in Janno-packages.
     - restructured test package structure, affecting some of the unit- and golden tests.
