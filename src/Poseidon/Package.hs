@@ -864,19 +864,6 @@ filterToRelevantPackages entities packages = do
     relevantPacs <- determineRelevantPackages entities indInfoCollection
     return $ filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
 
--- data BibliographyInfo = BibliographyInfo {
---     bibInfoPac       :: PacNameAndVersion,
---     bibInfoIsLatest  :: Bool,
---     bibInfoNrSamples :: Int,
---     bibInfoKey       :: String,
---     bibInfoTitle     :: Maybe String,
---     bibInfoAuthor    :: Maybe String,
---     bibInfoYear      :: Maybe String,
---     bibInfoJournal   :: Maybe String,
---     bibInfoDoi       :: Maybe String,
---     bibInfoAddCols   :: [(String, Maybe String)]
--- }
-
 getBibliographyInfo :: (MonadThrow m) => [PoseidonPackage] -> AddColSpec -> m [BibliographyInfo]
 getBibliographyInfo allPackages addColSpec = sequence $ do
     pac <- allPackages -- loop over packages, concatenating inner loops

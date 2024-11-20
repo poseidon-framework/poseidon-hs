@@ -8,18 +8,18 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          getAllGroupInfo,
                                          getExtendedIndividualInfo,
                                          packagesToPackageInfos,
-                                         readPoseidonPackageCollection)
+                                         readPoseidonPackageCollection, getBibliographyInfo)
 import           Poseidon.ServerClient  (AddColSpec (..),
                                          ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          ExtendedIndividualInfo (..),
                                          GroupInfo (..), PackageInfo (..),
-                                         processApiResponse, qDefault)
+                                         processApiResponse, qDefault, BibliographyInfo (..))
 import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad          (forM_, when)
 import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (intercalate, sortOn)
+import           Data.List              (intercalate, sortOn, nub)
 import           Data.Maybe             (catMaybes, fromMaybe)
 import           Data.Version           (Version, showVersion)
 
@@ -130,8 +130,59 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                               showMaybeVersion (getPacVersion i), show  isLatest] ++
                               map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
-        ListBibliography _ -> do
-            return undefined
+        ListBibliography addColSpec -> do
+            bibInfos <- case repoLocation of
+                RepoRemote (ArchiveEndpoint remoteURL archive) -> do
+                    logInfo "Downloading bibliography data from server"
+                    let addJannoColFlag = case addColSpec of
+                            AddColAll -> "&additionalBibColumns=ALL"
+                            AddColList [] -> ""
+                            AddColList moreBibFields -> "&additionalBibColumns=" ++ intercalate "," moreBibFields
+                    apiReturn <- processApiResponse (remoteURL ++ "/bibliography" ++ qDefault archive ++ addJannoColFlag) False
+                    case apiReturn of
+                        ApiReturnBibInfo bibInfo -> return bibInfo
+                        _ -> error "should not happen"
+                RepoLocal baseDirs -> do
+                    pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    getBibliographyInfo pacCollection addColSpec
+            
+            let addBibFieldNames = case addColSpec of
+                    AddColAll -> nub . concatMap (map fst . bibInfoAddCols) $ bibInfos
+                    AddColList names -> names
+            
+            -- warning in case the additional Columns do not exist in the entire janno dataset,
+            -- we only output this warning if the columns were requested explicitly. Not if
+            -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
+            case addColSpec of
+                AddColList (_:_) -> do
+                    forM_ addBibFieldNames $ \bibFieldKey -> do
+                        -- check entries in all individuals for that key
+                        let nonEmptyEntries = do
+                                bibInfo <- bibInfos
+                                Just (Just _) <- return $ bibFieldKey `lookup` bibInfoAddCols bibInfo
+                                return ()
+                        when (null nonEmptyEntries) . logWarning $
+                            "Bibliography field " ++ bibFieldKey ++ "is not present in any bibliography entry"
+                _ -> return ()
+            
+            let tableH = ["BibKey", "Title", "Author", "Year", "Journal", "Doi",
+                          "Package", "PackageVersion", "Is Latest", "Nr of samples"] ++ addBibFieldNames
+                tableB = do
+                    bibInfo <- bibInfos
+                    True <- return (not onlyLatest || bibInfoIsLatest bibInfo)
+                    let addBibFieldColumns = do
+                            bibFieldName <- addBibFieldNames
+                            case bibFieldName `lookup` bibInfoAddCols bibInfo of
+                                Just (Just v) -> return v
+                                _ -> return ""
+                    return $ [bibInfoKey bibInfo, fromMaybe "" $ bibInfoTitle bibInfo, fromMaybe "" $ bibInfoAuthor bibInfo,
+                              fromMaybe "" $ bibInfoYear bibInfo, fromMaybe "" $ bibInfoJournal bibInfo,
+                              fromMaybe "" $ bibInfoDoi bibInfo, getPacName bibInfo,
+                              showMaybeVersion (getPacVersion bibInfo), show (bibInfoIsLatest bibInfo),
+                              show (bibInfoNrSamples bibInfo)] ++
+                              addBibFieldColumns
+            return (tableH, tableB)
+
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableH:tableB]
     else do

@@ -246,7 +246,11 @@ data BibliographyInfo = BibliographyInfo {
     bibInfoJournal   :: Maybe String,
     bibInfoDoi       :: Maybe String,
     bibInfoAddCols   :: [(String, Maybe String)]
-}
+} deriving (Eq)
+
+instance HasNameAndVersion BibliographyInfo where
+    getPacName = getPacName . bibInfoPac
+    getPacVersion = getPacVersion . bibInfoPac
 
 instance ToJSON BibliographyInfo where
     toJSON e = removeNulls $ object [
