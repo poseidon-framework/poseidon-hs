@@ -358,26 +358,37 @@ testPipelineList testDir checkFilePath = do
         , _listOnlyLatest    = False
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts1) "list" 1
+    
     let listOpts2 = listOpts1 {
           _listListEntity    = ListGroups
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "list" 2
+    
     let listOpts3 = listOpts1 {
           _listListEntity    = ListIndividuals (AddColList ["Country", "Nr_SNPs"])
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "list" 3
+    
     let listOpts4 = listOpts3 {
           _listRawOutput     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "list" 4
+    
     let listOpts5 = listOpts1 {
           _listOnlyLatest     = True
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "list" 5
+    
     let listOpts6 = listOpts1 {
           _listListEntity    = ListIndividuals AddColAll
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts6) "list" 6
+    
+    let listOpts7 = listOpts1 {
+            _listListEntity = ListBibliography AddColAll
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts7) "list" 7
+
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do
