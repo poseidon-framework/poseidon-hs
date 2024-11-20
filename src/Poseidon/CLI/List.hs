@@ -191,7 +191,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     showMaybe = fromMaybe "n/a"
     showMaybeVersion :: Maybe Version -> String
     showMaybeVersion = maybe "n/a" showVersion
-    
+
     -- this function is necessary, as BibTeX sometimes has arbitrary line breaks within fields,
     -- which we need to get rid of to avoid down-stream problems
     curateBibField :: Maybe String -> String

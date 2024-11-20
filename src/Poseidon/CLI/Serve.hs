@@ -12,10 +12,10 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
+                                               getBibliographyInfo,
                                                getExtendedIndividualInfo,
                                                packagesToPackageInfos,
-                                               readPoseidonPackageCollection,
-                                               getBibliographyInfo)
+                                               readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.ServerClient        (AddColSpec (..),
                                                ApiReturnData (..),
@@ -131,7 +131,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                     Nothing -> getExtendedIndividualInfo pacs (AddColList [])
             let retData = ApiReturnExtIndividualInfo indInfo
             return $ ServerApiReturnType [] (Just retData)
-        
+
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
