@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE InstanceSigs      #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.ServerClient (
@@ -9,11 +10,11 @@ module Poseidon.ServerClient (
     PackageInfo (..), GroupInfo (..), ExtendedIndividualInfo(..),
     extIndInfo2IndInfoCollection,
     qDefault, qArchive, qPacVersion, (+&+),
-    AddJannoColSpec(..)
+    BibliographyInfo(..),
+    AddColSpec(..)
 ) where
 
 import           Paths_poseidon_hs      (version)
-import           Poseidon.BibFile       (BibEntry (..))
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          IndividualInfoCollection,
@@ -24,9 +25,10 @@ import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
 import           Control.Exception      (catch, throwIO)
 import           Control.Monad          (forM_, unless)
 import           Control.Monad.IO.Class (liftIO)
-import           Data.Aeson             (FromJSON, ToJSON (..), Value (String),
+import           Data.Aeson             (FromJSON, ToJSON (..), Value (..),
                                          eitherDecode', object, parseJSON,
-                                         toJSON, withObject, (.:), (.=))
+                                         toJSON, withObject, (.:), (.:?), (.=))
+import qualified Data.Aeson.KeyMap      (filter)
 import           Data.Time              (Day)
 import           Data.Version           (Version, showVersion)
 import           Network.HTTP.Conduit   (simpleHttp)
@@ -63,20 +65,25 @@ data ServerApiReturnType = ServerApiReturnType {
 
 instance ToJSON ServerApiReturnType where
     toJSON (ServerApiReturnType messages response) =
-        object [
+        removeNulls $ object [
             "serverMessages" .= messages,
             "serverResponse" .= response
         ]
 
+-- simple function to filter out Nulls from JSON Objects, for more efficient encoding.
+removeNulls :: Value -> Value
+removeNulls (Object kvmap) = Object $ Data.Aeson.KeyMap.filter (/= Null) kvmap
+removeNulls _ = error "Client usage error, removeNulls should only be applied to objects"
+
 instance FromJSON ServerApiReturnType where
     parseJSON = withObject "ServerApiReturnType" $ \v -> ServerApiReturnType
             <$> v .: "serverMessages"
-            <*> v .: "serverResponse"
+            <*> v .:? "serverResponse"
 
 data ApiReturnData = ApiReturnPackageInfo [PackageInfo]
                    | ApiReturnGroupInfo [GroupInfo]
                    | ApiReturnExtIndividualInfo [ExtendedIndividualInfo]
-                   | ApiReturnBibInfo [BibEntry]
+                   | ApiReturnBibInfo [BibliographyInfo]
 
 instance ToJSON ApiReturnData where
     toJSON (ApiReturnPackageInfo pacInfo) =
@@ -126,10 +133,10 @@ instance HasNameAndVersion PackageInfo where
 
 instance ToJSON PackageInfo where
     toJSON (PackageInfo (PacNameAndVersion n v) isLatest posVersion description lastModified nrIndividuals) =
-        object [
+        removeNulls $ object [
             "packageTitle"    .= n,
             "packageVersion"  .= v,
-            "isLatest" .= isLatest,
+            "isLatest"        .= isLatest,
             "poseidonVersion" .= posVersion,
             "description"     .= description,
             "lastModified"    .= lastModified,
@@ -138,11 +145,11 @@ instance ToJSON PackageInfo where
 
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
-            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
+            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .:? "packageVersion"))
             <*> v .: "isLatest"
             <*> v .: "poseidonVersion"
-            <*> v .: "description"
-            <*> v .: "lastModified"
+            <*> v .:? "description"
+            <*> v .:? "lastModified"
             <*> v .: "nrIndividuals"
 
 data GroupInfo = GroupInfo
@@ -154,7 +161,7 @@ data GroupInfo = GroupInfo
 
 instance ToJSON GroupInfo where
     toJSON (GroupInfo name (PacNameAndVersion pacTitle pacVersion) isLatest nrIndividuals) =
-        object [
+        removeNulls $ object [
             "groupName"       .= name,
             "packageTitle"    .= pacTitle,
             "packageVersion"  .= pacVersion,
@@ -166,7 +173,7 @@ instance FromJSON GroupInfo where
     parseJSON = withObject "GroupInfo" $ \v -> do
         groupName      <- v .: "groupName"
         packageTitle   <- v .: "packageTitle"
-        packageVersion <- v .: "packageVersion"
+        packageVersion <- v .:? "packageVersion"
         isLatest       <- v .: "isLatest"
         nrIndividuals  <- v .: "nrIndividuals"
         return $ GroupInfo groupName (PacNameAndVersion packageTitle packageVersion) isLatest nrIndividuals
@@ -189,20 +196,19 @@ instance HasNameAndVersion ExtendedIndividualInfo where
     getPacVersion = getPacVersion . extIndInfoPac
 
 instance ToJSON ExtendedIndividualInfo where
-    toJSON e =
-        object [
-            "poseidonID"             .= extIndInfoName e,
-            "groupNames"             .= extIndInfoGroups e,
-            "packageTitle"           .= (getPacName     . extIndInfoPac $ e),
-            "packageVersion"         .= (getPacVersion  . extIndInfoPac $ e),
-            "isLatest"               .= extIndInfoIsLatest e,
-            "additionalJannoColumns" .= extIndInfoAddCols e]
+    toJSON e = removeNulls $ object [
+        "poseidonID"             .= extIndInfoName e,
+        "groupNames"             .= extIndInfoGroups e,
+        "packageTitle"           .= (getPacName     . extIndInfoPac $ e),
+        "packageVersion"         .= (getPacVersion  . extIndInfoPac $ e),
+        "isLatest"               .= extIndInfoIsLatest e,
+        "additionalJannoColumns" .= extIndInfoAddCols e]
 
 instance FromJSON ExtendedIndividualInfo where
     parseJSON = withObject "ExtendedIndividualInfo" $ \v -> ExtendedIndividualInfo
             <$> v .: "poseidonID"
             <*> v .: "groupNames"
-            <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .: "packageVersion"))
+            <*> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .:? "packageVersion"))
             <*> v .: "isLatest"
             <*> v .: "additionalJannoColumns"
 
@@ -227,16 +233,44 @@ extIndInfo2IndInfoCollection extIndInfos =
     in  (indInfos, areLatest)
 
 -- type needed to specify additional Janno Columns to be queried from packages
-data AddJannoColSpec = AddJannoColList [String] | AddJannoColAll
+data AddColSpec = AddColList [String] | AddColAll
 
 data BibliographyInfo = BibliographyInfo {
-    bibInfoPackageNames :: [PacNameAndVersion],
-    bibInfoNrSamples    :: Int,
-    bibInfoBibEntry     :: BibEntry
+    bibInfoPac       :: PacNameAndVersion,
+    bibInfoIsLatest  :: Bool,
+    bibInfoNrSamples :: Int,
+    bibInfoKey       :: String,
+    bibInfoTitle     :: Maybe String,
+    bibInfoAuthor    :: Maybe String,
+    bibInfoYear      :: Maybe String,
+    bibInfoJournal   :: Maybe String,
+    bibInfoDoi       :: Maybe String,
+    bibInfoAddCols   :: [(String, Maybe String)]
 }
 
 instance ToJSON BibliographyInfo where
-    toJSON e = object [
-        "packageNames" .= bibInfoPackageNames e,
-        "nrSamples"    .= bibInfoNrSamples e,
-        "bibEntry"     .= bibInfoBibEntry e ]
+    toJSON e = removeNulls $ object [
+        "packageTitle"         .= (getPacName     . bibInfoPac $ e),
+        "packageVersion"       .= (getPacVersion  . bibInfoPac $ e),
+        "isLatest"             .= bibInfoIsLatest e,
+        "nrSamples"            .= bibInfoNrSamples e,
+        "bibKey"               .= bibInfoKey e,
+        "bibTitle"             .= bibInfoTitle e,
+        "bibAuthor"            .= bibInfoAuthor e,
+        "bibYear"              .= bibInfoYear e,
+        "bibJournal"           .= bibInfoJournal e,
+        "bibDoi"               .= bibInfoDoi e,
+        "additionalBibEntries" .= bibInfoAddCols e ]
+
+instance FromJSON BibliographyInfo where
+        parseJSON = withObject "BibliographyInfo" $ \v -> BibliographyInfo
+            <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .:? "packageVersion"))
+            <*> v .: "isLatest"
+            <*> v .: "nrSamples"
+            <*> v .: "bibKey"
+            <*> v .:? "bibTitle"
+            <*> v .:? "bibAuthor"
+            <*> v .:? "bibYear"
+            <*> v .:? "bibJournal"
+            <*> v .:? "bibDoi"
+            <*> v .: "additionalBibEntries"

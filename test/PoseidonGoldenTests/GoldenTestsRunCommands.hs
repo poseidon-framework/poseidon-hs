@@ -36,7 +36,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.ServerClient      (AddJannoColSpec (..),
+import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
                                              getChecksum, testLog,
@@ -363,7 +363,7 @@ testPipelineList testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "list" 2
     let listOpts3 = listOpts1 {
-          _listListEntity    = ListIndividuals (AddJannoColList ["Country", "Nr_SNPs"])
+          _listListEntity    = ListIndividuals (AddColList ["Country", "Nr_SNPs"])
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "list" 3
     let listOpts4 = listOpts3 {
@@ -375,7 +375,7 @@ testPipelineList testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "list" 5
     let listOpts6 = listOpts1 {
-          _listListEntity    = ListIndividuals AddJannoColAll
+          _listListEntity    = ListIndividuals AddColAll
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts6) "list" 6
 
@@ -1221,7 +1221,7 @@ testPipelineListRemote testDir checkFilePath = do
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts2) "listRemote" 2
         let listOpts3 = listOpts1 {
-              _listListEntity    = ListIndividuals (AddJannoColList ["Publication"])
+              _listListEntity    = ListIndividuals (AddColList ["Publication"])
             , _listRawOutput     = True
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts3) "listRemote" 3
@@ -1236,7 +1236,7 @@ testPipelineListRemote testDir checkFilePath = do
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts4) "listRemote" 4
 
         let listOpts5 = listOpts1 {
-              _listListEntity    = ListIndividuals AddJannoColAll
+              _listListEntity    = ListIndividuals AddColAll
             , _listRawOutput     = True
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "listRemote" 5

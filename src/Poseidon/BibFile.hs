@@ -6,8 +6,6 @@ import           Poseidon.Utils                     (PoseidonException (..),
 
 import           Control.Exception                  (throwIO)
 import           Control.Monad                      (forM_, liftM2, liftM3)
-import           Data.Aeson                         (FromJSON, ToJSON (..), object, parseJSON,
-                                                     toJSON, withObject, (.:), (.=))
 import           System.IO                          (IOMode (..), hPutStrLn,
                                                      withFile)
 import           Text.Parsec                        (between, char, many, many1,
@@ -31,18 +29,6 @@ instance Eq BibEntry where
 
 instance Ord BibEntry where
     (BibEntry _ i1 _) `compare` (BibEntry _ i2 _) = i1 `compare` i2
-
-instance ToJSON BibEntry where
-   toJSON e = object [
-      "bibEntryType" .= bibEntryType e,
-      "bibEntryId"   .= bibEntryId e,
-      "bibEntryFields" .= bibEntryFields e]
-
-instance FromJSON BibEntry where
-   parseJSON = withObject "BibEntry" $ \v -> BibEntry
-            <$> v .: "bibEntryType"
-            <*> v .: "bibEntryId"
-            <*> v .: "bibEntryFields"
 
 type BibTeX = [BibEntry]
 

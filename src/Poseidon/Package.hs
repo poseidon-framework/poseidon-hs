@@ -26,11 +26,13 @@ module Poseidon.Package (
     packagesToPackageInfos,
     getAllGroupInfo,
     validateGeno,
-    filterToRelevantPackages
+    filterToRelevantPackages,
+    getBibliographyInfo
 ) where
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
+import           Poseidon.ColumnTypes       (JannoPublication (..))
 import           Poseidon.Contributor       (ContributorSpec (..))
 import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
@@ -59,7 +61,8 @@ import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
                                              SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
-import           Poseidon.ServerClient      (AddJannoColSpec (..),
+import           Poseidon.ServerClient      (AddColSpec (..),
+                                             BibliographyInfo (..),
                                              ExtendedIndividualInfo (..),
                                              GroupInfo (..), PackageInfo (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
@@ -90,6 +93,7 @@ import           Data.List                  (elemIndex, group, groupBy,
                                              (\\))
 import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
                                              mapMaybe)
+import           Data.Text                  (unpack)
 import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
 import qualified Data.Vector                as V
 import           Data.Version               (Version (..), makeVersion)
@@ -838,16 +842,16 @@ getJointIndividualInfo packages = do
     return (map fst . concat $ indInfoLatestPairs, map snd . concat $ indInfoLatestPairs)
 
 
-getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> AddJannoColSpec -> m [ExtendedIndividualInfo]
+getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> AddColSpec -> m [ExtendedIndividualInfo]
 getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list monad
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
     let name = jPoseidonID jannoRow
         groups = map show $ getListColumn . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
-            AddJannoColAll -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
+            AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
-            AddJannoColList c  -> c
+            AddColList c -> c
         additionalColumnEntries = [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
@@ -859,3 +863,39 @@ filterToRelevantPackages entities packages = do
     indInfoCollection <- getJointIndividualInfo packages
     relevantPacs <- determineRelevantPackages entities indInfoCollection
     return $ filter (\p -> makePacNameAndVersion p `elem` relevantPacs) packages
+
+-- data BibliographyInfo = BibliographyInfo {
+--     bibInfoPac       :: PacNameAndVersion,
+--     bibInfoIsLatest  :: Bool,
+--     bibInfoNrSamples :: Int,
+--     bibInfoKey       :: String,
+--     bibInfoTitle     :: Maybe String,
+--     bibInfoAuthor    :: Maybe String,
+--     bibInfoYear      :: Maybe String,
+--     bibInfoJournal   :: Maybe String,
+--     bibInfoDoi       :: Maybe String,
+--     bibInfoAddCols   :: [(String, Maybe String)]
+-- }
+
+getBibliographyInfo :: (MonadThrow m) => [PoseidonPackage] -> AddColSpec -> m [BibliographyInfo]
+getBibliographyInfo allPackages addColSpec = sequence $ do
+    pac <- allPackages -- loop over packages, concatenating inner loops
+    (BibEntry _ bibId bibFields) <- posPacBib pac --loop over bib-entries
+    let nrSamples = length $ do -- list monad over samples
+            jannoRow <- getJannoRowsFromPac pac
+            let bibKeys = case jPublication jannoRow of
+                    Nothing -> []
+                    Just jannoPubList -> map (\(JannoPublication p) -> unpack p) $ getListColumn jannoPubList
+            True <- return $ bibId `elem` bibKeys
+            return ()
+    isLatest <- isLatestInCollection allPackages pac
+    let addBibEntries = case addColSpec of
+            -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
+            AddColAll -> [(k, Just v) | (k, v) <- bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
+            -- with a selecton of colNames we just query the bib-fields for those exact fields.
+            AddColList colNames -> [(colName, colName `lookup` bibFields) | colName <- colNames]
+    return . return $ BibliographyInfo (makePacNameAndVersion pac) isLatest nrSamples bibId ("title" `lookup` bibFields)
+        ("author" `lookup` bibFields) ("year" `lookup` bibFields) ("journal" `lookup` bibFields)
+        ("doi" `lookup` bibFields) addBibEntries
+
+

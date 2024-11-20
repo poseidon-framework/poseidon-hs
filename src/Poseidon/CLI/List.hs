@@ -9,7 +9,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          getExtendedIndividualInfo,
                                          packagesToPackageInfos,
                                          readPoseidonPackageCollection)
-import           Poseidon.ServerClient  (AddJannoColSpec (..),
+import           Poseidon.ServerClient  (AddColSpec (..),
                                          ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          ExtendedIndividualInfo (..),
@@ -39,7 +39,8 @@ data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
     | ListGroups
-    | ListIndividuals AddJannoColSpec
+    | ListIndividuals AddColSpec
+    | ListBibliography AddColSpec
 
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonIO ()
@@ -95,9 +96,9 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
                     let addJannoColFlag = case addJannoColSpec of
-                            AddJannoColAll -> "&additionalJannoColumns=ALL"
-                            AddJannoColList [] -> ""
-                            AddJannoColList moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
+                            AddColAll -> "&additionalJannoColumns=ALL"
+                            AddColList [] -> ""
+                            AddColList moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ addJannoColFlag) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo indInfo -> return indInfo
@@ -114,7 +115,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
             -- we only output this warning if the columns were requested explicitly. Not if
             -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
             case addJannoColSpec of
-                AddJannoColList (_:_) -> do
+                AddColList (_:_) -> do
                     forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
                         -- check entries in all individuals for that key
                         let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
@@ -129,6 +130,8 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                               showMaybeVersion (getPacVersion i), show  isLatest] ++
                               map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
+        ListBibliography _ -> do
+            return undefined
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableH:tableB]
     else do
