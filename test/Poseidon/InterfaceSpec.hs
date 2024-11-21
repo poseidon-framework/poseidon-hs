@@ -42,6 +42,20 @@ testParseInGenoSep = describe
                 Just (GenotypeEigenstrat "path/to/file.test.geno.gz" Nothing
                                          "path/to/file.snp"          Nothing
                                          "path/to/file.ind"          Nothing)
+        it "should return the expected paths for PLINK data" $ do
+            runParser parseInGenoSep [
+                  "--bedFile", "path/to/file.test.bed.gz"
+                , "--bimFile", "path/to/file.bim"
+                , "--famFile", "path/to/file.fam"
+                ] `shouldBe`
+                Just (GenotypePlink "path/to/file.test.bed.gz" Nothing
+                                    "path/to/file.bim"         Nothing
+                                    "path/to/file.fam"         Nothing)
+        it "should return the expected paths for VCF data" $ do
+            runParser parseInGenoSep [
+                  "--vcfFile", "path/to/file.vcf"
+                ] `shouldBe`
+                Just (GenotypeVCF "path/to/file.vcf" Nothing)
 
 testSplitExtensionsOptGz :: Spec
 testSplitExtensionsOptGz = describe
