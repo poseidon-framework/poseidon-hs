@@ -9,6 +9,7 @@ import           Test.Hspec
 spec :: Spec
 spec = do
     testParseInGenoOne
+    testParseInGenoSep
     testSplitExtensionsOptGz
 
 runParser :: OP.Parser a -> [String] -> Maybe a
@@ -28,6 +29,19 @@ testParseInGenoOne = describe
                 Just (GenotypePlink "path/to/file.bed.gz" Nothing
                                     "path/to/file.bim.gz" Nothing
                                     "path/to/file.fam"    Nothing)
+
+testParseInGenoSep :: Spec
+testParseInGenoSep = describe
+    "Poseidon.OptparseApplicativeParsers.parseInGenoSep" $ do
+        it "should return the expected paths for EIGENSTRAT data" $ do
+            runParser parseInGenoSep [
+                  "--genoFile", "path/to/file.test.geno.gz"
+                , "--snpFile",  "path/to/file.snp"
+                , "--indFile",  "path/to/file.ind"
+                ] `shouldBe`
+                Just (GenotypeEigenstrat "path/to/file.test.geno.gz" Nothing
+                                         "path/to/file.snp"          Nothing
+                                         "path/to/file.ind"          Nothing)
 
 testSplitExtensionsOptGz :: Spec
 testSplitExtensionsOptGz = describe
