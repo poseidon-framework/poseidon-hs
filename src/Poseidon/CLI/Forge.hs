@@ -185,22 +185,15 @@ runForge (
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
     -- compile genotype data structure
-    genotypeFileData <- case (outFormat, outZip) of
-            ("EIGENSTRAT", False) -> return $
-                GenotypeEigenstrat (outName <.> ".geno")  Nothing
-                                   (outName <.> ".snp")  Nothing
+    let gz = if outZip then "gz" else ""
+    genotypeFileData <- case outFormat of
+            "EIGENSTRAT" -> return $
+                GenotypeEigenstrat (outName <.> ".geno" <.> gz)  Nothing
+                                   (outName <.> ".snp" <.> gz)  Nothing
                                    (outName <.> ".ind") Nothing
-            ("EIGENSTRAT", True) -> return $
-                GenotypeEigenstrat (outName <.> ".geno.gz")  Nothing
-                                   (outName <.> ".snp.gz")  Nothing
-                                   (outName <.> ".ind") Nothing
-            ("PLINK", False)      -> return $
-                GenotypePlink      (outName <.> ".bed")  Nothing
-                                   (outName <.> ".bim")  Nothing
-                                   (outName <.> ".fam")  Nothing
-            ("PLINK", True)      -> return $
-                GenotypePlink      (outName <.> ".bed.gz")  Nothing
-                                   (outName <.> ".bim.gz")  Nothing
+            "PLINK"      -> return $
+                GenotypePlink      (outName <.> ".bed" <.> gz)  Nothing
+                                   (outName <.> ".bim" <.> gz)  Nothing
                                    (outName <.> ".fam")  Nothing
             _  -> liftIO . throwIO $
                 PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
