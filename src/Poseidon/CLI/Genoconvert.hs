@@ -149,15 +149,16 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
             logInfo "Adjusting POSEIDON.yml..."
             liftIO $ writePoseidonPackage newPac
         -- delete now replaced input genotype data
-        let oldBaseDir = posPacBaseDir pac
-        oldGenoFiles <- case genotypeFileSpec . posPacGenotypeData $ pac of
-                GenotypeEigenstrat g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
-                GenotypePlink      g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
-                GenotypeVCF        g _         -> return [oldBaseDir </> g]
-        let newGenoFiles = [outGabs, outSabs, outIabs]
+        when removeOld $ do
+            let oldBaseDir = posPacBaseDir pac
+            oldGenoFiles <- case genotypeFileSpec . posPacGenotypeData $ pac of
+                    GenotypeEigenstrat g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
+                    GenotypePlink      g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
+                    GenotypeVCF        g _         -> return [oldBaseDir </> g]
+            let newGenoFiles = [outGabs, outSabs, outIabs]
 
-        let filesToDelete = oldGenoFiles \\ newGenoFiles
-        when removeOld . liftIO . mapM_ removeFile $ filesToDelete
+            let filesToDelete = oldGenoFiles \\ newGenoFiles
+            liftIO . mapM_ removeFile $ filesToDelete
   where
     checkFile :: FilePath -> PoseidonIO Bool
     checkFile fn = do
