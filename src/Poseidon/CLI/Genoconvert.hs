@@ -76,7 +76,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         ++ " to format "
         ++ show outFormat
         ++ if outZip then "(gzipped):" else ":"
-    
+
     -- compile new relative file names
     let outName = getPacName . posPacNameAndVersion $ pac
     let gz = if outZip then "gz" else ""
@@ -88,7 +88,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
             _                     -> liftIO . throwIO . PoseidonGenericException $
                 "Illegal outFormat " ++ outFormat ++
                 ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
-    
+
     -- compile new absolute genotype file names
     newBaseDir <- case outPath of
         Just x -> do
@@ -98,7 +98,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
             return x
         Nothing -> return $ posPacBaseDir pac
     let (outGabs, outSabs, outIabs) = (newBaseDir </> outGrel, newBaseDir </> outSrel, newBaseDir </> outIrel)
-    
+
     -- check whether anything needs doing at all
     allExists <- and <$> mapM checkFile [outGabs, outSabs, outIabs]
     if allExists
