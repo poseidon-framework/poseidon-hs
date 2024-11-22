@@ -585,8 +585,6 @@ parseForgeOutMode =
 
 parseOutOnlyGenoFlag :: OP.Parser ForgeOutMode
 parseOutOnlyGenoFlag = OP.flag' GenoOut onlyGenoOutputDocu
-parseOutOnlyGenoSwitch :: OP.Parser Bool
-parseOutOnlyGenoSwitch = OP.switch onlyGenoOutputDocu
 onlyGenoOutputDocu :: OP.Mod OP.FlagFields a
 onlyGenoOutputDocu =
     OP.long "onlyGeno" <>
