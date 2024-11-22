@@ -557,9 +557,9 @@ parseMaybeOutPackagePath = OP.option (Just <$> OP.str) (
     OP.short 'o' <>
     OP.long "outPackagePath" <>
     OP.metavar "DIR" <>
-    OP.help "Path to the output package directory. This is optional: If no path is provided, \
-            \then the output is written to the directories where the input genotype data file \
-            \(.bed/.geno) is stored." <>
+    OP.help "Path for the converted genotype files to be written to. If a path is provided, only the converted genotype \
+        \files are written out, with no change of the original package. If no path is provided, \
+        \genotype files will be converted in-place, including a change in the POSEIDON.yml file to yield an updated valid package" <>
     OP.value Nothing <>
     OP.showDefault
     )
