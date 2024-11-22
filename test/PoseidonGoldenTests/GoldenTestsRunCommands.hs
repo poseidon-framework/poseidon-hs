@@ -417,7 +417,6 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -433,7 +432,6 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
@@ -450,7 +448,6 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts3 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testDir </> "init" </> "Wang"]
         , _genoConvertOutFormat = "EIGENSTRAT"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -479,7 +476,6 @@ testPipelineGenoconvert testDir checkFilePath = do
               }
           ]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = True
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -504,7 +500,6 @@ testPipelineGenoconvert testDir checkFilePath = do
               }
           ]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = True
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -521,7 +516,6 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts6zipping = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "zip_roundtrip"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -537,14 +531,13 @@ testPipelineGenoconvert testDir checkFilePath = do
                                         (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam") Nothing
               in  [GenoDirect $ GenotypeDataSpec gSpec Nothing]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = True
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
         , _genoconvertOutZip     = False
     }
-    testLog $ runGenoconvert genoconvertOpts6unzipping
+    return ()
 
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6unzipping) "genoconvert" [
           "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed"

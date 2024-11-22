@@ -79,7 +79,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
     
     -- compile new relative file names
     let outName = getPacName . posPacNameAndVersion $ pac
-    let gz = "gz"
+    let gz = if outZip then "gz" else ""
     (outIrel, outSrel, outGrel) <- case outFormat of
             "EIGENSTRAT" -> return
                 (outName <.> ".ind", outName <.> ".snp" <.> gz, outName <.> ".geno" <.> gz)
