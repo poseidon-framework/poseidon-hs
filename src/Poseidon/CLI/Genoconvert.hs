@@ -79,15 +79,12 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         ++ if outZip then "(gzipped):" else ":"
     -- compile file names paths
     let outName = getPacName . posPacNameAndVersion $ pac
-    (outInd, outSnp, outGeno) <- case (outFormat, outZip) of
-            ("EIGENSTRAT", False) -> return
-                (outName <.> ".ind", outName <.> ".snp"   , outName <.> ".geno"   )
-            ("EIGENSTRAT", True ) -> return
-                (outName <.> ".ind", outName <.> ".snp.gz", outName <.> ".geno.gz")
-            ("PLINK",      False) -> return
-                (outName <.> ".fam", outName <.> ".bim"   , outName <.> ".bed"    )
-            ("PLINK",      True ) -> return
-                (outName <.> ".fam", outName <.> ".bim.gz", outName <.> ".bed.gz" )
+    let gz = "gz"
+    (outInd, outSnp, outGeno) <- case outFormat of
+            "EIGENSTRAT" -> return
+                (outName <.> ".ind", outName <.> ".snp" <.> gz, outName <.> ".geno" <.> gz)
+            ("PLINK" -> return
+                (outName <.> ".fam", outName <.> ".bim" <.> gz, outName <.> ".bed" <.> gz)
             _                     -> liftIO . throwIO . PoseidonGenericException $
                 "Illegal outFormat " ++ outFormat ++
                 ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
