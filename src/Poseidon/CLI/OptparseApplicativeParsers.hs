@@ -39,7 +39,7 @@ import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath            (dropExtensions, splitExtension,
                                              splitExtensions, takeExtension,
-                                             takeExtensions)
+                                             takeExtensions, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
 
@@ -460,21 +460,21 @@ parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
             in  makeGenoInput path extension
         makeGenoInput path ext
             | ext `elem` [".geno",    ".snp",   ".ind"] =
-                Right $ GenotypeEigenstrat (path <> ".geno")    Nothing
-                                           (path <> ".snp")     Nothing
-                                           (path <> ".ind")     Nothing
+                Right $ GenotypeEigenstrat (path <.> "geno")    Nothing
+                                           (path <.> "snp")     Nothing
+                                           (path <.> "ind")     Nothing
             | ext `elem` [".geno.gz", ".snp.gz"       ] =
-                Right $ GenotypeEigenstrat (path <> ".geno.gz") Nothing
-                                           (path <> ".snp.gz")  Nothing
-                                           (path <> ".ind")     Nothing
+                Right $ GenotypeEigenstrat (path <.> "geno.gz") Nothing
+                                           (path <.> "snp.gz")  Nothing
+                                           (path <.> "ind")     Nothing
             | ext `elem` [".bed",     ".bim",   ".fam"] =
-                Right $ GenotypePlink      (path <> ".bed")     Nothing
-                                           (path <> ".bim")     Nothing
-                                           (path <> ".fam")     Nothing
+                Right $ GenotypePlink      (path <.> "bed")     Nothing
+                                           (path <.> "bim")     Nothing
+                                           (path <.> "fam")     Nothing
             | ext `elem` [".bed.gz",  ".bim.gz"       ] =
-                Right $ GenotypePlink      (path <> ".bed.gz")  Nothing
-                                           (path <> ".bim.gz")  Nothing
-                                           (path <> ".fam")     Nothing
+                Right $ GenotypePlink      (path <.> "bed.gz")  Nothing
+                                           (path <.> "bim.gz")  Nothing
+                                           (path <.> "fam")     Nothing
             | ext `elem` [".vcf", ".vcf.gz"           ] =
                 Right $ GenotypeVCF        (path <> ext)         Nothing
             | otherwise = Left $ "unknown file extension: " ++ ext
