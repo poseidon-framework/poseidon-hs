@@ -905,5 +905,5 @@ parseZipOut :: OP.Parser Bool
 parseZipOut = OP.switch (
     OP.long "zip" <>
     OP.short 'z' <>
-    OP.help "Whether the resulting genotype- and snp-files should be gzipped."
+    OP.help "Should the resulting genotype- and snp-files be gzipped?"
     )
