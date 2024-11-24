@@ -75,7 +75,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         ++ show (posPacNameAndVersion pac)
         ++ " to format "
         ++ show outFormat
-        ++ if outZip then "(gzipped):" else ":"
+        ++ if outZip then " (gzipped):" else ":"
 
     -- compile new relative file names
     let outName = getPacName . posPacNameAndVersion $ pac
