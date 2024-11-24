@@ -37,9 +37,8 @@ import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath            (dropExtensions, splitExtension,
-                                             splitExtensions, takeExtension,
-                                             takeExtensions, (<.>))
+import           System.FilePath            (splitExtension, splitExtensions,
+                                             takeExtension, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
 
@@ -508,7 +507,7 @@ parseInGenoSep = parseEigenstrat <|> parsePlink <|> parseVCF
         pure Nothing <*>
         parseFileWithEndings "Eigenstrat individual file" "indFile" [".ind"] <*>
         pure Nothing
-    parsePlink = GenotypeEigenstrat <$>
+    parsePlink = GenotypePlink <$>
         parseFileWithEndings "Plink genotype matrix, optionally gzipped" "bedFile" [".bed", ".bed.gz"] <*>
         pure Nothing <*>
         parseFileWithEndings "Plink snp positions file, optionally gzipped" "bimFile" [".bim",  ".bim.gz"] <*>
@@ -525,7 +524,9 @@ parseFileWithEndings help long endings = OP.option (OP.maybeReader fileEndingRea
     OP.metavar "FILE")
   where
     fileEndingReader :: String -> Maybe FilePath
-    fileEndingReader optString = if takeExtensions optString `elem` endings then Just (dropExtensions optString) else Nothing
+    fileEndingReader p =
+        let (_, extension) = splitExtensionsOptGz p
+        in if extension `elem` endings then Just p else Nothing
 
 parseGenotypeSNPSet :: OP.Parser SNPSetSpec
 parseGenotypeSNPSet = OP.option (OP.eitherReader readSnpSet) (
