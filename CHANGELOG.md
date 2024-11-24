@@ -1,3 +1,5 @@
+- V 1.5.7.4:
+    - Fixed a bug that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`).
 - V 1.5.7.3:
     - Allowed `0` in the `Nr_SNPs` .janno column.
 - V 1.5.7.2: 
