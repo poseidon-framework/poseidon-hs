@@ -29,6 +29,26 @@ testParseInGenoOne = describe
                 Just (GenotypePlink "path/to/file.bed.gz" Nothing
                                     "path/to/file.bim.gz" Nothing
                                     "path/to/file.fam"    Nothing)
+        it "should detect unzipped files correctly" $ do
+            let maybeValEigenstrat = runParser parseInGenoOne ["-p", "path/to/file.geno"]
+            maybeValEigenstrat `shouldBe`
+                Just (GenotypeEigenstrat "path/to/file.geno" Nothing
+                                         "path/to/file.snp"  Nothing
+                                         "path/to/file.ind"     Nothing)
+        it "should detect assume unzipped files if ind-file is given" $ do
+            let maybeValEigenstrat = runParser parseInGenoOne ["-p", "path/to/file.ind"]
+            maybeValEigenstrat `shouldBe`
+                Just (GenotypeEigenstrat "path/to/file.geno" Nothing
+                                         "path/to/file.snp"  Nothing
+                                         "path/to/file.ind"     Nothing)
+        it "should accept a VCF" $ do
+            let maybeValEigenstrat = runParser parseInGenoOne ["-p", "path/to/file.vcf"]
+            maybeValEigenstrat `shouldBe`
+                Just (GenotypeVCF "path/to/file.vcf" Nothing)
+        it "should accept a zipped VCF" $ do
+            let maybeValEigenstrat = runParser parseInGenoOne ["-p", "path/to/file.vcf.gz"]
+            maybeValEigenstrat `shouldBe`
+                Just (GenotypeVCF "path/to/file.vcf.gz" Nothing)
 
 testParseInGenoSep :: Spec
 testParseInGenoSep = describe

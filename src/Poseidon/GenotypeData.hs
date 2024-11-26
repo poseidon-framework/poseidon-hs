@@ -67,11 +67,6 @@ data GenotypeFileSpec = GenotypeEigenstrat {
     _vcfGenoFileChkSum :: Maybe String
 } deriving (Show, Eq)
 
-getFormat :: GenotypeFileSpec -> String
-getFormat (GenotypeEigenstrat _ _ _ _ _ _) = "EIGENSTRAT"
-getFormat (GenotypePlink      _ _ _ _ _ _) = "PLINK"
-getFormat (GenotypeVCF        _ _        ) = "VCF"
-
 -- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
 instance FromJSON GenotypeDataSpec where
     parseJSON = withObject "GenotypeData" $ \v -> do

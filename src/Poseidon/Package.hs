@@ -705,11 +705,14 @@ makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPack
 makePseudoPackageFromGenotypeData gd = do
     (baseDir, reducedGenotypeDataSpec) <- reduceGenotypeFilepaths gd
     let pacName = case genotypeFileSpec reducedGenotypeDataSpec of
-            GenotypeEigenstrat fn _ _ _ _ _ -> takeBaseName fn
-            GenotypePlink      fn _ _ _ _ _ -> takeBaseName fn
-            GenotypeVCF        fn _         -> takeBaseName fn
+            GenotypeEigenstrat fn _ _ _ _ _ -> takeBaseNameSmart fn
+            GenotypePlink      fn _ _ _ _ _ -> takeBaseNameSmart fn
+            GenotypeVCF        fn _         -> takeBaseNameSmart fn
     inds <- loadIndividuals baseDir reducedGenotypeDataSpec
     newPackageTemplate baseDir pacName reducedGenotypeDataSpec (Just (Left inds)) mempty []
+  where
+    takeBaseNameSmart fn =
+        if takeExtension fn == ".gz" then takeBaseName (take (length fn - 3) fn) else takeBaseName fn
 
 -- | A function to create a more complete POSEIDON package
 -- This will take only the filenames of the provided files, so it assumes that the files will be copied into
