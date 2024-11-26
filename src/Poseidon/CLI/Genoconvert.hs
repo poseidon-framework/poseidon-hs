@@ -17,7 +17,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              writePoseidonPackage)
 import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              envErrorLength, envLogAction,
-                                             logInfo, logWarning)
+                                             logError, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (unless, when)
@@ -32,6 +32,7 @@ import           SequenceFormats.Plink      (PlinkPopNameMode,
 import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile,
                                              renameFile)
+import           System.Exit                (ExitCode (..), exitWith)
 import           System.FilePath            (dropTrailingPathSeparator, (<.>),
                                              (</>))
 
@@ -102,8 +103,14 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
     -- check whether anything needs doing at all
     allExists <- and <$> mapM checkFile [outGabs, outSabs, outIabs]
     if allExists
-    then logWarning $ "Package already in desired file-type, skipping genotype conversion for " ++
-        show (posPacNameAndVersion pac)
+    then do
+        if onlyGeno
+        then do
+            logError $ "No files were created or overwritten for " ++ show (posPacNameAndVersion pac)
+            liftIO $ exitWith (ExitFailure 1)
+        else
+            logWarning $ "Package already in desired file-type, skipping genotype conversion for " ++
+                show (posPacNameAndVersion pac)
     else do
         -- Convert!
         logInfo "Processing SNPs..."
@@ -134,31 +141,31 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         liftIO $ renameFile (outSabs ++ ".gconvert" ++ zipEnding) outSabs
         liftIO $ renameFile (outIabs ++ ".gconvert") outIabs
         logInfo "Done"
-        -- overwrite genotype data field in POSEIDON.yml file (using relative paths)
-        unless (onlyGeno || isJust outPath) $ do
-            gFileSpec <- case outFormat of
-                    "EIGENSTRAT" -> return $
-                        GenotypeEigenstrat outGrel Nothing outSrel Nothing outIrel Nothing
-                    "PLINK"      -> return $
-                        GenotypePlink      outGrel Nothing outSrel Nothing outIrel Nothing
-                    _  -> liftIO . throwIO . PoseidonGenericException $
-                        "Illegal outFormat " ++ outFormat ++
-                        ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
-            let newGenotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
-                newPac = pac { posPacGenotypeData = newGenotypeData }
-            logInfo "Adjusting POSEIDON.yml..."
-            liftIO $ writePoseidonPackage newPac
-        -- delete now replaced input genotype data
-        when removeOld $ do
-            let oldBaseDir = posPacBaseDir pac
-            oldGenoFiles <- case genotypeFileSpec . posPacGenotypeData $ pac of
-                    GenotypeEigenstrat g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
-                    GenotypePlink      g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
-                    GenotypeVCF        g _         -> return [oldBaseDir </> g]
-            let newGenoFiles = [outGabs, outSabs, outIabs]
 
-            let filesToDelete = oldGenoFiles \\ newGenoFiles
-            liftIO . mapM_ removeFile $ filesToDelete
+    -- overwrite genotype data field in POSEIDON.yml file (using relative paths)
+    unless (onlyGeno || isJust outPath) $ do
+        gFileSpec <- case outFormat of
+                "EIGENSTRAT" -> return $
+                    GenotypeEigenstrat outGrel Nothing outSrel Nothing outIrel Nothing
+                "PLINK"      -> return $
+                    GenotypePlink      outGrel Nothing outSrel Nothing outIrel Nothing
+                _  -> liftIO . throwIO . PoseidonGenericException $
+                    "Illegal outFormat " ++ outFormat ++
+                    ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+        let newGenotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
+            newPac = pac { posPacGenotypeData = newGenotypeData }
+        logInfo $ "Adjusting POSEIDON.yml for " ++ show (posPacNameAndVersion pac)
+        liftIO $ writePoseidonPackage newPac
+        -- delete now replaced input genotype data
+    when removeOld $ do
+        let oldBaseDir = posPacBaseDir pac
+        oldGenoFiles <- case genotypeFileSpec . posPacGenotypeData $ pac of
+                GenotypeEigenstrat g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
+                GenotypePlink      g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
+                GenotypeVCF        g _         -> return [oldBaseDir </> g]
+        let newGenoFiles = [outGabs, outSabs, outIabs]
+        let filesToDelete = oldGenoFiles \\ newGenoFiles
+        liftIO . mapM_ removeFile $ filesToDelete
   where
     checkFile :: FilePath -> PoseidonIO Bool
     checkFile fn = do
