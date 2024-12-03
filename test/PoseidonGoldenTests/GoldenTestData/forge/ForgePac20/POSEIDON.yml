@@ -1,0 +1,12 @@
+poseidonVersion: 2.7.1
+title: ForgePac20
+description: Empty package template. Please add a description
+packageVersion: 0.1.0
+lastModified: 1970-01-01
+genotypeData:
+  format: PLINK
+  genoFile: ForgePac20.bed
+  snpFile: ForgePac20.bim
+  indFile: ForgePac20.fam
+  snpSet: Other
+jannoFile: ForgePac20.janno

@@ -118,6 +118,8 @@ ad7e56177aad0a720f0bde13d47f2ac1 forge forge/ForgePac19/CHANGELOG.md
 8538ffd971ebb12cf5ef6e338da27970 forge forge/ForgePac19/ForgePac19.bim
 9b22cab26cdae87bd79d24c289e48433 forge forge/ForgePac19/ForgePac19.fam
 b7b649620cd37bd4a6d6f0f31c1c56da forge forge/ForgePac19/ForgePac19.janno
+b36b3ca509c235d0f15571c96195e801 forge forge/ForgePac20/POSEIDON.yml
+e375863bca9e4a91c9855396abde31c7 forge forge/ForgePac20/ForgePac20.janno
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml

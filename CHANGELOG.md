@@ -1,9 +1,19 @@
 - V 1.5.9.0:
     - Added a feature to list bibliography information via `trident list --bibliography`.
     - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
+- V 1.5.7.4:
+    - Fixed a bug that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`).
+- V 1.5.7.3:
+    - Allowed `0` in the `Nr_SNPs` .janno column.
+- V 1.5.7.2: 
+    - Fixed a bug introduced in Version 1.5.5.0, where input using option "-p" (for example in init) would not behave correctly if input files have multiple file endings, separated by dots.
+- V 1.5.7.1:
+    - Fixed a bug in the .janno reading triggered by trailing `à` characters and caused by premature whitespace trimming.
+    - Removed the hacky `removeNoBreakSpace` function from the .janno reading pipeline. It is not necessary any more.
+    - Added a golden test that ensures both changes perform as expected.
 - V 1.5.7.0:
     - Added support for VCF files (Variant Call Format) in Janno-packages.
-    - restructured test package structure, affecting some of the unit- and golden tests.
+    - Restructured test package structure, affecting some of the unit- and golden tests.
 - V 1.5.6.0:
     - Introduced individual `Janno...` types for every .janno column (except Poseidon_ID) in a new module `ColumnTypes`. This was done to improve .janno validation error messages.
     - Defined a typeclass `Makeable` with a function `make` to write smart constructors for the column types.
