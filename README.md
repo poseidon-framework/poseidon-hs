@@ -53,7 +53,7 @@ before rerunning the procedure above.
 
 To test some of the output of the powerful trident CLI functions, poseidon-hs features a golden test mechanism:
 
-The output of a number of CLI function calls implemented in [`test/Poseidon/GoldenTestsRunCommands.hs`](test/Poseidon/GoldenTestsRunCommands.hs) is stored in a static file storage ([`test/testDat/poseidonHSGoldenTestData`](test/testDat/poseidonHSGoldenTestData)), together with relevant checksums for these files in [`test/testDat/poseidonHSGoldenTestCheckSumFile.txt`](test/testDat/poseidonHSGoldenTestCheckSumFile.txt). 
+The output of a number of CLI function calls implemented in [`test/PoseidonGoldenTests/GoldenTestsRunCommands.hs`](test/PoseidonGoldenTests/GoldenTestsRunCommands.hs) is stored in a static file storage ([`test/PoseidonGoldenTests/GoldenTestData`](test/PoseidonGoldenTests/GoldenTestData)), together with relevant checksums for these files in [`test/PoseidonGoldenTests/GoldenTestCheckSumFile.txt`](test/PoseidonGoldenTests/GoldenTestCheckSumFile.txt). 
 
 `stack test` then runs -- among other things -- the code in `/test/testDat/poseidonHSGoldenTestData` again and stores the result in a dynamic, temporary directory. It then validates the output by comparing the new and temporary checksums with the old and git-logged checksums in said file `poseidonHSGoldenTestCheckSumFile.txt`. Any deviation between these two sets of checksums will cause the test to fail. The test output in this case will therefore only print the name of the operation or the output file that changed, not what exactly changed within this file. 
 
