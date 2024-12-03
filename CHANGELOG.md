@@ -1,3 +1,6 @@
+- V 1.5.9.0:
+    - Added a feature to list bibliography information via `trident list --bibliography`.
+    - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
 - V 1.5.7.4:
     - Fixed a bug that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`).
 - V 1.5.7.3:

@@ -12,11 +12,12 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
+                                               getBibliographyInfo,
                                                getExtendedIndividualInfo,
                                                packagesToPackageInfos,
                                                readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
-import           Poseidon.ServerClient        (AddJannoColSpec (..),
+import           Poseidon.ServerClient        (AddColSpec (..),
                                                ApiReturnData (..),
                                                ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
@@ -123,12 +124,25 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacs <- getItemFromArchiveStore archiveStore
             maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
             indInfo <- case maybeAdditionalColumnsString of
-                    Just "ALL" -> getExtendedIndividualInfo pacs AddJannoColAll -- Nothing means all Janno Columns
+                    Just "ALL" -> getExtendedIndividualInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
                         let additionalColumnNames = splitOn "," additionalColumnsString
-                        in  getExtendedIndividualInfo pacs (AddJannoColList additionalColumnNames)
-                    Nothing -> getExtendedIndividualInfo pacs (AddJannoColList [])
+                        in  getExtendedIndividualInfo pacs (AddColList additionalColumnNames)
+                    Nothing -> getExtendedIndividualInfo pacs (AddColList [])
             let retData = ApiReturnExtIndividualInfo indInfo
+            return $ ServerApiReturnType [] (Just retData)
+
+        get "/bibliography" . conditionOnClientVersion $ do
+            logRequest logA
+            pacs <- getItemFromArchiveStore archiveStore
+            maybeAdditionalBibFieldsString <- (Just <$> param "additionalBibColumns") `rescue` (\_ -> return Nothing)
+            bibInfo <- case maybeAdditionalBibFieldsString of
+                    Just "ALL" -> getBibliographyInfo pacs AddColAll -- Nothing means all Janno Columns
+                    Just additionalBibFieldsString ->
+                        let additionalBibFields = splitOn "," additionalBibFieldsString
+                        in  getBibliographyInfo pacs (AddColList additionalBibFields)
+                    Nothing -> getBibliographyInfo pacs (AddColList [])
+            let retData = ApiReturnBibInfo bibInfo
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
