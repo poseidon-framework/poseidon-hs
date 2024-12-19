@@ -28,7 +28,7 @@
 </span><span id="line-26"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="contributorORCID"><span class="annot"><span class="annottext">ContributorSpec -&gt; Maybe ORCID
 </span><a href="Poseidon.Contributor.html#contributorORCID"><span class="hs-identifier hs-var hs-var">contributorORCID</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ the ORCID of a contributor</span></span><span>
 </span><span id="line-27"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-28"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398468"><span id="local-6989586621679398478"><span id="local-6989586621679398482"><span class="annot"><span class="annottext">Int -&gt; ContributorSpec -&gt; ShowS
+</span><span id="line-28"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398695"><span id="local-6989586621679398705"><span id="local-6989586621679398709"><span class="annot"><span class="annottext">Int -&gt; ContributorSpec -&gt; ShowS
 [ContributorSpec] -&gt; ShowS
 ContributorSpec -&gt; [Char]
 (Int -&gt; ContributorSpec -&gt; ShowS)
@@ -43,7 +43,7 @@ $cshow :: ContributorSpec -&gt; [Char]
 show :: ContributorSpec -&gt; [Char]
 $cshowList :: [ContributorSpec] -&gt; ShowS
 showList :: [ContributorSpec] -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679398487"><span id="local-6989586621679398496"><span class="annot"><span class="annottext">ContributorSpec -&gt; ContributorSpec -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679398714"><span id="local-6989586621679398723"><span class="annot"><span class="annottext">ContributorSpec -&gt; ContributorSpec -&gt; Bool
 (ContributorSpec -&gt; ContributorSpec -&gt; Bool)
 -&gt; (ContributorSpec -&gt; ContributorSpec -&gt; Bool)
 -&gt; Eq ContributorSpec
@@ -55,8 +55,8 @@ $c/= :: ContributorSpec -&gt; ContributorSpec -&gt; Bool
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-29"></span><span>
 </span><span id="line-30"></span><span class="annot"><span class="hs-comment">-- | To facilitate automatic parsing of ContributorSpec from JSON files</span></span><span>
-</span><span id="line-31"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398504"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-32"></span><span>    </span><span id="local-6989586621679398524"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ContributorSpec
+</span><span id="line-31"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398731"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-32"></span><span>    </span><span id="local-6989586621679398751"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ContributorSpec
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
 -&gt; (Object -&gt; Parser ContributorSpec)
 -&gt; Value
@@ -69,15 +69,15 @@ forall a. [Char] -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 -&gt; Value
 -&gt; Parser ContributorSpec
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679398525"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679398525"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; Maybe ORCID -&gt; ContributorSpec
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679398752"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679398752"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; Maybe ORCID -&gt; ContributorSpec
 </span><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-var">ContributorSpec</span></a></span><span>
 </span><span id="line-33"></span><span>        </span><span class="annot"><span class="annottext">([Char] -&gt; [Char] -&gt; Maybe ORCID -&gt; ContributorSpec)
 -&gt; Parser [Char]
 -&gt; Parser ([Char] -&gt; Maybe ORCID -&gt; ContributorSpec)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679398525"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [Char]
+</span><a href="#local-6989586621679398752"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [Char]
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;name&quot;</span></span><span>
@@ -86,7 +86,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679398525"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [Char]
+</span><a href="#local-6989586621679398752"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [Char]
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;email&quot;</span></span><span>
@@ -95,16 +95,16 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679398525"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe ORCID)
+</span><a href="#local-6989586621679398752"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe ORCID)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;orcid&quot;</span></span><span>
 </span><span id="line-36"></span><span>
-</span><span id="line-37"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398529"><span id="local-6989586621679398533"><span id="local-6989586621679398536"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398756"><span id="local-6989586621679398760"><span id="local-6989586621679398763"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
 </span><span id="line-38"></span><span>    </span><span class="hs-comment">-- this encodes directly to a bytestring Builder</span><span>
-</span><span id="line-39"></span><span>    </span><span id="local-6989586621679398557"><span class="annot"><span class="annottext">toJSON :: ContributorSpec -&gt; Value
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679398558"><span class="annot"><span class="annottext">ContributorSpec
-</span><a href="#local-6989586621679398558"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span id="line-39"></span><span>    </span><span id="local-6989586621679398784"><span class="annot"><span class="annottext">toJSON :: ContributorSpec -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679398785"><span class="annot"><span class="annottext">ContributorSpec
+</span><a href="#local-6989586621679398785"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
 </span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
 </span><span id="line-40"></span><span>          </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;name&quot;</span></span><span>  </span><span class="annot"><span class="annottext">Key -&gt; [Char] -&gt; Pair
@@ -112,21 +112,21 @@ forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ContributorSpec -&gt; [Char]
 </span><a href="Poseidon.Contributor.html#contributorName"><span class="hs-identifier hs-var">contributorName</span></a></span><span> </span><span class="annot"><span class="annottext">ContributorSpec
-</span><a href="#local-6989586621679398558"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679398785"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-41"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;email&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; [Char] -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ContributorSpec -&gt; [Char]
 </span><a href="Poseidon.Contributor.html#contributorEmail"><span class="hs-identifier hs-var">contributorEmail</span></a></span><span> </span><span class="annot"><span class="annottext">ContributorSpec
-</span><a href="#local-6989586621679398558"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679398785"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-42"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;orcid&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; Maybe ORCID -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">ContributorSpec -&gt; Maybe ORCID
 </span><a href="Poseidon.Contributor.html#contributorORCID"><span class="hs-identifier hs-var">contributorORCID</span></a></span><span> </span><span class="annot"><span class="annottext">ContributorSpec
-</span><a href="#local-6989586621679398558"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679398785"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-43"></span><span>        </span><span class="hs-special">]</span><span>
 </span><span id="line-44"></span><span>
 </span><span id="line-45"></span><span class="annot"><a href="Poseidon.Contributor.html#contributorSpecParser"><span class="hs-identifier hs-type">contributorSpecParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">P.Parser</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span><span class="hs-special">]</span><span>
@@ -157,8 +157,8 @@ forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m ()
 </span><span id="line-48"></span><span class="annot"><a href="Poseidon.Contributor.html#oneContributorSpecParser"><span class="hs-identifier hs-type">oneContributorSpecParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">P.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-type">ContributorSpec</span></a></span><span>
 </span><span id="line-49"></span><span id="oneContributorSpecParser"><span class="annot"><span class="annottext">oneContributorSpecParser :: ParsecT [Char] () Identity ContributorSpec
 </span><a href="Poseidon.Contributor.html#oneContributorSpecParser"><span class="hs-identifier hs-var hs-var">oneContributorSpecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-50"></span><span>    </span><span id="local-6989586621679398565"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398565"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
+</span><span id="line-50"></span><span>    </span><span id="local-6989586621679398792"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398792"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
 -&gt; ParsecT [Char] () Identity Char
 -&gt; ParsecT [Char] () Identity [Char]
 -&gt; ParsecT [Char] () Identity [Char]
@@ -194,8 +194,8 @@ Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">']'</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-51"></span><span>    </span><span id="local-6989586621679398570"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398570"><span class="hs-identifier hs-var">email</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
+</span><span id="line-51"></span><span>    </span><span id="local-6989586621679398797"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398797"><span class="hs-identifier hs-var">email</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
 -&gt; ParsecT [Char] () Identity Char
 -&gt; ParsecT [Char] () Identity [Char]
 -&gt; ParsecT [Char] () Identity [Char]
@@ -237,8 +237,8 @@ forall a. a -&gt; ParsecT [Char] () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; Maybe ORCID -&gt; ContributorSpec
 </span><a href="Poseidon.Contributor.html#ContributorSpec"><span class="hs-identifier hs-var">ContributorSpec</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398565"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398570"><span class="hs-identifier hs-var">email</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe ORCID
+</span><a href="#local-6989586621679398792"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398797"><span class="hs-identifier hs-var">email</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe ORCID
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span>
 </span><span id="line-54"></span><span>
@@ -250,7 +250,7 @@ forall a. Maybe a
 </span><span id="line-59"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_orcidChecksum"><span class="annot"><span class="annottext">ORCID -&gt; Char
 </span><a href="Poseidon.Contributor.html#_orcidChecksum"><span class="hs-identifier hs-var hs-var">_orcidChecksum</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
 </span><span id="line-60"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-61"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398575"><span id="local-6989586621679398580"><span id="local-6989586621679398583"><span class="annot"><span class="annottext">Int -&gt; ORCID -&gt; ShowS
+</span><span id="line-61"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398802"><span id="local-6989586621679398807"><span id="local-6989586621679398810"><span class="annot"><span class="annottext">Int -&gt; ORCID -&gt; ShowS
 [ORCID] -&gt; ShowS
 ORCID -&gt; [Char]
 (Int -&gt; ORCID -&gt; ShowS)
@@ -263,7 +263,7 @@ $cshow :: ORCID -&gt; [Char]
 show :: ORCID -&gt; [Char]
 $cshowList :: [ORCID] -&gt; ShowS
 showList :: [ORCID] -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679398586"><span id="local-6989586621679398591"><span class="annot"><span class="annottext">ORCID -&gt; ORCID -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679398813"><span id="local-6989586621679398818"><span class="annot"><span class="annottext">ORCID -&gt; ORCID -&gt; Bool
 (ORCID -&gt; ORCID -&gt; Bool) -&gt; (ORCID -&gt; ORCID -&gt; Bool) -&gt; Eq ORCID
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 $c== :: ORCID -&gt; ORCID -&gt; Bool
@@ -272,10 +272,10 @@ $c/= :: ORCID -&gt; ORCID -&gt; Bool
 /= :: ORCID -&gt; ORCID -&gt; Bool
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-62"></span><span>
-</span><span id="line-63"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398595"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-64"></span><span>    </span><span id="local-6989586621679398603"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ORCID
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span id="local-6989586621679398604"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679398604"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec [Char] () ORCID
+</span><span id="line-63"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398822"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-64"></span><span>    </span><span id="local-6989586621679398830"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser ORCID
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span id="local-6989586621679398831"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679398831"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec [Char] () ORCID
 -&gt; () -&gt; [Char] -&gt; [Char] -&gt; Either ParseError ORCID
 forall s t u a.
 Stream s Identity t =&gt;
@@ -284,32 +284,32 @@ Parsec s u a -&gt; u -&gt; [Char] -&gt; s -&gt; Either ParseError a
 </span><a href="Poseidon.Contributor.html#parseORCID"><span class="hs-identifier hs-var">parseORCID</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; [Char]
 </span><span class="hs-identifier hs-var">unpack</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679398604"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-65"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679398607"><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679398607"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Parser ORCID
+</span><a href="#local-6989586621679398831"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-65"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679398834"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679398834"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Parser ORCID
 forall a. [Char] -&gt; Parser a
 forall (m :: * -&gt; *) a. MonadFail m =&gt; [Char] -&gt; m a
 </span><span class="hs-identifier hs-var">fail</span></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Parser ORCID) -&gt; [Char] -&gt; Parser ORCID
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; [Char]
 </span><a href="Poseidon.Utils.html#showParsecErr"><span class="hs-identifier hs-var">showParsecErr</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679398607"><span class="hs-identifier hs-var">err</span></a></span><span>
-</span><span id="line-66"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679398608"><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398608"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ORCID -&gt; Parser ORCID
+</span><a href="#local-6989586621679398834"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-66"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679398835"><span class="annot"><span class="annottext">ORCID
+</span><a href="#local-6989586621679398835"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ORCID -&gt; Parser ORCID
 forall a. a -&gt; Parser a
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398608"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679398835"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-67"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
 </span><span class="hs-identifier">_</span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser ORCID
 forall a. Parser a
 forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a
 </span><span class="hs-identifier hs-var">mzero</span></span><span>
 </span><span id="line-68"></span><span>
-</span><span id="line-69"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398611"><span id="local-6989586621679398614"><span id="local-6989586621679398617"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-70"></span><span>    </span><span id="local-6989586621679398619"><span class="annot"><span class="annottext">toJSON :: ORCID -&gt; Value
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679398620"><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398620"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span id="line-69"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679398838"><span id="local-6989586621679398841"><span id="local-6989586621679398844"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-70"></span><span>    </span><span id="local-6989586621679398846"><span class="annot"><span class="annottext">toJSON :: ORCID -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679398847"><span class="annot"><span class="annottext">ORCID
+</span><a href="#local-6989586621679398847"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
 </span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Value) -&gt; Text -&gt; Value
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Text
@@ -317,26 +317,26 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ORCID -&gt; [Char]
 </span><a href="Poseidon.Contributor.html#renderORCID"><span class="hs-identifier hs-var">renderORCID</span></a></span><span> </span><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398620"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679398847"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-71"></span><span>
 </span><span id="line-72"></span><span class="annot"><a href="Poseidon.Contributor.html#parseORCID"><span class="hs-identifier hs-type">parseORCID</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">P.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span>
 </span><span id="line-73"></span><span id="parseORCID"><span class="annot"><span class="annottext">parseORCID :: Parsec [Char] () ORCID
 </span><a href="Poseidon.Contributor.html#parseORCID"><span class="hs-identifier hs-var hs-var">parseORCID</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-74"></span><span>    </span><span id="local-6989586621679398622"><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398622"><span class="hs-identifier hs-var">orcid</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679398623"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398623"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679398624"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398624"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679398625"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398625"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679398626"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398626"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679398627"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398627"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Char -&gt; ORCID
+</span><span id="line-74"></span><span>    </span><span id="local-6989586621679398849"><span class="annot"><span class="annottext">ORCID
+</span><a href="#local-6989586621679398849"><span class="hs-identifier hs-var">orcid</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679398850"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398850"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679398851"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398851"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679398852"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398852"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679398853"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398853"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679398854"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679398854"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Char -&gt; ORCID
 </span><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-var">ORCID</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Char]] -&gt; [Char]
 forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398623"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398624"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398625"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398626"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398627"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; [Char] -&gt; [Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
+</span><a href="#local-6989586621679398850"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398851"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398852"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398853"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679398854"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; [Char] -&gt; [Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity [Char]
 -&gt; ParsecT
      [Char] () Identity ([Char] -&gt; [Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
@@ -344,7 +344,7 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span>
 </span><span id="line-75"></span><span>            </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity [Char]
 forall {u}. ParsecT [Char] u Identity [Char]
-</span><a href="#local-6989586621679398629"><span class="hs-identifier hs-var">fourBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT
+</span><a href="#local-6989586621679398856"><span class="hs-identifier hs-var">fourBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT
   [Char] () Identity ([Char] -&gt; [Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity Char
 -&gt; ParsecT
@@ -355,7 +355,7 @@ ParsecT [Char] () Identity a
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
 </span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
 forall {u}. ParsecT [Char] u Identity Char
-</span><a href="#local-6989586621679398630"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><a href="#local-6989586621679398857"><span class="hs-identifier hs-var">m</span></a></span><span>
 </span><span id="line-76"></span><span>        </span><span class="annot"><span class="annottext">ParsecT
   [Char] () Identity ([Char] -&gt; [Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity [Char]
@@ -366,7 +366,7 @@ ParsecT [Char] () Identity (a -&gt; b)
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity [Char]
 forall {u}. ParsecT [Char] u Identity [Char]
-</span><a href="#local-6989586621679398629"><span class="hs-identifier hs-var">fourBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ([Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
+</span><a href="#local-6989586621679398856"><span class="hs-identifier hs-var">fourBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ([Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity Char
 -&gt; ParsecT [Char] () Identity ([Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
 forall a b.
@@ -375,7 +375,7 @@ ParsecT [Char] () Identity a
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
 </span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
 forall {u}. ParsecT [Char] u Identity Char
-</span><a href="#local-6989586621679398630"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><a href="#local-6989586621679398857"><span class="hs-identifier hs-var">m</span></a></span><span>
 </span><span id="line-77"></span><span>        </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ([Char] -&gt; [Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity [Char]
 -&gt; ParsecT [Char] () Identity ([Char] -&gt; Char -&gt; ORCID)
@@ -385,7 +385,7 @@ ParsecT [Char] () Identity (a -&gt; b)
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity [Char]
 forall {u}. ParsecT [Char] u Identity [Char]
-</span><a href="#local-6989586621679398629"><span class="hs-identifier hs-var">fourBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ([Char] -&gt; Char -&gt; ORCID)
+</span><a href="#local-6989586621679398856"><span class="hs-identifier hs-var">fourBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ([Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity Char
 -&gt; ParsecT [Char] () Identity ([Char] -&gt; Char -&gt; ORCID)
 forall a b.
@@ -394,7 +394,7 @@ ParsecT [Char] () Identity a
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
 </span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
 forall {u}. ParsecT [Char] u Identity Char
-</span><a href="#local-6989586621679398630"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><a href="#local-6989586621679398857"><span class="hs-identifier hs-var">m</span></a></span><span>
 </span><span id="line-78"></span><span>        </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ([Char] -&gt; Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity [Char]
 -&gt; ParsecT [Char] () Identity (Char -&gt; ORCID)
@@ -404,7 +404,7 @@ ParsecT [Char] () Identity (a -&gt; b)
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity [Char]
 forall {u}. ParsecT [Char] u Identity [Char]
-</span><a href="#local-6989586621679398631"><span class="hs-identifier hs-var">threeBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity (Char -&gt; ORCID)
+</span><a href="#local-6989586621679398858"><span class="hs-identifier hs-var">threeBlock</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity (Char -&gt; ORCID)
 -&gt; ParsecT [Char] () Identity Char -&gt; Parsec [Char] () ORCID
 forall a b.
 ParsecT [Char] () Identity (a -&gt; b)
@@ -412,7 +412,7 @@ ParsecT [Char] () Identity (a -&gt; b)
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity Char
 forall {u}. ParsecT [Char] u Identity Char
-</span><a href="#local-6989586621679398632"><span class="hs-identifier hs-var">checksumDigit</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] () ORCID
+</span><a href="#local-6989586621679398859"><span class="hs-identifier hs-var">checksumDigit</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] () ORCID
 -&gt; ParsecT [Char] () Identity () -&gt; Parsec [Char] () ORCID
 forall a b.
 ParsecT [Char] () Identity a
@@ -427,7 +427,7 @@ ParsecT s u m ()
 forall (f :: * -&gt; *). Alternative f =&gt; Bool -&gt; f ()
 </span><span class="hs-identifier hs-var">guard</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ORCID -&gt; Bool
 </span><a href="Poseidon.Contributor.html#validateORCID"><span class="hs-identifier hs-var">validateORCID</span></a></span><span> </span><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398622"><span class="hs-identifier hs-var">orcid</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ()
+</span><a href="#local-6989586621679398849"><span class="hs-identifier hs-var">orcid</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] () Identity ()
 -&gt; [Char] -&gt; ParsecT [Char] () Identity ()
 forall s u (m :: * -&gt; *) a.
 ParsecT s u m a -&gt; [Char] -&gt; ParsecT s u m a
@@ -437,10 +437,10 @@ ParsecT s u m a -&gt; [Char] -&gt; ParsecT s u m a
 forall a. a -&gt; ParsecT [Char] () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">ORCID
-</span><a href="#local-6989586621679398622"><span class="hs-identifier hs-var">orcid</span></a></span><span>
+</span><a href="#local-6989586621679398849"><span class="hs-identifier hs-var">orcid</span></a></span><span>
 </span><span id="line-81"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-82"></span><span>      </span><span id="local-6989586621679398629"><span class="annot"><span class="annottext">fourBlock :: ParsecT [Char] u Identity [Char]
-</span><a href="#local-6989586621679398629"><span class="hs-identifier hs-var hs-var">fourBlock</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span id="line-82"></span><span>      </span><span id="local-6989586621679398856"><span class="annot"><span class="annottext">fourBlock :: ParsecT [Char] u Identity [Char]
+</span><a href="#local-6989586621679398856"><span class="hs-identifier hs-var hs-var">fourBlock</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 -&gt; ParsecT [Char] u Identity Char
 -&gt; ParsecT [Char] u Identity [Char]
 forall s (m :: * -&gt; *) t u a.
@@ -450,15 +450,15 @@ Int -&gt; ParsecT s u m a -&gt; ParsecT s u m [a]
 </span><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
 forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.digit</span></span><span>
-</span><span id="line-83"></span><span>      </span><span id="local-6989586621679398630"><span class="annot"><span class="annottext">m :: ParsecT [Char] u Identity Char
-</span><a href="#local-6989586621679398630"><span class="hs-identifier hs-var hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ParsecT [Char] u Identity Char
+</span><span id="line-83"></span><span>      </span><span id="local-6989586621679398857"><span class="annot"><span class="annottext">m :: ParsecT [Char] u Identity Char
+</span><a href="#local-6989586621679398857"><span class="hs-identifier hs-var hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ParsecT [Char] u Identity Char
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 [Char] -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.oneOf</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;-&quot;</span></span><span>
-</span><span id="line-84"></span><span>      </span><span id="local-6989586621679398631"><span class="annot"><span class="annottext">threeBlock :: ParsecT [Char] u Identity [Char]
-</span><a href="#local-6989586621679398631"><span class="hs-identifier hs-var hs-var">threeBlock</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span id="line-84"></span><span>      </span><span id="local-6989586621679398858"><span class="annot"><span class="annottext">threeBlock :: ParsecT [Char] u Identity [Char]
+</span><a href="#local-6989586621679398858"><span class="hs-identifier hs-var hs-var">threeBlock</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 -&gt; ParsecT [Char] u Identity Char
 -&gt; ParsecT [Char] u Identity [Char]
 forall s (m :: * -&gt; *) t u a.
@@ -468,8 +468,8 @@ Int -&gt; ParsecT s u m a -&gt; ParsecT s u m [a]
 </span><span class="hs-number">3</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
 forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.digit</span></span><span>
-</span><span id="line-85"></span><span>      </span><span id="local-6989586621679398632"><span class="annot"><span class="annottext">checksumDigit :: ParsecT [Char] u Identity Char
-</span><a href="#local-6989586621679398632"><span class="hs-identifier hs-var hs-var">checksumDigit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
+</span><span id="line-85"></span><span>      </span><span id="local-6989586621679398859"><span class="annot"><span class="annottext">checksumDigit :: ParsecT [Char] u Identity Char
+</span><a href="#local-6989586621679398859"><span class="hs-identifier hs-var hs-var">checksumDigit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
 forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.digit</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
 -&gt; ParsecT [Char] u Identity Char -&gt; ParsecT [Char] u Identity Char
@@ -484,106 +484,106 @@ Char -&gt; ParsecT s u m Char
 </span><span id="line-86"></span><span>
 </span><span id="line-87"></span><span class="annot"><a href="Poseidon.Contributor.html#validateORCID"><span class="hs-identifier hs-type">validateORCID</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
 </span><span id="line-88"></span><span id="validateORCID"><span class="annot"><span class="annottext">validateORCID :: ORCID -&gt; Bool
-</span><a href="Poseidon.Contributor.html#validateORCID"><span class="hs-identifier hs-var hs-var">validateORCID</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span id="local-6989586621679398661"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398661"><span class="hs-identifier hs-var">nums</span></a></span></span><span> </span><span id="local-6989586621679398662"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398662"><span class="hs-identifier hs-var">check</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-89"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679398663"><span class="annot"><span class="annottext">numsInt :: [Int]
-</span><a href="#local-6989586621679398663"><span class="hs-identifier hs-var hs-var">numsInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Int) -&gt; [Char] -&gt; [Int]
+</span><a href="Poseidon.Contributor.html#validateORCID"><span class="hs-identifier hs-var hs-var">validateORCID</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span id="local-6989586621679398888"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398888"><span class="hs-identifier hs-var">nums</span></a></span></span><span> </span><span id="local-6989586621679398889"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679398889"><span class="hs-identifier hs-var">check</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679398890"><span class="annot"><span class="annottext">numsInt :: [Int]
+</span><a href="#local-6989586621679398890"><span class="hs-identifier hs-var hs-var">numsInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Int) -&gt; [Char] -&gt; [Int]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Int
 </span><span class="hs-identifier hs-var">digitToInt</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398661"><span class="hs-identifier hs-var">nums</span></a></span><span>
-</span><span id="line-90"></span><span>        </span><span id="local-6989586621679398664"><span class="annot"><span class="annottext">total :: Int
-</span><a href="#local-6989586621679398664"><span class="hs-identifier hs-var hs-var">total</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; Int
-</span><a href="#local-6989586621679398665"><span class="hs-identifier hs-var">makeTotal</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398888"><span class="hs-identifier hs-var">nums</span></a></span><span>
+</span><span id="line-90"></span><span>        </span><span id="local-6989586621679398891"><span class="annot"><span class="annottext">total :: Int
+</span><a href="#local-6989586621679398891"><span class="hs-identifier hs-var hs-var">total</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; Int
+</span><a href="#local-6989586621679398892"><span class="hs-identifier hs-var">makeTotal</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679398663"><span class="hs-identifier hs-var">numsInt</span></a></span><span>
-</span><span id="line-91"></span><span>        </span><span id="local-6989586621679398669"><span class="annot"><span class="annottext">remainder :: Int
-</span><a href="#local-6989586621679398669"><span class="hs-identifier hs-var hs-var">remainder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398664"><span class="hs-identifier hs-var">total</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679398890"><span class="hs-identifier hs-var">numsInt</span></a></span><span>
+</span><span id="line-91"></span><span>        </span><span id="local-6989586621679398896"><span class="annot"><span class="annottext">remainder :: Int
+</span><a href="#local-6989586621679398896"><span class="hs-identifier hs-var hs-var">remainder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398891"><span class="hs-identifier hs-var">total</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Integral a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">`mod`</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">11</span></span><span>
-</span><span id="line-92"></span><span>        </span><span id="local-6989586621679398675"><span class="annot"><span class="annottext">result :: Int
-</span><a href="#local-6989586621679398675"><span class="hs-identifier hs-var hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span id="line-92"></span><span>        </span><span id="local-6989586621679398902"><span class="annot"><span class="annottext">result :: Int
+</span><a href="#local-6989586621679398902"><span class="hs-identifier hs-var hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">12</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398669"><span class="hs-identifier hs-var">remainder</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679398896"><span class="hs-identifier hs-var">remainder</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Integral a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">`mod`</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">11</span></span><span>
-</span><span id="line-93"></span><span>        </span><span id="local-6989586621679398678"><span class="annot"><span class="annottext">checkInt :: Int
-</span><a href="#local-6989586621679398678"><span class="hs-identifier hs-var hs-var">checkInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398662"><span class="hs-identifier hs-var">check</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+</span><span id="line-93"></span><span>        </span><span id="local-6989586621679398905"><span class="annot"><span class="annottext">checkInt :: Int
+</span><a href="#local-6989586621679398905"><span class="hs-identifier hs-var hs-var">checkInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679398889"><span class="hs-identifier hs-var">check</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'X'</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">10</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Int
 </span><span class="hs-identifier hs-var">digitToInt</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398662"><span class="hs-identifier hs-var">check</span></a></span><span>
+</span><a href="#local-6989586621679398889"><span class="hs-identifier hs-var">check</span></a></span><span>
 </span><span id="line-94"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398675"><span class="hs-identifier hs-var">result</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679398902"><span class="hs-identifier hs-var">result</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398678"><span class="hs-identifier hs-var">checkInt</span></a></span><span>
+</span><a href="#local-6989586621679398905"><span class="hs-identifier hs-var">checkInt</span></a></span><span>
 </span><span id="line-95"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-96"></span><span>        </span><span class="annot"><a href="#local-6989586621679398665"><span class="hs-identifier hs-type">makeTotal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-97"></span><span>        </span><span id="local-6989586621679398665"><span class="annot"><span class="annottext">makeTotal :: Int -&gt; [Int] -&gt; Int
-</span><a href="#local-6989586621679398665"><span class="hs-identifier hs-var hs-var">makeTotal</span></a></span></span><span> </span><span id="local-6989586621679398679"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398679"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398679"><span class="hs-identifier hs-var">a</span></a></span><span>
-</span><span id="line-98"></span><span>        </span><span class="annot"><a href="#local-6989586621679398665"><span class="hs-identifier hs-var">makeTotal</span></a></span><span> </span><span id="local-6989586621679398680"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398680"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398681"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398681"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679398682"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679398682"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; Int
-</span><a href="#local-6989586621679398665"><span class="hs-identifier hs-var">makeTotal</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398680"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><span id="line-96"></span><span>        </span><span class="annot"><a href="#local-6989586621679398892"><span class="hs-identifier hs-type">makeTotal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-97"></span><span>        </span><span id="local-6989586621679398892"><span class="annot"><span class="annottext">makeTotal :: Int -&gt; [Int] -&gt; Int
+</span><a href="#local-6989586621679398892"><span class="hs-identifier hs-var hs-var">makeTotal</span></a></span></span><span> </span><span id="local-6989586621679398906"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398906"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398906"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-98"></span><span>        </span><span class="annot"><a href="#local-6989586621679398892"><span class="hs-identifier hs-var">makeTotal</span></a></span><span> </span><span id="local-6989586621679398907"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398907"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398908"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398908"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679398909"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679398909"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; Int
+</span><a href="#local-6989586621679398892"><span class="hs-identifier hs-var">makeTotal</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398907"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398681"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679398908"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679398682"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679398909"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-99"></span><span>
 </span><span id="line-100"></span><span class="annot"><a href="Poseidon.Contributor.html#renderORCID"><span class="hs-identifier hs-type">renderORCID</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-101"></span><span id="renderORCID"><span class="annot"><span class="annottext">renderORCID :: ORCID -&gt; [Char]
-</span><a href="Poseidon.Contributor.html#renderORCID"><span class="hs-identifier hs-var hs-var">renderORCID</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span id="local-6989586621679398685"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398685"><span class="hs-identifier hs-var">nums</span></a></span></span><span> </span><span id="local-6989586621679398686"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398686"><span class="hs-identifier hs-var">check</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.Contributor.html#renderORCID"><span class="hs-identifier hs-var hs-var">renderORCID</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Contributor.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a></span><span> </span><span id="local-6989586621679398912"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679398912"><span class="hs-identifier hs-var">nums</span></a></span></span><span> </span><span id="local-6989586621679398913"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679398913"><span class="hs-identifier hs-var">check</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]] -&gt; [Char]
 forall a. [a] -&gt; [[a]] -&gt; [a]
 </span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;-&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; [Char] -&gt; [[Char]]
 forall a. Int -&gt; [a] -&gt; [[a]]
-</span><a href="#local-6989586621679398687"><span class="hs-identifier hs-var">chunks</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398914"><span class="hs-identifier hs-var">chunks</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679398685"><span class="hs-identifier hs-var">nums</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ShowS
+</span><a href="#local-6989586621679398912"><span class="hs-identifier hs-var">nums</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679398686"><span class="hs-identifier hs-var">check</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679398913"><span class="hs-identifier hs-var">check</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-103"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-104"></span><span>        </span><span id="local-6989586621679398389"><span class="annot"><a href="#local-6989586621679398687"><span class="hs-identifier hs-type">chunks</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679398389"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679398389"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span></span><span>
-</span><span id="line-105"></span><span>        </span><span id="local-6989586621679398687"><span class="annot"><span class="annottext">chunks :: forall a. Int -&gt; [a] -&gt; [[a]]
-</span><a href="#local-6989586621679398687"><span class="hs-identifier hs-var hs-var">chunks</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span id="line-104"></span><span>        </span><span id="local-6989586621679398616"><span class="annot"><a href="#local-6989586621679398914"><span class="hs-identifier hs-type">chunks</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679398616"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679398616"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span></span><span>
+</span><span id="line-105"></span><span>        </span><span id="local-6989586621679398914"><span class="annot"><span class="annottext">chunks :: forall a. Int -&gt; [a] -&gt; [[a]]
+</span><a href="#local-6989586621679398914"><span class="hs-identifier hs-var hs-var">chunks</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><span id="line-106"></span><span>        </span><span class="annot"><a href="#local-6989586621679398687"><span class="hs-identifier hs-var">chunks</span></a></span><span> </span><span id="local-6989586621679398688"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398688"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679398689"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679398689"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-107"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398690"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679398690"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679398691"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679398691"><span class="hs-identifier hs-var">zs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; ([a], [a])
+</span><span id="line-106"></span><span>        </span><span class="annot"><a href="#local-6989586621679398914"><span class="hs-identifier hs-var">chunks</span></a></span><span> </span><span id="local-6989586621679398915"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398915"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679398916"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679398916"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-107"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679398917"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679398917"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679398918"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679398918"><span class="hs-identifier hs-var">zs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; ([a], [a])
 forall a. Int -&gt; [a] -&gt; ([a], [a])
 </span><span class="hs-identifier hs-var">splitAt</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398688"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679398689"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679398915"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679398916"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-108"></span><span>            </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679398690"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [[a]]
+</span><a href="#local-6989586621679398917"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [[a]]
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; [[a]]
 forall a. Int -&gt; [a] -&gt; [[a]]
-</span><a href="#local-6989586621679398687"><span class="hs-identifier hs-var">chunks</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679398688"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679398691"><span class="hs-identifier hs-var">zs</span></a></span><span>
+</span><a href="#local-6989586621679398914"><span class="hs-identifier hs-var">chunks</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679398915"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679398918"><span class="hs-identifier hs-var">zs</span></a></span><span>
 </span><span id="line-109"></span></pre></body></html>

@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.5.7.4
+@version 1.6.0.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -1093,7 +1093,6 @@ GenotypePlink :: FilePath -> Maybe String -> FilePath -> Maybe String -> FilePat
 GenotypeVCF :: FilePath -> Maybe String -> GenotypeFileSpec
 [_vcfGenoFile] :: GenotypeFileSpec -> FilePath
 [_vcfGenoFileChkSum] :: GenotypeFileSpec -> Maybe String
-getFormat :: GenotypeFileSpec -> String
 data SNPSetSpec
 SNPSet1240K :: SNPSetSpec
 SNPSetHumanOrigins :: SNPSetSpec
@@ -1791,28 +1790,29 @@ module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions
-GenoconvertOptions :: [GenoDataSource] -> String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> GenoconvertOptions
+GenoconvertOptions :: [GenoDataSource] -> String -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> Bool -> GenoconvertOptions
 [_genoconvertGenoSources] :: GenoconvertOptions -> [GenoDataSource]
 [_genoConvertOutFormat] :: GenoconvertOptions -> String
-[_genoConvertOutOnlyGeno] :: GenoconvertOptions -> Bool
 [_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
 [_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
 [_genoconvertOutPlinkPopMode] :: GenoconvertOptions -> PlinkPopNameMode
 [_genoconvertOnlyLatest] :: GenoconvertOptions -> Bool
+[_genoconvertOutZip] :: GenoconvertOptions -> Bool
 runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
-convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> PoseidonPackage -> PoseidonIO ()
+convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> PoseidonPackage -> PoseidonIO ()
 
 module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> String -> ForgeOutMode -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> String -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
 [_forgeOutFormat] :: ForgeOptions -> String
 [_forgeOutMode] :: ForgeOptions -> ForgeOutMode
+[_forgeOutZip] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
 [_forgeOutPacName] :: ForgeOptions -> Maybe String
 [_forgePackageWise] :: ForgeOptions -> Bool
@@ -2004,7 +2004,6 @@ parseMaybeOutPackagePath :: Parser (Maybe FilePath)
 parseMaybeOutPackageName :: Parser (Maybe String)
 parseForgeOutMode :: Parser ForgeOutMode
 parseOutOnlyGenoFlag :: Parser ForgeOutMode
-parseOutOnlyGenoSwitch :: Parser Bool
 onlyGenoOutputDocu :: Mod FlagFields a
 parseMinimalOutputFlag :: Parser ForgeOutMode
 parseMinimalOutputSwitch :: Parser Bool
@@ -2042,3 +2041,4 @@ parseJannocoalSourceKey :: Parser String
 parseJannocoalTargetKey :: Parser String
 parseJannocoalIdStripRegex :: Parser (Maybe String)
 parseOutputOrdered :: Parser Bool
+parseZipOut :: Parser Bool
