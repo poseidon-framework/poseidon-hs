@@ -417,11 +417,11 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts1) "genoconvert" [
           "genoconvert" </> "Schiffels" </> "Schiffels_2016.bed"
@@ -432,11 +432,11 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
         , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts2) "genoconvert" [
           "genoconvert" </> "Schiffels_otherPlinkEncoding" </> "Schiffels_2016.bed"
@@ -448,11 +448,11 @@ testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts3 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testDir </> "init" </> "Wang"]
         , _genoConvertOutFormat = "EIGENSTRAT"
-        , _genoConvertOutOnlyGeno = False
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts3) "genoconvert" [
           "init" </> "Wang" </> "Wang.geno"
@@ -476,11 +476,11 @@ testPipelineGenoconvert testDir checkFilePath = do
               }
           ]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = True
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts4) "genoconvert" [
           "init" </> "Schiffels" </> "geno.bed"
@@ -500,16 +500,49 @@ testPipelineGenoconvert testDir checkFilePath = do
               }
           ]
         , _genoConvertOutFormat = "PLINK"
-        , _genoConvertOutOnlyGeno = True
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = False
     }
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts5) "genoconvert" [
           "init_vcf" </> "Schiffels_vcf" </> "geno.bed"
         , "init_vcf" </> "Schiffels_vcf" </> "geno.bim"
         , "init_vcf" </> "Schiffels_vcf" </> "geno.fam"
+        ]
+
+    -- round trip test
+    let genoconvertOpts6zipping = GenoconvertOptions {
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _genoConvertOutFormat = "PLINK"
+        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "zip_roundtrip"
+        , _genoconvertRemoveOld = False
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = True
+    }
+    testLog $ runGenoconvert genoconvertOpts6zipping
+
+    let genoconvertOpts6unzipping = GenoconvertOptions {
+          _genoconvertGenoSources =
+              let gSpec = GenotypePlink (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed.gz") Nothing
+                                        (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim.gz") Nothing
+                                        (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam") Nothing
+              in  [GenoDirect $ GenotypeDataSpec gSpec Nothing]
+        , _genoConvertOutFormat = "PLINK"
+        , _genoMaybeOutPackagePath = Nothing
+        , _genoconvertRemoveOld = True
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = False
+    }
+    return ()
+
+    runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6unzipping) "genoconvert" [
+          "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed"
+        , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim"
+        , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam"
         ]
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
@@ -570,6 +603,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1"
         , _forgeOutPacName   = Just "ForgePac1"
         , _forgePackageWise    = False
@@ -585,7 +619,7 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac1" </> "ForgePac1.bib"
         ]
 
-    -- forge test 1 with VCF
+    -- forge test 1 with VCF and zip output
     let forgeOpts1vcf = ForgeOptions {
           _forgeGenoSources  = [PacBaseDir $ testPacsDirOther </> "Schiffels_2016_vcf", PacBaseDir $ testPacsDir </> "Wang_2020"]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
@@ -593,6 +627,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1_vcf"
         , _forgeOutPacName   = Just "ForgePac1_vcf"
         , _forgePackageWise    = False
@@ -616,6 +651,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "PLINK"
         , _forgeOutMode      = MinimalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac2"
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
@@ -636,6 +672,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac3"
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
@@ -660,6 +697,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "PLINK"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac4"
         , _forgeOutPacName   = Nothing
         , _forgePackageWise    = False
@@ -683,6 +721,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac5"
         , _forgeOutPacName   = Just "ForgePac5"
         , _forgePackageWise  = False
@@ -730,6 +769,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = GenoOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac6"
         , _forgeOutPacName   = Just "ForgePac6"
         , _forgePackageWise  = False
@@ -765,6 +805,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac7"
         , _forgeOutPacName   = Just "ForgePac7"
         , _forgePackageWise  = False
@@ -788,6 +829,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac8"
         , _forgeOutPacName   = Just "ForgePac8"
         , _forgePackageWise    = False
@@ -808,6 +850,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac9"
         , _forgeOutPacName   = Just "ForgePac9"
         , _forgePackageWise    = False
@@ -829,6 +872,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac10"
         , _forgeOutPacName   = Just "ForgePac10"
         , _forgePackageWise    = False
@@ -851,6 +895,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac11"
         , _forgeOutPacName   = Just "ForgePac11"
         , _forgePackageWise  = True
@@ -872,6 +917,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac12"
         , _forgeOutPacName   = Just "ForgePac12"
         , _forgePackageWise  = False
@@ -891,6 +937,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac13"
         , _forgeOutPacName   = Just "ForgePac13"
         , _forgePackageWise  = False
@@ -911,6 +958,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac14"
         , _forgeOutPacName   = Just "ForgePac14"
         , _forgePackageWise  = False
@@ -931,6 +979,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac15"
         , _forgeOutPacName   = Just "ForgePac15"
         , _forgePackageWise  = False
@@ -951,6 +1000,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac16"
         , _forgeOutPacName   = Just "ForgePac16"
         , _forgePackageWise  = False
@@ -971,6 +1021,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "EIGENSTRAT"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac17"
         , _forgeOutPacName   = Just "ForgePac17"
         , _forgePackageWise  = False
@@ -989,6 +1040,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "PLINK"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac18"
         , _forgeOutPacName   = Just "ForgePac18"
         , _forgePackageWise  = False
@@ -1009,6 +1061,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "PLINK"
         , _forgeOutMode      = PreservePymlOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac19"
         , _forgeOutPacName   = Just "ForgePac19"
         , _forgePackageWise  = False
@@ -1038,6 +1091,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeIntersect    = False
         , _forgeOutFormat    = "PLINK"
         , _forgeOutMode      = NormalOut
+        , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac20"
         , _forgeOutPacName   = Just "ForgePac20"
         , _forgePackageWise  = False

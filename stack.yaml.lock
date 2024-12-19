@@ -19,12 +19,12 @@ packages:
   original:
     hackage: data-default-instances-base-0.1.0.1
 - completed:
-    hackage: sequence-formats-1.8.1.0@sha256:077b93e5c81295386901e0b022425f316075035ec5fe3f0e255a946bc8f1bfae,2984
+    hackage: sequence-formats-1.10.0.0@sha256:502c622fa132a15ae95af85bb3d315ce915f1bbe8c96e7c0a3228e4be2570967,3289
     pantry-tree:
-      sha256: a3084f8b105d9148c0379e7766a42851aea89455988c9a95668085964faf79b4
-      size: 2475
+      sha256: c349db43d29b6d6743e972acec46ed43fdfe69aed29b2a618ee7fdc08f67f727
+      size: 2808
   original:
-    hackage: sequence-formats-1.8.1.0
+    hackage: sequence-formats-1.10.0.0
 - completed:
     hackage: pipes-zlib-0.4.4.2@sha256:eabd5aa29a030ecdeade80cfeb1787adc181bcf8fd378cb7b695b2af6cb26af6,1947
     pantry-tree:
