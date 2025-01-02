@@ -1,17 +1,14 @@
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
-import           Poseidon.Janno            (CsvNamedRecord, GeneticSex,
-                                            JannoRows (..), ListColumn (..))
+import           Poseidon.Janno            (JannoRows (..), getFillStateForAllCols)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
@@ -21,12 +18,7 @@ import           Poseidon.Utils            (PoseidonIO, logInfo)
 import           Control.Monad             (forM)
 import           Control.Monad.IO.Class    (liftIO)
 import           Data.List                 (intercalate, unfoldr, zip5)
-import           Data.Ratio                (Ratio, (%))
-import           Generics.SOP              (All, Generic (Code, from),
-                                            HCollapse (hcollapse),
-                                            HPure (hpure), I, K (K), NP,
-                                            Proxy (..), SListI, hcmap, hzipWith,
-                                            unI, unSOP, unZ)
+import           Data.Ratio                (Ratio)
 import           Poseidon.SequencingSource (SeqSourceRows (..))
 import           System.Directory          (doesFileExist)
 import           System.FilePath           ((</>))
@@ -93,43 +85,14 @@ renderPackageWithCompleteness genoTypeDataExists janno (SeqSourceRows seqSource)
 
 renderJannoCompleteness :: JannoRows -> String
 renderJannoCompleteness (JannoRows rows) =
-    let ratioString = map prop2Char $ getRatiosForEachField rows
+    let ratioString = map prop2Char $ getFillStateForAllCols rows
     in init ratioString -- remove last entry covering the additional columns (CsvNamedRecord)
-    where
-        -- the following magic was heavily inspired by https://stackoverflow.com/a/41524511/3216883
-        getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int]
-        getRatiosForEachField =
-            hcollapse
-          . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
-          . hunzip
-          . map (unZ . unSOP . from)
-        hunzip :: SListI xs => [NP I xs] -> NP [] xs
-        hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
-        measureFillState :: PresenceCountable a => [a] -> Ratio Int
-        measureFillState vals =
-            let nrValues = length vals
-                nrFilledValues = sum $ map countPresence vals
-            in nrFilledValues % nrValues
-        prop2Char :: Ratio Int -> Char
-        prop2Char r
-            | r == 0    = '.'
-            | r < 0.25  = '░'
-            | r < 0.5   = '▒'
-            | r < 1     = '▓'
-            | r == 1    = '█'
-            | otherwise = '?'
 
--- A typeclass to determine if a field in a .janno row is filled
-class PresenceCountable a where
-    countPresence :: a -> Int
-instance PresenceCountable (Maybe a) where
-    countPresence Nothing  = 0
-    countPresence (Just _) = 1
-instance PresenceCountable String where
-    countPresence _ = 1
-instance PresenceCountable GeneticSex where
-    countPresence _ = 1
-instance PresenceCountable (ListColumn a) where
-    countPresence _ = 1
-instance PresenceCountable CsvNamedRecord where
-    countPresence _ = 0
+prop2Char :: Ratio Int -> Char
+prop2Char r
+    | r == 0    = '.'
+    | r < 0.25  = '░'
+    | r < 0.5   = '▒'
+    | r < 1     = '▓'
+    | r == 1    = '█'
+    | otherwise = '?'

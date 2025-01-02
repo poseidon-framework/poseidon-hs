@@ -19,6 +19,7 @@ import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
                                          logInfo)
 import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
+--import Poseidon.Janno (JannoRows)
 
 import           Control.DeepSeq        ((<$!!>))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
@@ -28,6 +29,7 @@ import           Data.Time              (UTCTime (..), getCurrentTime)
 import           Data.Version           (Version (..), makeVersion, showVersion)
 import           System.Directory       (doesFileExist, removeFile)
 import           System.FilePath        ((</>))
+--import Data.Function ((&))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
@@ -36,6 +38,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    --, _recitfyJannoRemoveEmptyCols  :: Bool
     , _rectifyOnlyLatest            :: Bool
     }
 
@@ -55,7 +58,12 @@ data ChecksumsToRectify =
     }
 
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors onlyLatest) = do
+runRectify (RectifyOptions
+                baseDirs
+                ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
+                --jannoRemoveEmptyCols
+                onlyLatest
+           ) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = True
@@ -74,8 +82,13 @@ runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksum
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
+            --updatedJanno     <- updateJanno jannoRemoveEmptyCols (posPacJanno inPac)
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
             completeAndWritePackage pacVerUpdate updatedPacChecksums
+
+--updateJanno :: Bool -> JannoRows -> PoseidonIO JannoRows
+--updateJanno removeEmptyCols janno =
+--    janno & undefined
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
