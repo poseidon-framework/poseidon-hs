@@ -1,6 +1,8 @@
-- V 1.5.9.0:
+- V 1.6.1.0:
     - Added a feature to list bibliography information via `trident list --bibliography`.
     - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
+- V 1.6.0.0:
+    - Added support to write gzipped EIGENSTRAT and PLINK files with `genoconvert` and `forge`. Both commands get a new option `-z` which creates gzipped output.
 - V 1.5.7.4:
     - Fixed a bug that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`).
 - V 1.5.7.3:
