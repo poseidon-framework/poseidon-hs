@@ -9,6 +9,7 @@
 -- and these for the column fill state magic
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE GADTs             #-}
 
 module Poseidon.Janno (
     JannoRow(..),
@@ -68,7 +69,7 @@ import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
-                                                       (\\))
+                                                       (\\), transpose)
 import           Data.Maybe                           (fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
@@ -407,6 +408,21 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 -- Check fill state of each .janno column 
 -- heavily inspired by https://stackoverflow.com/a/41524511/3216883
 
+-- | A typeclass to determine if a field in a .janno row is filled
+class PresenceCountable a where
+    countPresence :: a -> Int
+instance PresenceCountable (Maybe a) where
+    countPresence Nothing  = 0
+    countPresence (Just _) = 1
+instance PresenceCountable String where
+    countPresence _ = 1
+instance PresenceCountable GeneticSex where
+    countPresence _ = 1
+instance PresenceCountable (ListColumn a) where
+    countPresence _ = 1
+instance PresenceCountable CsvNamedRecord where
+    countPresence _ = 0
+
 -- | A function to measure how full the .janno columns are
 getFillStateForAllCols :: (GSOP.Generic a, GSOP.Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int] -- '
 getFillStateForAllCols =
@@ -423,28 +439,28 @@ getFillStateForAllCols =
             nrFilledValues = sum $ map countPresence vals
         in nrFilledValues % nrValues
 
--- | A typeclass to determine if a field in a .janno row is filled
-class PresenceCountable a where
-    countPresence :: a -> Int
-instance PresenceCountable (Maybe a) where
-    countPresence Nothing  = 0
-    countPresence (Just _) = 1
-instance PresenceCountable String where
-    countPresence _ = 1
-instance PresenceCountable GeneticSex where
-    countPresence _ = 1
-instance PresenceCountable (ListColumn a) where
-    countPresence _ = 1
-instance PresenceCountable CsvNamedRecord where
-    countPresence _ = 0
-
 -- Janno file writing
 
-writeJannoFile :: FilePath -> JannoRows -> IO ()
-writeJannoFile path (JannoRows rows) = do
+writeJannoFile :: Bool -> FilePath -> JannoRows -> IO ()
+writeJannoFile removeEmptyCols path (JannoRows rows) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
-    let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
-    Bch.writeFile path jannoAsBytestringwithNA
+        jannoAsBytestringwithNA = explicitNA jannoAsBytestring
+    if removeEmptyCols
+    then do
+        -- decode again
+        case Csv.decode Csv.NoHeader jannoAsBytestringwithNA :: Either String (V.Vector (V.Vector Bchs.ByteString)) of
+            Left _  -> error "internal error, please report"
+            Right x -> do
+                let janno = V.toList $ V.map V.toList x
+                    jannoTransposed = transpose janno
+                    jannoTransposedFiltered = filter (any (`notElem` ["", "n/a"]) . tail) jannoTransposed
+                    jannoBackTransposed = transpose jannoTransposedFiltered
+                    jannoConcat = Bchs.intercalate "\n" $ map (Bchs.intercalate "\t") jannoBackTransposed
+                Bchs.writeFile path jannoConcat
+    else do
+        -- just write to file
+        Bch.writeFile path jannoAsBytestringwithNA
+
     where
         makeHeaderWithAdditionalColumns :: Csv.Header
         makeHeaderWithAdditionalColumns =

@@ -19,7 +19,7 @@ import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
                                          logInfo)
 import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
---import Poseidon.Janno (JannoRows)
+import Poseidon.Janno (JannoRows (..), getFillStateForAllCols)
 
 import           Control.DeepSeq        ((<$!!>))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
@@ -29,7 +29,7 @@ import           Data.Time              (UTCTime (..), getCurrentTime)
 import           Data.Version           (Version (..), makeVersion, showVersion)
 import           System.Directory       (doesFileExist, removeFile)
 import           System.FilePath        ((</>))
---import Data.Function ((&))
+import Data.Function ((&))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
@@ -82,13 +82,8 @@ runRectify (RectifyOptions
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
-            --updatedJanno     <- updateJanno jannoRemoveEmptyCols (posPacJanno inPac)
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
             completeAndWritePackage pacVerUpdate updatedPacChecksums
-
---updateJanno :: Bool -> JannoRows -> PoseidonIO JannoRows
---updateJanno removeEmptyCols janno =
---    janno & undefined
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
@@ -167,7 +162,6 @@ updateChecksums checksumSetting pac = do
         testAndGetChecksum file defaultChkSum = do
             e <- liftIO . doesFileExist $ file
             if e then Just <$!!> getChk file else return defaultChkSum
-
 
 
 completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
