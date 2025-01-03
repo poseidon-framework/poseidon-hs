@@ -55,6 +55,9 @@ da981f8d52f60ec4d96865b224648c92 rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
 dc322649188ce2995cea8a46a7f97f3e rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
+a61f78b4e9b7e3c7e00ec7bc6aaab95b rectify init/Schiffels/POSEIDON.yml
+3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
+083fe7ef4206c979356a3a2454d780b1 rectify init/Schiffels/Schiffels.janno
 2757f727e02dd6453fffe68c4c6ec4c8 forge forge/ForgePac1/POSEIDON.yml
 1286a2580e4bfbed7d804d5f3fe125f7 forge forge/ForgePac1/ForgePac1.geno
 8846333d9a1de6510f25a3816cc70fef forge forge/ForgePac1/ForgePac1.janno
@@ -125,7 +128,7 @@ e375863bca9e4a91c9855396abde31c7 forge forge/ForgePac20/ForgePac20.janno
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
-dc322649188ce2995cea8a46a7f97f3e timetravel timetravel/Schiffels-1.1.1/POSEIDON.yml
+a61f78b4e9b7e3c7e00ec7bc6aaab95b timetravel timetravel/Schiffels-1.1.1/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 timetravel timetravel/Schmid_2028-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c fetch fetch/by_package/Lamnidis_2018-1.0.1/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 fetch fetch/by_package/Schmid_2028-1.0.0/POSEIDON.yml

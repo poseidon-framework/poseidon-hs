@@ -554,6 +554,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
         , _rectifyChecksums = ChecksumNone
         , _rectifyNewContributors = Nothing
+        , _rectifyJannoRemoveEmptyCols = False
         , _rectifyOnlyLatest = False
         }
     let action1 = testLog (runRectify rectifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
@@ -568,6 +569,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
         , _rectifyChecksums = ChecksumAll
         , _rectifyNewContributors = Nothing
+        , _rectifyJannoRemoveEmptyCols = False
         , _rectifyOnlyLatest = False
         }
     let action2 = testLog (runRectify rectifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
@@ -585,12 +587,29 @@ testPipelineRectify testDir checkFilePath = do
               ContributorSpec "Josiah Carberry" "carberry@brown.edu" (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
+        , _rectifyJannoRemoveEmptyCols = False
         , _rectifyOnlyLatest = False
         }
     let action3 = testLog (runRectify rectifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "rectify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
+        ]
+    let rectifyOpts4 = RectifyOptions {
+          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _rectifyPoseidonVersion = Nothing
+        , _rectifyIgnorePoseidonVersion = False
+        , _rectifyPackageVersionUpdate = Nothing
+        , _rectifyChecksums = ChecksumAll
+        , _rectifyNewContributors = Nothing
+        , _rectifyJannoRemoveEmptyCols = True
+        , _rectifyOnlyLatest = False
+        }
+    let action4 = testLog (runRectify rectifyOpts4) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action4 "rectify" [
+          "init" </> "Schiffels" </> "POSEIDON.yml"
+        , "init" </> "Schiffels" </> "CHANGELOG.md"
+        , "init" </> "Schiffels" </> "Schiffels.janno"
         ]
 
 testPipelineForge :: FilePath -> FilePath -> IO ()

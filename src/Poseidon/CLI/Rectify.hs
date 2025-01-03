@@ -38,7 +38,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
-    , _recitfyJannoRemoveEmptyCols  :: Bool
+    , _rectifyJannoRemoveEmptyCols  :: Bool
     , _rectifyOnlyLatest            :: Bool
     }
 
@@ -84,9 +84,9 @@ runRectify (RectifyOptions
                 case posPacJannoFile inPac of
                     Nothing   -> do
                         logWarning "No .janno file to modify with --jannoRemoveEmpty"
-                    Just path -> do
+                    Just jannoPath -> do
                         logInfo "Reordering and removing empty columns from .janno file"
-                        liftIO $ writeJannoFileWithoutEmptyCols path (posPacJanno inPac)
+                        liftIO $ writeJannoFileWithoutEmptyCols (posPacBaseDir inPac </> jannoPath) (posPacJanno inPac)
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
