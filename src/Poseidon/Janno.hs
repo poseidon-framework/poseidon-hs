@@ -28,6 +28,7 @@ module Poseidon.Janno (
     JannoRelationDegree (..),
     JannoLibraryBuilt (..),
     writeJannoFile,
+    writeJannoFileWithoutEmptyCols,
     readJannoFile,
     createMinimalJanno,
     createMinimalSample,
@@ -441,30 +442,41 @@ getFillStateForAllCols =
 
 -- Janno file writing
 
-writeJannoFile :: Bool -> FilePath -> JannoRows -> IO ()
-writeJannoFile removeEmptyCols path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
-        jannoAsBytestringwithNA = explicitNA jannoAsBytestring
-    if removeEmptyCols
-    then do
-        -- decode again
-        case Csv.decode Csv.NoHeader jannoAsBytestringwithNA :: Either String (V.Vector (V.Vector Bchs.ByteString)) of
-            Left _  -> error "internal error, please report"
-            Right x -> do
-                let janno = V.toList $ V.map V.toList x
-                    jannoTransposed = transpose janno
-                    jannoTransposedFiltered = filter (any (`notElem` ["", "n/a"]) . tail) jannoTransposed
-                    jannoBackTransposed = transpose jannoTransposedFiltered
-                    jannoConcat = Bchs.intercalate "\n" $ map (Bchs.intercalate "\t") jannoBackTransposed
-                Bchs.writeFile path jannoConcat
-    else do
-        -- just write to file
-        Bch.writeFile path jannoAsBytestringwithNA
+-- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
+explicitNA :: Bch.ByteString -> Bch.ByteString
+explicitNA = replaceInJannoBytestring Bch.empty "n/a"
 
-    where
-        makeHeaderWithAdditionalColumns :: Csv.Header
-        makeHeaderWithAdditionalColumns =
-            V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+replaceInJannoBytestring :: Bch.ByteString -> Bch.ByteString -> Bch.ByteString -> Bch.ByteString
+replaceInJannoBytestring from to tsv =
+    let tsvRows = Bch.lines tsv
+        tsvCells = map (Bch.splitWith (=='\t')) tsvRows
+        tsvCellsUpdated = map (map (\y -> if y == from || y == Bch.append from "\r" then to else y)) tsvCells
+        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
+   in Bch.unlines tsvRowsUpdated
+
+makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
+makeHeaderWithAdditionalColumns rows =
+    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+
+writeJannoFile :: FilePath -> JannoRows -> IO ()
+writeJannoFile path (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+        jannoAsBytestringwithNA = explicitNA jannoAsBytestring
+    Bch.writeFile path jannoAsBytestringwithNA
+
+writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
+writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+        jannoAsBytestringwithNA = explicitNA jannoAsBytestring
+    case Csv.decode Csv.NoHeader jannoAsBytestringwithNA :: Either String (V.Vector (V.Vector Bch.ByteString)) of
+        Left _  -> error "internal error, please report"
+        Right x -> do
+            let janno = V.toList $ V.map V.toList x
+                jannoTransposed = transpose janno
+                jannoTransposedFiltered = filter (any (/= "n/a") . tail) jannoTransposed
+                jannoBackTransposed = transpose jannoTransposedFiltered
+                jannoConcat = Bch.intercalate "\r" $ map (Bch.intercalate "\t") jannoBackTransposed
+            Bch.writeFile path jannoConcat
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
@@ -589,18 +601,6 @@ renderCsvParseError (CsvParseError expected actual leftover) =
     "expected data type: " ++ expected ++ ", " ++
     "broken value: " ++ actual ++ ", " ++
     "problematic characters: " ++ show leftover ++ ")"
-
--- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
-explicitNA :: Bch.ByteString -> Bch.ByteString
-explicitNA = replaceInJannoBytestring Bch.empty "n/a"
-
-replaceInJannoBytestring :: Bch.ByteString -> Bch.ByteString -> Bch.ByteString -> Bch.ByteString
-replaceInJannoBytestring from to tsv =
-    let tsvRows = Bch.lines tsv
-        tsvCells = map (Bch.splitWith (=='\t')) tsvRows
-        tsvCellsUpdated = map (map (\y -> if y == from || y == Bch.append from "\r" then to else y)) tsvCells
-        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
-   in Bch.unlines tsvRowsUpdated
 
 -- Global janno consistency checks
 

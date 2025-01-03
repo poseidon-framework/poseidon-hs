@@ -19,7 +19,7 @@ import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
                                          logInfo)
 import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
-import Poseidon.Janno (JannoRows (..), getFillStateForAllCols)
+import Poseidon.Janno (writeJannoFileWithoutEmptyCols)
 
 import           Control.DeepSeq        ((<$!!>))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
@@ -29,7 +29,7 @@ import           Data.Time              (UTCTime (..), getCurrentTime)
 import           Data.Version           (Version (..), makeVersion, showVersion)
 import           System.Directory       (doesFileExist, removeFile)
 import           System.FilePath        ((</>))
-import Data.Function ((&))
+import Control.Monad (when)
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
@@ -80,6 +80,12 @@ runRectify (RectifyOptions
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
+            when True $ do
+                case posPacJannoFile inPac of
+                    Nothing   -> return ()
+                    Just path -> do
+                        logInfo "Reorder and remove empty columns from .janno file"
+                        liftIO $ writeJannoFileWithoutEmptyCols path (posPacJanno inPac)
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
