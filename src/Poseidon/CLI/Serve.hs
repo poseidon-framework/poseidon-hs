@@ -27,7 +27,7 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                (foldM, forM, when)
+import           Control.Monad                (foldM, forM, when, forM_)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (nub, sortOn)
@@ -53,7 +53,9 @@ import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
                                                param, raise, request, rescue,
-                                               scottyApp, text)
+                                               scottyApp, text, literal)
+import qualified Data.Text as T
+                                    
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
     , cliZipDir          :: Maybe FilePath
@@ -156,10 +158,18 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
                         
         -- http API
+        
+        -- landing page
         get "/" $ do
             pacs <- getItemFromArchiveStore archiveStore
             mainPage pacs
+        -- per package pages
+        let (_, pacstest) = head archiveStore
+        forM_ pacstest $ \pac -> do
+            get (literal ("/package/" ++ renderNameWithVersion (posPacNameAndVersion pac))) $ do
+                packagePage pac
 
+        -- catch anything else
         notFound $ raise "Unknown request"
 
 
