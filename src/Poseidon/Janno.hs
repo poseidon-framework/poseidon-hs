@@ -421,15 +421,15 @@ writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
 writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
         jannoAsBytestringwithNA = explicitNA jannoAsBytestring
-    case Csv.decode Csv.NoHeader jannoAsBytestringwithNA :: Either String (V.Vector (V.Vector Bch.ByteString)) of
+    case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestringwithNA :: Either String (V.Vector (V.Vector Bch.ByteString)) of
         Left _  -> error "internal error, please report"
         Right x -> do
             let janno = V.toList $ V.map V.toList x
                 jannoTransposed = transpose janno
                 jannoTransposedFiltered = filter (any (/= "n/a") . tail) jannoTransposed
                 jannoBackTransposed = transpose jannoTransposedFiltered
-                jannoConcat = Bch.intercalate "\r" $ map (Bch.intercalate "\t") jannoBackTransposed
-            Bch.writeFile path jannoConcat
+                jannoConcat = Bch.intercalate "\n" $ map (Bch.intercalate "\t") jannoBackTransposed
+            Bch.writeFile path (jannoConcat <> "\n")
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
