@@ -16,7 +16,8 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.ColumnTypes, Poseidon.ColumnTypesUtils, Poseidon.MathHelpers,
                         Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Chronicle,
-                        Poseidon.EntityTypes, Poseidon.ServerClient, Poseidon.Contributor, Poseidon.Version
+                        Poseidon.EntityTypes, Poseidon.ServerClient, Poseidon.ServerHTML
+                        Poseidon.Contributor, Poseidon.Version,
                         Poseidon.CLI.List, Poseidon.CLI.Chronicle, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
@@ -32,7 +33,8 @@ library
                         scotty < 0.20.0, cassava, pureMD5, wai, githash,
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific, country, generics-sop, containers, process, deepseq, template-haskell
+                        scientific, country, generics-sop, containers, process, deepseq, template-haskell,
+                        blaze-html, blaze-markup
     default-language:   Haskell2010
 
 executable trident

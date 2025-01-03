@@ -21,6 +21,7 @@ import           Poseidon.ServerClient        (AddJannoColSpec (..),
                                                ServerApiReturnType (..))
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
+import Poseidon.ServerHTML
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -153,6 +154,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
+                        
+        -- http API
+        get "/" $ do
+            pacs <- getItemFromArchiveStore archiveStore
+            mainPage pacs
+
         notFound $ raise "Unknown request"
 
 
