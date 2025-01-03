@@ -242,7 +242,7 @@ parseJannoRemoveEmptyCols = OP.switch (
     OP.help "Reorder the .janno file and remove empty colums. \
             \Remember to pair this option with --checksumJanno to also update the checksum."
     )
-    
+
 parseMaybeLog :: OP.Parser (Maybe String)
 parseMaybeLog = OP.option (Just <$> OP.str) (
     OP.long "logText" <>

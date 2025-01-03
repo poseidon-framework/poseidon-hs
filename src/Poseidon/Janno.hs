@@ -65,7 +65,7 @@ import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
-                                                       (\\), transpose)
+                                                       transpose, (\\))
 import           Data.Maybe                           (fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V

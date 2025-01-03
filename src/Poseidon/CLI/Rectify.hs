@@ -10,6 +10,7 @@ import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          renderNameWithVersion)
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..),
                                          GenotypeFileSpec (..))
+import           Poseidon.Janno         (writeJannoFileWithoutEmptyCols)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
@@ -19,9 +20,9 @@ import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
                                          logInfo, logWarning)
 import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
-import Poseidon.Janno (writeJannoFileWithoutEmptyCols)
 
 import           Control.DeepSeq        ((<$!!>))
+import           Control.Monad          (when)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List              (nub)
 import           Data.Maybe             (fromJust)
@@ -29,7 +30,6 @@ import           Data.Time              (UTCTime (..), getCurrentTime)
 import           Data.Version           (Version (..), makeVersion, showVersion)
 import           System.Directory       (doesFileExist, removeFile)
 import           System.FilePath        ((</>))
-import Control.Monad (when)
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
