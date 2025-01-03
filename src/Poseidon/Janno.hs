@@ -6,10 +6,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
--- and these for the column fill state magic
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE GADTs             #-}
 
 module Poseidon.Janno (
     JannoRow(..),
@@ -46,8 +42,7 @@ module Poseidon.Janno (
     parseCsvParseError,
     renderCsvParseError,
     getMaybeListColumn,
-    jannoRows2EigenstratIndEntries,
-    getFillStateForAllCols
+    jannoRows2EigenstratIndEntries
 ) where
 
 import           Poseidon.ColumnTypes
@@ -81,13 +76,6 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
-import           Generics.SOP              (All, --Generic (Code, from),
-                                            HCollapse (hcollapse),
-                                            HPure (hpure), I, K (K), NP,
-                                            Proxy (..), SListI, hcmap, hzipWith,
-                                            unI, unSOP, unZ)
-import qualified  Generics.SOP as GSOP
-import           Data.Ratio                (Ratio, (%))
 
 -- | A general datatype for janno list columns
 newtype ListColumn a = ListColumn {getListColumn :: [a]}
@@ -404,41 +392,6 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         -- The template should of course not have any additional columns
         , jAdditionalColumns            = CsvNamedRecord $ HM.fromList []
     }
-
-
--- Check fill state of each .janno column 
--- heavily inspired by https://stackoverflow.com/a/41524511/3216883
-
--- | A typeclass to determine if a field in a .janno row is filled
-class PresenceCountable a where
-    countPresence :: a -> Int
-instance PresenceCountable (Maybe a) where
-    countPresence Nothing  = 0
-    countPresence (Just _) = 1
-instance PresenceCountable String where
-    countPresence _ = 1
-instance PresenceCountable GeneticSex where
-    countPresence _ = 1
-instance PresenceCountable (ListColumn a) where
-    countPresence _ = 1
-instance PresenceCountable CsvNamedRecord where
-    countPresence _ = 0
-
--- | A function to measure how full the .janno columns are
-getFillStateForAllCols :: (GSOP.Generic a, GSOP.Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int] -- '
-getFillStateForAllCols =
-    hcollapse
-  . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
-  . hunzip
-  . map (unZ . unSOP . GSOP.from)
-  where
-    hunzip :: SListI xs => [NP I xs] -> NP [] xs
-    hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
-    measureFillState :: PresenceCountable a => [a] -> Ratio Int
-    measureFillState vals =
-        let nrValues = length vals
-            nrFilledValues = sum $ map countPresence vals
-        in nrFilledValues % nrValues
 
 -- Janno file writing
 
