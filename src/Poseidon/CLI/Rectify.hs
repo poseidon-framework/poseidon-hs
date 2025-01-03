@@ -16,7 +16,7 @@ import           Poseidon.Package       (PackageReadOptions (..),
                                          readPoseidonPackageCollection,
                                          writePoseidonPackage)
 import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
-                                         logInfo)
+                                         logInfo, logWarning)
 import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
 import Poseidon.Janno (writeJannoFileWithoutEmptyCols)
@@ -38,7 +38,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
-    --, _recitfyJannoRemoveEmptyCols  :: Bool
+    , _recitfyJannoRemoveEmptyCols  :: Bool
     , _rectifyOnlyLatest            :: Bool
     }
 
@@ -61,7 +61,7 @@ runRectify :: RectifyOptions -> PoseidonIO ()
 runRectify (RectifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
-                --jannoRemoveEmptyCols
+                jannoRemoveEmptyCols
                 onlyLatest
            ) = do
     let pacReadOpts = defaultPackageReadOptions {
@@ -80,11 +80,12 @@ runRectify (RectifyOptions
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
-            when True $ do
+            when jannoRemoveEmptyCols $ do
                 case posPacJannoFile inPac of
-                    Nothing   -> return ()
+                    Nothing   -> do
+                        logWarning "No .janno file to modify with --jannoRemoveEmpty"
                     Just path -> do
-                        logInfo "Reorder and remove empty columns from .janno file"
+                        logInfo "Reordering and removing empty columns from .janno file"
                         liftIO $ writeJannoFileWithoutEmptyCols path (posPacJanno inPac)
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
