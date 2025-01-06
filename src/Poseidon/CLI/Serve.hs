@@ -71,6 +71,9 @@ type ArchiveName = String
 type ArchiveStore a = [(ArchiveName, a)] -- a generic lookup table from an archive name to an item
 -- we have two concrete ones: ArchiveStore [PoseidonPackage]   and     ArchiveStore ZipStore
 
+getArchiveNames :: ArchiveStore a -> [String]
+getArchiveNames = map fst
+
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
     -- the MVar is used as a signal from the server to the calling thread that it is ready.
@@ -93,6 +96,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
     zipArchiveStore <- case maybeZipPath of
         Nothing -> return []
         Just z  -> createZipArchiveStore archiveStore z
+        
+    let archiveNames = getArchiveNames archiveStore
 
     let runScotty = case certFiles of
             Nothing                              -> scottyHTTP  serverReady port
@@ -161,7 +166,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         -- landing page
         get "/" $ do
             pacs <- getItemFromArchiveStore archiveStore
-            mainPage pacs
+            currentArchiveName <- param "archive" `rescue` const (return $ head archiveNames)
+            mainPage currentArchiveName archiveNames pacs
         -- per package pages
         get "/package/:package_name" $ do
             logRequest logA
