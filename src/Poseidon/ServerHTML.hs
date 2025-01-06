@@ -8,7 +8,7 @@ import Poseidon.EntityTypes
 import qualified Web.Scotty as S
 import Text.Blaze.Renderer.Text
 import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as H
+import qualified Text.Blaze.Html5.Attributes as HA
 import Data.Version (showVersion, Version)
 
 renderMaybeVersion :: Maybe Version -> H.AttributeValue
@@ -24,7 +24,11 @@ mainPage pacs = S.html $ renderMarkup $ do
               let pacName = getPacName pac
                   pacVersion = getPacVersion pac
                   pacNameAndVersion = renderNameWithVersion $ posPacNameAndVersion pac
-              H.a H.! H.href ("/package/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $ H.toMarkup pacNameAndVersion
+              H.a H.! HA.href ("/package/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $
+                H.toMarkup pacNameAndVersion
+              H.toMarkup (" | " :: String)
+              H.a H.! HA.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $
+                H.toMarkup ("Download" :: String)
           ) pacs
 
 packagePage :: PoseidonPackage -> S.ActionM ()
