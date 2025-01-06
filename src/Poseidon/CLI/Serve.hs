@@ -178,19 +178,13 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/:archive_name" $ do
             logRequest logA
             archiveName <- param "archive_name"
-            let maybePacs = getArchiveByName archiveName archiveStore
-            pacs <- case maybePacs of
-                Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
-                Just p -> return p
+            pacs <- prepPacs archiveName archiveStore
             archivePage archiveName pacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
             logRequest logA
             archiveName <- param "archive_name"
-            let maybePacs = getArchiveByName archiveName archiveStore
-            pacs <- case maybePacs of
-               Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
-               Just p -> return p
+            pacs <- prepPacs archiveName archiveStore
             packageName <- param "package_name"
             maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
             maybeVersion <- case maybeVersionString of
@@ -209,10 +203,23 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [_] -> packagePage pacLatest
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
+        -- per sample pages
+        --get "/:archive_name/:package_name/:sample" $ do
+        --    logRequest logA
+        --    archiveName <- param "archive_name"
+        --    pacs <- prepPacs archiveName archiveStore
+        --    packageName <- param "package_name"
+              
 
         -- catch anything else
         notFound $ raise "Unknown request"
 
+prepPacs :: String -> ArchiveStore [PoseidonPackage] -> ActionM [PoseidonPackage]
+prepPacs archiveName archiveStore = do
+    let maybePacs = getArchiveByName archiveName archiveStore
+    case maybePacs of
+        Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
+        Just p -> return p
 
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
