@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Poseidon.ServerHTML (mainPage, packagePage) where
+module Poseidon.ServerHTML (mainPage, archivePage, packagePage) where
 
 import Poseidon.Package
 import Poseidon.EntityTypes
@@ -25,31 +25,35 @@ jscript = [text|
 
 |]
 
-mainPage :: String -> [String] -> [PoseidonPackage] -> S.ActionM ()
-mainPage currentArchiveName archiveNames pacs = S.html $ renderMarkup $ do
+mainPage :: [String] -> S.ActionM ()
+mainPage archiveNames = S.html $ renderMarkup $ do
   H.html $ do
     H.head $ do
       H.script ! A.type_ "text/javascript" $ H.text jscript
     H.body $ do
-      H.form ! A.action "/" ! A.method "get" $ do
-          H.select ! A.name "archive" ! A.onchange "this.form.submit()" $ do
-              mapM_ (\archiveName ->
-                  let isSelected = if archiveName == currentArchiveName
-                                   then H.option ! A.selected "selected"
-                                   else H.option
-                  in isSelected $ H.string archiveName
-                  ) archiveNames
-      H.h1 "Poseidon packages"
+      H.h1 "Poseidon public archives"
+      H.ul $ mapM_ (\archiveName -> H.li $ H.div $ do
+              H.a ! A.href ("/" <> H.toValue archiveName) $
+                H.toMarkup archiveName
+          ) archiveNames
+
+archivePage :: String -> [PoseidonPackage] -> S.ActionM ()
+archivePage archiveName pacs = S.html $ renderMarkup $ do
+  H.html $ do
+    H.head $ do
+      H.script ! A.type_ "text/javascript" $ H.text jscript
+    H.body $ do
+      H.h1 $ H.toMarkup archiveName
       H.ul $ mapM_ (\pac -> H.li $ H.div $ do
-              let pacName = getPacName pac
-                  pacVersion = getPacVersion pac
-                  pacNameAndVersion = renderNameWithVersion $ posPacNameAndVersion pac
-              H.a ! A.href ("/package/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $
-                H.toMarkup pacNameAndVersion
-              H.toMarkup (" | " :: String)
-              H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $
-                H.toMarkup ("Download" :: String)
-          ) pacs
+          let pacName = getPacName pac
+              pacVersion = getPacVersion pac
+              pacNameAndVersion = renderNameWithVersion $ posPacNameAndVersion pac
+          H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $
+            H.toMarkup pacNameAndVersion
+          H.toMarkup (" | " :: String)
+          H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> renderMaybeVersion pacVersion) $
+            H.toMarkup ("Download" :: String)
+        ) pacs
 
 packagePage :: PoseidonPackage -> S.ActionM ()
 packagePage pac = S.html $ renderMarkup $ do

@@ -74,6 +74,13 @@ type ArchiveStore a = [(ArchiveName, a)] -- a generic lookup table from an archi
 getArchiveNames :: ArchiveStore a -> [String]
 getArchiveNames = map fst
 
+getArchiveByName :: ArchiveName -> ArchiveStore a -> Maybe a
+getArchiveByName name store =
+    case filter (\(n, _) -> n == name) store of
+      [] -> Nothing
+      [(_,a)] -> Just a
+      _ -> Nothing
+
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
     -- the MVar is used as a signal from the server to the calling thread that it is ready.
@@ -165,13 +172,25 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         -- landing page
         get "/" $ do
-            pacs <- getItemFromArchiveStore archiveStore
-            currentArchiveName <- param "archive" `rescue` const (return $ head archiveNames)
-            mainPage currentArchiveName archiveNames pacs
-        -- per package pages
-        get "/package/:package_name" $ do
             logRequest logA
-            pacs <- getItemFromArchiveStore archiveStore
+            mainPage archiveNames
+        -- archive pages
+        get "/:archive_name" $ do
+            logRequest logA
+            archiveName <- param "archive_name"
+            let maybePacs = getArchiveByName archiveName archiveStore
+            pacs <- case maybePacs of
+                Nothing -> raise $ "Archive " <> pack archiveName <> "does not exist"
+                Just p -> return p
+            archivePage archiveName pacs
+        -- per package pages
+        get "/:archive_name/:package_name" $ do
+            logRequest logA
+            archiveName <- param "archive_name"
+            let maybePacs = getArchiveByName archiveName archiveStore
+            pacs <- case maybePacs of
+               Nothing -> raise $ "Archive " <> pack archiveName <> "does not exist"
+               Just p -> return p
             packageName <- param "package_name"
             maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
             maybeVersion <- case maybeVersionString of
