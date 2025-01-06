@@ -14,7 +14,7 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                getAllGroupInfo,
                                                getExtendedIndividualInfo,
                                                packagesToPackageInfos,
-                                               readPoseidonPackageCollection)
+                                               readPoseidonPackageCollection, getJannoRowsFromPac)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.ServerClient        (AddJannoColSpec (..),
                                                ApiReturnData (..),
@@ -22,6 +22,7 @@ import           Poseidon.ServerClient        (AddJannoColSpec (..),
 import           Poseidon.ServerHTML
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
+import Poseidon.Janno (JannoRow)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -178,31 +179,30 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/:archive_name" $ do
             logRequest logA
             archiveName <- param "archive_name"
-            pacs <- prepPacs archiveName archiveStore
-            archivePage archiveName pacs
+            allPacs <- prepPacs archiveName archiveStore
+            archivePage archiveName allPacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
             logRequest logA
             archiveName <- param "archive_name"
-            pacs <- prepPacs archiveName archiveStore
-            packageName <- param "package_name"
-            maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
-            maybeVersion <- case maybeVersionString of
-                Nothing -> return Nothing
-                Just versionStr -> case parseVersionString versionStr of
-                    Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
-                    Just v -> return $ Just v
-            case sortOn Down . filter ((==packageName) . getPacName) $ pacs of
-                [] -> raise . pack $ "unknown package " ++ packageName -- no version found
-                [pac] -> case maybeVersion of -- exactly one version found
-                    Nothing -> packagePage pac
-                    Just v -> if getPacVersion pac == Just v then packagePage pac else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
-                pl@(pacLatest:_) -> case maybeVersion of
-                    Nothing -> packagePage pacLatest
-                    Just v -> case filter ((==Just v) . getPacVersion) pl of
-                        [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
-                        [_] -> packagePage pacLatest
-                        _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
+            allPacs <- prepPacs archiveName archiveStore
+            pacName <- param "package_name"
+            allVersions <- prepPacVersions pacName allPacs
+            packagePage archiveName pacName allVersions
+        -- per package version
+        get "/:archive_name/:package_name/:package_version" $ do
+            logRequest logA
+            archiveName <- param "archive_name"
+            allPacs <- prepPacs archiveName archiveStore
+            pacName <- param "package_name"
+            allVersions <- prepPacVersions pacName allPacs
+            pacVersionString <- param "package_version"
+            pacVersion <- case parseVersionString pacVersionString of
+                    Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
+                    Just v -> return v
+            samples <- prepSamples pacVersion allVersions
+            packageVersionPage archiveName pacName pacVersion samples
+        
         -- per sample pages
         --get "/:archive_name/:package_name/:sample" $ do
         --    logRequest logA
@@ -220,6 +220,22 @@ prepPacs archiveName archiveStore = do
     case maybePacs of
         Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
         Just p -> return p
+
+prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
+prepPacVersions pacName pacs = do
+    case filter (\pac -> getPacName pac == pacName) pacs of
+       [] -> raise $ "Package " <> pack pacName <> " does not exist"
+       xs -> return xs
+
+prepSamples :: Version -> [PoseidonPackage] -> ActionM [JannoRow]
+prepSamples pacVersion pacs = do
+    case filter (\pac -> getPacVersion pac == Just pacVersion) pacs of
+       [] -> raise $ "Package version " <> pack (showVersion pacVersion) <> " does not exist"
+       [x] -> return $ getJannoRowsFromPac x
+       -- packageCollection should have been filtered to have only one version per package, so the
+       -- following should not happen
+       _ -> raise $ "Package version " <> pack (showVersion pacVersion) <> " exists multiple times"
+
 
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
