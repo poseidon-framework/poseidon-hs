@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Poseidon.ServerHTML (mainPage, archivePage, packagePage, packageVersionPage) where
+module Poseidon.ServerHTML (mainPage, archivePage, packagePage, packageVersionPage, samplePage) where
 
 import Poseidon.Package
 import Poseidon.EntityTypes
@@ -48,9 +48,8 @@ archivePage archiveName pacs = S.html $ renderMarkup $ do
       H.ul $ mapM_ (\pac -> H.li $ H.div $ do
           let pacName = getPacName pac
               pacVersion = getPacVersion pac
-              pacNameAndVersion = renderNameWithVersion $ posPacNameAndVersion pac
-          H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion pacVersion)) $
-            H.toMarkup pacNameAndVersion
+          H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $
+            H.toMarkup pacName
           H.toMarkup (" | " :: String)
           H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion pacVersion)) $
             H.toMarkup ("Download" :: String)
@@ -68,11 +67,32 @@ packagePage archiveName pacName pacs = S.html $ renderMarkup $ do
         ) pacs
         
 packageVersionPage :: String -> String -> Version -> [JannoRow] -> S.ActionM ()
-packageVersionPage _ pacName _ jannoRows = S.html $ renderMarkup $ do
+packageVersionPage archiveName pacName pacVersion jannoRows = S.html $ renderMarkup $ do
   H.html $ do
     H.body $ do
       H.h1 (H.toMarkup pacName)
       H.ul $ mapM_ (\jannoRow -> H.li $ H.div $ do
-           H.a ! A.href ("/") $
+           H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (showVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)) $
                H.toMarkup $ jPoseidonID jannoRow
         ) jannoRows
+
+samplePage :: JannoRow -> S.ActionM ()
+samplePage row = S.html $ renderMarkup $ do
+  H.html $ do
+    H.body $ do
+      H.h1 (H.toMarkup $ jPoseidonID row)
+      H.table $ do
+        H.tr $ do
+          H.th "Property"
+          H.th "Value"
+        H.tr $ do
+          H.td "PoseidonID"
+          H.td (H.toMarkup $ jPoseidonID row)
+        H.tr $ do
+          H.td "GeneticSex"
+          H.td (H.toMarkup $ show $ jGeneticSex row)
+        H.tr $ do
+          H.td "..."
+          H.td (H.toMarkup ("..." :: String))
+
+
