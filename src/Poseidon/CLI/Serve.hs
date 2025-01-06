@@ -19,15 +19,15 @@ import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.ServerClient        (AddJannoColSpec (..),
                                                ApiReturnData (..),
                                                ServerApiReturnType (..))
+import           Poseidon.ServerHTML
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
-import Poseidon.ServerHTML
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                (foldM, forM, when, forM_)
+import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (nub, sortOn)
@@ -53,9 +53,8 @@ import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
                                                param, raise, request, rescue,
-                                               scottyApp, text, literal)
-import qualified Data.Text as T
-                                    
+                                               scottyApp, text)
+
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
     , cliZipDir          :: Maybe FilePath
@@ -156,9 +155,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
-                        
+
         -- http API
-        
+
         -- landing page
         get "/" $ do
             pacs <- getItemFromArchiveStore archiveStore

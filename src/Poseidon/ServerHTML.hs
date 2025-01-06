@@ -2,14 +2,14 @@
 
 module Poseidon.ServerHTML (mainPage, packagePage) where
 
-import Poseidon.Package
-import Poseidon.EntityTypes
+import           Poseidon.EntityTypes
+import           Poseidon.Package
 
-import qualified Web.Scotty as S
-import Text.Blaze.Renderer.Text
-import qualified Text.Blaze.Html5 as H
+import           Data.Version                (Version, showVersion)
+import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as HA
-import Data.Version (showVersion, Version)
+import           Text.Blaze.Renderer.Text
+import qualified Web.Scotty                  as S
 
 renderMaybeVersion :: Maybe Version -> H.AttributeValue
 renderMaybeVersion Nothing  = H.toValue ("" :: String)
