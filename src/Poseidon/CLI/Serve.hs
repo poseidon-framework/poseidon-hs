@@ -180,7 +180,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archiveName <- param "archive_name"
             let maybePacs = getArchiveByName archiveName archiveStore
             pacs <- case maybePacs of
-                Nothing -> raise $ "Archive " <> pack archiveName <> "does not exist"
+                Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
                 Just p -> return p
             archivePage archiveName pacs
         -- per package pages
@@ -189,7 +189,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archiveName <- param "archive_name"
             let maybePacs = getArchiveByName archiveName archiveStore
             pacs <- case maybePacs of
-               Nothing -> raise $ "Archive " <> pack archiveName <> "does not exist"
+               Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
                Just p -> return p
             packageName <- param "package_name"
             maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
