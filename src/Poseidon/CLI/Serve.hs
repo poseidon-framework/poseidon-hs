@@ -164,10 +164,27 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacs <- getItemFromArchiveStore archiveStore
             mainPage pacs
         -- per package pages
-        let (_, pacstest) = head archiveStore
-        forM_ pacstest $ \pac -> do
-            get (literal ("/package/" ++ renderNameWithVersion (posPacNameAndVersion pac))) $ do
-                packagePage pac
+        get "/package/:package_name" $ do
+            logRequest logA
+            pacs <- getItemFromArchiveStore archiveStore
+            packageName <- param "package_name"
+            maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
+            maybeVersion <- case maybeVersionString of
+                Nothing -> return Nothing
+                Just versionStr -> case parseVersionString versionStr of
+                    Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
+                    Just v -> return $ Just v
+            case sortOn Down . filter ((==packageName) . getPacName) $ pacs of
+                [] -> raise . pack $ "unknown package " ++ packageName -- no version found
+                [pac] -> case maybeVersion of -- exactly one version found
+                    Nothing -> packagePage pac
+                    Just v -> if getPacVersion pac == Just v then packagePage pac else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
+                pl@(pacLatest:_) -> case maybeVersion of
+                    Nothing -> packagePage pacLatest
+                    Just v -> case filter ((==Just v) . getPacVersion) pl of
+                        [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
+                        [_] -> packagePage pacLatest
+                        _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
 
         -- catch anything else
         notFound $ raise "Unknown request"
