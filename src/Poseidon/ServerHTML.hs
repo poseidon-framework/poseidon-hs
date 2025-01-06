@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 module Poseidon.ServerHTML (mainPage, archivePage, packagePage, packageVersionPage, samplePage) where
 
-import Poseidon.Package
-import Poseidon.EntityTypes
-import Poseidon.Janno
+import           Poseidon.EntityTypes
+import           Poseidon.Janno
+import           Poseidon.Package
 
-import qualified Web.Scotty as S
-import Text.Blaze.Renderer.Text
-import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5 ((!))
+import qualified Data.Text                   as T
+import           Data.Version                (Version, showVersion)
+import           NeatInterpolation
+import qualified Text.Blaze.Html5            as H
+import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
-import Data.Version (showVersion, Version)
-import NeatInterpolation
-import qualified Data.Text as T
+import           Text.Blaze.Renderer.Text
+import qualified Web.Scotty                  as S
 
 renderMaybeVersion :: Maybe Version -> String
 renderMaybeVersion Nothing  = ("" :: String)
@@ -65,7 +65,7 @@ packagePage archiveName pacName pacs = S.html $ renderMarkup $ do
            H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion version)) $
                H.toMarkup $ renderMaybeVersion version
         ) pacs
-        
+
 packageVersionPage :: String -> String -> Version -> [JannoRow] -> S.ActionM ()
 packageVersionPage archiveName pacName pacVersion jannoRows = S.html $ renderMarkup $ do
   H.html $ do

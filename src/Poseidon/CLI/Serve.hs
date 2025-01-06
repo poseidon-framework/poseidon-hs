@@ -8,13 +8,15 @@ import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
+import           Poseidon.Janno               (JannoRow (..))
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
                                                getExtendedIndividualInfo,
+                                               getJannoRowsFromPac,
                                                packagesToPackageInfos,
-                                               readPoseidonPackageCollection, getJannoRowsFromPac)
+                                               readPoseidonPackageCollection)
 import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
 import           Poseidon.ServerClient        (AddJannoColSpec (..),
                                                ApiReturnData (..),
@@ -22,7 +24,6 @@ import           Poseidon.ServerClient        (AddJannoColSpec (..),
 import           Poseidon.ServerHTML
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
-import Poseidon.Janno (JannoRow (..))
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -78,9 +79,9 @@ getArchiveNames = map fst
 getArchiveByName :: ArchiveName -> ArchiveStore a -> Maybe a
 getArchiveByName name store =
     case filter (\(n, _) -> n == name) store of
-      [] -> Nothing
+      []      -> Nothing
       [(_,a)] -> Just a
-      _ -> Nothing
+      _       -> Nothing
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
@@ -104,7 +105,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
     zipArchiveStore <- case maybeZipPath of
         Nothing -> return []
         Just z  -> createZipArchiveStore archiveStore z
-        
+
     let archiveNames = getArchiveNames archiveStore
 
     let runScotty = case certFiles of
@@ -226,7 +227,7 @@ prepPacs archiveName archiveStore = do
     let maybePacs = getArchiveByName archiveName archiveStore
     case maybePacs of
         Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
-        Just p -> return p
+        Just p  -> return p
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
@@ -244,9 +245,9 @@ prepSamples pacVersion pacs = do
 prepSample :: String -> [JannoRow] -> ActionM JannoRow
 prepSample sampleName rows = do
     case filter (\r -> jPoseidonID r == sampleName) rows of
-       [] -> raise $ "Sample " <> pack sampleName <> " does not exist"
+       []  -> raise $ "Sample " <> pack sampleName <> " does not exist"
        [x] -> return x
-       _ -> raise $ "Sample " <> pack sampleName <> " exists multiple times"
+       _   -> raise $ "Sample " <> pack sampleName <> " exists multiple times"
 
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
