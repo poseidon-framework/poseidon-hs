@@ -31,12 +31,20 @@ headerWithCSS = H.head $ do
     H.script ! A.type_ "text/javascript" $ H.text jscript
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.blue.min.css"
 
+navBar :: H.Html
+navBar = H.nav $ do
+  H.ul $ do
+    H.li $ H.strong $ "Poseidon data explorer"
+  H.ul $ do
+    H.li $ H.a ! A.href "https://www.poseidon-adna.org" $ "Poseidon?"
+
 mainPage :: [String] -> [[PoseidonPackage]] -> S.ActionM ()
 mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ do
   H.html $ do
     headerWithCSS
     H.body $ do
       H.main $ do
+        navBar
         H.h1 "Archives"
         H.ul $ mapM_ (\(archiveName, pacs) -> do
           let nrPackages = length pacs
@@ -53,6 +61,7 @@ archivePage archiveName pacs = S.html $ renderMarkup $ do
     headerWithCSS
     H.body $ do
       H.main $ do
+        navBar
         H.h1 (H.toMarkup $ "Archive: " <> archiveName)
         H.ul $ mapM_ (\pac -> H.li $ H.div $ do
             let pacName = getPacName pac
@@ -70,6 +79,7 @@ packagePage archiveName pacName pacs = S.html $ renderMarkup $ do
     headerWithCSS
     H.body $ do
       H.main $ do
+        navBar
         H.h1 (H.toMarkup $ "Package: " <> pacName)
         H.ul $ mapM_ (\pac -> H.li $ H.div $ do
              let version = getPacVersion pac
@@ -83,11 +93,20 @@ packageVersionPage archiveName pacName pacVersion jannoRows = S.html $ renderMar
     headerWithCSS
     H.body $ do
       H.main $ do
+        navBar
         H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion pacVersion)
-        H.ul $ mapM_ (\jannoRow -> H.li $ H.div $ do
-             H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (showVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)) $
-                 H.toMarkup $ jPoseidonID jannoRow
-          ) jannoRows
+        H.table $ do
+          H.tr $ do
+            H.th $ H.b "PoseidonID"
+            H.th $ H.b "Genetic_Sex"
+            H.th $ H.b "Group_Name"
+          mapM_ (\jannoRow -> do
+              let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (showVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
+              H.tr $ do
+                H.td (H.a ! A.href link $ (H.toMarkup $ jPoseidonID jannoRow))
+                H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
+                H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
+            ) jannoRows
 
 samplePage :: JannoRow -> S.ActionM ()
 samplePage row = S.html $ renderMarkup $ do
@@ -95,6 +114,7 @@ samplePage row = S.html $ renderMarkup $ do
     headerWithCSS
     H.body $ do
       H.main $ do
+        navBar
         H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
         H.table $ do
           H.tr $ do
