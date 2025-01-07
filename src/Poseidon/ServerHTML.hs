@@ -31,20 +31,21 @@ headerWithCSS = H.head $ do
     H.script ! A.type_ "text/javascript" $ H.text jscript
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.blue.min.css"
 
-mainPage :: [String] -> S.ActionM ()
-mainPage archiveNames = S.html $ renderMarkup $ do
+mainPage :: [String] -> [[PoseidonPackage]] -> S.ActionM ()
+mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ do
   H.html $ do
     headerWithCSS
     H.body $ do
       H.main $ do
         H.h1 "Archives"
-        H.ul $ mapM_ (\archiveName -> do
-                H.article $ do
-                  H.header $ do
-                    H.a ! A.href ("/" <> H.toValue archiveName) $
-                      H.toMarkup archiveName
-                  H.toMarkup ("test" :: String)
-            ) archiveNames
+        H.ul $ mapM_ (\(archiveName, pacs) -> do
+          let nrPackages = length pacs
+          H.article $ do
+            H.header $ do
+              H.a ! A.href ("/" <> H.toValue archiveName) $
+                H.toMarkup archiveName
+            H.toMarkup $ (show nrPackages) <> " packages"
+          ) $ zip archiveNames pacsPerArchive
 
 archivePage :: String -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName pacs = S.html $ renderMarkup $ do
@@ -97,8 +98,8 @@ samplePage row = S.html $ renderMarkup $ do
         H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
         H.table $ do
           H.tr $ do
-            H.th "Property"
-            H.th "Value"
+            H.th $ H.b "Property"
+            H.th $ H.b "Value"
           H.tr $ do
             H.td "PoseidonID"
             H.td (H.toMarkup $ jPoseidonID row)

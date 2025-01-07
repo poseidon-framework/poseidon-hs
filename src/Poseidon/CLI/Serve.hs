@@ -32,7 +32,7 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (nub, sortOn)
+import           Data.List                    (nub, sortOn, groupBy)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
@@ -175,7 +175,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         -- landing page
         get "/" $ do
             logRequest logA
-            mainPage archiveNames
+            pacsPerArchive <- mapM (\n -> selectLatest <$> prepPacs n archiveStore) archiveNames
+            mainPage archiveNames pacsPerArchive
         -- archive pages
         get "/:archive_name" $ do
             logRequest logA
@@ -228,6 +229,12 @@ prepPacs archiveName archiveStore = do
     case maybePacs of
         Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
         Just p  -> return p
+
+selectLatest :: [PoseidonPackage] -> [PoseidonPackage]
+selectLatest =
+      map last
+    . groupBy (\a b -> posPacNameAndVersion a == posPacNameAndVersion b)
+    . sortOn posPacNameAndVersion
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
