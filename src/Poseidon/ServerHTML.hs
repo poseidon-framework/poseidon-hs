@@ -29,7 +29,7 @@ jscript = [text|
 headerWithCSS :: H.Markup
 headerWithCSS = H.head $ do
     H.script ! A.type_ "text/javascript" $ H.text jscript
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.blue.min.css"
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
 
 navBar :: H.Html
 navBar = H.nav $ do

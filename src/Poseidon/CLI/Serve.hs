@@ -24,6 +24,7 @@ import           Poseidon.ServerClient        (AddJannoColSpec (..),
 import           Poseidon.ServerHTML
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
+import Poseidon.ServerStylesheet (stylesBS)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -55,7 +56,7 @@ import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
                                                param, raise, request, rescue,
-                                               scottyApp, text)
+                                               scottyApp, text, setHeader, raw)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -170,8 +171,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
 
-        -- http API
+        -- html API
 
+        -- css stylesheet
+        get "/styles.css" $ do
+            setHeader "Content-Type" "text/css; charset=utf-8"
+            raw stylesBS
         -- landing page
         get "/" $ do
             logRequest logA
@@ -357,9 +362,9 @@ makeZipArchive pac =
     addFN :: FilePath -> Archive -> IO Archive
     addFN fn a = do
         let fullFN = posPacBaseDir pac </> fn
-        raw <- B.readFile fullFN
+        rawFN <- B.readFile fullFN
         modTime <- round . utcTimeToPOSIXSeconds <$> getModificationTime fullFN
-        let zipEntry = toEntry fn modTime raw
+        let zipEntry = toEntry fn modTime rawFN
         return (addEntryToArchive zipEntry a)
 
 scottyHTTPS :: MVar () -> Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonIO ()
