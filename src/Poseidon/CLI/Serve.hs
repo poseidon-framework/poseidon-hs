@@ -22,9 +22,9 @@ import           Poseidon.ServerClient        (AddJannoColSpec (..),
                                                ApiReturnData (..),
                                                ServerApiReturnType (..))
 import           Poseidon.ServerHTML
+import           Poseidon.ServerStylesheet    (stylesBS)
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
-import Poseidon.ServerStylesheet (stylesBS)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -33,7 +33,7 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (nub, sortOn, groupBy)
+import           Data.List                    (groupBy, nub, sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust)
 import           Data.Ord                     (Down (..))
@@ -55,8 +55,9 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
-                                               param, raise, request, rescue,
-                                               scottyApp, text, setHeader, raw)
+                                               param, raise, raw, request,
+                                               rescue, scottyApp, setHeader,
+                                               text)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
