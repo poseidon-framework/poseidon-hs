@@ -7,6 +7,8 @@ import           Poseidon.EntityTypes
 import           Poseidon.Janno
 import           Poseidon.Package
 
+import           Data.Aeson                  (encode)
+import qualified Data.ByteString.Lazy.Char8  as C
 import qualified Data.Text                   as T
 import           Data.Version                (Version, showVersion)
 import           NeatInterpolation
@@ -16,8 +18,6 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
-import Data.Aeson (encode)
-import qualified Data.ByteString.Lazy.Char8 as C
 
 data PacVersion =
       Latest

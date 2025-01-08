@@ -35,7 +35,7 @@ import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (groupBy, nub, sortOn)
 import           Data.List.Split              (splitOn)
-import           Data.Maybe                   (isJust, catMaybes, mapMaybe)
+import           Data.Maybe                   (isJust, mapMaybe)
 import           Data.Ord                     (Down (..))
 import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
@@ -48,6 +48,8 @@ import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
                                                tlsSettingsChain)
 import           Network.Wai.Middleware.Cors  (simpleCors)
 import           Paths_poseidon_hs            (version)
+import           Poseidon.ColumnTypes         (JannoLatitude (..),
+                                               JannoLongitude (..))
 import           System.Directory             (createDirectoryIfMissing,
                                                doesFileExist,
                                                getModificationTime)
@@ -58,7 +60,6 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                param, raise, raw, redirect,
                                                request, rescue, scottyApp,
                                                setHeader, text)
-import Poseidon.ColumnTypes (JannoLatitude (..), JannoLongitude (..))
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
