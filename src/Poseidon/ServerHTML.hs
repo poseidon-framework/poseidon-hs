@@ -44,7 +44,10 @@ explorerPage content = do
 
 header :: H.Markup
 header = H.head $ do
+    -- load classless pico CSS
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
+    -- pico musst not affect the leaflet map div
+    H.style ! A.type_ "text/css" $ H.preEscapedToHtml mapCSS
     -- leaflet (js must be after css)
     H.link ! A.rel "stylesheet"
            ! A.type_ "text/css"
@@ -63,7 +66,7 @@ header = H.head $ do
 mapJS :: T.Text -> T.Text
 mapJS mapMarkers = [text|
   window.onload = function() {
-    var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+    var mymap = L.map('mapid').setView([35, 10], 1);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
@@ -74,6 +77,17 @@ mapJS mapMarkers = [text|
          L.marker([mapMarkers[i][0], mapMarkers[i][1]]).addTo(markers);
     }
     mymap.addLayer(markers);
+  }
+|]
+
+mapCSS :: T.Text
+mapCSS = [text|
+  /* overwrite some pico styling for the map */
+  #mapid,
+  #mapid * {
+    padding: 0;
+    --pico-border-width: 0rem !important;
+    --pico-background-color: transparent !important;
   }
 |]
 
@@ -139,9 +153,10 @@ mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ explorerPage $ do
 
 archivePage :: String -> [(Double,Double)] -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = S.html $ renderMarkup $ explorerPage $ do
-  H.head $ H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ T.pack $ C.unpack $ encode mapMarkers)
+  H.head $ do
+    H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ T.pack $ C.unpack $ encode mapMarkers)
   H.h1 (H.toMarkup $ "Archive: " <> archiveName)
-  H.div ! A.id "mapid" ! A.style "height: 300px;" $ ""
+  H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
   H.ul $ mapM_ (\pac -> H.li $ H.div $ do
       let pacName = getPacName pac
           pacVersion = getPacVersion pac
