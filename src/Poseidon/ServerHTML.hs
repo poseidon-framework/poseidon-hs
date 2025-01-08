@@ -29,26 +29,50 @@ renderMaybeVersion :: Maybe Version -> String
 renderMaybeVersion Nothing  = ("" :: String)
 renderMaybeVersion (Just v) = showVersion v
 
-jscript :: T.Text
-jscript = [text|
-
-
-|]
-
 explorerPage :: H.Html -> H.Html
 explorerPage content = do
+    H.docType
     H.html $ do
-      headerWithCSS
+      header
       H.body $ do
         H.main $ do
           navBar
           content
           footer
 
-headerWithCSS :: H.Markup
-headerWithCSS = H.head $ do
-    H.script ! A.type_ "text/javascript" $ H.text jscript
+header :: H.Markup
+header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
+    -- leaflet (js must be after css)
+    H.link ! A.rel "stylesheet" 
+           ! A.type_ "text/css" 
+           ! A.href "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+           ! H.customAttribute "integrity" "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+           ! H.customAttribute "crossorigin" ""
+    H.script ! A.src "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+             ! H.customAttribute "integrity" "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+             ! H.customAttribute "crossorigin" "" 
+             $ ""
+    -- leaflet markercluster
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
+    -- custom javascript code
+    H.text jscript
+    H.script ! A.type_ "text/javascript" $ H.text jscript
+
+jscript :: T.Text
+jscript = [text|
+window.onload = function() {
+    console.log("Starting to load map");
+    var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+    }).addTo(mymap);
+    console.log("Map loaded successfully");
+}
+|]
 
 navBar :: H.Html
 navBar = H.nav $ do
@@ -81,7 +105,7 @@ mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ explorerPage $ do
           H.br
           H.br
           H.p $ H.toMarkup (
-            "&#x1F6C8; Poseidon Community Archive (PCA) with per-paper packages and \
+            "Poseidon Community Archive (PCA) with per-paper packages and \
             \genotype data as published." :: String)
           H.footer $ H.p $ H.a
             ! A.href "https://github.com/poseidon-framework/community-archive"
@@ -113,6 +137,7 @@ mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ explorerPage $ do
 archivePage :: String -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName pacs = S.html $ renderMarkup $ explorerPage $ do
   H.h1 (H.toMarkup $ "Archive: " <> archiveName)
+  H.div ! A.id "mapid" ! A.style "height: 300px;" $ ""
   H.ul $ mapM_ (\pac -> H.li $ H.div $ do
       let pacName = getPacName pac
           pacVersion = getPacVersion pac
