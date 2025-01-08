@@ -44,14 +44,14 @@ header :: H.Markup
 header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
     -- leaflet (js must be after css)
-    H.link ! A.rel "stylesheet" 
-           ! A.type_ "text/css" 
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
            ! A.href "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
            ! H.customAttribute "integrity" "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
            ! H.customAttribute "crossorigin" ""
-    H.script ! A.src "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+    H.script ! A.src "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
              ! H.customAttribute "integrity" "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-             ! H.customAttribute "crossorigin" "" 
+             ! H.customAttribute "crossorigin" ""
              $ ""
     -- leaflet markercluster
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
