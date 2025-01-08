@@ -57,7 +57,7 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
                                                param, raise, raw, request,
                                                rescue, scottyApp, setHeader,
-                                               text)
+                                               text, redirect)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -191,13 +191,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archivePage archiveName allPacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
-            logRequest logA
-            archiveName <- param "archive_name"
-            allPacs <- prepPacs archiveName archiveStore
-            pacName <- param "package_name"
-            allVersions <- prepPacVersions pacName allPacs
-            packagePage archiveName pacName allVersions
-        -- per package version pages
+            archive_name <- param "archive_name"
+            package_name <- param "package_name"
+            redirect ("/" <> archive_name <> "/" <> package_name <> "/latest")
         get "/:archive_name/:package_name/:package_version" $ do
             logRequest logA
             archiveName <- param "archive_name"
@@ -205,11 +201,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacName <- param "package_name"
             allVersions <- prepPacVersions pacName allPacs
             pacVersionString <- param "package_version"
-            pacVersion <- case parseVersionString pacVersionString of
+            pacVersion <- case parsePackageVersionString pacVersionString of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
                     Just v -> return v
-            samples <- prepSamples pacVersion allVersions
-            packageVersionPage archiveName pacName pacVersion samples
+            oneVersion <- prepPacVersion pacVersion allVersions
+            samples <- prepSamples oneVersion
+            packageVersionPage archiveName pacName pacVersion allVersions samples
         -- per sample pages
         get "/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
@@ -218,10 +215,11 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacName <- param "package_name"
             allVersions <- prepPacVersions pacName allPacs
             pacVersionString <- param "package_version"
-            pacVersion <- case parseVersionString pacVersionString of
+            pacVersion <- case parsePackageVersionString pacVersionString of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
                     Just v -> return v
-            samples <- prepSamples pacVersion allVersions
+            oneVersion <- prepPacVersion pacVersion allVersions
+            samples <- prepSamples oneVersion
             sampleName <- param "sample"
             sample <- prepSample sampleName samples
             samplePage sample
@@ -248,12 +246,17 @@ prepPacVersions pacName pacs = do
        [] -> raise $ "Package " <> pack pacName <> " does not exist"
        xs -> return xs
 
-prepSamples :: Version -> [PoseidonPackage] -> ActionM [JannoRow]
-prepSamples pacVersion pacs = do
-    case filter (\pac -> getPacVersion pac == Just pacVersion) pacs of
-       [] -> raise $ "Package version " <> pack (showVersion pacVersion) <> " does not exist"
-       [x] -> return $ getJannoRowsFromPac x
-       _ -> raise $ "Package version " <> pack (showVersion pacVersion) <> " exists multiple times"
+prepPacVersion :: PacVersion -> [PoseidonPackage] -> ActionM PoseidonPackage
+prepPacVersion pacVersion pacs = do
+    case pacVersion of
+        Latest -> return $ head $ selectLatest pacs
+        NumericalVersion v -> case filter (\pac -> getPacVersion pac == Just v) pacs of
+            [] -> raise $ "Package version " <> pack (show pacVersion) <> " does not exist"
+            [x] -> return x
+            _ -> raise $ "Package version " <> pack (show pacVersion) <> " exists multiple times"
+
+prepSamples :: PoseidonPackage -> ActionM [JannoRow]
+prepSamples pac = return $ getJannoRowsFromPac pac
 
 prepSample :: String -> [JannoRow] -> ActionM JannoRow
 prepSample sampleName rows = do
@@ -291,6 +294,14 @@ createZipArchiveStore archiveStore zipPath =
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]
 genericServerMessages = ["Greetings from the Poseidon Server, version " ++ showVersion version]
+
+parsePackageVersionString :: String -> Maybe PacVersion
+parsePackageVersionString vStr = case vStr of
+    "" -> Just Latest
+    "latest" -> Just Latest
+    x -> case filter ((=="") . snd) $ readP_to_S parseVersion x of
+        [(v, "")] -> Just $ NumericalVersion v
+        _          -> Nothing
 
 parseVersionString :: String -> Maybe Version
 parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion vStr of

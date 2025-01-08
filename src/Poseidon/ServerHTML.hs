@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
-module Poseidon.ServerHTML (mainPage, archivePage, packagePage, packageVersionPage, samplePage) where
+module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, PacVersion (..)) where
 
 import           Poseidon.EntityTypes
 import           Poseidon.Janno
@@ -15,6 +15,14 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
+
+data PacVersion =
+      Latest
+    | NumericalVersion Version
+    
+instance Show PacVersion where
+  show Latest = "latest"
+  show (NumericalVersion v) = showVersion v
 
 renderMaybeVersion :: Maybe Version -> String
 renderMaybeVersion Nothing  = ("" :: String)
@@ -73,35 +81,26 @@ archivePage archiveName pacs = S.html $ renderMarkup $ do
               H.toMarkup ("Download" :: String)
           ) pacs
 
-packagePage :: String -> String -> [PoseidonPackage] -> S.ActionM ()
-packagePage archiveName pacName pacs = S.html $ renderMarkup $ do
+packageVersionPage :: String -> String -> PacVersion -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
+packageVersionPage archiveName pacName pacVersion pacs jannoRows = S.html $ renderMarkup $ do
   H.html $ do
     headerWithCSS
     H.body $ do
       H.main $ do
         navBar
-        H.h1 (H.toMarkup $ "Package: " <> pacName)
+        H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
         H.ul $ mapM_ (\pac -> H.li $ H.div $ do
              let version = getPacVersion pac
              H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion version)) $
                  H.toMarkup $ renderMaybeVersion version
           ) pacs
-
-packageVersionPage :: String -> String -> Version -> [JannoRow] -> S.ActionM ()
-packageVersionPage archiveName pacName pacVersion jannoRows = S.html $ renderMarkup $ do
-  H.html $ do
-    headerWithCSS
-    H.body $ do
-      H.main $ do
-        navBar
-        H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion pacVersion)
         H.table $ do
           H.tr $ do
             H.th $ H.b "PoseidonID"
             H.th $ H.b "Genetic_Sex"
             H.th $ H.b "Group_Name"
           mapM_ (\jannoRow -> do
-              let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (showVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
+              let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (show pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
               H.tr $ do
                 H.td (H.a ! A.href link $ (H.toMarkup $ jPoseidonID jannoRow))
                 H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
