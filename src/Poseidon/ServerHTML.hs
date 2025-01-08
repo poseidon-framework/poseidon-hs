@@ -58,8 +58,7 @@ header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
     H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
     -- custom javascript code
-    H.text jscript
-    H.script ! A.type_ "text/javascript" $ H.text jscript
+    H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jscript
 
 jscript :: T.Text
 jscript = [text|
