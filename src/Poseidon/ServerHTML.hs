@@ -53,14 +53,14 @@ headerWithCSS = H.head $ do
 navBar :: H.Html
 navBar = H.nav $ do
   H.ul $ do
-    H.li $ H.strong $ "Poseidon data explorer"
+    H.li $ H.strong "Poseidon data explorer"
   H.ul $ do
     H.li $ H.a ! A.href "https://www.poseidon-adna.org" $ "Poseidon?"
 
 footer :: H.Html
 footer = H.footer ! A.style "border-top: 1px solid; padding: 1em; border-color: #727B8A;" $ do
     H.div ! A.style "float: left; font-size: 0.7em;" $ do
-       "trident version " <> H.toMarkup (showVersion version)
+       "trident v" <> H.toMarkup (showVersion version)
     H.div ! A.style "float: right; font-size: 0.7em;" $ do
        "Built with "
        H.a ! A.href "https://picocss.com" $ "pico CSS"
@@ -74,7 +74,40 @@ mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ explorerPage $ do
       H.header $ do
         H.a ! A.href ("/" <> H.toValue archiveName) $
           H.toMarkup archiveName
-      H.toMarkup $ (show nrPackages) <> " packages"
+      H.toMarkup $ show nrPackages <> " packages"
+      -- cover special cases for the main archive explorer website
+      case archiveName of
+        "community-archive" -> do
+          H.br
+          H.br
+          H.p $ H.toMarkup (
+            "&#x1F6C8; Poseidon Community Archive (PCA) with per-paper packages and \
+            \genotype data as published." :: String)
+          H.footer $ H.p $ H.a
+            ! A.href "https://github.com/poseidon-framework/community-archive"
+            ! A.style "float: right; font-size: 0.8em;" $
+            H.toMarkup ("The PCA on GitHub" :: String)
+        "minotaur-archive" -> do
+          H.br
+          H.br
+          H.p $ H.toMarkup (
+            "Poseidon Minotaur Archive (PMA) with per-paper packages and \
+            \genotype data reprocessed by the Minotaur workflow." :: String)
+          H.footer $ H.p $ H.a
+            ! A.href "https://github.com/poseidon-framework/minotaur-archive"
+            ! A.style "float: right; font-size: 0.8em;" $
+            H.toMarkup ("The PMA on GitHub" :: String)
+        "aadr-archive" -> do
+          H.br
+          H.br
+          H.p $ H.toMarkup (
+            "Poseidon AADR Archive (PAA) with a structurally unified version of the \
+            \AADR dataset repackaged in the Poseidon package format." :: String)
+          H.footer $ H.p $ H.a
+            ! A.href "https://github.com/poseidon-framework/aadr-archive"
+            ! A.style "float: right; font-size: 0.8em;" $
+            H.toMarkup ("The PAA on GitHub" :: String)
+        _ -> return ()
     ) $ zip archiveNames pacsPerArchive
 
 archivePage :: String -> [PoseidonPackage] -> S.ActionM ()
