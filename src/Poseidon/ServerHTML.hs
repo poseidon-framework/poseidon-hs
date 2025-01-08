@@ -16,6 +16,8 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
+import Data.Aeson (encode)
+import qualified Data.ByteString.Lazy.Char8 as C
 
 data PacVersion =
       Latest
@@ -57,20 +59,22 @@ header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
     H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
-    -- custom javascript code
-    H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jscript
 
-jscript :: T.Text
-jscript = [text|
-window.onload = function() {
-    console.log("Starting to load map");
+mapJS :: T.Text -> T.Text
+mapJS mapMarkers = [text|
+  window.onload = function() {
     var mymap = L.map('mapid').setView([51.505, -0.09], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
     }).addTo(mymap);
-    console.log("Map loaded successfully");
-}
+    var markers = L.markerClusterGroup();
+    var mapMarkers = JSON.parse("$mapMarkers");
+    for (var i = 0; i<mapMarkers.length; i++) {
+         L.marker([mapMarkers[i][0], mapMarkers[i][1]]).addTo(markers);
+    }
+    mymap.addLayer(markers);
+  }
 |]
 
 navBar :: H.Html
@@ -133,8 +137,9 @@ mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ explorerPage $ do
         _ -> return ()
     ) $ zip archiveNames pacsPerArchive
 
-archivePage :: String -> [PoseidonPackage] -> S.ActionM ()
-archivePage archiveName pacs = S.html $ renderMarkup $ explorerPage $ do
+archivePage :: String -> [(Double,Double)] -> [PoseidonPackage] -> S.ActionM ()
+archivePage archiveName mapMarkers pacs = S.html $ renderMarkup $ explorerPage $ do
+  H.head $ H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ T.pack $ C.unpack $ encode mapMarkers)
   H.h1 (H.toMarkup $ "Archive: " <> archiveName)
   H.div ! A.id "mapid" ! A.style "height: 300px;" $ ""
   H.ul $ mapM_ (\pac -> H.li $ H.div $ do

@@ -8,7 +8,7 @@ import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
-import           Poseidon.Janno               (JannoRow (..))
+import           Poseidon.Janno               (JannoRow (..), getJannoRows)
 import           Poseidon.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
@@ -35,7 +35,7 @@ import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (groupBy, nub, sortOn)
 import           Data.List.Split              (splitOn)
-import           Data.Maybe                   (isJust)
+import           Data.Maybe                   (isJust, catMaybes, mapMaybe)
 import           Data.Ord                     (Down (..))
 import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
@@ -58,6 +58,7 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                param, raise, raw, redirect,
                                                request, rescue, scottyApp,
                                                setHeader, text)
+import Poseidon.ColumnTypes (JannoLatitude (..), JannoLongitude (..))
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -188,7 +189,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             logRequest logA
             archiveName <- param "archive_name"
             allPacs <- prepPacs archiveName archiveStore
-            archivePage archiveName allPacs
+            let latestPacs = selectLatest allPacs
+                mapMarkers = concatMap prepMappable latestPacs
+            archivePage archiveName mapMarkers allPacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
             archive_name <- param "archive_name"
@@ -239,6 +242,15 @@ selectLatest =
       map last
     . groupBy (\a b -> posPacNameAndVersion a == posPacNameAndVersion b)
     . sortOn posPacNameAndVersion
+
+prepMappable :: PoseidonPackage -> [(Double,Double)]
+prepMappable = mapMaybe extractPos . jLatitudeLongitude
+    where
+        jLatitudeLongitude :: PoseidonPackage -> [(Maybe JannoLatitude, Maybe JannoLongitude)]
+        jLatitudeLongitude = map (\r -> (jLatitude r, jLongitude r)) . getJannoRows . posPacJanno
+        extractPos :: (Maybe JannoLatitude, Maybe JannoLongitude) -> Maybe (Double, Double)
+        extractPos (Just (JannoLatitude lat), Just (JannoLongitude lon)) = Just (lat, lon)
+        extractPos _ = Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
