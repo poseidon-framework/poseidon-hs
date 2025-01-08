@@ -10,19 +10,19 @@ import           Poseidon.Package
 import qualified Data.Text                   as T
 import           Data.Version                (Version, showVersion)
 import           NeatInterpolation
+import           Paths_poseidon_hs           (version)
 import qualified Text.Blaze.Html5            as H
 import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
-import           Paths_poseidon_hs            (version)
 
 data PacVersion =
       Latest
     | NumericalVersion Version
-    
+
 instance Show PacVersion where
-  show Latest = "latest"
+  show Latest               = "latest"
   show (NumericalVersion v) = showVersion v
 
 renderMaybeVersion :: Maybe Version -> String

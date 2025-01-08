@@ -55,9 +55,9 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
-                                               param, raise, raw, request,
-                                               rescue, scottyApp, setHeader,
-                                               text, redirect)
+                                               param, raise, raw, redirect,
+                                               request, rescue, scottyApp,
+                                               setHeader, text)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -301,7 +301,7 @@ parsePackageVersionString vStr = case vStr of
     "latest" -> Just Latest
     x -> case filter ((=="") . snd) $ readP_to_S parseVersion x of
         [(v, "")] -> Just $ NumericalVersion v
-        _          -> Nothing
+        _         -> Nothing
 
 parseVersionString :: String -> Maybe Version
 parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion vStr of
