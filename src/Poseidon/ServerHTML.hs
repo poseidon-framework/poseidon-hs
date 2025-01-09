@@ -8,6 +8,7 @@ import           Poseidon.Janno
 import           Poseidon.Package
 
 import           Data.Aeson                  (encode)
+import           Data.Aeson.Types            (ToJSON)
 import qualified Data.ByteString.Lazy.Char8  as C
 import qualified Data.Text                   as T
 import           Data.Version                (Version, showVersion)
@@ -62,6 +63,9 @@ header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
     H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
+
+dataToJSON :: ToJSON a => a -> T.Text
+dataToJSON = T.pack . C.unpack . encode
 
 mapJS :: T.Text -> T.Text
 mapJS mapMarkers = [text|
@@ -154,18 +158,20 @@ mainPage archiveNames pacsPerArchive = S.html $ renderMarkup $ explorerPage $ do
 archivePage :: String -> [(Double,Double)] -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = S.html $ renderMarkup $ explorerPage $ do
   H.head $ do
-    H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ T.pack $ C.unpack $ encode mapMarkers)
+    H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON mapMarkers)
   H.h1 (H.toMarkup $ "Archive: " <> archiveName)
   H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
-  H.ul $ mapM_ (\pac -> H.li $ H.div $ do
-      let pacName = getPacName pac
-          pacVersion = getPacVersion pac
-      H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $
-        H.toMarkup pacName
-      H.toMarkup (" | " :: String)
-      H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion pacVersion)) $
-        H.toMarkup ("Download" :: String)
-    ) pacs
+  H.table $ do
+    H.tr $ do
+        H.th $ H.b "Package"
+        H.th $ H.b "# Samples"
+    H.ul $ mapM_ (\pac -> do
+        let pacName = getPacName pac
+            pacVersion = getPacVersion pac
+        H.tr $ do
+          H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
+          H.td $ H.toMarkup $ show $ length $ getJannoRows $ posPacJanno pac
+      ) pacs
 
 packageVersionPage :: String -> String -> PacVersion -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
 packageVersionPage archiveName pacName pacVersion pacs jannoRows = S.html $ renderMarkup $ explorerPage $ do
@@ -174,6 +180,9 @@ packageVersionPage archiveName pacName pacVersion pacs jannoRows = S.html $ rend
        let v = getPacVersion pac
        H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
            H.toMarkup $ renderMaybeVersion v
+       H.toMarkup (" | " :: String)
+       H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
+         H.toMarkup ("Download" :: String)
     ) pacs
   H.table $ do
     H.tr $ do
@@ -183,7 +192,7 @@ packageVersionPage archiveName pacName pacVersion pacs jannoRows = S.html $ rend
     mapM_ (\jannoRow -> do
         let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (show pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
         H.tr $ do
-          H.td (H.a ! A.href link $ (H.toMarkup $ jPoseidonID jannoRow))
+          H.td $ H.a ! A.href link $ H.toMarkup $ jPoseidonID jannoRow
           H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
           H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
       ) jannoRows
