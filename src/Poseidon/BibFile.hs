@@ -1,11 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
+module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..), parseAuthors, authorAbbrvString) where
 
 import           Poseidon.Utils                     (PoseidonException (..),
                                                      showParsecErr)
 
 import           Control.Exception                  (throwIO)
-import           Control.Monad                      (forM_, liftM2, liftM3)
+import           Control.Monad                      (forM, forM_, liftM2,
+                                                     liftM3)
+import           Control.Monad.Catch                (MonadThrow, throwM)
+import           Data.List                          (intercalate)
+import           Data.List.Split                    (splitOn)
+import           Data.String.Utils                  (strip)
 import           System.IO                          (IOMode (..), hPutStrLn,
                                                      withFile)
 import           Text.Parsec                        (between, char, many, many1,
@@ -53,7 +58,7 @@ readBibTeXFile :: FilePath -> IO BibTeX
 readBibTeXFile bibPath = do
     res <- parseFromFile bibFileParser bibPath
     case res of
-        Left err   -> throwIO $ PoseidonBibTeXException bibPath $ showParsecErr err
+        Left err   -> throwIO . PoseidonBibTeXException $ "In file " ++ bibPath ++ ": " ++ showParsecErr err
         Right res_ -> return res_
 
 {-
@@ -143,3 +148,22 @@ texBlock closeChar =
 comma :: CharParser st String
 comma = T.comma lexer
 
+parseAuthors :: (MonadThrow m) => String -> m [(String, String)] -- parses a string of authors to a list of first names and last names
+parseAuthors authorString = forM (splitOn " and " (intercalate " " . map strip . lines $ authorString)) $ \singleAuthorStr -> do
+   case splitOn ", " singleAuthorStr of
+       [lastName, firstName] -> return (firstName, lastName)
+       [firstName] -> return (firstName, "") -- in some cultures there are single first names, e.g. "Nini"
+       _ -> throwM . PoseidonBibTeXException $ "cannot parse bib-author " ++ singleAuthorStr
+
+authorAbbrvString :: [(String, String)] -> String
+authorAbbrvString [] = ""
+authorAbbrvString [firstAuthor]               = renderAuthor True firstAuthor
+authorAbbrvString [firstAuthor, secondAuthor] = renderAuthor False firstAuthor ++ " and " ++ renderAuthor False secondAuthor
+authorAbbrvString (firstAuthor : _)           = renderAuthor False firstAuthor ++ " et al."
+
+-- first argument is whether to render an author in full, or abbreviated.
+renderAuthor :: Bool -> (String, String) -> String
+renderAuthor True (first, "") = first -- there are edge cases where only first names exist, like in Consortia
+renderAuthor True (first, family) = first ++ " " ++ family
+renderAuthor False (first, "") = first
+renderAuthor False (first, family) = [head first] ++ " " ++ family

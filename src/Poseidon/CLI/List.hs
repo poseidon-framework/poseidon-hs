@@ -2,6 +2,7 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
+import           Poseidon.BibFile       (authorAbbrvString, parseAuthors)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
@@ -166,7 +167,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                             "Bibliography field " ++ bibFieldKey ++ "is not present in any bibliography entry"
                 _ -> return ()
 
-            let tableH = ["BibKey", "Title", "Author", "Year", "Journal", "Doi",
+            let tableH = ["BibKey", "Title", "Author", "Year", "DOI",
                           "Nr of samples"] ++ addBibFieldNames
                 tableB = do
                     bibInfo <- bibInfos
@@ -175,8 +176,9 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                             case bibFieldName `lookup` bibInfoAddCols bibInfo of
                                 Just (Just v) -> return v
                                 _             -> return ""
-                    return $ [bibInfoKey bibInfo, curateBibField $ bibInfoTitle bibInfo, curateBibField $ bibInfoAuthor bibInfo,
-                              curateBibField $ bibInfoYear bibInfo, curateBibField $ bibInfoJournal bibInfo,
+                    authors <- parseAuthors . curateBibField . bibInfoAuthor $ bibInfo
+                    return $ [bibInfoKey bibInfo, curateBibField $ bibInfoTitle bibInfo, authorAbbrvString authors,
+                              curateBibField $ bibInfoYear bibInfo,
                               curateBibField $ bibInfoDoi bibInfo, show (bibInfoNrSamples bibInfo)] ++
                               addBibFieldColumns
             return (tableH, tableB)
