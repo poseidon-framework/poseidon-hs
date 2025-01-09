@@ -284,7 +284,7 @@ cleanInput (Just rawInputBS) = transNA rawInputBS
         transNA x     = Just x
 
 explicitNA :: Csv.NamedRecord -> Csv.NamedRecord
-explicitNA = HM.map (\x -> if x == "" then "n/a" else x)
+explicitNA = HM.map (\x -> if Bchs.null x then "n/a" else x)
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = explicitNA $ Csv.namedRecord [

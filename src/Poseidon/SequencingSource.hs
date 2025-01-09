@@ -7,7 +7,7 @@ module Poseidon.SequencingSource where
 import           Poseidon.Janno             (CsvNamedRecord (..),
                                              JannoStringList, ListColumn (..),
                                              decodingOptions, encodingOptions,
-                                             filterLookup,
+                                             explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
                                              parseCsvParseError,
                                              removeUselessSuffix,
@@ -355,7 +355,7 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
 
 instance Csv.ToNamedRecord SeqSourceRow where
-    toNamedRecord s = Csv.namedRecord [
+    toNamedRecord s = explicitNA $ Csv.namedRecord [
           "poseidon_IDs"               Csv..= sPoseidonID s
         , "udg"                        Csv..= sUDG s
         , "library_built"              Csv..= sLibraryBuilt s
