@@ -167,10 +167,10 @@ archivePage archiveName mapMarkers pacs = S.html $ renderMarkup $ explorerPage $
         H.th $ H.b "# Samples"
     H.ul $ mapM_ (\pac -> do
         let pacName = getPacName pac
-            pacVersion = getPacVersion pac
+            nrSamples = length $ getJannoRows $ posPacJanno pac
         H.tr $ do
           H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
-          H.td $ H.toMarkup $ show $ length $ getJannoRows $ posPacJanno pac
+          H.td $ H.toMarkup $ show nrSamples
       ) pacs
 
 packageVersionPage :: String -> String -> PacVersion -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
