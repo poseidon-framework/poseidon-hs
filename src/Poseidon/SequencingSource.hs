@@ -7,7 +7,7 @@ module Poseidon.SequencingSource where
 import           Poseidon.Janno             (CsvNamedRecord (..),
                                              JannoStringList, ListColumn (..),
                                              decodingOptions, encodingOptions,
-                                             explicitNA, filterLookup,
+                                             filterLookup,
                                              filterLookupOptional, getCsvNR,
                                              parseCsvParseError,
                                              removeUselessSuffix,
@@ -385,8 +385,7 @@ instance Csv.ToNamedRecord SeqSourceRow where
 writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
 writeSeqSourceFile path (SeqSourceRows rows) = do
     let seqSourceAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
-    let seqSourceAsBytestringwithNA = explicitNA seqSourceAsBytestring
-    Bch.writeFile path seqSourceAsBytestringwithNA
+    Bch.writeFile path seqSourceAsBytestring
     where
         makeHeaderWithAdditionalColumns :: Csv.Header
         makeHeaderWithAdditionalColumns =

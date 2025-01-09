@@ -283,8 +283,11 @@ cleanInput (Just rawInputBS) = transNA rawInputBS
         transNA "n/a" = Nothing
         transNA x     = Just x
 
+explicitNA :: Csv.NamedRecord -> Csv.NamedRecord
+explicitNA = HM.map (\x -> if x == "" then "n/a" else x)
+
 instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord j = Csv.namedRecord [
+    toNamedRecord j = explicitNA $ Csv.namedRecord [
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
         , "Group_Name"                      Csv..= jGroupName j
@@ -395,18 +398,6 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
--- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
-explicitNA :: Bch.ByteString -> Bch.ByteString
-explicitNA = replaceInJannoBytestring Bch.empty "n/a"
-
-replaceInJannoBytestring :: Bch.ByteString -> Bch.ByteString -> Bch.ByteString -> Bch.ByteString
-replaceInJannoBytestring from to tsv =
-    let tsvRows = Bch.lines tsv
-        tsvCells = map (Bch.splitWith (=='\t')) tsvRows
-        tsvCellsUpdated = map (map (\y -> if y == from || y == Bch.append from "\r" then to else y)) tsvCells
-        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
-   in Bch.unlines tsvRowsUpdated
-
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
 makeHeaderWithAdditionalColumns rows =
     V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
@@ -414,14 +405,12 @@ makeHeaderWithAdditionalColumns rows =
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
-        jannoAsBytestringwithNA = explicitNA jannoAsBytestring
-    Bch.writeFile path jannoAsBytestringwithNA
+    Bch.writeFile path jannoAsBytestring
 
 writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
 writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
-        jannoAsBytestringwithNA = explicitNA jannoAsBytestring
-    case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestringwithNA :: Either String (V.Vector (V.Vector Bch.ByteString)) of
+    case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestring :: Either String (V.Vector (V.Vector Bch.ByteString)) of
         Left _  -> error "internal error, please report"
         Right x -> do
             let janno = V.toList $ V.map V.toList x
