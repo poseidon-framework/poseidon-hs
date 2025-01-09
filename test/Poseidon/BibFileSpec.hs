@@ -1,7 +1,8 @@
 module Poseidon.BibFileSpec (spec) where
 
-import           Poseidon.BibFile (BibEntry (..), readBibTeXFile,
-                                   writeBibTeXFile, parseAuthors, authorAbbrvString)
+import           Poseidon.BibFile (BibEntry (..), authorAbbrvString,
+                                   parseAuthors, readBibTeXFile,
+                                   writeBibTeXFile)
 
 import           Test.Hspec
 
@@ -41,5 +42,5 @@ testAuthorAbbrvString = describe "Poseidon.BibFile.authorAbbrvString" $ do
         authorAbbrvString [("Susie", "Haak"), ("Jack", "Ryan")] `shouldBe` "S Haak and J Ryan"
     it "should correctly render more than two authors" $
         authorAbbrvString [("Susie", "Haak"), ("Jack", "Ryan"), ("Sabrina", "Fisher")] `shouldBe` "S Haak et al."
-    
-    
+
+

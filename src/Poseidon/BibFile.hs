@@ -163,7 +163,7 @@ authorAbbrvString (firstAuthor : _)           = renderAuthor False firstAuthor +
 
 -- first argument is whether to render an author in full, or abbreviated.
 renderAuthor :: Bool -> (String, String) -> String
-renderAuthor True (first, "") = first -- there are edge cases where only first names exist, like in Consortia
-renderAuthor True (first, family) = first ++ " " ++ family
-renderAuthor False (first, "") = first
+renderAuthor True (first, "")      = first -- there are edge cases where only first names exist, like in Consortia
+renderAuthor True (first, family)  = first ++ " " ++ family
+renderAuthor False (first, "")     = first
 renderAuthor False (first, family) = [head first] ++ " " ++ family
