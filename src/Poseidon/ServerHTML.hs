@@ -199,18 +199,21 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib pacs jannoRows 
     H.head $ do
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON mapMarkers)
     H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
-    H.ul $ mapM_ (\pac -> H.li $ H.div $ do
-         let v = getPacVersion pac
-         H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
-             H.toMarkup $ renderMaybeVersion v
-         H.toMarkup (" | " :: String)
-         H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
-           H.toMarkup ("Download" :: String)
-      ) pacs
+    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    H.br
+    H.details $ do
+      H.summary "Package versions"
+      H.ul $ mapM_ (\pac -> H.li $ H.div $ do
+           let v = getPacVersion pac
+           H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
+               H.toMarkup $ renderMaybeVersion v
+           H.toMarkup (" | " :: String)
+           H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
+             H.toMarkup ("Download" :: String)
+        ) pacs
     H.details $ do
       H.summary "Bibliography (in bibtex format)"
       H.textarea ! A.rows "15" $ H.toMarkup bib
-    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.table $ do
       H.tr $ do
         H.th $ H.b "PoseidonID"
