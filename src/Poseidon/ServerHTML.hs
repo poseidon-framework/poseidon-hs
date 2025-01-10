@@ -192,8 +192,8 @@ archivePage archiveName mapMarkers pacs = do
             H.td $ H.toMarkup $ show nrSamples
         ) pacs
 
-packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
-packageVersionPage archiveName pacName pacVersion mapMarkers pacs jannoRows = do
+packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> String -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
+packageVersionPage archiveName pacName pacVersion mapMarkers bib pacs jannoRows = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
@@ -207,6 +207,9 @@ packageVersionPage archiveName pacName pacVersion mapMarkers pacs jannoRows = do
          H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
            H.toMarkup ("Download" :: String)
       ) pacs
+    H.details $ do
+      H.summary "Bibliography (in bibtex format)"
+      H.textarea ! A.rows "15" $ H.toMarkup bib
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.table $ do
       H.tr $ do

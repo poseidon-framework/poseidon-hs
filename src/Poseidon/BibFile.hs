@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..)) where
+module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..), renderBibEntry) where
 
 import           Poseidon.Utils                     (PoseidonException (..),
                                                      showParsecErr)
@@ -65,15 +65,15 @@ copied the relevant code here and modified it as needed.
 writeBibTeXFile :: FilePath -> BibTeX -> IO ()
 writeBibTeXFile path entries = withFile path WriteMode $ \outH -> do
     forM_ entries $ \bibEntry -> do
-        let entryString = writeEntry bibEntry
+        let entryString = renderBibEntry bibEntry
         hPutStrLn outH entryString
-  where
-    writeEntry :: BibEntry -> String
-    writeEntry (BibEntry entryType bibId items) =
-        let formatItem (name, value_) =
-                "  " ++ name ++ " = {" ++ value_ ++ "},\n"
-        in  "@" ++ entryType ++ "{" ++ bibId ++ ",\n" ++
-            concatMap formatItem items ++ "}\n"
+
+renderBibEntry :: BibEntry -> String
+renderBibEntry (BibEntry entryType bibId items) =
+    let formatItem (name, value_) =
+            "  " ++ name ++ " = {" ++ value_ ++ "},\n"
+    in  "@" ++ entryType ++ "{" ++ bibId ++ ",\n" ++
+        concatMap formatItem items ++ "}\n"
 
 bibFileParser :: Parser [BibEntry]
 bibFileParser = bibCommentParser >> sepEndBy bibEntryParser bibCommentParser

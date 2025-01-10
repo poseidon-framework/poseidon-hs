@@ -33,7 +33,7 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (groupBy, nub, sortOn)
+import           Data.List                    (groupBy, nub, sortOn, intercalate)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust, mapMaybe)
 import           Data.Ord                     (Down (..))
@@ -60,6 +60,7 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                param, raise, raw, redirect,
                                                request, rescue, scottyApp,
                                                setHeader, text)
+import Poseidon.BibFile (renderBibEntry)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -210,8 +211,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                     Just v -> return v
             oneVersion <- prepPacVersion pacVersion allVersions
             let mapMarkers = concatMap prepMappable [oneVersion]
+            let bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
             samples <- prepSamples oneVersion
-            packageVersionPage archiveName pacName pacVersion mapMarkers allVersions samples
+            packageVersionPage archiveName pacName pacVersion mapMarkers bib allVersions samples
         -- per sample pages
         get "/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
