@@ -10,19 +10,19 @@ import           Poseidon.Package
 import           Data.Aeson                  (encode)
 import           Data.Aeson.Types            (ToJSON)
 import qualified Data.ByteString.Lazy.Char8  as C
+import           Data.Csv                    (ToNamedRecord (..))
+import qualified Data.HashMap.Strict         as HM
 import qualified Data.Text                   as T
+import qualified Data.Text.Encoding          as T
 import           Data.Version                (Version, showVersion)
 import           NeatInterpolation
+import           Network.Wai                 (Request (..))
 import           Paths_poseidon_hs           (version)
 import qualified Text.Blaze.Html5            as H
 import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
-import Network.Wai (Request(..))
-import Data.Csv (ToNamedRecord (..))
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Text.Encoding as T
 
 data PacVersion =
       Latest
@@ -238,7 +238,7 @@ samplePage maybeMapMarker row = do
         Nothing -> pure ()
     H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
     case maybeMapMarker of
-      Just _ -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+      Just _  -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
       Nothing -> pure ()
     H.table $ do
       H.tr $ do

@@ -33,7 +33,8 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (groupBy, nub, sortOn, intercalate)
+import           Data.List                    (groupBy, intercalate, nub,
+                                               sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust, mapMaybe)
 import           Data.Ord                     (Down (..))
@@ -48,6 +49,7 @@ import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
                                                tlsSettingsChain)
 import           Network.Wai.Middleware.Cors  (simpleCors)
 import           Paths_poseidon_hs            (version)
+import           Poseidon.BibFile             (renderBibEntry)
 import           Poseidon.ColumnTypes         (JannoLatitude (..),
                                                JannoLongitude (..))
 import           System.Directory             (createDirectoryIfMissing,
@@ -60,7 +62,6 @@ import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                param, raise, raw, redirect,
                                                request, rescue, scottyApp,
                                                setHeader, text)
-import Poseidon.BibFile (renderBibEntry)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -254,7 +255,7 @@ prepMappable pac = mapMaybe extractPosJannoRow $ getJannoRows . posPacJanno $ pa
 extractPosJannoRow :: JannoRow -> Maybe (Double, Double)
 extractPosJannoRow row = case (jLatitude row, jLongitude row) of
     (Just (JannoLatitude lat), Just (JannoLongitude lon)) -> Just (lat, lon)
-    _ -> Nothing
+    _                                                     -> Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
