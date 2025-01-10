@@ -173,8 +173,10 @@ archivePage archiveName mapMarkers pacs = S.html $ renderMarkup $ explorerPage $
           H.td $ H.toMarkup $ show nrSamples
       ) pacs
 
-packageVersionPage :: String -> String -> PacVersion -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
-packageVersionPage archiveName pacName pacVersion pacs jannoRows = S.html $ renderMarkup $ explorerPage $ do
+packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
+packageVersionPage archiveName pacName pacVersion mapMarkers pacs jannoRows = S.html $ renderMarkup $ explorerPage $ do
+  H.head $ do
+    H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON mapMarkers)
   H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
   H.ul $ mapM_ (\pac -> H.li $ H.div $ do
        let v = getPacVersion pac
@@ -184,6 +186,7 @@ packageVersionPage archiveName pacName pacVersion pacs jannoRows = S.html $ rend
        H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
          H.toMarkup ("Download" :: String)
     ) pacs
+  H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
   H.table $ do
     H.tr $ do
       H.th $ H.b "PoseidonID"

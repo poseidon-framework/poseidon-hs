@@ -209,8 +209,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                     Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
                     Just v -> return v
             oneVersion <- prepPacVersion pacVersion allVersions
+            let mapMarkers = concatMap prepMappable [oneVersion]
             samples <- prepSamples oneVersion
-            packageVersionPage archiveName pacName pacVersion allVersions samples
+            packageVersionPage archiveName pacName pacVersion mapMarkers allVersions samples
         -- per sample pages
         get "/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
