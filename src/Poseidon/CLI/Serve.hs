@@ -192,7 +192,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             allPacs <- prepPacs archiveName archiveStore
             let latestPacs = selectLatest allPacs
                 mapMarkers = concatMap prepMappable latestPacs
-            archivePage archiveName mapMarkers allPacs
+            archivePage archiveName mapMarkers latestPacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
             archive_name <- param "archive_name"
