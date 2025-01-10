@@ -221,12 +221,19 @@ packageVersionPage archiveName pacName pacVersion mapMarkers pacs jannoRows = do
             H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
         ) jannoRows
 
-samplePage :: JannoRow -> S.ActionM ()
-samplePage row = do
+samplePage :: Maybe (Double,Double) -> JannoRow -> S.ActionM ()
+samplePage maybeMapMarker row = do
   urlPath <- pathInfo <$> S.request
   let hashMap = toNamedRecord row
   S.html $ renderMarkup $ explorerPage urlPath $ do
+    H.head $ do
+      case maybeMapMarker of
+        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON [mapMarker])
+        Nothing -> pure ()
     H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
+    case maybeMapMarker of
+      Just _ -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+      Nothing -> pure ()
     H.table $ do
       H.tr $ do
         H.th $ H.b "Property"

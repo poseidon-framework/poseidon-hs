@@ -227,7 +227,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             samples <- prepSamples oneVersion
             sampleName <- param "sample"
             sample <- prepSample sampleName samples
-            samplePage sample
+            let maybeMapMarker = extractPosJannoRow sample
+            samplePage maybeMapMarker sample
 
         -- catch anything else
         notFound $ raise "Unknown request"
@@ -246,13 +247,12 @@ selectLatest =
     . sortOn posPacNameAndVersion
 
 prepMappable :: PoseidonPackage -> [(Double,Double)]
-prepMappable = mapMaybe extractPos . jLatitudeLongitude
-    where
-        jLatitudeLongitude :: PoseidonPackage -> [(Maybe JannoLatitude, Maybe JannoLongitude)]
-        jLatitudeLongitude = map (\r -> (jLatitude r, jLongitude r)) . getJannoRows . posPacJanno
-        extractPos :: (Maybe JannoLatitude, Maybe JannoLongitude) -> Maybe (Double, Double)
-        extractPos (Just (JannoLatitude lat), Just (JannoLongitude lon)) = Just (lat, lon)
-        extractPos _ = Nothing
+prepMappable pac = mapMaybe extractPosJannoRow $ getJannoRows . posPacJanno $ pac
+
+extractPosJannoRow :: JannoRow -> Maybe (Double, Double)
+extractPosJannoRow row = case (jLatitude row, jLongitude row) of
+    (Just (JannoLatitude lat), Just (JannoLongitude lon)) -> Just (lat, lon)
+    _ -> Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
