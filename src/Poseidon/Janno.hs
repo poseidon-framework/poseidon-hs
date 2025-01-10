@@ -41,7 +41,8 @@ module Poseidon.Janno (
     parseCsvParseError,
     renderCsvParseError,
     getMaybeListColumn,
-    jannoRows2EigenstratIndEntries
+    jannoRows2EigenstratIndEntries,
+    makeJannoHeader
 ) where
 
 import           Poseidon.ColumnTypes
@@ -396,13 +397,13 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeJannoHeader rows) rows
     let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
     Bch.writeFile path jannoAsBytestringwithNA
-    where
-        makeHeaderWithAdditionalColumns :: Csv.Header
-        makeHeaderWithAdditionalColumns =
-            V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+
+makeJannoHeader :: [JannoRow] -> Csv.Header
+makeJannoHeader rows =
+    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {

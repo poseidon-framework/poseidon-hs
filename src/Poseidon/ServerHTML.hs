@@ -20,6 +20,9 @@ import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
 import Network.Wai (Request(..))
+import Data.Csv (ToNamedRecord (..))
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Text.Encoding as T
 
 data PacVersion =
       Latest
@@ -221,20 +224,17 @@ packageVersionPage archiveName pacName pacVersion mapMarkers pacs jannoRows = do
 samplePage :: JannoRow -> S.ActionM ()
 samplePage row = do
   urlPath <- pathInfo <$> S.request
+  let hashMap = toNamedRecord row
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
     H.table $ do
       H.tr $ do
         H.th $ H.b "Property"
         H.th $ H.b "Value"
-      H.tr $ do
-        H.td "PoseidonID"
-        H.td (H.toMarkup $ jPoseidonID row)
-      H.tr $ do
-        H.td "GeneticSex"
-        H.td (H.toMarkup $ show $ jGeneticSex row)
-      H.tr $ do
-        H.td "..."
-        H.td (H.toMarkup ("..." :: String))
+      mapM_ (\key -> do
+          H.tr $ do
+            H.td $ H.toMarkup $ T.decodeUtf8Lenient key
+            H.td $ H.toMarkup $ T.decodeUtf8Lenient $ HM.findWithDefault "" key hashMap
+        ) $ makeJannoHeader [row]
 
 
