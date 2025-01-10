@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.0.0
+@version 1.6.1.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -605,7 +605,7 @@ PoseidonFileChecksumException :: FilePath -> PoseidonException
 PoseidonFStatsFormatException :: String -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the .bib file
-PoseidonBibTeXException :: FilePath -> String -> PoseidonException
+PoseidonBibTeXException :: String -> PoseidonException
 
 -- | An exception to indicate failed entity parsing
 PoseidonPoseidonEntityParsingException :: ParseError -> PoseidonException
@@ -1170,6 +1170,8 @@ BibEntry :: String -> String -> [(String, String)] -> BibEntry
 [bibEntryType] :: BibEntry -> String
 [bibEntryId] :: BibEntry -> String
 [bibEntryFields] :: BibEntry -> [(String, String)]
+parseAuthors :: MonadThrow m => String -> m [(String, String)]
+authorAbbrvString :: [(String, String)] -> String
 instance GHC.Show.Show Poseidon.BibFile.BibEntry
 instance GHC.Classes.Eq Poseidon.BibFile.BibEntry
 instance GHC.Classes.Ord Poseidon.BibFile.BibEntry
@@ -1316,6 +1318,7 @@ data ApiReturnData
 ApiReturnPackageInfo :: [PackageInfo] -> ApiReturnData
 ApiReturnGroupInfo :: [GroupInfo] -> ApiReturnData
 ApiReturnExtIndividualInfo :: [ExtendedIndividualInfo] -> ApiReturnData
+ApiReturnBibInfo :: [BibliographyInfo] -> ApiReturnData
 processApiResponse :: String -> Bool -> PoseidonIO ApiReturnData
 data ArchiveEndpoint
 ArchiveEndpoint :: String -> Maybe String -> ArchiveEndpoint
@@ -1347,17 +1350,30 @@ qDefault :: Maybe String -> String
 qArchive :: Maybe String -> String
 qPacVersion :: Maybe Version -> String
 (+&+) :: String -> String -> String
-data AddJannoColSpec
-AddJannoColList :: [String] -> AddJannoColSpec
-AddJannoColAll :: AddJannoColSpec
+data BibliographyInfo
+BibliographyInfo :: Int -> String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> [(String, Maybe String)] -> BibliographyInfo
+[bibInfoNrSamples] :: BibliographyInfo -> Int
+[bibInfoKey] :: BibliographyInfo -> String
+[bibInfoTitle] :: BibliographyInfo -> Maybe String
+[bibInfoAuthor] :: BibliographyInfo -> Maybe String
+[bibInfoYear] :: BibliographyInfo -> Maybe String
+[bibInfoJournal] :: BibliographyInfo -> Maybe String
+[bibInfoDoi] :: BibliographyInfo -> Maybe String
+[bibInfoAddCols] :: BibliographyInfo -> [(String, Maybe String)]
+data AddColSpec
+AddColList :: [String] -> AddColSpec
+AddColAll :: AddColSpec
 instance GHC.Classes.Ord Poseidon.ServerClient.PackageInfo
 instance GHC.Classes.Eq Poseidon.ServerClient.PackageInfo
 instance GHC.Classes.Eq Poseidon.ServerClient.GroupInfo
 instance GHC.Classes.Eq Poseidon.ServerClient.ExtendedIndividualInfo
+instance GHC.Classes.Eq Poseidon.ServerClient.BibliographyInfo
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.ServerApiReturnType
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.ServerApiReturnType
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.ApiReturnData
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.ApiReturnData
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.BibliographyInfo
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.BibliographyInfo
 instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.ServerClient.ExtendedIndividualInfo
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerClient.ExtendedIndividualInfo
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.ServerClient.ExtendedIndividualInfo
@@ -1503,7 +1519,7 @@ PoseidonFileChecksumException :: FilePath -> PoseidonException
 PoseidonFStatsFormatException :: String -> PoseidonException
 
 -- | An exception to represent errors when trying to parse the .bib file
-PoseidonBibTeXException :: FilePath -> String -> PoseidonException
+PoseidonBibTeXException :: String -> PoseidonException
 
 -- | An exception to indicate failed entity parsing
 PoseidonPoseidonEntityParsingException :: ParseError -> PoseidonException
@@ -1580,7 +1596,7 @@ readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions -> [FilePat
 getJointGenotypeData :: MonadSafe m => LogA -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointIndividualInfo :: MonadThrow m => [PoseidonPackage] -> m IndividualInfoCollection
-getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> AddJannoColSpec -> m [ExtendedIndividualInfo]
+getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> AddColSpec -> m [ExtendedIndividualInfo]
 
 -- | A function to create a minimal POSEIDON package
 newMinimalPackageTemplate :: MonadThrow m => FilePath -> String -> GenotypeDataSpec -> m PoseidonPackage
@@ -1607,6 +1623,7 @@ validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 -- | Filter packages such that only packages with individuals covered by
 --   the given EntitySpec are returned
 filterToRelevantPackages :: MonadThrow m => EntitySpec a => [a] -> [PoseidonPackage] -> m [PoseidonPackage]
+getBibliographyInfo :: MonadThrow m => [PoseidonPackage] -> AddColSpec -> m [BibliographyInfo]
 instance GHC.Generics.Generic Poseidon.Package.PoseidonYamlStruct
 instance GHC.Classes.Eq Poseidon.Package.PoseidonYamlStruct
 instance GHC.Show.Show Poseidon.Package.PoseidonYamlStruct
@@ -1781,7 +1798,8 @@ ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> Bool -> ListOptions
 data ListEntity
 ListPackages :: ListEntity
 ListGroups :: ListEntity
-ListIndividuals :: AddJannoColSpec -> ListEntity
+ListIndividuals :: AddColSpec -> ListEntity
+ListBibliography :: AddColSpec -> ListEntity
 data RepoLocationSpec
 RepoLocal :: [FilePath] -> RepoLocationSpec
 RepoRemote :: ArchiveEndpoint -> RepoLocationSpec
