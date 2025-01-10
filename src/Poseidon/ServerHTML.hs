@@ -201,19 +201,27 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib pacs jannoRows 
     H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
-    H.details $ do
-      H.summary "Package versions"
-      H.ul $ mapM_ (\pac -> H.li $ H.div $ do
-           let v = getPacVersion pac
-           H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
-               H.toMarkup $ renderMaybeVersion v
-           H.toMarkup (" | " :: String)
-           H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
-             H.toMarkup ("Download" :: String)
-        ) pacs
-    H.details $ do
-      H.summary "Bibliography (in bibtex format)"
-      H.textarea ! A.rows "15" $ H.toMarkup bib
+    -- versions and bibliography
+    H.div ! A.style "float: left; width: 70%;" $ do
+      H.details $ do
+        H.summary "Package versions"
+        H.ul $ mapM_ (\pac -> H.li $ H.div $ do
+             let v = getPacVersion pac
+             H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
+                 H.toMarkup $ renderMaybeVersion v
+             H.toMarkup (" | " :: String)
+             H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
+               H.toMarkup ("Download" :: String)
+          ) pacs
+      H.details $ do
+        H.summary "Bibliography (in bibtex format)"
+        H.textarea ! A.rows "15" $ H.toMarkup bib
+    -- download button
+    H.div ! A.style "float: right; text-align: right;" $ do
+      H.form ! A.action ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (show pacVersion)) ! A.method "get" $ do
+        H.button ! A.type_ "submit" ! A.class_ "button" $
+          H.toMarkup ("Download" :: String)
+    -- sample table
     H.table $ do
       H.tr $ do
         H.th $ H.b "PoseidonID"
