@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.6.0.0
+version:             1.6.1.0
 synopsis:            A package with tools for working with Poseidon genotype data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -28,11 +28,11 @@ library
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
-                        -- scotty is set to < 0.20.0, because the current stackage resolver 21.17 does not have the latest version, but cabal uses it in the release action, if this constraint is not set
                         scotty < 0.20.0, cassava, pureMD5, wai, githash,
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
-                        scientific, country, generics-sop, containers, process, deepseq, template-haskell
+                        scientific, country, generics-sop, containers, process, deepseq, template-haskell,
+                        MissingH
     default-language:   Haskell2010
 
 executable trident
