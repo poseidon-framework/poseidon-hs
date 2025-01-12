@@ -7,11 +7,13 @@ import           Poseidon.EntityTypes
 import           Poseidon.Janno
 import           Poseidon.Package
 
+import qualified Control.Monad               as OP
 import           Data.Aeson                  (encode)
 import           Data.Aeson.Types            (ToJSON)
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
+import           Data.List                   (foldl')
 import qualified Data.Text                   as T
 import qualified Data.Text.Encoding          as T
 import           Data.Version                (Version, showVersion)
@@ -23,8 +25,6 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
-import qualified Control.Monad as OP
-import Data.List (foldl')
 
 data PacVersion =
       Latest
@@ -197,10 +197,10 @@ mainPage archiveNames pacsPerArchive = do
 archivePage :: String -> [(Double,Double)] -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
-  let nrSamples = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
+  let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.table $ do
@@ -216,9 +216,9 @@ archivePage archiveName mapMarkers pacs = do
             H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
             H.td $ H.toMarkup $ show nrSamples
             OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
-              H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName) 
+              H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName)
                     $ H.toMarkup ("GitHub" :: String)
-              H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName) 
+              H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName)
                     $ H.toMarkup ("Download" :: String)
         ) pacs
 
@@ -233,12 +233,11 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
     -- description
-    let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
     H.article $ do
       H.b "Description: "
       H.toMarkup $ case posPacDescription oneVersion of
         Nothing -> "unknown"
-        Just x -> x
+        Just x  -> x
       H.br
       H.b "Version: "
       H.toMarkup $ renderMaybeVersion $ getPacVersion oneVersion
@@ -246,11 +245,11 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs
       H.b "Last modified: "
       H.toMarkup $ case posPacLastModified oneVersion of
         Nothing -> "unknown"
-        Just x -> show x
+        Just x  -> show x
       H.br
       H.b "Number of samples: "
       H.toMarkup $ show nrSamples
-      
+
       --posPacDescription pac
     -- versions and bibliography
     H.div ! A.style "float: left; width: 70%;" $ do
