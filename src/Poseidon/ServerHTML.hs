@@ -200,8 +200,8 @@ archivePage archiveName mapMarkers pacs = do
                     $ H.toMarkup ("Download" :: String)
         ) pacs
 
-packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> String -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
-packageVersionPage archiveName pacName pacVersion mapMarkers bib pacs jannoRows = do
+packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
+packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs jannoRows = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
@@ -210,8 +210,25 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib pacs jannoRows 
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
     -- description
+    let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
     H.article $ do
-      H.b "test"
+      H.b "Description: "
+      H.toMarkup $ case posPacDescription oneVersion of
+        Nothing -> "unknown"
+        Just x -> x
+      H.br
+      H.b "Version: "
+      H.toMarkup $ renderMaybeVersion $ getPacVersion oneVersion
+      H.br
+      H.b "Last modified: "
+      H.toMarkup $ case posPacLastModified oneVersion of
+        Nothing -> "unknown"
+        Just x -> show x
+      H.br
+      H.b "Number of samples: "
+      H.toMarkup $ show nrSamples
+      
+      --posPacDescription pac
     -- versions and bibliography
     H.div ! A.style "float: left; width: 70%;" $ do
       H.details $ do

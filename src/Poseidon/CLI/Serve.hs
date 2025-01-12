@@ -214,7 +214,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             let mapMarkers = concatMap prepMappable [oneVersion]
             let bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
             samples <- prepSamples oneVersion
-            packageVersionPage archiveName pacName pacVersion mapMarkers bib allVersions samples
+            packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
         -- per sample pages
         get "/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
