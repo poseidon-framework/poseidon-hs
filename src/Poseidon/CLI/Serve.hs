@@ -249,12 +249,14 @@ selectLatest =
     . groupBy (\a b -> posPacNameAndVersion a == posPacNameAndVersion b)
     . sortOn posPacNameAndVersion
 
-prepMappable :: PoseidonPackage -> [(Double,Double)]
+prepMappable :: PoseidonPackage -> [(Double,Double,String)]
 prepMappable pac = mapMaybe extractPosJannoRow $ getJannoRows . posPacJanno $ pac
 
-extractPosJannoRow :: JannoRow -> Maybe (Double, Double)
+extractPosJannoRow :: JannoRow -> Maybe (Double, Double, String)
 extractPosJannoRow row = case (jLatitude row, jLongitude row) of
-    (Just (JannoLatitude lat), Just (JannoLongitude lon)) -> Just (lat, lon)
+    (Just (JannoLatitude lat), Just (JannoLongitude lon)) ->
+        let poseidonID = jPoseidonID row
+        in Just (lat, lon, poseidonID)
     _                                                     -> Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]

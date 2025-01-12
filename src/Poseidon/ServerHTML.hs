@@ -94,9 +94,15 @@ mapJS nrLoaded mapMarkers = [text|
     legend.addTo(mymap);
     // markers
     var markers = L.markerClusterGroup();
-    var mapMarkers = JSON.parse("$mapMarkers");
+    var mapMarkers = JSON.parse(' $mapMarkers ');
     for (var i = 0; i<mapMarkers.length; i++) {
-         L.marker([mapMarkers[i][0], mapMarkers[i][1]]).addTo(markers);
+        const s = mapMarkers[i];
+        // prepare popup message
+        const popupContentLines = [];
+        popupContentLines.push("<b>Poseidon ID:</b> " + s[2]);
+        const popupContent = popupContentLines.join("<br>");
+         // create a marker with a popup
+        L.marker([s[0], s[1]]).bindPopup(popupContent).addTo(markers);
     }
     mymap.addLayer(markers);
   }
@@ -194,7 +200,7 @@ mainPage archiveNames pacsPerArchive = do
           _ -> return ()
       ) $ zip archiveNames pacsPerArchive
 
-archivePage :: String -> [(Double,Double)] -> [PoseidonPackage] -> S.ActionM ()
+archivePage :: String -> [(Double,Double,String)] -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
   let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
@@ -222,7 +228,7 @@ archivePage archiveName mapMarkers pacs = do
                     $ H.toMarkup ("Download" :: String)
         ) pacs
 
-packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
+packageVersionPage :: String -> String -> PacVersion -> [(Double,Double,String)] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
 packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs jannoRows = do
   urlPath <- pathInfo <$> S.request
   let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
@@ -285,7 +291,7 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs
             H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
         ) jannoRows
 
-samplePage :: Maybe (Double,Double) -> JannoRow -> S.ActionM ()
+samplePage :: Maybe (Double,Double,String) -> JannoRow -> S.ActionM ()
 samplePage maybeMapMarker row = do
   urlPath <- pathInfo <$> S.request
   let hashMap = toNamedRecord row
