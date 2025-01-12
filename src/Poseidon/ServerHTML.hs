@@ -24,6 +24,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
 import qualified Control.Monad as OP
+import Data.List (foldl')
 
 data PacVersion =
       Latest
@@ -73,14 +74,25 @@ header = H.head $ do
 dataToJSON :: ToJSON a => a -> T.Text
 dataToJSON = T.pack . C.unpack . encode
 
-mapJS :: T.Text -> T.Text
-mapJS mapMarkers = [text|
+mapJS :: T.Text -> T.Text -> T.Text
+mapJS nrLoaded mapMarkers = [text|
   window.onload = function() {
+    // basic map
     var mymap = L.map('mapid').setView([35, 10], 1);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
     }).addTo(mymap);
+    // add legend
+    var nrLoaded = JSON.parse("$nrLoaded");
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        div.innerHTML = nrLoaded[0] + ' samples loaded<br>' + nrLoaded[1] + ' lat/lon missing<br>';
+        return div;
+    };
+    legend.addTo(mymap);
+    // markers
     var markers = L.markerClusterGroup();
     var mapMarkers = JSON.parse("$mapMarkers");
     for (var i = 0; i<mapMarkers.length; i++) {
@@ -98,6 +110,15 @@ mapCSS = [text|
     padding: 0;
     --pico-border-width: 0rem !important;
     --pico-background-color: transparent !important;
+  }
+  /* legend */
+  .legend {
+    padding: 6px 8px !important;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    color: #777;
   }
 |]
 
@@ -176,9 +197,10 @@ mainPage archiveNames pacsPerArchive = do
 archivePage :: String -> [(Double,Double)] -> [PoseidonPackage] -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
+  let nrSamples = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON mapMarkers)
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.table $ do
@@ -203,9 +225,10 @@ archivePage archiveName mapMarkers pacs = do
 packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
 packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs jannoRows = do
   urlPath <- pathInfo <$> S.request
+  let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON mapMarkers)
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
@@ -270,7 +293,7 @@ samplePage maybeMapMarker row = do
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
       case maybeMapMarker of
-        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS $ dataToJSON [mapMarker])
+        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
         Nothing -> pure ()
     H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
     case maybeMapMarker of
