@@ -23,6 +23,7 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
+import qualified Control.Monad as OP
 
 data PacVersion =
       Latest
@@ -184,12 +185,19 @@ archivePage archiveName mapMarkers pacs = do
       H.tr $ do
           H.th $ H.b "Package"
           H.th $ H.b "# Samples"
+          H.th $ H.b "Source"
+          H.th $ H.b ".zip Archive"
       H.ul $ mapM_ (\pac -> do
           let pacName = getPacName pac
               nrSamples = length $ getJannoRows $ posPacJanno pac
           H.tr $ do
             H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
             H.td $ H.toMarkup $ show nrSamples
+            OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
+              H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName) 
+                    $ H.toMarkup ("GitHub" :: String)
+              H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName) 
+                    $ H.toMarkup ("Download" :: String)
         ) pacs
 
 packageVersionPage :: String -> String -> PacVersion -> [(Double,Double)] -> String -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
@@ -201,6 +209,9 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib pacs jannoRows 
     H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
+    -- description
+    H.article $ do
+      H.b "test"
     -- versions and bibliography
     H.div ! A.style "float: left; width: 70%;" $ do
       H.details $ do
