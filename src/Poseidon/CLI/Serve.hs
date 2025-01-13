@@ -1,5 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
@@ -50,10 +51,12 @@ import           System.Directory             (createDirectoryIfMissing,
                                                getModificationTime)
 import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
-import           Web.Scotty                   (ActionM, ScottyM, file, get,
-                                               json, middleware, notFound,
-                                               param, raise, request, rescue,
-                                               scottyApp, text)
+import           Web.Scotty                   (ActionM, ScottyM, captureParam,
+                                               file, get, json, middleware,
+                                               notFound, queryParam, raise,
+                                               request, rescue, scottyApp, text)
+import           Web.Scotty.Internal.Types    (ActionError)
+
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
     , cliZipDir          :: Maybe FilePath
@@ -122,7 +125,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
+            maybeAdditionalColumnsString <- (Just <$> queryParam "additionalJannoColumns") `rescue` (\(_ :: ActionError) -> return Nothing)
             indInfo <- case maybeAdditionalColumnsString of
                     Just "ALL" -> getExtendedIndividualInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
@@ -135,7 +138,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            maybeAdditionalBibFieldsString <- (Just <$> param "additionalBibColumns") `rescue` (\_ -> return Nothing)
+            maybeAdditionalBibFieldsString <- (Just <$> queryParam "additionalBibColumns") `rescue` (\(_ :: ActionError) -> return Nothing)
             bibInfo <- case maybeAdditionalBibFieldsString of
                     Just "ALL" -> getBibliographyInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalBibFieldsString ->
@@ -149,8 +152,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         when (isJust maybeZipPath) . get "/zip_file/:package_name" $ do
             logRequest logA
             zipStore <- getItemFromArchiveStore zipArchiveStore
-            packageName <- param "package_name"
-            maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
+            packageName <- captureParam "package_name"
+            maybeVersionString <- (Just <$> queryParam "package_version") `rescue` (\(_ :: ActionError) -> return Nothing)
             maybeVersion <- case maybeVersionString of
                 Nothing -> return Nothing
                 Just versionStr -> case parseVersionString versionStr of
@@ -196,7 +199,7 @@ createZipArchiveStore archiveStore zipPath =
                 liftIO $ B.writeFile fn zip_raw
             return (posPacNameAndVersion pac, fn))
 
--- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
+-- this serves as a point to broadcast messages to cliecaptureParamnts. Adapt in the future as necessary.
 genericServerMessages :: [String]
 genericServerMessages = ["Greetings from the Poseidon Server, version " ++ showVersion version]
 
@@ -207,7 +210,7 @@ parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion v
 
 conditionOnClientVersion :: ActionM ServerApiReturnType -> ActionM ()
 conditionOnClientVersion contentAction = do
-    maybeClientVersion <- (Just <$> param "client_version") `rescue` (\_ -> return Nothing)
+    maybeClientVersion <- (Just <$> queryParam "client_version") `rescue` (\(_ :: ActionError) -> return Nothing)
     (clientVersion, versionWarnings) <- case maybeClientVersion of
         Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
         Just versionString -> case parseVersionString versionString of
@@ -305,7 +308,7 @@ logRequest logA = do
 
 getItemFromArchiveStore :: ArchiveStore a -> ActionM a
 getItemFromArchiveStore store = do
-    maybeArchiveName <- (Just <$> param "archive") `rescue` (\_ -> return Nothing)
+    maybeArchiveName <- (Just <$> queryParam "archive") `rescue` (\(_ :: ActionError) -> return Nothing)
     case maybeArchiveName of
         Nothing -> return . snd . head $ store
         Just a -> case lookup a store of
