@@ -11,4 +11,5 @@ extra-deps:
 - co-log-0.6.0.2
 - ansi-terminal-0.10.3
 - chronos-1.1.5
+- scotty-0.22
 allow-newer: true

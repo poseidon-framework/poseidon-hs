@@ -53,9 +53,8 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                file, get, json, middleware,
-                                               notFound, queryParam, raise,
-                                               request, rescue, scottyApp, text)
-import           Web.Scotty.Internal.Types    (ActionError)
+                                               notFound, queryParamMaybe, raise,
+                                               request, scottyApp, text)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -125,7 +124,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            maybeAdditionalColumnsString <- (Just <$> queryParam "additionalJannoColumns") `rescue` (\(_ :: ActionError) -> return Nothing)
+            maybeAdditionalColumnsString <- queryParamMaybe "additionalJannoColumns"
             indInfo <- case maybeAdditionalColumnsString of
                     Just "ALL" -> getExtendedIndividualInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
@@ -138,7 +137,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            maybeAdditionalBibFieldsString <- (Just <$> queryParam "additionalBibColumns") `rescue` (\(_ :: ActionError) -> return Nothing)
+            maybeAdditionalBibFieldsString <- queryParamMaybe "additionalBibColumns"
             bibInfo <- case maybeAdditionalBibFieldsString of
                     Just "ALL" -> getBibliographyInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalBibFieldsString ->
@@ -153,7 +152,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             logRequest logA
             zipStore <- getItemFromArchiveStore zipArchiveStore
             packageName <- captureParam "package_name"
-            maybeVersionString <- (Just <$> queryParam "package_version") `rescue` (\(_ :: ActionError) -> return Nothing)
+            maybeVersionString <- queryParamMaybe "package_version"
             maybeVersion <- case maybeVersionString of
                 Nothing -> return Nothing
                 Just versionStr -> case parseVersionString versionStr of
@@ -199,7 +198,7 @@ createZipArchiveStore archiveStore zipPath =
                 liftIO $ B.writeFile fn zip_raw
             return (posPacNameAndVersion pac, fn))
 
--- this serves as a point to broadcast messages to cliecaptureParamnts. Adapt in the future as necessary.
+-- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]
 genericServerMessages = ["Greetings from the Poseidon Server, version " ++ showVersion version]
 
@@ -210,7 +209,7 @@ parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion v
 
 conditionOnClientVersion :: ActionM ServerApiReturnType -> ActionM ()
 conditionOnClientVersion contentAction = do
-    maybeClientVersion <- (Just <$> queryParam "client_version") `rescue` (\(_ :: ActionError) -> return Nothing)
+    maybeClientVersion <- queryParamMaybe "client_version"
     (clientVersion, versionWarnings) <- case maybeClientVersion of
         Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
         Just versionString -> case parseVersionString versionString of
@@ -308,7 +307,7 @@ logRequest logA = do
 
 getItemFromArchiveStore :: ArchiveStore a -> ActionM a
 getItemFromArchiveStore store = do
-    maybeArchiveName <- (Just <$> queryParam "archive") `rescue` (\(_ :: ActionError) -> return Nothing)
+    maybeArchiveName <- queryParamMaybe "archive"
     case maybeArchiveName of
         Nothing -> return . snd . head $ store
         Just a -> case lookup a store of
