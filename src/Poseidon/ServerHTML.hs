@@ -7,6 +7,7 @@ import           Poseidon.EntityTypes
 import           Poseidon.Janno
 import           Poseidon.Package
 
+import           Control.Monad               (forM_)
 import qualified Control.Monad               as OP
 import           Data.Aeson                  (encode)
 import           Data.Aeson.Types            (ToJSON)
@@ -14,6 +15,7 @@ import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
 import           Data.List                   (foldl')
+import           Data.Maybe                  (fromMaybe)
 import qualified Data.Text                   as T
 import qualified Data.Text.Encoding          as T
 import           Data.Version                (Version, showVersion)
@@ -37,6 +39,8 @@ instance Show PacVersion where
 renderMaybeVersion :: Maybe Version -> String
 renderMaybeVersion Nothing  = ("" :: String)
 renderMaybeVersion (Just v) = showVersion v
+
+-- templates, javascript and stylesheets
 
 explorerPage :: [T.Text] -> H.Html -> H.Html
 explorerPage urlPath content = do
@@ -153,12 +157,14 @@ footer = H.footer ! A.style "border-top: 1px solid; padding: 1em; border-color: 
        "Built with "
        H.a ! A.href "https://picocss.com" $ "pico CSS"
 
-mainPage :: [String] -> [[PoseidonPackage]] -> S.ActionM ()
-mainPage archiveNames pacsPerArchive = do
+-- html pages
+
+mainPage :: [(String,[PoseidonPackage])] -> S.ActionM ()
+mainPage pacsPerArchive = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.h1 "Archives"
-    H.ul $ mapM_ (\(archiveName, pacs) -> do
+    H.ul $ forM_ pacsPerArchive $ \(archiveName, pacs) -> do
       let nrPackages = length pacs
       H.article $ do
         H.header $ do
@@ -198,9 +204,12 @@ mainPage archiveNames pacsPerArchive = do
               ! A.style "float: right; font-size: 0.8em;" $
               H.toMarkup ("The PAA on GitHub" :: String)
           _ -> return ()
-      ) $ zip archiveNames pacsPerArchive
 
-archivePage :: String -> [(Double,Double,String)] -> [PoseidonPackage] -> S.ActionM ()
+archivePage ::
+     String
+  -> [(Double,Double,String)]
+  -> [PoseidonPackage]
+  -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
   let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
@@ -211,25 +220,33 @@ archivePage archiveName mapMarkers pacs = do
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.table $ do
       H.tr $ do
-          H.th $ H.b "Package"
-          H.th $ H.b "# Samples"
-          H.th $ H.b "Source"
-          H.th $ H.b ".zip Archive"
-      H.ul $ mapM_ (\pac -> do
-          let pacName = getPacName pac
-              nrSamples = length $ getJannoRows $ posPacJanno pac
-          H.tr $ do
-            H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
-            H.td $ H.toMarkup $ show nrSamples
-            OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
-              H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName)
-                    $ H.toMarkup ("GitHub" :: String)
-              H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName)
-                    $ H.toMarkup ("Download" :: String)
-        ) pacs
+        H.th $ H.b "Package"
+        H.th $ H.b "# Samples"
+        H.th $ H.b "Source"
+        H.th $ H.b ".zip Archive"
+      H.ul $ forM_ pacs $ \pac -> do
+        let pacName = getPacName pac
+            nrSamples = length $ getJannoRows $ posPacJanno pac
+        H.tr $ do
+          H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
+          H.td $ H.toMarkup $ show nrSamples
+          OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
+            H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName)
+                  $ H.toMarkup ("GitHub" :: String)
+            H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName)
+                  $ H.toMarkup ("Download" :: String)
 
-packageVersionPage :: String -> String -> PacVersion -> [(Double,Double,String)] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> S.ActionM ()
-packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs jannoRows = do
+packageVersionPage ::
+     String -> String -> PacVersion
+  -> [(Double,Double,String)]
+  -> String
+  -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow]
+  -> S.ActionM ()
+packageVersionPage
+  archiveName pacName pacVersion
+  mapMarkers
+  bib
+  oneVersion allVersions samples = do
   urlPath <- pathInfo <$> S.request
   let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
   S.html $ renderMarkup $ explorerPage urlPath $ do
@@ -241,34 +258,28 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs
     -- description
     H.article $ do
       H.b "Description: "
-      H.toMarkup $ case posPacDescription oneVersion of
-        Nothing -> "unknown"
-        Just x  -> x
+      H.toMarkup $ fromMaybe "unknown" (posPacDescription oneVersion)
       H.br
       H.b "Version: "
       H.toMarkup $ renderMaybeVersion $ getPacVersion oneVersion
       H.br
       H.b "Last modified: "
-      H.toMarkup $ case posPacLastModified oneVersion of
-        Nothing -> "unknown"
-        Just x  -> show x
+      H.toMarkup $ maybe "unknown" show (posPacLastModified oneVersion)
       H.br
       H.b "Number of samples: "
       H.toMarkup $ show nrSamples
-
-      --posPacDescription pac
     -- versions and bibliography
     H.div ! A.style "float: left; width: 70%;" $ do
       H.details $ do
         H.summary "Package versions"
-        H.ul $ mapM_ (\pac -> H.li $ H.div $ do
-             let v = getPacVersion pac
-             H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
-                 H.toMarkup $ renderMaybeVersion v
-             H.toMarkup (" | " :: String)
-             H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
-               H.toMarkup ("Download" :: String)
-          ) pacs
+        H.ul $ do
+          forM_ allVersions $ \pac -> H.li $ H.div $ do
+            let v = getPacVersion pac
+            H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
+              H.toMarkup $ renderMaybeVersion v
+            H.toMarkup (" | " :: String)
+            H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
+              H.toMarkup ("Download" :: String)
       H.details $ do
         H.summary "Bibliography (in bibtex format)"
         H.textarea ! A.rows "15" $ H.toMarkup bib
@@ -283,15 +294,17 @@ packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion pacs
         H.th $ H.b "PoseidonID"
         H.th $ H.b "Genetic_Sex"
         H.th $ H.b "Group_Name"
-      mapM_ (\jannoRow -> do
-          let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (show pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
-          H.tr $ do
-            H.td $ H.a ! A.href link $ H.toMarkup $ jPoseidonID jannoRow
-            H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
-            H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
-        ) jannoRows
+      forM_ samples $ \jannoRow -> do
+        let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (show pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
+        H.tr $ do
+          H.td $ H.a ! A.href link $ H.toMarkup $ jPoseidonID jannoRow
+          H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
+          H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
 
-samplePage :: Maybe (Double,Double,String) -> JannoRow -> S.ActionM ()
+samplePage ::
+     Maybe (Double,Double,String)
+  -> JannoRow
+  -> S.ActionM ()
 samplePage maybeMapMarker row = do
   urlPath <- pathInfo <$> S.request
   let hashMap = toNamedRecord row
@@ -308,10 +321,9 @@ samplePage maybeMapMarker row = do
       H.tr $ do
         H.th $ H.b "Property"
         H.th $ H.b "Value"
-      mapM_ (\key -> do
-          H.tr $ do
-            H.td $ H.toMarkup $ T.decodeUtf8Lenient key
-            H.td $ H.toMarkup $ T.decodeUtf8Lenient $ HM.findWithDefault "" key hashMap
-        ) $ makeJannoHeader [row]
+      forM_ (makeJannoHeader [row]) $ \key -> do
+        H.tr $ do
+          H.td $ H.toMarkup $ T.decodeUtf8Lenient key
+          H.td $ H.toMarkup $ T.decodeUtf8Lenient $ HM.findWithDefault "" key hashMap
 
 

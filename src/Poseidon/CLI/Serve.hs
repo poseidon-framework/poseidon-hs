@@ -185,15 +185,16 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         -- landing page
         get "/" $ do
             logRequest logA
-            pacsPerArchive <- mapM (\n -> selectLatest <$> prepPacs n archiveStore) archiveNames
-            mainPage archiveNames pacsPerArchive
+            pacsPerArchive <- forM archiveNames $ \n -> do
+                pacs <- selectLatest <$> prepPacs n archiveStore
+                return (n, pacs)
+            mainPage pacsPerArchive
         -- archive pages
         get "/:archive_name" $ do
             logRequest logA
             archiveName <- param "archive_name"
-            allPacs <- prepPacs archiveName archiveStore
-            let latestPacs = selectLatest allPacs
-                mapMarkers = concatMap prepMappable latestPacs
+            latestPacs  <- selectLatest <$> prepPacs archiveName archiveStore
+            let mapMarkers = concatMap prepMappable latestPacs
             archivePage archiveName mapMarkers latestPacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
@@ -202,17 +203,17 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             redirect ("/" <> archive_name <> "/" <> package_name <> "/latest")
         get "/:archive_name/:package_name/:package_version" $ do
             logRequest logA
-            archiveName <- param "archive_name"
-            allPacs <- prepPacs archiveName archiveStore
-            pacName <- param "package_name"
-            allVersions <- prepPacVersions pacName allPacs
+            archiveName      <- param "archive_name"
+            pacName          <- param "package_name"
             pacVersionString <- param "package_version"
             pacVersion <- case parsePackageVersionString pacVersionString of
-                    Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
-                    Just v -> return v
-            oneVersion <- prepPacVersion pacVersion allVersions
-            let mapMarkers = concatMap prepMappable [oneVersion]
-            let bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
+                Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
+                Just v -> return v
+            allPacs     <- prepPacs archiveName archiveStore
+            allVersions <- prepPacVersions pacName allPacs
+            oneVersion  <- prepPacVersion pacVersion allVersions
+            let mapMarkers = prepMappable oneVersion
+                bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
             samples <- prepSamples oneVersion
             packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
         -- per sample pages
@@ -235,6 +236,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         -- catch anything else
         notFound $ raise "Unknown request"
+
+-- prepare data for the html API
 
 prepPacs :: String -> ArchiveStore [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacs archiveName archiveStore = do
@@ -284,6 +287,9 @@ prepSample sampleName rows = do
        [x] -> return x
        _   -> raise $ "Sample " <> pack sampleName <> " exists multiple times"
 
+
+-- prepare archive store
+
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
     let archiveNames = nub . map fst $ archBaseDirs
@@ -313,6 +319,9 @@ createZipArchiveStore archiveStore zipPath =
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]
 genericServerMessages = ["Greetings from the Poseidon Server, version " ++ showVersion version]
+
+
+-- other helper functions
 
 parsePackageVersionString :: String -> Maybe PacVersion
 parsePackageVersionString vStr = case vStr of
