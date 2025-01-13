@@ -53,8 +53,9 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                file, get, json, middleware,
-                                               notFound, queryParamMaybe, raise,
-                                               request, scottyApp, text)
+                                               notFound, queryParamMaybe, throw,
+                                               request, scottyApp, text, finish, raise, status)
+import Network.HTTP.Types.Status (status400)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -156,7 +157,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             maybeVersion <- case maybeVersionString of
                 Nothing -> return Nothing
                 Just versionStr -> case parseVersionString versionStr of
-                    Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
+                    Nothing -> do
+                      let errMsg = "Could not parse package version string " ++ versionStr
+                      status status400 >> text (pack errMsg) >> finish
                     Just v -> return $ Just v
             case sortOn (Down . fst) . filter ((==packageName) . getPacName . fst) $ zipStore of
                 [] -> raise . pack $ "unknown package " ++ packageName -- no version found
