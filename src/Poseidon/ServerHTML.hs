@@ -40,6 +40,11 @@ data MapMarker = MapMarker {
       lat :: Double
     , lon :: Double
     , poseidonID :: String
+    , packageName :: String
+    , packageVersion :: Maybe String
+    , archiveName :: String
+    , location :: Maybe String
+    , age :: Maybe String
     } deriving (Generic, Show)
 
 instance ToJSON MapMarker where
@@ -107,10 +112,17 @@ mapJS nrLoaded mapMarkers = [text|
     for (var i = 0; i<mapMarkers.length; i++) {
         const s = mapMarkers[i];
         // prepare popup message
+        var packageLink = '<a href="/' + s.archiveName + '/' + s.packageName + '/' + s.packageVersion + '/' + s.poseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
         const popupContentLines = [];
         popupContentLines.push("<b>Poseidon ID:</b> " + s.poseidonID);
+        popupContentLines.push(`<b>Package:</b> ${s.packageName}`);
+        popupContentLines.push(`<b>Package version:</b> ${s.packageVersion}`);
+        popupContentLines.push(`<b>Archive:</b> ${s.archiveName}`);
+        popupContentLines.push(`<b>Location:</b> ${s.location}`);
+        popupContentLines.push(`<b>Age BC/AD:</b> ${s.age}`);
+        popupContentLines.push('<b>' + packageLink + '</b>');
         const popupContent = popupContentLines.join("<br>");
-         // create a marker with a popup
+        // create a marker with a popup
         L.marker([s.lon, s.lat]).bindPopup(popupContent).addTo(markers);
     }
     mymap.addLayer(markers);
@@ -134,6 +146,9 @@ mapCSS = [text|
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
     border-radius: 5px;
     color: #777;
+  }
+  .leaflet-popup-content-wrapper {
+    padding: 6px 8px !important;
   }
 |]
 

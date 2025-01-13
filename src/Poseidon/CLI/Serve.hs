@@ -194,7 +194,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             logRequest logA
             archiveName <- param "archive_name"
             latestPacs  <- selectLatest <$> prepPacs archiveName archiveStore
-            let mapMarkers = concatMap prepMappable latestPacs
+            let mapMarkers = concatMap (prepMappable archiveName) latestPacs
             archivePage archiveName mapMarkers latestPacs
         -- per package pages
         get "/:archive_name/:package_name" $ do
@@ -212,7 +212,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             allPacs     <- prepPacs archiveName archiveStore
             allVersions <- prepPacVersions pacName allPacs
             oneVersion  <- prepPacVersion pacVersionWL allVersions
-            let mapMarkers = prepMappable oneVersion
+            let mapMarkers = prepMappable archiveName oneVersion
                 bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
                 pacVersion = getPacVersion oneVersion
             samples <- prepSamples oneVersion
@@ -229,10 +229,11 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                     Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
                     Just v -> return v
             oneVersion <- prepPacVersion pacVersion allVersions
+            let pacVersion = showVersion <$> getPacVersion oneVersion
             samples <- prepSamples oneVersion
             sampleName <- param "sample"
             sample <- prepSample sampleName samples
-            let maybeMapMarker = extractPosJannoRow sample
+            let maybeMapMarker = extractPosJannoRow archiveName pacName pacVersion sample
             samplePage maybeMapMarker sample
 
         -- catch anything else
@@ -261,14 +262,20 @@ selectLatest =
     . groupBy (\a b -> posPacNameAndVersion a == posPacNameAndVersion b)
     . sortOn posPacNameAndVersion
 
-prepMappable :: PoseidonPackage -> [MapMarker]
-prepMappable pac = mapMaybe extractPosJannoRow $ getJannoRows . posPacJanno $ pac
+prepMappable :: String -> PoseidonPackage -> [MapMarker]
+prepMappable archiveName pac =
+    let packageName = getPacName pac
+        packageVersion = showVersion <$> getPacVersion pac
+        jannoRows = getJannoRows . posPacJanno $ pac
+    in mapMaybe (extractPosJannoRow archiveName packageName packageVersion) jannoRows
 
-extractPosJannoRow :: JannoRow -> Maybe MapMarker
-extractPosJannoRow row = case (jLatitude row, jLongitude row) of
+extractPosJannoRow :: String -> String -> Maybe String -> JannoRow -> Maybe MapMarker
+extractPosJannoRow archiveName pacName pacVersion row = case (jLatitude row, jLongitude row) of
     (Just (JannoLatitude lat), Just (JannoLongitude lon)) ->
         let poseidonID = jPoseidonID row
-        in Just $ MapMarker lat lon poseidonID
+            loc = show <$> jLocation row
+            age = show <$> jDateBCADMedian row
+        in Just $ MapMarker lat lon poseidonID pacName pacVersion archiveName loc age
     _                                                     -> Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
