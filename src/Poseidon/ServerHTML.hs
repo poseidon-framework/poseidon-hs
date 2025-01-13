@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, PacVersion (..)) where
+module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
 
 import           Poseidon.EntityTypes
 import           Poseidon.Janno
@@ -9,8 +10,8 @@ import           Poseidon.Package
 
 import           Control.Monad               (forM_)
 import qualified Control.Monad               as OP
-import           Data.Aeson                  (encode)
-import           Data.Aeson.Types            (ToJSON)
+import           Data.Aeson                  (encode, defaultOptions, genericToEncoding)
+import           Data.Aeson.Types            (ToJSON (..))
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
@@ -27,18 +28,22 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
+import GHC.Generics
 
-data PacVersion =
-      Latest
-    | NumericalVersion Version
-
-instance Show PacVersion where
-  show Latest               = "latest"
-  show (NumericalVersion v) = showVersion v
+-- helper functions and types
 
 renderMaybeVersion :: Maybe Version -> String
 renderMaybeVersion Nothing  = ("" :: String)
 renderMaybeVersion (Just v) = showVersion v
+
+data MapMarker = MapMarker {
+      lat :: Double
+    , lon :: Double
+    , poseidonID :: String
+    } deriving (Generic, Show)
+
+instance ToJSON MapMarker where
+    toEncoding = genericToEncoding defaultOptions
 
 -- templates, javascript and stylesheets
 
@@ -103,10 +108,10 @@ mapJS nrLoaded mapMarkers = [text|
         const s = mapMarkers[i];
         // prepare popup message
         const popupContentLines = [];
-        popupContentLines.push("<b>Poseidon ID:</b> " + s[2]);
+        popupContentLines.push("<b>Poseidon ID:</b> " + s.poseidonID);
         const popupContent = popupContentLines.join("<br>");
          // create a marker with a popup
-        L.marker([s[0], s[1]]).bindPopup(popupContent).addTo(markers);
+        L.marker([s.lon, s.lat]).bindPopup(popupContent).addTo(markers);
     }
     mymap.addLayer(markers);
   }
@@ -207,7 +212,7 @@ mainPage pacsPerArchive = do
 
 archivePage ::
      String
-  -> [(Double,Double,String)]
+  -> [MapMarker]
   -> [PoseidonPackage]
   -> S.ActionM ()
 archivePage archiveName mapMarkers pacs = do
@@ -237,8 +242,8 @@ archivePage archiveName mapMarkers pacs = do
                   $ H.toMarkup ("Download" :: String)
 
 packageVersionPage ::
-     String -> String -> PacVersion
-  -> [(Double,Double,String)]
+     String -> String -> Maybe Version
+  -> [MapMarker]
   -> String
   -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow]
   -> S.ActionM ()
@@ -252,7 +257,9 @@ packageVersionPage
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
-    H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> show pacVersion)
+    case pacVersion of
+      Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
+      Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
     -- description
@@ -285,9 +292,15 @@ packageVersionPage
         H.textarea ! A.rows "15" $ H.toMarkup bib
     -- download button
     H.div ! A.style "float: right; text-align: right;" $ do
-      H.form ! A.action ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (show pacVersion)) ! A.method "get" $ do
-        H.button ! A.type_ "submit" ! A.class_ "button" $
-          H.toMarkup ("Download" :: String)
+      case pacVersion of
+        Nothing -> do
+          H.form ! A.action ("/zip_file/" <> H.toValue pacName) ! A.method "get" $ do
+            H.button ! A.type_ "submit" ! A.class_ "button" $
+              H.toMarkup ("Download" :: String)
+        Just v ->
+          H.form ! A.action ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v)) ! A.method "get" $ do
+            H.button ! A.type_ "submit" ! A.class_ "button" $
+              H.toMarkup ("Download" :: String)
     -- sample table
     H.table $ do
       H.tr $ do
@@ -295,14 +308,14 @@ packageVersionPage
         H.th $ H.b "Genetic_Sex"
         H.th $ H.b "Group_Name"
       forM_ samples $ \jannoRow -> do
-        let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (show pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
+        let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
         H.tr $ do
           H.td $ H.a ! A.href link $ H.toMarkup $ jPoseidonID jannoRow
           H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
           H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
 
 samplePage ::
-     Maybe (Double,Double,String)
+     Maybe MapMarker
   -> JannoRow
   -> S.ActionM ()
 samplePage maybeMapMarker row = do

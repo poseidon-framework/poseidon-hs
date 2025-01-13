@@ -206,14 +206,15 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archiveName      <- param "archive_name"
             pacName          <- param "package_name"
             pacVersionString <- param "package_version"
-            pacVersion <- case parsePackageVersionString pacVersionString of
+            pacVersionWL <- case parsePackageVersionString pacVersionString of
                 Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
                 Just v -> return v
             allPacs     <- prepPacs archiveName archiveStore
             allVersions <- prepPacVersions pacName allPacs
-            oneVersion  <- prepPacVersion pacVersion allVersions
+            oneVersion  <- prepPacVersion pacVersionWL allVersions
             let mapMarkers = prepMappable oneVersion
                 bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
+                pacVersion = getPacVersion oneVersion
             samples <- prepSamples oneVersion
             packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
         -- per sample pages
@@ -239,6 +240,14 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
 -- prepare data for the html API
 
+data PacVersion =
+      Latest
+    | NumericalVersion Version
+
+instance Show PacVersion where
+  show Latest               = "latest"
+  show (NumericalVersion v) = showVersion v
+
 prepPacs :: String -> ArchiveStore [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacs archiveName archiveStore = do
     let maybePacs = getArchiveByName archiveName archiveStore
@@ -252,14 +261,14 @@ selectLatest =
     . groupBy (\a b -> posPacNameAndVersion a == posPacNameAndVersion b)
     . sortOn posPacNameAndVersion
 
-prepMappable :: PoseidonPackage -> [(Double,Double,String)]
+prepMappable :: PoseidonPackage -> [MapMarker]
 prepMappable pac = mapMaybe extractPosJannoRow $ getJannoRows . posPacJanno $ pac
 
-extractPosJannoRow :: JannoRow -> Maybe (Double, Double, String)
+extractPosJannoRow :: JannoRow -> Maybe MapMarker
 extractPosJannoRow row = case (jLatitude row, jLongitude row) of
     (Just (JannoLatitude lat), Just (JannoLongitude lon)) ->
         let poseidonID = jPoseidonID row
-        in Just (lat, lon, poseidonID)
+        in Just $ MapMarker lat lon poseidonID
     _                                                     -> Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
