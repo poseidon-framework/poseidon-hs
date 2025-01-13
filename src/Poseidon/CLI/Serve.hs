@@ -225,10 +225,10 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacName <- param "package_name"
             allVersions <- prepPacVersions pacName allPacs
             pacVersionString <- param "package_version"
-            pacVersion <- case parsePackageVersionString pacVersionString of
+            pacVersionWL <- case parsePackageVersionString pacVersionString of
                     Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
                     Just v -> return v
-            oneVersion <- prepPacVersion pacVersion allVersions
+            oneVersion <- prepPacVersion pacVersionWL allVersions
             let pacVersion = showVersion <$> getPacVersion oneVersion
             samples <- prepSamples oneVersion
             sampleName <- param "sample"

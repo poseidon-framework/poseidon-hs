@@ -1,6 +1,6 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
 
@@ -10,7 +10,8 @@ import           Poseidon.Package
 
 import           Control.Monad               (forM_)
 import qualified Control.Monad               as OP
-import           Data.Aeson                  (encode, defaultOptions, genericToEncoding)
+import           Data.Aeson                  (defaultOptions, encode,
+                                              genericToEncoding)
 import           Data.Aeson.Types            (ToJSON (..))
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
@@ -20,6 +21,7 @@ import           Data.Maybe                  (fromMaybe)
 import qualified Data.Text                   as T
 import qualified Data.Text.Encoding          as T
 import           Data.Version                (Version, showVersion)
+import           GHC.Generics
 import           NeatInterpolation
 import           Network.Wai                 (Request (..))
 import           Paths_poseidon_hs           (version)
@@ -28,7 +30,6 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                  as S
-import GHC.Generics
 
 -- helper functions and types
 
@@ -37,14 +38,14 @@ renderMaybeVersion Nothing  = ("" :: String)
 renderMaybeVersion (Just v) = showVersion v
 
 data MapMarker = MapMarker {
-      lat :: Double
-    , lon :: Double
-    , poseidonID :: String
-    , packageName :: String
-    , packageVersion :: Maybe String
-    , archiveName :: String
-    , location :: Maybe String
-    , age :: Maybe String
+      mmLat            :: Double
+    , mmLon            :: Double
+    , mmPoseidonID     :: String
+    , mmPackageName    :: String
+    , mmPackageVersion :: Maybe String
+    , mmArchiveName    :: String
+    , mmLocation       :: Maybe String
+    , mmAge            :: Maybe String
     } deriving (Generic, Show)
 
 instance ToJSON MapMarker where
@@ -112,18 +113,18 @@ mapJS nrLoaded mapMarkers = [text|
     for (var i = 0; i<mapMarkers.length; i++) {
         const s = mapMarkers[i];
         // prepare popup message
-        var packageLink = '<a href="/' + s.archiveName + '/' + s.packageName + '/' + s.packageVersion + '/' + s.poseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
+        var packageLink = '<a href="/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
         const popupContentLines = [];
-        popupContentLines.push("<b>Poseidon ID:</b> " + s.poseidonID);
-        popupContentLines.push(`<b>Package:</b> ${s.packageName}`);
-        popupContentLines.push(`<b>Package version:</b> ${s.packageVersion}`);
-        popupContentLines.push(`<b>Archive:</b> ${s.archiveName}`);
-        popupContentLines.push(`<b>Location:</b> ${s.location}`);
-        popupContentLines.push(`<b>Age BC/AD:</b> ${s.age}`);
+        popupContentLines.push("<b>Poseidon ID:</b> " + s.mmPoseidonID);
+        popupContentLines.push(`<b>Package:</b> ${s.mmPackageName}`);
+        popupContentLines.push(`<b>Package version:</b> ${s.mmPackageVersion}`);
+        popupContentLines.push(`<b>Archive:</b> ${s.mmArchiveName}`);
+        popupContentLines.push(`<b>Location:</b> ${s.mmLocation}`);
+        popupContentLines.push(`<b>Age BC/AD:</b> ${s.mmAge}`);
         popupContentLines.push('<b>' + packageLink + '</b>');
         const popupContent = popupContentLines.join("<br>");
         // create a marker with a popup
-        L.marker([s.lon, s.lat]).bindPopup(popupContent).addTo(markers);
+        L.marker([s.mmLon, s.mmLat]).bindPopup(popupContent).addTo(markers);
     }
     mymap.addLayer(markers);
   }
