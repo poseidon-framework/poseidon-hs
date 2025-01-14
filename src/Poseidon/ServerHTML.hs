@@ -80,7 +80,7 @@ mapJS nrLoaded mapMarkers = [text|
     for (var i = 0; i<mapMarkers.length; i++) {
         const s = mapMarkers[i];
         // prepare popup message
-        var packageLink = '<a href="/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
+        var packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
         const popupContentLines = [];
         popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
         popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
@@ -166,9 +166,9 @@ navBar = H.nav $ do
 breadcrumb :: [T.Text] -> H.Html
 breadcrumb segments =
   H.div ! A.style "font-size: 0.7em;" $
-    mapM_ toLi (zip ("root" : segments) paths)
+    mapM_ toLi $ zip segments paths
   where
-    paths = "/" : tail (scanl (\acc seg -> acc <> "/" <> seg) "" segments)
+    paths = tail (scanl (\acc seg -> acc <> "/" <> seg) "" segments)
     toLi (seg, path) = do
         H.a ! A.href (H.toValue $ T.unpack path) $ H.toMarkup seg
         H.text " / "
@@ -192,7 +192,7 @@ mainPage pacsPerArchive = do
       let nrPackages = length pacs
       H.article $ do
         H.header $ do
-          H.a ! A.href ("/" <> H.toValue archiveName) $
+          H.a ! A.href ("/explorer/" <> H.toValue archiveName) $
             H.toMarkup archiveName
         H.toMarkup $ show nrPackages <> " packages"
         -- cover special cases for the main archive explorer website
@@ -252,7 +252,7 @@ archivePage archiveName mapMarkers pacs = do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
         H.tr $ do
-          H.td (H.a ! A.href ("/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
+          H.td (H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
           H.td $ H.toMarkup $ show nrSamples
           OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
             H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName)
@@ -301,7 +301,7 @@ packageVersionPage
         H.ul $ do
           forM_ allVersions $ \pac -> H.li $ H.div $ do
             let v = getPacVersion pac
-            H.a ! A.href ("/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
+            H.a ! A.href ("/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
               H.toMarkup $ renderMaybeVersion v
             H.toMarkup (" | " :: String)
             H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
@@ -327,7 +327,7 @@ packageVersionPage
         H.th $ H.b "Genetic_Sex"
         H.th $ H.b "Group_Name"
       forM_ samples $ \jannoRow -> do
-        let link = "/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
+        let link = "/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
         H.tr $ do
           H.td $ H.a ! A.href link $ H.toMarkup $ jPoseidonID jannoRow
           H.td $ H.toMarkup $ show $ jGeneticSex jannoRow

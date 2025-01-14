@@ -184,24 +184,26 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             raw stylesBS
         -- landing page
         get "/" $ do
+            redirect ("/explorer")
+        get "/explorer" $ do
             logRequest logA
             pacsPerArchive <- forM archiveNames $ \n -> do
                 pacs <- selectLatest <$> prepPacs n archiveStore
                 return (n, pacs)
             mainPage pacsPerArchive
         -- archive pages
-        get "/:archive_name" $ do
+        get "/explorer/:archive_name" $ do
             logRequest logA
             archiveName <- param "archive_name"
             latestPacs  <- selectLatest <$> prepPacs archiveName archiveStore
             let mapMarkers = concatMap (prepMappable archiveName) latestPacs
             archivePage archiveName mapMarkers latestPacs
         -- per package pages
-        get "/:archive_name/:package_name" $ do
+        get "/explorer/:archive_name/:package_name" $ do
             archive_name <- param "archive_name"
             package_name <- param "package_name"
-            redirect ("/" <> archive_name <> "/" <> package_name <> "/latest")
-        get "/:archive_name/:package_name/:package_version" $ do
+            redirect ("/explorer/" <> archive_name <> "/" <> package_name <> "/latest")
+        get "/explorer/:archive_name/:package_name/:package_version" $ do
             logRequest logA
             archiveName      <- param "archive_name"
             pacName          <- param "package_name"
@@ -218,7 +220,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             samples <- prepSamples oneVersion
             packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
         -- per sample pages
-        get "/:archive_name/:package_name/:package_version/:sample" $ do
+        get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
             archiveName <- param "archive_name"
             allPacs <- prepPacs archiveName archiveStore
