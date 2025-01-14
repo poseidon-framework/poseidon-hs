@@ -4,12 +4,6 @@ packages:
 - .
 extra-deps:
 - table-layout-0.9.1.0
-- data-default-instances-base-0.1.0.1
 - sequence-formats-1.10.0.0
-- pipes-zlib-0.4.4.2
-- pipes-ordered-zip-1.2.1
-- co-log-0.6.0.2
-- ansi-terminal-0.10.3
-- chronos-1.1.5
 - scotty-0.22
 allow-newer: true
