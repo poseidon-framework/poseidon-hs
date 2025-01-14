@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
 
