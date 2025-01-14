@@ -353,7 +353,7 @@ samplePage maybeMapMarker row = do
       H.tr $ do
         H.th $ H.b "Property"
         H.th $ H.b "Value"
-      forM_ (makeJannoHeader [row]) $ \key -> do
+      forM_ (makeHeaderWithAdditionalColumns [row]) $ \key -> do
         H.tr $ do
           H.td $ H.toMarkup $ T.decodeUtf8Lenient key
           H.td $ H.toMarkup $ T.decodeUtf8Lenient $ HM.findWithDefault "" key hashMap
