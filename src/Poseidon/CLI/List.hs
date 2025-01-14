@@ -2,16 +2,17 @@
 
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
+import           Poseidon.BibFile       (authorAbbrvString, parseAuthors)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
-                                         getAllGroupInfo,
+                                         getAllGroupInfo, getBibliographyInfo,
                                          getExtendedIndividualInfo,
                                          packagesToPackageInfos,
                                          readPoseidonPackageCollection)
-import           Poseidon.ServerClient  (AddJannoColSpec (..),
-                                         ApiReturnData (..),
+import           Poseidon.ServerClient  (AddColSpec (..), ApiReturnData (..),
                                          ArchiveEndpoint (..),
+                                         BibliographyInfo (..),
                                          ExtendedIndividualInfo (..),
                                          GroupInfo (..), PackageInfo (..),
                                          processApiResponse, qDefault)
@@ -19,8 +20,9 @@ import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad          (forM_, when)
 import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (intercalate, sortOn)
+import           Data.List              (intercalate, nub, sortOn)
 import           Data.Maybe             (catMaybes, fromMaybe)
+import qualified Data.Text              as T
 import           Data.Version           (Version, showVersion)
 
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
@@ -39,7 +41,8 @@ data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
 -- | A datatype to represent the options what to list
 data ListEntity = ListPackages
     | ListGroups
-    | ListIndividuals AddJannoColSpec
+    | ListIndividuals AddColSpec
+    | ListBibliography AddColSpec
 
 -- | The main function running the list command
 runList :: ListOptions -> PoseidonIO ()
@@ -95,9 +98,9 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading individual data from server"
                     let addJannoColFlag = case addJannoColSpec of
-                            AddJannoColAll -> "&additionalJannoColumns=ALL"
-                            AddJannoColList [] -> ""
-                            AddJannoColList moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
+                            AddColAll -> "&additionalJannoColumns=ALL"
+                            AddColList [] -> ""
+                            AddColList moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ addJannoColFlag) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo indInfo -> return indInfo
@@ -114,7 +117,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
             -- we only output this warning if the columns were requested explicitly. Not if
             -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
             case addJannoColSpec of
-                AddJannoColList (_:_) -> do
+                AddColList (_:_) -> do
                     forM_ (zip [0..] addJannoCols) $ \(i, columnKey) -> do
                         -- check entries in all individuals for that key
                         let nonEmptyEntries = catMaybes [snd (entries !! i) | ExtendedIndividualInfo _ _ _ _ entries <- extIndInfos]
@@ -129,6 +132,57 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                               showMaybeVersion (getPacVersion i), show  isLatest] ++
                               map (fromMaybe "n/a" . snd) addColumnEntries
             return (tableH, tableB)
+        ListBibliography addColSpec -> do
+            bibInfos <- case repoLocation of
+                RepoRemote (ArchiveEndpoint remoteURL archive) -> do
+                    logInfo "Downloading bibliography data from server"
+                    let addJannoColFlag = case addColSpec of
+                            AddColAll -> "&additionalBibColumns=ALL"
+                            AddColList [] -> ""
+                            AddColList moreBibFields -> "&additionalBibColumns=" ++ intercalate "," moreBibFields
+                    apiReturn <- processApiResponse (remoteURL ++ "/bibliography" ++ qDefault archive ++ addJannoColFlag) False
+                    case apiReturn of
+                        ApiReturnBibInfo bibInfo -> return bibInfo
+                        _                        -> error "should not happen"
+                RepoLocal baseDirs -> do
+                    pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
+                    getBibliographyInfo pacCollection addColSpec
+
+            let addBibFieldNames = case addColSpec of
+                    AddColAll -> nub . concatMap (map fst . bibInfoAddCols) $ bibInfos
+                    AddColList names -> names
+
+            -- warning in case the additional Columns do not exist in the entire janno dataset,
+            -- we only output this warning if the columns were requested explicitly. Not if
+            -- all columns were requested. We consider such an "all" request to mean "all columns that are present".
+            case addColSpec of
+                AddColList (_:_) -> do
+                    forM_ addBibFieldNames $ \bibFieldKey -> do
+                        -- check entries in all individuals for that key
+                        let nonEmptyEntries = do
+                                bibInfo <- bibInfos
+                                Just (Just _) <- return $ bibFieldKey `lookup` bibInfoAddCols bibInfo
+                                return ()
+                        when (null nonEmptyEntries) . logWarning $
+                            "Bibliography field " ++ bibFieldKey ++ "is not present in any bibliography entry"
+                _ -> return ()
+
+            let tableH = ["BibKey", "Title", "Author", "Year", "DOI",
+                          "Nr of samples"] ++ addBibFieldNames
+                tableB = do
+                    bibInfo <- bibInfos
+                    let addBibFieldColumns = do
+                            bibFieldName <- addBibFieldNames
+                            case bibFieldName `lookup` bibInfoAddCols bibInfo of
+                                Just (Just v) -> return v
+                                _             -> return ""
+                    authors <- parseAuthors . curateBibField . bibInfoAuthor $ bibInfo
+                    return $ [bibInfoKey bibInfo, curateBibField $ bibInfoTitle bibInfo, authorAbbrvString authors,
+                              curateBibField $ bibInfoYear bibInfo,
+                              curateBibField $ bibInfoDoi bibInfo, show (bibInfoNrSamples bibInfo)] ++
+                              addBibFieldColumns
+            return (tableH, tableB)
+
     if rawOutput then
         liftIO $ putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableH:tableB]
     else do
@@ -139,3 +193,8 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     showMaybe = fromMaybe "n/a"
     showMaybeVersion :: Maybe Version -> String
     showMaybeVersion = maybe "n/a" showVersion
+
+    -- this function is necessary, as BibTeX sometimes has arbitrary line breaks within fields,
+    -- which we need to get rid of to avoid down-stream problems
+    curateBibField :: Maybe String -> String
+    curateBibField = T.unpack . T.intercalate " " . map T.strip . T.lines . T.pack . fromMaybe ""

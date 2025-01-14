@@ -178,7 +178,7 @@ data PoseidonException =
     | PoseidonFileExistenceException FilePath -- ^ An exception to represent missing files
     | PoseidonFileChecksumException FilePath -- ^ An exception to represent failed checksum tests
     | PoseidonFStatsFormatException String -- ^ An exception type to represent FStat specification errors
-    | PoseidonBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
+    | PoseidonBibTeXException String -- ^ An exception to represent errors when trying to parse the .bib file
     | PoseidonPoseidonEntityParsingException P.ParseError -- ^ An exception to indicate failed entity parsing
     | PoseidonForgeEntitiesException String -- ^ An exception to indicate issues in the forge selection
     | PoseidonEmptyForgeException -- ^ An exception to throw if there is nothing to be forged
@@ -234,8 +234,8 @@ renderPoseidonException (PoseidonFileChecksumException f) =
     "File checksum test failed: " ++ f
 renderPoseidonException (PoseidonFStatsFormatException s) =
     "Fstat specification error: " ++ s
-renderPoseidonException (PoseidonBibTeXException f s) =
-    "BibTex problem in file " ++ f ++ ": " ++ s
+renderPoseidonException (PoseidonBibTeXException s) =
+    "BibTex-parsing problem: " ++ s
 renderPoseidonException (PoseidonPoseidonEntityParsingException e) =
     "Error when parsing the forge selection (either -f or --forgeFile): " ++ showParsecErr e
 renderPoseidonException (PoseidonForgeEntitiesException s) =
