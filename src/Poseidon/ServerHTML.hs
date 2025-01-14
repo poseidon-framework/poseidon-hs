@@ -51,43 +51,10 @@ data MapMarker = MapMarker {
 instance ToJSON MapMarker where
     toEncoding = genericToEncoding defaultOptions
 
--- templates, javascript and stylesheets
-
-explorerPage :: [T.Text] -> H.Html -> H.Html
-explorerPage urlPath content = do
-    H.docType
-    H.html $ do
-      header
-      H.body $ do
-        H.main $ do
-          navBar
-          breadcrumb urlPath
-          content
-          footer
-
-header :: H.Markup
-header = H.head $ do
-    -- load classless pico CSS
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
-    -- pico musst not affect the leaflet map div
-    H.style ! A.type_ "text/css" $ H.preEscapedToHtml mapCSS
-    -- leaflet (js must be after css)
-    H.link ! A.rel "stylesheet"
-           ! A.type_ "text/css"
-           ! A.href "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-           ! H.customAttribute "integrity" "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-           ! H.customAttribute "crossorigin" ""
-    H.script ! A.src "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-             ! H.customAttribute "integrity" "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-             ! H.customAttribute "crossorigin" ""
-             $ ""
-    -- leaflet markercluster
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
-
 dataToJSON :: ToJSON a => a -> T.Text
 dataToJSON = T.pack . C.unpack . encode
+
+-- javascript (leaflet map)
 
 mapJS :: T.Text -> T.Text -> T.Text
 mapJS nrLoaded mapMarkers = [text|
@@ -130,6 +97,8 @@ mapJS nrLoaded mapMarkers = [text|
   }
 |]
 
+-- css (specific additions to the stylesheet)
+
 mapCSS :: T.Text
 mapCSS = [text|
   /* overwrite some pico styling for the map */
@@ -152,6 +121,40 @@ mapCSS = [text|
     padding: 6px 8px !important;
   }
 |]
+
+-- html template
+
+explorerPage :: [T.Text] -> H.Html -> H.Html
+explorerPage urlPath content = do
+    H.docType
+    H.html $ do
+      header
+      H.body $ do
+        H.main $ do
+          navBar
+          breadcrumb urlPath
+          content
+          footer
+
+header :: H.Markup
+header = H.head $ do
+    -- load classless pico CSS
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
+    H.style ! A.type_ "text/css" $ H.preEscapedToHtml mapCSS
+    -- leaflet (js must be after css)
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+           ! H.customAttribute "integrity" "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+           ! H.customAttribute "crossorigin" ""
+    H.script ! A.src "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+             ! H.customAttribute "integrity" "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    -- leaflet markercluster
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
 
 navBar :: H.Html
 navBar = H.nav $ do
