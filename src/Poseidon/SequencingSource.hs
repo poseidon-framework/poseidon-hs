@@ -355,7 +355,7 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
 
 instance Csv.ToNamedRecord SeqSourceRow where
-    toNamedRecord s = Csv.namedRecord [
+    toNamedRecord s = explicitNA $ Csv.namedRecord [
           "poseidon_IDs"               Csv..= sPoseidonID s
         , "udg"                        Csv..= sUDG s
         , "library_built"              Csv..= sLibraryBuilt s
@@ -385,8 +385,7 @@ instance Csv.ToNamedRecord SeqSourceRow where
 writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
 writeSeqSourceFile path (SeqSourceRows rows) = do
     let seqSourceAsBytestring = Csv.encodeByNameWith encodingOptions makeHeaderWithAdditionalColumns rows
-    let seqSourceAsBytestringwithNA = explicitNA seqSourceAsBytestring
-    Bch.writeFile path seqSourceAsBytestringwithNA
+    Bch.writeFile path seqSourceAsBytestring
     where
         makeHeaderWithAdditionalColumns :: Csv.Header
         makeHeaderWithAdditionalColumns =

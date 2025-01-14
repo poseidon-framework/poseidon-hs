@@ -243,6 +243,7 @@ rectifyOptParser = RectifyOptions <$> parseBasePaths
                                   <*> parseMaybePackageVersionUpdate
                                   <*> parseChecksumsToRectify
                                   <*> parseMaybeContributors
+                                  <*> parseJannoRemoveEmptyCols
                                   <*> parseOnlyLatest
 
 validateOptParser :: OP.Parser ValidateOptions
