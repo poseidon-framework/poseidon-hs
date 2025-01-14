@@ -3,7 +3,7 @@ resolver: lts-22.43
 packages:
 - .
 extra-deps:
-- table-layout-0.9.1.0
-- sequence-formats-1.10.0.0
-- scotty-0.22
+- table-layout-0.9.1.0 # not available any more in lts-22.43
+- sequence-formats-1.10.0.0 # not available yet in lts-22.43
+- scotty-0.22 # not available yet in lts-22.43
 allow-newer: true
