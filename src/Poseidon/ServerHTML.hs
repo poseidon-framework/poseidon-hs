@@ -66,7 +66,7 @@ mapJS nrLoaded mapMarkers = [text|
         attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
     }).addTo(mymap);
     // add legend
-    var nrLoaded = $nrLoaded;
+    const nrLoaded = $nrLoaded;
     var legend = L.control({position: 'bottomright'});
     legend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'info legend');
@@ -76,11 +76,11 @@ mapJS nrLoaded mapMarkers = [text|
     legend.addTo(mymap);
     // markers
     var markers = L.markerClusterGroup();
-    var mapMarkers = $mapMarkers;
+    const mapMarkers = $mapMarkers;
     for (var i = 0; i<mapMarkers.length; i++) {
         const s = mapMarkers[i];
         // prepare popup message
-        var packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
+        const packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
         const popupContentLines = [];
         popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
         popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
