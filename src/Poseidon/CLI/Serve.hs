@@ -53,9 +53,8 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                file, get, json, middleware,
-                                               notFound, queryParamMaybe, throw,
-                                               request, scottyApp, text, finish, raise, status)
-import Network.HTTP.Types.Status (status400)
+                                               notFound, queryParamMaybe,
+                                               request, scottyApp, text)
 
 data ServeOptions = ServeOptions
     { cliArchiveBaseDirs :: [(String, FilePath)]
@@ -157,23 +156,20 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             maybeVersion <- case maybeVersionString of
                 Nothing -> return Nothing
                 Just versionStr -> case parseVersionString versionStr of
-                    Nothing -> do
-                      let errMsg = "Could not parse package version string " ++ versionStr
-                      status status400 >> text (pack errMsg) >> finish
+                    Nothing -> fail $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
             case sortOn (Down . fst) . filter ((==packageName) . getPacName . fst) $ zipStore of
-                [] -> raise . pack $ "unknown package " ++ packageName -- no version found
+                [] -> fail $ "unknown package " ++ packageName -- no version found
                 [(pacNameAndVersion, fn)] -> case maybeVersion of -- exactly one version found
                     Nothing -> file fn
-                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
+                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else fail $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
                 pl@((_, fnLatest) : _) -> case maybeVersion of
                     Nothing -> file fnLatest
                     Just v -> case filter ((==Just v) . getPacVersion . fst) pl of
-                        [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
+                        [] -> fail $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
-        notFound $ raise "Unknown request"
-
+        notFound $ fail "Unknown request"
 
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
@@ -314,7 +310,7 @@ getItemFromArchiveStore store = do
     case maybeArchiveName of
         Nothing -> return . snd . head $ store
         Just a -> case lookup a store of
-            Nothing -> raise . pack $
+            Nothing -> fail $
                 "The requested archive named " ++ a ++ " does not exist. Possible archives are " ++
                 show (map fst store)
             Just pacs -> return pacs
