@@ -99,7 +99,7 @@ mapJS nrLoaded mapMarkers = [text|
         attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
     }).addTo(mymap);
     // add legend
-    var nrLoaded = JSON.parse("$nrLoaded");
+    var nrLoaded = $nrLoaded;
     var legend = L.control({position: 'bottomright'});
     legend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'info legend');
@@ -109,22 +109,22 @@ mapJS nrLoaded mapMarkers = [text|
     legend.addTo(mymap);
     // markers
     var markers = L.markerClusterGroup();
-    var mapMarkers = JSON.parse(' $mapMarkers ');
+    var mapMarkers = $mapMarkers;
     for (var i = 0; i<mapMarkers.length; i++) {
         const s = mapMarkers[i];
         // prepare popup message
         var packageLink = '<a href="/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
         const popupContentLines = [];
-        popupContentLines.push("<b>Poseidon ID:</b> " + s.mmPoseidonID);
-        popupContentLines.push(`<b>Package:</b> ${s.mmPackageName}`);
-        popupContentLines.push(`<b>Package version:</b> ${s.mmPackageVersion}`);
-        popupContentLines.push(`<b>Archive:</b> ${s.mmArchiveName}`);
-        popupContentLines.push(`<b>Location:</b> ${s.mmLocation}`);
-        popupContentLines.push(`<b>Age BC/AD:</b> ${s.mmAge}`);
+        popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
+        popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
+        popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
+        popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
+        popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
+        popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
         popupContentLines.push('<b>' + packageLink + '</b>');
         const popupContent = popupContentLines.join("<br>");
         // create a marker with a popup
-        L.marker([s.mmLon, s.mmLat]).bindPopup(popupContent).addTo(markers);
+        L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
     }
     mymap.addLayer(markers);
   }
@@ -245,7 +245,7 @@ archivePage archiveName mapMarkers pacs = do
         H.th $ H.b "# Samples"
         H.th $ H.b "Source"
         H.th $ H.b ".zip Archive"
-      H.ul $ forM_ pacs $ \pac -> do
+      forM_ pacs $ \pac -> do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
         H.tr $ do
