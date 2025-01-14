@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.1.0
+@version 1.6.2.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -833,6 +833,7 @@ SS :: JannoLibraryBuilt
 MixedSSDS :: JannoLibraryBuilt
 Other :: JannoLibraryBuilt
 writeJannoFile :: FilePath -> JannoRows -> IO ()
+writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
 
 -- | A function to load one janno file
 readJannoFile :: FilePath -> PoseidonIO JannoRows
@@ -859,10 +860,7 @@ filterLookupOptional :: FromField a => NamedRecord -> ByteString -> Parser (Mayb
 getCsvNR :: CsvNamedRecord -> NamedRecord
 encodingOptions :: EncodeOptions
 decodingOptions :: DecodeOptions
-
--- | A helper functions to replace empty bytestrings values in janno files
---   with explicit "n/a"
-explicitNA :: ByteString -> ByteString
+explicitNA :: NamedRecord -> NamedRecord
 removeUselessSuffix :: String -> String
 parseCsvParseError :: Parser CsvParseError
 renderCsvParseError :: CsvParseError -> String
@@ -1946,13 +1944,14 @@ runChronicle :: ChronicleOptions -> PoseidonIO ()
 module Poseidon.CLI.Rectify
 runRectify :: RectifyOptions -> PoseidonIO ()
 data RectifyOptions
-RectifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToRectify -> Maybe [ContributorSpec] -> Bool -> RectifyOptions
+RectifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToRectify -> Maybe [ContributorSpec] -> Bool -> Bool -> RectifyOptions
 [_rectifyBaseDirs] :: RectifyOptions -> [FilePath]
 [_rectifyIgnorePoseidonVersion] :: RectifyOptions -> Bool
 [_rectifyPoseidonVersion] :: RectifyOptions -> Maybe Version
 [_rectifyPackageVersionUpdate] :: RectifyOptions -> Maybe PackageVersionUpdate
 [_rectifyChecksums] :: RectifyOptions -> ChecksumsToRectify
 [_rectifyNewContributors] :: RectifyOptions -> Maybe [ContributorSpec]
+[_rectifyJannoRemoveEmptyCols] :: RectifyOptions -> Bool
 [_rectifyOnlyLatest] :: RectifyOptions -> Bool
 data PackageVersionUpdate
 PackageVersionUpdate :: VersionComponent -> Maybe String -> PackageVersionUpdate
@@ -1986,6 +1985,7 @@ parseNoChecksumUpdate :: Parser Bool
 parseMaybeContributors :: Parser (Maybe [ContributorSpec])
 parseContributors :: Parser [ContributorSpec]
 readContributorString :: String -> Either String [ContributorSpec]
+parseJannoRemoveEmptyCols :: Parser Bool
 parseMaybeLog :: Parser (Maybe String)
 parseLog :: Parser String
 parseForce :: Parser Bool
