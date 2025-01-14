@@ -97,7 +97,7 @@ renderJannoCompleteness (JannoRows rows) =
     in init ratioString -- remove last entry covering the additional columns (CsvNamedRecord)
     where
         -- the following magic was heavily inspired by https://stackoverflow.com/a/41524511/3216883
-        getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int]
+        getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int] --'
         getRatiosForEachField =
             hcollapse
           . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
