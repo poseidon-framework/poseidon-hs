@@ -24,6 +24,7 @@ module Poseidon.Janno (
     JannoRelationDegree (..),
     JannoLibraryBuilt (..),
     writeJannoFile,
+    writeJannoFileWithoutEmptyCols,
     readJannoFile,
     createMinimalJanno,
     createMinimalSample,
@@ -42,7 +43,7 @@ module Poseidon.Janno (
     renderCsvParseError,
     getMaybeListColumn,
     jannoRows2EigenstratIndEntries,
-    makeJannoHeader
+    makeHeaderWithAdditionalColumns
 ) where
 
 import           Poseidon.ColumnTypes
@@ -65,7 +66,7 @@ import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
-                                                       (\\))
+                                                       transpose, (\\))
 import           Data.Maybe                           (fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
@@ -283,8 +284,11 @@ cleanInput (Just rawInputBS) = transNA rawInputBS
         transNA "n/a" = Nothing
         transNA x     = Just x
 
+explicitNA :: Csv.NamedRecord -> Csv.NamedRecord
+explicitNA = HM.map (\x -> if Bchs.null x then "n/a" else x)
+
 instance Csv.ToNamedRecord JannoRow where
-    toNamedRecord j = Csv.namedRecord [
+    toNamedRecord j = explicitNA $ Csv.namedRecord [
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
         , "Group_Name"                      Csv..= jGroupName j
@@ -395,15 +399,27 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
+makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
+makeHeaderWithAdditionalColumns rows =
+    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeJannoHeader rows) rows
-    let jannoAsBytestringwithNA = explicitNA jannoAsBytestring
-    Bch.writeFile path jannoAsBytestringwithNA
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+    Bch.writeFile path jannoAsBytestring
 
-makeJannoHeader :: [JannoRow] -> Csv.Header
-makeJannoHeader rows =
-    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
+writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+    case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestring :: Either String (V.Vector (V.Vector Bch.ByteString)) of
+        Left _  -> error "internal error, please report"
+        Right x -> do
+            let janno = V.toList $ V.map V.toList x
+                jannoTransposed = transpose janno
+                jannoTransposedFiltered = filter (any (/= "n/a") . tail) jannoTransposed
+                jannoBackTransposed = transpose jannoTransposedFiltered
+                jannoConcat = Bch.intercalate "\n" $ map (Bch.intercalate "\t") jannoBackTransposed
+            Bch.writeFile path (jannoConcat <> "\n")
 
 encodingOptions :: Csv.EncodeOptions
 encodingOptions = Csv.defaultEncodeOptions {
@@ -528,18 +544,6 @@ renderCsvParseError (CsvParseError expected actual leftover) =
     "expected data type: " ++ expected ++ ", " ++
     "broken value: " ++ actual ++ ", " ++
     "problematic characters: " ++ show leftover ++ ")"
-
--- | A helper functions to replace empty bytestrings values in janno files with explicit "n/a"
-explicitNA :: Bch.ByteString -> Bch.ByteString
-explicitNA = replaceInJannoBytestring Bch.empty "n/a"
-
-replaceInJannoBytestring :: Bch.ByteString -> Bch.ByteString -> Bch.ByteString -> Bch.ByteString
-replaceInJannoBytestring from to tsv =
-    let tsvRows = Bch.lines tsv
-        tsvCells = map (Bch.splitWith (=='\t')) tsvRows
-        tsvCellsUpdated = map (map (\y -> if y == from || y == Bch.append from "\r" then to else y)) tsvCells
-        tsvRowsUpdated = map (Bch.intercalate (Bch.pack "\t")) tsvCellsUpdated
-   in Bch.unlines tsvRowsUpdated
 
 -- Global janno consistency checks
 
