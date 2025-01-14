@@ -10,17 +10,19 @@ import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          renderNameWithVersion)
 import           Poseidon.GenotypeData  (GenotypeDataSpec (..),
                                          GenotypeFileSpec (..))
+import           Poseidon.Janno         (writeJannoFileWithoutEmptyCols)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          PoseidonPackage (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection,
                                          writePoseidonPackage)
 import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
-                                         logInfo)
+                                         logInfo, logWarning)
 import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
 
 import           Control.DeepSeq        ((<$!!>))
+import           Control.Monad          (when)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List              (nub)
 import           Data.Maybe             (fromJust)
@@ -36,6 +38,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    , _rectifyJannoRemoveEmptyCols  :: Bool
     , _rectifyOnlyLatest            :: Bool
     }
 
@@ -55,7 +58,12 @@ data ChecksumsToRectify =
     }
 
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors onlyLatest) = do
+runRectify (RectifyOptions
+                baseDirs
+                ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
+                jannoRemoveEmptyCols
+                onlyLatest
+           ) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = True
@@ -72,6 +80,13 @@ runRectify (RectifyOptions baseDirs ignorePosVer newPosVer pacVerUpdate checksum
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
+            when jannoRemoveEmptyCols $ do
+                case posPacJannoFile inPac of
+                    Nothing   -> do
+                        logWarning "No .janno file to modify with --jannoRemoveEmpty"
+                    Just jannoPath -> do
+                        logInfo "Reordering and removing empty columns from .janno file"
+                        liftIO $ writeJannoFileWithoutEmptyCols (posPacBaseDir inPac </> jannoPath) (posPacJanno inPac)
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
@@ -154,7 +169,6 @@ updateChecksums checksumSetting pac = do
         testAndGetChecksum file defaultChkSum = do
             e <- liftIO . doesFileExist $ file
             if e then Just <$!!> getChk file else return defaultChkSum
-
 
 
 completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()

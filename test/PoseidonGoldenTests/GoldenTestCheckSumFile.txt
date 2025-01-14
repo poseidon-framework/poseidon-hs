@@ -22,10 +22,10 @@ d41d8cd98f00b204e9800998ecf8427e validate validate/validate8
 d41d8cd98f00b204e9800998ecf8427e validate validate/validate9
 bc636b9c03ea9359acd254a9911e5af3 list list/list1
 b18847f5498ae55882689b75916fdf64 list list/list2
-63ef5f277f6f29163192382234211224 list list/list3
-1c1f24de305405ece44393d378c0e15a list list/list4
+d6eafec9087c88ed6a95e4a22f1f306c list list/list3
+27c6118de70743426f8d8157ddd0f1c7 list list/list4
 bc636b9c03ea9359acd254a9911e5af3 list list/list5
-ad5590b0ad65e64d6b2c8d874571c9f8 list list/list6
+b69c17ad4893e4e9bdcb767a229eaccb list list/list6
 35689d85d4ac5da9a4189b728403f16b list list/list7
 b197fb8dd883c7469a4791e4a677f1c0 summarise summarise/summarise1
 d9e4b3f15d4e129a365d2064198d95b6 summarise summarise/summarise2
@@ -56,6 +56,9 @@ da981f8d52f60ec4d96865b224648c92 rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
 dc322649188ce2995cea8a46a7f97f3e rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
+a61f78b4e9b7e3c7e00ec7bc6aaab95b rectify init/Schiffels/POSEIDON.yml
+3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
+083fe7ef4206c979356a3a2454d780b1 rectify init/Schiffels/Schiffels.janno
 2757f727e02dd6453fffe68c4c6ec4c8 forge forge/ForgePac1/POSEIDON.yml
 1286a2580e4bfbed7d804d5f3fe125f7 forge forge/ForgePac1/ForgePac1.geno
 8846333d9a1de6510f25a3816cc70fef forge forge/ForgePac1/ForgePac1.janno
@@ -126,7 +129,7 @@ e375863bca9e4a91c9855396abde31c7 forge forge/ForgePac20/ForgePac20.janno
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
-dc322649188ce2995cea8a46a7f97f3e timetravel timetravel/Schiffels-1.1.1/POSEIDON.yml
+a61f78b4e9b7e3c7e00ec7bc6aaab95b timetravel timetravel/Schiffels-1.1.1/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 timetravel timetravel/Schmid_2028-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c fetch fetch/by_package/Lamnidis_2018-1.0.1/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 fetch fetch/by_package/Schmid_2028-1.0.0/POSEIDON.yml
@@ -142,9 +145,9 @@ b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_2/Lamnidis_2018-1.0.
 8d57ce1a1ab28c0d8a5f391dd790a59c fetch fetch/multi_packages_2/Lamnidis_2018-1.0.1/POSEIDON.yml
 1d2a588b88e6d1017147c01f19d0b878 listRemote listRemote/listRemote1
 0ddad9ea097bca0253e0c3c6157efa68 listRemote listRemote/listRemote2
-b2286cf9af7c6c8757b8109a1f58e2d9 listRemote listRemote/listRemote3
+705ecf31acfb9f21bfdc5bf4e77c10cd listRemote listRemote/listRemote3
 0433b2a80ee5a2eb5bf8c6404130e562 listRemote listRemote/listRemote4
-8a13e5b31acabca6839100f411c38453 listRemote listRemote/listRemote5
+06eb810bcba832e75d72f10800ea7774 listRemote listRemote/listRemote5
 eb610918796e03da3b0035655e9f8faa jannocoalesce jannocoalesce/target1.janno
 df34d0542c0a94cf9556619bff2e301d jannocoalesce jannocoalesce/target2.janno
 cc76b2bf0ad6637ea6502fdefcca3508 jannocoalesce jannocoalesce/target3.janno

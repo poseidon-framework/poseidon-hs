@@ -1,3 +1,6 @@
+- V 1.6.2.0:
+    - Added a feature to remove empty .janno columns with `rectify`: `--jannoRemoveEmpty`.
+    - Changed the way empty .janno fields are filled with `n/a` upon writing. It now also affects the output of `list`.
 - V 1.6.1.0:
     - Added a feature to list bibliography information via `trident list --bibliography`.
     - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
