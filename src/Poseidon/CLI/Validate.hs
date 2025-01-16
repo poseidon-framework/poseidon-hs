@@ -19,10 +19,9 @@ import           Poseidon.SequencingSource (SeqSourceRows (..),
                                             readSeqSourceFile)
 import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
 
-import           Control.Monad             (unless)
+import           Control.Monad             (forM_, unless)
 import           Control.Monad.Catch       (throwM)
 import           Control.Monad.IO.Class    (liftIO)
-import           Control.Monad.List        (forM_)
 import qualified Data.ByteString           as B
 import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
