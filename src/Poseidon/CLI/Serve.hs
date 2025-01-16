@@ -58,10 +58,10 @@ import           System.Directory             (createDirectoryIfMissing,
                                                getModificationTime)
 import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
-import           Web.Scotty                   (ActionM, ScottyM, file, get,
-                                               json, middleware, notFound,
-                                               captureParam, queryParamMaybe, raw, redirect,
-                                               request, rescue, scottyApp,
+import           Web.Scotty                   (ActionM, ScottyM, captureParam,
+                                               file, get, json, middleware,
+                                               notFound, queryParamMaybe, raw,
+                                               redirect, request, scottyApp,
                                                setHeader, text)
 
 data ServeOptions = ServeOptions
@@ -208,22 +208,22 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         -- archive pages
         get "/explorer/:archive_name" $ do
             logRequest logA
-            archiveName <- param "archive_name"
+            archiveName <- captureParam "archive_name"
             latestPacs  <- selectLatest <$> prepPacs archiveName archiveStore
             let mapMarkers = concatMap (prepMappable archiveName) latestPacs
             archivePage archiveName mapMarkers latestPacs
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
-            archive_name <- param "archive_name"
-            package_name <- param "package_name"
+            archive_name <- captureParam "archive_name"
+            package_name <- captureParam "package_name"
             redirect ("/explorer/" <> archive_name <> "/" <> package_name <> "/latest")
         get "/explorer/:archive_name/:package_name/:package_version" $ do
             logRequest logA
-            archiveName      <- param "archive_name"
-            pacName          <- param "package_name"
-            pacVersionString <- param "package_version"
+            archiveName      <- captureParam "archive_name"
+            pacName          <- captureParam "package_name"
+            pacVersionString <- captureParam "package_version"
             pacVersionWL <- case parsePackageVersionString pacVersionString of
-                Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
+                Nothing -> fail $ "Could not parse package version string " ++ pacVersionString
                 Just v -> return v
             allPacs     <- prepPacs archiveName archiveStore
             allVersions <- prepPacVersions pacName allPacs
@@ -236,24 +236,24 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         -- per sample pages
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
-            archiveName <- param "archive_name"
+            archiveName <- captureParam "archive_name"
             allPacs <- prepPacs archiveName archiveStore
-            pacName <- param "package_name"
+            pacName <- captureParam "package_name"
             allVersions <- prepPacVersions pacName allPacs
-            pacVersionString <- param "package_version"
+            pacVersionString <- captureParam "package_version"
             pacVersionWL <- case parsePackageVersionString pacVersionString of
-                    Nothing -> raise . pack $ "Could not parse package version string " ++ pacVersionString
+                    Nothing -> fail $ "Could not parse package version string " ++ pacVersionString
                     Just v -> return v
             oneVersion <- prepPacVersion pacVersionWL allVersions
             let pacVersion = showVersion <$> getPacVersion oneVersion
             samples <- prepSamples oneVersion
-            sampleName <- param "sample"
+            sampleName <- captureParam "sample"
             sample <- prepSample sampleName samples
             let maybeMapMarker = extractPosJannoRow archiveName pacName pacVersion sample
             samplePage maybeMapMarker sample
 
         -- catch anything else
-        notFound $ raise "Unknown request"
+        notFound $ fail "Unknown request"
 
 -- prepare data for the html API
 
@@ -269,7 +269,7 @@ prepPacs :: String -> ArchiveStore [PoseidonPackage] -> ActionM [PoseidonPackage
 prepPacs archiveName archiveStore = do
     let maybePacs = getArchiveByName archiveName archiveStore
     case maybePacs of
-        Nothing -> raise $ "Archive " <> pack archiveName <> " does not exist"
+        Nothing -> fail $ "Archive " <> archiveName <> " does not exist"
         Just p  -> return p
 
 selectLatest :: [PoseidonPackage] -> [PoseidonPackage]
@@ -297,7 +297,7 @@ extractPosJannoRow archiveName pacName pacVersion row = case (jLatitude row, jLo
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
     case filter (\pac -> getPacName pac == pacName) pacs of
-       [] -> raise $ "Package " <> pack pacName <> " does not exist"
+       [] -> fail $ "Package " <> pacName <> " does not exist"
        xs -> return xs
 
 prepPacVersion :: PacVersion -> [PoseidonPackage] -> ActionM PoseidonPackage
@@ -305,9 +305,9 @@ prepPacVersion pacVersion pacs = do
     case pacVersion of
         Latest -> return $ head $ selectLatest pacs
         NumericalVersion v -> case filter (\pac -> getPacVersion pac == Just v) pacs of
-            [] -> raise $ "Package version " <> pack (show pacVersion) <> " does not exist"
+            [] -> fail $ "Package version " <> (show pacVersion) <> " does not exist"
             [x] -> return x
-            _ -> raise $ "Package version " <> pack (show pacVersion) <> " exists multiple times"
+            _ -> fail $ "Package version " <> (show pacVersion) <> " exists multiple times"
 
 prepSamples :: PoseidonPackage -> ActionM [JannoRow]
 prepSamples pac = return $ getJannoRowsFromPac pac
@@ -315,9 +315,9 @@ prepSamples pac = return $ getJannoRowsFromPac pac
 prepSample :: String -> [JannoRow] -> ActionM JannoRow
 prepSample sampleName rows = do
     case filter (\r -> jPoseidonID r == sampleName) rows of
-       []  -> raise $ "Sample " <> pack sampleName <> " does not exist"
+       []  -> fail $ "Sample " <> sampleName <> " does not exist"
        [x] -> return x
-       _   -> raise $ "Sample " <> pack sampleName <> " exists multiple times"
+       _   -> fail $ "Sample " <> sampleName <> " exists multiple times"
 
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
