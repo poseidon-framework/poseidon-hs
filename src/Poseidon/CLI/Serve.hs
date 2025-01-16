@@ -60,7 +60,7 @@ import           System.FilePath              ((<.>), (</>))
 import           Text.ParserCombinators.ReadP (readP_to_S)
 import           Web.Scotty                   (ActionM, ScottyM, file, get,
                                                json, middleware, notFound,
-                                               param, raise, raw, redirect,
+                                               captureParam, queryParamMaybe, raw, redirect,
                                                request, rescue, scottyApp,
                                                setHeader, text)
 
@@ -144,7 +144,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            maybeAdditionalColumnsString <- (Just <$> param "additionalJannoColumns") `rescue` (\_ -> return Nothing)
+            maybeAdditionalColumnsString <- queryParamMaybe "additionalJannoColumns"
             indInfo <- case maybeAdditionalColumnsString of
                     Just "ALL" -> getExtendedIndividualInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
@@ -157,7 +157,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            maybeAdditionalBibFieldsString <- (Just <$> param "additionalBibColumns") `rescue` (\_ -> return Nothing)
+            maybeAdditionalBibFieldsString <- queryParamMaybe "additionalBibColumns"
             bibInfo <- case maybeAdditionalBibFieldsString of
                     Just "ALL" -> getBibliographyInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalBibFieldsString ->
@@ -171,22 +171,22 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         when (isJust maybeZipPath) . get "/zip_file/:package_name" $ do
             logRequest logA
             zipStore <- getItemFromArchiveStore zipArchiveStore
-            packageName <- param "package_name"
-            maybeVersionString <- (Just <$> param "package_version") `rescue` (\_ -> return Nothing)
+            packageName <- captureParam "package_name"
+            maybeVersionString <- queryParamMaybe "package_version"
             maybeVersion <- case maybeVersionString of
                 Nothing -> return Nothing
                 Just versionStr -> case parseVersionString versionStr of
-                    Nothing -> raise . pack $ "Could not parse package version string " ++ versionStr
+                    Nothing -> fail $ "Could not parse package version string " ++ versionStr
                     Just v -> return $ Just v
             case sortOn (Down . fst) . filter ((==packageName) . getPacName . fst) $ zipStore of
-                [] -> raise . pack $ "unknown package " ++ packageName -- no version found
+                [] -> fail $ "unknown package " ++ packageName -- no version found
                 [(pacNameAndVersion, fn)] -> case maybeVersion of -- exactly one version found
                     Nothing -> file fn
-                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else raise . pack $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
+                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else fail $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
                 pl@((_, fnLatest) : _) -> case maybeVersion of
                     Nothing -> file fnLatest
                     Just v -> case filter ((==Just v) . getPacVersion . fst) pl of
-                        [] -> raise . pack $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
+                        [] -> fail $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
 
@@ -319,9 +319,6 @@ prepSample sampleName rows = do
        [x] -> return x
        _   -> raise $ "Sample " <> pack sampleName <> " exists multiple times"
 
-
--- prepare archive store
-
 readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
 readArchiveStore archBaseDirs pacReadOpts = do
     let archiveNames = nub . map fst $ archBaseDirs
@@ -370,7 +367,7 @@ parseVersionString vStr = case filter ((=="") . snd) $ readP_to_S parseVersion v
 
 conditionOnClientVersion :: ActionM ServerApiReturnType -> ActionM ()
 conditionOnClientVersion contentAction = do
-    maybeClientVersion <- (Just <$> param "client_version") `rescue` (\_ -> return Nothing)
+    maybeClientVersion <- queryParamMaybe "client_version"
     (clientVersion, versionWarnings) <- case maybeClientVersion of
         Nothing            -> return (version, ["No client_version passed. Assuming latest version " ++ showVersion version])
         Just versionString -> case parseVersionString versionString of
@@ -468,11 +465,11 @@ logRequest logA = do
 
 getItemFromArchiveStore :: ArchiveStore a -> ActionM a
 getItemFromArchiveStore store = do
-    maybeArchiveName <- (Just <$> param "archive") `rescue` (\_ -> return Nothing)
+    maybeArchiveName <- queryParamMaybe "archive"
     case maybeArchiveName of
         Nothing -> return . snd . head $ store
         Just a -> case lookup a store of
-            Nothing -> raise . pack $
+            Nothing -> fail $
                 "The requested archive named " ++ a ++ " does not exist. Possible archives are " ++
                 show (map fst store)
             Just pacs -> return pacs
