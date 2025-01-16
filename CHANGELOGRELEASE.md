@@ -11,25 +11,45 @@ After reading support for zipped data was already added in V 1.5.7.0, this relea
                            gzipped?
 ```
 
-Note that this feature has smart handling of already available files to not overwrite them but still consider them when updating a package's POSEIDON.yml file with `genoconvert`. `-z` is also usable when only working with genotype data (`-p`, `--onlyGeno`).
+Note that this feature includes a smart way of handling already available files to not overwrite them, but still consider them when updating a package's POSEIDON.yml file. `-z` is also usable with unpackaged genotype data (`-p`, `--onlyGeno`).
 
-Future versions of the Poseidon schema will formally specify this feature.
+Future versions of the Poseidon package schema will formally specify this feature.
 
 #### Bibliography information in `list` and the Web-API
 
-- V 1.6.1.0:
-    - Added a feature to list bibliography information via `trident list --bibliography`.
-    - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
+The `list` subcommand now supports a new view (next to `--packages`, `--groups` and `individuals`): `--bibliography` allows to get a tabular overview of publications in a package repository.
+
+```
+$ trident list -d 2010_RasmussenNature --bibliography
+...
+.---------------------.--------------------------------------------------------------.-----------------------.------.---------------------------.---------------.
+|       BibKey        |                            Title                             |        Author         | Year |            DOI            | Nr of samples |
+:=====================:==============================================================:=======================:======:===========================:===============:
+| AADR                | The Allen Ancient DNA Resource (AADR): A curated compendium… | Swapan Mallick et al. | 2023 | 10.1101/2023.04.06.535797 | 1             |
+| AADRv424            | The Allen Ancient DNA Resource (AADR): A curated compendium… | S Mallick and D Reich | 2023 | 10.7910/DVN/FFIDCW        | 1             |
+| RasmussenNature2010 | Ancient human genome sequence of an extinct Palaeo-Eskimo    | M Rasmussen et al.    | 2010 | 10.1038/nature08835       | 1             |
+'---------------------'--------------------------------------------------------------'-----------------------'------'---------------------------'---------------'
+```
+
+Additional fields from the .bib file can be added to this table with `-b|--bibField ...` (just as `-j|--jannoColumn ...` for `--individuals`). `--fullBib` adds everything that is available (just as `--fullJanno`). As usual, tab-separated output can be requested with `--raw` for derived analyses on the command line.
+
+Correspondingly the Web-API supports a new endpoint `/bibliography` to serve bibliography information via HTTP in JSON format. The optional query argument `additionalJannoColumns=...` allows to request extra fields here.
     
 #### Remove empty .janno columns with `rectify`
 
-- V 1.6.2.0:
-    - Added a feature to remove empty .janno columns with `rectify`: `--jannoRemoveEmpty`.
-    - Changed the way empty .janno fields are filled with `n/a` upon writing. It now also affects the output of `list`.
+The `rectify` subcommand was upgraded with a first option to manipulated .janno files in one or multiple packages: `--jannoRemoveEmpty`. This allows to remove empty columns from .janno files, so columns that only feature empty strings or `n/a` values.
+
+```
+  --jannoRemoveEmpty       Reorder the .janno file and remove empty colums.
+                           Remember to pair this option with --checksumJanno to
+                           also update the checksum.
+```
+
+With this change came a rewrite of the way trident fills empty fields with `n/a` when writing .janno and .ssf files. This behaviour now also affects the output of `list`!
 
 #### Bug fixes and technical changes
 
-We fixed two bugs that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`). They were accidentally added with the recent interface changes for V 1.5.7.0. This input feature should now be functional again.
+We fixed two bugs that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`). They were accidentally added with the recent interface changes for V 1.5.7.0. This input interface should now be fully functional again.
 
 We finally switched to a new compiler version (GHC 9.6.6) and a new stackage resolver version (lts-22.43). This required some minor adjustments in the server code, but should not have any user-facing consequences.
 
