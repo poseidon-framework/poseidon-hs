@@ -12,7 +12,7 @@
 </span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="VersionComponent"><span class="annot"><a href="Poseidon.Version.html#VersionComponent"><span class="hs-identifier hs-var">VersionComponent</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Major"><span class="annot"><a href="Poseidon.Version.html#Major"><span class="hs-identifier hs-var">Major</span></a></span></span><span>
 </span><span id="line-13"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="Minor"><span class="annot"><a href="Poseidon.Version.html#Minor"><span class="hs-identifier hs-var">Minor</span></a></span></span><span>
 </span><span id="line-14"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="Patch"><span class="annot"><a href="Poseidon.Version.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span></span><span>
-</span><span id="line-15"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679401699"><span id="local-6989586621679401701"><span id="local-6989586621679401705"><span class="annot"><span class="annottext">Int -&gt; VersionComponent -&gt; ShowS
+</span><span id="line-15"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679324234"><span id="local-6989586621679324236"><span id="local-6989586621679324240"><span class="annot"><span class="annottext">Int -&gt; VersionComponent -&gt; ShowS
 [VersionComponent] -&gt; ShowS
 VersionComponent -&gt; String
 (Int -&gt; VersionComponent -&gt; ShowS)
@@ -31,27 +31,27 @@ showList :: [VersionComponent] -&gt; ShowS
 </span><span id="line-16"></span><span>
 </span><span id="line-17"></span><span class="annot"><a href="Poseidon.Version.html#updateThreeComponentVersion"><span class="hs-identifier hs-type">updateThreeComponentVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Version.html#VersionComponent"><span class="hs-identifier hs-type">VersionComponent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
 </span><span id="line-18"></span><span id="updateThreeComponentVersion"><span class="annot"><span class="annottext">updateThreeComponentVersion :: VersionComponent -&gt; Version -&gt; Version
-</span><a href="Poseidon.Version.html#updateThreeComponentVersion"><span class="hs-identifier hs-var hs-var">updateThreeComponentVersion</span></a></span></span><span> </span><span id="local-6989586621679401708"><span class="annot"><span class="annottext">VersionComponent
-</span><a href="#local-6989586621679401708"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span id="local-6989586621679401709"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679401709"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-19"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679401710"><span class="annot"><span class="annottext">i :: [Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; [Int]
+</span><a href="Poseidon.Version.html#updateThreeComponentVersion"><span class="hs-identifier hs-var hs-var">updateThreeComponentVersion</span></a></span></span><span> </span><span id="local-6989586621679324243"><span class="annot"><span class="annottext">VersionComponent
+</span><a href="#local-6989586621679324243"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span id="local-6989586621679324244"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679324244"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679324245"><span class="annot"><span class="annottext">i :: [Int]
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; [Int]
 </span><span class="hs-identifier hs-var">versionBranch</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679401709"><span class="hs-identifier hs-var">v</span></a></span><span>
-</span><span id="line-20"></span><span>        </span><span id="local-6989586621679401734"><span class="annot"><span class="annottext">r :: [Int]
-</span><a href="#local-6989586621679401734"><span class="hs-identifier hs-var hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">VersionComponent
-</span><a href="#local-6989586621679401708"><span class="hs-identifier hs-var">component</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679324244"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-20"></span><span>        </span><span id="local-6989586621679324269"><span class="annot"><span class="annottext">r :: [Int]
+</span><a href="#local-6989586621679324269"><span class="hs-identifier hs-var hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">VersionComponent
+</span><a href="#local-6989586621679324243"><span class="hs-identifier hs-var">component</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-21"></span><span>            </span><span class="annot"><span class="annottext">VersionComponent
 </span><a href="Poseidon.Version.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span class="hs-special">,</span><span>      </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">,</span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
@@ -60,11 +60,11 @@ forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-number">1</span></span><span class="hs-special">]</span><span>
 </span><span id="line-22"></span><span>            </span><span class="annot"><span class="annottext">VersionComponent
 </span><a href="Poseidon.Version.html#Minor"><span class="hs-identifier hs-var">Minor</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span class="hs-special">,</span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
@@ -74,7 +74,7 @@ forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-number">0</span></span><span>          </span><span class="hs-special">]</span><span>
 </span><span id="line-23"></span><span>            </span><span class="annot"><span class="annottext">VersionComponent
 </span><a href="Poseidon.Version.html#Major"><span class="hs-identifier hs-var">Major</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401710"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679324245"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; Int
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
@@ -85,13 +85,13 @@ forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-number">0</span></span><span>       </span><span class="hs-special">]</span><span>
 </span><span id="line-24"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Version
 </span><span class="hs-identifier hs-var">makeVersion</span></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679401734"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><a href="#local-6989586621679324269"><span class="hs-identifier hs-var">r</span></a></span><span>
 </span><span id="line-25"></span><span>
 </span><span id="line-26"></span><span class="annot"><a href="Poseidon.Version.html#parseVersion"><span class="hs-identifier hs-type">parseVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">P.Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
 </span><span id="line-27"></span><span id="parseVersion"><span class="annot"><span class="annottext">parseVersion :: Parser Version
 </span><a href="Poseidon.Version.html#parseVersion"><span class="hs-identifier hs-var hs-var">parseVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-28"></span><span>    </span><span id="local-6989586621679401737"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679401737"><span class="hs-identifier hs-var">major</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+</span><span id="line-28"></span><span>    </span><span id="local-6989586621679324272"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679324272"><span class="hs-identifier hs-var">major</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
 forall a. Read a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">read</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Int)
 -&gt; ParsecT String () Identity String
@@ -112,8 +112,8 @@ Stream s m Char =&gt;
 String -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.oneOf</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.&quot;</span></span><span>
-</span><span id="line-30"></span><span>    </span><span id="local-6989586621679401743"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679401743"><span class="hs-identifier hs-var">minor</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+</span><span id="line-30"></span><span>    </span><span id="local-6989586621679324278"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679324278"><span class="hs-identifier hs-var">minor</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
 forall a. Read a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">read</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Int)
 -&gt; ParsecT String () Identity String
@@ -134,8 +134,8 @@ Stream s m Char =&gt;
 String -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.oneOf</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;.&quot;</span></span><span>
-</span><span id="line-32"></span><span>    </span><span id="local-6989586621679401744"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679401744"><span class="hs-identifier hs-var">patch</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+</span><span id="line-32"></span><span>    </span><span id="local-6989586621679324279"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679324279"><span class="hs-identifier hs-var">patch</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
 forall a. Read a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">read</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Int)
 -&gt; ParsecT String () Identity String
@@ -154,7 +154,7 @@ forall a. a -&gt; ParsecT String () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Version
 </span><span class="hs-identifier hs-var">makeVersion</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679401737"><span class="hs-identifier hs-var">major</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679401743"><span class="hs-identifier hs-var">minor</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679401744"><span class="hs-identifier hs-var">patch</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679324272"><span class="hs-identifier hs-var">major</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679324278"><span class="hs-identifier hs-var">minor</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679324279"><span class="hs-identifier hs-var">patch</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
 </span><span id="line-34"></span></pre></body></html>

@@ -30,7 +30,7 @@
 </span><span id="line-28"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="bibEntryFields"><span class="annot"><span class="annottext">BibEntry -&gt; [(String, String)]
 </span><a href="Poseidon.BibFile.html#bibEntryFields"><span class="hs-identifier hs-var hs-var">bibEntryFields</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
 </span><span id="line-29"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-30"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401468"><span id="local-6989586621679401478"><span id="local-6989586621679401482"><span class="annot"><span class="annottext">Int -&gt; BibEntry -&gt; ShowS
+</span><span id="line-30"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324001"><span id="local-6989586621679324011"><span id="local-6989586621679324015"><span class="annot"><span class="annottext">Int -&gt; BibEntry -&gt; ShowS
 [BibEntry] -&gt; ShowS
 BibEntry -&gt; String
 (Int -&gt; BibEntry -&gt; ShowS)
@@ -45,38 +45,38 @@ $cshowList :: [BibEntry] -&gt; ShowS
 showList :: [BibEntry] -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-31"></span><span>
-</span><span id="line-32"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679401489"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-33"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span id="local-6989586621679401495"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401495"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span id="local-6989586621679401496"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401496"><span class="hs-identifier hs-var">i1</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679401497"><span class="annot"><span class="annottext">== :: BibEntry -&gt; BibEntry -&gt; Bool
-</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span id="local-6989586621679401498"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401498"><span class="hs-identifier hs-var">t2</span></a></span></span><span> </span><span id="local-6989586621679401499"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401499"><span class="hs-identifier hs-var">i2</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><span id="line-32"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679324022"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span id="local-6989586621679324028"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324028"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span id="local-6989586621679324029"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324029"><span class="hs-identifier hs-var">i1</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679324030"><span class="annot"><span class="annottext">== :: BibEntry -&gt; BibEntry -&gt; Bool
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span id="local-6989586621679324031"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324031"><span class="hs-identifier hs-var">t2</span></a></span></span><span> </span><span id="local-6989586621679324032"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324032"><span class="hs-identifier hs-var">i2</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401495"><span class="hs-identifier hs-var">t1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679324028"><span class="hs-identifier hs-var">t1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401498"><span class="hs-identifier hs-var">t2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679324031"><span class="hs-identifier hs-var">t2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401496"><span class="hs-identifier hs-var">i1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679324029"><span class="hs-identifier hs-var">i1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401499"><span class="hs-identifier hs-var">i2</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679324032"><span class="hs-identifier hs-var">i2</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-34"></span><span>
-</span><span id="line-35"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679401505"><span id="local-6989586621679401509"><span id="local-6989586621679401512"><span id="local-6989586621679401515"><span id="local-6989586621679401518"><span id="local-6989586621679401521"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679324038"><span id="local-6989586621679324042"><span id="local-6989586621679324045"><span id="local-6989586621679324048"><span id="local-6989586621679324051"><span id="local-6989586621679324054"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
 </span><span id="line-36"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679401528"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401528"><span class="hs-identifier hs-var">i1</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679401529"><span class="annot"><span class="annottext">compare :: BibEntry -&gt; BibEntry -&gt; Ordering
-</span><a href="#local-6989586621679401529"><span class="hs-operator hs-var hs-var hs-var hs-var">`compare`</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679401531"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401531"><span class="hs-identifier hs-var">i2</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679324061"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324061"><span class="hs-identifier hs-var">i1</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679324062"><span class="annot"><span class="annottext">compare :: BibEntry -&gt; BibEntry -&gt; Ordering
+</span><a href="#local-6989586621679324062"><span class="hs-operator hs-var hs-var hs-var hs-var">`compare`</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679324064"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324064"><span class="hs-identifier hs-var">i2</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401528"><span class="hs-identifier hs-var">i1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Ordering
+</span><a href="#local-6989586621679324061"><span class="hs-identifier hs-var">i1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Ordering
 forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 </span><span class="hs-operator hs-var">`compare`</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401531"><span class="hs-identifier hs-var">i2</span></a></span><span>
+</span><a href="#local-6989586621679324064"><span class="hs-identifier hs-var">i2</span></a></span><span>
 </span><span id="line-37"></span><span>
 </span><span id="line-38"></span><span class="hs-keyword">type</span><span> </span><span id="BibTeX"><span class="annot"><a href="Poseidon.BibFile.html#BibTeX"><span class="hs-identifier hs-var">BibTeX</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-39"></span><span>
@@ -123,18 +123,18 @@ forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 </span><span id="line-56"></span><span>
 </span><span id="line-57"></span><span class="annot"><a href="Poseidon.BibFile.html#readBibTeXFile"><span class="hs-identifier hs-type">readBibTeXFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibTeX"><span class="hs-identifier hs-type">BibTeX</span></a></span><span>
 </span><span id="line-58"></span><span id="readBibTeXFile"><span class="annot"><span class="annottext">readBibTeXFile :: String -&gt; IO [BibEntry]
-</span><a href="Poseidon.BibFile.html#readBibTeXFile"><span class="hs-identifier hs-var hs-var">readBibTeXFile</span></a></span></span><span> </span><span id="local-6989586621679401533"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401533"><span class="hs-identifier hs-var">bibPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-59"></span><span>    </span><span id="local-6989586621679401534"><span class="annot"><span class="annottext">Either ParseError [BibEntry]
-</span><a href="#local-6989586621679401534"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser [BibEntry] -&gt; String -&gt; IO (Either ParseError [BibEntry])
+</span><a href="Poseidon.BibFile.html#readBibTeXFile"><span class="hs-identifier hs-var hs-var">readBibTeXFile</span></a></span></span><span> </span><span id="local-6989586621679324066"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324066"><span class="hs-identifier hs-var">bibPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-59"></span><span>    </span><span id="local-6989586621679324067"><span class="annot"><span class="annottext">Either ParseError [BibEntry]
+</span><a href="#local-6989586621679324067"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser [BibEntry] -&gt; String -&gt; IO (Either ParseError [BibEntry])
 forall a. Parser a -&gt; String -&gt; IO (Either ParseError a)
 </span><span class="hs-identifier hs-var">parseFromFile</span></span><span> </span><span class="annot"><span class="annottext">Parser [BibEntry]
 </span><a href="Poseidon.BibFile.html#bibFileParser"><span class="hs-identifier hs-var">bibFileParser</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401533"><span class="hs-identifier hs-var">bibPath</span></a></span><span>
+</span><a href="#local-6989586621679324066"><span class="hs-identifier hs-var">bibPath</span></a></span><span>
 </span><span id="line-60"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either ParseError [BibEntry]
-</span><a href="#local-6989586621679401534"><span class="hs-identifier hs-var">res</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-61"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679401536"><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679401536"><span class="hs-identifier hs-var">err</span></a></span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; IO [BibEntry]
+</span><a href="#local-6989586621679324067"><span class="hs-identifier hs-var">res</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-61"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679324069"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679324069"><span class="hs-identifier hs-var">err</span></a></span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; IO [BibEntry]
 forall e a. Exception e =&gt; e -&gt; IO a
 </span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">(PoseidonException -&gt; IO [BibEntry])
 -&gt; (String -&gt; PoseidonException) -&gt; String -&gt; IO [BibEntry]
@@ -146,20 +146,20 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;In file &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401533"><span class="hs-identifier hs-var">bibPath</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324066"><span class="hs-identifier hs-var">bibPath</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; String
 </span><a href="Poseidon.Utils.html#showParsecErr"><span class="hs-identifier hs-var">showParsecErr</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679401536"><span class="hs-identifier hs-var">err</span></a></span><span>
-</span><span id="line-62"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679401539"><span class="annot"><span class="annottext">[BibEntry]
-</span><a href="#local-6989586621679401539"><span class="hs-identifier hs-var">res_</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[BibEntry] -&gt; IO [BibEntry]
+</span><a href="#local-6989586621679324069"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-62"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679324072"><span class="annot"><span class="annottext">[BibEntry]
+</span><a href="#local-6989586621679324072"><span class="hs-identifier hs-var">res_</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[BibEntry] -&gt; IO [BibEntry]
 forall a. a -&gt; IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">[BibEntry]
-</span><a href="#local-6989586621679401539"><span class="hs-identifier hs-var">res_</span></a></span><span>
+</span><a href="#local-6989586621679324072"><span class="hs-identifier hs-var">res_</span></a></span><span>
 </span><span id="line-63"></span><span>
 </span><span id="line-64"></span><span class="hs-comment">{-
 Much of the code below was shamelessly copied from the existing Haskell package &quot;bibtex&quot;
@@ -169,55 +169,55 @@ copied the relevant code here and modified it as needed.
 </span><span id="line-69"></span><span>
 </span><span id="line-70"></span><span class="annot"><a href="Poseidon.BibFile.html#writeBibTeXFile"><span class="hs-identifier hs-type">writeBibTeXFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibTeX"><span class="hs-identifier hs-type">BibTeX</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-71"></span><span id="writeBibTeXFile"><span class="annot"><span class="annottext">writeBibTeXFile :: String -&gt; [BibEntry] -&gt; IO ()
-</span><a href="Poseidon.BibFile.html#writeBibTeXFile"><span class="hs-identifier hs-var hs-var">writeBibTeXFile</span></a></span></span><span> </span><span id="local-6989586621679401540"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401540"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679401541"><span class="annot"><span class="annottext">[BibEntry]
-</span><a href="#local-6989586621679401541"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IOMode -&gt; (Handle -&gt; IO ()) -&gt; IO ()
+</span><a href="Poseidon.BibFile.html#writeBibTeXFile"><span class="hs-identifier hs-var hs-var">writeBibTeXFile</span></a></span></span><span> </span><span id="local-6989586621679324073"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324073"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679324074"><span class="annot"><span class="annottext">[BibEntry]
+</span><a href="#local-6989586621679324074"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IOMode -&gt; (Handle -&gt; IO ()) -&gt; IO ()
 forall r. String -&gt; IOMode -&gt; (Handle -&gt; IO r) -&gt; IO r
 </span><span class="hs-identifier hs-var">withFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401540"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679324073"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
 </span><span class="hs-identifier hs-var">WriteMode</span></span><span> </span><span class="annot"><span class="annottext">((Handle -&gt; IO ()) -&gt; IO ()) -&gt; (Handle -&gt; IO ()) -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679401543"><span class="annot"><span class="annottext">Handle
-</span><a href="#local-6989586621679401543"><span class="hs-identifier hs-var">outH</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679324076"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679324076"><span class="hs-identifier hs-var">outH</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-72"></span><span>    </span><span class="annot"><span class="annottext">[BibEntry] -&gt; (BibEntry -&gt; IO ()) -&gt; IO ()
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[BibEntry]
-</span><a href="#local-6989586621679401541"><span class="hs-identifier hs-var">entries</span></a></span><span> </span><span class="annot"><span class="annottext">((BibEntry -&gt; IO ()) -&gt; IO ()) -&gt; (BibEntry -&gt; IO ()) -&gt; IO ()
+</span><a href="#local-6989586621679324074"><span class="hs-identifier hs-var">entries</span></a></span><span> </span><span class="annot"><span class="annottext">((BibEntry -&gt; IO ()) -&gt; IO ()) -&gt; (BibEntry -&gt; IO ()) -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679401544"><span class="annot"><span class="annottext">BibEntry
-</span><a href="#local-6989586621679401544"><span class="hs-identifier hs-var">bibEntry</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-73"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679401545"><span class="annot"><span class="annottext">entryString :: String
-</span><a href="#local-6989586621679401545"><span class="hs-identifier hs-var hs-var">entryString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BibEntry -&gt; String
-</span><a href="#local-6989586621679401546"><span class="hs-identifier hs-var">writeEntry</span></a></span><span> </span><span class="annot"><span class="annottext">BibEntry
-</span><a href="#local-6989586621679401544"><span class="hs-identifier hs-var">bibEntry</span></a></span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679324077"><span class="annot"><span class="annottext">BibEntry
+</span><a href="#local-6989586621679324077"><span class="hs-identifier hs-var">bibEntry</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-73"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679324078"><span class="annot"><span class="annottext">entryString :: String
+</span><a href="#local-6989586621679324078"><span class="hs-identifier hs-var hs-var">entryString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BibEntry -&gt; String
+</span><a href="#local-6989586621679324079"><span class="hs-identifier hs-var">writeEntry</span></a></span><span> </span><span class="annot"><span class="annottext">BibEntry
+</span><a href="#local-6989586621679324077"><span class="hs-identifier hs-var">bibEntry</span></a></span><span>
 </span><span id="line-74"></span><span>        </span><span class="annot"><span class="annottext">Handle -&gt; String -&gt; IO ()
 </span><span class="hs-identifier hs-var">hPutStrLn</span></span><span> </span><span class="annot"><span class="annottext">Handle
-</span><a href="#local-6989586621679401543"><span class="hs-identifier hs-var">outH</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401545"><span class="hs-identifier hs-var">entryString</span></a></span><span>
+</span><a href="#local-6989586621679324076"><span class="hs-identifier hs-var">outH</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324078"><span class="hs-identifier hs-var">entryString</span></a></span><span>
 </span><span id="line-75"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-76"></span><span>    </span><span class="annot"><a href="#local-6989586621679401546"><span class="hs-identifier hs-type">writeEntry</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
-</span><span id="line-77"></span><span>    </span><span id="local-6989586621679401546"><span class="annot"><span class="annottext">writeEntry :: BibEntry -&gt; String
-</span><a href="#local-6989586621679401546"><span class="hs-identifier hs-var hs-var">writeEntry</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span id="local-6989586621679401547"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401547"><span class="hs-identifier hs-var">entryType</span></a></span></span><span> </span><span id="local-6989586621679401548"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401548"><span class="hs-identifier hs-var">bibId</span></a></span></span><span> </span><span id="local-6989586621679401549"><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679401549"><span class="hs-identifier hs-var">items</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-78"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679401555"><span class="annot"><span class="annottext">formatItem :: (String, String) -&gt; String
-</span><a href="#local-6989586621679401555"><span class="hs-identifier hs-var hs-var">formatItem</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401556"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401556"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679401557"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401557"><span class="hs-identifier hs-var">value_</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><a href="#local-6989586621679324079"><span class="hs-identifier hs-type">writeEntry</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-77"></span><span>    </span><span id="local-6989586621679324079"><span class="annot"><span class="annottext">writeEntry :: BibEntry -&gt; String
+</span><a href="#local-6989586621679324079"><span class="hs-identifier hs-var hs-var">writeEntry</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span> </span><span id="local-6989586621679324080"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324080"><span class="hs-identifier hs-var">entryType</span></a></span></span><span> </span><span id="local-6989586621679324081"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324081"><span class="hs-identifier hs-var">bibId</span></a></span></span><span> </span><span id="local-6989586621679324082"><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679324082"><span class="hs-identifier hs-var">items</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-78"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679324088"><span class="annot"><span class="annottext">formatItem :: (String, String) -&gt; String
+</span><a href="#local-6989586621679324088"><span class="hs-identifier hs-var hs-var">formatItem</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324089"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324089"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679324090"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324090"><span class="hs-identifier hs-var">value_</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-79"></span><span>                </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;  &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401556"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324089"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; = {&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401557"><span class="hs-identifier hs-var">value_</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324090"><span class="hs-identifier hs-var">value_</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;},\n&quot;</span></span><span>
@@ -225,13 +225,13 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-string">&quot;@&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401547"><span class="hs-identifier hs-var">entryType</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324080"><span class="hs-identifier hs-var">entryType</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;{&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401548"><span class="hs-identifier hs-var">bibId</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324081"><span class="hs-identifier hs-var">bibId</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;,\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -240,8 +240,8 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span id="line-81"></span><span>            </span><span class="annot"><span class="annottext">((String, String) -&gt; String) -&gt; [(String, String)] -&gt; String
 forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
 </span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; String
-</span><a href="#local-6989586621679401555"><span class="hs-identifier hs-var">formatItem</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
-</span><a href="#local-6989586621679401549"><span class="hs-identifier hs-var">items</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324088"><span class="hs-identifier hs-var">formatItem</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679324082"><span class="hs-identifier hs-var">items</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;}\n&quot;</span></span><span>
@@ -280,8 +280,8 @@ String -&gt; ParsecT s u m Char
 </span><span id="line-89"></span><span class="annot"><a href="Poseidon.BibFile.html#bibEntryParser"><span class="hs-identifier hs-type">bibEntryParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="annot"><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-type">BibEntry</span></a></span><span>
 </span><span id="line-90"></span><span id="bibEntryParser"><span class="annot"><span class="annottext">bibEntryParser :: ParsecT String () Identity BibEntry
 </span><a href="Poseidon.BibFile.html#bibEntryParser"><span class="hs-identifier hs-var hs-var">bibEntryParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-91"></span><span>   </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679401561"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401561"><span class="hs-identifier hs-var">entryType</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
+</span><span id="line-91"></span><span>   </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679324094"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324094"><span class="hs-identifier hs-var">entryType</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
@@ -312,7 +312,7 @@ Monad m =&gt;
 (a1 -&gt; a2 -&gt; r) -&gt; m a1 -&gt; m a2 -&gt; m r
 </span><span class="hs-identifier hs-var">liftM2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; [(String, String)] -&gt; BibEntry
 </span><a href="Poseidon.BibFile.html#BibEntry"><span class="hs-identifier hs-var">BibEntry</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401561"><span class="hs-identifier hs-var">entryType</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679324094"><span class="hs-identifier hs-var">entryType</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-94"></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser String -&gt; Parser String
 forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m a
 </span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="annot"><span class="annottext">Parser String
@@ -336,7 +336,7 @@ ParsecT s u m a -&gt; ParsecT s u m sep -&gt; ParsecT s u m [a]
 forall st. CharParser st String
 </span><a href="Poseidon.BibFile.html#comma"><span class="hs-identifier hs-var">comma</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-96"></span><span>
-</span><span id="line-97"></span><span id="local-6989586621679401268"><span class="annot"><a href="Poseidon.BibFile.html#identifier"><span class="hs-identifier hs-type">identifier</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401268"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-97"></span><span id="local-6989586621679323803"><span class="annot"><a href="Poseidon.BibFile.html#identifier"><span class="hs-identifier hs-type">identifier</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679323803"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
 </span><span id="line-98"></span><span id="identifier"><span class="annot"><span class="annottext">identifier :: forall st. CharParser st String
 </span><a href="Poseidon.BibFile.html#identifier"><span class="hs-identifier hs-var hs-var">identifier</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenTokenParser String st Identity
 -&gt; ParsecT String st Identity String
@@ -346,7 +346,7 @@ GenTokenParser s u m -&gt; ParsecT s u m String
 forall st. TokenParser st
 </span><a href="Poseidon.BibFile.html#lexer"><span class="hs-identifier hs-var">lexer</span></a></span><span>
 </span><span id="line-99"></span><span>
-</span><span id="line-100"></span><span id="local-6989586621679401285"><span class="annot"><a href="Poseidon.BibFile.html#lexer"><span class="hs-identifier hs-type">lexer</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.TokenParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401285"><span class="hs-identifier hs-type">st</span></a></span></span><span>
+</span><span id="line-100"></span><span id="local-6989586621679323820"><span class="annot"><a href="Poseidon.BibFile.html#lexer"><span class="hs-identifier hs-type">lexer</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.TokenParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679323820"><span class="hs-identifier hs-type">st</span></a></span></span><span>
 </span><span id="line-101"></span><span id="lexer"><span class="annot"><span class="annottext">lexer :: forall st. TokenParser st
 </span><a href="Poseidon.BibFile.html#lexer"><span class="hs-identifier hs-var hs-var">lexer</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-102"></span><span>   </span><span class="annot"><span class="annottext">GenLanguageDef String st Identity
@@ -362,20 +362,12 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLanguageDef String st Identity
 forall st. LanguageDef st
 </span><span class="hs-identifier hs-var">emptyDef</span></span><span> </span><span class="hs-special">{</span><span>
-</span><span id="line-103"></span><span>      </span><span class="annot"><span class="annottext">commentLine :: String
-</span><span class="hs-identifier hs-var">T.commentLine</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-string">&quot;%&quot;</span></span><span class="hs-special">,</span><span>
-</span><span id="line-104"></span><span>      </span><span class="annot"><span class="annottext">identStart :: ParsecT String st Identity Char
-</span><span class="hs-identifier hs-var">T.identStart</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
-forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
-</span><span class="hs-identifier hs-var">alphaNum</span></span><span class="hs-special">,</span><span>
-</span><span id="line-105"></span><span>      </span><span class="annot"><span class="annottext">identLetter :: ParsecT String st Identity Char
-</span><span class="hs-identifier hs-var">T.identLetter</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
-forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
-</span><span class="hs-identifier hs-var">alphaNum</span></span><span>
+</span><span id="line-103"></span><span>      </span><span class="annot"><span class="hs-identifier hs-var">T.commentLine</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;%&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-104"></span><span>      </span><span class="annot"><span class="hs-identifier hs-var">T.identStart</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">alphaNum</span></span><span class="hs-special">,</span><span>
+</span><span id="line-105"></span><span>      </span><span class="annot"><span class="hs-identifier hs-var">T.identLetter</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">alphaNum</span></span><span>
 </span><span id="line-106"></span><span>   </span><span class="hs-special">}</span><span>
 </span><span id="line-107"></span><span>
-</span><span id="line-108"></span><span id="local-6989586621679401270"><span id="local-6989586621679401271"><span class="annot"><a href="Poseidon.BibFile.html#braces"><span class="hs-identifier hs-type">braces</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401270"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679401271"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401270"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679401271"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-108"></span><span id="local-6989586621679323805"><span id="local-6989586621679323806"><span class="annot"><a href="Poseidon.BibFile.html#braces"><span class="hs-identifier hs-type">braces</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679323805"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679323806"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679323805"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679323806"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
 </span><span id="line-109"></span><span id="braces"><span class="annot"><span class="annottext">braces :: forall st a. CharParser st a -&gt; CharParser st a
 </span><a href="Poseidon.BibFile.html#braces"><span class="hs-identifier hs-var hs-var">braces</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenTokenParser String st Identity
 -&gt; forall a.
@@ -429,7 +421,7 @@ String -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">oneOf</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&amp;;:-_.?+/&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-114"></span><span>
-</span><span id="line-115"></span><span id="local-6989586621679401578"><span id="local-6989586621679401579"><span class="annot"><a href="Poseidon.BibFile.html#lexeme"><span class="hs-identifier hs-type">lexeme</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401578"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679401579"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401578"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679401579"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-115"></span><span id="local-6989586621679324111"><span id="local-6989586621679324112"><span class="annot"><a href="Poseidon.BibFile.html#lexeme"><span class="hs-identifier hs-type">lexeme</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679324111"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679324112"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679324111"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679324112"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
 </span><span id="line-116"></span><span id="lexeme"><span class="annot"><span class="annottext">lexeme :: forall st a. CharParser st a -&gt; CharParser st a
 </span><a href="Poseidon.BibFile.html#lexeme"><span class="hs-identifier hs-var hs-var">lexeme</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenTokenParser String st Identity
 -&gt; forall a.
@@ -464,7 +456,7 @@ forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
 </span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser String
 </span><a href="Poseidon.BibFile.html#value"><span class="hs-identifier hs-var">value</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-123"></span><span>
-</span><span id="line-124"></span><span id="local-6989586621679401583"><span class="annot"><a href="Poseidon.BibFile.html#equals"><span class="hs-identifier hs-type">equals</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401583"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-124"></span><span id="local-6989586621679324116"><span class="annot"><a href="Poseidon.BibFile.html#equals"><span class="hs-identifier hs-type">equals</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679324116"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
 </span><span id="line-125"></span><span id="equals"><span class="annot"><span class="annottext">equals :: forall st. CharParser st String
 </span><a href="Poseidon.BibFile.html#equals"><span class="hs-identifier hs-var hs-var">equals</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenTokenParser String st Identity
 -&gt; String -&gt; ParsecT String st Identity String
@@ -536,8 +528,8 @@ Char -&gt; ParsecT s u m Char
 </span><span id="line-133"></span><span>
 </span><span id="line-134"></span><span class="annot"><a href="Poseidon.BibFile.html#texSequence"><span class="hs-identifier hs-type">texSequence</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-135"></span><span id="texSequence"><span class="annot"><span class="annottext">texSequence :: Char -&gt; Parser String
-</span><a href="Poseidon.BibFile.html#texSequence"><span class="hs-identifier hs-var hs-var">texSequence</span></a></span></span><span> </span><span id="local-6989586621679401586"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401586"><span class="hs-identifier hs-var">closeChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.BibFile.html#texSequence"><span class="hs-identifier hs-var hs-var">texSequence</span></a></span></span><span> </span><span id="local-6989586621679324119"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679324119"><span class="hs-identifier hs-var">closeChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-136"></span><span>   </span><span class="annot"><span class="annottext">[String] -&gt; String
 forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String)
@@ -547,12 +539,12 @@ forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m [a]
 </span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Parser String
 </span><a href="Poseidon.BibFile.html#texBlock"><span class="hs-identifier hs-var">texBlock</span></a></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401586"><span class="hs-identifier hs-var">closeChar</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679324119"><span class="hs-identifier hs-var">closeChar</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-137"></span><span>
 </span><span id="line-138"></span><span class="annot"><a href="Poseidon.BibFile.html#texBlock"><span class="hs-identifier hs-type">texBlock</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-139"></span><span id="texBlock"><span class="annot"><span class="annottext">texBlock :: Char -&gt; Parser String
-</span><a href="Poseidon.BibFile.html#texBlock"><span class="hs-identifier hs-var hs-var">texBlock</span></a></span></span><span> </span><span id="local-6989586621679401590"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401590"><span class="hs-identifier hs-var">closeChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.BibFile.html#texBlock"><span class="hs-identifier hs-var hs-var">texBlock</span></a></span></span><span> </span><span id="local-6989586621679324123"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679324123"><span class="hs-identifier hs-var">closeChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-140"></span><span>   </span><span class="annot"><span class="annottext">(Char -&gt; String -&gt; Char -&gt; String)
 -&gt; ParsecT String () Identity Char
 -&gt; Parser String
@@ -561,17 +553,17 @@ forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m [a]
 forall (m :: * -&gt; *) a1 a2 a3 r.
 Monad m =&gt;
 (a1 -&gt; a2 -&gt; a3 -&gt; r) -&gt; m a1 -&gt; m a2 -&gt; m a3 -&gt; m r
-</span><span class="hs-identifier hs-var">liftM3</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679401591"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401591"><span class="hs-identifier hs-var">open</span></a></span></span><span> </span><span id="local-6989586621679401592"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401592"><span class="hs-identifier hs-var">body</span></a></span></span><span> </span><span id="local-6989586621679401593"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401593"><span class="hs-identifier hs-var">close</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401591"><span class="hs-identifier hs-var">open</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; ShowS
+</span><span class="hs-identifier hs-var">liftM3</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679324124"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679324124"><span class="hs-identifier hs-var">open</span></a></span></span><span> </span><span id="local-6989586621679324125"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324125"><span class="hs-identifier hs-var">body</span></a></span></span><span> </span><span id="local-6989586621679324126"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679324126"><span class="hs-identifier hs-var">close</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679324124"><span class="hs-identifier hs-var">open</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; ShowS
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401592"><span class="hs-identifier hs-var">body</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324125"><span class="hs-identifier hs-var">body</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401593"><span class="hs-identifier hs-var">close</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679324126"><span class="hs-identifier hs-var">close</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
 </span><span id="line-141"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
@@ -629,10 +621,10 @@ forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 String -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">noneOf</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679401590"><span class="hs-identifier hs-var">closeChar</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679324123"><span class="hs-identifier hs-var">closeChar</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
 </span><span id="line-146"></span><span>
 </span><span id="line-147"></span><span>
-</span><span id="line-148"></span><span id="local-6989586621679401595"><span class="annot"><a href="Poseidon.BibFile.html#comma"><span class="hs-identifier hs-type">comma</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679401595"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-148"></span><span id="local-6989586621679324128"><span class="annot"><a href="Poseidon.BibFile.html#comma"><span class="hs-identifier hs-type">comma</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CharParser</span></span><span> </span><span class="annot"><a href="#local-6989586621679324128"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
 </span><span id="line-149"></span><span id="comma"><span class="annot"><span class="annottext">comma :: forall st. CharParser st String
 </span><a href="Poseidon.BibFile.html#comma"><span class="hs-identifier hs-var hs-var">comma</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenTokenParser String st Identity
 -&gt; ParsecT String st Identity String
@@ -642,12 +634,12 @@ GenTokenParser s u m -&gt; ParsecT s u m String
 forall st. TokenParser st
 </span><a href="Poseidon.BibFile.html#lexer"><span class="hs-identifier hs-var">lexer</span></a></span><span>
 </span><span id="line-150"></span><span>
-</span><span id="line-151"></span><span id="local-6989586621679401345"><span class="annot"><a href="Poseidon.BibFile.html#parseAuthors"><span class="hs-identifier hs-type">parseAuthors</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679401345"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679401345"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span></span><span> </span><span class="hs-comment">-- parses a string of authors to a list of first names and last names</span><span>
+</span><span id="line-151"></span><span id="local-6989586621679323878"><span class="annot"><a href="Poseidon.BibFile.html#parseAuthors"><span class="hs-identifier hs-type">parseAuthors</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679323878"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679323878"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span></span><span> </span><span class="hs-comment">-- parses a string of authors to a list of first names and last names</span><span>
 </span><span id="line-152"></span><span id="parseAuthors"><span class="annot"><span class="annottext">parseAuthors :: forall (m :: * -&gt; *).
 MonadThrow m =&gt;
 String -&gt; m [(String, String)]
-</span><a href="Poseidon.BibFile.html#parseAuthors"><span class="hs-identifier hs-var hs-var">parseAuthors</span></a></span></span><span> </span><span id="local-6989586621679401612"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401612"><span class="hs-identifier hs-var">authorString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; (String -&gt; m (String, String)) -&gt; m [(String, String)]
+</span><a href="Poseidon.BibFile.html#parseAuthors"><span class="hs-identifier hs-var hs-var">parseAuthors</span></a></span></span><span> </span><span id="local-6989586621679324147"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324147"><span class="hs-identifier hs-var">authorString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; (String -&gt; m (String, String)) -&gt; m [(String, String)]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m (t b)
@@ -669,35 +661,37 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-identifier hs-var">lines</span></span><span> </span><span class="annot"><span class="annottext">ShowS -&gt; ShowS
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401612"><span class="hs-identifier hs-var">authorString</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((String -&gt; m (String, String)) -&gt; m [(String, String)])
+</span><a href="#local-6989586621679324147"><span class="hs-identifier hs-var">authorString</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((String -&gt; m (String, String)) -&gt; m [(String, String)])
 -&gt; (String -&gt; m (String, String)) -&gt; m [(String, String)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679401614"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401614"><span class="hs-identifier hs-var">singleAuthorStr</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679324149"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324149"><span class="hs-identifier hs-var">singleAuthorStr</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-153"></span><span>   </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [String]
 forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [[a]]
 </span><span class="hs-identifier hs-var">splitOn</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401614"><span class="hs-identifier hs-var">singleAuthorStr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-154"></span><span>       </span><span class="hs-special">[</span><span id="local-6989586621679401615"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401615"><span class="hs-identifier hs-var">lastName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679401616"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401616"><span class="hs-identifier hs-var">firstName</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; m (String, String)
+</span><a href="#local-6989586621679324149"><span class="hs-identifier hs-var">singleAuthorStr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-154"></span><span>       </span><span class="hs-special">[</span><span id="local-6989586621679324150"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324150"><span class="hs-identifier hs-var">lastName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679324151"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324151"><span class="hs-identifier hs-var">firstName</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; m (String, String)
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401616"><span class="hs-identifier hs-var">firstName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401615"><span class="hs-identifier hs-var">lastName</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-155"></span><span>       </span><span class="hs-special">[</span><span id="local-6989586621679401617"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401617"><span class="hs-identifier hs-var">firstName</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; m (String, String)
+</span><a href="#local-6989586621679324151"><span class="hs-identifier hs-var">firstName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324150"><span class="hs-identifier hs-var">lastName</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-155"></span><span>       </span><span class="hs-special">[</span><span id="local-6989586621679324152"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324152"><span class="hs-identifier hs-var">firstName</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; m (String, String)
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401617"><span class="hs-identifier hs-var">firstName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324152"><span class="hs-identifier hs-var">firstName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- in some cultures there are single first names, e.g. &quot;Nini&quot;</span><span>
 </span><span id="line-156"></span><span>       </span><span class="annot"><span class="annottext">[String]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; m (String, String)
-forall e a. Exception e =&gt; e -&gt; m a
-forall (m :: * -&gt; *) e a. (MonadThrow m, Exception e) =&gt; e -&gt; m a
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; m a
+forall (m :: * -&gt; *) e a.
+(MonadThrow m, HasCallStack, Exception e) =&gt;
+e -&gt; m a
 </span><span class="hs-identifier hs-var">throwM</span></span><span> </span><span class="annot"><span class="annottext">(PoseidonException -&gt; m (String, String))
 -&gt; (String -&gt; PoseidonException) -&gt; String -&gt; m (String, String)
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
@@ -708,23 +702,23 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;cannot parse bib-author &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401614"><span class="hs-identifier hs-var">singleAuthorStr</span></a></span><span>
+</span><a href="#local-6989586621679324149"><span class="hs-identifier hs-var">singleAuthorStr</span></a></span><span>
 </span><span id="line-157"></span><span>
 </span><span id="line-158"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-type">authorAbbrvString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-159"></span><span id="authorAbbrvString"><span class="annot"><span class="annottext">authorAbbrvString :: [(String, String)] -&gt; String
 </span><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var hs-var">authorAbbrvString</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span>
-</span><span id="line-160"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var">authorAbbrvString</span></a></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679401618"><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401618"><span class="hs-identifier hs-var">firstAuthor</span></a></span></span><span class="hs-special">]</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; (String, String) -&gt; String
+</span><span id="line-160"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var">authorAbbrvString</span></a></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679324153"><span class="annot"><span class="annottext">(String, String)
+</span><a href="#local-6989586621679324153"><span class="hs-identifier hs-var">firstAuthor</span></a></span></span><span class="hs-special">]</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; (String, String) -&gt; String
 </span><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401618"><span class="hs-identifier hs-var">firstAuthor</span></a></span><span>
-</span><span id="line-161"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var">authorAbbrvString</span></a></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679401620"><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401620"><span class="hs-identifier hs-var">firstAuthor</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679401621"><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401621"><span class="hs-identifier hs-var">secondAuthor</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; (String, String) -&gt; String
+</span><a href="#local-6989586621679324153"><span class="hs-identifier hs-var">firstAuthor</span></a></span><span>
+</span><span id="line-161"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var">authorAbbrvString</span></a></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679324155"><span class="annot"><span class="annottext">(String, String)
+</span><a href="#local-6989586621679324155"><span class="hs-identifier hs-var">firstAuthor</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679324156"><span class="annot"><span class="annottext">(String, String)
+</span><a href="#local-6989586621679324156"><span class="hs-identifier hs-var">secondAuthor</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; (String, String) -&gt; String
 </span><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401620"><span class="hs-identifier hs-var">firstAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324155"><span class="hs-identifier hs-var">firstAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; and &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -732,13 +726,13 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; (String, String) -&gt; String
 </span><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401621"><span class="hs-identifier hs-var">secondAuthor</span></a></span><span>
-</span><span id="line-162"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var">authorAbbrvString</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401622"><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401622"><span class="hs-identifier hs-var">firstAuthor</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679324156"><span class="hs-identifier hs-var">secondAuthor</span></a></span><span>
+</span><span id="line-162"></span><span class="annot"><a href="Poseidon.BibFile.html#authorAbbrvString"><span class="hs-identifier hs-var">authorAbbrvString</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324157"><span class="annot"><span class="annottext">(String, String)
+</span><a href="#local-6989586621679324157"><span class="hs-identifier hs-var">firstAuthor</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; (String, String) -&gt; String
 </span><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">(String, String)
-</span><a href="#local-6989586621679401622"><span class="hs-identifier hs-var">firstAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324157"><span class="hs-identifier hs-var">firstAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; et al.&quot;</span></span><span>
@@ -747,37 +741,37 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span id="line-165"></span><span class="annot"><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-type">renderAuthor</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-166"></span><span id="renderAuthor"><span class="annot"><span class="annottext">renderAuthor :: Bool -&gt; (String, String) -&gt; String
 </span><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var hs-var">renderAuthor</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401623"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401623"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324158"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324158"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401623"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="hs-comment">-- there are edge cases where only first names exist, like in Consortia</span><span>
+</span><a href="#local-6989586621679324158"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="hs-comment">-- there are edge cases where only first names exist, like in Consortia</span><span>
 </span><span id="line-167"></span><span class="annot"><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401624"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401624"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679401625"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401625"><span class="hs-keyword hs-var">family</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401624"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324159"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324159"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679324160"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324160"><span class="hs-keyword hs-var">family</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324159"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401625"><span class="hs-keyword hs-var">family</span></a></span><span>
+</span><a href="#local-6989586621679324160"><span class="hs-keyword hs-var">family</span></a></span><span>
 </span><span id="line-168"></span><span class="annot"><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401626"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401626"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324161"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324161"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401626"><span class="hs-identifier hs-var">first</span></a></span><span>
+</span><a href="#local-6989586621679324161"><span class="hs-identifier hs-var">first</span></a></span><span>
 </span><span id="line-169"></span><span class="annot"><a href="Poseidon.BibFile.html#renderAuthor"><span class="hs-identifier hs-var">renderAuthor</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679401627"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401627"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679401628"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401628"><span class="hs-keyword hs-var">family</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Char
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679324162"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324162"><span class="hs-identifier hs-var">first</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679324163"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679324163"><span class="hs-keyword hs-var">family</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Char
 forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401627"><span class="hs-identifier hs-var">first</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679324162"><span class="hs-identifier hs-var">first</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679401628"><span class="hs-keyword hs-var">family</span></a></span><span>
+</span><a href="#local-6989586621679324163"><span class="hs-keyword hs-var">family</span></a></span><span>
 </span><span id="line-170"></span></pre></body></html>
