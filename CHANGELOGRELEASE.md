@@ -1,3 +1,38 @@
+### V 1.6.2.1
+
+This is a bigger release with various new features and improvements.
+
+#### Writing support for gzipped genotype data
+
+After reading support for zipped data was already added in V 1.5.7.0, this release now introduces the complementary writing feature for EIGENSTRAT and PLINK files in `genoconvert` and `forge`. Both commands get a new option `-z` which creates gzipped output.
+
+```
+  -z,--zip                 Should the resulting genotype- and snp-files be
+                           gzipped?
+```
+
+Note that this feature has smart handling of already available files to not overwrite them but still consider them when updating a package's POSEIDON.yml file with `genoconvert`. `-z` is also usable when only working with genotype data (`-p`, `--onlyGeno`).
+
+Future versions of the Poseidon schema will formally specify this feature.
+
+#### Bibliography information in `list` and the Web-API
+
+- V 1.6.1.0:
+    - Added a feature to list bibliography information via `trident list --bibliography`.
+    - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
+    
+#### Remove empty .janno columns with `rectify`
+
+- V 1.6.2.0:
+    - Added a feature to remove empty .janno columns with `rectify`: `--jannoRemoveEmpty`.
+    - Changed the way empty .janno fields are filled with `n/a` upon writing. It now also affects the output of `list`.
+
+#### Bug fixes and technical changes
+
+We fixed two bugs that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`). They were accidentally added with the recent interface changes for V 1.5.7.0. This input feature should now be functional again.
+
+We finally switched to a new compiler version (GHC 9.6.6) and a new stackage resolver version (lts-22.43). This required some minor adjustments in the server code, but should not have any user-facing consequences.
+
 ### V 1.5.7.3
 
 This patch release fixes three minor bugs, some of which were accidentally introduced with the big changes in v1.5.7.0.
