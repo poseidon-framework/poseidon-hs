@@ -1,6 +1,6 @@
 ### V 1.6.2.1
 
-This is a bigger release with various new features and improvements.
+This is a bigger release with various new features and improvements. It is technically breaking, because a minor, redundant arguments of `genoconvert` was removed.
 
 #### Writing support for gzipped genotype data
 
@@ -46,6 +46,20 @@ The `rectify` subcommand was upgraded with a first option to manipulated .janno 
 ```
 
 With this change came a rewrite of the way trident fills empty fields with `n/a` when writing .janno and .ssf files. This behaviour now also affects the output of `list`!
+
+#### Removed redundant `--onlyGeno` from `genoconvert`
+
+We realized that `--onlyGeno` in `genoconvert` had the same effect as `-o` if a different output directory is chosen. We therefore decided to remove this argument and improve the documentation of `-o`:
+
+```
+  -o,--outPackagePath DIR  Path for the converted genotype files to be written
+                           to. If a path is provided, only the converted
+                           genotype files are written out, with no change of the
+                           original package. If no path is provided, genotype
+                           files will be converted in-place, including a change
+                           in the POSEIDON.yml file to yield an updated valid
+                           package (default: Nothing)
+```
 
 #### Bug fixes and technical changes
 
