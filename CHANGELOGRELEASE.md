@@ -1,6 +1,6 @@
 ### V 1.6.2.1
 
-This is a bigger release with various new features and improvements. It is technically breaking, because a minor, redundant arguments of `genoconvert` was removed.
+This is a bigger release with various new features and improvements. It is technically breaking, because a minor, redundant argument of `genoconvert` was removed.
 
 #### Writing support for gzipped genotype data
 
