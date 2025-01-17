@@ -17,5 +17,5 @@ WORKDIR source
 
 # install
 # - as described in crypton README, crypton requires disabling "use_target_attributes"
-# - for bitvec the "simd" flag added in v1.1.5.0 has to be deactivated - the gcc version here does not seem to support it
+# - for bitvec the "simd" flag added in v1.1.5.0 has to be deactivated
 RUN stack install --system-ghc --flag crypton:-use_target_attributes --flag bitvec:-simd
