@@ -7,6 +7,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              loadGenotypeData,
+                                             writeVCF,
                                              printSNPCopyProgress)
 import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
 import           Poseidon.Package           (PackageReadOptions (..),
@@ -103,7 +104,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
     let outFilesAbs = map (newBaseDir </>) outFilesRel
     let outFilesAbsTemp = do -- loop over files
             f <- outFilesAbs
-            if drop (length f - 3) == ".gz" then
+            if drop (length f - 3) f == ".gz" then
                 return $ f <.> "gconvert" <.> "gz"
             else return $ f <.> "gconvert"
 

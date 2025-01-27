@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
+import           Paths_poseidon_hs          (version)
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, logDebug,
@@ -14,15 +15,18 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
+import qualified Data.ByteString.Char8      as B
 import           Data.IORef                 (modifyIORef, newIORef, readIORef)
-import           Data.List                  (nub, sort)
+import           Data.List                  (intercalate, nub, sort)
 import           Data.Maybe                 (catMaybes)
 import qualified Data.Text                  as T
 import           Data.Time                  (NominalDiffTime, UTCTime,
                                              diffUTCTime, getCurrentTime)
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, cat, for, yield,
-                                             (>->))
+import           Data.Version               (showVersion)
+import           Pipes                      (Consumer, Pipe, Producer, cat, for,
+                                             yield, (>->))
+import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -33,6 +37,7 @@ import           SequenceFormats.Plink      (plinkFam2EigenstratInd,
                                              readFamFile, readPlink)
 import           SequenceFormats.VCF        (VCFentry (..), VCFheader (..),
                                              readVCFfromFile, vcfToFreqSumEntry)
+import           System.Environment         (getArgs, getProgName)
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 
 data GenoDataSource = PacBaseDir
@@ -216,19 +221,36 @@ loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _) =
             vcfProd <- snd <$> readVCFfromFile (baseDir </> fn)
             return $ vcfProd >-> vcf2eigenstratPipe
 
-vcf2eigenstratPipe :: (MonadIO m) => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
-vcf2eigenstratPipe = for cat $ \vcfEntry -> do
-    case vcfToFreqSumEntry vcfEntry of --freqSum is a useful intermediate format. This function already does a bunch of checks of the VCF data.
+vcf2eigenstratPipe :: (PoseidonIO m) => [JannoRows] -> Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
+vcf2eigenstratPipe jannowRows = for cat $ \vcfEntry -> do
+    case vcfToFreqSumEntry vcfEntry of -- freqSum is a useful intermediate format.
+                                       -- vcfToFreqSumEntry already does a bunch of checks of the VCF data.
         Right (FreqSumEntry chrom pos snpId_ geneticPos ref alt alleleCounts) -> do
             let eigenstratSnpEntry = EigenstratSnpEntry chrom pos (maybe 0.0 id geneticPos) (maybe "" id snpId_) ref alt
-            genoLine <- V.fromList <$> forM alleleCounts (\alleleCount -> do
-                    case alleleCount of
-                        Nothing -> return Missing
-                        Just 0  -> return HomRef
-                        Just 1  -> return Het
-                        Just 2  -> return HomAlt
-                        _       -> liftIO . throwIO . PoseidonGenotypeException $
-                            "illegal dosage (" ++ show alleleCount ++ ") in VCF file at chrom " ++ show chrom ++ ", position " ++ show pos)
+            genoLine <- V.fromList <$> forM [0 .. (length alleleCounts - 1)] (\i -> do
+                let sampleName = jPoseidonID $ jannoRows !! i
+                let dosage = alleleCounts !! i
+                let ploidy = jGenotypePloidy $ jannoRows !! i
+                case (dosage, ploidy) of
+                    (Nothing, _) -> return Missing
+                    (Just (0, 1), Haploid) -> return HomRef
+                    (Just (1, 1), Haploid) -> return HomAlt
+                    (Just (_, 1), Diploid) -> do
+                        logWarning $ "For sample " ++ sampleName ++ " encountered haploid genotype at " ++
+                            show chrom ++ ":" ++ show pos ++ " despite Diploid annotation for GenotypePloidy in the Janno file. \
+                            \I will have to set this as missing."
+                            return Missing
+                    (Just (0, 2), Diploid) -> return HomRef
+                    (Just (1, 2), Diploid) -> return Het
+                    (Just (2, 2), Diploid) -> return HomAlt
+                    (Just (_, 2), Haploid) -> do
+                        logWarning $ "For sample " ++ sampleName ++ " encountered diploid genotype at " ++
+                            show chrom ++ ":" ++ show pos ++ " despite Haploid annotation for GenotypePloidy in the Janno file. \
+                            \I will have to set this as missing."
+                            return Missing
+                    _ -> liftIO . throwIO .PoseidonGenotypeException $
+                            "illegal dosage for sample " ++ jPoseidonID (jannoRows !! i) ++
+                            "at " ++ show alleleCount ++ ") in VCF file at " ++ show chrom ++ ":" ++ show pos
             yield (eigenstratSnpEntry, genoLine)
         Left err -> liftIO . throwIO . PoseidonGenotypeException $ err
 
@@ -355,3 +377,67 @@ printSNPCopyProgress logA startTime = do
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
+
+writeVCF :: (MonadSafe m) => FilePath -> [EigenstratIndEntry] -> Consumer (EigenstratSnpEntry, GenoLine) m ()
+writeVCF vcfFile eigenstratIndEntries = do
+    let sampleNames = [n | EigenstratIndEntry n _ _ <- eigenstratIndEntries]
+        groupNames  = [g | EigenstratIndEntry _ _ g <- eigenstratIndEntries]
+    prog_name <- liftIO getProgName
+    prog_args <- liftIO getArgs
+    let command_line = prog_name ++ " " ++ intercalate " " prog_args
+    let metaInfoLines = map B.pack [
+            "##fileformat=VCFv4.2",
+            "##source=trident_v" ++ showVersion version,
+            "##command_line=" ++ command_line,
+            "##group_names=" ++ intercalate "," groupNames,
+            "##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">",
+            "##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">",
+            "##FILTER=<ID=s50,Description=\"Less than 50% of samples have data\">",
+            "##FILTER=<ID=s10,Description=\"Less than 10% of samples have data\">",
+            "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">"]
+        vcfh = VCFheader metaInfoLines sampleNames
+    P.mapM createVCFentry >-> writeVCFfile vcfFile vcfh
+
+createVCFentry :: [JannoRow] -> (EigenstratSnpEntry, GenoLine) -> PoseidonIO VCFentry
+createVCFentry jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoLine) = do
+    gt <- genotypes
+    return $ VCFentry chrom pos (Just id_) (B.pack [ref]) [B.pack [alt]] Nothing (Just filterString)
+             infoFields (Just ["GT"], gt)
+  where
+    nrMissing = V.length . V.filter (==Missing) $ genoLine
+    nrSamples = V.length genoLine
+    filterString =
+        if nrMissing * 10 > 9 * nrSamples then "s10;s50"
+        else if nrMissing * 2 > nrSamples then "s50"
+        else "PASS"
+    nrSamplesWithData = nrSamples - nrMissing
+    alleleFreq = computeAlleleFreq genoLine
+    infoFields = [
+        B.pack $ "NS=" ++ show nrSamplesWithData] ++ 
+        case alleleFreq of
+            Just f ->
+                let roundedFreq = fromIntegral (round (f * 100.0)) / 100.0 :: Double
+                in  [B.pack $ "AF=" ++ show roundedFreq]
+            Nothing -> []
+    genotypes = forM [0 .. (nrSamples - 1)] $ \i -> case (genoLine V.! i, ploidyVec V.! i) of
+        (Missing, Haploid) -> return "."
+        (HomRef , Haploid) -> return "0"
+        (Het    , Haploid) -> do
+            let sampleName = jPoseidonID $ jannoRows !! i
+            logWarning $ "Encountered a heterozygous genotype for " ++ sampleName ++
+                " at position " ++ chrom ++ ":" ++ pos ++ ", but the individual's GenotypePloidy is " ++
+                " haploid in the Janno-File. I have to encode this in the VCF as a diploid genotype. Consider changing this " ++
+                "individual's GenotypePloidy to diploid!"
+            return "0/1"
+        (HomAlt , Haploid) -> return "1"
+        (Missing, Diploid) -> return "./."
+        (HomRef , Diploid) -> return "0/0"
+        (Het    , Diploid) -> return "0/1"
+        (HomAlt , Diploid) -> return "1/1"
+
+computeAlleleFreq :: GenoLine -> Maybe Double
+computeAlleleFreq genoLine =
+    let nrTotalAlleles = sum . map (maybe 0 snd) $ dosages
+        nrNonRefAlleles = sum . map (maybe 0 fst) $ dosages
+    in  if nrTotalAlleles == 0 then Nothing else
+            Just (fromIntegral nrNonRefAlleles / fromIntegral nrTotalAlleles)
