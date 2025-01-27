@@ -20,7 +20,7 @@ import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logError, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (unless, when)
+import           Control.Monad              (unless, when, forM_)
 import           Data.List                  ((\\))
 import           Data.Maybe                 (isJust)
 import           Data.Time                  (getCurrentTime)
@@ -67,6 +67,10 @@ runGenoconvert (GenoconvertOptions genoSources outFormat outPath
     mapM_ (convertGenoTo outFormat False outPath removeOld outPlinkPopMode outZip) properPackages
     mapM_ (convertGenoTo outFormat True outPath removeOld outPlinkPopMode outZip) pseudoPackages
 
+illegalFormatException :: String -> PoseidonException
+illegalFormatException outFormat = PoseidonGenericException $
+    "Illegal outFormat " ++ outFormat ++ ". Outformats can be EIGENSTRAT, PLINK or VCF"
+
 convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool ->
     PlinkPopNameMode -> Bool -> PoseidonPackage -> PoseidonIO ()
 convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = do
@@ -81,14 +85,12 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
     -- compile new relative file names
     let outName = getPacName . posPacNameAndVersion $ pac
     let gz = if outZip then "gz" else ""
-    (outIrel, outSrel, outGrel) <- case outFormat of
+    outFilesRel <- case outFormat of
             "EIGENSTRAT" -> return
-                (outName <.> ".ind", outName <.> ".snp" <.> gz, outName <.> ".geno" <.> gz)
+                [outName <.> ".geno", outName <.> ".snp" <.> gz, outName <.> ".ind"]
             "PLINK" -> return
-                (outName <.> ".fam", outName <.> ".bim" <.> gz, outName <.> ".bed" <.> gz)
-            _                     -> liftIO . throwIO . PoseidonGenericException $
-                "Illegal outFormat " ++ outFormat ++
-                ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                [outName <.> ".bed", outName <.> ".bim" <.> gz, outName <.> ".fam"]
+            _                     -> liftIO . throwIO $ illegalFormatException outFormat
 
     -- compile new absolute genotype file names
     newBaseDir <- case outPath of
@@ -98,10 +100,15 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
             liftIO $ createDirectoryIfMissing True (dropTrailingPathSeparator x)
             return x
         Nothing -> return $ posPacBaseDir pac
-    let (outGabs, outSabs, outIabs) = (newBaseDir </> outGrel, newBaseDir </> outSrel, newBaseDir </> outIrel)
+    let outFilesAbs = map (newBaseDir </>) outFilesRel
+    let outFilesAbsTemp = do -- loop over files
+            f <- outFilesAbs
+            if drop (length f - 3) == ".gz" then
+                return $ f <.> "gconvert" <.> "gz"
+            else return $ f <.> "gconvert"
 
     -- check whether anything needs doing at all
-    allExists <- and <$> mapM checkFile [outGabs, outSabs, outIabs]
+    allExists <- and <$> mapM checkFile outFilesAbs
     if allExists
     then do
         if onlyGeno
@@ -118,40 +125,35 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         currentTime <- liftIO getCurrentTime
         errLength <- envErrorLength
         let eigenstratIndEntries = jannoRows2EigenstratIndEntries . posPacJanno $ pac
-        let zipEnding = if outZip then ".gz" else "" -- we need this to trigger the zipping
         liftIO $ catch (
             runSafeT $ do
                 eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
                 let outConsumer = case outFormat of
-                        "EIGENSTRAT" -> writeEigenstrat (outGabs ++ ".gconvert" ++ zipEnding)
-                                                        (outSabs ++ ".gconvert" ++ zipEnding)
-                                                        (outIabs ++ ".gconvert")
+                        "EIGENSTRAT" -> writeEigenstrat (outFilesAbsTemp !! 0)
+                                                        (outFilesAbsTemp !! 1)
+                                                        (outFilesAbsTemp !! 2)
                                                         eigenstratIndEntries
-                        "PLINK"      -> writePlink (outGabs ++ ".gconvert" ++ zipEnding)
-                                                   (outSabs ++ ".gconvert" ++ zipEnding)
-                                                   (outIabs ++ ".gconvert")
+                        "PLINK"      -> writePlink (outFilesAbsTemp !! 0)
+                                                   (outFilesAbsTemp !! 1)
+                                                   (outFilesAbsTemp !! 2)
                                                    (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
-                        _  -> liftIO . throwIO . PoseidonGenericException $
-                            "Illegal outFormat " ++ outFormat ++
-                            ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                        "VCF"        -> writeVCF (outFilesAbsTemp !! 0) eigenstratIndEntries 
+                        _  -> liftIO . throwIO $ illegalFormatException outFormat
                 runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
             ) (throwIO . PoseidonGenotypeExceptionForward errLength)
         -- the following will just overwrite if the file already exists, which is OK
-        liftIO $ renameFile (outGabs ++ ".gconvert" ++ zipEnding) outGabs
-        liftIO $ renameFile (outSabs ++ ".gconvert" ++ zipEnding) outSabs
-        liftIO $ renameFile (outIabs ++ ".gconvert") outIabs
+        liftIO . forM_ (zip outFilesAbs outFilesAbsTemp) $ \(fn, fnTemp) ->
+            renameFile fnTemp fn
         logInfo "Done"
 
     -- overwrite genotype data field in POSEIDON.yml file (using relative paths)
     unless (onlyGeno || isJust outPath) $ do
         gFileSpec <- case outFormat of
                 "EIGENSTRAT" -> return $
-                    GenotypeEigenstrat outGrel Nothing outSrel Nothing outIrel Nothing
+                    GenotypeEigenstrat (outFilesRel !! 0) Nothing (outFilesRel !! 1) Nothing (outFilesRel !! 2) Nothing
                 "PLINK"      -> return $
-                    GenotypePlink      outGrel Nothing outSrel Nothing outIrel Nothing
-                _  -> liftIO . throwIO . PoseidonGenericException $
-                    "Illegal outFormat " ++ outFormat ++
-                    ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                    GenotypePlink      (outFilesRel !! 0) Nothing (outFilesRel !! 1) Nothing (outFilesRel !! 2) Nothing
+                _  -> liftIO . throwIO $ illegalFormatException outFormat
         let newGenotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
             newPac = pac { posPacGenotypeData = newGenotypeData }
         logInfo $ "Adjusting POSEIDON.yml for " ++ show (posPacNameAndVersion pac)
@@ -163,8 +165,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                 GenotypeEigenstrat g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
                 GenotypePlink      g _ s _ i _ -> return [oldBaseDir </> g, oldBaseDir </> s, oldBaseDir </> i]
                 GenotypeVCF        g _         -> return [oldBaseDir </> g]
-        let newGenoFiles = [outGabs, outSabs, outIabs]
-        let filesToDelete = oldGenoFiles \\ newGenoFiles
+        let filesToDelete = oldGenoFiles \\ outFilesAbs
         liftIO . mapM_ removeFile $ filesToDelete
   where
     checkFile :: FilePath -> PoseidonIO Bool
