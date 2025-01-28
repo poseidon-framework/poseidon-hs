@@ -9,7 +9,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              loadGenotypeData,
                                              writeVCF,
                                              printSNPCopyProgress)
-import           Poseidon.Janno             (jannoRows2EigenstratIndEntries)
+import           Poseidon.Janno             (jannoRows2EigenstratIndEntries, JannoRows(..))
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              defaultPackageReadOptions,
@@ -126,6 +126,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
         currentTime <- liftIO getCurrentTime
         errLength <- envErrorLength
         let eigenstratIndEntries = jannoRows2EigenstratIndEntries . posPacJanno $ pac
+        let jannoRows = getJannoRows $ posPacJanno pac
         liftIO $ catch (
             runSafeT $ do
                 eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
@@ -138,7 +139,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                                                    (outFilesAbsTemp !! 1)
                                                    (outFilesAbsTemp !! 2)
                                                    (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
-                        "VCF"        -> writeVCF (outFilesAbsTemp !! 0) eigenstratIndEntries 
+                        "VCF"        -> writeVCF logA jannoRows (outFilesAbsTemp !! 0) eigenstratIndEntries 
                         _  -> liftIO . throwIO $ illegalFormatException outFormat
                 runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
             ) (throwIO . PoseidonGenotypeExceptionForward errLength)

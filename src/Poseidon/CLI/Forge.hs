@@ -18,7 +18,8 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeFileSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              selectIndices, snpSetMergeList)
+                                              selectIndices, snpSetMergeList,
+                                              writeVCF)
 import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
                                               ListColumn (..),
                                               getMaybeListColumn,
@@ -188,15 +189,16 @@ runForge (
     let gz = if outZip then "gz" else ""
     genotypeFileData <- case outFormat of
             "EIGENSTRAT" -> return $
-                GenotypeEigenstrat (outName <.> ".geno" <.> gz)  Nothing
-                                   (outName <.> ".snp" <.> gz)  Nothing
-                                   (outName <.> ".ind") Nothing
+                GenotypeEigenstrat (outName <.> "geno" <.> gz)  Nothing
+                                   (outName <.> "snp" <.> gz)  Nothing
+                                   (outName <.> "ind") Nothing
             "PLINK"      -> return $
-                GenotypePlink      (outName <.> ".bed" <.> gz)  Nothing
-                                   (outName <.> ".bim" <.> gz)  Nothing
-                                   (outName <.> ".fam")  Nothing
+                GenotypePlink      (outName <.> "bed" <.> gz)  Nothing
+                                   (outName <.> "bim" <.> gz)  Nothing
+                                   (outName <.> "fam")  Nothing
+            "VCF"        -> return $ GenotypeVCF (outName <.> "vcf" <.> gz) Nothing
             _  -> liftIO . throwIO $
-                PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
+                PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Outformats can be EIGENSTRAT, PLINK or VCF.")
     let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet)
 
     -- assemble and write result depending on outMode --
@@ -289,8 +291,10 @@ runForge (
                                 writeEigenstrat (outPath </> outG) (outPath </> outS) (outPath </> outI) newEigenstratIndEntries
                             GenotypePlink      outG _ outS _ outI _ ->
                                 writePlink      (outPath </> outG) (outPath </> outS) (outPath </> outI) (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
-                            _  -> liftIO . throwIO $
-                                PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                            GenotypeVCF outG _  ->
+                                let allJannoRows = getJannoRows $ getJointJanno relevantPackages
+                                    selJannoRows = map (allJannoRows !!) relevantIndices
+                                 in writeVCF logA selJannoRows outG newEigenstratIndEntries
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
                     -- define main forge pipe including file output.
                     -- The final tee forwards the results to be used in the snpCounting-fold
