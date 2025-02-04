@@ -1,3 +1,5 @@
+- V 1.7.0.0:
+    - Added support for (optionally gzipped) VCF output in forge and genoconvert.
 - V 1.6.2.1:
     - Switch to GHC 9.6.6 and a new resolver version.
 - V 1.6.2.0:
