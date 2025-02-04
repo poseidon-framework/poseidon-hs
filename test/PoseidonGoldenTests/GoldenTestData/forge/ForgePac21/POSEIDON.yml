@@ -1,0 +1,11 @@
+poseidonVersion: 2.7.1
+title: ForgePac21
+description: Empty package template. Please add a description
+packageVersion: 0.1.0
+lastModified: 1970-01-01
+genotypeData:
+  format: VCF
+  genoFile: ForgePac21.vcf
+jannoFile: ForgePac21.janno
+sequencingSourceFile: ForgePac21.ssf
+bibFile: ForgePac21.bib

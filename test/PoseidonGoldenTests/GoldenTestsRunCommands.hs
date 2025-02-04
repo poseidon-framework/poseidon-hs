@@ -553,6 +553,17 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim"
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam"
         ]
+      
+    let genoconvertOpts7 = GenoconvertOptions {
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _genoConvertOutFormat = "VCF"
+        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "out_vcf"
+        , _genoconvertRemoveOld = False
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = True
+    }
+    testLog $ runGenoconvert genoconvertOpts7
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do
@@ -1130,6 +1141,20 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action20 "forge" [
           "forge" </> "ForgePac20" </> "POSEIDON.yml",
           "forge" </> "ForgePac20" </> "ForgePac20.janno"
+        ]
+
+    let forgeOpts21 = forgeOpts1 {
+          _forgeOutFormat    = "VCF"
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac21"
+        , _forgeOutPacName   = Just "ForgePac21"
+    }
+    let action21 = testLog (runForge forgeOpts21) >> patchLastModified testDir ("forge" </> "ForgePac21" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action21 "forge" [
+          "forge" </> "ForgePac21" </> "POSEIDON.yml"
+        , "forge" </> "ForgePac21" </> "ForgePac21.vcf"
+        , "forge" </> "ForgePac21" </> "ForgePac21.janno"
+        , "forge" </> "ForgePac21" </> "ForgePac21.ssf"
+        , "forge" </> "ForgePac21" </> "ForgePac21.bib"
         ]
 
 

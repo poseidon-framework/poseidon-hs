@@ -294,7 +294,7 @@ runForge (
                             GenotypeVCF outG _  ->
                                 let allJannoRows = getJannoRows $ getJointJanno relevantPackages
                                     selJannoRows = map (allJannoRows !!) relevantIndices
-                                 in writeVCF logA selJannoRows outG newEigenstratIndEntries
+                                 in writeVCF logA selJannoRows (outPath </> outG)
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
                     -- define main forge pipe including file output.
                     -- The final tee forwards the results to be used in the snpCounting-fold

@@ -141,7 +141,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                                                    (outFilesAbsTemp !! 1)
                                                    (outFilesAbsTemp !! 2)
                                                    (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
-                        "VCF"        -> writeVCF logA jannoRows (outFilesAbsTemp !! 0) eigenstratIndEntries 
+                        "VCF"        -> writeVCF logA jannoRows (outFilesAbsTemp !! 0) 
                         _  -> liftIO . throwIO $ illegalFormatException outFormat
                 runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
             ) (throwIO . PoseidonGenotypeExceptionForward errLength)

@@ -1,0 +1,25 @@
+##fileformat=VCFv4.2
+##source=trident_v1.6.2.1
+##command_line=poseidon-devtools golden -d .
+##group_names=POP2,POP2,POP2,POP2,3,5
+##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">
+##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+##FILTER=<ID=s10,Description="Less than 10% of samples have data">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	XXX002	XXX004	XXX005	XXX006	SAMPLE2	SAMPLE4
+1	752566	1_752566	G	A	.	PASS	NS=4	GT	1/1	1/1	1/1	1/1	./.	./.
+1	842013	1_842013	T	G	.	PASS	NS=4	GT	1/1	0/0	0/0	0/0	./.	./.
+1	891021	1_891021	G	A	.	PASS	NS=3	GT	1/1	1/1	./.	0/1	./.	./.
+1	949654	1_949654	A	G	.	PASS	NS=4	GT	0/1	1/1	0/1	1/1	./.	./.
+2	1018704	2_1018704	A	G	.	PASS	NS=3	GT	0/1	0/1	./.	1/1	./.	./.
+2	1045331	2_1045331	G	A	.	PASS	NS=4	GT	0/0	0/0	0/0	0/0	./.	./.
+2	1048955	2_1048955	A	G	.	PASS	NS=4	GT	0/0	0/0	0/0	0/0	./.	./.
+2	1061166	2_1061166	T	C	.	PASS	NS=4	GT	0/0	0/1	0/0	0/0	./.	./.
+2	1108637	2_1108637	G	A	.	PASS	NS=4	GT	0/0	0/0	0/1	0/0	./.	./.
+11	0	rs0000	A	C	.	s50	NS=2	GT	./.	./.	./.	./.	0/1	1/1
+11	100000	rs1111	A	G	.	s50	NS=2	GT	./.	./.	./.	./.	0/0	0/0
+11	200000	rs2222	A	T	.	s50	NS=2	GT	./.	./.	./.	./.	0/1	0/1
+11	300000	rs3333	C	A	.	s50	NS=2	GT	./.	./.	./.	./.	0/1	0/0
+11	400000	rs4444	G	A	.	s50	NS=2	GT	./.	./.	./.	./.	0/1	1/1
+11	500000	rs5555	T	A	.	s50	NS=2	GT	./.	./.	./.	./.	0/1	0/1
+11	600000	rs6666	G	T	.	s50	NS=2	GT	./.	./.	./.	./.	0/1	1/1

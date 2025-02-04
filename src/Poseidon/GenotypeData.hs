@@ -2,12 +2,14 @@
 module Poseidon.GenotypeData where
 
 import           Paths_poseidon_hs          (version)
-import           Poseidon.Janno             (JannoGenotypePloidy (..), JannoRow (jGenotypePloidy, jPoseidonID))
+import           Poseidon.Janno             (JannoGenotypePloidy (..),
+                                             JannoRow (jGenotypePloidy, jGroupName, jPoseidonID),
+                                             ListColumn (..), GroupName(..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, logDebug,
-                                             logInfo, logWithEnv, padLeft,
-                                             logWarning)
+                                             logInfo, logWarning, logWithEnv,
+                                             padLeft)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM, unless)
@@ -367,10 +369,10 @@ printSNPCopyProgress logA startTime = do
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
 
-writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> [EigenstratIndEntry] -> Consumer (EigenstratSnpEntry, GenoLine) m ()
-writeVCF logA jannoRows vcfFile eigenstratIndEntries = do
-    let sampleNames = [n | EigenstratIndEntry n _ _ <- eigenstratIndEntries]
-        groupNames  = [B.unpack g | EigenstratIndEntry _ _ g <- eigenstratIndEntries]
+writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
+writeVCF logA jannoRows vcfFile = do
+    let sampleNames = map (B.pack . jPoseidonID) jannoRows
+        groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
     prog_name <- liftIO getProgName
     prog_args <- liftIO getArgs
     let command_line = prog_name ++ " " ++ unwords prog_args
