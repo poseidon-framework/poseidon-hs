@@ -548,8 +548,6 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertOnlyLatest = False
         , _genoconvertOutZip     = False
     }
-    return ()
-
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6unzipping) "genoconvert" [
           "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed"
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim"
