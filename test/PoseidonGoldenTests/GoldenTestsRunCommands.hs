@@ -553,7 +553,7 @@ testPipelineGenoconvert testDir checkFilePath = do
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim"
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam"
         ]
-      
+
     let genoconvertOpts7 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
         , _genoConvertOutFormat = "VCF"

@@ -7,9 +7,9 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              loadGenotypeData,
-                                             writeVCF,
-                                             printSNPCopyProgress)
-import           Poseidon.Janno             (jannoRows2EigenstratIndEntries, JannoRows(..))
+                                             printSNPCopyProgress, writeVCF)
+import           Poseidon.Janno             (JannoRows (..),
+                                             jannoRows2EigenstratIndEntries)
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              defaultPackageReadOptions,
@@ -21,7 +21,7 @@ import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
                                              logError, logInfo, logWarning)
 
 import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (unless, when, forM_)
+import           Control.Monad              (forM_, unless, when)
 import           Data.List                  ((\\))
 import           Data.Maybe                 (isJust)
 import           Data.Time                  (getCurrentTime)
@@ -91,7 +91,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                 [outName <.> "geno" <.> gz, outName <.> "snp" <.> gz, outName <.> "ind"]
             "PLINK" -> return
                 [outName <.> "bed" <.> gz, outName <.> "bim" <.> gz, outName <.> "fam"]
-            "VCF" -> return 
+            "VCF" -> return
                 [outName <.> "vcf" <.> gz]
             _ -> liftIO . throwIO $ illegalFormatException outFormat
 
@@ -141,7 +141,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                                                    (outFilesAbsTemp !! 1)
                                                    (outFilesAbsTemp !! 2)
                                                    (map (eigenstratInd2PlinkFam outPlinkPopMode) eigenstratIndEntries)
-                        "VCF"        -> writeVCF logA jannoRows (outFilesAbsTemp !! 0) 
+                        "VCF"        -> writeVCF logA jannoRows (outFilesAbsTemp !! 0)
                         _  -> liftIO . throwIO $ illegalFormatException outFormat
                 runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> outConsumer
             ) (throwIO . PoseidonGenotypeExceptionForward errLength)
