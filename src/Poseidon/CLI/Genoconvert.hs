@@ -88,10 +88,12 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
     let gz = if outZip then "gz" else ""
     outFilesRel <- case outFormat of
             "EIGENSTRAT" -> return
-                [outName <.> ".geno", outName <.> ".snp" <.> gz, outName <.> ".ind"]
+                [outName <.> "geno" <.> gz, outName <.> "snp" <.> gz, outName <.> "ind"]
             "PLINK" -> return
-                [outName <.> ".bed", outName <.> ".bim" <.> gz, outName <.> ".fam"]
-            _                     -> liftIO . throwIO $ illegalFormatException outFormat
+                [outName <.> "bed" <.> gz, outName <.> "bim" <.> gz, outName <.> "fam"]
+            "VCF" -> return 
+                [outName <.> "vcf" <.> gz]
+            _ -> liftIO . throwIO $ illegalFormatException outFormat
 
     -- compile new absolute genotype file names
     newBaseDir <- case outPath of
@@ -155,6 +157,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                     GenotypeEigenstrat (outFilesRel !! 0) Nothing (outFilesRel !! 1) Nothing (outFilesRel !! 2) Nothing
                 "PLINK"      -> return $
                     GenotypePlink      (outFilesRel !! 0) Nothing (outFilesRel !! 1) Nothing (outFilesRel !! 2) Nothing
+                "VCF"        -> return $ GenotypeVCF (outFilesRel !! 0) Nothing
                 _  -> liftIO . throwIO $ illegalFormatException outFormat
         let newGenotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
             newPac = pac { posPacGenotypeData = newGenotypeData }
