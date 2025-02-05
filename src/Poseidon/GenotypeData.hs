@@ -43,7 +43,6 @@ import           SequenceFormats.Plink      (plinkFam2EigenstratInd,
 import           SequenceFormats.VCF        (VCFentry (..), VCFheader (..),
                                              readVCFfromFile, vcfToFreqSumEntry,
                                              writeVCFfile)
-import           System.Environment         (getArgs, getProgName)
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 
 data GenoDataSource = PacBaseDir
