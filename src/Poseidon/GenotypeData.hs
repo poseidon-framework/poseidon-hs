@@ -13,7 +13,7 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, unless)
+import           Control.Monad              (forM, unless, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -373,6 +373,11 @@ writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (Eigenst
 writeVCF logA jannoRows vcfFile = do
     let sampleNames = map (B.pack . jPoseidonID) jannoRows
         groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
+    forM jannoRows $ \jannoRow -> do
+        when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
+            "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
+            ". For VCF output I will assume diploid genotypes. " ++
+            "Please set the GenotypePloidy column explitly in the Janno File to Haploid or Diploid."
     let metaInfoLines = map B.pack [
             "##fileformat=VCFv4.2",
             "##source=trident_v" ++ showVersion version,
@@ -412,13 +417,10 @@ createVCFentry logA jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoL
         (HomRef , Just Diploid) -> return ["0/0"]
         (Het    , Just Diploid) -> return ["0/1"]
         (HomAlt , Just Diploid) -> return ["1/1"]
-        (Missing, Nothing)      -> warnMissPloid s >> return ["./."]
-        (HomRef , Nothing)      -> warnMissPloid s >> return ["0/0"]
-        (Het    , Nothing)      -> warnMissPloid s >> return ["0/1"]
-        (HomAlt , Nothing)      -> warnMissPloid s >> return ["1/1"]
+        (Missing, Nothing)      -> return ["./."] -- we assume diploid in these case, see warning above in
+        (HomRef , Nothing)      -> return ["0/0"]
+        (Het    , Nothing)      -> return ["0/1"]
+        (HomAlt , Nothing)      -> return ["1/1"]
     sampleNames = map jPoseidonID jannoRows
     genoEntries = V.toList genoLine
     ploidyList = map jGenotypePloidy jannoRows
-    warnMissPloid s = logWithEnv logA . logWarning $ "I have no information on whether individual " ++ s ++
-        " has haploid or diploid genotypes. For VCF encoding, I will assume diploid. Please use the GenotypePloidy column \
-        \ in the Janno File."
