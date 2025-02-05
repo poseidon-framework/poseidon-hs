@@ -374,13 +374,9 @@ writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (Eigenst
 writeVCF logA jannoRows vcfFile = do
     let sampleNames = map (B.pack . jPoseidonID) jannoRows
         groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
-    prog_name <- liftIO getProgName
-    prog_args <- liftIO getArgs
-    let command_line = prog_name ++ " " ++ unwords prog_args
     let metaInfoLines = map B.pack [
             "##fileformat=VCFv4.2",
             "##source=trident_v" ++ showVersion version,
-            "##command_line=" ++ command_line,
             "##group_names=" ++ intercalate "," groupNames,
             "##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">",
             "##FILTER=<ID=s50,Description=\"Less than 50% of samples have data\">",
