@@ -13,7 +13,7 @@ import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, unless, when)
+import           Control.Monad              (forM, forM_, unless, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -373,7 +373,7 @@ writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (Eigenst
 writeVCF logA jannoRows vcfFile = do
     let sampleNames = map (B.pack . jPoseidonID) jannoRows
         groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
-    forM jannoRows $ \jannoRow -> do
+    forM_ jannoRows $ \jannoRow -> do
         when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
             "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
             ". For VCF output I will assume diploid genotypes. " ++
