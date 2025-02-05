@@ -122,14 +122,14 @@ updateChecksums checksumSetting pac = do
                     case gFileSpec of
                         GenotypeEigenstrat gf gfc sf sfc if_ ifc -> do
                             [genoChkSum, snpChkSum, indChkSum] <-
-                                sequence [testAndGetChecksum f c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+                                sequence [testAndGetChecksum (d </> f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
                             return $ GenotypeEigenstrat gf genoChkSum sf snpChkSum if_ indChkSum
                         GenotypePlink gf gfc sf sfc if_ ifc -> do
                             [genoChkSum, snpChkSum, indChkSum] <-
-                                sequence [testAndGetChecksum f c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+                                sequence [testAndGetChecksum (d </> f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
                             return $ GenotypePlink gf genoChkSum sf snpChkSum if_ indChkSum
                         GenotypeVCF gf gfc -> do
-                            genoChkSum <- testAndGetChecksum gf gfc
+                            genoChkSum <- testAndGetChecksum (d </> gf) gfc
                             return $ GenotypeVCF gf genoChkSum
                 else return gFileSpec
             newJannoChkSum <-
