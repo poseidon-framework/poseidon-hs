@@ -460,5 +460,5 @@ getItemFromArchiveStore :: ArchiveStore a -> ActionM a
 getItemFromArchiveStore store = do
     maybeArchiveName <- queryParamMaybe "archive"
     case maybeArchiveName of
-        Nothing -> return . snd . head $ store
+        Nothing   -> return . snd . head $ store
         Just name -> getArchiveByName name store
