@@ -83,12 +83,12 @@ type ArchiveStore a = [(ArchiveName, a)] -- a generic lookup table from an archi
 getArchiveNames :: ArchiveStore a -> [String]
 getArchiveNames = map fst
 
-getArchiveByName :: ArchiveName -> ArchiveStore a -> Maybe a
+getArchiveByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m a
 getArchiveByName name store =
     case filter (\(n, _) -> n == name) store of
-      []      -> Nothing
-      [(_,a)] -> Just a
-      _       -> Nothing
+      []      -> fail $ "Archive " <> name <> " does not exist"
+      [(_,a)] -> pure a
+      _       -> fail $ "Archive " <> name <> " is ambiguous"
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
@@ -202,14 +202,14 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/explorer" $ do
             logRequest logA
             pacsPerArchive <- forM archiveNames $ \n -> do
-                pacs <- selectLatest <$> prepPacs n archiveStore
+                pacs <- selectLatest <$> getArchiveByName n archiveStore
                 return (n, pacs)
             mainPage pacsPerArchive
         -- archive pages
         get "/explorer/:archive_name" $ do
             logRequest logA
             archiveName <- captureParam "archive_name"
-            latestPacs  <- selectLatest <$> prepPacs archiveName archiveStore
+            latestPacs  <- selectLatest <$> getArchiveByName archiveName archiveStore
             let mapMarkers = concatMap (prepMappable archiveName) latestPacs
             archivePage archiveName mapMarkers latestPacs
         -- per package pages
@@ -225,7 +225,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacVersionWL <- case parsePackageVersionString pacVersionString of
                 Nothing -> fail $ "Could not parse package version string " ++ pacVersionString
                 Just v -> return v
-            allPacs     <- prepPacs archiveName archiveStore
+            allPacs     <- getArchiveByName archiveName archiveStore
             allVersions <- prepPacVersions pacName allPacs
             oneVersion  <- prepPacVersion pacVersionWL allVersions
             let mapMarkers = prepMappable archiveName oneVersion
@@ -237,7 +237,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
             archiveName <- captureParam "archive_name"
-            allPacs <- prepPacs archiveName archiveStore
+            allPacs <- getArchiveByName archiveName archiveStore
             pacName <- captureParam "package_name"
             allVersions <- prepPacVersions pacName allPacs
             pacVersionString <- captureParam "package_version"
@@ -264,13 +264,6 @@ data PacVersion =
 instance Show PacVersion where
   show Latest               = "latest"
   show (NumericalVersion v) = showVersion v
-
-prepPacs :: String -> ArchiveStore [PoseidonPackage] -> ActionM [PoseidonPackage]
-prepPacs archiveName archiveStore = do
-    let maybePacs = getArchiveByName archiveName archiveStore
-    case maybePacs of
-        Nothing -> fail $ "Archive " <> archiveName <> " does not exist"
-        Just p  -> return p
 
 selectLatest :: [PoseidonPackage] -> [PoseidonPackage]
 selectLatest =
@@ -468,9 +461,4 @@ getItemFromArchiveStore store = do
     maybeArchiveName <- queryParamMaybe "archive"
     case maybeArchiveName of
         Nothing -> return . snd . head $ store
-        Just a -> case lookup a store of
-            Nothing -> fail $
-                "The requested archive named " ++ a ++ " does not exist. Possible archives are " ++
-                show (map fst store)
-            Just pacs -> return pacs
-
+        Just name -> getArchiveByName name store
