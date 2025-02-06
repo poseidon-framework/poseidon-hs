@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
-module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..)) where
+module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
 import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                PacNameAndVersion,
@@ -32,9 +32,9 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
-import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.IO.Class       (liftIO, MonadIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (groupBy, intercalate, nub,
+import           Data.List                    (groupBy, intercalate,
                                                sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust, mapMaybe)
@@ -63,9 +63,11 @@ import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                notFound, queryParamMaybe, raw,
                                                redirect, request, scottyApp,
                                                setHeader, text)
+import Data.Yaml (FromJSON, parseJSON, (.:?), decodeFileThrow)
+import Data.Yaml.Aeson (withObject, (.:))
 
 data ServeOptions = ServeOptions
-    { cliArchiveBaseDirs :: [(String, FilePath)]
+    { cliArchiveConfig   :: Either ArchiveConfig FilePath
     , cliZipDir          :: Maybe FilePath
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
@@ -73,19 +75,42 @@ data ServeOptions = ServeOptions
     }
     deriving (Show)
 
+newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
+
+instance FromJSON ArchiveConfig where
+    parseJSON = withObject "PoseidonYamlStruct" $ \v -> ArchiveConfig
+        <$> v .: "contributor"
+
+parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
+parseArchiveConfigFile = decodeFileThrow
+
+data ArchiveSpec = ArchiveSpec
+    { _archSpecName :: ArchiveName
+    , _archSpecPaths :: [FilePath]
+    , _archSpecDescription :: Maybe String
+    , _archSpecURL :: Maybe String
+    } deriving (Show)
+
+instance FromJSON ArchiveSpec where
+    parseJSON = withObject "contributor" $ \v -> ArchiveSpec
+        <$> v .:  "name"
+        <*> v .:  "paths"
+        <*> v .:? "description"
+        <*> v .:? "URL"
+
 type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
 type ArchiveName = String
 
-type ArchiveStore a = [(ArchiveName, a)] -- a generic lookup table from an archive name to an item
+type ArchiveStore a = [(ArchiveSpec, a)] -- a generic lookup table from an archive name to an item
 -- we have two concrete ones: ArchiveStore [PoseidonPackage]   and     ArchiveStore ZipStore
 
-getArchiveNames :: ArchiveStore a -> [String]
-getArchiveNames = map fst
+getArchiveSpecs :: ArchiveStore a -> [ArchiveSpec]
+getArchiveSpecs = map fst
 
 getArchiveByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m a
 getArchiveByName name store =
-    case filter (\(n, _) -> n == name) store of
+    case filter (\(spec, _) -> _archSpecName spec == name) store of
       []      -> fail $ "Archive " <> name <> " does not exist"
       [(_,a)] -> pure a
       _       -> fail $ "Archive " <> name <> " is ambiguous"
@@ -105,15 +130,19 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         }
 
     logInfo "Server starting up. Loading packages..."
-    archiveStore <- readArchiveStore archBaseDirs pacReadOpts
+    archiveStore <- case archBaseDirs of
+        Left archiveConfig -> readArchiveStore archiveConfig pacReadOpts
+        Right path -> do
+            archiveConfig <- parseArchiveConfigFile path
+            readArchiveStore archiveConfig pacReadOpts
 
-    logInfo $ "Using " ++ (fst . head) archiveStore ++ " as the default archive"
+    logInfo $ "Using " ++ (_archSpecName . fst . head) archiveStore ++ " as the default archive"
 
     zipArchiveStore <- case maybeZipPath of
         Nothing -> return []
         Just z  -> createZipArchiveStore archiveStore z
 
-    let archiveNames = getArchiveNames archiveStore
+    let archiveSpecs = getArchiveSpecs archiveStore
 
     let runScotty = case certFiles of
             Nothing                              -> scottyHTTP  serverReady port
@@ -201,9 +230,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             redirect ("/explorer")
         get "/explorer" $ do
             logRequest logA
-            pacsPerArchive <- forM archiveNames $ \n -> do
+            pacsPerArchive <- forM archiveSpecs $ \spec -> do
+                let n = _archSpecName spec
+                    d = _archSpecDescription spec
+                    u = _archSpecURL spec
                 pacs <- selectLatest <$> getArchiveByName n archiveStore
-                return (n, pacs)
+                return (n, d, u, pacs)
             mainPage pacsPerArchive
         -- archive pages
         get "/explorer/:archive_name" $ do
@@ -312,24 +344,23 @@ prepSample sampleName rows = do
        [x] -> return x
        _   -> fail $ "Sample " <> sampleName <> " exists multiple times"
 
-readArchiveStore :: [(ArchiveName, FilePath)] -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
-readArchiveStore archBaseDirs pacReadOpts = do
-    let archiveNames = nub . map fst $ archBaseDirs
-    forM archiveNames $ \archiveName -> do
-        logInfo $ "Loading packages for archive " ++ archiveName
-        let relevantDirs = map snd . filter ((==archiveName) . fst) $ archBaseDirs
+readArchiveStore :: ArchiveConfig -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
+readArchiveStore (ArchiveConfig archiveSpecs) pacReadOpts = do
+    forM archiveSpecs $ \spec -> do
+        logInfo $ "Loading packages for archive " ++ _archSpecName spec
+        let relevantDirs = _archSpecPaths spec
         pacs <- readPoseidonPackageCollection pacReadOpts relevantDirs
-        return (archiveName, pacs)
+        return (spec, pacs)
 
 createZipArchiveStore :: ArchiveStore [PoseidonPackage] -> FilePath -> PoseidonIO (ArchiveStore ZipStore)
 createZipArchiveStore archiveStore zipPath =
-    forM archiveStore $ \(archiveName, packages) -> do
-        logInfo $ "Zipping packages in archive " ++ archiveName
-        (archiveName,) <$> forM packages (\pac -> do
+    forM archiveStore $ \(spec, packages) -> do
+        logInfo $ "Zipping packages in archive " ++ _archSpecName spec
+        (spec,) <$> forM packages (\pac -> do
             logInfo "Checking whether zip files are missing or outdated"
-            liftIO $ createDirectoryIfMissing True (zipPath </> archiveName)
+            liftIO $ createDirectoryIfMissing True (zipPath </> _archSpecName spec)
             let combinedPackageVersionTitle = renderNameWithVersion pac
-            let fn = zipPath </> archiveName </> combinedPackageVersionTitle <.> "zip"
+            let fn = zipPath </> _archSpecName spec </> combinedPackageVersionTitle <.> "zip"
             zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
             when zipFileOutdated $ do
                 logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")

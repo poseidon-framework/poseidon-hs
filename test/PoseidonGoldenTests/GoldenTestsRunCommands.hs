@@ -20,7 +20,7 @@ import           Poseidon.CLI.List          (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
                                              PackageVersionUpdate (..),
                                              RectifyOptions (..), runRectify)
-import           Poseidon.CLI.Serve         (ServeOptions (..), runServer)
+import           Poseidon.CLI.Serve         (ServeOptions (..), runServer, ArchiveConfig (..), ArchiveSpec (..))
 import           Poseidon.CLI.Summarise     (SummariseOptions (..),
                                              runSummarise)
 import           Poseidon.CLI.Survey        (SurveyOptions (..), runSurvey)
@@ -1199,13 +1199,17 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
     -- delete .git directory in chronicle to clean up in the end
     removeDirectoryRecursive (testDir </> "chronicle" </> ".git")
 
-archives :: [(String, FilePath)]
-archives = [
-      ("testArchive1", "test/testDat/testPackages/ancient/Lamnidis_2018")
-    , ("testArchive1", "test/testDat/testPackages/ancient/Lamnidis_2018_newVersion")
-    , ("testArchive2", "test/testDat/testPackages/ancient/Schiffels_2016")
-    , ("testArchive1", "test/testDat/testPackages/ancient/Wang_2020")
-    , ("testArchive2", "test/testDat/testPackages/ancient/Schmid_2028")
+archives :: Either ArchiveConfig FilePath
+archives = Left $ ArchiveConfig [
+      ArchiveSpec "testArchive1" [
+        "test/testDat/testPackages/ancient/Lamnidis_2018"
+      , "test/testDat/testPackages/ancient/Lamnidis_2018_newVersion"
+      , "test/testDat/testPackages/ancient/Wang_2020"
+      ] Nothing Nothing
+    , ArchiveSpec "testArchive1" [
+        "test/testDat/testPackages/ancient/Schiffels_2016"
+      , "test/testDat/testPackages/ancient/Schmid_2028"
+      ] Nothing Nothing
     ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
