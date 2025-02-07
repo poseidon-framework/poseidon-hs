@@ -1,3 +1,7 @@
+- V 1.6.2.2:
+    - Fixed a small bug that prevented calculation of checksums for genotype data in `rectify`.
+- V 1.6.2.1:
+    - Switch to GHC 9.6.6 and a new resolver version.
 - V 1.6.2.0:
     - Added a feature to remove empty .janno columns with `rectify`: `--jannoRemoveEmpty`.
     - Changed the way empty .janno fields are filled with `n/a` upon writing. It now also affects the output of `list`.
@@ -6,6 +10,7 @@
     - Added a new Server API `/bibliography` to serve bibliography information via HTTP.
 - V 1.6.0.0:
     - Added support to write gzipped EIGENSTRAT and PLINK files with `genoconvert` and `forge`. Both commands get a new option `-z` which creates gzipped output.
+    - Removed redundant `--onlyGeno` from `genoconvert`.
 - V 1.5.7.4:
     - Fixed a bug that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`).
 - V 1.5.7.3:

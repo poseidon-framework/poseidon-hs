@@ -1,3 +1,72 @@
+### V 1.6.2.1
+
+This is a bigger release with various new features and improvements. It is technically breaking, because a minor, redundant argument of `genoconvert` was removed.
+
+#### Writing support for gzipped genotype data
+
+After reading support for zipped data was already added in V 1.5.7.0, this release now introduces the complementary writing feature for EIGENSTRAT and PLINK files in `genoconvert` and `forge`. Both commands get a new option `-z` which creates gzipped output.
+
+```
+  -z,--zip                 Should the resulting genotype- and snp-files be
+                           gzipped?
+```
+
+Note that this feature includes a smart way of handling already available files to not overwrite them, but still consider them when updating a package's POSEIDON.yml file. `-z` is also usable with unpackaged genotype data (`-p`, `--onlyGeno`).
+
+Future versions of the Poseidon package schema will formally specify this feature.
+
+#### Bibliography information in `list` and the Web-API
+
+The `list` subcommand now supports a new view (next to `--packages`, `--groups` and `individuals`): `--bibliography` allows to get a tabular overview of publications in a package repository.
+
+```
+$ trident list -d 2010_RasmussenNature --bibliography
+...
+.---------------------.--------------------------------------------------------------.-----------------------.------.---------------------------.---------------.
+|       BibKey        |                            Title                             |        Author         | Year |            DOI            | Nr of samples |
+:=====================:==============================================================:=======================:======:===========================:===============:
+| AADR                | The Allen Ancient DNA Resource (AADR): A curated compendium… | Swapan Mallick et al. | 2023 | 10.1101/2023.04.06.535797 | 1             |
+| AADRv424            | The Allen Ancient DNA Resource (AADR): A curated compendium… | S Mallick and D Reich | 2023 | 10.7910/DVN/FFIDCW        | 1             |
+| RasmussenNature2010 | Ancient human genome sequence of an extinct Palaeo-Eskimo    | M Rasmussen et al.    | 2010 | 10.1038/nature08835       | 1             |
+'---------------------'--------------------------------------------------------------'-----------------------'------'---------------------------'---------------'
+```
+
+Additional fields from the .bib file can be added to this table with `-b|--bibField ...` (just as `-j|--jannoColumn ...` for `--individuals`). `--fullBib` adds everything that is available (just as `--fullJanno`). As usual, tab-separated output can be requested with `--raw` for derived analyses on the command line.
+
+Correspondingly the Web-API supports a new endpoint `/bibliography` to serve bibliography information via HTTP in JSON format. The optional query argument `additionalJannoColumns=...` allows to request extra fields here.
+    
+#### Remove empty .janno columns with `rectify`
+
+The `rectify` subcommand was upgraded with a first option to manipulated .janno files in one or multiple packages: `--jannoRemoveEmpty`. This allows to remove empty columns from .janno files, so columns that only feature empty strings or `n/a` values.
+
+```
+  --jannoRemoveEmpty       Reorder the .janno file and remove empty colums.
+                           Remember to pair this option with --checksumJanno to
+                           also update the checksum.
+```
+
+With this change came a rewrite of the way trident fills empty fields with `n/a` when writing .janno and .ssf files. This behaviour now also affects the output of `list`!
+
+#### Removed redundant `--onlyGeno` from `genoconvert`
+
+We realized that `--onlyGeno` in `genoconvert` had the same effect as `-o` if a different output directory is chosen. We therefore decided to remove this argument and improve the documentation of `-o`:
+
+```
+  -o,--outPackagePath DIR  Path for the converted genotype files to be written
+                           to. If a path is provided, only the converted
+                           genotype files are written out, with no change of the
+                           original package. If no path is provided, genotype
+                           files will be converted in-place, including a change
+                           in the POSEIDON.yml file to yield an updated valid
+                           package (default: Nothing)
+```
+
+#### Bug fixes and technical changes
+
+We fixed two bugs that broke the long-form genotype data input option (with `--genoFile + --snpFile + ...`). They were accidentally added with the recent interface changes for V 1.5.7.0. This input interface should now be fully functional again.
+
+We finally switched to a new compiler version (GHC 9.6.6) and a new stackage resolver version (lts-22.43). This required some minor adjustments in the server code, but should not have any user-facing consequences.
+
 ### V 1.5.7.3
 
 This patch release fixes three minor bugs, some of which were accidentally introduced with the big changes in v1.5.7.0.
