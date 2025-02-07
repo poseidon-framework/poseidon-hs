@@ -73,13 +73,12 @@ runRectify (RectifyOptions
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
-    logInfo "Starting per-package update procedure"
+    logInfo "Checking package(s) for potential updates"
     mapM_ rectifyOnePackage allPackages
     logInfo "Done"
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
-            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             when jannoRemoveEmptyCols $ do
                 case posPacJannoFile inPac of
                     Nothing   -> do
@@ -90,19 +89,25 @@ runRectify (RectifyOptions
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
-            completeAndWritePackage pacVerUpdate updatedPacChecksums
+            when (inPac /= updatedPacChecksums) $ do
+                logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
+                completeAndWritePackage pacVerUpdate updatedPacChecksums
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
 updatePoseidonVersion (Just ver) pac = do
-    logDebug "Updating Poseidon version"
-    return pac { posPacPoseidonVersion = ver }
+    let ret = pac { posPacPoseidonVersion = ver }
+    when (ret /= pac) $
+        logDebug "Updating Poseidon version"
+    return ret
 
 addContributors :: Maybe [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
 addContributors Nothing pac = return pac
 addContributors (Just cs) pac = do
-    logDebug "Updating list of contributors"
-    return pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+    let ret = pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+    when (pac /= ret) $
+        logDebug "Updating list of contributors"
+    return ret
 
 updateChecksums :: ChecksumsToRectify -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updateChecksums checksumSetting pac = do
