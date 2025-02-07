@@ -10,6 +10,8 @@ import           Poseidon.CLI.List          (ListEntity (..),
                                              RepoLocationSpec (..))
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
                                              PackageVersionUpdate (..))
+import           Poseidon.CLI.Serve         (ArchiveConfig (..),
+                                             ArchiveSpec (..))
 import           Poseidon.CLI.Validate      (ValidatePlan (..))
 import           Poseidon.Contributor       (ContributorSpec (..),
                                              contributorSpecParser)
@@ -21,7 +23,6 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
-import Poseidon.CLI.Serve (ArchiveConfig (..), ArchiveSpec (..))
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
@@ -828,7 +829,7 @@ parseArchiveConfigCLI = ArchiveConfig <$> OP.some parseArchiveSpec
         in  case parts of
                 [name, fp] -> do
                     let fps = splitOn "," fp
-                    return $ ArchiveSpec name fps Nothing Nothing
+                    return $ ArchiveSpec name fps Nothing Nothing Nothing False
                 _ -> Left $ "could not parse archive and base directory " ++ str ++
                             ". Please use format name=path1,path2,... "
 

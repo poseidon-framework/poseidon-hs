@@ -20,7 +20,9 @@ import           Poseidon.CLI.List          (ListEntity (..), ListOptions (..),
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
                                              PackageVersionUpdate (..),
                                              RectifyOptions (..), runRectify)
-import           Poseidon.CLI.Serve         (ServeOptions (..), runServer, ArchiveConfig (..), ArchiveSpec (..))
+import           Poseidon.CLI.Serve         (ArchiveConfig (..),
+                                             ArchiveSpec (..),
+                                             ServeOptions (..), runServer)
 import           Poseidon.CLI.Summarise     (SummariseOptions (..),
                                              runSummarise)
 import           Poseidon.CLI.Survey        (SurveyOptions (..), runSurvey)
@@ -1205,11 +1207,11 @@ archives = Left $ ArchiveConfig [
         "test/testDat/testPackages/ancient/Lamnidis_2018"
       , "test/testDat/testPackages/ancient/Lamnidis_2018_newVersion"
       , "test/testDat/testPackages/ancient/Wang_2020"
-      ] Nothing Nothing
+      ] Nothing Nothing Nothing False
     , ArchiveSpec "testArchive1" [
         "test/testDat/testPackages/ancient/Schiffels_2016"
       , "test/testDat/testPackages/ancient/Schmid_2028"
-      ] Nothing Nothing
+      ] Nothing Nothing Nothing False
     ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that

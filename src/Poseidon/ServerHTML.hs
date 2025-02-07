@@ -196,9 +196,9 @@ mainPage pacsPerArchive = do
             H.toMarkup archiveName
         -- normal archive
         H.toMarkup $ show nrPackages <> " packages"
-        -- archives with more infoFullDesc
-        case (maybeDescription,maybeURL)  of
-          (Just desc, Just url)-> do
+        -- archives with more info
+        case (maybeDescription,maybeURL) of
+          (Just desc, Just url) -> do
             H.br
             H.br
             H.p $ H.toMarkup desc
@@ -210,10 +210,12 @@ mainPage pacsPerArchive = do
 
 archivePage ::
      String
+  -> Maybe String
+  -> Bool
   -> [MapMarker]
   -> [PoseidonPackage]
   -> S.ActionM ()
-archivePage archiveName mapMarkers pacs = do
+archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
   let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
@@ -231,13 +233,15 @@ archivePage archiveName mapMarkers pacs = do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
         H.tr $ do
+          -- normal archive
           H.td (H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
           H.td $ H.toMarkup $ show nrSamples
-          OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
-            H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName)
-                  $ H.toMarkup ("GitHub" :: String)
-            H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName)
-                  $ H.toMarkup ("Download" :: String)
+          -- archives with more info
+          case maybeArchiveSpecURL of
+            Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("GitHub" :: String)
+            Nothing -> return ()
+          OP.when archiveZip $
+            H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName) $ H.toMarkup ("Download" :: String)
 
 packageVersionPage ::
      String -> String -> Maybe Version

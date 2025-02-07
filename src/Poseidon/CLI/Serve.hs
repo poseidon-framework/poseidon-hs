@@ -32,10 +32,9 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
-import           Control.Monad.IO.Class       (liftIO, MonadIO)
+import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (groupBy, intercalate,
-                                               sortOn)
+import           Data.List                    (groupBy, intercalate, sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust, mapMaybe)
 import           Data.Ord                     (Down (..))
@@ -43,6 +42,9 @@ import           Data.Text.Lazy               (pack)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
 import           Data.Version                 (Version, parseVersion,
                                                showVersion)
+import           Data.Yaml                    (FromJSON, decodeFileThrow,
+                                               parseJSON, (.:?))
+import           Data.Yaml.Aeson              (withObject, (.:))
 import           Network.Wai                  (pathInfo, queryString)
 import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
                                                setBeforeMainLoop, setPort)
@@ -63,8 +65,6 @@ import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                notFound, queryParamMaybe, raw,
                                                redirect, request, scottyApp,
                                                setHeader, text)
-import Data.Yaml (FromJSON, parseJSON, (.:?), decodeFileThrow)
-import Data.Yaml.Aeson (withObject, (.:))
 
 data ServeOptions = ServeOptions
     { cliArchiveConfig   :: Either ArchiveConfig FilePath
@@ -79,16 +79,18 @@ newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
 
 instance FromJSON ArchiveConfig where
     parseJSON = withObject "PoseidonYamlStruct" $ \v -> ArchiveConfig
-        <$> v .: "contributor"
+        <$> v .: "archives"
 
 parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
 parseArchiveConfigFile = decodeFileThrow
 
 data ArchiveSpec = ArchiveSpec
-    { _archSpecName :: ArchiveName
-    , _archSpecPaths :: [FilePath]
+    { _archSpecName        :: ArchiveName
+    , _archSpecPaths       :: [FilePath]
     , _archSpecDescription :: Maybe String
-    , _archSpecURL :: Maybe String
+    , _archSpecURL         :: Maybe String
+    , _archSpecDataURL     :: Maybe String
+    , _archSpecZip         :: Bool
     } deriving (Show)
 
 instance FromJSON ArchiveSpec where
@@ -97,6 +99,8 @@ instance FromJSON ArchiveSpec where
         <*> v .:  "paths"
         <*> v .:? "description"
         <*> v .:? "URL"
+        <*> v .:? "dataURL"
+        <*> v .: "zip"
 
 type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
@@ -108,8 +112,15 @@ type ArchiveStore a = [(ArchiveSpec, a)] -- a generic lookup table from an archi
 getArchiveSpecs :: ArchiveStore a -> [ArchiveSpec]
 getArchiveSpecs = map fst
 
-getArchiveByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m a
-getArchiveByName name store =
+getArchiveSpecByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m ArchiveSpec
+getArchiveSpecByName name store =
+    case filter (\(spec, _) -> _archSpecName spec == name) store of
+      []         -> fail $ "Archive " <> name <> " does not exist"
+      [(spec,_)] -> pure spec
+      _          -> fail $ "Archive " <> name <> " is ambiguous"
+
+getArchiveContentByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m a
+getArchiveContentByName name store =
     case filter (\(spec, _) -> _archSpecName spec == name) store of
       []      -> fail $ "Archive " <> name <> " does not exist"
       [(_,a)] -> pure a
@@ -227,23 +238,26 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             raw stylesBS
         -- landing page
         get "/" $ do
-            redirect ("/explorer")
+            redirect "/explorer"
         get "/explorer" $ do
             logRequest logA
             pacsPerArchive <- forM archiveSpecs $ \spec -> do
                 let n = _archSpecName spec
                     d = _archSpecDescription spec
                     u = _archSpecURL spec
-                pacs <- selectLatest <$> getArchiveByName n archiveStore
+                pacs <- selectLatest <$> getArchiveContentByName n archiveStore
                 return (n, d, u, pacs)
             mainPage pacsPerArchive
         -- archive pages
         get "/explorer/:archive_name" $ do
             logRequest logA
             archiveName <- captureParam "archive_name"
-            latestPacs  <- selectLatest <$> getArchiveByName archiveName archiveStore
+            spec <- getArchiveSpecByName archiveName archiveStore
+            let maybeArchiveDataURL = _archSpecDataURL spec
+                archiveZip = _archSpecZip spec
+            latestPacs  <- selectLatest <$> getArchiveContentByName archiveName archiveStore
             let mapMarkers = concatMap (prepMappable archiveName) latestPacs
-            archivePage archiveName mapMarkers latestPacs
+            archivePage archiveName maybeArchiveDataURL archiveZip mapMarkers latestPacs
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
             archive_name <- captureParam "archive_name"
@@ -257,7 +271,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             pacVersionWL <- case parsePackageVersionString pacVersionString of
                 Nothing -> fail $ "Could not parse package version string " ++ pacVersionString
                 Just v -> return v
-            allPacs     <- getArchiveByName archiveName archiveStore
+            allPacs     <- getArchiveContentByName archiveName archiveStore
             allVersions <- prepPacVersions pacName allPacs
             oneVersion  <- prepPacVersion pacVersionWL allVersions
             let mapMarkers = prepMappable archiveName oneVersion
@@ -269,7 +283,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
             archiveName <- captureParam "archive_name"
-            allPacs <- getArchiveByName archiveName archiveStore
+            allPacs <- getArchiveContentByName archiveName archiveStore
             pacName <- captureParam "package_name"
             allVersions <- prepPacVersions pacName allPacs
             pacVersionString <- captureParam "package_version"
@@ -330,9 +344,9 @@ prepPacVersion pacVersion pacs = do
     case pacVersion of
         Latest -> return $ head $ selectLatest pacs
         NumericalVersion v -> case filter (\pac -> getPacVersion pac == Just v) pacs of
-            [] -> fail $ "Package version " <> (show pacVersion) <> " does not exist"
+            [] -> fail $ "Package version " <> show pacVersion <> " does not exist"
             [x] -> return x
-            _ -> fail $ "Package version " <> (show pacVersion) <> " exists multiple times"
+            _ -> fail $ "Package version " <> show pacVersion <> " exists multiple times"
 
 prepSamples :: PoseidonPackage -> ActionM [JannoRow]
 prepSamples pac = return $ getJannoRowsFromPac pac
@@ -492,4 +506,4 @@ getItemFromArchiveStore store = do
     maybeArchiveName <- queryParamMaybe "archive"
     case maybeArchiveName of
         Nothing   -> return . snd . head $ store
-        Just name -> getArchiveByName name store
+        Just name -> getArchiveContentByName name store
