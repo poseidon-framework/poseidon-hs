@@ -2,11 +2,11 @@ poseidonVersion: 2.7.1
 title: Schiffels
 description: Empty package template. Please add a description
 contributor:
+- name: Herbert Testmann
+  email: herbert@testmann.tw
 - name: Josiah Carberry
   email: carberry@brown.edu
   orcid: 0000-0002-1825-0097
-- name: Herbert Testmann
-  email: herbert@testmann.tw
 packageVersion: 1.1.1
 lastModified: 1970-01-01
 genotypeData:
