@@ -1307,7 +1307,7 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = ServeOptions archives Nothing 3000 True Nothing
+    let serverOpts = ServeOptions archives Nothing 3001 True Nothing
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
@@ -1316,7 +1316,7 @@ testPipelineListRemote testDir checkFilePath = do
         do
         -- list from default archive
         let listOpts1 = ListOptions {
-              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" Nothing)
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" Nothing)
             , _listListEntity   = ListPackages
             , _listRawOutput    = False
             , _listOnlyLatest   = False
@@ -1334,7 +1334,7 @@ testPipelineListRemote testDir checkFilePath = do
 
         -- list from alternative archive
         let listOpts4 = ListOptions {
-              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3000" (Just "testArchive2"))
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" (Just "testArchive2"))
             , _listListEntity   = ListPackages
             , _listRawOutput    = False
             , _listOnlyLatest   = False
