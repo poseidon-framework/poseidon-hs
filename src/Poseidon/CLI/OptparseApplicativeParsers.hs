@@ -228,7 +228,8 @@ parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\"."
+            \ in the form \"[Firstname Lastname](Email address);...\"." <>
+    OP.value ""
     )
 
 readContributorString :: String -> Either String [ContributorSpec]
