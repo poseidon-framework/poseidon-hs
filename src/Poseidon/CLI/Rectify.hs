@@ -22,7 +22,7 @@ import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
 
 import           Control.DeepSeq        ((<$!!>))
-import           Control.Monad          (when)
+import           Control.Monad          (when, unless)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List              (nub)
 import           Data.Maybe             (fromJust)
