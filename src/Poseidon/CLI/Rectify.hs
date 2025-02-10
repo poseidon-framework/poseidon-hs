@@ -45,7 +45,7 @@ data RectifyOptions = RectifyOptions
 data PackageVersionUpdate = PackageVersionUpdate
     { _pacVerUpVersionComponent :: VersionComponent
     , _pacVerUpLog              :: Maybe String
-    , _pacVerOnlyIfChanged      :: Bool -- if set, only update the package version if content has changed. Useful for bulk updates
+    , _pacVerForceUpdate        :: Bool -- force update even if nothing changed.
     }
 
 data ChecksumsToRectify =
@@ -176,8 +176,8 @@ completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> Pose
 completeAndWritePackage Nothing _ newPac = do
     logDebug "Writing rectified POSEIDON.yml file"
     liftIO $ writePoseidonPackage newPac
-completeAndWritePackage (Just (PackageVersionUpdate component logText onlyIfChanged)) oldPac newPac =
-    if onlyIfChanged && (oldPac == newPac) then
+completeAndWritePackage (Just (PackageVersionUpdate component logText forcedUpdate)) oldPac newPac =
+    if not forcedUpdate && (oldPac == newPac) then
         logInfo $ "Nothing to rectify for package " ++ renderNameWithVersion newPac
     else do
         updatedPacPacVer <- updatePackageVersion component newPac

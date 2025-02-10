@@ -191,7 +191,7 @@ parseChecksumsToRectify = parseChecksumNone <|> parseChecksumAll <|> parseChecks
 
 parseMaybePackageVersionUpdate :: OP.Parser (Maybe PackageVersionUpdate)
 parseMaybePackageVersionUpdate = OP.optional $ PackageVersionUpdate <$>
-    parseVersionComponent <*> parseMaybeLog <*> parseOnlyChanged
+    parseVersionComponent <*> parseMaybeLog <*> parseForcedUpdate
 
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
@@ -244,9 +244,9 @@ parseMaybeLog = OP.option (Just <$> OP.str) (
     OP.value Nothing
     )
 
-parseOnlyChanged :: OP.Parser Bool
-parseOnlyChanged = OP.switch (OP.long "onlyChanged" <>
-    OP.help "only update the package version if something changed. Useful for bulk updates")
+parseForcedUpdate :: OP.Parser Bool
+parseForcedUpdate = OP.switch (OP.long "force" <>
+    OP.help "update the package version even if nothing changed.")
 
 parseLog :: OP.Parser String
 parseLog = OP.strOption (
