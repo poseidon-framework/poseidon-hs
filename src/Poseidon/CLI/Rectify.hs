@@ -80,6 +80,7 @@ runRectify (RectifyOptions
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
+            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             when jannoRemoveEmptyCols $ do
                 case posPacJannoFile inPac of
                     Nothing   -> do
@@ -171,18 +172,18 @@ updateChecksums checksumSetting pac = do
             e <- liftIO . doesFileExist $ file
             if e then Just <$!!> getChk file else return defaultChkSum
 
-completeAndWritePackage :: Maybe (PackageVersionUpdate, Bool) -> PoseidonPackage -> PoseidonPackage -> PoseidonIO ()
-completeAndWritePackage Nothing oldPac newPac = do
+completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonPackage -> PoseidonIO ()
+completeAndWritePackage Nothing _ newPac = do
     logDebug "Writing rectified POSEIDON.yml file"
     liftIO $ writePoseidonPackage newPac
-completeAndWritePackage (Just (PackageVersionUpdate component logText onlyIfChanged)) oldPac newPac = do
+completeAndWritePackage (Just (PackageVersionUpdate component logText onlyIfChanged)) oldPac newPac =
     if onlyIfChanged && (oldPac == newPac) then
-        logInfo $ "Nothing to rectify for package " ++ posPacNameAndVersion
-
-    updatedPacPacVer <- updatePackageVersion component pac
-    updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
-    logDebug "Writing rectified POSEIDON.yml file"
-    liftIO $ writePoseidonPackage updatePacChangeLog
+        logInfo $ "Nothing to rectify for package " ++ renderNameWithVersion newPac
+    else do
+        updatedPacPacVer <- updatePackageVersion component newPac
+        updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
+        logDebug "Writing rectified POSEIDON.yml file"
+        liftIO $ writePoseidonPackage updatePacChangeLog
 
 updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePackageVersion component pac = do
