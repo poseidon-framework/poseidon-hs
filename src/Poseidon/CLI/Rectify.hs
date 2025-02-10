@@ -45,6 +45,7 @@ data RectifyOptions = RectifyOptions
 data PackageVersionUpdate = PackageVersionUpdate
     { _pacVerUpVersionComponent :: VersionComponent
     , _pacVerUpLog              :: Maybe String
+    , _pacVerOnlyIfChanged      :: Bool -- if set, only update the package version if content has changed. Useful for bulk updates
     }
 
 data ChecksumsToRectify =
@@ -73,7 +74,7 @@ runRectify (RectifyOptions
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
-    logInfo "Checking package(s) for potential updates"
+    logInfo "Starting per-package update procedure"
     mapM_ rectifyOnePackage allPackages
     logInfo "Done"
     where
@@ -89,23 +90,19 @@ runRectify (RectifyOptions
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
-            when (inPac /= updatedPacChecksums) $ do
-                logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
-                completeAndWritePackage pacVerUpdate updatedPacChecksums
+            completeAndWritePackage pacVerUpdate inPac updatedPacChecksums
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
 updatePoseidonVersion (Just ver) pac = do
-    let ret = pac { posPacPoseidonVersion = ver }
-    when (ret /= pac) $
-        logDebug "Updating Poseidon version"
-    return ret
+    logDebug "Updating Poseidon version"
+    return pac { posPacPoseidonVersion = ver }
 
 addContributors :: [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
 addContributors cs pac = do
-    let ret = pac { posPacContributor = nub (posPacContributor pac ++ cs) }
-    when (pac /= ret) $
+    unless (null cs) $
         logDebug "Updating list of contributors"
+    let ret = pac { posPacContributor = nub (posPacContributor pac ++ cs) }
     return ret
 
 updateChecksums :: ChecksumsToRectify -> PoseidonPackage -> PoseidonIO PoseidonPackage
@@ -174,12 +171,14 @@ updateChecksums checksumSetting pac = do
             e <- liftIO . doesFileExist $ file
             if e then Just <$!!> getChk file else return defaultChkSum
 
-
-completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
-completeAndWritePackage Nothing pac = do
+completeAndWritePackage :: Maybe (PackageVersionUpdate, Bool) -> PoseidonPackage -> PoseidonPackage -> PoseidonIO ()
+completeAndWritePackage Nothing oldPac newPac = do
     logDebug "Writing rectified POSEIDON.yml file"
-    liftIO $ writePoseidonPackage pac
-completeAndWritePackage (Just (PackageVersionUpdate component logText)) pac = do
+    liftIO $ writePoseidonPackage newPac
+completeAndWritePackage (Just (PackageVersionUpdate component logText onlyIfChanged)) oldPac newPac = do
+    if onlyIfChanged && (oldPac == newPac) then
+        logInfo $ "Nothing to rectify for package " ++ posPacNameAndVersion
+
     updatedPacPacVer <- updatePackageVersion component pac
     updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
     logDebug "Writing rectified POSEIDON.yml file"

@@ -214,22 +214,13 @@ parseNoChecksumUpdate = OP.switch (
     OP.help "Should the update of checksums in the POSEIDON.yml file be skipped?"
     )
 
-parseMaybeContributors :: OP.Parser [ContributorSpec]
-parseMaybeContributors = OP.option (OP.eitherReader readContributorString) (
-    OP.long "newContributors" <>
-    OP.metavar "DSL" <>
-    OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\"." <>
-    OP.value []
-    )
-
 parseContributors :: OP.Parser [ContributorSpec]
 parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
             \ in the form \"[Firstname Lastname](Email address);...\"." <>
-    OP.value ""
+    OP.value []
     )
 
 readContributorString :: String -> Either String [ContributorSpec]
