@@ -1,5 +1,5 @@
 - V 1.6.2.3:
-    - Rectify now checks whether a package YAML file actually changes, before updating the version and adding to the changelog.
+    - Rectify adds option --onlyChanged together with --packageVersion, which checks whether a package YAML file actually changes, before updating the version and adding to the changelog.
 - V 1.6.2.2:
     - Fixed a small bug that prevented calculation of checksums for genotype data in `rectify`.
 - V 1.6.2.1:
