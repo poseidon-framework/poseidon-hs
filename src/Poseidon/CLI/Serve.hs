@@ -312,7 +312,7 @@ instance Show PacVersion where
 selectLatest :: [PoseidonPackage] -> [PoseidonPackage]
 selectLatest =
       map last
-    . groupBy (\a b -> posPacNameAndVersion a == posPacNameAndVersion b)
+    . groupBy (\a b -> getPacName a == getPacName b)
     . sortOn posPacNameAndVersion
 
 prepMappable :: String -> PoseidonPackage -> [MapMarker]
