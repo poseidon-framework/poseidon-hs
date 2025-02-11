@@ -245,12 +245,14 @@ archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
 
 packageVersionPage ::
      String -> String -> Maybe Version
+  -> Bool
   -> [MapMarker]
   -> String
   -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow]
   -> S.ActionM ()
 packageVersionPage
   archiveName pacName pacVersion
+  archiveZip
   mapMarkers
   bib
   oneVersion allVersions samples = do
@@ -286,23 +288,25 @@ packageVersionPage
             let v = getPacVersion pac
             H.a ! A.href ("/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
               H.toMarkup $ renderMaybeVersion v
-            H.toMarkup (" | " :: String)
-            H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
-              H.toMarkup ("Download" :: String)
+            OP.when archiveZip $ do
+              H.toMarkup (" | " :: String)
+              H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v)) $
+                H.toMarkup ("Download" :: String)
       H.details $ do
         H.summary "Bibliography (in bibtex format)"
         H.textarea ! A.rows "15" $ H.toMarkup bib
     -- download button
-    H.div ! A.style "float: right; text-align: right;" $ do
-      case pacVersion of
-        Nothing -> do
-          H.form ! A.action ("/zip_file/" <> H.toValue pacName) ! A.method "get" $ do
-            H.button ! A.type_ "submit" ! A.class_ "button" $
-              H.toMarkup ("Download" :: String)
-        Just v ->
-          H.form ! A.action ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v)) ! A.method "get" $ do
-            H.button ! A.type_ "submit" ! A.class_ "button" $
-              H.toMarkup ("Download" :: String)
+    OP.when archiveZip $
+      H.div ! A.style "float: right; text-align: right;" $ do
+        case pacVersion of
+          Nothing -> do
+           H.form ! A.action ("/zip_file/" <> H.toValue pacName) ! A.method "get" $ do
+              H.button ! A.type_ "submit" ! A.class_ "button" $
+                H.toMarkup ("Download" :: String)
+          Just v ->
+            H.form ! A.action ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v)) ! A.method "get" $ do
+              H.button ! A.type_ "submit" ! A.class_ "button" $
+                H.toMarkup ("Download" :: String)
     -- sample table
     H.table $ do
       H.tr $ do

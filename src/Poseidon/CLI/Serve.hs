@@ -133,9 +133,10 @@ runServerMainThread opts = do
 
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
 runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
-    let pacReadOpts = defaultPackageReadOptions {
+    let archiveZip = isJust maybeZipPath
+        pacReadOpts = defaultPackageReadOptions {
               _readOptIgnoreChecksums  = ignoreChecksums
-            , _readOptGenoCheck        = isJust maybeZipPath
+            , _readOptGenoCheck        = archiveZip
         }
 
     logInfo "Server starting up. Loading packages..."
@@ -206,7 +207,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
-        when (isJust maybeZipPath) . get "/zip_file/:package_name" $ do
+        when archiveZip . get "/zip_file/:package_name" $ do
             logRequest logA
             zipStore <- getItemFromArchiveStore zipArchiveStore
             packageName <- captureParam "package_name"
@@ -252,7 +253,6 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archiveName <- captureParam "archive_name"
             spec <- getArchiveSpecByName archiveName archiveStore
             let maybeArchiveDataURL = _archSpecDataURL spec
-                archiveZip = isJust maybeZipPath
             latestPacs  <- selectLatest <$> getArchiveContentByName archiveName archiveStore
             let mapMarkers = concatMap (prepMappable archiveName) latestPacs
             archivePage archiveName maybeArchiveDataURL archiveZip mapMarkers latestPacs
@@ -276,7 +276,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
                 pacVersion = getPacVersion oneVersion
             samples <- prepSamples oneVersion
-            packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
+            packageVersionPage archiveName pacName pacVersion archiveZip mapMarkers bib oneVersion allVersions samples
         -- per sample pages
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
