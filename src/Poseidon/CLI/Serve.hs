@@ -90,7 +90,6 @@ data ArchiveSpec = ArchiveSpec
     , _archSpecDescription :: Maybe String
     , _archSpecURL         :: Maybe String
     , _archSpecDataURL     :: Maybe String
-    , _archSpecZip         :: Bool
     } deriving (Show)
 
 instance FromJSON ArchiveSpec where
@@ -100,13 +99,12 @@ instance FromJSON ArchiveSpec where
         <*> v .:? "description"
         <*> v .:? "URL"
         <*> v .:? "dataURL"
-        <*> v .:  "zip"
 
 type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
 type ArchiveName = String
 
-type ArchiveStore a = [(ArchiveSpec, a)] -- a generic lookup table from an archive name to an item
+type ArchiveStore a = [(ArchiveSpec, a)] -- a generic lookup table from an archive specification to an item
 -- we have two concrete ones: ArchiveStore [PoseidonPackage]   and     ArchiveStore ZipStore
 
 getArchiveSpecs :: ArchiveStore a -> [ArchiveSpec]
@@ -254,7 +252,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archiveName <- captureParam "archive_name"
             spec <- getArchiveSpecByName archiveName archiveStore
             let maybeArchiveDataURL = _archSpecDataURL spec
-                archiveZip = _archSpecZip spec
+                archiveZip = isJust maybeZipPath
             latestPacs  <- selectLatest <$> getArchiveContentByName archiveName archiveStore
             let mapMarkers = concatMap (prepMappable archiveName) latestPacs
             archivePage archiveName maybeArchiveDataURL archiveZip mapMarkers latestPacs
