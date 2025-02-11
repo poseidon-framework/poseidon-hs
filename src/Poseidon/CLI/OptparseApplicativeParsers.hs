@@ -837,7 +837,9 @@ parseArchiveConfigPath :: OP.Parser FilePath
 parseArchiveConfigPath = OP.strOption (
     OP.long "archiveConfigFile" <>
     OP.metavar "FILE" <>
-    OP.help "Path to a .yml config file for the server archive configuration."
+    OP.help "Path to a .yml config file for the server archive configuration. \
+            \This file must include a list of \"archives:\", each with the fields\
+            \ \"name\", \"paths\", \"description\", \"URL\", \"dataURL\", and \"zip\"."
     )
 
 parseMaybeArchiveName :: OP.Parser (Maybe String)

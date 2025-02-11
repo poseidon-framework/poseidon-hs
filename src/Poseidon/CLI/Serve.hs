@@ -78,7 +78,7 @@ data ServeOptions = ServeOptions
 newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
 
 instance FromJSON ArchiveConfig where
-    parseJSON = withObject "PoseidonYamlStruct" $ \v -> ArchiveConfig
+    parseJSON = withObject "archiveConfig" $ \v -> ArchiveConfig
         <$> v .: "archives"
 
 parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
@@ -94,13 +94,13 @@ data ArchiveSpec = ArchiveSpec
     } deriving (Show)
 
 instance FromJSON ArchiveSpec where
-    parseJSON = withObject "contributor" $ \v -> ArchiveSpec
+    parseJSON = withObject "archiveSpec" $ \v -> ArchiveSpec
         <$> v .:  "name"
         <*> v .:  "paths"
         <*> v .:? "description"
         <*> v .:? "URL"
         <*> v .:? "dataURL"
-        <*> v .: "zip"
+        <*> v .:  "zip"
 
 type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
