@@ -183,58 +183,39 @@ footer = H.footer ! A.style "border-top: 1px solid; padding: 1em; border-color: 
 
 -- html pages
 
-mainPage :: [(String,[PoseidonPackage])] -> S.ActionM ()
+mainPage :: [(String, Maybe String, Maybe String,[PoseidonPackage])] -> S.ActionM ()
 mainPage pacsPerArchive = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.h1 "Archives"
-    H.ul $ forM_ pacsPerArchive $ \(archiveName, pacs) -> do
+    H.ul $ forM_ pacsPerArchive $ \(archiveName, maybeDescription, maybeURL, pacs) -> do
       let nrPackages = length pacs
       H.article $ do
         H.header $ do
           H.a ! A.href ("/explorer/" <> H.toValue archiveName) $
             H.toMarkup archiveName
+        -- normal archive
         H.toMarkup $ show nrPackages <> " packages"
-        -- cover special cases for the main archive explorer website
-        case archiveName of
-          "community-archive" -> do
+        -- archives with more info
+        case (maybeDescription,maybeURL) of
+          (Just desc, Just url) -> do
             H.br
             H.br
-            H.p $ H.toMarkup (
-              "Poseidon Community Archive (PCA) with per-paper packages and \
-              \genotype data as published." :: String)
+            H.p $ H.toMarkup desc
             H.footer $ H.p $ H.a
-              ! A.href "https://github.com/poseidon-framework/community-archive"
+              ! A.href (H.stringValue url)
               ! A.style "float: right; font-size: 0.8em;" $
-              H.toMarkup ("The PCA on GitHub" :: String)
-          "minotaur-archive" -> do
-            H.br
-            H.br
-            H.p $ H.toMarkup (
-              "Poseidon Minotaur Archive (PMA) with per-paper packages and \
-              \genotype data reprocessed by the Minotaur workflow." :: String)
-            H.footer $ H.p $ H.a
-              ! A.href "https://github.com/poseidon-framework/minotaur-archive"
-              ! A.style "float: right; font-size: 0.8em;" $
-              H.toMarkup ("The PMA on GitHub" :: String)
-          "aadr-archive" -> do
-            H.br
-            H.br
-            H.p $ H.toMarkup (
-              "Poseidon AADR Archive (PAA) with a structurally unified version of the \
-              \AADR dataset repackaged in the Poseidon package format." :: String)
-            H.footer $ H.p $ H.a
-              ! A.href "https://github.com/poseidon-framework/aadr-archive"
-              ! A.style "float: right; font-size: 0.8em;" $
-              H.toMarkup ("The PAA on GitHub" :: String)
+              H.toMarkup ("Source archive" :: String)
           _ -> return ()
 
 archivePage ::
      String
+  -> Maybe String
+  -> Bool
   -> [MapMarker]
   -> [PoseidonPackage]
   -> S.ActionM ()
-archivePage archiveName mapMarkers pacs = do
+archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
   let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
@@ -252,13 +233,15 @@ archivePage archiveName mapMarkers pacs = do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
         H.tr $ do
+          -- normal archive
           H.td (H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
           H.td $ H.toMarkup $ show nrSamples
-          OP.when (archiveName `elem` ["community-archive", "minotaur-archive", "aadr-archive"]) $ do
-            H.td $ H.a ! A.href ("https://www.github.com/poseidon-framework/" <> H.toValue archiveName <> "/tree/main/" <> H.toValue pacName)
-                  $ H.toMarkup ("GitHub" :: String)
-            H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName)
-                  $ H.toMarkup ("Download" :: String)
+          -- archives with more info
+          case maybeArchiveSpecURL of
+            Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("GitHub" :: String)
+            Nothing -> return ()
+          OP.when archiveZip $
+            H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName) $ H.toMarkup ("Download" :: String)
 
 packageVersionPage ::
      String -> String -> Maybe Version
