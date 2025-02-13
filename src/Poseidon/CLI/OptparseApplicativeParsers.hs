@@ -10,6 +10,8 @@ import           Poseidon.CLI.List          (ListEntity (..),
                                              RepoLocationSpec (..))
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
                                              PackageVersionUpdate (..))
+import           Poseidon.CLI.Serve         (ArchiveConfig (..),
+                                             ArchiveSpec (..))
 import           Poseidon.CLI.Validate      (ValidatePlan (..))
 import           Poseidon.Contributor       (ContributorSpec (..),
                                              contributorSpecParser)
@@ -801,24 +803,41 @@ parseCertFile = OP.strOption (
     OP.help "The cert file of the TLS Certificate used for HTTPS."
     )
 
-parseArchiveBasePaths :: OP.Parser [(String, FilePath)]
-parseArchiveBasePaths = OP.some parseArchiveBasePath
+parseArchiveConfig :: OP.Parser (Either ArchiveConfig FilePath)
+parseArchiveConfig = Left <$> parseArchiveConfigCLI <|> Right <$> parseArchiveConfigPath
+
+parseArchiveConfigCLI :: OP.Parser ArchiveConfig
+parseArchiveConfigCLI = ArchiveConfig <$> OP.some parseArchiveSpec
   where
-    parseArchiveBasePath :: OP.Parser (String, FilePath)
-    parseArchiveBasePath = OP.option (OP.eitherReader parseArchiveNameAndPath) (
+    parseArchiveSpec :: OP.Parser ArchiveSpec
+    parseArchiveSpec = OP.option (OP.eitherReader parseArchiveNameAndPath) (
         OP.long "baseDir" <>
         OP.short 'd' <>
         OP.metavar "DSL" <>
         OP.help "A base path, prepended by the corresponding archive name under which \
-                \packages in this path are being served. Example: arch1=/path/to/basepath. Can \
-                \be given multiple times. Multiple paths for the same archive are combined internally. \
+                \packages in this path are being served. Example: arch1=/path1/to/basepath. \
+                \Multiple paths for the same archive can be given separated by comma, e.g. \
+                \Example: arch1=/path1/to/basepath,/path2/to/basepath. \
+                \Can be given multiple times. \
                 \The very first named archive is considered to be the default archive on the server.")
-    parseArchiveNameAndPath :: String -> Either String (String, FilePath)
+    parseArchiveNameAndPath :: String -> Either String ArchiveSpec
     parseArchiveNameAndPath str =
         let parts = splitOn "=" str
         in  case parts of
-                [name, fp] -> return (name, fp)
-                _ -> Left $ "could not parse archive and base directory " ++ str ++ ". Please use format name=path "
+                [name, fp] -> do
+                    let fps = splitOn "," fp
+                    return $ ArchiveSpec name fps Nothing Nothing Nothing
+                _ -> Left $ "could not parse archive and base directory " ++ str ++
+                            ". Please use format name=path1,path2,... "
+
+parseArchiveConfigPath :: OP.Parser FilePath
+parseArchiveConfigPath = OP.strOption (
+    OP.long "archiveConfigFile" <>
+    OP.metavar "FILE" <>
+    OP.help "Path to a .yml config file for the server archive configuration. \
+            \This file must include a list of \"archives:\", each with the fields\
+            \ \"name\", \"paths\", \"description\", \"URL\" and \"dataURL\"."
+    )
 
 parseMaybeArchiveName :: OP.Parser (Maybe String)
 parseMaybeArchiveName = OP.option (Just <$> OP.str) (
