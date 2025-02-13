@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.6.2.2
+version:             1.6.3.0
 synopsis:            A package with tools for working with Poseidon genotype data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -16,7 +16,8 @@ library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
                         Poseidon.ColumnTypes, Poseidon.ColumnTypesUtils, Poseidon.MathHelpers,
                         Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Chronicle,
-                        Poseidon.EntityTypes, Poseidon.ServerClient, Poseidon.Contributor, Poseidon.Version
+                        Poseidon.EntityTypes, Poseidon.ServerClient, Poseidon.ServerHTML,
+                        Poseidon.ServerStylesheet, Poseidon.Contributor, Poseidon.Version,
                         Poseidon.CLI.List, Poseidon.CLI.Chronicle, Poseidon.CLI.Serve,
                         Poseidon.CLI.Summarise, Poseidon.CLI.Validate, Poseidon.Utils,
                         Poseidon.CLI.Survey, Poseidon.CLI.Forge, Poseidon.CLI.Init,
@@ -32,7 +33,7 @@ library
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
                         scientific, country, generics-sop, containers, process, deepseq, template-haskell,
-                        MissingH
+                        blaze-html, blaze-markup, neat-interpolation, file-embed, MissingH
     default-language:   Haskell2010
 
 executable trident
