@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.2.2
+@version 1.6.3.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -547,6 +547,9 @@ instance GHC.Classes.Ord Poseidon.PoseidonVersion.PoseidonVersion
 instance GHC.Classes.Eq Poseidon.PoseidonVersion.PoseidonVersion
 instance GHC.Show.Show Poseidon.PoseidonVersion.PoseidonVersion
 
+module Poseidon.ServerStylesheet
+stylesBS :: ByteString
+
 module Poseidon.Utils
 
 -- | A Poseidon Exception data type with several concrete constructors
@@ -869,6 +872,7 @@ getMaybeListColumn :: Maybe (ListColumn a) -> [a]
 -- | a convenience function to construct Eigenstrat Ind entries out of
 --   jannoRows
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
+makeHeaderWithAdditionalColumns :: [JannoRow] -> Header
 instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
 instance GHC.Show.Show a => GHC.Show.Show (Poseidon.Janno.ListColumn a)
@@ -1168,6 +1172,7 @@ BibEntry :: String -> String -> [(String, String)] -> BibEntry
 [bibEntryType] :: BibEntry -> String
 [bibEntryId] :: BibEntry -> String
 [bibEntryFields] :: BibEntry -> [(String, String)]
+renderBibEntry :: BibEntry -> String
 parseAuthors :: MonadThrow m => String -> m [(String, String)]
 authorAbbrvString :: [(String, String)] -> String
 instance GHC.Show.Show Poseidon.BibFile.BibEntry
@@ -1634,6 +1639,25 @@ instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Package.PoseidonYamlStruct
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Package.PoseidonYamlStruct
 instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.Package.PoseidonYamlStruct
 
+module Poseidon.ServerHTML
+mainPage :: [(String, Maybe String, Maybe String, [PoseidonPackage])] -> ActionM ()
+archivePage :: String -> Maybe String -> Bool -> [MapMarker] -> [PoseidonPackage] -> ActionM ()
+packageVersionPage :: String -> String -> Maybe Version -> Bool -> [MapMarker] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> ActionM ()
+samplePage :: Maybe MapMarker -> JannoRow -> ActionM ()
+data MapMarker
+MapMarker :: Double -> Double -> String -> String -> Maybe String -> String -> Maybe String -> Maybe String -> MapMarker
+[mmLat] :: MapMarker -> Double
+[mmLon] :: MapMarker -> Double
+[mmPoseidonID] :: MapMarker -> String
+[mmPackageName] :: MapMarker -> String
+[mmPackageVersion] :: MapMarker -> Maybe String
+[mmArchiveName] :: MapMarker -> String
+[mmLocation] :: MapMarker -> Maybe String
+[mmAge] :: MapMarker -> Maybe String
+instance GHC.Show.Show Poseidon.ServerHTML.MapMarker
+instance GHC.Generics.Generic Poseidon.ServerHTML.MapMarker
+instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.ServerHTML.MapMarker
+
 module Poseidon.CLI.Survey
 
 -- | A datatype representing command line options for the survey command
@@ -1763,13 +1787,27 @@ module Poseidon.CLI.Serve
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 data ServeOptions
-ServeOptions :: [(String, FilePath)] -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
-[cliArchiveBaseDirs] :: ServeOptions -> [(String, FilePath)]
+ServeOptions :: Either ArchiveConfig FilePath -> Maybe FilePath -> Int -> Bool -> Maybe (FilePath, [FilePath], FilePath) -> ServeOptions
+[cliArchiveConfig] :: ServeOptions -> Either ArchiveConfig FilePath
 [cliZipDir] :: ServeOptions -> Maybe FilePath
 [cliPort] :: ServeOptions -> Int
 [cliIgnoreChecksums] :: ServeOptions -> Bool
 [cliCertFiles] :: ServeOptions -> Maybe (FilePath, [FilePath], FilePath)
+newtype ArchiveConfig
+ArchiveConfig :: [ArchiveSpec] -> ArchiveConfig
+data ArchiveSpec
+ArchiveSpec :: ArchiveName -> [FilePath] -> Maybe String -> Maybe String -> Maybe String -> ArchiveSpec
+[_archSpecName] :: ArchiveSpec -> ArchiveName
+[_archSpecPaths] :: ArchiveSpec -> [FilePath]
+[_archSpecDescription] :: ArchiveSpec -> Maybe String
+[_archSpecURL] :: ArchiveSpec -> Maybe String
+[_archSpecDataURL] :: ArchiveSpec -> Maybe String
+instance GHC.Show.Show Poseidon.CLI.Serve.ArchiveSpec
+instance GHC.Show.Show Poseidon.CLI.Serve.ArchiveConfig
 instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
+instance GHC.Show.Show Poseidon.CLI.Serve.PacVersion
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.CLI.Serve.ArchiveConfig
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.CLI.Serve.ArchiveSpec
 
 module Poseidon.CLI.List
 
@@ -2048,7 +2086,9 @@ parseMaybeCertFiles :: Parser (Maybe (FilePath, [FilePath], FilePath))
 parseKeyFile :: Parser FilePath
 parseChainFile :: Parser FilePath
 parseCertFile :: Parser FilePath
-parseArchiveBasePaths :: Parser [(String, FilePath)]
+parseArchiveConfig :: Parser (Either ArchiveConfig FilePath)
+parseArchiveConfigCLI :: Parser ArchiveConfig
+parseArchiveConfigPath :: Parser FilePath
 parseMaybeArchiveName :: Parser (Maybe String)
 parseJannocoalSourceSpec :: Parser JannoSourceSpec
 parseJannocoalTargetFile :: Parser FilePath
