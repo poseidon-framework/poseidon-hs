@@ -50,13 +50,13 @@ d8d1e5dd679ae256c40340e726a0cdc5 genoconvert init_vcf/Schiffels_vcf/geno.bim
 3c38f40efe215a047c02f4e98e0390da genoconvert genoconvert/zip_roundtrip/Schiffels_2016.bed
 8538ffd971ebb12cf5ef6e338da27970 genoconvert genoconvert/zip_roundtrip/Schiffels_2016.bim
 a9fcb59cb933d8f183f3c3f6fbf2e213 genoconvert genoconvert/zip_roundtrip/Schiffels_2016.fam
-72c7a584feefddb31f817c205355dd14 rectify init/Schiffels/POSEIDON.yml
+ff318c8f53e06c6d6b07b4be5ac37a8e rectify init/Schiffels/POSEIDON.yml
 4aeae97cfc44b55b2a8005425d786148 rectify init/Schiffels/CHANGELOG.md
-925e402351afd974403402d141abe342 rectify init/Schiffels/POSEIDON.yml
+11d8e70375bfc14d9dc90c4148168f30 rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
-b9216f365108c5c5c66f78cceb2eb09a rectify init/Schiffels/POSEIDON.yml
+52646aef97221e93ff33ada201d2e743 rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
-ebf0b456d5e09686ee7131db06848104 rectify init/Schiffels/POSEIDON.yml
+5f1dfbd51a25be03935d0d8c2fb42c49 rectify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b rectify init/Schiffels/CHANGELOG.md
 083fe7ef4206c979356a3a2454d780b1 rectify init/Schiffels/Schiffels.janno
 2757f727e02dd6453fffe68c4c6ec4c8 forge forge/ForgePac1/POSEIDON.yml
@@ -129,7 +129,7 @@ e375863bca9e4a91c9855396abde31c7 forge forge/ForgePac20/ForgePac20.janno
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml
-ebf0b456d5e09686ee7131db06848104 timetravel timetravel/Schiffels-1.1.1/POSEIDON.yml
+5f1dfbd51a25be03935d0d8c2fb42c49 timetravel timetravel/Schiffels-1.1.1/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 timetravel timetravel/Schmid_2028-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c fetch fetch/by_package/Lamnidis_2018-1.0.1/POSEIDON.yml
 1ab24c45ef3a13e0fb34afac7a21dca8 fetch fetch/by_package/Schmid_2028-1.0.0/POSEIDON.yml

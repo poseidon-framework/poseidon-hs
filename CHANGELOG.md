@@ -1,3 +1,5 @@
+- V 1.6.3.1:
+    - Rectify adds option --forced together with --packageVersion, which forces an update of the package version even if nothing changed in the YAML.
 - V 1.6.3.0:
     - Added an html (website) API to the set of endpoints served by trident `serve`.
         - The html is build with `blaze-html` and `blaze-markup`.

@@ -192,7 +192,8 @@ parseChecksumsToRectify = parseChecksumNone <|> parseChecksumAll <|> parseChecks
             OP.help "Update .bib file checksum.")
 
 parseMaybePackageVersionUpdate :: OP.Parser (Maybe PackageVersionUpdate)
-parseMaybePackageVersionUpdate = OP.optional $ PackageVersionUpdate <$> parseVersionComponent <*> parseMaybeLog
+parseMaybePackageVersionUpdate = OP.optional $ PackageVersionUpdate <$>
+    parseVersionComponent <*> parseMaybeLog <*> parseForcedUpdate
 
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
@@ -216,21 +217,13 @@ parseNoChecksumUpdate = OP.switch (
     OP.help "Should the update of checksums in the POSEIDON.yml file be skipped?"
     )
 
-parseMaybeContributors :: OP.Parser (Maybe [ContributorSpec])
-parseMaybeContributors = OP.option (Just <$> OP.eitherReader readContributorString) (
-    OP.long "newContributors" <>
-    OP.metavar "DSL" <>
-    OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\"." <>
-    OP.value Nothing
-    )
-
 parseContributors :: OP.Parser [ContributorSpec]
 parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\"."
+            \ in the form \"[Firstname Lastname](Email address);...\"." <>
+    OP.value []
     )
 
 readContributorString :: String -> Either String [ContributorSpec]
@@ -252,6 +245,10 @@ parseMaybeLog = OP.option (Just <$> OP.str) (
     OP.help "Log text for this version in the CHANGELOG file." <>
     OP.value Nothing
     )
+
+parseForcedUpdate :: OP.Parser Bool
+parseForcedUpdate = OP.switch (OP.long "force" <>
+    OP.help "update the package version even if nothing changed.")
 
 parseLog :: OP.Parser String
 parseLog = OP.strOption (

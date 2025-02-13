@@ -22,7 +22,7 @@ import           Poseidon.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
 
 import           Control.DeepSeq        ((<$!!>))
-import           Control.Monad          (when)
+import           Control.Monad          (when, unless)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.List              (nub)
 import           Data.Maybe             (fromJust)
@@ -37,7 +37,7 @@ data RectifyOptions = RectifyOptions
     , _rectifyPoseidonVersion       :: Maybe Version
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyChecksums             :: ChecksumsToRectify
-    , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    , _rectifyNewContributors       :: [ContributorSpec]
     , _rectifyJannoRemoveEmptyCols  :: Bool
     , _rectifyOnlyLatest            :: Bool
     }
@@ -45,6 +45,7 @@ data RectifyOptions = RectifyOptions
 data PackageVersionUpdate = PackageVersionUpdate
     { _pacVerUpVersionComponent :: VersionComponent
     , _pacVerUpLog              :: Maybe String
+    , _pacVerForceUpdate        :: Bool -- force update even if nothing changed.
     }
 
 data ChecksumsToRectify =
@@ -90,7 +91,7 @@ runRectify (RectifyOptions
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
-            completeAndWritePackage pacVerUpdate updatedPacChecksums
+            completeAndWritePackage pacVerUpdate inPac updatedPacChecksums
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
@@ -98,11 +99,12 @@ updatePoseidonVersion (Just ver) pac = do
     logDebug "Updating Poseidon version"
     return pac { posPacPoseidonVersion = ver }
 
-addContributors :: Maybe [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
-addContributors Nothing pac = return pac
-addContributors (Just cs) pac = do
-    logDebug "Updating list of contributors"
-    return pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+addContributors :: [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
+addContributors cs pac = do
+    unless (null cs) $
+        logDebug "Updating list of contributors"
+    let ret = pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+    return ret
 
 updateChecksums :: ChecksumsToRectify -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updateChecksums checksumSetting pac = do
@@ -170,16 +172,18 @@ updateChecksums checksumSetting pac = do
             e <- liftIO . doesFileExist $ file
             if e then Just <$!!> getChk file else return defaultChkSum
 
-
-completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
-completeAndWritePackage Nothing pac = do
+completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonPackage -> PoseidonIO ()
+completeAndWritePackage Nothing _ newPac = do
     logDebug "Writing rectified POSEIDON.yml file"
-    liftIO $ writePoseidonPackage pac
-completeAndWritePackage (Just (PackageVersionUpdate component logText)) pac = do
-    updatedPacPacVer <- updatePackageVersion component pac
-    updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
-    logDebug "Writing rectified POSEIDON.yml file"
-    liftIO $ writePoseidonPackage updatePacChangeLog
+    liftIO $ writePoseidonPackage newPac
+completeAndWritePackage (Just (PackageVersionUpdate component logText forcedUpdate)) oldPac newPac =
+    if not forcedUpdate && (oldPac == newPac) then
+        logInfo $ "Nothing to rectify for package " ++ renderNameWithVersion newPac
+    else do
+        updatedPacPacVer <- updatePackageVersion component newPac
+        updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
+        logDebug "Writing rectified POSEIDON.yml file"
+        liftIO $ writePoseidonPackage updatePacChangeLog
 
 updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePackageVersion component pac = do

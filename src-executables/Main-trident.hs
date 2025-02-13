@@ -242,7 +242,7 @@ rectifyOptParser = RectifyOptions <$> parseBasePaths
                                   <*> parseMaybePoseidonVersion
                                   <*> parseMaybePackageVersionUpdate
                                   <*> parseChecksumsToRectify
-                                  <*> parseMaybeContributors
+                                  <*> parseContributors
                                   <*> parseJannoRemoveEmptyCols
                                   <*> parseOnlyLatest
 

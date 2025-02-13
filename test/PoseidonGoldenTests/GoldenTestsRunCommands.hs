@@ -564,9 +564,9 @@ testPipelineRectify testDir checkFilePath = do
           _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
         , _rectifyPoseidonVersion = Nothing
         , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1") True)
         , _rectifyChecksums = ChecksumNone
-        , _rectifyNewContributors = Nothing
+        , _rectifyNewContributors = [ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing]
         , _rectifyJannoRemoveEmptyCols = False
         , _rectifyOnlyLatest = False
         }
@@ -579,9 +579,9 @@ testPipelineRectify testDir checkFilePath = do
           _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
         , _rectifyPoseidonVersion = Just $ makeVersion [2,7,1]
         , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2") True)
         , _rectifyChecksums = ChecksumAll
-        , _rectifyNewContributors = Nothing
+        , _rectifyNewContributors = []
         , _rectifyJannoRemoveEmptyCols = False
         , _rectifyOnlyLatest = False
         }
@@ -594,9 +594,9 @@ testPipelineRectify testDir checkFilePath = do
           _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
         , _rectifyPoseidonVersion = Nothing
         , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing True)
         , _rectifyChecksums = ChecksumNone
-        , _rectifyNewContributors = Just [
+        , _rectifyNewContributors = [
               ContributorSpec "Josiah Carberry" "carberry@brown.edu" (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
@@ -614,7 +614,7 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyIgnorePoseidonVersion = False
         , _rectifyPackageVersionUpdate = Nothing
         , _rectifyChecksums = ChecksumAll
-        , _rectifyNewContributors = Nothing
+        , _rectifyNewContributors = []
         , _rectifyJannoRemoveEmptyCols = True
         , _rectifyOnlyLatest = False
         }
