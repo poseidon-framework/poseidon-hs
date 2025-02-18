@@ -126,6 +126,7 @@ renderVersion =
     intercalate ", v" (map showPoseidonVersion validPoseidonVersions) ++ "\n" ++
     "https://poseidon-framework.github.io"
 
+
 subcommandParser :: OP.Parser Subcommand
 subcommandParser = OP.subparser (
         OP.command "init" initOptInfo <>
