@@ -42,7 +42,8 @@ module Poseidon.Janno (
     parseCsvParseError,
     renderCsvParseError,
     getMaybeListColumn,
-    jannoRows2EigenstratIndEntries
+    jannoRows2EigenstratIndEntries,
+    makeHeaderWithAdditionalColumns
 ) where
 
 import           Poseidon.ColumnTypes

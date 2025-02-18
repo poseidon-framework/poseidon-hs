@@ -1,5 +1,11 @@
 - V 1.7.0.0:
     - Added support for (optionally gzipped) VCF output in forge and genoconvert.
+- V 1.6.3.0:
+    - Added an html (website) API to the set of endpoints served by trident `serve`.
+        - The html is build with `blaze-html` and `blaze-markup`.
+        - The javascript for a leaflet map is embedded into the Haskell code with `neat-interpolation`.
+        - The css -- a small class-free stylesheet ("pico css") -- is embedded into trident using `file-embed`.
+    - Slightly changed the way the archive configuration works for `serve` on the command line.
 - V 1.6.2.2:
     - Fixed a small bug that prevented calculation of checksums for genotype data in `rectify`.
 - V 1.6.2.1:
