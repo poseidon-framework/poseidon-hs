@@ -37,7 +37,7 @@ import           Poseidon.EntityTypes       (EntityInput (..),
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
-                                             GenotypeOutFormatSpec(..),
+                                             GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))

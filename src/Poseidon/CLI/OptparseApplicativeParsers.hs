@@ -22,7 +22,7 @@ import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
-                                             GenotypeOutFormatSpec(..),
+                                             GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))

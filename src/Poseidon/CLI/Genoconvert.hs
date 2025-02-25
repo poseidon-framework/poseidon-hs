@@ -6,7 +6,7 @@ import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
-                                             GenotypeOutFormatSpec(..),
+                                             GenotypeOutFormatSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress, writeVCF)
 import           Poseidon.Janno             (JannoRows (..),
@@ -35,8 +35,8 @@ import           System.Directory           (createDirectoryIfMissing,
                                              doesFileExist, removeFile,
                                              renameFile)
 import           System.Exit                (ExitCode (..), exitWith)
-import           System.FilePath            (dropTrailingPathSeparator, (<.>),
-                                             (</>), takeExtension)
+import           System.FilePath            (dropTrailingPathSeparator,
+                                             takeExtension, (<.>), (</>))
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
