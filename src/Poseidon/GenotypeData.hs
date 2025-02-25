@@ -377,7 +377,7 @@ writeVCF logA jannoRows vcfFile = do
         when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
             "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
             ". For VCF output I will assume diploid genotypes. " ++
-            "Please set the GenotypePloidy column explitly in the Janno File to Haploid or Diploid."
+            "Please set the GenotypePloidy column explitly in the Janno File to haploid or diploid."
     let metaInfoLines = map B.pack [
             "##fileformat=VCFv4.2",
             "##source=trident_v" ++ showVersion version,

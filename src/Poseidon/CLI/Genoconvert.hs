@@ -35,7 +35,7 @@ import           System.Directory           (createDirectoryIfMissing,
                                              renameFile)
 import           System.Exit                (ExitCode (..), exitWith)
 import           System.FilePath            (dropTrailingPathSeparator, (<.>),
-                                             (</>))
+                                             (</>), takeExtension)
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions = GenoconvertOptions
@@ -106,7 +106,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
     let outFilesAbs = map (newBaseDir </>) outFilesRel
     let outFilesAbsTemp = do -- loop over files
             f <- outFilesAbs
-            if drop (length f - 3) f == ".gz" then
+            if takeExtension f == ".gz" then
                 return $ f <.> "gconvert" <.> "gz"
             else return $ f <.> "gconvert"
 
