@@ -16,6 +16,7 @@ import           Poseidon.EntityTypes        (EntityInput,
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFileSpec (..),
+                                              GenotypeOutFormatSpec(..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList,
@@ -77,7 +78,7 @@ data ForgeOptions = ForgeOptions
     , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
     , _forgeSnpFile            :: Maybe FilePath
     , _forgeIntersect          :: Bool
-    , _forgeOutFormat          :: String
+    , _forgeOutFormat          :: GenotypeOutFormatSpec
     , _forgeOutMode            :: ForgeOutMode
     , _forgeOutZip             :: Bool
     , _forgeOutPacPath         :: FilePath
@@ -188,17 +189,15 @@ runForge (
     -- compile genotype data structure
     let gz = if outZip then "gz" else ""
     genotypeFileData <- case outFormat of
-            "EIGENSTRAT" -> return $
+            GenotypeOutFormatEigenstrat -> return $
                 GenotypeEigenstrat (outName <.> "geno" <.> gz)  Nothing
                                    (outName <.> "snp" <.> gz)  Nothing
                                    (outName <.> "ind") Nothing
-            "PLINK"      -> return $
+            GenotypeOutFormatPlink      -> return $
                 GenotypePlink      (outName <.> "bed" <.> gz)  Nothing
                                    (outName <.> "bim" <.> gz)  Nothing
                                    (outName <.> "fam")  Nothing
-            "VCF"        -> return $ GenotypeVCF (outName <.> "vcf" <.> gz) Nothing
-            _  -> liftIO . throwIO $
-                PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Outformats can be EIGENSTRAT, PLINK or VCF.")
+            GenotypeOutFormatVCF        -> return $ GenotypeVCF (outName <.> "vcf" <.> gz) Nothing
     let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet)
 
     -- assemble and write result depending on outMode --

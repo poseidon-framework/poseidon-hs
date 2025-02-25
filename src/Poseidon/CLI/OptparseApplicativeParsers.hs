@@ -22,6 +22,7 @@ import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
+                                             GenotypeOutFormatSpec(..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
@@ -364,17 +365,17 @@ parseRemoteDummy = OP.flag' () (
     OP.long "remote" <>
     OP.help "List packages from a remote server instead the local file system.")
 
-parseOutGenotypeFormat :: Bool -> OP.Parser String
+parseOutGenotypeFormat :: Bool -> OP.Parser GenotypeOutFormatSpec
 parseOutGenotypeFormat withDefault =
   if withDefault
-  then OP.strOption settingsWithDefault
-  else OP.strOption settingsWithoutDefault
+  then OP.option OP.auto settingsWithDefault
+  else OP.option OP.auto settingsWithoutDefault
   where
     settingsWithDefault =
         OP.long "outFormat" <>
         OP.metavar "FORMAT" <>
         OP.help "The format of the output genotype data: EIGENSTRAT or PLINK." <>
-        OP.value "PLINK" <>
+        OP.value GenotypeOutFormatPlink <>
         OP.showDefault
     settingsWithoutDefault =
         OP.long "outFormat" <>
