@@ -374,13 +374,13 @@ parseOutGenotypeFormat withDefault =
     settingsWithDefault =
         OP.long "outFormat" <>
         OP.metavar "FORMAT" <>
-        OP.help "The format of the output genotype data: EIGENSTRAT or PLINK." <>
+        OP.help "The format of the output genotype data: EIGENSTRAT, PLINK or VCF." <>
         OP.value GenotypeOutFormatPlink <>
         OP.showDefault
     settingsWithoutDefault =
         OP.long "outFormat" <>
         OP.metavar "FORMAT" <>
-        OP.help "the format of the output genotype data: EIGENSTRAT or PLINK."
+        OP.help "the format of the output genotype data: EIGENSTRAT, PLINK or VCF."
 
 parseGenoDataSources :: OP.Parser [GenoDataSource]
 parseGenoDataSources = OP.some parseGenoDataSource
