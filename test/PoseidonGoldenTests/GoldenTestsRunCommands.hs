@@ -37,6 +37,7 @@ import           Poseidon.EntityTypes       (EntityInput (..),
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
+                                             GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
@@ -429,7 +430,7 @@ testPipelineGenoconvert :: FilePath -> FilePath -> IO ()
 testPipelineGenoconvert testDir checkFilePath = do
     let genoconvertOpts1 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
-        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -444,7 +445,7 @@ testPipelineGenoconvert testDir checkFilePath = do
 
     let genoconvertOpts2 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
-        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "Schiffels_otherPlinkEncoding"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsPhenotype
@@ -460,7 +461,7 @@ testPipelineGenoconvert testDir checkFilePath = do
     -- in-place conversion
     let genoconvertOpts3 = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testDir </> "init" </> "Wang"]
-        , _genoConvertOutFormat = "EIGENSTRAT"
+        , _genoConvertOutFormat = GenotypeOutFormatEigenstrat
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -488,7 +489,7 @@ testPipelineGenoconvert testDir checkFilePath = do
                 , genotypeSnpSet   = Just SNPSetOther
               }
           ]
-        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -512,7 +513,7 @@ testPipelineGenoconvert testDir checkFilePath = do
                 , genotypeSnpSet   = Just SNPSetOther
               }
           ]
-        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -528,7 +529,7 @@ testPipelineGenoconvert testDir checkFilePath = do
     -- round trip test
     let genoconvertOpts6zipping = GenoconvertOptions {
           _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
-        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "zip_roundtrip"
         , _genoconvertRemoveOld = False
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
@@ -543,20 +544,29 @@ testPipelineGenoconvert testDir checkFilePath = do
                                         (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim.gz") Nothing
                                         (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam") Nothing
               in  [GenoDirect $ GenotypeDataSpec gSpec Nothing]
-        , _genoConvertOutFormat = "PLINK"
+        , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = True
         , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
         , _genoconvertOnlyLatest = False
         , _genoconvertOutZip     = False
     }
-    return ()
-
     runAndChecksumFiles checkFilePath testDir (testLog $ runGenoconvert genoconvertOpts6unzipping) "genoconvert" [
           "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed"
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim"
         , "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam"
         ]
+
+    let genoconvertOpts7 = GenoconvertOptions {
+          _genoconvertGenoSources = [PacBaseDir $ testPacsDir </> "Schiffels_2016"]
+        , _genoConvertOutFormat = GenotypeOutFormatVCF
+        , _genoMaybeOutPackagePath = Just $ testDir </> "genoconvert" </> "out_vcf"
+        , _genoconvertRemoveOld = False
+        , _genoconvertOutPlinkPopMode = PlinkPopNameAsFamily
+        , _genoconvertOnlyLatest = False
+        , _genoconvertOutZip     = True
+    }
+    testLog $ runGenoconvert genoconvertOpts7
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do
@@ -633,7 +643,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1"
@@ -657,7 +667,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac1_vcf"
@@ -681,7 +691,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "PLINK"
+        , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = MinimalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac2"
@@ -702,7 +712,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile1.txt")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac3"
@@ -727,7 +737,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile2.txt")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "PLINK"
+        , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac4"
@@ -751,7 +761,7 @@ testPipelineForge testDir checkFilePath = do
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Wang_2020"]
         , _forgeEntityInput  = []
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac5"
@@ -799,7 +809,7 @@ testPipelineForge testDir checkFilePath = do
           ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = GenoOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac6"
@@ -835,7 +845,7 @@ testPipelineForge testDir checkFilePath = do
             ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac7"
@@ -859,7 +869,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX001>,<XXX011>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac8"
@@ -880,7 +890,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,-<Schiffels_2016:POP1:XXX001>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac9"
@@ -902,7 +912,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "-<Schmid_2028:POP1:XXX001>,-<Schiffels_2016:POP2:XXX002>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac10"
@@ -925,7 +935,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac11"
@@ -947,7 +957,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.0*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac12"
@@ -967,7 +977,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.1*,*Schiffels_2016*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac13"
@@ -988,7 +998,7 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "<Lamnidis_2018-1.0.1:POP1:XXX017>,<Lamnidis_2018-1.0.0:POP3:XXX018>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac14"
@@ -1009,7 +1019,7 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018-1.0.1*,*Lamnidis_2018-1.0.0*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac15"
@@ -1030,7 +1040,7 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018*,*Lamnidis_2018-1.0.0*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac16"
@@ -1051,7 +1061,7 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "*Lamnidis_2018-1.0.1*,-POP2,-<Lamnidis_2018-1.0.1:POP1:XXX017>,-<Lamnidis_2018-1.0.1:POP3:XXX018>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "EIGENSTRAT"
+        , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac17"
@@ -1070,7 +1080,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3,<XXX004>,<XXX006>,<XXX003>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "PLINK"
+        , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac18"
@@ -1091,7 +1101,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX004>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "PLINK"
+        , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = PreservePymlOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac19"
@@ -1121,7 +1131,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = []
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
-        , _forgeOutFormat    = "PLINK"
+        , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac20"
@@ -1134,6 +1144,20 @@ testPipelineForge testDir checkFilePath = do
     runAndChecksumFiles checkFilePath testDir action20 "forge" [
           "forge" </> "ForgePac20" </> "POSEIDON.yml",
           "forge" </> "ForgePac20" </> "ForgePac20.janno"
+        ]
+
+    let forgeOpts21 = forgeOpts1 {
+          _forgeOutFormat    = GenotypeOutFormatVCF
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac21"
+        , _forgeOutPacName   = Just "ForgePac21"
+    }
+    let action21 = testLog (runForge forgeOpts21) >> patchLastModified testDir ("forge" </> "ForgePac21" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action21 "forge" [
+          "forge" </> "ForgePac21" </> "POSEIDON.yml"
+        , "forge" </> "ForgePac21" </> "ForgePac21.vcf"
+        , "forge" </> "ForgePac21" </> "ForgePac21.janno"
+        , "forge" </> "ForgePac21" </> "ForgePac21.ssf"
+        , "forge" </> "ForgePac21" </> "ForgePac21.bib"
         ]
 
 

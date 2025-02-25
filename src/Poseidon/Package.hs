@@ -522,9 +522,9 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
 -- we want to skip these checks in this case, see client code in readPoseidonPackage
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> Bool -> IO ()
 checkJannoIndConsistency pacName (JannoRows rows) indEntries checkGroups checkSex = do
-    let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
+    let genoIDs         = [ BSC.unpack x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
-        genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
+        genoGroups      = [ BSC.unpack x | EigenstratIndEntry  _ _ x <- indEntries]
     let jannoIDs        = map jPoseidonID rows
         jannoSexs       = map (sfSex . jGeneticSex) rows
         jannoGroups     = map (show . head . getListColumn . jGroupName) rows

@@ -16,9 +16,11 @@ import           Poseidon.EntityTypes        (EntityInput,
 import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFileSpec (..),
+                                              GenotypeOutFormatSpec (..),
                                               SNPSetSpec (..),
                                               printSNPCopyProgress,
-                                              selectIndices, snpSetMergeList)
+                                              selectIndices, snpSetMergeList,
+                                              writeVCF)
 import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
                                               ListColumn (..),
                                               getMaybeListColumn,
@@ -76,7 +78,7 @@ data ForgeOptions = ForgeOptions
     , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
     , _forgeSnpFile            :: Maybe FilePath
     , _forgeIntersect          :: Bool
-    , _forgeOutFormat          :: String
+    , _forgeOutFormat          :: GenotypeOutFormatSpec
     , _forgeOutMode            :: ForgeOutMode
     , _forgeOutZip             :: Bool
     , _forgeOutPacPath         :: FilePath
@@ -187,16 +189,15 @@ runForge (
     -- compile genotype data structure
     let gz = if outZip then "gz" else ""
     genotypeFileData <- case outFormat of
-            "EIGENSTRAT" -> return $
-                GenotypeEigenstrat (outName <.> ".geno" <.> gz)  Nothing
-                                   (outName <.> ".snp" <.> gz)  Nothing
-                                   (outName <.> ".ind") Nothing
-            "PLINK"      -> return $
-                GenotypePlink      (outName <.> ".bed" <.> gz)  Nothing
-                                   (outName <.> ".bim" <.> gz)  Nothing
-                                   (outName <.> ".fam")  Nothing
-            _  -> liftIO . throwIO $
-                PoseidonGenericException ("Illegal outFormat " ++ outFormat ++ ". Only Outformats EIGENSTRAT or PLINK are allowed at the moment")
+            GenotypeOutFormatEigenstrat -> return $
+                GenotypeEigenstrat (outName <.> "geno" <.> gz)  Nothing
+                                   (outName <.> "snp" <.> gz)  Nothing
+                                   (outName <.> "ind") Nothing
+            GenotypeOutFormatPlink      -> return $
+                GenotypePlink      (outName <.> "bed" <.> gz)  Nothing
+                                   (outName <.> "bim" <.> gz)  Nothing
+                                   (outName <.> "fam")  Nothing
+            GenotypeOutFormatVCF        -> return $ GenotypeVCF (outName <.> "vcf" <.> gz) Nothing
     let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet)
 
     -- assemble and write result depending on outMode --
@@ -289,8 +290,10 @@ runForge (
                                 writeEigenstrat (outPath </> outG) (outPath </> outS) (outPath </> outI) newEigenstratIndEntries
                             GenotypePlink      outG _ outS _ outI _ ->
                                 writePlink      (outPath </> outG) (outPath </> outS) (outPath </> outI) (map (eigenstratInd2PlinkFam outPlinkPopMode) newEigenstratIndEntries)
-                            _  -> liftIO . throwIO $
-                                PoseidonGenericException "only Outformats EIGENSTRAT or PLINK are allowed at the moment"
+                            GenotypeVCF outG _  ->
+                                let allJannoRows = getJannoRows $ getJointJanno relevantPackages
+                                    selJannoRows = map (allJannoRows !!) relevantIndices
+                                 in writeVCF logA selJannoRows (outPath </> outG)
                     let extractPipe = if packageWise then cat else P.map (selectIndices relevantIndices)
                     -- define main forge pipe including file output.
                     -- The final tee forwards the results to be used in the snpCounting-fold

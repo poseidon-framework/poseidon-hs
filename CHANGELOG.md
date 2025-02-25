@@ -1,3 +1,5 @@
+- V 1.6.4.0:
+    - Added support for (optionally gzipped) VCF output in forge and genoconvert.
 - V 1.6.3.0:
     - Added an html (website) API to the set of endpoints served by trident `serve`.
         - The html is build with `blaze-html` and `blaze-markup`.

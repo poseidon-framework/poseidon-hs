@@ -347,9 +347,9 @@ createMinimalJanno xs = JannoRows $ map createMinimalSample xs
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow {
-          jPoseidonID                   = id_
+          jPoseidonID                   = Bchs.unpack id_ -- TODO: this will have to change. We need to make PoseidonID itself ByteString
         , jGeneticSex                   = GeneticSex sex
-        , jGroupName                    = ListColumn [GroupName $ T.pack pop]
+        , jGroupName                    = ListColumn [GroupName . T.pack . Bchs.unpack $ pop] -- same thing, see above.
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
@@ -638,4 +638,4 @@ jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
 jannoRows2EigenstratIndEntries (JannoRows jannoRows) = do -- list monad
     jannoRow <- jannoRows -- looping over jannoRows
     let GroupName gText = head . getListColumn . jGroupName $ jannoRow
-    return $ EigenstratIndEntry (jPoseidonID jannoRow) (sfSex (jGeneticSex jannoRow)) (T.unpack gText)
+    return $ EigenstratIndEntry (Bchs.pack $ jPoseidonID jannoRow) (sfSex (jGeneticSex jannoRow)) (Bchs.pack $ T.unpack gText)

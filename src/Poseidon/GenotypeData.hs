@@ -1,28 +1,37 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
+import           Paths_poseidon_hs          (version)
+import           Poseidon.Janno             (GroupName (..),
+                                             JannoGenotypePloidy (..),
+                                             JannoRow (jGenotypePloidy, jGroupName, jPoseidonID),
+                                             ListColumn (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envInputPlinkMode, logDebug,
-                                             logInfo, logWithEnv, padLeft)
+                                             logInfo, logWarning, logWithEnv,
+                                             padLeft)
 
 import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, unless)
+import           Control.Monad              (forM, forM_, unless, when)
 import           Control.Monad.Catch        (MonadThrow, throwM)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              withText, (.:), (.:?), (.=))
 import           Data.ByteString            (isPrefixOf)
+import qualified Data.ByteString.Char8      as B
 import           Data.IORef                 (modifyIORef, newIORef, readIORef)
-import           Data.List                  (nub, sort)
-import           Data.Maybe                 (catMaybes)
+import           Data.List                  (intercalate, nub, sort)
+import           Data.Maybe                 (catMaybes, fromMaybe)
 import qualified Data.Text                  as T
 import           Data.Time                  (NominalDiffTime, UTCTime,
                                              diffUTCTime, getCurrentTime)
 import qualified Data.Vector                as V
-import           Pipes                      (Pipe, Producer, cat, for, yield,
-                                             (>->))
+import           Data.Version               (showVersion)
+import           Pipes                      (Consumer, Pipe, Producer, cat, for,
+                                             yield, (>->))
+import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
@@ -32,7 +41,8 @@ import           SequenceFormats.FreqSum    (FreqSumEntry (..))
 import           SequenceFormats.Plink      (plinkFam2EigenstratInd,
                                              readFamFile, readPlink)
 import           SequenceFormats.VCF        (VCFentry (..), VCFheader (..),
-                                             readVCFfromFile, vcfToFreqSumEntry)
+                                             readVCFfromFile, vcfToFreqSumEntry,
+                                             writeVCFfile)
 import           System.FilePath            (takeDirectory, takeFileName, (</>))
 
 data GenoDataSource = PacBaseDir
@@ -66,6 +76,19 @@ data GenotypeFileSpec = GenotypeEigenstrat {
     _vcfGenoFile       :: FilePath,
     _vcfGenoFileChkSum :: Maybe String
 } deriving (Show, Eq)
+
+data GenotypeOutFormatSpec = GenotypeOutFormatPlink | GenotypeOutFormatEigenstrat | GenotypeOutFormatVCF
+
+instance Show GenotypeOutFormatSpec where
+    show GenotypeOutFormatEigenstrat = "EIGENSTRAT"
+    show GenotypeOutFormatPlink      = "PLINK"
+    show GenotypeOutFormatVCF        = "VCF"
+
+instance Read GenotypeOutFormatSpec where
+    readsPrec _ "EIGENSTRAT" = [(GenotypeOutFormatEigenstrat, "")]
+    readsPrec _ "PLINK"      = [(GenotypeOutFormatPlink,      "")]
+    readsPrec _ "VCF"        = [(GenotypeOutFormatVCF ,       "")]
+    readsPrec _ _            = []
 
 -- | To facilitate automatic parsing of GenotypeDataSpec from JSON files
 instance FromJSON GenotypeDataSpec where
@@ -216,21 +239,24 @@ loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _) =
             vcfProd <- snd <$> readVCFfromFile (baseDir </> fn)
             return $ vcfProd >-> vcf2eigenstratPipe
 
-vcf2eigenstratPipe :: (MonadIO m) => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
+vcf2eigenstratPipe :: (MonadThrow m) => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
 vcf2eigenstratPipe = for cat $ \vcfEntry -> do
-    case vcfToFreqSumEntry vcfEntry of --freqSum is a useful intermediate format. This function already does a bunch of checks of the VCF data.
-        Right (FreqSumEntry chrom pos snpId_ geneticPos ref alt alleleCounts) -> do
-            let eigenstratSnpEntry = EigenstratSnpEntry chrom pos (maybe 0.0 id geneticPos) (maybe "" id snpId_) ref alt
-            genoLine <- V.fromList <$> forM alleleCounts (\alleleCount -> do
-                    case alleleCount of
-                        Nothing -> return Missing
-                        Just 0  -> return HomRef
-                        Just 1  -> return Het
-                        Just 2  -> return HomAlt
-                        _       -> liftIO . throwIO . PoseidonGenotypeException $
-                            "illegal dosage (" ++ show alleleCount ++ ") in VCF file at chrom " ++ show chrom ++ ", position " ++ show pos)
-            yield (eigenstratSnpEntry, genoLine)
-        Left err -> liftIO . throwIO . PoseidonGenotypeException $ err
+    -- freqSum is a useful intermediate format.
+    -- vcfToFreqSumEntry already does a bunch of checks of the VCF data.
+    (FreqSumEntry chrom pos snpId_ geneticPos ref alt alleleCounts) <- vcfToFreqSumEntry vcfEntry
+    let eigenstratSnpEntry = EigenstratSnpEntry chrom pos (fromMaybe 0.0 geneticPos) (fromMaybe "" snpId_) ref alt
+    genoLine <- V.fromList <$> forM alleleCounts (\dosage -> do
+        case dosage of
+            Nothing     -> return Missing
+            Just (0, 1) -> return HomRef
+            Just (1, 1) -> return HomAlt
+            Just (0, 2) -> return HomRef
+            Just (1, 2) -> return Het
+            Just (2, 2) -> return HomAlt
+            _ -> throwM . PoseidonGenotypeException $
+                "illegal dosage in VCF file! Make sure genotypes in your VCF \
+                \file are biallelic and either haploid or diploid")
+    yield (eigenstratSnpEntry, genoLine)
 
 joinEntries :: (MonadIO m) => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 joinEntries logA nrInds pacNames maybeTupleList = do
@@ -355,3 +381,60 @@ printSNPCopyProgress logA startTime = do
 
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.! i | i <- indices])
+
+writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
+writeVCF logA jannoRows vcfFile = do
+    let sampleNames = map (B.pack . jPoseidonID) jannoRows
+        groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
+    forM_ jannoRows $ \jannoRow -> do
+        when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
+            "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
+            ". For VCF output I will assume diploid genotypes. " ++
+            "Please set the GenotypePloidy column explitly in the Janno File to haploid or diploid."
+    let metaInfoLines = map B.pack [
+            "##fileformat=VCFv4.2",
+            "##source=trident_v" ++ showVersion version,
+            "##group_names=" ++ intercalate "," groupNames,
+            "##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">",
+            "##FILTER=<ID=s50,Description=\"Less than 50% of samples have data\">",
+            "##FILTER=<ID=s10,Description=\"Less than 10% of samples have data\">",
+            "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">"]
+        vcfh = VCFheader metaInfoLines sampleNames
+    P.mapM (liftIO . createVCFentry logA jannoRows) >-> writeVCFfile vcfFile vcfh
+
+createVCFentry :: (MonadIO m) => LogA -> [JannoRow] -> (EigenstratSnpEntry, GenoLine) -> m VCFentry
+createVCFentry logA jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoLine) = do
+    gt <- genotypes
+    return $ VCFentry chrom pos (Just id_) (B.pack [ref]) altField Nothing (Just filterString)
+            infoFields (Just (["GT"], gt))
+  where
+    altField = if alt == 'N' then [] else [B.pack [alt]]
+    nrMissing = V.length . V.filter (==Missing) $ genoLine
+    nrSamples = V.length genoLine
+    filterString
+        | nrMissing * 10 > 9 * nrSamples = "s10;s50"
+        | nrMissing * 2 > nrSamples      = "s50"
+        | otherwise                      = "PASS"
+    nrSamplesWithData = nrSamples - nrMissing
+    infoFields = [B.pack ("NS=" ++ show nrSamplesWithData)]
+    genotypes = forM (zip3 sampleNames genoEntries ploidyList) $ \(s, g, p) -> case (g, p) of
+        (Missing, Just Haploid) -> return ["."]
+        (HomRef , Just Haploid) -> return ["0"]
+        (Het    , Just Haploid) -> do
+            logWithEnv logA . logWarning $ "Encountered a heterozygous genotype for " ++ s ++
+                " at position " ++ show chrom ++ ":" ++ show pos ++ ", but the individual's GenotypePloidy is given as " ++
+                " Haploid in the Janno-File. I have to encode this in the VCF as a diploid genotype. Consider changing this " ++
+                "individual's GenotypePloidy to diploid!"
+            return ["0/1"]
+        (HomAlt , Just Haploid) -> return ["1"]
+        (Missing, Just Diploid) -> return ["./."]
+        (HomRef , Just Diploid) -> return ["0/0"]
+        (Het    , Just Diploid) -> return ["0/1"]
+        (HomAlt , Just Diploid) -> return ["1/1"]
+        (Missing, Nothing)      -> return ["./."] -- we assume diploid in these case, see warning above in
+        (HomRef , Nothing)      -> return ["0/0"]
+        (Het    , Nothing)      -> return ["0/1"]
+        (HomAlt , Nothing)      -> return ["1/1"]
+    sampleNames = map jPoseidonID jannoRows
+    genoEntries = V.toList genoLine
+    ploidyList = map jGenotypePloidy jannoRows
