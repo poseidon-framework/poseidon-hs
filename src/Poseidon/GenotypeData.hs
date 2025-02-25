@@ -392,9 +392,10 @@ writeVCF logA jannoRows vcfFile = do
 createVCFentry :: (MonadIO m) => LogA -> [JannoRow] -> (EigenstratSnpEntry, GenoLine) -> m VCFentry
 createVCFentry logA jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoLine) = do
     gt <- genotypes
-    return $ VCFentry chrom pos (Just id_) (B.pack [ref]) [B.pack [alt]] Nothing (Just filterString)
+    return $ VCFentry chrom pos (Just id_) (B.pack [ref]) altField Nothing (Just filterString)
             infoFields (Just (["GT"], gt))
   where
+    altField = if alt == 'N' then [] else [B.pack [alt]]
     nrMissing = V.length . V.filter (==Missing) $ genoLine
     nrSamples = V.length genoLine
     filterString
