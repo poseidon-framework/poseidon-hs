@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Rectify (
-    runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
+    runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..),
+    BulkModeSpec(..)
     ) where
 
 import           Poseidon.Contributor   (ContributorSpec (..))
@@ -40,12 +41,24 @@ data RectifyOptions = RectifyOptions
     , _rectifyNewContributors       :: [ContributorSpec]
     , _rectifyJannoRemoveEmptyCols  :: Bool
     , _rectifyOnlyLatest            :: Bool
+    , _rectifyBulkMode              :: BulkModeSpec
     }
+
+-- BulkModeForceAll = Apply Package-Version-updates, Contributors and Changelog updates to all packages found
+-- BulkModeOnlyChanged = Apply Package-Version-updates, Contributors and Changelog updates only to packages with changed checksums
+-- BulkModeOnlyChanged (default) = Refuse Package-Version-updates, Contributors and Changelog on multiple packages 
+data BulkModeSpec = BulkModeForceAll | BulkModeOnlyChanged | BulkModeNone
+
+-- read instance useful for command-line option parsing 
+instance Read BulkModeSpec where
+    readsPrec _ "all"         = [(BulkModeForceAll,    "")]
+    readsPrec _ "onlyChanged" = [(BulkModeOnlyChanged, "")]
+    readsPrec _ "none"        = [(BulkModeNone,        "")]
+    readsPrec _ _             = []
 
 data PackageVersionUpdate = PackageVersionUpdate
     { _pacVerUpVersionComponent :: VersionComponent
     , _pacVerUpLog              :: Maybe String
-    , _pacVerForceUpdate        :: Bool -- force update even if nothing changed.
     }
 
 data ChecksumsToRectify =
@@ -63,7 +76,7 @@ runRectify (RectifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
                 jannoRemoveEmptyCols
-                onlyLatest
+                onlyLatest bulkMode
            ) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
@@ -75,11 +88,17 @@ runRectify (RectifyOptions
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
     logInfo "Starting per-package update procedure"
-    mapM_ rectifyOnePackage allPackages
+    case allPackages of
+        [] -> logInfo "No package found. Nothing to rectify"
+        [onePackage] -> rectifyOnePackage False onePackage
+        pacs -> case bulkMode of 
+            BulkModeForceAll -> mapM_ (rectifyOnePackage False) pacs
+            BulkModeOnlyChanged -> mapM_ (rectifyOnePackage True) pacs
+            BulkModeNone -> logInfo "Found multiple packages. Please use the --bulkMode option to tell me what to do"
     logInfo "Done"
     where
-        rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
-        rectifyOnePackage inPac = do
+        rectifyOnePackage :: Bool -> PoseidonPackage -> PoseidonIO ()
+        rectifyOnePackage bulkModeCheck inPac = do
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
             when jannoRemoveEmptyCols $ do
                 case posPacJannoFile inPac of
@@ -91,7 +110,7 @@ runRectify (RectifyOptions
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
-            completeAndWritePackage pacVerUpdate inPac updatedPacChecksums
+            completeAndWritePackage bulkModeCheck pacVerUpdate inPac updatedPacChecksums
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
@@ -172,12 +191,12 @@ updateChecksums checksumSetting pac = do
             e <- liftIO . doesFileExist $ file
             if e then Just <$!!> getChk file else return defaultChkSum
 
-completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonPackage -> PoseidonIO ()
-completeAndWritePackage Nothing _ newPac = do
+completeAndWritePackage :: Bool -> Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonPackage -> PoseidonIO ()
+completeAndWritePackage _ Nothing _ newPac = do
     logDebug "Writing rectified POSEIDON.yml file"
     liftIO $ writePoseidonPackage newPac
-completeAndWritePackage (Just (PackageVersionUpdate component logText forcedUpdate)) oldPac newPac =
-    if not forcedUpdate && (oldPac == newPac) then
+completeAndWritePackage bulkModeCheck (Just (PackageVersionUpdate component logText)) oldPac newPac =
+    if bulkModeCheck && (oldPac == newPac) then
         logInfo $ "Nothing to rectify for package " ++ renderNameWithVersion newPac
     else do
         updatedPacPacVer <- updatePackageVersion component newPac

@@ -245,6 +245,7 @@ rectifyOptParser = RectifyOptions <$> parseBasePaths
                                   <*> parseContributors
                                   <*> parseJannoRemoveEmptyCols
                                   <*> parseOnlyLatest
+                                  <*> parseBulkMode
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseValidatePlan

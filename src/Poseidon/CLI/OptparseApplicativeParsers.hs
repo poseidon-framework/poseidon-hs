@@ -9,7 +9,8 @@ import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
 import           Poseidon.CLI.List          (ListEntity (..),
                                              RepoLocationSpec (..))
 import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
-                                             PackageVersionUpdate (..))
+                                             PackageVersionUpdate (..),
+                                             BulkModeSpec(..))
 import           Poseidon.CLI.Serve         (ArchiveConfig (..),
                                              ArchiveSpec (..))
 import           Poseidon.CLI.Validate      (ValidatePlan (..))
@@ -193,7 +194,7 @@ parseChecksumsToRectify = parseChecksumNone <|> parseChecksumAll <|> parseChecks
 
 parseMaybePackageVersionUpdate :: OP.Parser (Maybe PackageVersionUpdate)
 parseMaybePackageVersionUpdate = OP.optional $ PackageVersionUpdate <$>
-    parseVersionComponent <*> parseMaybeLog <*> parseForcedUpdate
+    parseVersionComponent <*> parseMaybeLog
 
 parseVersionComponent :: OP.Parser VersionComponent
 parseVersionComponent = OP.option (OP.eitherReader readVersionComponent) (
@@ -941,3 +942,13 @@ parseZipOut = OP.switch (
     OP.short 'z' <>
     OP.help "Should the resulting genotype- and snp-files be gzipped?"
     )
+
+parseBulkMode :: OP.Parser BulkModeSpec
+parseBulkMode = OP.option OP.auto (OP.long "bulkMode" <>
+    OP.help "Control the behavior of rectify if multiple packages are found. \
+        \Can be one of 'all', 'onlyChanged' and 'none' (default). \
+        \'all': All requested changes are applied to all packages found in the base path. \
+        \'onlyChanged': Any requested updates to package version, Changelog and new contributors \
+        \are applied to only those packages whose checksums are changed as well. \
+        \'none': Rectify will not update package versions, Changelog or contributors \
+        \in case multiple packages are found. This is the default (safe) mode.")
