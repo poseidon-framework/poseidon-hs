@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.3.0
+@version 1.6.4.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -1095,6 +1095,10 @@ GenotypePlink :: FilePath -> Maybe String -> FilePath -> Maybe String -> FilePat
 GenotypeVCF :: FilePath -> Maybe String -> GenotypeFileSpec
 [_vcfGenoFile] :: GenotypeFileSpec -> FilePath
 [_vcfGenoFileChkSum] :: GenotypeFileSpec -> Maybe String
+data GenotypeOutFormatSpec
+GenotypeOutFormatPlink :: GenotypeOutFormatSpec
+GenotypeOutFormatEigenstrat :: GenotypeOutFormatSpec
+GenotypeOutFormatVCF :: GenotypeOutFormatSpec
 data SNPSetSpec
 SNPSet1240K :: SNPSetSpec
 SNPSetHumanOrigins :: SNPSetSpec
@@ -1113,12 +1117,14 @@ loadIndividuals :: FilePath -> GenotypeDataSpec -> PoseidonIO [EigenstratIndEntr
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
-vcf2eigenstratPipe :: MonadIO m => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
+vcf2eigenstratPipe :: MonadThrow m => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
 joinEntries :: MonadIO m => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
 getConsensusSnpEntry :: MonadIO m => LogA -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
 printSNPCopyProgress :: MonadIO m => LogA -> UTCTime -> Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
+writeVCF :: MonadSafe m => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
+createVCFentry :: MonadIO m => LogA -> [JannoRow] -> (EigenstratSnpEntry, GenoLine) -> m VCFentry
 instance GHC.Classes.Eq Poseidon.GenotypeData.GenotypeFileSpec
 instance GHC.Show.Show Poseidon.GenotypeData.GenotypeFileSpec
 instance GHC.Classes.Eq Poseidon.GenotypeData.SNPSetSpec
@@ -1130,6 +1136,8 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.GenotypeDataSpec
 instance GHC.Show.Show Poseidon.GenotypeData.SNPSetSpec
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.GenotypeData.SNPSetSpec
 instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.GenotypeData.SNPSetSpec
+instance GHC.Show.Show Poseidon.GenotypeData.GenotypeOutFormatSpec
+instance GHC.Read.Read Poseidon.GenotypeData.GenotypeOutFormatSpec
 
 module Poseidon.Contributor
 
@@ -1844,27 +1852,28 @@ module Poseidon.CLI.Genoconvert
 
 -- | A datatype representing command line options for the validate command
 data GenoconvertOptions
-GenoconvertOptions :: [GenoDataSource] -> String -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> Bool -> GenoconvertOptions
+GenoconvertOptions :: [GenoDataSource] -> GenotypeOutFormatSpec -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> Bool -> GenoconvertOptions
 [_genoconvertGenoSources] :: GenoconvertOptions -> [GenoDataSource]
-[_genoConvertOutFormat] :: GenoconvertOptions -> String
+[_genoConvertOutFormat] :: GenoconvertOptions -> GenotypeOutFormatSpec
 [_genoMaybeOutPackagePath] :: GenoconvertOptions -> Maybe FilePath
 [_genoconvertRemoveOld] :: GenoconvertOptions -> Bool
 [_genoconvertOutPlinkPopMode] :: GenoconvertOptions -> PlinkPopNameMode
 [_genoconvertOnlyLatest] :: GenoconvertOptions -> Bool
 [_genoconvertOutZip] :: GenoconvertOptions -> Bool
 runGenoconvert :: GenoconvertOptions -> PoseidonIO ()
-convertGenoTo :: String -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> PoseidonPackage -> PoseidonIO ()
+illegalFormatException :: String -> PoseidonException
+convertGenoTo :: GenotypeOutFormatSpec -> Bool -> Maybe FilePath -> Bool -> PlinkPopNameMode -> Bool -> PoseidonPackage -> PoseidonIO ()
 
 module Poseidon.CLI.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> String -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeOutFormatSpec -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
-[_forgeOutFormat] :: ForgeOptions -> String
+[_forgeOutFormat] :: ForgeOptions -> GenotypeOutFormatSpec
 [_forgeOutMode] :: ForgeOptions -> ForgeOutMode
 [_forgeOutZip] :: ForgeOptions -> Bool
 [_forgeOutPacPath] :: ForgeOptions -> FilePath
@@ -2036,7 +2045,7 @@ parseForgeEntitiesFromFile :: Parser FilePath
 parseFetchEntitiesFromFile :: Parser FilePath
 parseIntersect :: Parser Bool
 parseRemoteDummy :: Parser ()
-parseOutGenotypeFormat :: Bool -> Parser String
+parseOutGenotypeFormat :: Bool -> Parser GenotypeOutFormatSpec
 parseGenoDataSources :: Parser [GenoDataSource]
 parseGenoDataSource :: Parser GenoDataSource
 parseRepoLocation :: Parser RepoLocationSpec
