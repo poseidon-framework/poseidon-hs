@@ -59,6 +59,8 @@ dataToJSON = T.pack . C.unpack . encode
 mapJS :: T.Text -> T.Text -> T.Text
 mapJS nrLoaded mapMarkers = [text|
   window.onload = function() {
+    new simpleDatatables.DataTable('#packageTable');
+  
     // basic map
     var mymap = L.map('mapid').setView([35, 10], 1);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -155,6 +157,9 @@ header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
     H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
+    -- DataTables
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0" $ ""
 
 navBar :: H.Html
 navBar = H.nav $ do
@@ -223,7 +228,7 @@ archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
-    H.table $ do
+    H.table ! A.id "packageTable" $ do
       H.tr $ do
         H.th $ H.b "Package"
         H.th $ H.b "# Samples"
