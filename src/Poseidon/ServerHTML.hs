@@ -59,7 +59,7 @@ dataToJSON = T.pack . C.unpack . encode
 onloadJS :: T.Text -> T.Text -> T.Text
 onloadJS nrLoaded mapMarkers = [text|
   window.onload = function() {
-    
+
     // transform table to sortable version
     if (document.querySelector('#currentTable')) {
         let options = {
@@ -68,7 +68,7 @@ onloadJS nrLoaded mapMarkers = [text|
         };
         new simpleDatatables.DataTable('#currentTable', options);
     }
-    
+
     // leaflet map
     if (document.querySelector('#mapid')) {
         var mymap = L.map('mapid').setView([35, 10], 1);
@@ -267,7 +267,7 @@ archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
           H.td (H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
           H.td $ H.toMarkup $ show nrSamples
           case lastMod of
-            Just x -> H.td $ H.toMarkup $ show x
+            Just x  -> H.td $ H.toMarkup $ show x
             Nothing -> H.td $ H.string "n/a"
           -- archives with more info
           case maybeArchiveSpecURL of
