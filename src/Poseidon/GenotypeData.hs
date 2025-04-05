@@ -214,10 +214,10 @@ loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
     popMode <- envInputPlinkMode
     case gFileSpec of
         GenotypeEigenstrat _ _ _ _ fn fnChk -> do
-            --liftIO $ checkFile (d </> fn) fnChk
+            liftIO $ checkFile (d </> fn) fnChk
             readEigenstratInd (d </> fn)
         GenotypePlink _ _ _ _ fn fnChk -> do
-            --liftIO $ checkFile (d </> fn) fnChk
+            liftIO $ checkFile (d </> fn) fnChk
             map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> fn)
         GenotypeVCF fn fnChk -> do
             liftIO $ checkFile (d </> fn) fnChk
