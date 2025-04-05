@@ -16,7 +16,7 @@ import           Data.Aeson.Types            (ToJSON (..))
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
-import           Data.List                   (foldl')
+import           Data.List                   (foldl', sortBy)
 import           Data.Maybe                  (fromMaybe)
 import qualified Data.Text                   as T
 import qualified Data.Text.Encoding          as T
@@ -215,6 +215,14 @@ mainPage pacsPerArchive = do
             H.toMarkup archiveName
         -- normal archive
         H.toMarkup $ show nrPackages <> " packages"
+        H.br
+        H.div ! A.style "font-size: 12px;" $ do
+          H.toMarkup $ H.string "Last modified: "
+          forM_ (take 3 $ sortBy (flip (\p1 p2 -> compare (posPacLastModified p1) (posPacLastModified p2))) pacs) $ \pac -> do
+              let pacName = getPacName pac
+                  pacNameVersion = renderNameWithVersion pac
+              H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacNameVersion
+              H.toMarkup $ H.string $ " (" ++  maybe "?" show (posPacLastModified pac) ++ "); "
         -- archives with more info
         case (maybeDescription,maybeURL) of
           (Just desc, Just url) -> do
