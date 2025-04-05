@@ -59,6 +59,7 @@ dataToJSON = T.pack . C.unpack . encode
 onloadJS :: T.Text -> T.Text -> T.Text
 onloadJS nrLoaded mapMarkers = [text|
   window.onload = function() {
+    
     // transform table to sortable version
     if (document.querySelector('#currentTable')) {
         let options = {
@@ -67,42 +68,44 @@ onloadJS nrLoaded mapMarkers = [text|
         };
         new simpleDatatables.DataTable('#currentTable', options);
     }
-
-    // basic map
-    var mymap = L.map('mapid').setView([35, 10], 1);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-    }).addTo(mymap);
-    // add legend
-    const nrLoaded = $nrLoaded;
-    var legend = L.control({position: 'bottomright'});
-    legend.onAdd = function (map) {
-        var div = L.DomUtil.create('div', 'info legend');
-        div.innerHTML = nrLoaded[0] + ' samples loaded<br>' + nrLoaded[1] + ' lat/lon missing<br>';
-        return div;
-    };
-    legend.addTo(mymap);
-    // markers
-    var markers = L.markerClusterGroup();
-    const mapMarkers = $mapMarkers;
-    for (var i = 0; i<mapMarkers.length; i++) {
-        const s = mapMarkers[i];
-        // prepare popup message
-        const packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
-        const popupContentLines = [];
-        popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
-        popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
-        popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
-        popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
-        popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
-        popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
-        popupContentLines.push('<b>' + packageLink + '</b>');
-        const popupContent = popupContentLines.join("<br>");
-        // create a marker with a popup
-        L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
+    
+    // leaflet map
+    if (document.querySelector('#mapid')) {
+        var mymap = L.map('mapid').setView([35, 10], 1);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }).addTo(mymap);
+        // add legend
+        const nrLoaded = $nrLoaded;
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML = nrLoaded[0] + ' samples loaded<br>' + nrLoaded[1] + ' lat/lon missing<br>';
+            return div;
+        };
+        legend.addTo(mymap);
+        // markers
+        var markers = L.markerClusterGroup();
+        const mapMarkers = $mapMarkers;
+        for (var i = 0; i<mapMarkers.length; i++) {
+            const s = mapMarkers[i];
+            // prepare popup message
+            const packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
+            const popupContentLines = [];
+            popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
+            popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
+            popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
+            popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
+            popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
+            popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
+            popupContentLines.push('<b>' + packageLink + '</b>');
+            const popupContent = popupContentLines.join("<br>");
+            // create a marker with a popup
+            L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
+        }
+        mymap.addLayer(markers);
     }
-    mymap.addLayer(markers);
   }
 |]
 
@@ -244,15 +247,20 @@ archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
           H.tr $ do
             H.th $ H.b "Package"
             H.th $ H.b "# Samples"
+            H.th $ H.b "Last modified"
             H.th $ H.b "Source"
             H.th $ H.b ".zip Archive"
       forM_ pacs $ \pac -> do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
+            lastMod = posPacLastModified pac
         H.tr $ do
           -- normal archive
           H.td (H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
           H.td $ H.toMarkup $ show nrSamples
+          case lastMod of
+            Just x -> H.td $ H.toMarkup $ show x
+            Nothing -> H.td $ H.string "n/a"
           -- archives with more info
           case maybeArchiveSpecURL of
             Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("GitHub" :: String)
