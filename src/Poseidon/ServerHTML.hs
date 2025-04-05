@@ -56,11 +56,18 @@ dataToJSON = T.pack . C.unpack . encode
 
 -- javascript (leaflet map)
 
-mapJS :: T.Text -> T.Text -> T.Text
-mapJS nrLoaded mapMarkers = [text|
+onloadJS :: T.Text -> T.Text -> T.Text
+onloadJS nrLoaded mapMarkers = [text|
   window.onload = function() {
-    new simpleDatatables.DataTable('#packageTable');
-  
+    // transform table to sortable version
+    if (document.querySelector('#currentTable')) {
+        let options = {
+            searchable: true,
+            perPage: 10
+        };
+        new simpleDatatables.DataTable('#currentTable', options);
+    }
+
     // basic map
     var mymap = L.map('mapid').setView([35, 10], 1);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -121,6 +128,10 @@ mapCSS = [text|
   }
   .leaflet-popup-content-wrapper {
     padding: 6px 8px !important;
+  }
+  /* overwrite some styling for the sortable table */
+  .datatable-active button {
+    color: #13171F !important;
   }
 |]
 
@@ -225,15 +236,16 @@ archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
   let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
-    H.table ! A.id "packageTable" $ do
-      H.tr $ do
-        H.th $ H.b "Package"
-        H.th $ H.b "# Samples"
-        H.th $ H.b "Source"
-        H.th $ H.b ".zip Archive"
+    H.div $ H.table ! A.id "currentTable" $ do
+      H.thead $ do
+          H.tr $ do
+            H.th $ H.b "Package"
+            H.th $ H.b "# Samples"
+            H.th $ H.b "Source"
+            H.th $ H.b ".zip Archive"
       forM_ pacs $ \pac -> do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
@@ -266,7 +278,7 @@ packageVersionPage
   let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
@@ -312,11 +324,12 @@ packageVersionPage
             H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v) <> "&archive=" <> H.toValue archiveName) $
               H.toMarkup ("Download" :: String)
     -- sample table
-    H.table $ do
-      H.tr $ do
-        H.th $ H.b "PoseidonID"
-        H.th $ H.b "Genetic_Sex"
-        H.th $ H.b "Group_Name"
+    H.div ! A.style "clear: both;" $ H.table ! A.id "currentTable" $ do
+      H.thead $ do
+        H.tr $ do
+          H.th $ H.b "PoseidonID"
+          H.th $ H.b "Genetic_Sex"
+          H.th $ H.b "Group_Name"
       forM_ samples $ \jannoRow -> do
         let link = "/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
         H.tr $ do
@@ -334,13 +347,13 @@ samplePage maybeMapMarker row = do
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
       case maybeMapMarker of
-        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
+        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
         Nothing -> pure ()
     H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
     case maybeMapMarker of
       Just _  -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
       Nothing -> pure ()
-    H.table $ do
+    H.div $ H.table $ do
       H.tr $ do
         H.th $ H.b "Property"
         H.th $ H.b "Value"
