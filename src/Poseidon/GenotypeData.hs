@@ -7,10 +7,9 @@ import           Poseidon.Janno             (GroupName (..),
                                              JannoRow (jGenotypePloidy, jGroupName, jPoseidonID),
                                              ListColumn (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
-                                             PoseidonIO, checkFile,
-                                             envInputPlinkMode, logDebug,
-                                             logInfo, logWarning, logWithEnv,
-                                             padLeft)
+                                             PoseidonIO, envInputPlinkMode,
+                                             logDebug, logInfo, logWarning,
+                                             logWithEnv, padLeft)
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (forM, forM_, unless, when)
@@ -213,14 +212,9 @@ loadIndividuals :: FilePath -- ^ the base directory
 loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
     popMode <- envInputPlinkMode
     case gFileSpec of
-        GenotypeEigenstrat _ _ _ _ fn fnChk -> do
-            liftIO $ checkFile (d </> fn) fnChk
-            readEigenstratInd (d </> fn)
-        GenotypePlink _ _ _ _ fn fnChk -> do
-            liftIO $ checkFile (d </> fn) fnChk
-            map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> fn)
-        GenotypeVCF fn fnChk -> do
-            liftIO $ checkFile (d </> fn) fnChk
+        GenotypeEigenstrat _ _ _ _ fn _ -> readEigenstratInd (d </> fn)
+        GenotypePlink _ _ _ _ fn _      -> map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> fn)
+        GenotypeVCF fn _ -> do
             (VCFheader _ sampleNames , _) <- liftIO . runSafeT . readVCFfromFile $ (d </> fn)
             --neither Sex nor population name is part of a VCF file, so we fill dummy values:
             return [EigenstratIndEntry s Unknown "unknown" | s <- sampleNames]
