@@ -1,3 +1,8 @@
+- V 1.6.5.0:
+    - Modifications to the html API (data explorer website):
+        - Added per-archive lists of last-modified packages to the main page.
+        - Added the last-modified dates for each package in the package table on the archive page.
+        - Made the package and individual lists dynamic and sortable with a new dependency on simple-datatables (essentially DataTables without jQuery).
 - V 1.6.4.1:
     - Removed checksum validation in the internal function `loadIndividuals`. This fixes a bug in `rectify` where packages with a wrong individual file (.ind/.fam) checksum could not be read and fixed.
 - V 1.6.4.0:
