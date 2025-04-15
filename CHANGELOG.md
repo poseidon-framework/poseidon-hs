@@ -1,3 +1,5 @@
+- V 1.6.4.1:
+    - Removed checksum validation in the internal function `loadIndividuals`. This fixes a bug in `rectify` where packages with a wrong individual file (.ind/.fam) checksum could not be read and fixed.
 - V 1.6.4.0:
     - Added support for (optionally gzipped) VCF output in forge and genoconvert.
 - V 1.6.3.0:
