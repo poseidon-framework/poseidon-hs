@@ -16,7 +16,7 @@ import           Data.Aeson.Types            (ToJSON (..))
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
-import           Data.List                   (foldl')
+import           Data.List                   (foldl', sortBy)
 import           Data.Maybe                  (fromMaybe)
 import qualified Data.Text                   as T
 import qualified Data.Text.Encoding          as T
@@ -56,44 +56,56 @@ dataToJSON = T.pack . C.unpack . encode
 
 -- javascript (leaflet map)
 
-mapJS :: T.Text -> T.Text -> T.Text
-mapJS nrLoaded mapMarkers = [text|
+onloadJS :: T.Text -> T.Text -> T.Text
+onloadJS nrLoaded mapMarkers = [text|
   window.onload = function() {
-    // basic map
-    var mymap = L.map('mapid').setView([35, 10], 1);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-    }).addTo(mymap);
-    // add legend
-    const nrLoaded = $nrLoaded;
-    var legend = L.control({position: 'bottomright'});
-    legend.onAdd = function (map) {
-        var div = L.DomUtil.create('div', 'info legend');
-        div.innerHTML = nrLoaded[0] + ' samples loaded<br>' + nrLoaded[1] + ' lat/lon missing<br>';
-        return div;
-    };
-    legend.addTo(mymap);
-    // markers
-    var markers = L.markerClusterGroup();
-    const mapMarkers = $mapMarkers;
-    for (var i = 0; i<mapMarkers.length; i++) {
-        const s = mapMarkers[i];
-        // prepare popup message
-        const packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
-        const popupContentLines = [];
-        popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
-        popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
-        popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
-        popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
-        popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
-        popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
-        popupContentLines.push('<b>' + packageLink + '</b>');
-        const popupContent = popupContentLines.join("<br>");
-        // create a marker with a popup
-        L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
+
+    // transform table to sortable version
+    if (document.querySelector('#currentTable')) {
+        let options = {
+            searchable: true,
+            perPage: 10
+        };
+        new simpleDatatables.DataTable('#currentTable', options);
     }
-    mymap.addLayer(markers);
+
+    // leaflet map
+    if (document.querySelector('#mapid')) {
+        var mymap = L.map('mapid').setView([35, 10], 1);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }).addTo(mymap);
+        // add legend
+        const nrLoaded = $nrLoaded;
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML = nrLoaded[0] + ' samples loaded<br>' + nrLoaded[1] + ' lat/lon missing<br>';
+            return div;
+        };
+        legend.addTo(mymap);
+        // markers
+        var markers = L.markerClusterGroup();
+        const mapMarkers = $mapMarkers;
+        for (var i = 0; i<mapMarkers.length; i++) {
+            const s = mapMarkers[i];
+            // prepare popup message
+            const packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
+            const popupContentLines = [];
+            popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
+            popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
+            popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
+            popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
+            popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
+            popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
+            popupContentLines.push('<b>' + packageLink + '</b>');
+            const popupContent = popupContentLines.join("<br>");
+            // create a marker with a popup
+            L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
+        }
+        mymap.addLayer(markers);
+    }
   }
 |]
 
@@ -119,6 +131,10 @@ mapCSS = [text|
   }
   .leaflet-popup-content-wrapper {
     padding: 6px 8px !important;
+  }
+  /* overwrite some styling for the sortable table */
+  .datatable-active button {
+    color: #13171F !important;
   }
 |]
 
@@ -155,6 +171,9 @@ header = H.head $ do
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
     H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
+    -- DataTables
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0" $ ""
 
 navBar :: H.Html
 navBar = H.nav $ do
@@ -196,6 +215,14 @@ mainPage pacsPerArchive = do
             H.toMarkup archiveName
         -- normal archive
         H.toMarkup $ show nrPackages <> " packages"
+        H.br
+        H.div ! A.style "font-size: 12px;" $ do
+          H.toMarkup $ H.string "Last modified: "
+          forM_ (take 3 $ sortBy (flip (\p1 p2 -> compare (posPacLastModified p1) (posPacLastModified p2))) pacs) $ \pac -> do
+              let pacName = getPacName pac
+                  pacNameVersion = renderNameWithVersion pac
+              H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacNameVersion
+              H.toMarkup $ H.string $ " (" ++  maybe "?" show (posPacLastModified pac) ++ "); "
         -- archives with more info
         case (maybeDescription,maybeURL) of
           (Just desc, Just url) -> do
@@ -220,22 +247,28 @@ archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
   let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
-    H.table $ do
-      H.tr $ do
-        H.th $ H.b "Package"
-        H.th $ H.b "# Samples"
-        H.th $ H.b "Source"
-        H.th $ H.b ".zip Archive"
+    H.div $ H.table ! A.id "currentTable" $ do
+      H.thead $ do
+          H.tr $ do
+            H.th $ H.b "Package"
+            H.th $ H.b "# Samples"
+            H.th $ H.b "Last modified"
+            H.th $ H.b "Source"
+            H.th $ H.b ".zip Archive"
       forM_ pacs $ \pac -> do
         let pacName = getPacName pac
             nrSamples = length $ getJannoRows $ posPacJanno pac
+            lastMod = posPacLastModified pac
         H.tr $ do
           -- normal archive
           H.td (H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacName)
           H.td $ H.toMarkup $ show nrSamples
+          case lastMod of
+            Just x  -> H.td $ H.toMarkup $ show x
+            Nothing -> H.td $ H.string "n/a"
           -- archives with more info
           case maybeArchiveSpecURL of
             Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("GitHub" :: String)
@@ -261,7 +294,7 @@ packageVersionPage
   let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
@@ -307,11 +340,12 @@ packageVersionPage
             H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v) <> "&archive=" <> H.toValue archiveName) $
               H.toMarkup ("Download" :: String)
     -- sample table
-    H.table $ do
-      H.tr $ do
-        H.th $ H.b "PoseidonID"
-        H.th $ H.b "Genetic_Sex"
-        H.th $ H.b "Group_Name"
+    H.div ! A.style "clear: both;" $ H.table ! A.id "currentTable" $ do
+      H.thead $ do
+        H.tr $ do
+          H.th $ H.b "PoseidonID"
+          H.th $ H.b "Genetic_Sex"
+          H.th $ H.b "Group_Name"
       forM_ samples $ \jannoRow -> do
         let link = "/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
         H.tr $ do
@@ -329,13 +363,13 @@ samplePage maybeMapMarker row = do
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
       case maybeMapMarker of
-        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (mapJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
+        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
         Nothing -> pure ()
     H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
     case maybeMapMarker of
       Just _  -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
       Nothing -> pure ()
-    H.table $ do
+    H.div $ H.table $ do
       H.tr $ do
         H.th $ H.b "Property"
         H.th $ H.b "Value"
