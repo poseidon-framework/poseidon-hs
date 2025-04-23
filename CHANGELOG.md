@@ -1,3 +1,5 @@
+- V 1.6.6.0:
+    - Added a feature to `serve` that allows to specify a list of packages to be excluded from the leaflet map in the archive view of the html API. The packages can be listed in the new `excludeFromMap` field of the `--archiveConfigFile`.
 - V 1.6.5.0:
     - Modifications to the html API (data explorer website):
         - Added per-archive lists of last-modified packages to the main page.

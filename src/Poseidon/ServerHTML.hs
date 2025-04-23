@@ -16,7 +16,7 @@ import           Data.Aeson.Types            (ToJSON (..))
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
-import           Data.List                   (foldl', sortBy)
+import           Data.List                   (intercalate, sortBy)
 import           Data.Maybe                  (fromMaybe)
 import qualified Data.Text                   as T
 import qualified Data.Text.Encoding          as T
@@ -239,17 +239,25 @@ archivePage ::
      String
   -> Maybe String
   -> Bool
+  -> Maybe [String]
+  -> Int
   -> [MapMarker]
   -> [PoseidonPackage]
   -> S.ActionM ()
-archivePage archiveName maybeArchiveSpecURL archiveZip mapMarkers pacs = do
+archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap nrSamplesToMap mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
-  let nrSamplesTotal = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 pacs
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamplesTotal - length mapMarkers)) (dataToJSON mapMarkers))
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamplesToMap - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    case excludeFromMap of
+      Nothing -> do
+        H.div ! A.style "font-size: 12px;" $ do
+          H.toMarkup $ H.string "No packages excluded from map."
+      (Just exclude) -> do
+        H.div ! A.style "font-size: 12px;" $ do
+          H.toMarkup $ H.string $ "Packages excluded from map: " ++ intercalate ", " exclude
     H.div $ H.table ! A.id "currentTable" $ do
       H.thead $ do
           H.tr $ do
