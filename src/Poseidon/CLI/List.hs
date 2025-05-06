@@ -39,7 +39,7 @@ data ListOptions = ListOptions
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
 
 -- | A datatype to represent the options what to list
-data ListEntity = ListPackages
+data ListEntity = ListPackages Bool -- an option to list all YAML columns as well
     | ListGroups
     | ListIndividuals AddColSpec
     | ListBibliography AddColSpec
@@ -55,7 +55,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     }
     -- build tables
     (tableH, tableB) <- case listEntity of
-        ListPackages -> do
+        ListPackages fullOutput -> do
             packageInfos <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading package data from server"

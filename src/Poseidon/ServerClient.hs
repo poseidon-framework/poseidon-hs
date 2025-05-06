@@ -125,6 +125,7 @@ data PackageInfo = PackageInfo
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
+    , pExtendedInfo  :: [(String, String)] -- an optional list of key-value pairs to carry additional information about a package.
     } deriving (Eq, Ord)
 
 instance HasNameAndVersion PackageInfo where
@@ -132,7 +133,7 @@ instance HasNameAndVersion PackageInfo where
     getPacVersion = getPacVersion . pPac
 
 instance ToJSON PackageInfo where
-    toJSON (PackageInfo (PacNameAndVersion n v) isLatest posVersion description lastModified nrIndividuals) =
+    toJSON (PackageInfo (PacNameAndVersion n v) isLatest posVersion description lastModified nrIndividuals extInfo) =
         removeNulls $ object [
             "packageTitle"    .= n,
             "packageVersion"  .= v,
@@ -140,17 +141,19 @@ instance ToJSON PackageInfo where
             "poseidonVersion" .= posVersion,
             "description"     .= description,
             "lastModified"    .= lastModified,
-            "nrIndividuals"   .= nrIndividuals
+            "nrIndividuals"   .= nrIndividuals,
+            "extInfo"         .= extInfo
         ]
 
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
             <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .:? "packageVersion"))
-            <*> v .: "isLatest"
-            <*> v .: "poseidonVersion"
+            <*> v .:  "isLatest"
+            <*> v .:  "poseidonVersion"
             <*> v .:? "description"
             <*> v .:? "lastModified"
-            <*> v .: "nrIndividuals"
+            <*> v .:  "nrIndividuals"
+            <*> ((v .:? "extInfo") >>= maybe (return []) return)
 
 data GroupInfo = GroupInfo
     { gName          :: String
