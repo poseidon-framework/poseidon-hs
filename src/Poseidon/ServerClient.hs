@@ -15,6 +15,7 @@ module Poseidon.ServerClient (
 ) where
 
 import           Paths_poseidon_hs      (version)
+import           Poseidon.Contributor   (ContributorSpec (..))
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          IndividualInfoCollection,
@@ -125,24 +126,39 @@ data PackageInfo = PackageInfo
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
-    , pExtendedInfo  :: [(String, String)] -- an optional list of key-value pairs to carry additional information about a package.
+    , pContributors  :: [ContributorSpec]
+    , pGenotypeFiles :: [FilePath]
+    , pJannoFile     :: Maybe FilePath
+    , pSeqSourceFile :: Maybe FilePath
+    , pBibFile       :: Maybe FilePath
+    , pReadmeFile    :: Maybe FilePath
+    , pChangelogFile :: Maybe FilePath
     } deriving (Eq, Ord)
+
+
+
 
 instance HasNameAndVersion PackageInfo where
     getPacName = getPacName . pPac
     getPacVersion = getPacVersion . pPac
 
 instance ToJSON PackageInfo where
-    toJSON (PackageInfo (PacNameAndVersion n v) isLatest posVersion description lastModified nrIndividuals extInfo) =
+    toJSON pacInfo =
         removeNulls $ object [
-            "packageTitle"    .= n,
-            "packageVersion"  .= v,
-            "isLatest"        .= isLatest,
-            "poseidonVersion" .= posVersion,
-            "description"     .= description,
-            "lastModified"    .= lastModified,
-            "nrIndividuals"   .= nrIndividuals,
-            "extInfo"         .= extInfo
+            "packageTitle"    .= (panavName . pPac $ pacInfo),
+            "packageVersion"  .= (panavVersion . pPac $ pacInfo),
+            "isLatest"        .= pIsLatest pacInfo,
+            "poseidonVersion" .= pPosVersion pacInfo,
+            "description"     .= pDescription pacInfo,
+            "lastModified"    .= pLastModified pacInfo,
+            "nrIndividuals"   .= pNrIndividuals pacInfo,
+            "contributors"    .= pContributors pacInfo,
+            "genotypeFiles"   .= pGenotypeFiles pacInfo,
+            "jannoFile"       .= pJannoFile pacInfo,
+            "seqSourceFile"   .= pSeqSourceFile pacInfo,
+            "bibFile"         .= pBibFile pacInfo,
+            "readmeFile"      .= pReadmeFile pacInfo,
+            "changelogFile"   .= pChangelogFile pacInfo
         ]
 
 instance FromJSON PackageInfo where
@@ -153,7 +169,13 @@ instance FromJSON PackageInfo where
             <*> v .:? "description"
             <*> v .:? "lastModified"
             <*> v .:  "nrIndividuals"
-            <*> ((v .:? "extInfo") >>= maybe (return []) return)
+            <*> ((v .: "contributors") >>= maybe (return []) return)
+            <*> ((v .: "genotypeFiles") >>= maybe (return []) return)
+            <*> v .:? "jannoFile"
+            <*> v .:? "seqSourceFile"
+            <*> v .:? "bibFile"
+            <*> v .:? "readmeFile"
+            <*> v .:? "changelogFile"
 
 data GroupInfo = GroupInfo
     { gName          :: String

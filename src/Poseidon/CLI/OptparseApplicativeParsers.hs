@@ -645,15 +645,16 @@ parseMaybeSnpFile = OP.option (Just <$> OP.str) (
     OP.value Nothing)
 
 parseListEntity :: OP.Parser ListEntity
-parseListEntity = parseListPackages <|>
+parseListEntity = (parseListPackages *> parseListPacsFullOutput) <|>
                   parseListGroups <|>
                   (parseListIndividualsDummy *> parseListIndividualsExtraCols) <|>
                   (parseListBibliographyDummy *> parseListBibliographyExtraFields)
   where
-    parseListPackages = OP.flag' ListPackages (
+    parseListPackages = OP.flag' () (
         OP.long "packages" <>
         OP.help "List all packages."
         )
+    parseListPacsFullOutput = ListPackages <$> OP.switch (OP.long "fullOutput" <> OP.help "extend the output to include information contained the POSEIDON.yml file")
     parseListGroups = OP.flag' ListGroups (
         OP.long "groups" <>
         OP.help "List all groups, ignoring any group names after the first as specified in the .janno-file.")

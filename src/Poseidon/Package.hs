@@ -808,13 +808,24 @@ packagesToPackageInfos :: (MonadThrow m) => [PoseidonPackage] -> m [PackageInfo]
 packagesToPackageInfos pacs = do
     forM pacs $ \pac -> do
         isLatest <- isLatestInCollection pacs pac
+        let gFiles = case genotypeFileSpec . posPacGenotypeData $ pac of
+                GenotypeEigenstrat f1 _ f2 _ f3 _ -> [f1, f2, f3]
+                GenotypePlink      f1 _ f2 _ f3 _ -> [f1, f2, f3]
+                GenotypeVCF        f1 _  -> [f1]
         return $ PackageInfo {
             pPac           = posPacNameAndVersion pac,
             pIsLatest      = isLatest,
             pPosVersion    = posPacPoseidonVersion pac,
             pDescription   = posPacDescription pac,
             pLastModified  = posPacLastModified pac,
-            pNrIndividuals = (length . getJannoRowsFromPac) pac
+            pNrIndividuals = (length . getJannoRowsFromPac) pac,
+            pContributors  = posPacContributor pac,
+            pGenotypeFiles = gFiles,
+            pJannoFile     = posPacJannoFile pac,
+            pSeqSourceFile = posPacSeqSourceFile pac,
+            pBibFile       = posPacBibFile pac,
+            pReadmeFile    = posPacReadmeFile pac,
+            pChangelogFile = posPacChangelogFile pac
         }
 
 getAllGroupInfo :: (MonadThrow m) => [PoseidonPackage] -> m [GroupInfo]

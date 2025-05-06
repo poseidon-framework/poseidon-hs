@@ -3,7 +3,8 @@
 module Poseidon.Contributor (
     ContributorSpec (..),
     contributorSpecParser,
-    ORCID (..)
+    ORCID (..),
+    renderORCID
 ) where
 
 import           Poseidon.Utils     (showParsecErr)
@@ -25,7 +26,7 @@ data ContributorSpec = ContributorSpec
     , contributorEmail :: String -- ^ the email address of a contributor
     , contributorORCID :: Maybe ORCID -- ^ the ORCID of a contributor
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 -- | To facilitate automatic parsing of ContributorSpec from JSON files
 instance FromJSON ContributorSpec where
@@ -58,7 +59,7 @@ data ORCID = ORCID
     { _orcidNums     :: [Char]
     , _orcidChecksum :: Char
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 instance FromJSON ORCID where
     parseJSON (String s) = case P.runParser parseORCID () "" (unpack s) of
