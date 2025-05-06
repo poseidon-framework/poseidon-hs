@@ -1,3 +1,5 @@
+- V 1.6.6.0:
+    - added new option `--fullOutput` for `list --packages` to extend the output with additional information from each packages (file names, contributors, etc.)
 - V 1.6.5.0:
     - Modifications to the html API (data explorer website):
         - Added per-archive lists of last-modified packages to the main page.
