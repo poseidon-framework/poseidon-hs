@@ -135,9 +135,6 @@ data PackageInfo = PackageInfo
     , pChangelogFile :: Maybe FilePath
     } deriving (Eq, Ord)
 
-
-
-
 instance HasNameAndVersion PackageInfo where
     getPacName = getPacName . pPac
     getPacVersion = getPacVersion . pPac
@@ -169,8 +166,8 @@ instance FromJSON PackageInfo where
             <*> v .:? "description"
             <*> v .:? "lastModified"
             <*> v .:  "nrIndividuals"
-            <*> ((v .: "contributors") >>= maybe (return []) return)
-            <*> ((v .: "genotypeFiles") >>= maybe (return []) return)
+            <*> ((v .:? "contributors") >>= maybe (return []) return)
+            <*> ((v .:? "genotypeFiles") >>= maybe (return []) return)
             <*> v .:? "jannoFile"
             <*> v .:? "seqSourceFile"
             <*> v .:? "bibFile"
