@@ -811,7 +811,7 @@ packagesToPackageInfos pacs = do
         let gFiles = case genotypeFileSpec . posPacGenotypeData $ pac of
                 GenotypeEigenstrat f1 _ f2 _ f3 _ -> [f1, f2, f3]
                 GenotypePlink      f1 _ f2 _ f3 _ -> [f1, f2, f3]
-                GenotypeVCF        f1 _  -> [f1]
+                GenotypeVCF        f1 _           -> [f1]
         return $ PackageInfo {
             pPac           = posPacNameAndVersion pac,
             pIsLatest      = isLatest,
