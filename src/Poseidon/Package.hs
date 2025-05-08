@@ -821,6 +821,7 @@ packagesToPackageInfos pacs = do
             pNrIndividuals = (length . getJannoRowsFromPac) pac,
             pContributors  = posPacContributor pac,
             pGenotypeFiles = gFiles,
+            pBaseDir       = posPacBaseDir pac,
             pJannoFile     = posPacJannoFile pac,
             pSeqSourceFile = posPacSeqSourceFile pac,
             pBibFile       = posPacBibFile pac,

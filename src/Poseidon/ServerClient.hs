@@ -128,6 +128,7 @@ data PackageInfo = PackageInfo
     , pNrIndividuals :: Int
     , pContributors  :: [ContributorSpec]
     , pGenotypeFiles :: [FilePath]
+    , pBaseDir       :: FilePath
     , pJannoFile     :: Maybe FilePath
     , pSeqSourceFile :: Maybe FilePath
     , pBibFile       :: Maybe FilePath
@@ -151,6 +152,7 @@ instance ToJSON PackageInfo where
             "nrIndividuals"   .= pNrIndividuals pacInfo,
             "contributors"    .= pContributors pacInfo,
             "genotypeFiles"   .= pGenotypeFiles pacInfo,
+            "baseDir"         .= pBaseDir pacInfo,
             "jannoFile"       .= pJannoFile pacInfo,
             "seqSourceFile"   .= pSeqSourceFile pacInfo,
             "bibFile"         .= pBibFile pacInfo,
@@ -168,6 +170,7 @@ instance FromJSON PackageInfo where
             <*> v .:  "nrIndividuals"
             <*> ((v .:? "contributors") >>= maybe (return []) return)
             <*> ((v .:? "genotypeFiles") >>= maybe (return []) return)
+            <*> v .:  "baseDir"
             <*> v .:? "jannoFile"
             <*> v .:? "seqSourceFile"
             <*> v .:? "bibFile"

@@ -69,7 +69,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
             let tableH =
                     let baseColumnH = ["Package", "Package Version", "Is Latest", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
                     in  if fullOutput then
-                            baseColumnH ++ ["Contributors", "GenotypeFiles", "JannoFile", "SeqSourceFile", "BibFile", "ReadmeFile", "ChangelogFile"]
+                            baseColumnH ++ ["Contributors", "Base Directory", "GenotypeFiles", "JannoFile", "SeqSourceFile", "BibFile", "ReadmeFile", "ChangelogFile"]
                         else
                             baseColumnH
                 tableB = sortOn head $ do
@@ -81,7 +81,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     let baseCols = [getPacName pInf, showMaybeVersion (getPacVersion pInf), show $ pIsLatest pInf,
                             showVersion $ pPosVersion pInf, showMaybe $ pDescription pInf, showMaybe (show <$> pLastModified pInf), show $ pNrIndividuals pInf]
                     if fullOutput then
-                        return $ baseCols ++ [intercalate ";" . map showContributor . pContributors $ pInf, intercalate "," . pGenotypeFiles $ pInf,
+                        return $ baseCols ++ [intercalate ";" . map showContributor . pContributors $ pInf, pBaseDir pInf, intercalate "," . pGenotypeFiles $ pInf,
                             showMaybe $ pJannoFile pInf, showMaybe $ pSeqSourceFile pInf, showMaybe $ pBibFile pInf, showMaybe $ pReadmeFile pInf,
                             showMaybe $ pChangelogFile pInf]
                     else
