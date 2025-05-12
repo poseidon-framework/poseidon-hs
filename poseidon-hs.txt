@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.5.0
+@version 1.6.6.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -1649,7 +1649,7 @@ instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.Package.PoseidonYamlStr
 
 module Poseidon.ServerHTML
 mainPage :: [(String, Maybe String, Maybe String, [PoseidonPackage])] -> ActionM ()
-archivePage :: String -> Maybe String -> Bool -> [MapMarker] -> [PoseidonPackage] -> ActionM ()
+archivePage :: String -> Maybe String -> Bool -> [String] -> Int -> [MapMarker] -> [PoseidonPackage] -> ActionM ()
 packageVersionPage :: String -> String -> Maybe Version -> Bool -> [MapMarker] -> String -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow] -> ActionM ()
 samplePage :: Maybe MapMarker -> JannoRow -> ActionM ()
 data MapMarker
@@ -1804,12 +1804,13 @@ ServeOptions :: Either ArchiveConfig FilePath -> Maybe FilePath -> Int -> Bool -
 newtype ArchiveConfig
 ArchiveConfig :: [ArchiveSpec] -> ArchiveConfig
 data ArchiveSpec
-ArchiveSpec :: ArchiveName -> [FilePath] -> Maybe String -> Maybe String -> Maybe String -> ArchiveSpec
+ArchiveSpec :: ArchiveName -> [FilePath] -> Maybe String -> Maybe String -> Maybe String -> [String] -> ArchiveSpec
 [_archSpecName] :: ArchiveSpec -> ArchiveName
 [_archSpecPaths] :: ArchiveSpec -> [FilePath]
 [_archSpecDescription] :: ArchiveSpec -> Maybe String
 [_archSpecURL] :: ArchiveSpec -> Maybe String
 [_archSpecDataURL] :: ArchiveSpec -> Maybe String
+[_archSpecExcludePacsFromMap] :: ArchiveSpec -> [String]
 instance GHC.Show.Show Poseidon.CLI.Serve.ArchiveSpec
 instance GHC.Show.Show Poseidon.CLI.Serve.ArchiveConfig
 instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
