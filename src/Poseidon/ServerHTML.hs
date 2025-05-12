@@ -227,7 +227,6 @@ mainPage pacsPerArchive = do
         case (maybeDescription,maybeURL) of
           (Just desc, Just url) -> do
             H.br
-            H.br
             H.p $ H.toMarkup desc
             H.footer $ H.p $ H.a
               ! A.href (H.stringValue url)
