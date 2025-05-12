@@ -210,4 +210,4 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     curateBibField :: Maybe String -> String
     curateBibField = T.unpack . T.intercalate " " . map T.strip . T.lines . T.pack . fromMaybe ""
     showContributor :: ContributorSpec -> String
-    showContributor (ContributorSpec n e o) = n ++ "(" ++ e ++ ") ORCID: " ++ maybe "n/a" renderORCID o
+    showContributor (ContributorSpec n e o) = n ++ " (" ++ e ++ ") ORCID: " ++ maybe "n/a" renderORCID o
