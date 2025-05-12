@@ -34,7 +34,8 @@ import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (groupBy, intercalate, sortOn)
+import           Data.List                    (foldl', groupBy, intercalate,
+                                               sortOn)
 import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust, mapMaybe)
 import           Data.Ord                     (Down (..))
@@ -85,11 +86,12 @@ parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
 parseArchiveConfigFile = decodeFileThrow
 
 data ArchiveSpec = ArchiveSpec
-    { _archSpecName        :: ArchiveName
-    , _archSpecPaths       :: [FilePath]
-    , _archSpecDescription :: Maybe String
-    , _archSpecURL         :: Maybe String
-    , _archSpecDataURL     :: Maybe String
+    { _archSpecName               :: ArchiveName
+    , _archSpecPaths              :: [FilePath]
+    , _archSpecDescription        :: Maybe String
+    , _archSpecURL                :: Maybe String
+    , _archSpecDataURL            :: Maybe String
+    , _archSpecExcludePacsFromMap :: [String]
     } deriving (Show)
 
 instance FromJSON ArchiveSpec where
@@ -99,6 +101,7 @@ instance FromJSON ArchiveSpec where
         <*> v .:? "description"
         <*> v .:? "URL"
         <*> v .:? "dataURL"
+        <*> ((v .:? "excludeFromMap") >>= maybe (return []) return)
 
 type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
@@ -253,9 +256,12 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             archiveName <- captureParam "archive_name"
             spec <- getArchiveSpecByName archiveName archiveStore
             let maybeArchiveDataURL = _archSpecDataURL spec
-            latestPacs  <- selectLatest <$> getArchiveContentByName archiveName archiveStore
-            let mapMarkers = concatMap (prepMappable archiveName) latestPacs
-            archivePage archiveName maybeArchiveDataURL archiveZip mapMarkers latestPacs
+                excludeFromMap = _archSpecExcludePacsFromMap spec
+            latestPacs <- selectLatest <$> getArchiveContentByName archiveName archiveStore
+            let packagesToMap = excludePackagesByName excludeFromMap latestPacs
+                nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
+                mapMarkers = concatMap (prepMappable archiveName) packagesToMap
+            archivePage archiveName maybeArchiveDataURL archiveZip excludeFromMap nrSamplesToMap mapMarkers latestPacs
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
             archive_name <- captureParam "archive_name"
@@ -300,6 +306,9 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         notFound $ fail "Unknown request"
 
 -- prepare data for the html API
+
+excludePackagesByName :: [String] -> [PoseidonPackage] -> [PoseidonPackage]
+excludePackagesByName exclude = filter (\pac -> getPacName pac `notElem` exclude)
 
 data PacVersion =
       Latest

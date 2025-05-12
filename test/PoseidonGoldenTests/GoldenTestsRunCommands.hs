@@ -1231,11 +1231,11 @@ archives = Left $ ArchiveConfig [
         "test/testDat/testPackages/ancient/Lamnidis_2018"
       , "test/testDat/testPackages/ancient/Lamnidis_2018_newVersion"
       , "test/testDat/testPackages/ancient/Wang_2020"
-      ] Nothing Nothing Nothing
+      ] Nothing Nothing Nothing []
     , ArchiveSpec "testArchive2" [
         "test/testDat/testPackages/ancient/Schiffels_2016"
       , "test/testDat/testPackages/ancient/Schmid_2028"
-      ] Nothing Nothing Nothing
+      ] Nothing Nothing Nothing []
     ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
