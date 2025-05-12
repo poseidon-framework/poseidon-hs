@@ -91,7 +91,7 @@ data ArchiveSpec = ArchiveSpec
     , _archSpecDescription        :: Maybe String
     , _archSpecURL                :: Maybe String
     , _archSpecDataURL            :: Maybe String
-    , _archSpecExcludePacsFromMap :: Maybe [String]
+    , _archSpecExcludePacsFromMap :: [String]
     } deriving (Show)
 
 instance FromJSON ArchiveSpec where
@@ -101,7 +101,7 @@ instance FromJSON ArchiveSpec where
         <*> v .:? "description"
         <*> v .:? "URL"
         <*> v .:? "dataURL"
-        <*> v .:? "excludeFromMap"
+        <*> ((v .:? "excludeFromMap") >>= maybe (return []) return)
 
 type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
@@ -307,9 +307,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
 -- prepare data for the html API
 
-excludePackagesByName :: Maybe [String] -> [PoseidonPackage] -> [PoseidonPackage]
-excludePackagesByName Nothing = id
-excludePackagesByName (Just exclude) = filter (\pac -> getPacName pac `notElem` exclude)
+excludePackagesByName :: [String] -> [PoseidonPackage] -> [PoseidonPackage]
+excludePackagesByName exclude = filter (\pac -> getPacName pac `notElem` exclude)
 
 data PacVersion =
       Latest

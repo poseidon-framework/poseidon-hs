@@ -239,7 +239,7 @@ archivePage ::
      String
   -> Maybe String
   -> Bool
-  -> Maybe [String]
+  -> [String]
   -> Int
   -> [MapMarker]
   -> [PoseidonPackage]
@@ -252,10 +252,10 @@ archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap nrSamplesT
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     case excludeFromMap of
-      Nothing -> do
+      [] -> do
         H.div ! A.style "font-size: 12px;" $ do
           H.toMarkup $ H.string "No packages excluded from map."
-      (Just exclude) -> do
+      exclude -> do
         H.div ! A.style "font-size: 12px;" $ do
           H.toMarkup $ H.string $ "Packages excluded from map: " ++ intercalate ", " exclude
     H.div $ H.table ! A.id "currentTable" $ do
