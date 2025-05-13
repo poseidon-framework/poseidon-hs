@@ -128,7 +128,7 @@ data PackageInfo = PackageInfo
     , pNrIndividuals :: Int
     , pContributors  :: [ContributorSpec]
     , pGenotypeFiles :: [FilePath]
-    , pBaseDir       :: FilePath
+    , pBaseDir       :: Maybe FilePath -- this is optional as we only use it for local transfer of information, not from the server (for security reasons)
     , pJannoFile     :: Maybe FilePath
     , pSeqSourceFile :: Maybe FilePath
     , pBibFile       :: Maybe FilePath
@@ -170,7 +170,7 @@ instance FromJSON PackageInfo where
             <*> v .:  "nrIndividuals"
             <*> ((v .:? "contributors") >>= maybe (return []) return)
             <*> ((v .:? "genotypeFiles") >>= maybe (return []) return)
-            <*> v .:  "baseDir"
+            <*> v .:?  "baseDir"
             <*> v .:? "jannoFile"
             <*> v .:? "seqSourceFile"
             <*> v .:? "bibFile"

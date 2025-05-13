@@ -804,8 +804,8 @@ writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno j
           "changelogFile"
          ]
 
-packagesToPackageInfos :: (MonadThrow m) => [PoseidonPackage] -> m [PackageInfo]
-packagesToPackageInfos pacs = do
+packagesToPackageInfos :: (MonadThrow m) => Bool -> [PoseidonPackage] -> m [PackageInfo]
+packagesToPackageInfos withBaseDir pacs = do
     forM pacs $ \pac -> do
         isLatest <- isLatestInCollection pacs pac
         let gFiles = case genotypeFileSpec . posPacGenotypeData $ pac of
@@ -821,7 +821,7 @@ packagesToPackageInfos pacs = do
             pNrIndividuals = (length . getJannoRowsFromPac) pac,
             pContributors  = posPacContributor pac,
             pGenotypeFiles = gFiles,
-            pBaseDir       = posPacBaseDir pac,
+            pBaseDir       = if withBaseDir then Just (posPacBaseDir pac) else Nothing,
             pJannoFile     = posPacJannoFile pac,
             pSeqSourceFile = posPacSeqSourceFile pac,
             pBibFile       = posPacBibFile pac,
