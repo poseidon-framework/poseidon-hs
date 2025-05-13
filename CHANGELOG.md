@@ -1,3 +1,5 @@
+- V 1.6.7.0:
+    - added new option `--fullOutput` for `list --packages` to extend the output with additional information from each packages (file names, contributors, etc.)
 - V 1.6.6.0:
     - Added a feature to `serve` that allows to specify a list of packages to be excluded from the leaflet map in the archive view of the html API. The packages can be listed in the new `excludeFromMap` field of the `--archiveConfigFile`.
 - V 1.6.5.0:
