@@ -4,7 +4,7 @@ This release finally brings two long-anticipated features: VCF writing support a
 
 #### Writing support for VCF files
 
-v1.5.7.0 added experimental reading support for .vcf files. In this release trident finally learns to also write them as an output of `forge` and `genoconvert`. This new output option is available with `--outFormat VCF`. VCF is a rich format (as specified [here](https://samtools.github.io/hts-specs/VCFv4.2.pdf)) and trident writes one specific interpretation relevant for the genotype data typically handled by Poseidon. Please note that the VCF format support is not yet specified in the Poseidon schema version this trident version supports (v2.7.1), so the feature continues to be experimental.
+v1.5.7.0 added experimental reading support for .vcf files. In this release trident finally learns to also write them as an output of `forge` and `genoconvert`. This new output option is available with `--outFormat VCF`. VCF is a rich format (as specified [here](https://samtools.github.io/hts-specs/VCFv4.2.pdf)) and trident currently uses only the features relevant for the genotype data typically handled by Poseidon. In particular, as trident must be able to convert from Plink and Eigenstrat, many fields that are typically expected in VCF files (such as read- and allelic depths or genotype likelihoods) are not written. Please note that the VCF format support is not yet specified in the Poseidon schema version this trident version supports (v2.7.1), so the feature continues to be experimental.
 
 #### HMTL API for the web server implementation
 
