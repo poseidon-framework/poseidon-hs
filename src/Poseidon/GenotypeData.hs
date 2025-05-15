@@ -380,6 +380,7 @@ writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (Eigenst
 writeVCF logA jannoRows vcfFile = do
     let sampleNames = map (B.pack . jPoseidonID) jannoRows
         groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
+        sex         = map jGeneticSex jannoRows
     forM_ jannoRows $ \jannoRow -> do
         when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
             "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
