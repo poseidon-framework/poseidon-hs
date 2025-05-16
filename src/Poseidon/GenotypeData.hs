@@ -4,7 +4,7 @@ module Poseidon.GenotypeData where
 import           Paths_poseidon_hs          (version)
 import           Poseidon.Janno             (GroupName (..),
                                              JannoGenotypePloidy (..),
-                                             JannoRow (jGenotypePloidy, jGroupName, jPoseidonID),
+                                             JannoRow (..),
                                              ListColumn (..))
 import           Poseidon.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, envInputPlinkMode,
@@ -215,9 +215,27 @@ loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
         GenotypeEigenstrat _ _ _ _ fn _ -> readEigenstratInd (d </> fn)
         GenotypePlink _ _ _ _ fn _      -> map (plinkFam2EigenstratInd popMode) <$> readFamFile (d </> fn)
         GenotypeVCF fn _ -> do
-            (VCFheader _ sampleNames , _) <- liftIO . runSafeT . readVCFfromFile $ (d </> fn)
-            --neither Sex nor population name is part of a VCF file, so we fill dummy values:
-            return [EigenstratIndEntry s Unknown "unknown" | s <- sampleNames]
+            (VCFheader headerLines sampleNames , _) <- liftIO . runSafeT . readVCFfromFile $ (d </> fn)
+            -- we try to read the group names and sex entries from the VCF header.
+            groupNames <- case findGroupNamesInVCFheader headerLines of
+                    Nothing -> return $ replicate (length sampleNames) "unknown"
+                    Just gn -> do
+                        when (length gn /= length sampleNames) $
+                            throwM . PoseidonGenotypeException $ "Number of group names (" ++ show gn ++ ") in VCF header does not match number of samples (" ++ show sampleNames ++ ")"
+                        return gn
+            geneticSex <- case findGeneticSexInVCFheader headerLines of
+                    Nothing -> return $ replicate (length sampleNames) Unknown
+                    Just gs -> do
+                        when (length gs /= length sampleNames) $
+                            throwM . PoseidonGenotypeException $ "Number of genetic sex entries (" ++ show gs ++ ") in VCF header does not match number of samples (" ++ show sampleNames ++ ")"
+                        return gs                        
+            return [EigenstratIndEntry s gs gn | (s, gs, gn) <- zip3 sampleNames geneticSex groupNames]
+
+findGroupNamesInVCFheader :: [B.ByteString] -> Maybe [B.ByteString]
+findGroupNamesInVCFheader = undefined
+
+findGeneticSexInVCFheader :: [B.ByteString] -> Maybe [Sex]
+findGeneticSexInVCFheader = undefined
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: (MonadSafe m) =>
@@ -390,6 +408,7 @@ writeVCF logA jannoRows vcfFile = do
             "##fileformat=VCFv4.2",
             "##source=trident_v" ++ showVersion version,
             "##group_names=" ++ intercalate "," groupNames,
+            "##genetic_sex=" ++ (intercalate "," . map show) sex,
             "##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">",
             "##FILTER=<ID=s50,Description=\"Less than 50% of samples have data\">",
             "##FILTER=<ID=s10,Description=\"Less than 10% of samples have data\">",
