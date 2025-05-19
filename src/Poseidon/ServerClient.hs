@@ -15,6 +15,7 @@ module Poseidon.ServerClient (
 ) where
 
 import           Paths_poseidon_hs      (version)
+import           Poseidon.Contributor   (ContributorSpec (..))
 import           Poseidon.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          IndividualInfoCollection,
@@ -125,6 +126,14 @@ data PackageInfo = PackageInfo
     , pDescription   :: Maybe String
     , pLastModified  :: Maybe Day
     , pNrIndividuals :: Int
+    , pContributors  :: [ContributorSpec]
+    , pGenotypeFiles :: [FilePath]
+    , pBaseDir       :: Maybe FilePath -- this is optional as we only use it for local transfer of information, not from the server (for security reasons)
+    , pJannoFile     :: Maybe FilePath
+    , pSeqSourceFile :: Maybe FilePath
+    , pBibFile       :: Maybe FilePath
+    , pReadmeFile    :: Maybe FilePath
+    , pChangelogFile :: Maybe FilePath
     } deriving (Eq, Ord)
 
 instance HasNameAndVersion PackageInfo where
@@ -132,25 +141,41 @@ instance HasNameAndVersion PackageInfo where
     getPacVersion = getPacVersion . pPac
 
 instance ToJSON PackageInfo where
-    toJSON (PackageInfo (PacNameAndVersion n v) isLatest posVersion description lastModified nrIndividuals) =
+    toJSON pacInfo =
         removeNulls $ object [
-            "packageTitle"    .= n,
-            "packageVersion"  .= v,
-            "isLatest"        .= isLatest,
-            "poseidonVersion" .= posVersion,
-            "description"     .= description,
-            "lastModified"    .= lastModified,
-            "nrIndividuals"   .= nrIndividuals
+            "packageTitle"    .= (panavName . pPac $ pacInfo),
+            "packageVersion"  .= (panavVersion . pPac $ pacInfo),
+            "isLatest"        .= pIsLatest pacInfo,
+            "poseidonVersion" .= pPosVersion pacInfo,
+            "description"     .= pDescription pacInfo,
+            "lastModified"    .= pLastModified pacInfo,
+            "nrIndividuals"   .= pNrIndividuals pacInfo,
+            "contributors"    .= pContributors pacInfo,
+            "genotypeFiles"   .= pGenotypeFiles pacInfo,
+            "baseDir"         .= pBaseDir pacInfo,
+            "jannoFile"       .= pJannoFile pacInfo,
+            "seqSourceFile"   .= pSeqSourceFile pacInfo,
+            "bibFile"         .= pBibFile pacInfo,
+            "readmeFile"      .= pReadmeFile pacInfo,
+            "changelogFile"   .= pChangelogFile pacInfo
         ]
 
 instance FromJSON PackageInfo where
     parseJSON = withObject "PackageInfo" $ \v -> PackageInfo
             <$> (PacNameAndVersion <$> (v .: "packageTitle") <*> (v .:? "packageVersion"))
-            <*> v .: "isLatest"
-            <*> v .: "poseidonVersion"
+            <*> v .:  "isLatest"
+            <*> v .:  "poseidonVersion"
             <*> v .:? "description"
             <*> v .:? "lastModified"
-            <*> v .: "nrIndividuals"
+            <*> v .:  "nrIndividuals"
+            <*> ((v .:? "contributors") >>= maybe (return []) return)
+            <*> ((v .:? "genotypeFiles") >>= maybe (return []) return)
+            <*> v .:?  "baseDir"
+            <*> v .:? "jannoFile"
+            <*> v .:? "seqSourceFile"
+            <*> v .:? "bibFile"
+            <*> v .:? "readmeFile"
+            <*> v .:? "changelogFile"
 
 data GroupInfo = GroupInfo
     { gName          :: String

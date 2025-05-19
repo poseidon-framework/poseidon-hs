@@ -355,7 +355,7 @@ testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
     let listOpts1 = ListOptions {
           _listRepoLocation  = RepoLocal [testPacsDir </> "Schiffels_2016", testPacsDir  </> "Wang_Wang_2020"]
-        , _listListEntity    = ListPackages
+        , _listListEntity    = ListPackages False
         , _listRawOutput     = False
         , _listOnlyLatest    = False
         }
@@ -1347,7 +1347,7 @@ testPipelineListRemote testDir checkFilePath = do
         -- list from default archive
         let listOpts1 = ListOptions {
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" Nothing)
-            , _listListEntity   = ListPackages
+            , _listListEntity   = ListPackages False
             , _listRawOutput    = False
             , _listOnlyLatest   = False
             }
@@ -1365,7 +1365,7 @@ testPipelineListRemote testDir checkFilePath = do
         -- list from alternative archive
         let listOpts4 = ListOptions {
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" (Just "testArchive2"))
-            , _listListEntity   = ListPackages
+            , _listListEntity   = ListPackages False
             , _listRawOutput    = False
             , _listOnlyLatest   = False
             }
