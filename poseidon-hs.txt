@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.6.0
+@version 1.6.7.0
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -1161,8 +1161,11 @@ data ORCID
 ORCID :: [Char] -> Char -> ORCID
 [_orcidNums] :: ORCID -> [Char]
 [_orcidChecksum] :: ORCID -> Char
+renderORCID :: ORCID -> String
+instance GHC.Classes.Ord Poseidon.Contributor.ORCID
 instance GHC.Classes.Eq Poseidon.Contributor.ORCID
 instance GHC.Show.Show Poseidon.Contributor.ORCID
+instance GHC.Classes.Ord Poseidon.Contributor.ContributorSpec
 instance GHC.Classes.Eq Poseidon.Contributor.ContributorSpec
 instance GHC.Show.Show Poseidon.Contributor.ContributorSpec
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.Contributor.ContributorSpec
@@ -1336,13 +1339,21 @@ ArchiveEndpoint :: String -> Maybe String -> ArchiveEndpoint
 [_aeServerURL] :: ArchiveEndpoint -> String
 [_aeArchiveName] :: ArchiveEndpoint -> Maybe String
 data PackageInfo
-PackageInfo :: PacNameAndVersion -> Bool -> Version -> Maybe String -> Maybe Day -> Int -> PackageInfo
+PackageInfo :: PacNameAndVersion -> Bool -> Version -> Maybe String -> Maybe Day -> Int -> [ContributorSpec] -> [FilePath] -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> PackageInfo
 [pPac] :: PackageInfo -> PacNameAndVersion
 [pIsLatest] :: PackageInfo -> Bool
 [pPosVersion] :: PackageInfo -> Version
 [pDescription] :: PackageInfo -> Maybe String
 [pLastModified] :: PackageInfo -> Maybe Day
 [pNrIndividuals] :: PackageInfo -> Int
+[pContributors] :: PackageInfo -> [ContributorSpec]
+[pGenotypeFiles] :: PackageInfo -> [FilePath]
+[pBaseDir] :: PackageInfo -> Maybe FilePath
+[pJannoFile] :: PackageInfo -> Maybe FilePath
+[pSeqSourceFile] :: PackageInfo -> Maybe FilePath
+[pBibFile] :: PackageInfo -> Maybe FilePath
+[pReadmeFile] :: PackageInfo -> Maybe FilePath
+[pChangelogFile] :: PackageInfo -> Maybe FilePath
 data GroupInfo
 GroupInfo :: String -> PacNameAndVersion -> Bool -> Int -> GroupInfo
 [gName] :: GroupInfo -> String
@@ -1627,7 +1638,7 @@ defaultPackageReadOptions :: PackageReadOptions
 readPoseidonPackage :: PackageReadOptions -> FilePath -> PoseidonIO PoseidonPackage
 makePseudoPackageFromGenotypeData :: GenotypeDataSpec -> PoseidonIO PoseidonPackage
 getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
-packagesToPackageInfos :: MonadThrow m => [PoseidonPackage] -> m [PackageInfo]
+packagesToPackageInfos :: MonadThrow m => Bool -> [PoseidonPackage] -> m [PackageInfo]
 getAllGroupInfo :: MonadThrow m => [PoseidonPackage] -> m [GroupInfo]
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 
@@ -1841,7 +1852,7 @@ ListOptions :: RepoLocationSpec -> ListEntity -> Bool -> Bool -> ListOptions
 
 -- | A datatype to represent the options what to list
 data ListEntity
-ListPackages :: ListEntity
+ListPackages :: Bool -> ListEntity
 ListGroups :: ListEntity
 ListIndividuals :: AddColSpec -> ListEntity
 ListBibliography :: AddColSpec -> ListEntity
