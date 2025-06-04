@@ -1,3 +1,27 @@
+### V 1.6.7.0
+
+This release finally brings two long-anticipated features: VCF writing support and an html API for `serve`. It also includes some minor bugfixes.
+
+#### Writing support for VCF files
+
+v1.5.7.0 added experimental reading support for .vcf files. In this release trident finally learns to also write them as an output of `forge` and `genoconvert`. This new output option is available with `--outFormat VCF`. VCF is a rich format (as specified [here](https://samtools.github.io/hts-specs/VCFv4.2.pdf)) and trident currently uses only the features relevant for the genotype data typically handled by Poseidon. In particular, as trident must be able to convert from Plink and Eigenstrat, many fields that are typically expected in VCF files (such as read- and allelic depths or genotype likelihoods) are not written. Please note that the VCF format support is not yet specified in the Poseidon schema version this trident version supports (v2.7.1), so the feature continues to be experimental.
+
+#### HMTL API for the web server implementation
+
+trident includes a web server to host Poseidon packages and relevant meta-information. It can be started with the subcommand `serve`. The central Poseidon server at https://server.poseidon-adna.org is nothing but a public instance of `serve` with access to the public package archives. Previously this web server provided only context data through a JSON API and allowed downloading packages as .zip archives (these interfaces are used by `list --remote` and `fetch`).
+
+This release now adds HTML output, so a human-readable website, to the server's API. The central, public version is available [here](https://server.poseidon-adna.org/explorer), but by running `serve` locally one can just as well host such a website for a private package archive.
+
+`serve` can still be started with `trident serve -d <name_of_archive>=<path/to/archive>`, but now a new `--archiveConfigFile` argument allows to read more complex configuration in YML format.
+
+#### More info from the POSEIDON.yml file in the `list` output
+
+This release also adds a new option `--fullOutput` for `list --packages` to extend the output with additional information from the underlying packages' POSEIDON.yml files (file names, contributors, etc.).
+
+#### Fixed two bugs in `rectify`
+
+Fixed a small bug that prevented calculation of checksums for genotype data in `rectify`, and another one that prevented trident from reading packages with a wrong individual file (.ind/.fam) checksum even in `rectify`, where this should be possible.
+
 ### V 1.6.2.1
 
 This is a bigger release with various new features and improvements. It is technically breaking, because a minor, redundant argument of `genoconvert` was removed.
