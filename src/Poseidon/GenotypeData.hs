@@ -1,48 +1,56 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.GenotypeData where
 
-import           Paths_poseidon_hs          (version)
-import           Poseidon.Janno             (GroupName (..),
-                                             JannoGenotypePloidy (..),
-                                             JannoRow (..),
-                                             ListColumn (..))
-import           Poseidon.Utils             (LogA, PoseidonException (..),
-                                             PoseidonIO, envInputPlinkMode,
-                                             logDebug, logInfo, logWarning,
-                                             logWithEnv, padLeft)
+import           Paths_poseidon_hs                (version)
+import           Poseidon.Janno                   (GroupName (..),
+                                                   JannoGenotypePloidy (..),
+                                                   JannoRow (..),
+                                                   ListColumn (..))
+import           Poseidon.Utils                   (LogA, PoseidonException (..),
+                                                   PoseidonIO,
+                                                   envInputPlinkMode, logDebug,
+                                                   logInfo, logWarning,
+                                                   logWithEnv, padLeft)
 
-import           Control.Exception          (throwIO)
-import           Control.Monad              (forM, forM_, unless, when)
-import           Control.Monad.Catch        (MonadThrow, throwM)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Data.Aeson                 (FromJSON, ToJSON, object,
-                                             parseJSON, toJSON, withObject,
-                                             withText, (.:), (.:?), (.=))
-import           Data.ByteString            (isPrefixOf)
-import qualified Data.ByteString.Char8      as B
-import           Data.IORef                 (modifyIORef, newIORef, readIORef)
-import           Data.List                  (intercalate, nub, sort)
-import           Data.Maybe                 (catMaybes, fromMaybe)
-import qualified Data.Text                  as T
-import           Data.Time                  (NominalDiffTime, UTCTime,
-                                             diffUTCTime, getCurrentTime)
-import qualified Data.Vector                as V
-import           Data.Version               (showVersion)
-import           Pipes                      (Consumer, Pipe, Producer, cat, for,
-                                             yield, (>->))
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (MonadSafe, runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine, Sex (..),
-                                             readEigenstrat, readEigenstratInd)
-import           SequenceFormats.FreqSum    (FreqSumEntry (..))
-import           SequenceFormats.Plink      (plinkFam2EigenstratInd,
-                                             readFamFile, readPlink)
-import           SequenceFormats.VCF        (VCFentry (..), VCFheader (..),
-                                             readVCFfromFile, vcfToFreqSumEntry,
-                                             writeVCFfile)
-import           System.FilePath            (takeDirectory, takeFileName, (</>))
+import           Control.Exception                (throwIO)
+import           Control.Monad                    (forM, forM_, unless, when)
+import           Control.Monad.Catch              (MonadThrow, throwM)
+import           Control.Monad.IO.Class           (MonadIO, liftIO)
+import           Data.Aeson                       (FromJSON, ToJSON, object,
+                                                   parseJSON, toJSON,
+                                                   withObject, withText, (.:),
+                                                   (.:?), (.=))
+import qualified Data.Attoparsec.ByteString.Char8 as A
+import           Data.ByteString                  (isPrefixOf)
+import qualified Data.ByteString.Char8            as B
+import           Data.IORef                       (modifyIORef, newIORef,
+                                                   readIORef)
+import           Data.List                        (intercalate, nub, sort)
+import           Data.Maybe                       (catMaybes, fromMaybe)
+import qualified Data.Text                        as T
+import           Data.Time                        (NominalDiffTime, UTCTime,
+                                                   diffUTCTime, getCurrentTime)
+import qualified Data.Vector                      as V
+import           Data.Version                     (showVersion)
+import           Pipes                            (Consumer, Pipe, Producer,
+                                                   cat, for, yield, (>->))
+import qualified Pipes.Prelude                    as P
+import           Pipes.Safe                       (MonadSafe, runSafeT)
+import           SequenceFormats.Eigenstrat       (EigenstratIndEntry (..),
+                                                   EigenstratSnpEntry (..),
+                                                   GenoEntry (..), GenoLine,
+                                                   Sex (..), parseSex, readEigenstrat,
+                                                   readEigenstratInd)
+import           SequenceFormats.FreqSum          (FreqSumEntry (..))
+import           SequenceFormats.Plink            (plinkFam2EigenstratInd,
+                                                   readFamFile, readPlink)
+import           SequenceFormats.VCF              (VCFentry (..),
+                                                   VCFheader (..),
+                                                   readVCFfromFile,
+                                                   vcfToFreqSumEntry,
+                                                   writeVCFfile)
+import           System.FilePath                  (takeDirectory, takeFileName,
+                                                   (</>))
 
 data GenoDataSource = PacBaseDir
     { getPacBaseDir :: FilePath
@@ -225,17 +233,25 @@ loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
                         return gn
             geneticSex <- case findGeneticSexInVCFheader headerLines of
                     Nothing -> return $ replicate (length sampleNames) Unknown
-                    Just gs -> do
+                    Just (Left err) ->
+                        throwM . PoseidonGenotypeException $ "Error in parsing genetic sex entries from VCF header: " ++ err
+                    Just (Right gs) -> do
                         when (length gs /= length sampleNames) $
                             throwM . PoseidonGenotypeException $ "Number of genetic sex entries (" ++ show gs ++ ") in VCF header does not match number of samples (" ++ show sampleNames ++ ")"
-                        return gs                        
+                        return gs
             return [EigenstratIndEntry s gs gn | (s, gs, gn) <- zip3 sampleNames geneticSex groupNames]
 
 findGroupNamesInVCFheader :: [B.ByteString] -> Maybe [B.ByteString]
-findGroupNamesInVCFheader = undefined
+findGroupNamesInVCFheader headerLines = case filter ("##group_name=" `B.isPrefixOf`) headerLines of
+    []    -> Nothing
+    (l:_) -> Just . B.split ',' . B.drop 13 $ l
 
-findGeneticSexInVCFheader :: [B.ByteString] -> Maybe [Sex]
-findGeneticSexInVCFheader = undefined
+findGeneticSexInVCFheader :: [B.ByteString] -> Maybe (Either String [Sex])
+findGeneticSexInVCFheader headerLines = case filter ("##genetic_sex=" `B.isPrefixOf`) headerLines of
+    [] -> Nothing
+    (l:_) -> case A.parseOnly (A.string "##genetic_sex" *> parseSex `A.sepBy` A.char ',') l of
+        Left err -> Just (Left $ "When parsing genetic sex entries (" ++ B.unpack l ++ ") encountered error: " ++ err)
+        Right r -> Just (Right r)
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: (MonadSafe m) =>
