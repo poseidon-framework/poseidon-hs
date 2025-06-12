@@ -1,3 +1,6 @@
+- V 1.6.6.1:
+    - VCF files can now contain headers `##group_names=Group1,Group2,...` and `##genetic_sex=F,F,M,U,...`, which is correctly parsed, and these fields are also written if VCF files are output.
+    - Validate now has modified behavior for consistency checks between Ind- and Geno-File for VCFs. Since VCF files do not _have_ to have our custom header fields defined above, we read them setting all group names to "unknown" and all genetic sex entries to "U" (unknown). So when validate now checks consistency, it will allow inconsisteny if and only if (i) the data comes from a VCF file, and (ii) all group names and all genetic sex entries are indeed unknown (in other words, they are missing).
 - V 1.6.6.0:
     - Added a feature to `serve` that allows to specify a list of packages to be excluded from the leaflet map in the archive view of the html API. The packages can be listed in the new `excludeFromMap` field of the `--archiveConfigFile`.
 - V 1.6.5.0:
