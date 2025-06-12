@@ -7,11 +7,12 @@ import           Poseidon.EntityTypes       (HasNameAndVersion (..))
 import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
+import           Poseidon.Janno             (createMinimalJanno)
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
-                                             defaultPackageReadOptions,
                                              checkJannoIndConsistency,
+                                             defaultPackageReadOptions,
                                              getJointGenotypeData,
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
@@ -20,7 +21,6 @@ import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
                                              testLog, usePoseidonLogger)
-import Poseidon.Janno (createMinimalJanno)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.Either                (fromLeft, fromRight)
@@ -33,10 +33,9 @@ import           Data.Yaml                  (ParseException (AesonException),
 import           Pipes.OrderedZip           (WrongInputOrderException (..))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
-                                             EigenstratIndEntry(..),
-                                             Sex(..),
-                                             GenoEntry (..))
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
+                                             EigenstratSnpEntry (..),
+                                             GenoEntry (..), Sex (..))
 import           SequenceFormats.Plink      (PlinkPopNameMode (..))
 import           SequenceFormats.Utils      (Chrom (..))
 import           Test.Hspec
@@ -408,4 +407,4 @@ testCheckJannoIndConsistency = describe "Poseidon.Package.checkJannoIndConsisten
         checkJannoIndConsistency "DummyPackage" testJannos testIndEntries3 True `shouldThrow` jannoIndConsExc
   where
     jannoIndConsExc (PoseidonCrossFileConsistencyException _ _) = True
-    jannoIndConsExc _ = False
+    jannoIndConsExc _                                           = False

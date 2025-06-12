@@ -39,7 +39,8 @@ import           Pipes.Safe                       (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat       (EigenstratIndEntry (..),
                                                    EigenstratSnpEntry (..),
                                                    GenoEntry (..), GenoLine,
-                                                   Sex (..), parseSex, readEigenstrat,
+                                                   Sex (..), parseSex,
+                                                   readEigenstrat,
                                                    readEigenstratInd)
 import           SequenceFormats.FreqSum          (FreqSumEntry (..))
 import           SequenceFormats.Plink            (plinkFam2EigenstratInd,

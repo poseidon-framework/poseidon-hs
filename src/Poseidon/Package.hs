@@ -108,9 +108,9 @@ import           Pipes.OrderedZip           (orderCheckPipe, orderedZip,
                                              orderedZipAll)
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex(..),
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine,
+                                             GenoEntry (..), GenoLine, Sex (..),
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
