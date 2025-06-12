@@ -11,6 +11,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
                                              defaultPackageReadOptions,
+                                             checkJannoIndConsistency,
                                              getJointGenotypeData,
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
@@ -19,6 +20,7 @@ import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
                                              testLog, usePoseidonLogger)
+import Poseidon.Janno (createMinimalJanno)
 
 import qualified Data.ByteString.Char8      as B
 import           Data.Either                (fromLeft, fromRight)
@@ -32,6 +34,8 @@ import           Pipes.OrderedZip           (WrongInputOrderException (..))
 import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
+                                             EigenstratIndEntry(..),
+                                             Sex(..),
                                              GenoEntry (..))
 import           SequenceFormats.Plink      (PlinkPopNameMode (..))
 import           SequenceFormats.Utils      (Chrom (..))
@@ -49,6 +53,7 @@ spec = do
     testGetJointGzippedGenotypeData
     testGetVCFdata
     testThrowOnRead
+    testCheckJannoIndConsistency
 
 testPacReadOpts :: PackageReadOptions
 testPacReadOpts = defaultPackageReadOptions {
@@ -376,3 +381,31 @@ testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
     isPoseidonCrossFileConsistencyException :: Selector PoseidonException
     isPoseidonCrossFileConsistencyException (PoseidonCrossFileConsistencyException _ _) = True
     isPoseidonCrossFileConsistencyException _ = error "should never happen" -- just to make the linter happy
+
+
+testCheckJannoIndConsistency :: Spec
+testCheckJannoIndConsistency = describe "Poseidon.Package.checkJannoIndConsistency" $ do
+    let testIndEntries = [
+            EigenstratIndEntry "Ind1" Male "Pop1",
+            EigenstratIndEntry "Ind2" Female "Pop2",
+            EigenstratIndEntry "Ind3" Female "Pop1"]
+    let testJannos = createMinimalJanno testIndEntries
+    let testIndEntries2 = [
+            EigenstratIndEntry "Ind1" Unknown "unknown",
+            EigenstratIndEntry "Ind2" Unknown "unknown",
+            EigenstratIndEntry "Ind3" Unknown "unknown"]
+    it "should accept consistent Janno and IndEntries" $ do
+        checkJannoIndConsistency "DummyPackage" testJannos testIndEntries False `shouldReturn` ()
+    it "should reject inconsistent Janno and IndEntries if no VCF" $ do
+        checkJannoIndConsistency "DummyPackage" testJannos testIndEntries2 False `shouldThrow` jannoIndConsExc
+    it "should accept inconsistent Janno and IndEntries for VCF and all unknown" $ do
+        checkJannoIndConsistency "DummyPackage" testJannos testIndEntries2 True `shouldReturn` ()
+    it "should still reject inconsistent Janno and IndEntries if VCF and not all unknown" $ do
+        let testIndEntries3 = [
+                EigenstratIndEntry "Ind1" Unknown "unknown",
+                EigenstratIndEntry "Ind2" Male "unknown",
+                EigenstratIndEntry "Ind3" Unknown "Pop3"]
+        checkJannoIndConsistency "DummyPackage" testJannos testIndEntries3 True `shouldThrow` jannoIndConsExc
+  where
+    jannoIndConsExc (PoseidonCrossFileConsistencyException _ _) = True
+    jannoIndConsExc _ = False
