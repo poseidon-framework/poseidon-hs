@@ -2,11 +2,14 @@
 module Poseidon.GenotypeDataSpec (spec) where
 
 import           Poseidon.GenotypeData
-import           Poseidon.Utils             (noLog, testLog)
+import           Poseidon.Utils             (PoseidonException (..), noLog,
+                                             testLog)
 
+import           Data.List                  (isPrefixOf)
 import qualified Data.Vector                as V
-import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..), Sex(..),
-                                             GenoEntry (..), GenoLine, EigenstratIndEntry (EigenstratIndEntry))
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (EigenstratIndEntry),
+                                             EigenstratSnpEntry (..),
+                                             GenoEntry (..), GenoLine, Sex (..))
 import           SequenceFormats.Utils      (Chrom (..))
 import           Test.Hspec
 
@@ -56,9 +59,22 @@ testJoinGenoEntries =
             joinEntries noLog nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
 
 testLoadVCF :: Spec
-testLoadVCF = describe " loadIndividuals(VCF)" $ 
+testLoadVCF = describe "loadIndividuals(VCF)" $ do
     it "should correctly read group names and genetic sex from VCF header" $ do
         let gSpec = GenotypeDataSpec (GenotypeVCF "geno.vcf" Nothing) Nothing
         let baseDir = "test/testDat/testPackages/other_test_packages/Schiffels_2016_vcf/"
         fmap (take 3) (testLog $ loadIndividuals baseDir gSpec) `shouldReturn`
-            [EigenstratIndEntry "XXX001" Male "POP1", EigenstratIndEntry "XXX002" Female "POP2", EigenstratIndEntry "XXX003" Male "POP1"] 
+            [EigenstratIndEntry "XXX001" Male "POP1", EigenstratIndEntry "XXX002" Female "POP2", EigenstratIndEntry "XXX003" Male "POP1"]
+    it "should throw if encountering wrong number of group names" $ do
+        let gSpec = GenotypeDataSpec (GenotypeVCF "geno_wrong_groupnames.vcf" Nothing) Nothing
+        let baseDir = "test/testDat/testGenoFiles"
+        testLog (loadIndividuals baseDir gSpec) `shouldThrow` groupNameExc
+    it "should throw if encountering wrong number of genetic sex entries" $ do
+        let gSpec = GenotypeDataSpec (GenotypeVCF "geno_wrong_sexEntries.vcf" Nothing) Nothing
+        let baseDir = "test/testDat/testGenoFiles"
+        testLog (loadIndividuals baseDir gSpec) `shouldThrow` sexEntryExc
+  where
+    groupNameExc (PoseidonGenotypeException msg) = "Number of group names" `isPrefixOf` msg
+    groupNameExc _ = False
+    sexEntryExc (PoseidonGenotypeException msg) = "Number of genetic sex" `isPrefixOf` msg
+    sexEntryExc _ = False
