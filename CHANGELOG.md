@@ -1,3 +1,6 @@
+- V 1.6.7.1:
+    - VCF files can now contain headers `##group_names=Group1,Group2,...` and `##genetic_sex=F,F,M,U,...`, which is correctly parsed, and these fields are also written if VCF files are output.
+    - Validate now has modified behavior for consistency checks between Ind- and Geno-File for VCFs. Since VCF files do not _have_ to have our custom header fields defined above, we read them setting all group names to "unknown" and all genetic sex entries to "U" (unknown). So when validate now checks consistency, it will allow inconsisteny if and only if (i) the data comes from a VCF file, and (ii) all group names and all genetic sex entries are indeed unknown (in other words, they are missing).
 - V 1.6.7.0:
     - added new option `--fullOutput` for `list --packages` to extend the output with additional information from each packages (file names, contributors, etc.)
 - V 1.6.6.0:
