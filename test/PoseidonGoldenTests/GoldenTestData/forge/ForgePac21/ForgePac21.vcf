@@ -1,6 +1,7 @@
 ##fileformat=VCFv4.2
 ##source=trident_v1.6.6.0
 ##group_names=POP2,POP2,POP2,POP2,3,5
+##genetic_sex=F,F,M,F,F,F
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">
 ##FILTER=<ID=s50,Description="Less than 50% of samples have data">
 ##FILTER=<ID=s10,Description="Less than 10% of samples have data">
