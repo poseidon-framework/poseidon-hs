@@ -12,6 +12,13 @@ packages:
   original:
     hackage: table-layout-0.9.1.0
 - completed:
+    hackage: sequence-formats-1.11.0.2@sha256:ad8c7f4d8a8f099a036b4896a474f3f7dd21d0da65f09b15063f5641466243ef,3052
+    pantry-tree:
+      sha256: 256b581f52ff85cb17d88e8f66528fdac4b81abe571116c2606f44000764d178
+      size: 2809
+  original:
+    hackage: sequence-formats-1.11.0.2
+- completed:
     hackage: scotty-0.22@sha256:b3c799b3c4896176342062c1140c290ffb9a8d81e6da2ea3e12f7a83cbda78d4,6013
     pantry-tree:
       sha256: ec781405d9d771ad8e0b0d6f350b4c4296104665668fc7263ba36839f674d835

@@ -2,12 +2,11 @@
 module Poseidon.GenotypeDataSpec (spec) where
 
 import           Poseidon.GenotypeData
-import           Poseidon.Utils             (noLog)
-
+import           Poseidon.Utils             (noLog, testLog)
 
 import qualified Data.Vector                as V
-import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine)
+import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..), Sex(..),
+                                             GenoEntry (..), GenoLine, EigenstratIndEntry (EigenstratIndEntry))
 import           SequenceFormats.Utils      (Chrom (..))
 import           Test.Hspec
 
@@ -15,6 +14,7 @@ spec :: Spec
 spec = do
     testSNPSetMergeList
     testJoinGenoEntries
+    testLoadVCF
 
 testSNPSetMergeList :: Spec
 testSNPSetMergeList =
@@ -54,3 +54,11 @@ testJoinGenoEntries =
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
             joinEntries noLog nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
+
+testLoadVCF :: Spec
+testLoadVCF = describe " loadIndividuals(VCF)" $ 
+    it "should correctly read group names and genetic sex from VCF header" $ do
+        let gSpec = GenotypeDataSpec (GenotypeVCF "geno.vcf" Nothing) Nothing
+        let baseDir = "test/testDat/testPackages/other_test_packages/Schiffels_2016_vcf/"
+        fmap (take 3) (testLog $ loadIndividuals baseDir gSpec) `shouldReturn`
+            [EigenstratIndEntry "XXX001" Male "POP1", EigenstratIndEntry "XXX002" Female "POP2", EigenstratIndEntry "XXX003" Male "POP1"] 

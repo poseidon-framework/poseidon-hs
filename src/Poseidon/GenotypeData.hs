@@ -242,14 +242,14 @@ loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
             return [EigenstratIndEntry s gs gn | (s, gs, gn) <- zip3 sampleNames geneticSex groupNames]
 
 findGroupNamesInVCFheader :: [B.ByteString] -> Maybe [B.ByteString]
-findGroupNamesInVCFheader headerLines = case filter ("##group_name=" `B.isPrefixOf`) headerLines of
+findGroupNamesInVCFheader headerLines = case filter ("##group_names=" `B.isPrefixOf`) headerLines of
     []    -> Nothing
-    (l:_) -> Just . B.split ',' . B.drop 13 $ l
+    (l:_) -> Just . B.split ',' . B.drop 14 $ l
 
 findGeneticSexInVCFheader :: [B.ByteString] -> Maybe (Either String [Sex])
 findGeneticSexInVCFheader headerLines = case filter ("##genetic_sex=" `B.isPrefixOf`) headerLines of
     [] -> Nothing
-    (l:_) -> case A.parseOnly (A.string "##genetic_sex" *> parseSex `A.sepBy` A.char ',') l of
+    (l:_) -> case A.parseOnly (A.string "##genetic_sex=" *> parseSex `A.sepBy` A.char ',') l of
         Left err -> Just (Left $ "When parsing genetic sex entries (" ++ B.unpack l ++ ") encountered error: " ++ err)
         Right r -> Just (Right r)
 
