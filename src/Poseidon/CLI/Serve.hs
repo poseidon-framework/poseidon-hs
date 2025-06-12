@@ -172,7 +172,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
             pacs <- getItemFromArchiveStore archiveStore
-            pacInfos <- packagesToPackageInfos pacs
+            pacInfos <- packagesToPackageInfos False pacs
             let retData = ApiReturnPackageInfo pacInfos
             return $ ServerApiReturnType [] (Just retData)
 
