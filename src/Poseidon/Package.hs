@@ -369,13 +369,11 @@ readPoseidonPackage :: PackageReadOptions
                     -> PoseidonIO PoseidonPackage -- ^ the returning package returned in the IO monad.
 readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
-    bs <- liftIO $ B.readFile ymlPath
+    
+    poseidonVersion <- readPoseidonVersion ymlPath
 
-    -- read yml files
-    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
-        Left err  -> throwM $ PoseidonYamlParseException ymlPath err
-        Right pac -> return pac
-    checkYML yml
+    -- TODO: remove explicit field-matching and use access functions
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- readPoseidonYml poseidonVersion ymlPath
 
     -- file existence and checksum test
     liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
@@ -418,6 +416,20 @@ readPoseidonPackage opts ymlPath = do
 
     -- return complete, valid package
     return pac
+
+-- this function definitely returns a version. If it doesn't find one, return the latest.
+readPoseidonVersion :: FilePath -> PoseidonIO Version
+readPoseidonVersion = undefined
+
+-- the function takes a PoseidonVersion as parameter to guide future versions of this.
+readPoseidonYaml :: Version -> FilePath -> PoseidonIO PoseidonYamlStruct
+readPoseidonYaml _ ymlPath = do
+    bs <- liftIO $ B.readFile ymlPath
+    yml <- case decodeEither' bs of
+        Left err  -> throwM $ PoseidonYamlParseException ymlPath err
+        Right pac -> return pac
+    checkYML yml
+    return yml
 
 checkYML :: PoseidonYamlStruct -> PoseidonIO ()
 checkYML yml = do
