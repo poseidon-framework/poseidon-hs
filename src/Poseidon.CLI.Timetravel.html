@@ -43,28 +43,28 @@
 </span><span id="line-38"></span><span>
 </span><span id="line-39"></span><span class="annot"><a href="Poseidon.CLI.Timetravel.html#runTimetravel"><span class="hs-identifier hs-type">runTimetravel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Timetravel.html#TimetravelOptions"><span class="hs-identifier hs-type">TimetravelOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-40"></span><span id="runTimetravel"><span class="annot"><span class="annottext">runTimetravel :: TimetravelOptions -&gt; PoseidonIO ()
-</span><a href="Poseidon.CLI.Timetravel.html#runTimetravel"><span class="hs-identifier hs-var hs-var">runTimetravel</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Timetravel.html#TimetravelOptions"><span class="hs-identifier hs-type">TimetravelOptions</span></a></span><span> </span><span id="local-6989586621679631422"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679631422"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679631423"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span></span><span> </span><span id="local-6989586621679631424"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631424"><span class="hs-identifier hs-var">chroniclePath</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-41"></span><span>    </span><span id="local-6989586621679631425"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679631425"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [String] -&gt; PoseidonIO [PoseidonPackage]
+</span><a href="Poseidon.CLI.Timetravel.html#runTimetravel"><span class="hs-identifier hs-var hs-var">runTimetravel</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Timetravel.html#TimetravelOptions"><span class="hs-identifier hs-type">TimetravelOptions</span></a></span><span> </span><span id="local-6989586621679635640"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679635640"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679635641"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span></span><span> </span><span id="local-6989586621679635642"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635642"><span class="hs-identifier hs-var">chroniclePath</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-41"></span><span>    </span><span id="local-6989586621679635643"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679635643"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions -&gt; [String] -&gt; PoseidonIO [PoseidonPackage]
 </span><a href="Poseidon.Package.html#readPoseidonPackageCollection"><span class="hs-identifier hs-var">readPoseidonPackageCollection</span></a></span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.CLI.Timetravel.html#pacReadOpts"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679631422"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
-</span><span id="line-42"></span><span>    </span><span id="local-6989586621679631426"><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679631426"><span class="hs-identifier hs-var">pacsInBaseDirs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; [PoseidonPackage] -&gt; PoseidonIO (Set PackageIteration)
+</span><a href="#local-6989586621679635640"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679635644"><span class="annot"><span class="annottext">Set PackageIteration
+</span><a href="#local-6989586621679635644"><span class="hs-identifier hs-var">pacsInBaseDirs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; [PoseidonPackage] -&gt; PoseidonIO (Set PackageIteration)
 </span><a href="Poseidon.Chronicle.html#chroniclePackages"><span class="hs-identifier hs-var">chroniclePackages</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631424"><span class="hs-identifier hs-var">chroniclePath</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679631425"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
-</span><span id="line-43"></span><span>    </span><span id="local-6989586621679631427"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679631427"><span class="hs-identifier hs-var">chronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO PoseidonPackageChronicle
+</span><a href="#local-6989586621679635642"><span class="hs-identifier hs-var">chroniclePath</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679635643"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679635645"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679635645"><span class="hs-identifier hs-var">chronicle</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO PoseidonPackageChronicle
 </span><a href="Poseidon.Chronicle.html#readChronicle"><span class="hs-identifier hs-var">readChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631424"><span class="hs-identifier hs-var">chroniclePath</span></a></span><span>
-</span><span id="line-44"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679631428"><span class="annot"><span class="annottext">pacsInChronicle :: Set PackageIteration
-</span><a href="#local-6989586621679631428"><span class="hs-identifier hs-var hs-var">pacsInChronicle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
+</span><a href="#local-6989586621679635642"><span class="hs-identifier hs-var">chroniclePath</span></a></span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635646"><span class="annot"><span class="annottext">pacsInChronicle :: Set PackageIteration
+</span><a href="#local-6989586621679635646"><span class="hs-identifier hs-var hs-var">pacsInChronicle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679631427"><span class="hs-identifier hs-var">chronicle</span></a></span><span>
+</span><a href="#local-6989586621679635645"><span class="hs-identifier hs-var">chronicle</span></a></span><span>
 </span><span id="line-45"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Set PackageIteration -&gt; [PackageIteration]
 forall a. Set a -&gt; [a]
 </span><span class="hs-identifier hs-var">S.toList</span></span><span> </span><span class="annot"><span class="annottext">(Set PackageIteration -&gt; [PackageIteration])
@@ -74,15 +74,15 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 -&gt; Set PackageIteration -&gt; Set PackageIteration
 forall a. Ord a =&gt; Set a -&gt; Set a -&gt; Set a
 </span><span class="hs-identifier hs-var">S.difference</span></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679631428"><span class="hs-identifier hs-var">pacsInChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679631426"><span class="hs-identifier hs-var">pacsInBaseDirs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679635646"><span class="hs-identifier hs-var">pacsInChronicle</span></a></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
+</span><a href="#local-6989586621679635644"><span class="hs-identifier hs-var">pacsInBaseDirs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-46"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;All packages already there, nothing to add&quot;</span></span><span>
-</span><span id="line-47"></span><span>        </span><span id="local-6989586621679631432"><span class="annot"><span class="annottext">[PackageIteration]
-</span><a href="#local-6989586621679631432"><span class="hs-identifier hs-var">pacStatesToAdd</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-48"></span><span>            </span><span id="local-6989586621679631433"><span class="annot"><span class="annottext">Either GitHashException GitInfo
-</span><a href="#local-6989586621679631433"><span class="hs-identifier hs-var">eitherGit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GitHashException GitInfo)
+</span><span id="line-47"></span><span>        </span><span id="local-6989586621679635650"><span class="annot"><span class="annottext">[PackageIteration]
+</span><a href="#local-6989586621679635650"><span class="hs-identifier hs-var">pacStatesToAdd</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-48"></span><span>            </span><span id="local-6989586621679635651"><span class="annot"><span class="annottext">Either GitHashException GitInfo
+</span><a href="#local-6989586621679635651"><span class="hs-identifier hs-var">eitherGit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GitHashException GitInfo)
 -&gt; ReaderT Env IO (Either GitHashException GitInfo)
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -93,11 +93,11 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO (Either GitHashException GitInfo)
 </span><span class="hs-identifier hs-var">getGitInfo</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
 </span><span id="line-49"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either GitHashException GitInfo
-</span><a href="#local-6989586621679631433"><span class="hs-identifier hs-var">eitherGit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-50"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679631434"><span class="annot"><span class="annottext">GitHashException
-</span><a href="#local-6989586621679631434"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679635651"><span class="hs-identifier hs-var">eitherGit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-50"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679635652"><span class="annot"><span class="annottext">GitHashException
+</span><a href="#local-6989586621679635652"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO ()
 forall e a. (HasCallStack, Exception e) =&gt; e -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) e a.
 (MonadThrow m, HasCallStack, Exception e) =&gt;
@@ -107,16 +107,16 @@ e -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonGitException"><span class="hs-identifier hs-var">PoseidonGitException</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GitHashException -&gt; String
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GitHashException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">GitHashException
-</span><a href="#local-6989586621679631434"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-51"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679631437"><span class="annot"><span class="annottext">GitInfo
-</span><a href="#local-6989586621679631437"><span class="hs-identifier hs-var">gitRef</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-52"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679631438"><span class="annot"><span class="annottext">currentBranch :: String
-</span><a href="#local-6989586621679631438"><span class="hs-identifier hs-var hs-var">currentBranch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GitInfo -&gt; String
+</span><a href="#local-6989586621679635652"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679635655"><span class="annot"><span class="annottext">GitInfo
+</span><a href="#local-6989586621679635655"><span class="hs-identifier hs-var">gitRef</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-52"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635656"><span class="annot"><span class="annottext">currentBranch :: String
+</span><a href="#local-6989586621679635656"><span class="hs-identifier hs-var hs-var">currentBranch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GitInfo -&gt; String
 </span><span class="hs-identifier hs-var">giBranch</span></span><span> </span><span class="annot"><span class="annottext">GitInfo
-</span><a href="#local-6989586621679631437"><span class="hs-identifier hs-var">gitRef</span></a></span><span>
+</span><a href="#local-6989586621679635655"><span class="hs-identifier hs-var">gitRef</span></a></span><span>
 </span><span id="line-53"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO ()) -&gt; String -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -124,15 +124,15 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Starting at branch &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631438"><span class="hs-identifier hs-var">currentBranch</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635656"><span class="hs-identifier hs-var">currentBranch</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; in &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
-</span><span id="line-54"></span><span>                    </span><span id="local-6989586621679631439"><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631439"><span class="hs-identifier hs-var">logAction</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonIO LogA
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
+</span><span id="line-54"></span><span>                    </span><span id="local-6989586621679635657"><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679635657"><span class="hs-identifier hs-var">logAction</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonIO LogA
 </span><a href="Poseidon.Utils.html#envLogAction"><span class="hs-identifier hs-var">envLogAction</span></a></span><span>
 </span><span id="line-55"></span><span>                    </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
@@ -143,27 +143,27 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. IO a -&gt; IO b -&gt; IO a
 </span><span class="hs-identifier hs-var">finally</span></span><span>
 </span><span id="line-56"></span><span>                        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogA -&gt; [PackageIteration] -&gt; IO ()
-</span><a href="#local-6989586621679631440"><span class="hs-identifier hs-var">recoverPacsIO</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631439"><span class="hs-identifier hs-var">logAction</span></a></span><span> </span><span class="annot"><span class="annottext">[PackageIteration]
-</span><a href="#local-6989586621679631432"><span class="hs-identifier hs-var">pacStatesToAdd</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679635658"><span class="hs-identifier hs-var">recoverPacsIO</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679635657"><span class="hs-identifier hs-var">logAction</span></a></span><span> </span><span class="annot"><span class="annottext">[PackageIteration]
+</span><a href="#local-6989586621679635650"><span class="hs-identifier hs-var">pacStatesToAdd</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-57"></span><span>                        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogA -&gt; String -&gt; IO ()
-</span><a href="#local-6989586621679631441"><span class="hs-identifier hs-var">gitCheckoutIO</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631439"><span class="hs-identifier hs-var">logAction</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631438"><span class="hs-identifier hs-var">currentBranch</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679635659"><span class="hs-identifier hs-var">gitCheckoutIO</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679635657"><span class="hs-identifier hs-var">logAction</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635656"><span class="hs-identifier hs-var">currentBranch</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-58"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Done&quot;</span></span><span>
 </span><span id="line-59"></span><span>    </span><span class="hs-keyword">where</span><span>
 </span><span id="line-60"></span><span>        </span><span class="hs-comment">-- these IO actions are only necessary to wrap the computation</span><span>
 </span><span id="line-61"></span><span>        </span><span class="hs-comment">-- in Control.Exception.finally, which runs in IO, not PoseidonIO</span><span>
-</span><span id="line-62"></span><span>        </span><span class="annot"><a href="#local-6989586621679631440"><span class="hs-identifier hs-type">recoverPacsIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><span id="line-63"></span><span>        </span><span id="local-6989586621679631440"><span class="annot"><span class="annottext">recoverPacsIO :: LogA -&gt; [PackageIteration] -&gt; IO ()
-</span><a href="#local-6989586621679631440"><span class="hs-identifier hs-var hs-var">recoverPacsIO</span></a></span></span><span> </span><span id="local-6989586621679631442"><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631442"><span class="hs-identifier hs-var">logA</span></a></span></span><span> </span><span id="local-6989586621679631443"><span class="annot"><span class="annottext">[PackageIteration]
-</span><a href="#local-6989586621679631443"><span class="hs-identifier hs-var">pacIters</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogA -&gt; PoseidonIO () -&gt; IO ()
+</span><span id="line-62"></span><span>        </span><span class="annot"><a href="#local-6989586621679635658"><span class="hs-identifier hs-type">recoverPacsIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>        </span><span id="local-6989586621679635658"><span class="annot"><span class="annottext">recoverPacsIO :: LogA -&gt; [PackageIteration] -&gt; IO ()
+</span><a href="#local-6989586621679635658"><span class="hs-identifier hs-var hs-var">recoverPacsIO</span></a></span></span><span> </span><span id="local-6989586621679635660"><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679635660"><span class="hs-identifier hs-var">logA</span></a></span></span><span> </span><span id="local-6989586621679635661"><span class="annot"><span class="annottext">[PackageIteration]
+</span><a href="#local-6989586621679635661"><span class="hs-identifier hs-var">pacIters</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogA -&gt; PoseidonIO () -&gt; IO ()
 forall (m :: * -&gt; *). MonadIO m =&gt; LogA -&gt; PoseidonIO () -&gt; m ()
 </span><a href="Poseidon.Utils.html#logWithEnv"><span class="hs-identifier hs-var">logWithEnv</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631442"><span class="hs-identifier hs-var">logA</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; IO ()) -&gt; PoseidonIO () -&gt; IO ()
+</span><a href="#local-6989586621679635660"><span class="hs-identifier hs-var">logA</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; IO ()) -&gt; PoseidonIO () -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(PackageIteration -&gt; PoseidonIO ())
 -&gt; [PackageIteration] -&gt; PoseidonIO ()
@@ -171,34 +171,34 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 (a -&gt; m b) -&gt; t a -&gt; m ()
 </span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; PoseidonIO ()
-</span><a href="#local-6989586621679631445"><span class="hs-identifier hs-var">recoverPacIter</span></a></span><span> </span><span class="annot"><span class="annottext">[PackageIteration]
-</span><a href="#local-6989586621679631443"><span class="hs-identifier hs-var">pacIters</span></a></span><span>
-</span><span id="line-64"></span><span>        </span><span class="annot"><a href="#local-6989586621679631441"><span class="hs-identifier hs-type">gitCheckoutIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><span id="line-65"></span><span>        </span><span id="local-6989586621679631441"><span class="annot"><span class="annottext">gitCheckoutIO :: LogA -&gt; String -&gt; IO ()
-</span><a href="#local-6989586621679631441"><span class="hs-identifier hs-var hs-var">gitCheckoutIO</span></a></span></span><span> </span><span id="local-6989586621679631446"><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631446"><span class="hs-identifier hs-var">logA</span></a></span></span><span> </span><span id="local-6989586621679631447"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631447"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogA -&gt; PoseidonIO () -&gt; IO ()
+</span><a href="#local-6989586621679635663"><span class="hs-identifier hs-var">recoverPacIter</span></a></span><span> </span><span class="annot"><span class="annottext">[PackageIteration]
+</span><a href="#local-6989586621679635661"><span class="hs-identifier hs-var">pacIters</span></a></span><span>
+</span><span id="line-64"></span><span>        </span><span class="annot"><a href="#local-6989586621679635659"><span class="hs-identifier hs-type">gitCheckoutIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>        </span><span id="local-6989586621679635659"><span class="annot"><span class="annottext">gitCheckoutIO :: LogA -&gt; String -&gt; IO ()
+</span><a href="#local-6989586621679635659"><span class="hs-identifier hs-var hs-var">gitCheckoutIO</span></a></span></span><span> </span><span id="local-6989586621679635664"><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679635664"><span class="hs-identifier hs-var">logA</span></a></span></span><span> </span><span id="local-6989586621679635665"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635665"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogA -&gt; PoseidonIO () -&gt; IO ()
 forall (m :: * -&gt; *). MonadIO m =&gt; LogA -&gt; PoseidonIO () -&gt; m ()
 </span><a href="Poseidon.Utils.html#logWithEnv"><span class="hs-identifier hs-var">logWithEnv</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679631446"><span class="hs-identifier hs-var">logA</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; IO ()) -&gt; PoseidonIO () -&gt; IO ()
+</span><a href="#local-6989586621679635664"><span class="hs-identifier hs-var">logA</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; IO ()) -&gt; PoseidonIO () -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Timetravel.html#gitCheckout"><span class="hs-identifier hs-var">gitCheckout</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631447"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-66"></span><span>        </span><span class="annot"><a href="#local-6989586621679631445"><span class="hs-identifier hs-type">recoverPacIter</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><span id="line-67"></span><span>        </span><span id="local-6989586621679631445"><span class="annot"><span class="annottext">recoverPacIter :: PackageIteration -&gt; PoseidonIO ()
-</span><a href="#local-6989586621679631445"><span class="hs-identifier hs-var hs-var">recoverPacIter</span></a></span></span><span> </span><span id="local-6989586621679631449"><span class="annot"><span class="annottext">pacIter :: PackageIteration
-</span><a href="#local-6989586621679631449"><span class="hs-identifier hs-var">pacIter</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635665"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-66"></span><span>        </span><span class="annot"><a href="#local-6989586621679635663"><span class="hs-identifier hs-type">recoverPacIter</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>        </span><span id="local-6989586621679635663"><span class="annot"><span class="annottext">recoverPacIter :: PackageIteration -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679635663"><span class="hs-identifier hs-var hs-var">recoverPacIter</span></a></span></span><span> </span><span id="local-6989586621679635667"><span class="annot"><span class="annottext">pacIter :: PackageIteration
+</span><a href="#local-6989586621679635667"><span class="hs-identifier hs-var">pacIter</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679631451"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631451"><span class="hs-identifier hs-var">commit</span></a></span></span><span> </span><span id="local-6989586621679631452"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631452"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-68"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679631455"><span class="annot"><span class="annottext">pacIterName :: String
-</span><a href="#local-6989586621679631455"><span class="hs-identifier hs-var hs-var">pacIterName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679635669"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635669"><span class="hs-identifier hs-var">commit</span></a></span></span><span> </span><span id="local-6989586621679635670"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635670"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-68"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635673"><span class="annot"><span class="annottext">pacIterName :: String
+</span><a href="#local-6989586621679635673"><span class="hs-identifier hs-var hs-var">pacIterName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; String
 forall a. HasNameAndVersion a =&gt; a -&gt; String
 </span><a href="Poseidon.EntityTypes.html#renderNameWithVersion"><span class="hs-identifier hs-var">renderNameWithVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIteration
-</span><a href="#local-6989586621679631449"><span class="hs-identifier hs-var">pacIter</span></a></span><span>
+</span><a href="#local-6989586621679635667"><span class="hs-identifier hs-var">pacIter</span></a></span><span>
 </span><span id="line-69"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO ()) -&gt; String -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -206,10 +206,10 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Recovering package &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631455"><span class="hs-identifier hs-var">pacIterName</span></a></span><span>
+</span><a href="#local-6989586621679635673"><span class="hs-identifier hs-var">pacIterName</span></a></span><span>
 </span><span id="line-70"></span><span>            </span><span class="hs-comment">-- this exists to reduce the number of checkouts</span><span>
-</span><span id="line-71"></span><span>            </span><span id="local-6989586621679631456"><span class="annot"><span class="annottext">Either GitHashException GitInfo
-</span><a href="#local-6989586621679631456"><span class="hs-identifier hs-var">eitherGit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GitHashException GitInfo)
+</span><span id="line-71"></span><span>            </span><span id="local-6989586621679635674"><span class="annot"><span class="annottext">Either GitHashException GitInfo
+</span><a href="#local-6989586621679635674"><span class="hs-identifier hs-var">eitherGit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GitHashException GitInfo)
 -&gt; ReaderT Env IO (Either GitHashException GitInfo)
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -220,11 +220,11 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO (Either GitHashException GitInfo)
 </span><span class="hs-identifier hs-var">getGitInfo</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
 </span><span id="line-72"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either GitHashException GitInfo
-</span><a href="#local-6989586621679631456"><span class="hs-identifier hs-var">eitherGit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-73"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679631457"><span class="annot"><span class="annottext">GitHashException
-</span><a href="#local-6989586621679631457"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679635674"><span class="hs-identifier hs-var">eitherGit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-73"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679635675"><span class="annot"><span class="annottext">GitHashException
+</span><a href="#local-6989586621679635675"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO ()
 forall e a. (HasCallStack, Exception e) =&gt; e -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) e a.
 (MonadThrow m, HasCallStack, Exception e) =&gt;
@@ -234,21 +234,21 @@ e -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonGitException"><span class="hs-identifier hs-var">PoseidonGitException</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GitHashException -&gt; String
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GitHashException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">GitHashException
-</span><a href="#local-6989586621679631457"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-74"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679631458"><span class="annot"><span class="annottext">GitInfo
-</span><a href="#local-6989586621679631458"><span class="hs-identifier hs-var">gitRef</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-75"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679631459"><span class="annot"><span class="annottext">currentCommit :: String
-</span><a href="#local-6989586621679631459"><span class="hs-identifier hs-var hs-var">currentCommit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GitInfo -&gt; String
+</span><a href="#local-6989586621679635675"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679635676"><span class="annot"><span class="annottext">GitInfo
+</span><a href="#local-6989586621679635676"><span class="hs-identifier hs-var">gitRef</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-75"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635677"><span class="annot"><span class="annottext">currentCommit :: String
+</span><a href="#local-6989586621679635677"><span class="hs-identifier hs-var hs-var">currentCommit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GitInfo -&gt; String
 </span><span class="hs-identifier hs-var">giHash</span></span><span> </span><span class="annot"><span class="annottext">GitInfo
-</span><a href="#local-6989586621679631458"><span class="hs-identifier hs-var">gitRef</span></a></span><span>
+</span><a href="#local-6989586621679635676"><span class="hs-identifier hs-var">gitRef</span></a></span><span>
 </span><span id="line-76"></span><span>                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631459"><span class="hs-identifier hs-var">currentCommit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679635677"><span class="hs-identifier hs-var">currentCommit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631451"><span class="hs-identifier hs-var">commit</span></a></span><span>
+</span><a href="#local-6989586621679635669"><span class="hs-identifier hs-var">commit</span></a></span><span>
 </span><span id="line-77"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-78"></span><span>                        </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO ()) -&gt; String -&gt; PoseidonIO ()
@@ -257,44 +257,44 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Already at the right commit &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631451"><span class="hs-identifier hs-var">commit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635669"><span class="hs-identifier hs-var">commit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; in &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
 </span><span id="line-79"></span><span>                        </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Timetravel.html#copyDirectory"><span class="hs-identifier hs-var">copyDirectory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631452"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="#local-6989586621679635670"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; String
 forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679631422"><span class="hs-identifier hs-var">baseDirs</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635640"><span class="hs-identifier hs-var">baseDirs</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631455"><span class="hs-identifier hs-var">pacIterName</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679635673"><span class="hs-identifier hs-var">pacIterName</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-80"></span><span>                    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-81"></span><span>                        </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Timetravel.html#gitCheckout"><span class="hs-identifier hs-var">gitCheckout</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631451"><span class="hs-identifier hs-var">commit</span></a></span><span>
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635669"><span class="hs-identifier hs-var">commit</span></a></span><span>
 </span><span id="line-82"></span><span>                        </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Timetravel.html#copyDirectory"><span class="hs-identifier hs-var">copyDirectory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631423"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635641"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631452"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="#local-6989586621679635670"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; String
 forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679631422"><span class="hs-identifier hs-var">baseDirs</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635640"><span class="hs-identifier hs-var">baseDirs</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631455"><span class="hs-identifier hs-var">pacIterName</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679635673"><span class="hs-identifier hs-var">pacIterName</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-83"></span><span>
 </span><span id="line-84"></span><span class="annot"><a href="Poseidon.CLI.Timetravel.html#gitCheckout"><span class="hs-identifier hs-type">gitCheckout</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-85"></span><span id="gitCheckout"><span class="annot"><span class="annottext">gitCheckout :: String -&gt; String -&gt; PoseidonIO ()
-</span><a href="Poseidon.CLI.Timetravel.html#gitCheckout"><span class="hs-identifier hs-var hs-var">gitCheckout</span></a></span></span><span> </span><span id="local-6989586621679631462"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631462"><span class="hs-identifier hs-var">srcDir</span></a></span></span><span> </span><span id="local-6989586621679631463"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631463"><span class="hs-identifier hs-var">commit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.CLI.Timetravel.html#gitCheckout"><span class="hs-identifier hs-var hs-var">gitCheckout</span></a></span></span><span> </span><span id="local-6989586621679635680"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635680"><span class="hs-identifier hs-var">srcDir</span></a></span></span><span> </span><span id="local-6989586621679635681"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635681"><span class="hs-identifier hs-var">commit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO ()) -&gt; String -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -302,13 +302,13 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Checking out &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631463"><span class="hs-identifier hs-var">commit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635681"><span class="hs-identifier hs-var">commit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; in &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631462"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
+</span><a href="#local-6989586621679635680"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
 </span><span id="line-87"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -319,13 +319,13 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;git -C &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631462"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635680"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; checkout &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631463"><span class="hs-identifier hs-var">commit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635681"><span class="hs-identifier hs-var">commit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; --quiet&quot;</span></span><span class="hs-special">)</span><span>
@@ -337,9 +337,9 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span id="line-93"></span><span>
 </span><span id="line-94"></span><span class="annot"><a href="Poseidon.CLI.Timetravel.html#copyDirectory"><span class="hs-identifier hs-type">copyDirectory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-95"></span><span id="copyDirectory"><span class="annot"><span class="annottext">copyDirectory :: String -&gt; String -&gt; PoseidonIO ()
-</span><a href="Poseidon.CLI.Timetravel.html#copyDirectory"><span class="hs-identifier hs-var hs-var">copyDirectory</span></a></span></span><span> </span><span id="local-6989586621679631464"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631464"><span class="hs-identifier hs-var">srcDir</span></a></span></span><span> </span><span id="local-6989586621679631465"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631465"><span class="hs-identifier hs-var">destDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.CLI.Timetravel.html#copyDirectory"><span class="hs-identifier hs-var hs-var">copyDirectory</span></a></span></span><span> </span><span id="local-6989586621679635682"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635682"><span class="hs-identifier hs-var">srcDir</span></a></span></span><span> </span><span id="local-6989586621679635683"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635683"><span class="hs-identifier hs-var">destDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-96"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO ()) -&gt; String -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -347,13 +347,13 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Copying dir &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631464"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635682"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; to &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631465"><span class="hs-identifier hs-var">destDir</span></a></span><span>
+</span><a href="#local-6989586621679635683"><span class="hs-identifier hs-var">destDir</span></a></span><span>
 </span><span id="line-97"></span><span>  </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -362,9 +362,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; String -&gt; IO ()
 </span><span class="hs-identifier hs-var">createDirectoryIfMissing</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631465"><span class="hs-identifier hs-var">destDir</span></a></span><span>
-</span><span id="line-98"></span><span>  </span><span id="local-6989586621679631466"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679631466"><span class="hs-identifier hs-var">files</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [String] -&gt; ReaderT Env IO [String]
+</span><a href="#local-6989586621679635683"><span class="hs-identifier hs-var">destDir</span></a></span><span>
+</span><span id="line-98"></span><span>  </span><span id="local-6989586621679635684"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679635684"><span class="hs-identifier hs-var">files</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [String] -&gt; ReaderT Env IO [String]
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [String] -&gt; ReaderT Env IO [String])
@@ -372,27 +372,27 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO [String]
 </span><span class="hs-identifier hs-var">listDirectory</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631464"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
+</span><a href="#local-6989586621679635682"><span class="hs-identifier hs-var">srcDir</span></a></span><span>
 </span><span id="line-99"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; (String -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679631466"><span class="hs-identifier hs-var">files</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
+</span><a href="#local-6989586621679635684"><span class="hs-identifier hs-var">files</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
 -&gt; (String -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679631467"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631467"><span class="hs-identifier hs-var">file</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-100"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679631468"><span class="annot"><span class="annottext">srcFile :: String
-</span><a href="#local-6989586621679631468"><span class="hs-identifier hs-var hs-var">srcFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631464"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679635685"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635685"><span class="hs-identifier hs-var">file</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-100"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635686"><span class="annot"><span class="annottext">srcFile :: String
+</span><a href="#local-6989586621679635686"><span class="hs-identifier hs-var hs-var">srcFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635682"><span class="hs-identifier hs-var">srcDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631467"><span class="hs-identifier hs-var">file</span></a></span><span>
-</span><span id="line-101"></span><span>        </span><span id="local-6989586621679631469"><span class="annot"><span class="annottext">destFile :: String
-</span><a href="#local-6989586621679631469"><span class="hs-identifier hs-var hs-var">destFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631465"><span class="hs-identifier hs-var">destDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635685"><span class="hs-identifier hs-var">file</span></a></span><span>
+</span><span id="line-101"></span><span>        </span><span id="local-6989586621679635687"><span class="annot"><span class="annottext">destFile :: String
+</span><a href="#local-6989586621679635687"><span class="hs-identifier hs-var hs-var">destFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635683"><span class="hs-identifier hs-var">destDir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631467"><span class="hs-identifier hs-var">file</span></a></span><span>
+</span><a href="#local-6989586621679635685"><span class="hs-identifier hs-var">file</span></a></span><span>
 </span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logDebug"><span class="hs-identifier hs-var">logDebug</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO ()) -&gt; String -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -400,13 +400,13 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Copying: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631468"><span class="hs-identifier hs-var">srcFile</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679635686"><span class="hs-identifier hs-var">srcFile</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; -&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631469"><span class="hs-identifier hs-var">destFile</span></a></span><span>
+</span><a href="#local-6989586621679635687"><span class="hs-identifier hs-var">destFile</span></a></span><span>
 </span><span id="line-103"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -414,6 +414,6 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; IO ()
 </span><span class="hs-identifier hs-var">copyFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631468"><span class="hs-identifier hs-var">srcFile</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679631469"><span class="hs-identifier hs-var">destFile</span></a></span><span>
+</span><a href="#local-6989586621679635686"><span class="hs-identifier hs-var">srcFile</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679635687"><span class="hs-identifier hs-var">destFile</span></a></span><span>
 </span><span id="line-104"></span></pre></body></html>

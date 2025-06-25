@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.7.0
+@version 1.6.7.1
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
@@ -1114,6 +1114,8 @@ reduceGenotypeFilepaths :: MonadThrow m => GenotypeDataSpec -> m (FilePath, Geno
 -- | A function to return a list of all individuals in the genotype files
 --   of a package.
 loadIndividuals :: FilePath -> GenotypeDataSpec -> PoseidonIO [EigenstratIndEntry]
+findGroupNamesInVCFheader :: [ByteString] -> Maybe [ByteString]
+findGeneticSexInVCFheader :: [ByteString] -> Maybe (Either String [Sex])
 
 -- | A function to read the genotype data of a package
 loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
@@ -1605,6 +1607,7 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageRea
 --   the latest one (False)
 [_readOptOnlyLatest] :: PackageReadOptions -> Bool
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
+checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
 readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO [PoseidonPackage]
 
 -- | a utility function to load all poseidon packages found recursively in
