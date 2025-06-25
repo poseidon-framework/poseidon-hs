@@ -8,6 +8,7 @@ module Poseidon.Package (
     PoseidonException(..),
     PackageReadOptions (..),
     findAllPoseidonYmlFiles,
+    checkJannoIndConsistency,
     readPoseidonPackageCollection,
     readPoseidonPackageCollectionWithSkipIndicator,
     getJointGenotypeData,
@@ -109,7 +110,7 @@ import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine,
+                                             GenoEntry (..), GenoLine, Sex (..),
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
@@ -382,16 +383,16 @@ readPoseidonPackage opts ymlPath = do
 
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
-    let (checkSex, checkGroups) = case genotypeFileSpec geno of
-            GenotypeVCF _ _ -> (False, False)
-            _               -> (True, True)
+    let isVCF = case genotypeFileSpec geno of
+            GenotypeVCF _ _ -> True
+            _               -> False
 
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             return $ createMinimalJanno indEntries
         Just p -> do
             loadedJanno <- readJannoFile p
-            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries checkSex checkGroups
+            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
     -- read seqSource
@@ -518,10 +519,9 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
                 then checkFile (d </> genoF) Nothing
                 else checkFile (d </> genoF) genoFc
 
--- the final two flags are important for reading VCFs, which lack group and sex information. So
--- we want to skip these checks in this case, see client code in readPoseidonPackage
-checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> Bool -> IO ()
-checkJannoIndConsistency pacName (JannoRows rows) indEntries checkGroups checkSex = do
+-- the last flag is important for reading VCFs, which can lack group and sex information.
+checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
+checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
     let genoIDs         = [ BSC.unpack x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ BSC.unpack x | EigenstratIndEntry  _ _ x <- indEntries]
@@ -531,13 +531,15 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries checkGroups checkSe
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
+    let sexAllUnknown = all (==Unknown) genoSexs
+        groupsAllUnknown = all (=="unknown") genoGroups
     when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch genoIDs jannoIDs
-    when (sexMis && checkSex) $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when (sexMis && not (isVCF && sexAllUnknown)) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
-    when (groupMis && checkGroups) $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when (groupMis && not (isVCF && groupsAllUnknown)) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
         \that this could be due to a wrong Plink file population-name encoding \
         \(see the --inPlinkPopName option). " ++
