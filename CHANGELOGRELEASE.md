@@ -1,10 +1,16 @@
-### V 1.6.7.0
+### V 1.6.7.1
 
 This release finally brings two long-anticipated features: VCF writing support and an html API for `serve`. It also includes some minor bugfixes.
 
 #### Writing support for VCF files
 
-v1.5.7.0 added experimental reading support for .vcf files. In this release trident finally learns to also write them as an output of `forge` and `genoconvert`. This new output option is available with `--outFormat VCF`. VCF is a rich format (as specified [here](https://samtools.github.io/hts-specs/VCFv4.2.pdf)) and trident currently uses only the features relevant for the genotype data typically handled by Poseidon. In particular, as trident must be able to convert from Plink and Eigenstrat, many fields that are typically expected in VCF files (such as read- and allelic depths or genotype likelihoods) are not written. Please note that the VCF format support is not yet specified in the Poseidon schema version this trident version supports (v2.7.1), so the feature continues to be experimental.
+v1.5.7.0 added experimental reading support for .vcf files. In this release trident finally learns to also write them as an output of `forge` and `genoconvert`. This new output option is available with `--outFormat VCF`.
+
+VCF is a rich format (as specified [here](https://samtools.github.io/hts-specs/VCFv4.2.pdf)) and trident currently uses only the features relevant for the genotype data typically handled by Poseidon. In particular, as trident must be able to convert from Plink and Eigenstrat, many fields that are typically expected in VCF files (such as read- and allelic depths or genotype likelihoods) are not written.
+
+On the other hand VCF files written by trident contain the extra headers `##group_names=Group1,Group2,...` and `##genetic_sex=F,F,M,U,...` to encode information typically not stored in VCF. This is to ensure compatibility with the PLINK and EIGENSTRAT data formats. trident has modified behavior for consistency checks between Ind- and Geno-file for VCFs, since VCF files do not _have_ to have these custom header fields defined above.
+
+Please note that the VCF format support is still not specified in the Poseidon schema version this trident version supports (v2.7.1), so the feature continues to be experimental.
 
 #### HMTL API for the web server implementation
 
@@ -16,7 +22,7 @@ This release now adds HTML output, so a human-readable website, to the server's 
 
 #### More info from the POSEIDON.yml file in the `list` output
 
-This release also adds a new option `--fullOutput` for `list --packages` to extend the output with additional information from the underlying packages' POSEIDON.yml files (file names, contributors, etc.).
+Added a new option `--fullOutput` for `list --packages` to extend the output with additional information from the underlying packages' POSEIDON.yml files (file names, contributors, etc.).
 
 #### Fixed two bugs in `rectify`
 
