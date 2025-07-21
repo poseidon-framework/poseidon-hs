@@ -25,8 +25,6 @@ getMaybeListColumn :: Maybe (ListColumn a) -> [a]
 getMaybeListColumn Nothing  = []
 getMaybeListColumn (Just x) = getListColumn x
 
-type JannoStringList = ListColumn String
-
 instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
     toField x = Bchs.intercalate ";" $ L.map Csv.toField $ getListColumn x
 instance (Csv.FromField a) => Csv.FromField (ListColumn a) where

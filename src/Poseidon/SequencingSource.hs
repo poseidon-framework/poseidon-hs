@@ -5,7 +5,7 @@
 module Poseidon.SequencingSource where
 
 import           Poseidon.ColumnTypesSSF
-import           Poseidon.ColumnTypesUtils (ListColumn (..), JannoStringList (..))
+import           Poseidon.ColumnTypesUtils (ListColumn (..))
 import           Poseidon.Janno             (CsvNamedRecord (..),                                             
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
@@ -61,7 +61,7 @@ instance Monoid SeqSourceRows where
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
 data SeqSourceRow = SeqSourceRow
-    { sPoseidonID               :: Maybe JannoStringList
+    { sPoseidonID               :: Maybe (ListColumn String)
     , sUDG                      :: Maybe SSFUDG
     , sLibraryBuilt             :: Maybe SSFLibraryBuilt
     , sSampleAccession          :: Maybe AccessionIDSample

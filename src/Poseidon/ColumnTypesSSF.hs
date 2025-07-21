@@ -20,7 +20,26 @@ import           SequenceFormats.Eigenstrat (Sex (..))
 import qualified Text.Regex.TDFA            as Reg
 import           Data.Char                  (isHexDigit)
 
--- | A datatype for the Genetic_Sex .janno column
+-- |A datatype to represent UDG in a ssf file
+data SSFUDG =
+      SSFMinus
+    | SSFHalf
+    | SSFPlus
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance Makeable SSFUDG where
+    make x
+        | x == "minus" = pure SSFMinus
+        | x == "half"  = pure SSFHalf
+        | x == "plus"  = pure SSFPlus
+        | otherwise    = fail $ "udg is set to " ++ show x ++ ". " ++
+                                "That is not in the allowed set [minus, half, plus]."
+instance Show SSFUDG where
+    show SSFMinus = "minus"
+    show SSFHalf  = "half"
+    show SSFPlus  = "plus"
+instance Csv.ToField SSFUDG where   toField x = Csv.toField $ show x
+instance Csv.FromField SSFUDG where parseField = parseTypeCSV "udg"
 
 -- | A datatype to represent AccessionIDs in a ssf file
 data AccessionID =
@@ -79,30 +98,6 @@ instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
 instance Csv.FromField JURI where
     parseField x = Csv.parseField x >>= makeJURI
-
--- |A datatype to represent UDG in a ssf file
-data SSFUDG =
-      SSFMinus
-    | SSFHalf
-    | SSFPlus
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show SSFUDG where
-    show SSFMinus = "minus"
-    show SSFHalf  = "half"
-    show SSFPlus  = "plus"
-
-makeSSFUDG :: MonadFail m => String -> m SSFUDG
-makeSSFUDG x
-    | x == "minus" = pure SSFMinus
-    | x == "half"  = pure SSFHalf
-    | x == "plus"  = pure SSFPlus
-    | otherwise    = fail $ "UDG " ++ show x ++ " not in [minus, half, plus]"
-
-instance Csv.ToField SSFUDG where
-    toField x = Csv.toField $ show x
-instance Csv.FromField SSFUDG where
-    parseField x = Csv.parseField x >>= makeSSFUDG
 
 -- |A datatype to represent Library_Built in a janno file
 data SSFLibraryBuilt =
