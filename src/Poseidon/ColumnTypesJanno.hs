@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Poseidon.ColumnTypes where
+module Poseidon.ColumnTypesJanno where
 
 import           Poseidon.ColumnTypesUtils
 

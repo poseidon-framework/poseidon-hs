@@ -13,7 +13,7 @@ import           Poseidon.Utils         (PoseidonIO, logInfo, uniquePO)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.List              (group, intercalate, sort, sortBy)
 import           Data.Maybe             (mapMaybe)
-import           Poseidon.ColumnTypes   (JannoCoverageOnTargets (..),
+import           Poseidon.ColumnTypesJanno (JannoCoverageOnTargets (..),
                                          JannoEndogenous (JannoEndogenous),
                                          JannoNrSNPs (..))
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,

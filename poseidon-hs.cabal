@@ -14,7 +14,8 @@ extra-source-files:  README.md,
 
 library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
-                        Poseidon.ColumnTypes, Poseidon.ColumnTypesUtils, Poseidon.MathHelpers,
+                        Poseidon.ColumnTypesJanno, Poseidon.ColumnTypesSSF, Poseidon.ColumnTypesUtils,
+                        Poseidon.MathHelpers,
                         Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Chronicle,
                         Poseidon.EntityTypes, Poseidon.ServerClient, Poseidon.ServerHTML,
                         Poseidon.ServerStylesheet, Poseidon.Contributor, Poseidon.Version,

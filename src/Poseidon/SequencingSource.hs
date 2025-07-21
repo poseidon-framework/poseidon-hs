@@ -4,6 +4,7 @@
 
 module Poseidon.SequencingSource where
 
+import           Poseidon.ColumnTypesSSF
 import           Poseidon.Janno             (CsvNamedRecord (..),
                                              JannoStringList, ListColumn (..),
                                              decodingOptions, encodingOptions,

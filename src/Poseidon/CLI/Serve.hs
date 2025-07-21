@@ -54,7 +54,7 @@ import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
 import           Network.Wai.Middleware.Cors  (simpleCors)
 import           Paths_poseidon_hs            (version)
 import           Poseidon.BibFile             (renderBibEntry)
-import           Poseidon.ColumnTypes         (JannoLatitude (..),
+import           Poseidon.ColumnTypesJanno    (JannoLatitude (..),
                                                JannoLongitude (..))
 import           System.Directory             (createDirectoryIfMissing,
                                                doesFileExist,

@@ -59,7 +59,7 @@ import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (SafeT, runSafeT)
-import           Poseidon.ColumnTypes        (JannoNrSNPs (..))
+import           Poseidon.ColumnTypesJanno   (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)

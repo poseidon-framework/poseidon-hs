@@ -46,7 +46,7 @@ module Poseidon.Janno (
     makeHeaderWithAdditionalColumns
 ) where
 
-import           Poseidon.ColumnTypes
+import           Poseidon.ColumnTypesJanno
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
                                                        logError, logWarning,
