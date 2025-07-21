@@ -78,7 +78,7 @@ data SeqSourceRow = SeqSourceRow
     , sFastqFTP                 :: Maybe (ListColumn JURI)
     , sFastqASPERA              :: Maybe (ListColumn JURI)
     , sFastqBytes               :: Maybe (ListColumn Integer) -- integer, not int, because it can be a very large number
-    , sFastqMD5                 :: Maybe (ListColumn MD5)
+    , sFastqMD5                 :: Maybe (ListColumn SSFFastqMD5)
     , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
     , sSubmittedFTP             :: Maybe (ListColumn JURI)
     , sAdditionalColumns        :: CsvNamedRecord

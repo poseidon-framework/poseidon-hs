@@ -87,6 +87,10 @@ $(makeInstances ''SSFLibraryName "library_name")
 newtype SSFLibraryStrategy = SSFLibraryStrategy T.Text deriving (Eq, Ord)
 $(makeInstances ''SSFLibraryStrategy "library_strategy")
 
+
+
+
+
 -- | A datatype to represent AccessionIDs in a ssf file
 data AccessionID =
       INSDCProject String
@@ -221,22 +225,18 @@ instance Csv.ToField SimpleDate where
 instance Csv.FromField SimpleDate where
     parseField x = Csv.parseField x >>= makeSimpleDate
 
--- | A datatype to represent MD5 hashes
-newtype MD5 = MD5 String
-    deriving (Eq, Ord, Generic)
 
-instance Show MD5 where
-    show (MD5 x) = x
 
-makeMD5 :: MonadFail m => String -> m MD5
-makeMD5 x
-    | isMD5Hash x = pure $ MD5 x
-    | otherwise   = fail $ "MD5 hash " ++ show x ++ " not well structured"
+-- | A datatype for the fastq_md5 .ssf column
+newtype SSFFastqMD5 = SSFFastqMD5 T.Text deriving (Eq, Ord, Generic)
 
-isMD5Hash :: String -> Bool
-isMD5Hash x = length x == 32 && all isHexDigit x
-
-instance Csv.ToField MD5 where
-    toField x = Csv.toField $ show x
-instance Csv.FromField MD5 where
-    parseField x = Csv.parseField x >>= makeMD5
+instance Makeable SSFFastqMD5 where
+    make x
+        | isMD5Hash x = pure $ SSFFastqMD5 x
+        | otherwise   = fail $ "fastq_md5 " ++ show x ++
+                               " does not contain a well-structured MD5 hash"
+isMD5Hash :: T.Text -> Bool
+isMD5Hash x = T.length x == 32 && T.all isHexDigit x
+instance Show SSFFastqMD5 where show (SSFFastqMD5 x) = T.unpack x
+instance Csv.ToField SSFFastqMD5 where   toField x = Csv.toField $ show x
+instance Csv.FromField SSFFastqMD5 where parseField = parseTypeCSV "fastq_md5"
