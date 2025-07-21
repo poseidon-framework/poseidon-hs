@@ -392,8 +392,8 @@ writeSeqSourceFile path (SeqSourceRows rows) = do
             V.fromList $ seqSourceHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . sAdditionalColumns) rows)))
 
 -- | A function to read one seqSourceFile
-readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
-readSeqSourceFile seqSourcePath = do
+readSeqSourceFile :: Version -> FilePath -> PoseidonIO SeqSourceRows
+readSeqSourceFile poseidonVersion seqSourcePath = do
     logDebug $ "Reading: " ++ seqSourcePath
     seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
     let seqSourceFileRows = Bch.lines seqSourceFile
