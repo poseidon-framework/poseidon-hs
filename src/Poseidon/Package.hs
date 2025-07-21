@@ -58,8 +58,8 @@ import           Poseidon.Janno             (GeneticSex (..),
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
-                                             SeqSourceRow (..),
+import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
+import           Poseidon.SequencingSource  (SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
 import           Poseidon.ServerClient      (AddColSpec (..),
