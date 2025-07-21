@@ -4,6 +4,8 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
+import           Poseidon.ColumnTypesUtils   (ListColumn (..),
+                                              getMaybeListColumn)
 import           Poseidon.EntityTypes        (EntityInput,
                                               PacNameAndVersion (..),
                                               PoseidonEntity (..),
@@ -21,7 +23,6 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList,
                                               writeVCF)
-import           Poseidon.ColumnTypesUtils  (ListColumn (..), getMaybeListColumn)
 import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
                                               jannoRows2EigenstratIndEntries,
                                               writeJannoFile)

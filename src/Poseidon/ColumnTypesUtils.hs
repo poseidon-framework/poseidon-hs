@@ -1,21 +1,21 @@
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE OverloadedStrings   #-}
 
 module Poseidon.ColumnTypesUtils where
 
-import           Data.ByteString     as S
-import qualified Data.Csv            as Csv
-import qualified Data.Text           as T
-import qualified Data.Text.Encoding  as T
-import           Data.Typeable       (Typeable)
-import           Language.Haskell.TH (Con (..), Dec (..), DecsQ, Info (..),
-                                      Name, conE, conP, conT, mkName, reify,
-                                      varE, varP)
-import           GHC.Generics                         (Generic)
-import qualified Data.List as L
-import qualified Data.ByteString.Char8                as Bchs
+import           Data.ByteString       as S
+import qualified Data.ByteString.Char8 as Bchs
+import qualified Data.Csv              as Csv
+import qualified Data.List             as L
+import qualified Data.Text             as T
+import qualified Data.Text.Encoding    as T
+import           Data.Typeable         (Typeable)
+import           GHC.Generics          (Generic)
+import           Language.Haskell.TH   (Con (..), Dec (..), DecsQ, Info (..),
+                                        Name, conE, conP, conT, mkName, reify,
+                                        varE, varP)
 
 -- | A general datatype for janno list columns
 newtype ListColumn a = ListColumn {getListColumn :: [a]}

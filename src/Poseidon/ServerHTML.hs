@@ -4,10 +4,10 @@
 
 module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
 
+import           Poseidon.ColumnTypesUtils   (getListColumn)
 import           Poseidon.EntityTypes
 import           Poseidon.Janno
 import           Poseidon.Package
-import           Poseidon.ColumnTypesUtils  (getListColumn)
 
 import           Control.Monad               (forM_)
 import qualified Control.Monad               as OP

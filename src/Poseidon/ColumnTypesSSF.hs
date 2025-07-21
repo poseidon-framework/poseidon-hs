@@ -6,19 +6,14 @@ module Poseidon.ColumnTypesSSF where
 
 import           Poseidon.ColumnTypesUtils
 
-import           Data.Time                  (Day)
-import           Data.Time.Format           (defaultTimeLocale, formatTime,
-                                             parseTimeM)
-import           Country                    (Country, alphaTwoUpper,
-                                             decodeAlphaTwo)
-import qualified Data.Csv                   as Csv
-import qualified Data.Text                  as T
-import qualified Data.Text.Read             as T
-import           GHC.Generics               (Generic)
-import           Network.URI                (isURIReference)
-import           SequenceFormats.Eigenstrat (Sex (..))
-import qualified Text.Regex.TDFA            as Reg
-import           Data.Char                  (isHexDigit)
+import           Data.Char                 (isHexDigit)
+import qualified Data.Csv                  as Csv
+import           Data.Time                 (Day)
+import           Data.Time.Format          (defaultTimeLocale, formatTime,
+                                            parseTimeM)
+import           GHC.Generics              (Generic)
+import           Network.URI               (isURIReference)
+import qualified Text.Regex.TDFA           as Reg
 
 -- |A datatype to represent UDG in a ssf file
 data SSFUDG =
@@ -119,7 +114,7 @@ instance Csv.ToField SSFLibraryBuilt where
     toField x = Csv.toField $ show x
 instance Csv.FromField SSFLibraryBuilt where
     parseField x = Csv.parseField x >>= makeSSFLibraryBuilt
-    
+
 -- A data type to represent a run accession ID
 newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}
     deriving (Eq, Generic)

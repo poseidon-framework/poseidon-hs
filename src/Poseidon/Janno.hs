@@ -44,13 +44,13 @@ module Poseidon.Janno (
 ) where
 
 import           Poseidon.ColumnTypesJanno
-import           Poseidon.ColumnTypesUtils (ListColumn (..), getListColumn, getMaybeListColumn)
+import           Poseidon.ColumnTypesUtils            (ListColumn (..),
+                                                       getListColumn)
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
                                                        logError, logWarning,
                                                        renderPoseidonException)
 
-import           GHC.Generics                         (Generic)
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
 import qualified Control.Monad.Except                 as E

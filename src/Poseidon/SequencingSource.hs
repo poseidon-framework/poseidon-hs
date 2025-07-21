@@ -5,8 +5,8 @@
 module Poseidon.SequencingSource where
 
 import           Poseidon.ColumnTypesSSF
-import           Poseidon.ColumnTypesUtils (ListColumn (..))
-import           Poseidon.Janno             (CsvNamedRecord (..),                                             
+import           Poseidon.ColumnTypesUtils  (ListColumn (..))
+import           Poseidon.Janno             (CsvNamedRecord (..),
                                              decodingOptions, encodingOptions,
                                              explicitNA, filterLookup,
                                              filterLookupOptional, getCsvNR,
@@ -30,9 +30,7 @@ import           Data.List                  (foldl', nub, sort)
 import           Data.Maybe                 (isJust, mapMaybe)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
-import           Network.URI                (isURIReference)
 import qualified Text.Parsec                as P
-import qualified Text.Regex.TDFA            as Reg
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}

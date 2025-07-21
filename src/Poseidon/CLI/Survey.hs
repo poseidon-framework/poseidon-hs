@@ -8,11 +8,11 @@
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
+import           Poseidon.ColumnTypesUtils (ListColumn (..))
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
 import           Poseidon.Janno            (CsvNamedRecord, GeneticSex,
                                             JannoRows (..))
-import           Poseidon.ColumnTypesUtils  (getMaybeListColumn, ListColumn (..))
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
