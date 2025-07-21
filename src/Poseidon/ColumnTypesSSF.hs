@@ -8,6 +8,7 @@ import           Poseidon.ColumnTypesUtils
 
 import           Data.Char                 (isHexDigit)
 import qualified Data.Csv                  as Csv
+import qualified Data.Text                 as T
 import           Data.Time                 (Day)
 import           Data.Time.Format          (defaultTimeLocale, formatTime,
                                             parseTimeM)
@@ -15,7 +16,7 @@ import           GHC.Generics              (Generic)
 import           Network.URI               (isURIReference)
 import qualified Text.Regex.TDFA           as Reg
 
--- |A datatype to represent UDG in a ssf file
+-- | A datatype for the udg .ssf column
 data SSFUDG =
       SSFMinus
     | SSFHalf
@@ -35,6 +36,56 @@ instance Show SSFUDG where
     show SSFPlus  = "plus"
 instance Csv.ToField SSFUDG where   toField x = Csv.toField $ show x
 instance Csv.FromField SSFUDG where parseField = parseTypeCSV "udg"
+
+-- | A datatype for the library_built .ssf column
+data SSFLibraryBuilt =
+      SSFDS
+    | SSFSS
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance Makeable SSFLibraryBuilt where
+    make x
+        | x == "ds"    = pure SSFDS
+        | x == "ss"    = pure SSFSS
+        | otherwise    = fail $ "library_built is set to " ++ show x ++ ". " ++
+                                "That is not in [ds, ss]."
+instance Show SSFLibraryBuilt where
+    show SSFDS = "ds"
+    show SSFSS = "ss"
+instance Csv.ToField SSFLibraryBuilt where   toField x = Csv.toField $ show x
+instance Csv.FromField SSFLibraryBuilt where parseField = parseTypeCSV "library_built"
+
+-- | A datatype for the sample_alias .ssf column
+newtype SSFSampleAlias = SSFSampleAlias T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFSampleAlias "sample_alias")
+
+-- | A datatype for the secondary_sample_accession .ssf column
+newtype SSFSecondarySampleAccession = SSFSecondarySampleAccession T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFSecondarySampleAccession "secondary_sample_accession")
+
+-- | A datatype for the instrument_model .ssf column
+newtype SSFInstrumentModel = SSFInstrumentModel T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFInstrumentModel "instrument_model")
+
+-- | A datatype for the library_layout .ssf column
+newtype SSFLibraryLayout = SSFLibraryLayout T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFLibraryLayout "library_layout")
+
+-- | A datatype for the library_source .ssf column
+newtype SSFLibrarySource = SSFLibrarySource T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFLibrarySource "library_source")
+
+-- | A datatype for the instrument_platform .ssf column
+newtype SSFInstrumentPlatform = SSFInstrumentPlatform T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFInstrumentPlatform "instrument_platform")
+
+-- | A datatype for the library_name .ssf column
+newtype SSFLibraryName = SSFLibraryName T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFLibraryName "library_name")
+
+-- | A datatype for the library_strategy .ssf column
+newtype SSFLibraryStrategy = SSFLibraryStrategy T.Text deriving (Eq, Ord)
+$(makeInstances ''SSFLibraryStrategy "library_strategy")
 
 -- | A datatype to represent AccessionIDs in a ssf file
 data AccessionID =
@@ -93,27 +144,6 @@ instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
 instance Csv.FromField JURI where
     parseField x = Csv.parseField x >>= makeJURI
-
--- |A datatype to represent Library_Built in a janno file
-data SSFLibraryBuilt =
-      SSFDS
-    | SSFSS
-    deriving (Eq, Ord, Generic, Enum, Bounded)
-
-instance Show SSFLibraryBuilt where
-    show SSFDS = "ds"
-    show SSFSS = "ss"
-
-makeSSFLibraryBuilt :: MonadFail m => String -> m SSFLibraryBuilt
-makeSSFLibraryBuilt x
-    | x == "ds"    = pure SSFDS
-    | x == "ss"    = pure SSFSS
-    | otherwise    = fail $ "Library_Built " ++ show x ++ " not in [ds, ss]"
-
-instance Csv.ToField SSFLibraryBuilt where
-    toField x = Csv.toField $ show x
-instance Csv.FromField SSFLibraryBuilt where
-    parseField x = Csv.parseField x >>= makeSSFLibraryBuilt
 
 -- A data type to represent a run accession ID
 newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}

@@ -65,16 +65,16 @@ data SeqSourceRow = SeqSourceRow
     , sSampleAccession          :: Maybe AccessionIDSample
     , sStudyAccession           :: Maybe AccessionIDStudy
     , sRunAccession             :: Maybe AccessionIDRun
-    , sSampleAlias              :: Maybe String
-    , sSecondarySampleAccession :: Maybe String
+    , sSampleAlias              :: Maybe SSFSampleAlias
+    , sSecondarySampleAccession :: Maybe SSFSecondarySampleAccession
     , sFirstPublic              :: Maybe SimpleDate
     , sLastUpdated              :: Maybe SimpleDate
-    , sInstrumentModel          :: Maybe String
-    , sLibraryLayout            :: Maybe String
-    , sLibrarySource            :: Maybe String
-    , sInstrumentPlatform       :: Maybe String
-    , sLibraryName              :: Maybe String
-    , sLibraryStrategy          :: Maybe String
+    , sInstrumentModel          :: Maybe SSFInstrumentModel
+    , sLibraryLayout            :: Maybe SSFLibraryLayout
+    , sLibrarySource            :: Maybe SSFLibrarySource
+    , sInstrumentPlatform       :: Maybe SSFInstrumentPlatform
+    , sLibraryName              :: Maybe SSFLibraryName
+    , sLibraryStrategy          :: Maybe SSFLibraryStrategy
     , sFastqFTP                 :: Maybe (ListColumn JURI)
     , sFastqASPERA              :: Maybe (ListColumn JURI)
     , sFastqBytes               :: Maybe (ListColumn Integer) -- integer, not int, because it can be a very large number
