@@ -1,5 +1,7 @@
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module Poseidon.ColumnTypesUtils where
 
@@ -11,6 +13,24 @@ import           Data.Typeable       (Typeable)
 import           Language.Haskell.TH (Con (..), Dec (..), DecsQ, Info (..),
                                       Name, conE, conP, conT, mkName, reify,
                                       varE, varP)
+import           GHC.Generics                         (Generic)
+import qualified Data.List as L
+import qualified Data.ByteString.Char8                as Bchs
+
+-- | A general datatype for janno list columns
+newtype ListColumn a = ListColumn {getListColumn :: [a]}
+    deriving (Eq, Ord, Generic, Show)
+
+getMaybeListColumn :: Maybe (ListColumn a) -> [a]
+getMaybeListColumn Nothing  = []
+getMaybeListColumn (Just x) = getListColumn x
+
+type JannoStringList = ListColumn String
+
+instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
+    toField x = Bchs.intercalate ";" $ L.map Csv.toField $ getListColumn x
+instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
+    parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
 
 -- a typeclass for types with smart constructors
 class Makeable a where

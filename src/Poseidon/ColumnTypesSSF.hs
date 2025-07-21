@@ -6,6 +6,9 @@ module Poseidon.ColumnTypesSSF where
 
 import           Poseidon.ColumnTypesUtils
 
+import           Data.Time                  (Day)
+import           Data.Time.Format           (defaultTimeLocale, formatTime,
+                                             parseTimeM)
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)
 import qualified Data.Csv                   as Csv
@@ -15,10 +18,11 @@ import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
 import           SequenceFormats.Eigenstrat (Sex (..))
 import qualified Text.Regex.TDFA            as Reg
+import           Data.Char                  (isHexDigit)
 
 -- | A datatype for the Genetic_Sex .janno column
 
--- |A datatype to represent AccessionIDs in a ssf file
+-- | A datatype to represent AccessionIDs in a ssf file
 data AccessionID =
       INSDCProject String
     | INSDCStudy String
@@ -120,3 +124,99 @@ instance Csv.ToField SSFLibraryBuilt where
     toField x = Csv.toField $ show x
 instance Csv.FromField SSFLibraryBuilt where
     parseField x = Csv.parseField x >>= makeSSFLibraryBuilt
+    
+-- A data type to represent a run accession ID
+newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}
+    deriving (Eq, Generic)
+
+makeAccessionIDRun :: MonadFail m => String -> m AccessionIDRun
+makeAccessionIDRun x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCRun y) -> pure $ AccessionIDRun (INSDCRun y)
+        _            -> fail $ "Accession " ++ show x ++ " not a correct run accession"
+
+instance Show AccessionIDRun where
+    show (AccessionIDRun x) = show x
+
+instance Csv.ToField AccessionIDRun where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionIDRun where
+    parseField x = Csv.parseField x >>= makeAccessionIDRun
+
+-- A data type to represent a sample accession ID
+newtype AccessionIDSample = AccessionIDSample {getSampleAccession :: AccessionID}
+    deriving (Eq, Generic)
+
+makeAccessionIDSample :: MonadFail m => String -> m AccessionIDSample
+makeAccessionIDSample x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCBioSample y) -> pure $ AccessionIDSample (INSDCBioSample y)
+        (INSDCSample y)    -> pure $ AccessionIDSample (INSDCSample y)
+        _                  -> fail $ "Accession " ++ show x ++ " not a correct biosample/sample accession"
+
+instance Show AccessionIDSample where
+    show (AccessionIDSample x) = show x
+
+instance Csv.ToField AccessionIDSample where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionIDSample where
+    parseField x = Csv.parseField x >>= makeAccessionIDSample
+
+-- A data type to represent a study accession ID
+newtype AccessionIDStudy = AccessionIDStudy {getStudyAccession :: AccessionID}
+    deriving (Eq, Generic)
+
+instance Show AccessionIDStudy where
+    show (AccessionIDStudy x) = show x
+
+makeAccessionIDStudy :: MonadFail m => String -> m AccessionIDStudy
+makeAccessionIDStudy x = do
+    accsID <- makeAccessionID x
+    case accsID of
+        (INSDCProject y) -> pure $ AccessionIDStudy (INSDCProject y)
+        (INSDCStudy y)   -> pure $ AccessionIDStudy (INSDCStudy y)
+        _                -> fail $ "Accession " ++ show x ++ " not a correct project/study accession"
+
+instance Csv.ToField AccessionIDStudy where
+    toField x = Csv.toField $ show x
+instance Csv.FromField AccessionIDStudy where
+    parseField x = Csv.parseField x >>= makeAccessionIDStudy
+
+-- | A datatype for calendar dates
+newtype SimpleDate = SimpleDate Day
+    deriving (Eq, Ord, Generic)
+
+instance Show SimpleDate where
+    show (SimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+
+makeSimpleDate :: MonadFail m => String -> m SimpleDate
+makeSimpleDate x = do
+    mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
+    pure (SimpleDate mday)
+
+instance Csv.ToField SimpleDate where
+    toField (SimpleDate x) = Csv.toField $ show x
+instance Csv.FromField SimpleDate where
+    parseField x = Csv.parseField x >>= makeSimpleDate
+
+-- | A datatype to represent MD5 hashes
+newtype MD5 = MD5 String
+    deriving (Eq, Ord, Generic)
+
+instance Show MD5 where
+    show (MD5 x) = x
+
+makeMD5 :: MonadFail m => String -> m MD5
+makeMD5 x
+    | isMD5Hash x = pure $ MD5 x
+    | otherwise   = fail $ "MD5 hash " ++ show x ++ " not well structured"
+
+isMD5Hash :: String -> Bool
+isMD5Hash x = length x == 32 && all isHexDigit x
+
+instance Csv.ToField MD5 where
+    toField x = Csv.toField $ show x
+instance Csv.FromField MD5 where
+    parseField x = Csv.parseField x >>= makeMD5

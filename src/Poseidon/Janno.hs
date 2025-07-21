@@ -11,7 +11,6 @@ module Poseidon.Janno (
     JannoRow(..),
     GeneticSex (..),
     GroupName (..),
-    ListColumn (..),
     Sex (..),
     JannoCountryISO (..),
     JannoLatitude (..),
@@ -31,7 +30,6 @@ module Poseidon.Janno (
     jannoHeaderString,
     CsvNamedRecord (..),
     JannoRows (..),
-    JannoStringList,
     filterLookup,
     filterLookupOptional,
     getCsvNR,
@@ -41,17 +39,18 @@ module Poseidon.Janno (
     removeUselessSuffix,
     parseCsvParseError,
     renderCsvParseError,
-    getMaybeListColumn,
     jannoRows2EigenstratIndEntries,
     makeHeaderWithAdditionalColumns
 ) where
 
 import           Poseidon.ColumnTypesJanno
+import           Poseidon.ColumnTypesUtils (ListColumn (..), getListColumn, getMaybeListColumn)
 import           Poseidon.Utils                       (PoseidonException (..),
                                                        PoseidonIO, logDebug,
                                                        logError, logWarning,
                                                        renderPoseidonException)
 
+import           GHC.Generics                         (Generic)
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
 import qualified Control.Monad.Except                 as E
@@ -77,21 +76,6 @@ import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
                                                        Sex (..))
 import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
-
--- | A general datatype for janno list columns
-newtype ListColumn a = ListColumn {getListColumn :: [a]}
-    deriving (Eq, Ord, Generic, Show)
-
-getMaybeListColumn :: Maybe (ListColumn a) -> [a]
-getMaybeListColumn Nothing  = []
-getMaybeListColumn (Just x) = getListColumn x
-
-type JannoStringList = ListColumn String
-
-instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
-    toField x = Bchs.intercalate ";" $ map Csv.toField $ getListColumn x
-instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
-    parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
 
 -- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)

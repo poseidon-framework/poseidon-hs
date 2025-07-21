@@ -21,9 +21,8 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList,
                                               writeVCF)
+import           Poseidon.ColumnTypesUtils  (ListColumn (..), getMaybeListColumn)
 import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
-                                              ListColumn (..),
-                                              getMaybeListColumn,
                                               jannoRows2EigenstratIndEntries,
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),

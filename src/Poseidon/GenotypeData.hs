@@ -4,8 +4,8 @@ module Poseidon.GenotypeData where
 import           Paths_poseidon_hs                (version)
 import           Poseidon.Janno                   (GroupName (..),
                                                    JannoGenotypePloidy (..),
-                                                   JannoRow (..),
-                                                   ListColumn (..))
+                                                   JannoRow (..))
+import           Poseidon.ColumnTypesUtils (ListColumn (..))
 import           Poseidon.Utils                   (LogA, PoseidonException (..),
                                                    PoseidonIO,
                                                    envInputPlinkMode, logDebug,

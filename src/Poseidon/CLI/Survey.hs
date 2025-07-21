@@ -11,7 +11,8 @@ import           Poseidon.BibFile          (BibTeX)
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
 import           Poseidon.Janno            (CsvNamedRecord, GeneticSex,
-                                            JannoRows (..), ListColumn (..))
+                                            JannoRows (..))
+import           Poseidon.ColumnTypesUtils  (getMaybeListColumn, ListColumn (..))
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
