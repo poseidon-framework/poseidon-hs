@@ -5,8 +5,8 @@ module Poseidon.JannoSpec (spec, checkEnDe) where
 import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
-import           Poseidon.Janno             (JannoRow (..),
-                                             JannoRows (..), readJannoFile)
+import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
+                                             readJannoFile)
 import           Poseidon.Utils             (testLog)
 
 import           Country                    (decodeAlphaTwo)

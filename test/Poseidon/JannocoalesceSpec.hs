@@ -6,8 +6,7 @@ import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              makeNewJannoRows, mergeRow)
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
-import           Poseidon.Janno             (JannoRow (..),
-                                             createMinimalSample)
+import           Poseidon.Janno             (JannoRow (..), createMinimalSample)
 import           Poseidon.Utils             (testLog)
 
 import           Control.Monad.IO.Class     (liftIO)
