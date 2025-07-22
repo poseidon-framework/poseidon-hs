@@ -5,7 +5,6 @@ module Poseidon.SequencingSourceSpec (spec) where
 import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesSSF
 import           Poseidon.ColumnTypesUtils
-import           Poseidon.Janno            (CsvNamedRecord (..))
 import           Poseidon.JannoSpec        (checkEnDe)
 import           Poseidon.SequencingSource (SeqSourceRow (..),
                                             SeqSourceRows (..),
