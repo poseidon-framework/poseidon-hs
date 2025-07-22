@@ -1,6 +1,7 @@
 - V 1.6.7.2:
     - Introduced column-wise types for .ssf-files for more precise error messages in reading/validation.
     - Added a special module AccessionIDs for the AccessionID type.
+    - Moved code that is equally relevant for .janno and .ssf parsing to neutral ground.
     - Cleaned up some imports previously done via re-exports through the Janno module.
     - Adjusted the tests ins Janno- and SequencingSourceSpec accordingly.
 - V 1.6.7.1:
