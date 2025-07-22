@@ -5,6 +5,7 @@
 module Poseidon.ColumnTypesSSF where
 
 import           Poseidon.ColumnTypesUtils
+import           Poseidon.AccessionIDs
 
 import           Data.Char                 (isHexDigit)
 import qualified Data.Csv                  as Csv
@@ -14,7 +15,6 @@ import           Data.Time.Format          (defaultTimeLocale, formatTime,
                                             parseTimeM)
 import           GHC.Generics              (Generic)
 import           Network.URI               (isURIReference)
-import qualified Text.Regex.TDFA           as Reg
 
 -- | A datatype for the udg .ssf column
 data SSFUDG =
@@ -55,6 +55,56 @@ instance Show SSFLibraryBuilt where
 instance Csv.ToField SSFLibraryBuilt where   toField x = Csv.toField $ show x
 instance Csv.FromField SSFLibraryBuilt where parseField = parseTypeCSV "library_built"
 
+-- | A datatype for the sample_accession .ssf column
+newtype SSFAccessionIDSample = SSFAccessionIDSample AccessionID
+    deriving (Eq, Ord, Generic)
+
+instance Makeable SSFAccessionIDSample where
+    make x = do
+        accID <- makeAccessionID x
+        case accID of
+            i@(INSDCBioSample _) -> return $ SSFAccessionIDSample i
+            i@(INSDCSample _) -> return $ SSFAccessionIDSample i
+            i@(OtherID _) -> return $ SSFAccessionIDSample i
+            i -> fail $ "sample_accession " ++ show i ++ " is not a correct biosample/sample accession."
+instance Show SSFAccessionIDSample where
+    show (SSFAccessionIDSample x) = show x
+instance Csv.ToField SSFAccessionIDSample where   toField x  = Csv.toField $ show x
+instance Csv.FromField SSFAccessionIDSample where parseField = parseTypeCSV "sample_accession"
+
+-- | A datatype for the study_accession .ssf column
+newtype SSFAccessionIDStudy = SSFAccessionIDStudy AccessionID
+    deriving (Eq, Ord, Generic)
+
+instance Makeable SSFAccessionIDStudy where
+    make x = do
+        accID <- makeAccessionID x
+        case accID of
+            i@(INSDCProject _) -> return $ SSFAccessionIDStudy i
+            i@(INSDCStudy _) -> return $ SSFAccessionIDStudy i
+            i@(OtherID _) -> return $ SSFAccessionIDStudy i
+            i -> fail $ "study_accession " ++ show i ++ " is not a correct project/study accession."
+instance Show SSFAccessionIDStudy where
+    show (SSFAccessionIDStudy x) = show x
+instance Csv.ToField SSFAccessionIDStudy where   toField x  = Csv.toField $ show x
+instance Csv.FromField SSFAccessionIDStudy where parseField = parseTypeCSV "study_accession"
+
+-- | A datatype for the run_accession .ssf column
+newtype SSFAccessionIDRun = SSFAccessionIDRun AccessionID
+    deriving (Eq, Ord, Generic)
+
+instance Makeable SSFAccessionIDRun where
+    make x = do
+        accID <- makeAccessionID x
+        case accID of
+            i@(INSDCRun _) -> return $ SSFAccessionIDRun i
+            i@(OtherID _) -> return $ SSFAccessionIDRun i
+            i -> fail $ "run_accession " ++ show i ++ " is not a correct run accession."
+instance Show SSFAccessionIDRun where
+    show (SSFAccessionIDRun x) = show x
+instance Csv.ToField SSFAccessionIDRun where   toField x  = Csv.toField $ show x
+instance Csv.FromField SSFAccessionIDRun where parseField = parseTypeCSV "run_accession"
+
 -- | A datatype for the sample_alias .ssf column
 newtype SSFSampleAlias = SSFSampleAlias T.Text deriving (Eq, Ord)
 $(makeInstances ''SSFSampleAlias "sample_alias")
@@ -62,6 +112,23 @@ $(makeInstances ''SSFSampleAlias "sample_alias")
 -- | A datatype for the secondary_sample_accession .ssf column
 newtype SSFSecondarySampleAccession = SSFSecondarySampleAccession T.Text deriving (Eq, Ord)
 $(makeInstances ''SSFSecondarySampleAccession "secondary_sample_accession")
+
+-- | A datatype for calendar dates
+newtype SimpleDate = SimpleDate Day
+    deriving (Eq, Ord, Generic)
+
+instance Show SimpleDate where
+    show (SimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+
+makeSimpleDate :: MonadFail m => String -> m SimpleDate
+makeSimpleDate x = do
+    mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
+    pure (SimpleDate mday)
+
+instance Csv.ToField SimpleDate where
+    toField (SimpleDate x) = Csv.toField $ show x
+instance Csv.FromField SimpleDate where
+    parseField x = Csv.parseField x >>= makeSimpleDate
 
 -- | A datatype for the instrument_model .ssf column
 newtype SSFInstrumentModel = SSFInstrumentModel T.Text deriving (Eq, Ord)
@@ -87,50 +154,6 @@ $(makeInstances ''SSFLibraryName "library_name")
 newtype SSFLibraryStrategy = SSFLibraryStrategy T.Text deriving (Eq, Ord)
 $(makeInstances ''SSFLibraryStrategy "library_strategy")
 
-
-
-
-
--- | A datatype to represent AccessionIDs in a ssf file
-data AccessionID =
-      INSDCProject String
-    | INSDCStudy String
-    | INSDCBioSample String
-    | INSDCSample String
-    | INSDCExperiment String
-    | INSDCRun String
-    | INSDCAnalysis String
-    | OtherID String
-    deriving (Eq, Ord, Generic)
-
-instance Show AccessionID where
-    show (INSDCProject x)    = x
-    show (INSDCStudy x)      = x
-    show (INSDCBioSample x)  = x
-    show (INSDCSample x)     = x
-    show (INSDCExperiment x) = x
-    show (INSDCRun x)        = x
-    show (INSDCAnalysis x)   = x
-    show (OtherID x)         = x
-
--- the patterns are documented at:
--- https://ena-docs.readthedocs.io/en/latest/submit/general-guide/accessions.html
-makeAccessionID :: MonadFail m => String -> m AccessionID
-makeAccessionID x
-    | x Reg.=~ ("PRJ[EDN][A-Z][0-9]+"  :: String) = pure $ INSDCProject x
-    | x Reg.=~ ("[EDS]RP[0-9]{6,}"     :: String) = pure $ INSDCStudy x
-    | x Reg.=~ ("SAM[EDN][A-Z]?[0-9]+" :: String) = pure $ INSDCBioSample x
-    | x Reg.=~ ("[EDS]RS[0-9]{6,}"     :: String) = pure $ INSDCSample x
-    | x Reg.=~ ("[EDS]RX[0-9]{6,}"     :: String) = pure $ INSDCExperiment x
-    | x Reg.=~ ("[EDS]RR[0-9]{6,}"     :: String) = pure $ INSDCRun x
-    | x Reg.=~ ("[EDS]RZ[0-9]{6,}"     :: String) = pure $ INSDCAnalysis x
-    | otherwise                                   = pure $ OtherID x
-
-instance Csv.ToField AccessionID where
-    toField x = Csv.toField $ show x
-instance Csv.FromField AccessionID where
-    parseField x = Csv.parseField x >>= makeAccessionID
-
 -- | A datatype to represent URIs in a ssf file
 newtype JURI =
         JURI String
@@ -148,84 +171,6 @@ instance Csv.ToField JURI where
     toField x = Csv.toField $ show x
 instance Csv.FromField JURI where
     parseField x = Csv.parseField x >>= makeJURI
-
--- A data type to represent a run accession ID
-newtype AccessionIDRun = AccessionIDRun {getRunAccession :: AccessionID}
-    deriving (Eq, Generic)
-
-makeAccessionIDRun :: MonadFail m => String -> m AccessionIDRun
-makeAccessionIDRun x = do
-    accsID <- makeAccessionID x
-    case accsID of
-        (INSDCRun y) -> pure $ AccessionIDRun (INSDCRun y)
-        _            -> fail $ "Accession " ++ show x ++ " not a correct run accession"
-
-instance Show AccessionIDRun where
-    show (AccessionIDRun x) = show x
-
-instance Csv.ToField AccessionIDRun where
-    toField x = Csv.toField $ show x
-instance Csv.FromField AccessionIDRun where
-    parseField x = Csv.parseField x >>= makeAccessionIDRun
-
--- A data type to represent a sample accession ID
-newtype AccessionIDSample = AccessionIDSample {getSampleAccession :: AccessionID}
-    deriving (Eq, Generic)
-
-makeAccessionIDSample :: MonadFail m => String -> m AccessionIDSample
-makeAccessionIDSample x = do
-    accsID <- makeAccessionID x
-    case accsID of
-        (INSDCBioSample y) -> pure $ AccessionIDSample (INSDCBioSample y)
-        (INSDCSample y)    -> pure $ AccessionIDSample (INSDCSample y)
-        _                  -> fail $ "Accession " ++ show x ++ " not a correct biosample/sample accession"
-
-instance Show AccessionIDSample where
-    show (AccessionIDSample x) = show x
-
-instance Csv.ToField AccessionIDSample where
-    toField x = Csv.toField $ show x
-instance Csv.FromField AccessionIDSample where
-    parseField x = Csv.parseField x >>= makeAccessionIDSample
-
--- A data type to represent a study accession ID
-newtype AccessionIDStudy = AccessionIDStudy {getStudyAccession :: AccessionID}
-    deriving (Eq, Generic)
-
-instance Show AccessionIDStudy where
-    show (AccessionIDStudy x) = show x
-
-makeAccessionIDStudy :: MonadFail m => String -> m AccessionIDStudy
-makeAccessionIDStudy x = do
-    accsID <- makeAccessionID x
-    case accsID of
-        (INSDCProject y) -> pure $ AccessionIDStudy (INSDCProject y)
-        (INSDCStudy y)   -> pure $ AccessionIDStudy (INSDCStudy y)
-        _                -> fail $ "Accession " ++ show x ++ " not a correct project/study accession"
-
-instance Csv.ToField AccessionIDStudy where
-    toField x = Csv.toField $ show x
-instance Csv.FromField AccessionIDStudy where
-    parseField x = Csv.parseField x >>= makeAccessionIDStudy
-
--- | A datatype for calendar dates
-newtype SimpleDate = SimpleDate Day
-    deriving (Eq, Ord, Generic)
-
-instance Show SimpleDate where
-    show (SimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
-
-makeSimpleDate :: MonadFail m => String -> m SimpleDate
-makeSimpleDate x = do
-    mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
-    pure (SimpleDate mday)
-
-instance Csv.ToField SimpleDate where
-    toField (SimpleDate x) = Csv.toField $ show x
-instance Csv.FromField SimpleDate where
-    parseField x = Csv.parseField x >>= makeSimpleDate
-
-
 
 -- | A datatype for the fastq_md5 .ssf column
 newtype SSFFastqMD5 = SSFFastqMD5 T.Text deriving (Eq, Ord, Generic)

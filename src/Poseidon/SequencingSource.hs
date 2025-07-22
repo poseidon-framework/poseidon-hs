@@ -62,9 +62,9 @@ data SeqSourceRow = SeqSourceRow
     { sPoseidonID               :: Maybe (ListColumn String)
     , sUDG                      :: Maybe SSFUDG
     , sLibraryBuilt             :: Maybe SSFLibraryBuilt
-    , sSampleAccession          :: Maybe AccessionIDSample
-    , sStudyAccession           :: Maybe AccessionIDStudy
-    , sRunAccession             :: Maybe AccessionIDRun
+    , sSampleAccession          :: Maybe SSFAccessionIDSample
+    , sStudyAccession           :: Maybe SSFAccessionIDStudy
+    , sRunAccession             :: Maybe SSFAccessionIDRun
     , sSampleAlias              :: Maybe SSFSampleAlias
     , sSecondarySampleAccession :: Maybe SSFSecondarySampleAccession
     , sFirstPublic              :: Maybe SimpleDate
