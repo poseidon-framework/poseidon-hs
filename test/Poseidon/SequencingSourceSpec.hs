@@ -31,14 +31,16 @@ testEnAndDecoding = describe "Poseidon.SequencingSource: JSON and CSV en- and de
         checkEnDe [
               SSFAccessionIDStudy $ INSDCProject "PRJEB12345"
             , SSFAccessionIDStudy $ INSDCStudy "ERP123456"
+            --, SSFAccessionIDStudy $ OtherID "AnyString"
             ]
         checkEnDe [
               SSFAccessionIDSample $ INSDCBioSample "SAMEA123456"
             , SSFAccessionIDSample $ INSDCSample "ERS123456"
-            , SSFAccessionIDSample $ OtherID "AnyString"
+            --, SSFAccessionIDSample $ OtherID "AnyString"
             ]
         checkEnDe [
               SSFAccessionIDRun $ INSDCRun "ERR123456"
+            --, SSFAccessionIDStudy $ OtherID "AnyString"
             ]
         checkEnDe [SSFFirstPublicSimpleDate $ fromGregorian 2025 7 22]
         checkEnDe [SSFLastUpdatedSimpleDate $ fromGregorian 2025 7 21]

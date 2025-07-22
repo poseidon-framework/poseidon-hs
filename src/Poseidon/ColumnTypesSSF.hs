@@ -66,7 +66,7 @@ instance Makeable SSFAccessionIDSample where
         case accID of
             i@(INSDCBioSample _) -> return $ SSFAccessionIDSample i
             i@(INSDCSample _) -> return $ SSFAccessionIDSample i
-            i@(OtherID _) -> return $ SSFAccessionIDSample i
+            --i@(OtherID _) -> return $ SSFAccessionIDSample i
             i -> fail $ "sample_accession " ++ show i ++ " is not a correct biosample/sample accession."
 instance Show SSFAccessionIDSample where
     show (SSFAccessionIDSample x) = show x
@@ -83,7 +83,7 @@ instance Makeable SSFAccessionIDStudy where
         case accID of
             i@(INSDCProject _) -> return $ SSFAccessionIDStudy i
             i@(INSDCStudy _) -> return $ SSFAccessionIDStudy i
-            i@(OtherID _) -> return $ SSFAccessionIDStudy i
+            --i@(OtherID _) -> return $ SSFAccessionIDStudy i
             i -> fail $ "study_accession " ++ show i ++ " is not a correct project/study accession."
 instance Show SSFAccessionIDStudy where
     show (SSFAccessionIDStudy x) = show x
@@ -99,7 +99,7 @@ instance Makeable SSFAccessionIDRun where
         accID <- makeAccessionID x
         case accID of
             i@(INSDCRun _) -> return $ SSFAccessionIDRun i
-            i@(OtherID _) -> return $ SSFAccessionIDRun i
+            --i@(OtherID _) -> return $ SSFAccessionIDRun i
             i -> fail $ "run_accession " ++ show i ++ " is not a correct run accession."
 instance Show SSFAccessionIDRun where
     show (SSFAccessionIDRun x) = show x
