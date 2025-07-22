@@ -77,9 +77,11 @@ data SeqSourceRow = SeqSourceRow
     , sLibraryStrategy          :: Maybe SSFLibraryStrategy
     , sFastqFTP                 :: Maybe (ListColumn SSFFastqFTPURI)
     , sFastqASPERA              :: Maybe (ListColumn SSFFastqASPERAURI)
-    , sFastqBytes               :: Maybe (ListColumn Integer) -- integer, not int, because it can be a very large number
+    -- integer, not int, because it can be a very large number
+    , sFastqBytes               :: Maybe (ListColumn SSFFastqBytes)
     , sFastqMD5                 :: Maybe (ListColumn SSFFastqMD5)
-    , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
+    -- integer, not int, because it can be a very large number
+    , sReadCount                :: Maybe SSFReadCount
     , sSubmittedFTP             :: Maybe (ListColumn SSFSubmittedFTPURI)
     , sAdditionalColumns        :: CsvNamedRecord
     }

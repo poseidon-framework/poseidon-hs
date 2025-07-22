@@ -15,6 +15,7 @@ import           Data.Time.Format          (defaultTimeLocale, formatTime,
                                             parseTimeM)
 import           GHC.Generics              (Generic)
 import           Network.URI               (isURIReference)
+import qualified Data.Text.Read             as T
 
 -- | A datatype for the udg .ssf column
 data SSFUDG =
@@ -178,7 +179,7 @@ newtype SSFFastqFTPURI = SSFFastqFTPURI T.Text
 instance Makeable SSFFastqFTPURI where
     make x
         | isURIReference (T.unpack x) = pure $ SSFFastqFTPURI x
-        | otherwise                   = fail $ "fastq_ftp entry " ++ show (T.unpack x) ++
+        | otherwise                   = fail $ "fastq_ftp entry " ++ show x ++
                                                " is not a well-structured URI."
 instance Show SSFFastqFTPURI where show (SSFFastqFTPURI x) = T.unpack x
 instance Csv.ToField SSFFastqFTPURI where toField x = Csv.toField $ show x
@@ -191,11 +192,24 @@ newtype SSFFastqASPERAURI = SSFFastqASPERAURI T.Text
 instance Makeable SSFFastqASPERAURI where
     make x
         | isURIReference (T.unpack x) = pure $ SSFFastqASPERAURI x
-        | otherwise                   = fail $ "fastq_aspera entry " ++ show (T.unpack x) ++
+        | otherwise                   = fail $ "fastq_aspera entry " ++ show x ++
                                                " is not a well-structured URI."
 instance Show SSFFastqASPERAURI where show (SSFFastqASPERAURI x) = T.unpack x
 instance Csv.ToField SSFFastqASPERAURI where toField x = Csv.toField $ show x
 instance Csv.FromField SSFFastqASPERAURI where parseField = parseTypeCSV "fastq_aspera"
+
+-- | A datatype for the fastq_bytes .ssf column
+newtype SSFFastqBytes = SSFFastqBytes Integer deriving (Eq, Ord, Generic)
+
+instance Makeable SSFFastqBytes where
+    make x =
+        case T.decimal x of
+            Left e -> fail $ "fastq_bytes can not be converted to Integer because " ++ e
+            Right (num, "") -> pure $ SSFFastqBytes num
+            Right (_, rest) -> fail $ "fastq_bytes can not be converted to Integer, because of a trailing " ++ show rest
+instance Show SSFFastqBytes where          show (SSFFastqBytes x) = show x
+instance Csv.ToField SSFFastqBytes where   toField (SSFFastqBytes x) = Csv.toField x
+instance Csv.FromField SSFFastqBytes where parseField = parseTypeCSV "fastq_bytes"
 
 -- | A datatype for the fastq_md5 .ssf column
 newtype SSFFastqMD5 = SSFFastqMD5 T.Text deriving (Eq, Ord, Generic)
@@ -211,6 +225,19 @@ instance Show SSFFastqMD5 where show (SSFFastqMD5 x) = T.unpack x
 instance Csv.ToField SSFFastqMD5 where   toField x = Csv.toField $ show x
 instance Csv.FromField SSFFastqMD5 where parseField = parseTypeCSV "fastq_md5"
 
+-- | A datatype for the fastq_bytes .ssf column
+newtype SSFReadCount = SSFReadCount Integer deriving (Eq, Ord, Generic)
+
+instance Makeable SSFReadCount where
+    make x =
+        case T.decimal x of
+            Left e -> fail $ "read_count can not be converted to Integer because " ++ e
+            Right (num, "") -> pure $ SSFReadCount num
+            Right (_, rest) -> fail $ "read_count can not be converted to Integer, because of a trailing " ++ show rest
+instance Show SSFReadCount where          show (SSFReadCount x) = show x
+instance Csv.ToField SSFReadCount where   toField (SSFReadCount x) = Csv.toField x
+instance Csv.FromField SSFReadCount where parseField = parseTypeCSV "read_count"
+
 -- | A datatype for the submitted_ftp .ssf column
 newtype SSFSubmittedFTPURI = SSFSubmittedFTPURI T.Text
     deriving (Eq, Ord, Generic)
@@ -218,7 +245,7 @@ newtype SSFSubmittedFTPURI = SSFSubmittedFTPURI T.Text
 instance Makeable SSFSubmittedFTPURI where
     make x
         | isURIReference (T.unpack x) = pure $ SSFSubmittedFTPURI x
-        | otherwise                   = fail $ "submitted_ftp entry " ++ show (T.unpack x) ++
+        | otherwise                   = fail $ "submitted_ftp entry " ++ show x ++
                                                " is not a well-structured URI."
 instance Show SSFSubmittedFTPURI where show (SSFSubmittedFTPURI x) = T.unpack x
 instance Csv.ToField SSFSubmittedFTPURI where toField x = Csv.toField $ show x
