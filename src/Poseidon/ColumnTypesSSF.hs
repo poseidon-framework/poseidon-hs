@@ -230,7 +230,7 @@ newtype SSFReadCount = SSFReadCount Integer deriving (Eq, Ord, Generic)
 
 instance Makeable SSFReadCount where
     make x =
-        case T.decimal x of
+        case (T.signed T.decimal) x of -- the ENA uses -1 in case the read count failed
             Left e -> fail $ "read_count can not be converted to Integer because " ++ e
             Right (num, "") -> pure $ SSFReadCount num
             Right (_, rest) -> fail $ "read_count can not be converted to Integer, because of a trailing " ++ show rest
