@@ -4,12 +4,10 @@ module Poseidon.JannocoalesceSpec (spec) where
 
 import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              makeNewJannoRows, mergeRow)
-import           Poseidon.ColumnTypes       (JannoCountry (..),
+import           Poseidon.ColumnTypesJanno  (GroupName (..), JannoCountry (..),
                                              JannoDateNote (..), JannoSite (..))
-import           Poseidon.ColumnTypesUtils  (make)
-import           Poseidon.Janno             (CsvNamedRecord (..),
-                                             GroupName (..), JannoRow (..),
-                                             ListColumn (..),
+import           Poseidon.ColumnTypesUtils  (ListColumn (..), make)
+import           Poseidon.Janno             (CsvNamedRecord (..), JannoRow (..),
                                              createMinimalSample)
 import           Poseidon.Utils             (testLog)
 

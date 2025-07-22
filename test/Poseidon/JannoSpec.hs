@@ -2,19 +2,20 @@
 
 module Poseidon.JannoSpec (spec, checkEnDe) where
 
-import           Poseidon.ColumnTypes
-import           Poseidon.Janno            (CsvNamedRecord (..), JannoRow (..),
-                                            JannoRows (..), ListColumn (..),
-                                            Sex (..), readJannoFile)
-import           Poseidon.SequencingSource (JURI (..))
-import           Poseidon.Utils            (testLog)
+import           Poseidon.AccessionIDs
+import           Poseidon.ColumnTypesJanno
+import           Poseidon.ColumnTypesUtils
+import           Poseidon.Janno             (CsvNamedRecord (..), JannoRow (..),
+                                             JannoRows (..), readJannoFile)
+import           Poseidon.Utils             (testLog)
 
-import           Country                   (decodeAlphaTwo)
-import qualified Data.Csv                  as C
-import           Data.HashMap.Strict       (fromList)
-import           System.FilePath           ((</>))
-import           Test.Hspec                (Spec, anyException, describe, it,
-                                            shouldBe, shouldThrow)
+import           Country                    (decodeAlphaTwo)
+import qualified Data.Csv                   as C
+import           Data.HashMap.Strict        (fromList)
+import           SequenceFormats.Eigenstrat (Sex (..))
+import           System.FilePath            ((</>))
+import           Test.Hspec                 (Spec, anyException, describe, it,
+                                             shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do
@@ -39,9 +40,9 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe [JannoLatitude (-45), JannoLatitude 45]
         checkEnDe [JannoLongitude (-100), JannoLongitude 100]
         checkEnDe [JannoEndogenous 0, JannoEndogenous 100]
-        checkEnDe [JURI "http://www.google.de"]
+        checkEnDe [JannoDataPreparationPipelineURL "http://www.google.de"]
         checkEnDe (enumFrom minBound :: [JannoRelationDegree])
-        checkEnDe [INSDCProject "PRJEA0", INSDCStudy "ERP000000"]
+        checkEnDe [JannoGeneticSourceAccessionID $ INSDCProject "PRJEA0", JannoGeneticSourceAccessionID $ INSDCStudy "ERP000000"]
         checkEnDe [ListColumn (["a", "b", "c"] :: [String])]
         checkEnDe [ListColumn ([1, 2, 3] :: [Int])]
         checkEnDe [ListColumn (enumFrom minBound :: [JannoUDG])] -- to test if ListColumn is really fully general
