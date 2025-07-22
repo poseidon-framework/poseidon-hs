@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Poseidon.AccessionIDs where
 
-import           GHC.Generics              (Generic)
-import qualified Text.Regex.TDFA           as Reg
-import qualified Data.Text                 as T
+import qualified Data.Text       as T
+import           GHC.Generics    (Generic)
+import qualified Text.Regex.TDFA as Reg
 
 -- | A datatype to represent AccessionIDs in a ssf file
 data AccessionID =

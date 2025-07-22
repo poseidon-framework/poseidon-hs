@@ -4,6 +4,7 @@
 
 module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
 
+import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils   (getListColumn)
 import           Poseidon.EntityTypes
 import           Poseidon.Janno

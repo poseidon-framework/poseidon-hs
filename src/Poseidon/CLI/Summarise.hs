@@ -1,8 +1,8 @@
 module Poseidon.CLI.Summarise where
 
+import           Poseidon.ColumnTypesJanno (JannoDateBCADMedian (..))
 import           Poseidon.ColumnTypesUtils (ListColumn (..))
-import           Poseidon.Janno            (JannoDateBCADMedian (..),
-                                            JannoRow (..), JannoRows (..))
+import           Poseidon.Janno            (JannoRow (..), JannoRows (..))
 import           Poseidon.MathHelpers      (meanAndSdInteger, meanAndSdRoundTo)
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),

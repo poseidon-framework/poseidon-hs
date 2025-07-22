@@ -9,19 +9,6 @@
 
 module Poseidon.Janno (
     JannoRow(..),
-    GeneticSex (..),
-    GroupName (..),
-    Sex (..),
-    JannoCountryISO (..),
-    JannoLatitude (..),
-    JannoLongitude (..),
-    JannoDateType (..),
-    JannoDateBCADMedian (..),
-    JannoCaptureType (..),
-    JannoGenotypePloidy (..),
-    JannoUDG (..),
-    JannoRelationDegree (..),
-    JannoLibraryBuilt (..),
     writeJannoFile,
     writeJannoFileWithoutEmptyCols,
     readJannoFile,
@@ -72,8 +59,7 @@ import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
-import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
-                                                       Sex (..))
+import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..))
 import qualified Text.Parsec                          as P
 import qualified Text.Parsec.String                   as P
 

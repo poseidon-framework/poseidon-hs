@@ -4,8 +4,8 @@
 
 module Poseidon.ColumnTypesJanno where
 
+import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesUtils
-import Poseidon.AccessionIDs
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)

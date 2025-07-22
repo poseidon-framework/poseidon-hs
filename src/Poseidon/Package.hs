@@ -33,7 +33,10 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (JannoPublication (..))
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
+                                             JannoLibraryBuilt (..),
+                                             JannoPublication (..),
+                                             JannoUDG (..))
 import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
 import           Poseidon.ColumnTypesUtils  (ListColumn (..),
                                              getMaybeListColumn)
@@ -51,10 +54,8 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress,
                                              reduceGenotypeFilepaths)
-import           Poseidon.Janno             (GeneticSex (..),
-                                             JannoLibraryBuilt (..),
-                                             JannoRow (..), JannoRows (..),
-                                             JannoUDG (..), createMinimalJanno,
+import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
+                                             createMinimalJanno,
                                              jannoHeaderString, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,

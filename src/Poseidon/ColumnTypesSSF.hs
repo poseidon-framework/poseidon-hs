@@ -4,18 +4,18 @@
 
 module Poseidon.ColumnTypesSSF where
 
-import           Poseidon.ColumnTypesUtils
 import           Poseidon.AccessionIDs
+import           Poseidon.ColumnTypesUtils
 
 import           Data.Char                 (isHexDigit)
 import qualified Data.Csv                  as Csv
 import qualified Data.Text                 as T
+import qualified Data.Text.Read            as T
 import           Data.Time                 (Day)
 import           Data.Time.Format          (defaultTimeLocale, formatTime,
                                             parseTimeM)
 import           GHC.Generics              (Generic)
 import           Network.URI               (isURIReference)
-import qualified Data.Text.Read             as T
 
 -- | A datatype for the udg .ssf column
 data SSFUDG =
