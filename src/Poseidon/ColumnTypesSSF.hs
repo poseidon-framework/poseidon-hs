@@ -171,23 +171,31 @@ $(makeInstances ''SSFLibraryName "library_name")
 newtype SSFLibraryStrategy = SSFLibraryStrategy T.Text deriving (Eq, Ord)
 $(makeInstances ''SSFLibraryStrategy "library_strategy")
 
--- | A datatype to represent URIs in a ssf file
-newtype JURI =
-        JURI String
+-- | A datatype for the fastq_ftp .ssf column
+newtype SSFFastqFTPURI = SSFFastqFTPURI T.Text
     deriving (Eq, Ord, Generic)
 
-instance Show JURI where
-    show (JURI x) = x
+instance Makeable SSFFastqFTPURI where
+    make x
+        | isURIReference (T.unpack x) = pure $ SSFFastqFTPURI x
+        | otherwise                   = fail $ "fastq_ftp entry " ++ show (T.unpack x) ++
+                                               " is not a well-structured URI."
+instance Show SSFFastqFTPURI where show (SSFFastqFTPURI x) = T.unpack x
+instance Csv.ToField SSFFastqFTPURI where toField x = Csv.toField $ show x
+instance Csv.FromField SSFFastqFTPURI where parseField = parseTypeCSV "fastq_ftp"
 
-makeJURI :: MonadFail m => String -> m JURI
-makeJURI x
-    | isURIReference x   = pure $ JURI x
-    | otherwise          = fail $ "URI " ++ show x ++ " not well structured"
+-- | A datatype for the fastq_aspera .ssf column
+newtype SSFFastqASPERAURI = SSFFastqASPERAURI T.Text
+    deriving (Eq, Ord, Generic)
 
-instance Csv.ToField JURI where
-    toField x = Csv.toField $ show x
-instance Csv.FromField JURI where
-    parseField x = Csv.parseField x >>= makeJURI
+instance Makeable SSFFastqASPERAURI where
+    make x
+        | isURIReference (T.unpack x) = pure $ SSFFastqASPERAURI x
+        | otherwise                   = fail $ "fastq_aspera entry " ++ show (T.unpack x) ++
+                                               " is not a well-structured URI."
+instance Show SSFFastqASPERAURI where show (SSFFastqASPERAURI x) = T.unpack x
+instance Csv.ToField SSFFastqASPERAURI where toField x = Csv.toField $ show x
+instance Csv.FromField SSFFastqASPERAURI where parseField = parseTypeCSV "fastq_aspera"
 
 -- | A datatype for the fastq_md5 .ssf column
 newtype SSFFastqMD5 = SSFFastqMD5 T.Text deriving (Eq, Ord, Generic)
@@ -202,3 +210,17 @@ isMD5Hash x = T.length x == 32 && T.all isHexDigit x
 instance Show SSFFastqMD5 where show (SSFFastqMD5 x) = T.unpack x
 instance Csv.ToField SSFFastqMD5 where   toField x = Csv.toField $ show x
 instance Csv.FromField SSFFastqMD5 where parseField = parseTypeCSV "fastq_md5"
+
+-- | A datatype for the submitted_ftp .ssf column
+newtype SSFSubmittedFTPURI = SSFSubmittedFTPURI T.Text
+    deriving (Eq, Ord, Generic)
+
+instance Makeable SSFSubmittedFTPURI where
+    make x
+        | isURIReference (T.unpack x) = pure $ SSFSubmittedFTPURI x
+        | otherwise                   = fail $ "submitted_ftp entry " ++ show (T.unpack x) ++
+                                               " is not a well-structured URI."
+instance Show SSFSubmittedFTPURI where show (SSFSubmittedFTPURI x) = T.unpack x
+instance Csv.ToField SSFSubmittedFTPURI where toField x = Csv.toField $ show x
+instance Csv.FromField SSFSubmittedFTPURI where parseField = parseTypeCSV "submitted_ftp"
+

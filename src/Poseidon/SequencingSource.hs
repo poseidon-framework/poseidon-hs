@@ -75,12 +75,12 @@ data SeqSourceRow = SeqSourceRow
     , sInstrumentPlatform       :: Maybe SSFInstrumentPlatform
     , sLibraryName              :: Maybe SSFLibraryName
     , sLibraryStrategy          :: Maybe SSFLibraryStrategy
-    , sFastqFTP                 :: Maybe (ListColumn JURI)
-    , sFastqASPERA              :: Maybe (ListColumn JURI)
+    , sFastqFTP                 :: Maybe (ListColumn SSFFastqFTPURI)
+    , sFastqASPERA              :: Maybe (ListColumn SSFFastqASPERAURI)
     , sFastqBytes               :: Maybe (ListColumn Integer) -- integer, not int, because it can be a very large number
     , sFastqMD5                 :: Maybe (ListColumn SSFFastqMD5)
     , sReadCount                :: Maybe Integer             -- integer, not int, because it can be a very large number
-    , sSubmittedFTP             :: Maybe (ListColumn JURI)
+    , sSubmittedFTP             :: Maybe (ListColumn SSFSubmittedFTPURI)
     , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
