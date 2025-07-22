@@ -41,6 +41,14 @@ testEnAndDecoding = describe "Poseidon.SequencingSource: JSON and CSV en- and de
         checkEnDe [
               SSFAccessionIDRun $ INSDCRun "ERR123456"
             ]
+        checkEnDe [SSFFirstPublicSimpleDate $ fromGregorian 2025 7 22]
+        checkEnDe [SSFLastUpdatedSimpleDate $ fromGregorian 2025 7 21]
+        checkEnDe [SSFFastqFTPURI "http://www.google.de"]
+        checkEnDe [SSFFastqASPERAURI "http://www.google.de"]
+        checkEnDe [SSFFastqBytes 999999999999]
+        checkEnDe [SSFFastqMD5 "098f6bcd4621d373cade4e832627b4f6"]
+        checkEnDe [SSFReadCount 999999999999]
+        checkEnDe [SSFSubmittedFTPURI "http://www.google.de"]
 
 testReadSeqSourceFile :: Spec
 testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $ do
