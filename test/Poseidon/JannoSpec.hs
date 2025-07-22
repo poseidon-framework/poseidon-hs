@@ -92,35 +92,96 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         (JannoRows janno_partial) <- testLog $ readJannoFile normalPartialJannoPath
         janno `shouldBe` janno_partial
         length janno `shouldBe` 3
-        map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
-        map jRelationDegree janno               `shouldBe` [Just (ListColumn [First, Second]), Just (ListColumn [First]), Just (ListColumn [SixthToTenth])]
-        map jCollectionID janno                 `shouldBe` [Nothing, Nothing, Nothing]
-        map jSourceTissue janno                 `shouldBe` [Just (ListColumn [JannoSourceTissue "xxx", JannoSourceTissue "yyy"]), Just (ListColumn [JannoSourceTissue "xxx"]), Just (ListColumn [JannoSourceTissue "xxx"])]
-        map jCountry janno                      `shouldBe` [Just (JannoCountry "xxx"), Just (JannoCountry "xxx"), Just (JannoCountry "xxx")]
-        map jCountryISO janno                   `shouldBe` [JannoCountryISO <$> decodeAlphaTwo "DE", JannoCountryISO <$> decodeAlphaTwo "FR", JannoCountryISO <$> decodeAlphaTwo "EG"]
-        map jLatitude janno                     `shouldBe` [Just (JannoLatitude 0), Just (JannoLatitude (-90)), Just (JannoLatitude 90)]
-        map jLongitude janno                    `shouldBe` [Just (JannoLongitude 0), Just (JannoLongitude (-180)), Just (JannoLongitude 180)]
-        map jDateC14Labnr janno                 `shouldBe` [Just (ListColumn [JannoDateC14Labnr "A-1", JannoDateC14Labnr "A-2", JannoDateC14Labnr "A-3"]), Nothing, Nothing]
-        map jDateC14UncalBP janno               `shouldBe` [Just (ListColumn [JannoDateC14UncalBP 3000, JannoDateC14UncalBP 3100, JannoDateC14UncalBP 2900]), Nothing, Nothing]
-        map jDateBCADMedian janno               `shouldBe` [Just (JannoDateBCADMedian (-1000)), Just (JannoDateBCADMedian (-5000)), Just (JannoDateBCADMedian 2000)]
-        map jDateType janno                     `shouldBe` [Just C14, Just Contextual, Just Modern]
-        map jLibraryNames janno                 `shouldBe` [Just $ ListColumn [JannoLibraryName "Lib1", JannoLibraryName "Lib2"], Just $ ListColumn [JannoLibraryName "Lib3"], Nothing]
-        map jCaptureType janno                  `shouldBe` [Just (ListColumn [Shotgun, A1240K]), Just (ListColumn [A1240K]), Just (ListColumn [ReferenceGenome])]
-        map jGenotypePloidy janno               `shouldBe` [Just Diploid, Just Haploid, Just Diploid]
-        map jGroupName janno                    `shouldBe` [ListColumn [GroupName "POP1", GroupName "POP3"], ListColumn [GroupName "POP2"], ListColumn [GroupName "POP1"]]
-        map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
-        map jCoverageOnTargets janno            `shouldBe` [Just $ JannoCoverageOnTargets 0, Just $ JannoCoverageOnTargets 0, Just $ JannoCoverageOnTargets 0]
-        map jUDG janno                          `shouldBe` [Just Minus, Just Half, Just Plus]
-        map jLibraryBuilt janno                 `shouldBe` [Just DS, Just SS, Just MixedSSDS]
-        map jDamage janno                       `shouldBe` [Just (JannoDamage 0), Just (JannoDamage 100), Just (JannoDamage 50)]
-        map jContamination janno                `shouldBe` [Just (ListColumn [JannoContamination "10"]), Just (ListColumn [JannoContamination "20", JannoContamination "50", JannoContamination "70"]), Nothing]
-        map jDataPreparationPipelineURL janno   `shouldBe` [Just (JannoDataPreparationPipelineURL "ftp://test.test"),
-                                                            Just (JannoDataPreparationPipelineURL "https://www.google.de"),
-                                                            Just (JannoDataPreparationPipelineURL "http://huhu.org/23&test")
+        map jPoseidonID janno                   `shouldBe` [ "XXX011", "XXX012", "XXX013" ]
+        map jRelationDegree janno               `shouldBe` [ Just (ListColumn [First, Second])
+                                                           , Just (ListColumn [First])
+                                                           , Just (ListColumn [SixthToTenth])
                                                            ]
-        map jAdditionalColumns janno            `shouldBe` [ CsvNamedRecord (fromList [("AdditionalColumn2","test2"),("AdditionalColumn1","test1")])
-                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test4"),("AdditionalColumn1","test3")])
-                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test6"),("AdditionalColumn1","test5")])
+        map jCollectionID janno                 `shouldBe` [ Nothing, Nothing, Nothing ]
+        map jSourceTissue janno                 `shouldBe` [ Just (ListColumn [JannoSourceTissue "xxx", JannoSourceTissue "yyy"])
+                                                           , Just (ListColumn [JannoSourceTissue "xxx"])
+                                                           , Just (ListColumn [JannoSourceTissue "xxx"])
+                                                           ]
+        map jCountry janno                      `shouldBe` [ Just (JannoCountry "xxx")
+                                                           , Just (JannoCountry "xxx")
+                                                           , Just (JannoCountry "xxx")
+                                                           ]
+        map jCountryISO janno                   `shouldBe` [ JannoCountryISO <$> decodeAlphaTwo "DE"
+                                                           , JannoCountryISO <$> decodeAlphaTwo "FR"
+                                                           , JannoCountryISO <$> decodeAlphaTwo "EG"
+                                                           ]
+        map jLatitude janno                     `shouldBe` [ Just (JannoLatitude 0)
+                                                           , Just (JannoLatitude (-90))
+                                                           , Just (JannoLatitude 90)
+                                                           ]
+        map jLongitude janno                    `shouldBe` [ Just (JannoLongitude 0)
+                                                           , Just (JannoLongitude (-180))
+                                                           , Just (JannoLongitude 180)
+                                                           ]
+        map jDateC14Labnr janno                 `shouldBe` [ Just (ListColumn [JannoDateC14Labnr "A-1", JannoDateC14Labnr "A-2", JannoDateC14Labnr "A-3"])
+                                                           , Nothing
+                                                           , Nothing
+                                                           ]
+        map jDateC14UncalBP janno               `shouldBe` [ Just (ListColumn [JannoDateC14UncalBP 3000, JannoDateC14UncalBP 3100, JannoDateC14UncalBP 2900])
+                                                           , Nothing
+                                                           , Nothing]
+        map jDateBCADMedian janno               `shouldBe` [ Just (JannoDateBCADMedian (-1000))
+                                                           , Just (JannoDateBCADMedian (-5000))
+                                                           , Just (JannoDateBCADMedian 2000)]
+        map jDateType janno                     `shouldBe` [ Just C14
+                                                           , Just Contextual
+                                                           , Just Modern
+                                                           ]
+        map jLibraryNames janno                 `shouldBe` [ Just $ ListColumn [JannoLibraryName "Lib1", JannoLibraryName "Lib2"]
+                                                           , Just $ ListColumn [JannoLibraryName "Lib3"]
+                                                           , Nothing
+                                                           ]
+        map jCaptureType janno                  `shouldBe` [ Just (ListColumn [Shotgun, A1240K])
+                                                           , Just (ListColumn [A1240K])
+                                                           , Just (ListColumn [ReferenceGenome])
+                                                           ]
+        map jGenotypePloidy janno               `shouldBe` [ Just Diploid
+                                                           , Just Haploid
+                                                           , Just Diploid
+                                                           ]
+        map jGroupName janno                    `shouldBe` [ ListColumn [GroupName "POP1", GroupName "POP3"]
+                                                           , ListColumn [GroupName "POP2"]
+                                                           , ListColumn [GroupName "POP1"]
+                                                           ]
+        map jGeneticSex janno                   `shouldBe` [ GeneticSex Male
+                                                           , GeneticSex Female
+                                                           , GeneticSex Male
+                                                           ]
+        map jCoverageOnTargets janno            `shouldBe` [ Just $ JannoCoverageOnTargets 0
+                                                           , Just $ JannoCoverageOnTargets 0
+                                                           , Just $ JannoCoverageOnTargets 0
+                                                           ]
+        map jUDG janno                          `shouldBe` [ Just Minus
+                                                           , Just Half
+                                                           , Just Plus
+                                                           ]
+        map jLibraryBuilt janno                 `shouldBe` [ Just DS
+                                                           , Just SS
+                                                           , Just MixedSSDS
+                                                           ]
+        map jDamage janno                       `shouldBe` [ Just (JannoDamage 0)
+                                                           , Just (JannoDamage 100)
+                                                           , Just (JannoDamage 50)
+                                                           ]
+        map jContamination janno                `shouldBe` [ Just (ListColumn [JannoContamination "10"])
+                                                           , Just (ListColumn [JannoContamination "20", JannoContamination "50", JannoContamination "70"])
+                                                           , Nothing
+                                                           ]
+        map jDataPreparationPipelineURL janno   `shouldBe` [ Just (JannoDataPreparationPipelineURL "ftp://test.test")
+                                                           , Just (JannoDataPreparationPipelineURL "https://www.google.de")
+                                                           , Just (JannoDataPreparationPipelineURL "http://huhu.org/23&test")
+                                                           ]
+        map jAdditionalColumns janno            `shouldBe` [ CsvNamedRecord (fromList [("AdditionalColumn2","test2")
+                                                                                      ,("AdditionalColumn1","test1")])
+                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test4")
+                                                                                      ,("AdditionalColumn1","test3")])
+                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test6")
+                                                                                      ,("AdditionalColumn1","test5")])
                                                            ]
 
     -- the following tests should be more precise and comprehensive; we should consider refactoring
