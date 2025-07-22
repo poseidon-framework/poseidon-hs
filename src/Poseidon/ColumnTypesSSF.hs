@@ -113,22 +113,39 @@ $(makeInstances ''SSFSampleAlias "sample_alias")
 newtype SSFSecondarySampleAccession = SSFSecondarySampleAccession T.Text deriving (Eq, Ord)
 $(makeInstances ''SSFSecondarySampleAccession "secondary_sample_accession")
 
--- | A datatype for calendar dates
-newtype SimpleDate = SimpleDate Day
+-- | A datatype for the first_public .ssf column
+newtype SSFFirstPublicSimpleDate = SSFFirstPublicSimpleDate Day
     deriving (Eq, Ord, Generic)
 
-instance Show SimpleDate where
-    show (SimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+instance Makeable SSFFirstPublicSimpleDate where
+    make x = do
+          case parseTimeM False defaultTimeLocale "%Y-%-m-%-d" (T.unpack x) :: Maybe Day of
+            Nothing -> fail $ "first_public date " ++ T.unpack x ++
+                              " is not a correct date in the format YYYY-MM-DD."
+            Just d  -> pure (SSFFirstPublicSimpleDate d)
+instance Show SSFFirstPublicSimpleDate where
+    show (SSFFirstPublicSimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+instance Csv.ToField SSFFirstPublicSimpleDate where
+    toField (SSFFirstPublicSimpleDate x) = Csv.toField $ show x
+instance Csv.FromField SSFFirstPublicSimpleDate where
+    parseField = parseTypeCSV "first_public"
 
-makeSimpleDate :: MonadFail m => String -> m SimpleDate
-makeSimpleDate x = do
-    mday <- parseTimeM False defaultTimeLocale "%Y-%-m-%-d" x
-    pure (SimpleDate mday)
+-- | A datatype for the last_updated .ssf column
+newtype SSFLastUpdatedSimpleDate = SSFLastUpdatedSimpleDate Day
+    deriving (Eq, Ord, Generic)
 
-instance Csv.ToField SimpleDate where
-    toField (SimpleDate x) = Csv.toField $ show x
-instance Csv.FromField SimpleDate where
-    parseField x = Csv.parseField x >>= makeSimpleDate
+instance Makeable SSFLastUpdatedSimpleDate where
+    make x = do
+          case parseTimeM False defaultTimeLocale "%Y-%-m-%-d" (T.unpack x) :: Maybe Day of
+            Nothing -> fail $ "last_updated date " ++ T.unpack x ++
+                              " is not a correct date in the format YYYY-MM-DD."
+            Just d  -> pure (SSFLastUpdatedSimpleDate d)
+instance Show SSFLastUpdatedSimpleDate where
+    show (SSFLastUpdatedSimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
+instance Csv.ToField SSFLastUpdatedSimpleDate where
+    toField (SSFLastUpdatedSimpleDate x) = Csv.toField $ show x
+instance Csv.FromField SSFLastUpdatedSimpleDate where
+    parseField = parseTypeCSV "last_updated"
 
 -- | A datatype for the instrument_model .ssf column
 newtype SSFInstrumentModel = SSFInstrumentModel T.Text deriving (Eq, Ord)

@@ -67,8 +67,8 @@ data SeqSourceRow = SeqSourceRow
     , sRunAccession             :: Maybe SSFAccessionIDRun
     , sSampleAlias              :: Maybe SSFSampleAlias
     , sSecondarySampleAccession :: Maybe SSFSecondarySampleAccession
-    , sFirstPublic              :: Maybe SimpleDate
-    , sLastUpdated              :: Maybe SimpleDate
+    , sFirstPublic              :: Maybe SSFFirstPublicSimpleDate
+    , sLastUpdated              :: Maybe SSFLastUpdatedSimpleDate
     , sInstrumentModel          :: Maybe SSFInstrumentModel
     , sLibraryLayout            :: Maybe SSFLibraryLayout
     , sLibrarySource            :: Maybe SSFLibrarySource
