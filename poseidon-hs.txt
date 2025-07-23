@@ -8,15 +8,302 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.7.1
+@version 1.6.7.2
+
+module Poseidon.AccessionIDs
+
+-- | A datatype to represent AccessionIDs in a ssf file
+data AccessionID
+INSDCProject :: Text -> AccessionID
+INSDCStudy :: Text -> AccessionID
+INSDCBioSample :: Text -> AccessionID
+INSDCSample :: Text -> AccessionID
+INSDCExperiment :: Text -> AccessionID
+INSDCRun :: Text -> AccessionID
+INSDCAnalysis :: Text -> AccessionID
+OtherID :: Text -> AccessionID
+makeAccessionID :: MonadFail m => Text -> m AccessionID
+instance GHC.Generics.Generic Poseidon.AccessionIDs.AccessionID
+instance GHC.Classes.Ord Poseidon.AccessionIDs.AccessionID
+instance GHC.Classes.Eq Poseidon.AccessionIDs.AccessionID
+instance GHC.Show.Show Poseidon.AccessionIDs.AccessionID
 
 module Poseidon.ColumnTypesUtils
 class Makeable a
 make :: (Makeable a, MonadFail m) => Text -> m a
 parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => String -> ByteString -> m a
 makeInstances :: Name -> String -> DecsQ
+decodingOptions :: DecodeOptions
+encodingOptions :: EncodeOptions
 
-module Poseidon.ColumnTypes
+-- | A datatype to collect additional, unpecified .csv<i>.tsv file columns
+--   (a hashmap in cassava</i>Data.Csv)
+newtype CsvNamedRecord
+CsvNamedRecord :: NamedRecord -> CsvNamedRecord
+getCsvNR :: CsvNamedRecord -> NamedRecord
+filterLookup :: FromField a => NamedRecord -> ByteString -> Parser a
+filterLookupOptional :: FromField a => NamedRecord -> ByteString -> Parser (Maybe a)
+cleanInput :: Maybe ByteString -> Maybe ByteString
+explicitNA :: NamedRecord -> NamedRecord
+
+-- | A general datatype for janno list columns
+newtype ListColumn a
+ListColumn :: [a] -> ListColumn a
+[getListColumn] :: ListColumn a -> [a]
+getMaybeListColumn :: Maybe (ListColumn a) -> [a]
+removeUselessSuffix :: String -> String
+data CsvParseError
+CsvParseError :: String -> String -> String -> CsvParseError
+[_expected] :: CsvParseError -> String
+[_actual] :: CsvParseError -> String
+[_leftover] :: CsvParseError -> String
+parseCsvParseError :: Parser CsvParseError
+renderCsvParseError :: CsvParseError -> String
+instance GHC.Generics.Generic Poseidon.ColumnTypesUtils.CsvNamedRecord
+instance GHC.Classes.Eq Poseidon.ColumnTypesUtils.CsvNamedRecord
+instance GHC.Show.Show Poseidon.ColumnTypesUtils.CsvNamedRecord
+instance GHC.Show.Show a => GHC.Show.Show (Poseidon.ColumnTypesUtils.ListColumn a)
+instance GHC.Generics.Generic (Poseidon.ColumnTypesUtils.ListColumn a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Poseidon.ColumnTypesUtils.ListColumn a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Poseidon.ColumnTypesUtils.ListColumn a)
+instance GHC.Show.Show Poseidon.ColumnTypesUtils.CsvParseError
+instance (Data.Csv.Conversion.ToField a, GHC.Show.Show a) => Data.Csv.Conversion.ToField (Poseidon.ColumnTypesUtils.ListColumn a)
+instance Data.Csv.Conversion.FromField a => Data.Csv.Conversion.FromField (Poseidon.ColumnTypesUtils.ListColumn a)
+
+module Poseidon.ColumnTypesSSF
+
+-- | A datatype for the udg .ssf column
+data SSFUDG
+SSFMinus :: SSFUDG
+SSFHalf :: SSFUDG
+SSFPlus :: SSFUDG
+
+-- | A datatype for the library_built .ssf column
+data SSFLibraryBuilt
+SSFDS :: SSFLibraryBuilt
+SSFSS :: SSFLibraryBuilt
+
+-- | A datatype for the sample_accession .ssf column
+newtype SSFAccessionIDSample
+SSFAccessionIDSample :: AccessionID -> SSFAccessionIDSample
+
+-- | A datatype for the study_accession .ssf column
+newtype SSFAccessionIDStudy
+SSFAccessionIDStudy :: AccessionID -> SSFAccessionIDStudy
+
+-- | A datatype for the run_accession .ssf column
+newtype SSFAccessionIDRun
+SSFAccessionIDRun :: AccessionID -> SSFAccessionIDRun
+
+-- | A datatype for the sample_alias .ssf column
+newtype SSFSampleAlias
+SSFSampleAlias :: Text -> SSFSampleAlias
+
+-- | A datatype for the secondary_sample_accession .ssf column
+newtype SSFSecondarySampleAccession
+SSFSecondarySampleAccession :: Text -> SSFSecondarySampleAccession
+
+-- | A datatype for the first_public .ssf column
+newtype SSFFirstPublicSimpleDate
+SSFFirstPublicSimpleDate :: Day -> SSFFirstPublicSimpleDate
+
+-- | A datatype for the last_updated .ssf column
+newtype SSFLastUpdatedSimpleDate
+SSFLastUpdatedSimpleDate :: Day -> SSFLastUpdatedSimpleDate
+
+-- | A datatype for the instrument_model .ssf column
+newtype SSFInstrumentModel
+SSFInstrumentModel :: Text -> SSFInstrumentModel
+
+-- | A datatype for the library_layout .ssf column
+newtype SSFLibraryLayout
+SSFLibraryLayout :: Text -> SSFLibraryLayout
+
+-- | A datatype for the library_source .ssf column
+newtype SSFLibrarySource
+SSFLibrarySource :: Text -> SSFLibrarySource
+
+-- | A datatype for the instrument_platform .ssf column
+newtype SSFInstrumentPlatform
+SSFInstrumentPlatform :: Text -> SSFInstrumentPlatform
+
+-- | A datatype for the library_name .ssf column
+newtype SSFLibraryName
+SSFLibraryName :: Text -> SSFLibraryName
+
+-- | A datatype for the library_strategy .ssf column
+newtype SSFLibraryStrategy
+SSFLibraryStrategy :: Text -> SSFLibraryStrategy
+
+-- | A datatype for the fastq_ftp .ssf column
+newtype SSFFastqFTPURI
+SSFFastqFTPURI :: Text -> SSFFastqFTPURI
+
+-- | A datatype for the fastq_aspera .ssf column
+newtype SSFFastqASPERAURI
+SSFFastqASPERAURI :: Text -> SSFFastqASPERAURI
+
+-- | A datatype for the fastq_bytes .ssf column
+newtype SSFFastqBytes
+SSFFastqBytes :: Integer -> SSFFastqBytes
+
+-- | A datatype for the fastq_md5 .ssf column
+newtype SSFFastqMD5
+SSFFastqMD5 :: Text -> SSFFastqMD5
+isMD5Hash :: Text -> Bool
+
+-- | A datatype for the fastq_bytes .ssf column
+newtype SSFReadCount
+SSFReadCount :: Integer -> SSFReadCount
+
+-- | A datatype for the submitted_ftp .ssf column
+newtype SSFSubmittedFTPURI
+SSFSubmittedFTPURI :: Text -> SSFSubmittedFTPURI
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFReadCount
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFReadCount
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFReadCount
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFSubmittedFTPURI
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFReadCount
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFReadCount
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFReadCount
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFReadCount
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFFastqMD5
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFFastqBytes
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFFastqASPERAURI
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFFastqFTPURI
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFLibraryStrategy
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFLibraryStrategy
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFLibraryStrategy
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFLibraryStrategy
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFLibraryStrategy
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFLibraryStrategy
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFLibraryName
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFLibraryName
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFLibraryName
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFLibraryName
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFLibraryName
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFLibraryName
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFInstrumentPlatform
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFInstrumentPlatform
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFInstrumentPlatform
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFInstrumentPlatform
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFInstrumentPlatform
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFInstrumentPlatform
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFLibrarySource
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFLibrarySource
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFLibrarySource
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFLibrarySource
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFLibrarySource
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFLibrarySource
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFLibraryLayout
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFLibraryLayout
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFLibraryLayout
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFLibraryLayout
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFLibraryLayout
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFLibraryLayout
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFInstrumentModel
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFInstrumentModel
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFInstrumentModel
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFInstrumentModel
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFInstrumentModel
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFInstrumentModel
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFLastUpdatedSimpleDate
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFFirstPublicSimpleDate
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFSecondarySampleAccession
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFSecondarySampleAccession
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFSecondarySampleAccession
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFSecondarySampleAccession
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFSecondarySampleAccession
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFSecondarySampleAccession
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFSampleAlias
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFSampleAlias
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFSampleAlias
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFSampleAlias
+instance GHC.Enum.Bounded Poseidon.ColumnTypesSSF.SSFUDG
+instance GHC.Enum.Enum Poseidon.ColumnTypesSSF.SSFUDG
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFUDG
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFUDG
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFUDG
+instance GHC.Enum.Bounded Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance GHC.Enum.Enum Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance GHC.Generics.Generic Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance GHC.Classes.Ord Poseidon.ColumnTypesSSF.SSFSampleAlias
+instance GHC.Classes.Eq Poseidon.ColumnTypesSSF.SSFSampleAlias
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFAccessionIDRun
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFAccessionIDStudy
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFAccessionIDSample
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFLibraryBuilt
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesSSF.SSFUDG
+instance GHC.Show.Show Poseidon.ColumnTypesSSF.SSFUDG
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesSSF.SSFUDG
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesSSF.SSFUDG
+
+module Poseidon.ColumnTypesJanno
 
 -- | A datatype for the Genetic_Sex .janno column
 newtype GeneticSex
@@ -202,15 +489,8 @@ newtype JannoContaminationNote
 JannoContaminationNote :: Text -> JannoContaminationNote
 
 -- | A datatype for the Genetic_Source_Accession_IDs .janno column
-data JannoGeneticSourceAccessionID
-INSDCProject :: Text -> JannoGeneticSourceAccessionID
-INSDCStudy :: Text -> JannoGeneticSourceAccessionID
-INSDCBioSample :: Text -> JannoGeneticSourceAccessionID
-INSDCSample :: Text -> JannoGeneticSourceAccessionID
-INSDCExperiment :: Text -> JannoGeneticSourceAccessionID
-INSDCRun :: Text -> JannoGeneticSourceAccessionID
-INSDCAnalysis :: Text -> JannoGeneticSourceAccessionID
-OtherID :: Text -> JannoGeneticSourceAccessionID
+newtype JannoGeneticSourceAccessionID
+JannoGeneticSourceAccessionID :: AccessionID -> JannoGeneticSourceAccessionID
 
 -- | A datatype for the Primary_Contact .janno column
 newtype JannoPrimaryContact
@@ -227,292 +507,292 @@ JannoComment :: Text -> JannoComment
 -- | A datatype for the Keywords .janno column
 newtype JannoKeyword
 JannoKeyword :: Text -> JannoKeyword
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoKeyword
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoKeyword
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoKeyword
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoKeyword
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoKeyword
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoComment
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoComment
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoComment
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoComment
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoComment
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoPublication
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoPublication
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoPublication
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoPublication
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoPublication
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoPublication
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoPrimaryContact
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoPrimaryContact
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoPrimaryContact
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoPrimaryContact
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoPrimaryContact
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoGeneticSourceAccessionID
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoContaminationNote
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoContaminationNote
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoContaminationNote
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoContaminationNote
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoContaminationNote
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoContaminationMeas
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoContaminationMeas
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoContaminationMeas
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoContaminationMeas
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoContaminationMeas
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoContaminationErr
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoContaminationErr
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoContaminationErr
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoContaminationErr
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoContaminationErr
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoContamination
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoContamination
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoContamination
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoContamination
-instance GHC.Enum.Bounded Poseidon.ColumnTypes.JannoCaptureType
-instance GHC.Enum.Enum Poseidon.ColumnTypes.JannoCaptureType
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoCaptureType
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoCaptureType
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoCaptureType
-instance GHC.Enum.Bounded Poseidon.ColumnTypes.JannoUDG
-instance GHC.Enum.Enum Poseidon.ColumnTypes.JannoUDG
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoUDG
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoUDG
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoUDG
-instance GHC.Enum.Bounded Poseidon.ColumnTypes.JannoLibraryBuilt
-instance GHC.Enum.Enum Poseidon.ColumnTypes.JannoLibraryBuilt
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoLibraryBuilt
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoLibraryBuilt
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoLibraryBuilt
-instance GHC.Enum.Bounded Poseidon.ColumnTypes.JannoGenotypePloidy
-instance GHC.Enum.Enum Poseidon.ColumnTypes.JannoGenotypePloidy
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoGenotypePloidy
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoGenotypePloidy
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoGenotypePloidy
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoEndogenous
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoEndogenous
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoEndogenous
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoNrSNPs
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoNrSNPs
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoNrSNPs
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDamage
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDamage
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDamage
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoContamination
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDamage
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDamage
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDamage
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDamage
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoCoverageOnTargets
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoNrSNPs
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoNrSNPs
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoNrSNPs
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoNrSNPs
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoEndogenous
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoEndogenous
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoEndogenous
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoEndogenous
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDataPreparationPipelineURL
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoGenotypePloidy
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoGenotypePloidy
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoGenotypePloidy
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoGenotypePloidy
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoLibraryBuilt
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoLibraryBuilt
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoLibraryBuilt
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoLibraryBuilt
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoUDG
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoUDG
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoUDG
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoUDG
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoCaptureType
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoCaptureType
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoCaptureType
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoCaptureType
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoLibraryName
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoLibraryName
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoLibraryName
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoLibraryName
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoNrLibraries
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoNrLibraries
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoNrLibraries
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoLibraryName
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoNrLibraries
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoNrLibraries
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoNrLibraries
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoNrLibraries
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoSourceTissue
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoSourceTissue
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoSourceTissue
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoSourceTissue
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoSourceTissue
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoYHaplogroup
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoYHaplogroup
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoYHaplogroup
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoYHaplogroup
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoYHaplogroup
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoYHaplogroup
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoMTHaplogroup
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoMTHaplogroup
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoMTHaplogroup
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoMTHaplogroup
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoMTHaplogroup
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoMTHaplogroup
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateNote
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateNote
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateNote
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateNote
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDateBCADStart
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateBCADStart
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateBCADStart
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDateBCADMedian
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateBCADMedian
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateBCADMedian
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDateBCADStop
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateBCADStop
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateBCADStop
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateNote
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateNote
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateBCADStop
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateBCADStop
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateBCADStop
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateBCADStop
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateBCADMedian
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateBCADMedian
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateBCADMedian
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateBCADMedian
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateBCADStart
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateBCADStart
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateBCADStart
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateBCADStart
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateC14UncalBPErr
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateC14UncalBP
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateC14Labnr
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateC14Labnr
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateC14Labnr
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateC14Labnr
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoLatitude
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoLatitude
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoLatitude
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoLongitude
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoLongitude
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoLongitude
-instance GHC.Enum.Bounded Poseidon.ColumnTypes.JannoDateType
-instance GHC.Enum.Enum Poseidon.ColumnTypes.JannoDateType
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoDateType
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoDateType
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateType
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoDateC14Labnr
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoDateType
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoDateType
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoDateType
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoDateType
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoLongitude
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoLongitude
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoLongitude
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoLongitude
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoLatitude
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoLatitude
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoLatitude
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoLatitude
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoSite
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoSite
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoSite
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoSite
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoSite
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoSite
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoLocation
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoLocation
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoLocation
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoLocation
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoCountryISO
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoCountryISO
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoLocation
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoCountryISO
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoCountryISO
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoCountryISO
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoCountryISO
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoCountry
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoCountry
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoCountry
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoCountry
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoCountry
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoCountry
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoCollectionID
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoCollectionID
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoCollectionID
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoCollectionID
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoCollectionID
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoRelationNote
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoRelationNote
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoRelationNote
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoRelationNote
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoRelationNote
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoRelationType
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoRelationType
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoRelationType
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoRelationType
-instance GHC.Enum.Bounded Poseidon.ColumnTypes.JannoRelationDegree
-instance GHC.Enum.Enum Poseidon.ColumnTypes.JannoRelationDegree
-instance GHC.Generics.Generic Poseidon.ColumnTypes.JannoRelationDegree
-instance GHC.Classes.Ord Poseidon.ColumnTypes.JannoRelationDegree
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoRelationDegree
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoRelationType
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoRelationDegree
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoRelationDegree
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoRelationDegree
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoRelationDegree
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoRelationTo
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoRelationTo
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoRelationTo
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoRelationTo
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoRelationTo
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.JannoAlternativeID
-instance GHC.Show.Show Poseidon.ColumnTypes.JannoAlternativeID
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.JannoAlternativeID
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.JannoAlternativeID
-instance GHC.Classes.Eq Poseidon.ColumnTypes.JannoAlternativeID
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.GroupName
-instance GHC.Show.Show Poseidon.ColumnTypes.GroupName
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.GroupName
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.GroupName
-instance GHC.Classes.Eq Poseidon.ColumnTypes.GeneticSex
-instance GHC.Classes.Ord Poseidon.ColumnTypes.GroupName
-instance GHC.Classes.Eq Poseidon.ColumnTypes.GroupName
-instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypes.GeneticSex
-instance GHC.Show.Show Poseidon.ColumnTypes.GeneticSex
-instance GHC.Classes.Ord Poseidon.ColumnTypes.GeneticSex
-instance Data.Csv.Conversion.ToField Poseidon.ColumnTypes.GeneticSex
-instance Data.Csv.Conversion.FromField Poseidon.ColumnTypes.GeneticSex
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoKeyword
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoKeyword
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoKeyword
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoKeyword
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoKeyword
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoComment
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoComment
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoComment
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoComment
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoComment
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoPublication
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoPublication
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoPublication
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoPublication
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoPublication
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoPublication
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoPrimaryContact
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoPrimaryContact
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoPrimaryContact
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoPrimaryContact
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoPrimaryContact
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoGeneticSourceAccessionID
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoContaminationNote
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoContaminationNote
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoContaminationNote
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoContaminationNote
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoContaminationNote
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoContaminationMeas
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoContaminationMeas
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoContaminationMeas
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoContaminationMeas
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoContaminationMeas
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoContaminationErr
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoContaminationErr
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoContaminationErr
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoContaminationErr
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoContaminationErr
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoContamination
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoContamination
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoContamination
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoContamination
+instance GHC.Enum.Bounded Poseidon.ColumnTypesJanno.JannoCaptureType
+instance GHC.Enum.Enum Poseidon.ColumnTypesJanno.JannoCaptureType
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoCaptureType
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoCaptureType
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoCaptureType
+instance GHC.Enum.Bounded Poseidon.ColumnTypesJanno.JannoUDG
+instance GHC.Enum.Enum Poseidon.ColumnTypesJanno.JannoUDG
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoUDG
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoUDG
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoUDG
+instance GHC.Enum.Bounded Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance GHC.Enum.Enum Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance GHC.Enum.Bounded Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance GHC.Enum.Enum Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoEndogenous
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoEndogenous
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoEndogenous
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDamage
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDamage
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDamage
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoContamination
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDamage
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDamage
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDamage
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDamage
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoCoverageOnTargets
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoNrSNPs
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoEndogenous
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoEndogenous
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoEndogenous
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoEndogenous
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDataPreparationPipelineURL
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoGenotypePloidy
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoLibraryBuilt
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoUDG
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoUDG
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoUDG
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoUDG
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoCaptureType
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoCaptureType
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoCaptureType
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoCaptureType
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoLibraryName
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoLibraryName
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoLibraryName
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoLibraryName
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoLibraryName
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoNrLibraries
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoSourceTissue
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoSourceTissue
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoSourceTissue
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoSourceTissue
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoSourceTissue
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoYHaplogroup
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoYHaplogroup
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoYHaplogroup
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoYHaplogroup
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoYHaplogroup
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoYHaplogroup
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoMTHaplogroup
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoMTHaplogroup
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoMTHaplogroup
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoMTHaplogroup
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoMTHaplogroup
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoMTHaplogroup
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateNote
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateNote
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateNote
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateNote
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateNote
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateNote
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateBCADStop
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateBCADMedian
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateBCADStart
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateC14UncalBPErr
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateC14UncalBP
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateC14Labnr
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateC14Labnr
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateC14Labnr
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateC14Labnr
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoLatitude
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoLatitude
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoLatitude
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoLongitude
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoLongitude
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoLongitude
+instance GHC.Enum.Bounded Poseidon.ColumnTypesJanno.JannoDateType
+instance GHC.Enum.Enum Poseidon.ColumnTypesJanno.JannoDateType
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoDateType
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoDateType
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateType
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoDateC14Labnr
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoDateType
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoDateType
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoDateType
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoDateType
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoLongitude
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoLongitude
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoLongitude
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoLongitude
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoLatitude
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoLatitude
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoLatitude
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoLatitude
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoSite
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoSite
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoSite
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoSite
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoSite
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoSite
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoLocation
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoLocation
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoLocation
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoLocation
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoCountryISO
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoCountryISO
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoLocation
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoCountryISO
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoCountryISO
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoCountryISO
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoCountryISO
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoCountry
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoCountry
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoCountry
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoCountry
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoCountry
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoCountry
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoCollectionID
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoCollectionID
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoCollectionID
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoCollectionID
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoCollectionID
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoRelationNote
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoRelationNote
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoRelationNote
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoRelationNote
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoRelationNote
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoRelationType
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoRelationType
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoRelationType
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoRelationType
+instance GHC.Enum.Bounded Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance GHC.Enum.Enum Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance GHC.Generics.Generic Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoRelationType
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoRelationDegree
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoRelationTo
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoRelationTo
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoRelationTo
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoRelationTo
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoRelationTo
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.JannoAlternativeID
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.JannoAlternativeID
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.JannoAlternativeID
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.JannoAlternativeID
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.JannoAlternativeID
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.GroupName
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.GroupName
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.GroupName
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.GroupName
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.GeneticSex
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.GroupName
+instance GHC.Classes.Eq Poseidon.ColumnTypesJanno.GroupName
+instance Poseidon.ColumnTypesUtils.Makeable Poseidon.ColumnTypesJanno.GeneticSex
+instance GHC.Show.Show Poseidon.ColumnTypesJanno.GeneticSex
+instance GHC.Classes.Ord Poseidon.ColumnTypesJanno.GeneticSex
+instance Data.Csv.Conversion.ToField Poseidon.ColumnTypesJanno.GeneticSex
+instance Data.Csv.Conversion.FromField Poseidon.ColumnTypesJanno.GeneticSex
 
 module Poseidon.MathHelpers
 
@@ -701,6 +981,68 @@ instance GHC.Show.Show Poseidon.Utils.ErrorLength
 instance GHC.Show.Show Poseidon.Utils.PoseidonException
 instance GHC.Exception.Type.Exception Poseidon.Utils.PoseidonException
 
+module Poseidon.SequencingSource
+
+-- | A data type to represent a seqSourceFile
+newtype SeqSourceRows
+SeqSourceRows :: [SeqSourceRow] -> SeqSourceRows
+[getSeqSourceRowList] :: SeqSourceRows -> [SeqSourceRow]
+
+-- | A data type to represent a row in the seqSourceFile See
+--   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv</a>
+--   for more details
+data SeqSourceRow
+SeqSourceRow :: Maybe (ListColumn String) -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> Maybe SSFAccessionIDSample -> Maybe SSFAccessionIDStudy -> Maybe SSFAccessionIDRun -> Maybe SSFSampleAlias -> Maybe SSFSecondarySampleAccession -> Maybe SSFFirstPublicSimpleDate -> Maybe SSFLastUpdatedSimpleDate -> Maybe SSFInstrumentModel -> Maybe SSFLibraryLayout -> Maybe SSFLibrarySource -> Maybe SSFInstrumentPlatform -> Maybe SSFLibraryName -> Maybe SSFLibraryStrategy -> Maybe (ListColumn SSFFastqFTPURI) -> Maybe (ListColumn SSFFastqASPERAURI) -> Maybe (ListColumn SSFFastqBytes) -> Maybe (ListColumn SSFFastqMD5) -> Maybe SSFReadCount -> Maybe (ListColumn SSFSubmittedFTPURI) -> CsvNamedRecord -> SeqSourceRow
+[sPoseidonID] :: SeqSourceRow -> Maybe (ListColumn String)
+[sUDG] :: SeqSourceRow -> Maybe SSFUDG
+[sLibraryBuilt] :: SeqSourceRow -> Maybe SSFLibraryBuilt
+[sSampleAccession] :: SeqSourceRow -> Maybe SSFAccessionIDSample
+[sStudyAccession] :: SeqSourceRow -> Maybe SSFAccessionIDStudy
+[sRunAccession] :: SeqSourceRow -> Maybe SSFAccessionIDRun
+[sSampleAlias] :: SeqSourceRow -> Maybe SSFSampleAlias
+[sSecondarySampleAccession] :: SeqSourceRow -> Maybe SSFSecondarySampleAccession
+[sFirstPublic] :: SeqSourceRow -> Maybe SSFFirstPublicSimpleDate
+[sLastUpdated] :: SeqSourceRow -> Maybe SSFLastUpdatedSimpleDate
+[sInstrumentModel] :: SeqSourceRow -> Maybe SSFInstrumentModel
+[sLibraryLayout] :: SeqSourceRow -> Maybe SSFLibraryLayout
+[sLibrarySource] :: SeqSourceRow -> Maybe SSFLibrarySource
+[sInstrumentPlatform] :: SeqSourceRow -> Maybe SSFInstrumentPlatform
+[sLibraryName] :: SeqSourceRow -> Maybe SSFLibraryName
+[sLibraryStrategy] :: SeqSourceRow -> Maybe SSFLibraryStrategy
+[sFastqFTP] :: SeqSourceRow -> Maybe (ListColumn SSFFastqFTPURI)
+[sFastqASPERA] :: SeqSourceRow -> Maybe (ListColumn SSFFastqASPERAURI)
+[sFastqBytes] :: SeqSourceRow -> Maybe (ListColumn SSFFastqBytes)
+[sFastqMD5] :: SeqSourceRow -> Maybe (ListColumn SSFFastqMD5)
+[sReadCount] :: SeqSourceRow -> Maybe SSFReadCount
+[sSubmittedFTP] :: SeqSourceRow -> Maybe (ListColumn SSFSubmittedFTPURI)
+[sAdditionalColumns] :: SeqSourceRow -> CsvNamedRecord
+seqSourceHeader :: [ByteString]
+seqSourceHeaderString :: [String]
+seqSourceRefHashMap :: HashMap ByteString ()
+
+-- | A function to write one seqSourceFile
+writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
+
+-- | A function to read one seqSourceFile
+readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
+
+-- | A function to read one row of a seqSourceFile
+readSeqSourceFileRow :: FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
+warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
+checkRunsUnique :: SeqSourceRows -> Bool
+checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
+instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRow
+instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Base.Semigroup Poseidon.SequencingSource.SeqSourceRows
+instance GHC.Base.Monoid Poseidon.SequencingSource.SeqSourceRows
+instance Data.Csv.Conversion.DefaultOrdered Poseidon.SequencingSource.SeqSourceRow
+instance Data.Csv.Conversion.FromNamedRecord Poseidon.SequencingSource.SeqSourceRow
+instance Data.Csv.Conversion.ToNamedRecord Poseidon.SequencingSource.SeqSourceRow
+
 module Poseidon.Janno
 
 -- | A data type to represent a sample/janno file row See
@@ -755,86 +1097,6 @@ JannoRow :: String -> GeneticSex -> ListColumn GroupName -> Maybe (ListColumn Ja
 [jComments] :: JannoRow -> Maybe JannoComment
 [jKeywords] :: JannoRow -> Maybe (ListColumn JannoKeyword)
 [jAdditionalColumns] :: JannoRow -> CsvNamedRecord
-
--- | A datatype for the Genetic_Sex .janno column
-newtype GeneticSex
-GeneticSex :: Sex -> GeneticSex
-[sfSex] :: GeneticSex -> Sex
-
--- | A datatype for the Group_Name .janno column
-newtype GroupName
-GroupName :: Text -> GroupName
-
--- | A general datatype for janno list columns
-newtype ListColumn a
-ListColumn :: [a] -> ListColumn a
-[getListColumn] :: ListColumn a -> [a]
-data () => Sex
-Male :: Sex
-Female :: Sex
-Unknown :: Sex
-
--- | A datatype for countries in ISO-alpha2 code format
-newtype JannoCountryISO
-JannoCountryISO :: Country -> JannoCountryISO
-
--- | A datatype for the Latitude .janno column
-newtype JannoLatitude
-JannoLatitude :: Double -> JannoLatitude
-
--- | A datatype for the Longitude .janno column
-newtype JannoLongitude
-JannoLongitude :: Double -> JannoLongitude
-
--- | A datatype for the Date_Type .janno column
-data JannoDateType
-C14 :: JannoDateType
-Contextual :: JannoDateType
-Modern :: JannoDateType
-
--- | A datatype for the Date_BC_AD_Median .janno column
-newtype JannoDateBCADMedian
-JannoDateBCADMedian :: Int -> JannoDateBCADMedian
-
--- | A datatype for the Capture_Type .janno column
-data JannoCaptureType
-Shotgun :: JannoCaptureType
-A1240K :: JannoCaptureType
-ArborComplete :: JannoCaptureType
-ArborPrimePlus :: JannoCaptureType
-ArborAncestralPlus :: JannoCaptureType
-TwistAncientDNA :: JannoCaptureType
-OtherCapture :: JannoCaptureType
-ReferenceGenome :: JannoCaptureType
-
--- | A datatype for the Genotype_Ploidy .janno column
-data JannoGenotypePloidy
-Diploid :: JannoGenotypePloidy
-Haploid :: JannoGenotypePloidy
-
--- | A datatype for the UDG .janno column
-data JannoUDG
-Minus :: JannoUDG
-Half :: JannoUDG
-Plus :: JannoUDG
-Mixed :: JannoUDG
-
--- | A datatype for the Relation_Degree .janno column
-data JannoRelationDegree
-Identical :: JannoRelationDegree
-First :: JannoRelationDegree
-Second :: JannoRelationDegree
-ThirdToFifth :: JannoRelationDegree
-SixthToTenth :: JannoRelationDegree
-Unrelated :: JannoRelationDegree
-OtherDegree :: JannoRelationDegree
-
--- | A datatype for the Library_Built .janno column
-data JannoLibraryBuilt
-DS :: JannoLibraryBuilt
-SS :: JannoLibraryBuilt
-MixedSSDS :: JannoLibraryBuilt
-Other :: JannoLibraryBuilt
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
 
@@ -848,26 +1110,10 @@ createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 jannoHeaderString :: [String]
 
--- | A datatype to collect additional, unpecified .janno file columns (a
---   hashmap in cassava/Data.Csv)
-newtype CsvNamedRecord
-CsvNamedRecord :: NamedRecord -> CsvNamedRecord
-
 -- | A data type to represent a janno file
 newtype JannoRows
 JannoRows :: [JannoRow] -> JannoRows
 [getJannoRows] :: JannoRows -> [JannoRow]
-type JannoStringList = ListColumn String
-filterLookup :: FromField a => NamedRecord -> ByteString -> Parser a
-filterLookupOptional :: FromField a => NamedRecord -> ByteString -> Parser (Maybe a)
-getCsvNR :: CsvNamedRecord -> NamedRecord
-encodingOptions :: EncodeOptions
-decodingOptions :: DecodeOptions
-explicitNA :: NamedRecord -> NamedRecord
-removeUselessSuffix :: String -> String
-parseCsvParseError :: Parser CsvParseError
-renderCsvParseError :: CsvParseError -> String
-getMaybeListColumn :: Maybe (ListColumn a) -> [a]
 
 -- | a convenience function to construct Eigenstrat Ind entries out of
 --   jannoRows
@@ -875,197 +1121,17 @@ jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Header
 instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
-instance GHC.Show.Show a => GHC.Show.Show (Poseidon.Janno.ListColumn a)
-instance GHC.Generics.Generic (Poseidon.Janno.ListColumn a)
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Poseidon.Janno.ListColumn a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Poseidon.Janno.ListColumn a)
-instance GHC.Generics.Generic Poseidon.Janno.CsvNamedRecord
-instance GHC.Classes.Eq Poseidon.Janno.CsvNamedRecord
-instance GHC.Show.Show Poseidon.Janno.CsvNamedRecord
 instance GHC.Generics.Generic Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoRow
 instance GHC.Show.Show Poseidon.Janno.JannoRow
 instance GHC.Generics.Generic Poseidon.Janno.JannoRows
 instance GHC.Classes.Eq Poseidon.Janno.JannoRows
 instance GHC.Show.Show Poseidon.Janno.JannoRows
-instance GHC.Show.Show Poseidon.Janno.CsvParseError
 instance GHC.Base.Semigroup Poseidon.Janno.JannoRows
 instance GHC.Base.Monoid Poseidon.Janno.JannoRows
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.FromNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
-instance (Data.Csv.Conversion.ToField a, GHC.Show.Show a) => Data.Csv.Conversion.ToField (Poseidon.Janno.ListColumn a)
-instance Data.Csv.Conversion.FromField a => Data.Csv.Conversion.FromField (Poseidon.Janno.ListColumn a)
-
-module Poseidon.SequencingSource
-
--- | A datatype to represent AccessionIDs in a ssf file
-data AccessionID
-INSDCProject :: String -> AccessionID
-INSDCStudy :: String -> AccessionID
-INSDCBioSample :: String -> AccessionID
-INSDCSample :: String -> AccessionID
-INSDCExperiment :: String -> AccessionID
-INSDCRun :: String -> AccessionID
-INSDCAnalysis :: String -> AccessionID
-OtherID :: String -> AccessionID
-makeAccessionID :: MonadFail m => String -> m AccessionID
-
--- | A datatype to represent URIs in a ssf file
-newtype JURI
-JURI :: String -> JURI
-makeJURI :: MonadFail m => String -> m JURI
-
--- | A datatype to represent UDG in a ssf file
-data SSFUDG
-SSFMinus :: SSFUDG
-SSFHalf :: SSFUDG
-SSFPlus :: SSFUDG
-makeSSFUDG :: MonadFail m => String -> m SSFUDG
-
--- | A datatype to represent Library_Built in a janno file
-data SSFLibraryBuilt
-SSFDS :: SSFLibraryBuilt
-SSFSS :: SSFLibraryBuilt
-makeSSFLibraryBuilt :: MonadFail m => String -> m SSFLibraryBuilt
-
--- | A data type to represent a seqSourceFile
-newtype SeqSourceRows
-SeqSourceRows :: [SeqSourceRow] -> SeqSourceRows
-[getSeqSourceRowList] :: SeqSourceRows -> [SeqSourceRow]
-newtype AccessionIDRun
-AccessionIDRun :: AccessionID -> AccessionIDRun
-[getRunAccession] :: AccessionIDRun -> AccessionID
-makeAccessionIDRun :: MonadFail m => String -> m AccessionIDRun
-newtype AccessionIDSample
-AccessionIDSample :: AccessionID -> AccessionIDSample
-[getSampleAccession] :: AccessionIDSample -> AccessionID
-makeAccessionIDSample :: MonadFail m => String -> m AccessionIDSample
-newtype AccessionIDStudy
-AccessionIDStudy :: AccessionID -> AccessionIDStudy
-[getStudyAccession] :: AccessionIDStudy -> AccessionID
-makeAccessionIDStudy :: MonadFail m => String -> m AccessionIDStudy
-
--- | A datatype for calendar dates
-newtype SimpleDate
-SimpleDate :: Day -> SimpleDate
-makeSimpleDate :: MonadFail m => String -> m SimpleDate
-
--- | A datatype to represent MD5 hashes
-newtype MD5
-MD5 :: String -> MD5
-makeMD5 :: MonadFail m => String -> m MD5
-isMD5Hash :: String -> Bool
-
--- | A data type to represent a row in the seqSourceFile See
---   <a>https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv</a>
---   for more details
-data SeqSourceRow
-SeqSourceRow :: Maybe JannoStringList -> Maybe SSFUDG -> Maybe SSFLibraryBuilt -> Maybe AccessionIDSample -> Maybe AccessionIDStudy -> Maybe AccessionIDRun -> Maybe String -> Maybe String -> Maybe SimpleDate -> Maybe SimpleDate -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe (ListColumn JURI) -> Maybe (ListColumn JURI) -> Maybe (ListColumn Integer) -> Maybe (ListColumn MD5) -> Maybe Integer -> Maybe (ListColumn JURI) -> CsvNamedRecord -> SeqSourceRow
-[sPoseidonID] :: SeqSourceRow -> Maybe JannoStringList
-[sUDG] :: SeqSourceRow -> Maybe SSFUDG
-[sLibraryBuilt] :: SeqSourceRow -> Maybe SSFLibraryBuilt
-[sSampleAccession] :: SeqSourceRow -> Maybe AccessionIDSample
-[sStudyAccession] :: SeqSourceRow -> Maybe AccessionIDStudy
-[sRunAccession] :: SeqSourceRow -> Maybe AccessionIDRun
-[sSampleAlias] :: SeqSourceRow -> Maybe String
-[sSecondarySampleAccession] :: SeqSourceRow -> Maybe String
-[sFirstPublic] :: SeqSourceRow -> Maybe SimpleDate
-[sLastUpdated] :: SeqSourceRow -> Maybe SimpleDate
-[sInstrumentModel] :: SeqSourceRow -> Maybe String
-[sLibraryLayout] :: SeqSourceRow -> Maybe String
-[sLibrarySource] :: SeqSourceRow -> Maybe String
-[sInstrumentPlatform] :: SeqSourceRow -> Maybe String
-[sLibraryName] :: SeqSourceRow -> Maybe String
-[sLibraryStrategy] :: SeqSourceRow -> Maybe String
-[sFastqFTP] :: SeqSourceRow -> Maybe (ListColumn JURI)
-[sFastqASPERA] :: SeqSourceRow -> Maybe (ListColumn JURI)
-[sFastqBytes] :: SeqSourceRow -> Maybe (ListColumn Integer)
-[sFastqMD5] :: SeqSourceRow -> Maybe (ListColumn MD5)
-[sReadCount] :: SeqSourceRow -> Maybe Integer
-[sSubmittedFTP] :: SeqSourceRow -> Maybe (ListColumn JURI)
-[sAdditionalColumns] :: SeqSourceRow -> CsvNamedRecord
-seqSourceHeader :: [ByteString]
-seqSourceHeaderString :: [String]
-seqSourceRefHashMap :: HashMap ByteString ()
-
--- | A function to write one seqSourceFile
-writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
-
--- | A function to read one seqSourceFile
-readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
-
--- | A function to read one row of a seqSourceFile
-readSeqSourceFileRow :: FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
-warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
-checkRunsUnique :: SeqSourceRows -> Bool
-checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
-instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionID
-instance GHC.Classes.Ord Poseidon.SequencingSource.AccessionID
-instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionID
-instance GHC.Generics.Generic Poseidon.SequencingSource.JURI
-instance GHC.Classes.Ord Poseidon.SequencingSource.JURI
-instance GHC.Classes.Eq Poseidon.SequencingSource.JURI
-instance GHC.Enum.Bounded Poseidon.SequencingSource.SSFUDG
-instance GHC.Enum.Enum Poseidon.SequencingSource.SSFUDG
-instance GHC.Generics.Generic Poseidon.SequencingSource.SSFUDG
-instance GHC.Classes.Ord Poseidon.SequencingSource.SSFUDG
-instance GHC.Classes.Eq Poseidon.SequencingSource.SSFUDG
-instance GHC.Enum.Bounded Poseidon.SequencingSource.SSFLibraryBuilt
-instance GHC.Enum.Enum Poseidon.SequencingSource.SSFLibraryBuilt
-instance GHC.Generics.Generic Poseidon.SequencingSource.SSFLibraryBuilt
-instance GHC.Classes.Ord Poseidon.SequencingSource.SSFLibraryBuilt
-instance GHC.Classes.Eq Poseidon.SequencingSource.SSFLibraryBuilt
-instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionIDRun
-instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionIDRun
-instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionIDSample
-instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionIDSample
-instance GHC.Generics.Generic Poseidon.SequencingSource.AccessionIDStudy
-instance GHC.Classes.Eq Poseidon.SequencingSource.AccessionIDStudy
-instance GHC.Generics.Generic Poseidon.SequencingSource.SimpleDate
-instance GHC.Classes.Ord Poseidon.SequencingSource.SimpleDate
-instance GHC.Classes.Eq Poseidon.SequencingSource.SimpleDate
-instance GHC.Generics.Generic Poseidon.SequencingSource.MD5
-instance GHC.Classes.Ord Poseidon.SequencingSource.MD5
-instance GHC.Classes.Eq Poseidon.SequencingSource.MD5
-instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRow
-instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRow
-instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRow
-instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRows
-instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRows
-instance GHC.Show.Show Poseidon.SequencingSource.SeqSourceRows
-instance GHC.Base.Semigroup Poseidon.SequencingSource.SeqSourceRows
-instance GHC.Base.Monoid Poseidon.SequencingSource.SeqSourceRows
-instance Data.Csv.Conversion.DefaultOrdered Poseidon.SequencingSource.SeqSourceRow
-instance Data.Csv.Conversion.FromNamedRecord Poseidon.SequencingSource.SeqSourceRow
-instance Data.Csv.Conversion.ToNamedRecord Poseidon.SequencingSource.SeqSourceRow
-instance GHC.Show.Show Poseidon.SequencingSource.MD5
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.MD5
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.MD5
-instance GHC.Show.Show Poseidon.SequencingSource.SimpleDate
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SimpleDate
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SimpleDate
-instance GHC.Show.Show Poseidon.SequencingSource.AccessionIDStudy
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionIDStudy
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionIDStudy
-instance GHC.Show.Show Poseidon.SequencingSource.AccessionIDSample
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionIDSample
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionIDSample
-instance GHC.Show.Show Poseidon.SequencingSource.AccessionIDRun
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionIDRun
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionIDRun
-instance GHC.Show.Show Poseidon.SequencingSource.SSFLibraryBuilt
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SSFLibraryBuilt
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFLibraryBuilt
-instance GHC.Show.Show Poseidon.SequencingSource.SSFUDG
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.SSFUDG
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.SSFUDG
-instance GHC.Show.Show Poseidon.SequencingSource.JURI
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.JURI
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.JURI
-instance GHC.Show.Show Poseidon.SequencingSource.AccessionID
-instance Data.Csv.Conversion.ToField Poseidon.SequencingSource.AccessionID
-instance Data.Csv.Conversion.FromField Poseidon.SequencingSource.AccessionID
 
 module Poseidon.GenotypeData
 data GenoDataSource
@@ -1697,9 +1763,9 @@ class PresenceCountable a
 countPresence :: PresenceCountable a => a -> Int
 instance Poseidon.CLI.Survey.PresenceCountable (GHC.Maybe.Maybe a)
 instance Poseidon.CLI.Survey.PresenceCountable GHC.Base.String
-instance Poseidon.CLI.Survey.PresenceCountable Poseidon.ColumnTypes.GeneticSex
-instance Poseidon.CLI.Survey.PresenceCountable (Poseidon.Janno.ListColumn a)
-instance Poseidon.CLI.Survey.PresenceCountable Poseidon.Janno.CsvNamedRecord
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.ColumnTypesJanno.GeneticSex
+instance Poseidon.CLI.Survey.PresenceCountable (Poseidon.ColumnTypesUtils.ListColumn a)
+instance Poseidon.CLI.Survey.PresenceCountable Poseidon.ColumnTypesUtils.CsvNamedRecord
 
 module Poseidon.CLI.Summarise
 

@@ -41,7 +41,7 @@
 </span><span id="line-37"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="snapYamlPackages"><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var hs-var">snapYamlPackages</span></a></span></span><span>         </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.Set</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span>
 </span><span id="line-38"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-39"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679635180"><span id="local-6989586621679635194"><span id="local-6989586621679635198"><span class="annot"><span class="annottext">Int -&gt; PoseidonPackageChronicle -&gt; ShowS
+</span><span id="line-39"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679652658"><span id="local-6989586621679652672"><span id="local-6989586621679652676"><span class="annot"><span class="annottext">Int -&gt; PoseidonPackageChronicle -&gt; ShowS
 [PoseidonPackageChronicle] -&gt; ShowS
 PoseidonPackageChronicle -&gt; String
 (Int -&gt; PoseidonPackageChronicle -&gt; ShowS)
@@ -56,7 +56,7 @@ $cshow :: PoseidonPackageChronicle -&gt; String
 show :: PoseidonPackageChronicle -&gt; String
 $cshowList :: [PoseidonPackageChronicle] -&gt; ShowS
 showList :: [PoseidonPackageChronicle] -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679635203"><span id="local-6989586621679635213"><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; PoseidonPackageChronicle -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679652681"><span id="local-6989586621679652691"><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; PoseidonPackageChronicle -&gt; Bool
 (PoseidonPackageChronicle -&gt; PoseidonPackageChronicle -&gt; Bool)
 -&gt; (PoseidonPackageChronicle -&gt; PoseidonPackageChronicle -&gt; Bool)
 -&gt; Eq PoseidonPackageChronicle
@@ -67,8 +67,8 @@ $c/= :: PoseidonPackageChronicle -&gt; PoseidonPackageChronicle -&gt; Bool
 /= :: PoseidonPackageChronicle -&gt; PoseidonPackageChronicle -&gt; Bool
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-40"></span><span>
-</span><span id="line-41"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679635219"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-42"></span><span>    </span><span id="local-6989586621679635248"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PoseidonPackageChronicle
+</span><span id="line-41"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679652697"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679652726"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PoseidonPackageChronicle
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 -&gt; (Object -&gt; Parser PoseidonPackageChronicle)
 -&gt; Value
@@ -81,8 +81,8 @@ forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 -&gt; Value
 -&gt; Parser PoseidonPackageChronicle
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679635249"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635249"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679652727"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679652727"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
 -&gt; Maybe String
 -&gt; Version
 -&gt; Day
@@ -104,7 +104,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
       -&gt; PoseidonPackageChronicle)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635249"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
+</span><a href="#local-6989586621679652727"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;title&quot;</span></span><span>
@@ -121,7 +121,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635249"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe String)
+</span><a href="#local-6989586621679652727"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe String)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;description&quot;</span></span><span>
@@ -133,7 +133,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635249"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Version
+</span><a href="#local-6989586621679652727"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Version
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;chronicleVersion&quot;</span></span><span>
@@ -143,7 +143,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635249"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Day
+</span><a href="#local-6989586621679652727"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Day
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;lastModified&quot;</span></span><span>
@@ -152,7 +152,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635249"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe (Set PackageIteration))
+</span><a href="#local-6989586621679652727"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe (Set PackageIteration))
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;packages&quot;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Maybe (Set PackageIteration))
@@ -162,10 +162,10 @@ forall a. Parser (Maybe a) -&gt; a -&gt; Parser a
 forall a. Set a
 </span><span class="hs-identifier hs-var">S.empty</span></span><span>
 </span><span id="line-48"></span><span>
-</span><span id="line-49"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679635254"><span id="local-6989586621679635257"><span id="local-6989586621679635260"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-50"></span><span>    </span><span id="local-6989586621679635292"><span class="annot"><span class="annottext">toJSON :: PoseidonPackageChronicle -&gt; Value
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679635293"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span id="line-49"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679652732"><span id="local-6989586621679652735"><span id="local-6989586621679652738"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>    </span><span id="local-6989586621679652770"><span class="annot"><span class="annottext">toJSON :: PoseidonPackageChronicle -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679652771"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
 </span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="annot"><span class="annottext">([Pair] -&gt; Value) -&gt; [Pair] -&gt; Value
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span>
@@ -175,28 +175,28 @@ forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; String
 </span><a href="Poseidon.Chronicle.html#snapYamlTitle"><span class="hs-identifier hs-var">snapYamlTitle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-52"></span><span>        </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;description&quot;</span></span><span>      </span><span class="annot"><span class="annottext">Key -&gt; Maybe String -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Maybe String
 </span><a href="Poseidon.Chronicle.html#snapYamlDescription"><span class="hs-identifier hs-var">snapYamlDescription</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-53"></span><span>        </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;chronicleVersion&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; Version -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Version
 </span><a href="Poseidon.Chronicle.html#snapYamlChronicleVersion"><span class="hs-identifier hs-var">snapYamlChronicleVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-54"></span><span>        </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;lastModified&quot;</span></span><span>     </span><span class="annot"><span class="annottext">Key -&gt; Day -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Day
 </span><a href="Poseidon.Chronicle.html#snapYamlLastModified"><span class="hs-identifier hs-var">snapYamlLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; [Pair] -&gt; [Pair]
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; [Pair] -&gt; [Pair]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span>
 </span><span id="line-55"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
@@ -207,13 +207,13 @@ forall a. Set a -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Key
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;packages&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; Set PackageIteration -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635293"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679652771"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
 </span><span id="line-56"></span><span>
 </span><span id="line-57"></span><span class="annot"><span class="hs-comment">-- | A data type to represent a package state</span></span><span>
 </span><span id="line-58"></span><span class="hs-keyword">data</span><span> </span><span id="PackageIteration"><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-var">PackageIteration</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PackageIteration"><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-var">PackageIteration</span></a></span></span><span>
@@ -226,7 +226,7 @@ forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span id="line-62"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="pacStatePath"><span class="annot"><span class="annottext">PackageIteration -&gt; String
 </span><a href="Poseidon.Chronicle.html#pacStatePath"><span class="hs-identifier hs-var hs-var">pacStatePath</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="annot"><span class="hs-comment">-- ^ the file path where the POSEIDON.yml file is stored</span></span><span>
 </span><span id="line-63"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-64"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679635303"><span id="local-6989586621679635310"><span id="local-6989586621679635313"><span class="annot"><span class="annottext">Int -&gt; PackageIteration -&gt; ShowS
+</span><span id="line-64"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679652781"><span id="local-6989586621679652788"><span id="local-6989586621679652791"><span class="annot"><span class="annottext">Int -&gt; PackageIteration -&gt; ShowS
 [PackageIteration] -&gt; ShowS
 PackageIteration -&gt; String
 (Int -&gt; PackageIteration -&gt; ShowS)
@@ -243,47 +243,47 @@ $cshowList :: [PackageIteration] -&gt; ShowS
 showList :: [PackageIteration] -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-65"></span><span>
-</span><span id="line-66"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679635317"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-67"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679635321"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635321"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span id="local-6989586621679635322"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635322"><span class="hs-identifier hs-var">v1</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span id="line-66"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679652795"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679652799"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652799"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span id="local-6989586621679652800"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652800"><span class="hs-identifier hs-var">v1</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679635323"><span class="annot"><span class="annottext">== :: PackageIteration -&gt; PackageIteration -&gt; Bool
-</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679635324"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635324"><span class="hs-identifier hs-var">t2</span></a></span></span><span> </span><span id="local-6989586621679635325"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635325"><span class="hs-identifier hs-var">v2</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679652801"><span class="annot"><span class="annottext">== :: PackageIteration -&gt; PackageIteration -&gt; Bool
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679652802"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652802"><span class="hs-identifier hs-var">t2</span></a></span></span><span> </span><span id="local-6989586621679652803"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652803"><span class="hs-identifier hs-var">v2</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635321"><span class="hs-identifier hs-var">t1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679652799"><span class="hs-identifier hs-var">t1</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635324"><span class="hs-identifier hs-var">t2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679652802"><span class="hs-identifier hs-var">t2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635322"><span class="hs-identifier hs-var">v1</span></a></span><span> </span><span class="annot"><span class="annottext">Version -&gt; Version -&gt; Bool
+</span><a href="#local-6989586621679652800"><span class="hs-identifier hs-var">v1</span></a></span><span> </span><span class="annot"><span class="annottext">Version -&gt; Version -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635325"><span class="hs-identifier hs-var">v2</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679652803"><span class="hs-identifier hs-var">v2</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-68"></span><span>
-</span><span id="line-69"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679635331"><span id="local-6989586621679635334"><span id="local-6989586621679635337"><span id="local-6989586621679635340"><span id="local-6989586621679635343"><span id="local-6989586621679635346"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-70"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679635357"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635357"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span id="local-6989586621679635358"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635358"><span class="hs-identifier hs-var">v1</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span id="line-69"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679652809"><span id="local-6989586621679652812"><span id="local-6989586621679652815"><span id="local-6989586621679652818"><span id="local-6989586621679652821"><span id="local-6989586621679652824"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679652835"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652835"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span id="local-6989586621679652836"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652836"><span class="hs-identifier hs-var">v1</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679635359"><span class="annot"><span class="annottext">compare :: PackageIteration -&gt; PackageIteration -&gt; Ordering
-</span><a href="#local-6989586621679635359"><span class="hs-operator hs-var hs-var hs-var hs-var">`compare`</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679635361"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635361"><span class="hs-identifier hs-var">t2</span></a></span></span><span> </span><span id="local-6989586621679635362"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635362"><span class="hs-identifier hs-var">v2</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679652837"><span class="annot"><span class="annottext">compare :: PackageIteration -&gt; PackageIteration -&gt; Ordering
+</span><a href="#local-6989586621679652837"><span class="hs-operator hs-var hs-var hs-var hs-var">`compare`</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679652839"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652839"><span class="hs-identifier hs-var">t2</span></a></span></span><span> </span><span id="local-6989586621679652840"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652840"><span class="hs-identifier hs-var">v2</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635357"><span class="hs-identifier hs-var">t1</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635358"><span class="hs-identifier hs-var">v1</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String, Version) -&gt; (String, Version) -&gt; Ordering
+</span><a href="#local-6989586621679652835"><span class="hs-identifier hs-var">t1</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652836"><span class="hs-identifier hs-var">v1</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String, Version) -&gt; (String, Version) -&gt; Ordering
 forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 </span><span class="hs-operator hs-var">`compare`</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635361"><span class="hs-identifier hs-var">t2</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635362"><span class="hs-identifier hs-var">v2</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679652839"><span class="hs-identifier hs-var">t2</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652840"><span class="hs-identifier hs-var">v2</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-71"></span><span>
-</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679635365"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-73"></span><span>    </span><span id="local-6989586621679635380"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PackageIteration
+</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679652843"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-73"></span><span>    </span><span id="local-6989586621679652858"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PackageIteration
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 -&gt; (Object -&gt; Parser PackageIteration)
 -&gt; Value
@@ -296,15 +296,15 @@ forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 -&gt; Value
 -&gt; Parser PackageIteration
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679635381"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635381"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Version -&gt; String -&gt; String -&gt; PackageIteration
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679652859"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679652859"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Version -&gt; String -&gt; String -&gt; PackageIteration
 </span><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-var">PackageIteration</span></a></span><span>
 </span><span id="line-74"></span><span>        </span><span class="annot"><span class="annottext">(String -&gt; Version -&gt; String -&gt; String -&gt; PackageIteration)
 -&gt; Parser String
 -&gt; Parser (Version -&gt; String -&gt; String -&gt; PackageIteration)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635381"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
+</span><a href="#local-6989586621679652859"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;title&quot;</span></span><span>
@@ -313,7 +313,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635381"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Version
+</span><a href="#local-6989586621679652859"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Version
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;version&quot;</span></span><span>
@@ -322,7 +322,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635381"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
+</span><a href="#local-6989586621679652859"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;commit&quot;</span></span><span>
@@ -331,15 +331,15 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679635381"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
+</span><a href="#local-6989586621679652859"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;path&quot;</span></span><span>
 </span><span id="line-78"></span><span>
-</span><span id="line-79"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679635384"><span id="local-6989586621679635387"><span id="local-6989586621679635390"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-80"></span><span>    </span><span id="local-6989586621679635407"><span class="annot"><span class="annottext">toJSON :: PackageIteration -&gt; Value
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679635408"><span class="annot"><span class="annottext">PackageIteration
-</span><a href="#local-6989586621679635408"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span id="line-79"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679652862"><span id="local-6989586621679652865"><span id="local-6989586621679652868"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-80"></span><span>    </span><span id="local-6989586621679652885"><span class="annot"><span class="annottext">toJSON :: PackageIteration -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span id="local-6989586621679652886"><span class="annot"><span class="annottext">PackageIteration
+</span><a href="#local-6989586621679652886"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
 </span><span class="hs-identifier hs-var">object</span></span><span> </span><span class="hs-special">[</span><span>
 </span><span id="line-81"></span><span>          </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;title&quot;</span></span><span>   </span><span class="annot"><span class="annottext">Key -&gt; String -&gt; Pair
@@ -347,110 +347,110 @@ forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; String
 </span><a href="Poseidon.Chronicle.html#pacStateTitle"><span class="hs-identifier hs-var">pacStateTitle</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIteration
-</span><a href="#local-6989586621679635408"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679652886"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-82"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;version&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; Version -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; Version
 </span><a href="Poseidon.Chronicle.html#pacStateVersion"><span class="hs-identifier hs-var">pacStateVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIteration
-</span><a href="#local-6989586621679635408"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679652886"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-83"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;commit&quot;</span></span><span>  </span><span class="annot"><span class="annottext">Key -&gt; String -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; String
 </span><a href="Poseidon.Chronicle.html#pacStateCommit"><span class="hs-identifier hs-var">pacStateCommit</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIteration
-</span><a href="#local-6989586621679635408"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679652886"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-84"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;path&quot;</span></span><span>    </span><span class="annot"><span class="annottext">Key -&gt; String -&gt; Pair
 forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
 forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
 </span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">PackageIteration -&gt; String
 </span><a href="Poseidon.Chronicle.html#pacStatePath"><span class="hs-identifier hs-var">pacStatePath</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIteration
-</span><a href="#local-6989586621679635408"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679652886"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-85"></span><span>        </span><span class="hs-special">]</span><span>
 </span><span id="line-86"></span><span>
 </span><span id="line-87"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Poseidon.EntityTypes.html#HasNameAndVersion"><span class="hs-identifier hs-type">HasNameAndVersion</span></a></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-88"></span><span>    </span><span id="local-6989586621679635415"><span class="annot"><span class="annottext">getPacName :: PackageIteration -&gt; String
-</span><a href="#local-6989586621679635415"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacName</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679635417"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635417"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Version
+</span><span id="line-88"></span><span>    </span><span id="local-6989586621679652893"><span class="annot"><span class="annottext">getPacName :: PackageIteration -&gt; String
+</span><a href="#local-6989586621679652893"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacName</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span id="local-6989586621679652895"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652895"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Version
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635417"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-89"></span><span>    </span><span id="local-6989586621679635418"><span class="annot"><span class="annottext">getPacVersion :: PackageIteration -&gt; Maybe Version
-</span><a href="#local-6989586621679635418"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacVersion</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679635420"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635420"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652895"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-89"></span><span>    </span><span id="local-6989586621679652896"><span class="annot"><span class="annottext">getPacVersion :: PackageIteration -&gt; Maybe Version
+</span><a href="#local-6989586621679652896"><span class="hs-identifier hs-var hs-var hs-var hs-var">getPacVersion</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679652898"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652898"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; Maybe Version
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635420"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><a href="#local-6989586621679652898"><span class="hs-identifier hs-var">v</span></a></span><span>
 </span><span id="line-90"></span><span>
 </span><span id="line-91"></span><span class="annot"><a href="Poseidon.Chronicle.html#updateChronicle"><span class="hs-identifier hs-type">updateChronicle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span>
 </span><span id="line-92"></span><span id="updateChronicle"><span class="annot"><span class="annottext">updateChronicle :: PoseidonPackageChronicle
 -&gt; PoseidonPackageChronicle -&gt; PoseidonPackageChronicle
-</span><a href="Poseidon.Chronicle.html#updateChronicle"><span class="hs-identifier hs-var hs-var">updateChronicle</span></a></span></span><span> </span><span id="local-6989586621679635422"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635422"><span class="hs-identifier hs-var">oldChronicle</span></a></span></span><span> </span><span id="local-6989586621679635423"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635423"><span class="hs-identifier hs-var">newChronicle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-93"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635424"><span class="annot"><span class="annottext">oldPackageSet :: Set PackageIteration
-</span><a href="#local-6989586621679635424"><span class="hs-identifier hs-var hs-var">oldPackageSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
+</span><a href="Poseidon.Chronicle.html#updateChronicle"><span class="hs-identifier hs-var hs-var">updateChronicle</span></a></span></span><span> </span><span id="local-6989586621679652900"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679652900"><span class="hs-identifier hs-var">oldChronicle</span></a></span></span><span> </span><span id="local-6989586621679652901"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679652901"><span class="hs-identifier hs-var">newChronicle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679652902"><span class="annot"><span class="annottext">oldPackageSet :: Set PackageIteration
+</span><a href="#local-6989586621679652902"><span class="hs-identifier hs-var hs-var">oldPackageSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635422"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
-</span><span id="line-94"></span><span>        </span><span id="local-6989586621679635425"><span class="annot"><span class="annottext">newPackageSet :: Set PackageIteration
-</span><a href="#local-6989586621679635425"><span class="hs-identifier hs-var hs-var">newPackageSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
+</span><a href="#local-6989586621679652900"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
+</span><span id="line-94"></span><span>        </span><span id="local-6989586621679652903"><span class="annot"><span class="annottext">newPackageSet :: Set PackageIteration
+</span><a href="#local-6989586621679652903"><span class="hs-identifier hs-var hs-var">newPackageSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635423"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
-</span><span id="line-95"></span><span>        </span><span id="local-6989586621679635427"><span class="annot"><span class="annottext">mergedPacSet :: Set PackageIteration
-</span><a href="#local-6989586621679635427"><span class="hs-identifier hs-var hs-var">mergedPacSet</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
+</span><a href="#local-6989586621679652901"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
+</span><span id="line-95"></span><span>        </span><span id="local-6989586621679652905"><span class="annot"><span class="annottext">mergedPacSet :: Set PackageIteration
+</span><a href="#local-6989586621679652905"><span class="hs-identifier hs-var hs-var">mergedPacSet</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
 -&gt; Set PackageIteration -&gt; Set PackageIteration
 forall a. Ord a =&gt; Set a -&gt; Set a -&gt; Set a
 </span><span class="hs-identifier hs-var">S.union</span></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635424"><span class="hs-identifier hs-var">oldPackageSet</span></a></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635425"><span class="hs-identifier hs-var">newPackageSet</span></a></span><span>
-</span><span id="line-96"></span><span>        </span><span id="local-6989586621679635429"><span class="annot"><span class="annottext">oldChronicleVersion :: Version
-</span><a href="#local-6989586621679635429"><span class="hs-identifier hs-var hs-var">oldChronicleVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Version
+</span><a href="#local-6989586621679652902"><span class="hs-identifier hs-var">oldPackageSet</span></a></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
+</span><a href="#local-6989586621679652903"><span class="hs-identifier hs-var">newPackageSet</span></a></span><span>
+</span><span id="line-96"></span><span>        </span><span id="local-6989586621679652907"><span class="annot"><span class="annottext">oldChronicleVersion :: Version
+</span><a href="#local-6989586621679652907"><span class="hs-identifier hs-var hs-var">oldChronicleVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Version
 </span><a href="Poseidon.Chronicle.html#snapYamlChronicleVersion"><span class="hs-identifier hs-var">snapYamlChronicleVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635422"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
+</span><a href="#local-6989586621679652900"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
 </span><span id="line-97"></span><span>    </span><span class="hs-keyword">in</span><span>
 </span><span id="line-98"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635427"><span class="hs-identifier hs-var">mergedPacSet</span></a></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration -&gt; Set PackageIteration -&gt; Bool
+</span><a href="#local-6989586621679652905"><span class="hs-identifier hs-var">mergedPacSet</span></a></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration -&gt; Set PackageIteration -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635424"><span class="hs-identifier hs-var">oldPackageSet</span></a></span><span>
+</span><a href="#local-6989586621679652902"><span class="hs-identifier hs-var">oldPackageSet</span></a></span><span>
 </span><span id="line-99"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635422"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
+</span><a href="#local-6989586621679652900"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
 </span><span id="line-100"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span> </span><span class="hs-special">{</span><span>
 </span><span id="line-101"></span><span>              </span><span class="annot"><span class="annottext">snapYamlTitle :: String
 </span><a href="Poseidon.Chronicle.html#snapYamlTitle"><span class="hs-identifier hs-var">snapYamlTitle</span></a></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; String
 </span><a href="Poseidon.Chronicle.html#snapYamlTitle"><span class="hs-identifier hs-var">snapYamlTitle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635422"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
+</span><a href="#local-6989586621679652900"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
 </span><span id="line-102"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">snapYamlDescription :: Maybe String
 </span><a href="Poseidon.Chronicle.html#snapYamlDescription"><span class="hs-identifier hs-var">snapYamlDescription</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Maybe String
 </span><a href="Poseidon.Chronicle.html#snapYamlDescription"><span class="hs-identifier hs-var">snapYamlDescription</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635422"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
+</span><a href="#local-6989586621679652900"><span class="hs-identifier hs-var">oldChronicle</span></a></span><span>
 </span><span id="line-103"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">snapYamlChronicleVersion :: Version
 </span><a href="Poseidon.Chronicle.html#snapYamlChronicleVersion"><span class="hs-identifier hs-var">snapYamlChronicleVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">VersionComponent -&gt; Version -&gt; Version
 </span><a href="Poseidon.Version.html#updateThreeComponentVersion"><span class="hs-identifier hs-var">updateThreeComponentVersion</span></a></span><span> </span><span class="annot"><span class="annottext">VersionComponent
 </span><a href="Poseidon.Version.html#Minor"><span class="hs-identifier hs-var">Minor</span></a></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635429"><span class="hs-identifier hs-var">oldChronicleVersion</span></a></span><span>
+</span><a href="#local-6989586621679652907"><span class="hs-identifier hs-var">oldChronicleVersion</span></a></span><span>
 </span><span id="line-104"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">snapYamlLastModified :: Day
 </span><a href="Poseidon.Chronicle.html#snapYamlLastModified"><span class="hs-identifier hs-var">snapYamlLastModified</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; Day
 </span><a href="Poseidon.Chronicle.html#snapYamlLastModified"><span class="hs-identifier hs-var">snapYamlLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635423"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
+</span><a href="#local-6989586621679652901"><span class="hs-identifier hs-var">newChronicle</span></a></span><span>
 </span><span id="line-105"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">snapYamlPackages :: Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635427"><span class="hs-identifier hs-var">mergedPacSet</span></a></span><span>
+</span><a href="#local-6989586621679652905"><span class="hs-identifier hs-var">mergedPacSet</span></a></span><span>
 </span><span id="line-106"></span><span>            </span><span class="hs-special">}</span><span>
 </span><span id="line-107"></span><span>
 </span><span id="line-108"></span><span class="annot"><a href="Poseidon.Chronicle.html#readChronicle"><span class="hs-identifier hs-type">readChronicle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span>
 </span><span id="line-109"></span><span id="readChronicle"><span class="annot"><span class="annottext">readChronicle :: String -&gt; PoseidonIO PoseidonPackageChronicle
-</span><a href="Poseidon.Chronicle.html#readChronicle"><span class="hs-identifier hs-var hs-var">readChronicle</span></a></span></span><span> </span><span id="local-6989586621679635432"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635432"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-110"></span><span>    </span><span id="local-6989586621679635433"><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679635433"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ByteString -&gt; ReaderT Env IO ByteString
+</span><a href="Poseidon.Chronicle.html#readChronicle"><span class="hs-identifier hs-var hs-var">readChronicle</span></a></span></span><span> </span><span id="local-6989586621679652910"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652910"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-110"></span><span>    </span><span id="local-6989586621679652911"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679652911"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ByteString -&gt; ReaderT Env IO ByteString
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO ByteString -&gt; ReaderT Env IO ByteString)
@@ -458,13 +458,13 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ByteString
 </span><span class="hs-identifier hs-var">B.readFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635432"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><a href="#local-6989586621679652910"><span class="hs-identifier hs-var">p</span></a></span><span>
 </span><span id="line-111"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either ParseException PoseidonPackageChronicle
 forall a. FromJSON a =&gt; ByteString -&gt; Either ParseException a
 </span><span class="hs-identifier hs-var">decodeEither'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679635433"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-112"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679635435"><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679635435"><span class="hs-identifier hs-var">err</span></a></span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO PoseidonPackageChronicle
+</span><a href="#local-6989586621679652911"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-112"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679652913"><span class="annot"><span class="annottext">ParseException
+</span><a href="#local-6989586621679652913"><span class="hs-identifier hs-var">err</span></a></span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO PoseidonPackageChronicle
 forall e a. (HasCallStack, Exception e) =&gt; e -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) e a.
 (MonadThrow m, HasCallStack, Exception e) =&gt;
@@ -474,20 +474,20 @@ e -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ParseException -&gt; PoseidonException
 </span><a href="Poseidon.Utils.html#PoseidonYamlParseException"><span class="hs-identifier hs-var">PoseidonYamlParseException</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635432"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679635435"><span class="hs-identifier hs-var">err</span></a></span><span>
-</span><span id="line-113"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679635437"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635437"><span class="hs-identifier hs-var">snap</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; PoseidonIO PoseidonPackageChronicle
+</span><a href="#local-6989586621679652910"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">ParseException
+</span><a href="#local-6989586621679652913"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-113"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679652915"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679652915"><span class="hs-identifier hs-var">snap</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle -&gt; PoseidonIO PoseidonPackageChronicle
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635437"><span class="hs-identifier hs-var">snap</span></a></span><span>
+</span><a href="#local-6989586621679652915"><span class="hs-identifier hs-var">snap</span></a></span><span>
 </span><span id="line-114"></span><span>
 </span><span id="line-115"></span><span class="annot"><a href="Poseidon.Chronicle.html#writeChronicle"><span class="hs-identifier hs-type">writeChronicle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-116"></span><span id="writeChronicle"><span class="annot"><span class="annottext">writeChronicle :: String -&gt; PoseidonPackageChronicle -&gt; PoseidonIO ()
-</span><a href="Poseidon.Chronicle.html#writeChronicle"><span class="hs-identifier hs-var hs-var">writeChronicle</span></a></span></span><span> </span><span id="local-6989586621679635439"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635439"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679635440"><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635440"><span class="hs-identifier hs-var">snapShot</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.Chronicle.html#writeChronicle"><span class="hs-identifier hs-var hs-var">writeChronicle</span></a></span></span><span> </span><span id="local-6989586621679652917"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652917"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679652918"><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679652918"><span class="hs-identifier hs-var">snapShot</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-117"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -499,7 +499,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ShowS
 </span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635439"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><a href="#local-6989586621679652917"><span class="hs-identifier hs-var">p</span></a></span><span>
 </span><span id="line-118"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -507,14 +507,14 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ByteString -&gt; IO ()
 </span><span class="hs-identifier hs-var">B.writeFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635439"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Config -&gt; PoseidonPackageChronicle -&gt; ByteString
+</span><a href="#local-6989586621679652917"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Config -&gt; PoseidonPackageChronicle -&gt; ByteString
 forall a. ToJSON a =&gt; Config -&gt; a -&gt; ByteString
 </span><span class="hs-identifier hs-var">encodePretty</span></span><span> </span><span class="annot"><span class="annottext">Config
-</span><a href="#local-6989586621679635442"><span class="hs-identifier hs-var">opts</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
-</span><a href="#local-6989586621679635440"><span class="hs-identifier hs-var">snapShot</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679652920"><span class="hs-identifier hs-var">opts</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackageChronicle
+</span><a href="#local-6989586621679652918"><span class="hs-identifier hs-var">snapShot</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-119"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-120"></span><span>        </span><span id="local-6989586621679635442"><span class="annot"><span class="annottext">opts :: Config
-</span><a href="#local-6989586621679635442"><span class="hs-identifier hs-var hs-var">opts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Config -&gt; Config
+</span><span id="line-120"></span><span>        </span><span id="local-6989586621679652920"><span class="annot"><span class="annottext">opts :: Config
+</span><a href="#local-6989586621679652920"><span class="hs-identifier hs-var hs-var">opts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Config -&gt; Config
 </span><span class="hs-identifier hs-var">setConfDropNull</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">(Config -&gt; Config) -&gt; Config -&gt; Config
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -525,25 +525,25 @@ forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 -&gt; (Text -&gt; Int) -&gt; Text -&gt; Text -&gt; Ordering
 forall b c a. (b -&gt; b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">`on`</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
-</span><a href="#local-6989586621679635444"><span class="hs-identifier hs-var">fieldIndex</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679652922"><span class="hs-identifier hs-var">fieldIndex</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Config
 </span><span class="hs-identifier hs-var">defConfig</span></span><span>
-</span><span id="line-121"></span><span>        </span><span id="local-6989586621679635444"><span class="annot"><span class="annottext">fieldIndex :: Text -&gt; Int
-</span><a href="#local-6989586621679635444"><span class="hs-identifier hs-var hs-var">fieldIndex</span></a></span></span><span> </span><span id="local-6989586621679635449"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679635449"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Maybe Int -&gt; Int
+</span><span id="line-121"></span><span>        </span><span id="local-6989586621679652922"><span class="annot"><span class="annottext">fieldIndex :: Text -&gt; Int
+</span><a href="#local-6989586621679652922"><span class="hs-identifier hs-var hs-var">fieldIndex</span></a></span></span><span> </span><span id="local-6989586621679652927"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679652927"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Maybe Int -&gt; Int
 forall a. a -&gt; Maybe a -&gt; a
 </span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Text] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679635451"><span class="hs-identifier hs-var">fields</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe Int -&gt; Int) -&gt; Maybe Int -&gt; Int
+</span><a href="#local-6989586621679652929"><span class="hs-identifier hs-var">fields</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe Int -&gt; Int) -&gt; Maybe Int -&gt; Int
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679635449"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; [Text] -&gt; Maybe Int
+</span><a href="#local-6989586621679652927"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; [Text] -&gt; Maybe Int
 forall a. Eq a =&gt; a -&gt; [a] -&gt; Maybe Int
 </span><span class="hs-operator hs-var">`elemIndex`</span></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679635451"><span class="hs-identifier hs-var">fields</span></a></span><span>
-</span><span id="line-122"></span><span>        </span><span id="local-6989586621679635451"><span class="annot"><span class="annottext">fields :: [Text]
-</span><a href="#local-6989586621679635451"><span class="hs-identifier hs-var hs-var">fields</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span>
+</span><a href="#local-6989586621679652929"><span class="hs-identifier hs-var">fields</span></a></span><span>
+</span><span id="line-122"></span><span>        </span><span id="local-6989586621679652929"><span class="annot"><span class="annottext">fields :: [Text]
+</span><a href="#local-6989586621679652929"><span class="hs-identifier hs-var hs-var">fields</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span>
 </span><span id="line-123"></span><span>            </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;title&quot;</span></span><span class="hs-special">,</span><span>
 </span><span id="line-124"></span><span>            </span><span class="annot"><span class="annottext">Text
@@ -566,16 +566,16 @@ forall a. Eq a =&gt; a -&gt; [a] -&gt; Maybe Int
 </span><span id="line-133"></span><span>
 </span><span id="line-134"></span><span class="annot"><a href="Poseidon.Chronicle.html#makeChronicle"><span class="hs-identifier hs-type">makeChronicle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PoseidonPackageChronicle"><span class="hs-identifier hs-type">PoseidonPackageChronicle</span></a></span><span>
 </span><span id="line-135"></span><span id="makeChronicle"><span class="annot"><span class="annottext">makeChronicle :: String -&gt; [PoseidonPackage] -&gt; PoseidonIO PoseidonPackageChronicle
-</span><a href="Poseidon.Chronicle.html#makeChronicle"><span class="hs-identifier hs-var hs-var">makeChronicle</span></a></span></span><span> </span><span id="local-6989586621679635463"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635463"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span></span><span> </span><span id="local-6989586621679635464"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679635464"><span class="hs-identifier hs-var">pacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-136"></span><span>    </span><span id="local-6989586621679635465"><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635465"><span class="hs-identifier hs-var">pacChronicles</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; [PoseidonPackage] -&gt; PoseidonIO (Set PackageIteration)
+</span><a href="Poseidon.Chronicle.html#makeChronicle"><span class="hs-identifier hs-var hs-var">makeChronicle</span></a></span></span><span> </span><span id="local-6989586621679652941"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652941"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span></span><span> </span><span id="local-6989586621679652942"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679652942"><span class="hs-identifier hs-var">pacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-136"></span><span>    </span><span id="local-6989586621679652943"><span class="annot"><span class="annottext">Set PackageIteration
+</span><a href="#local-6989586621679652943"><span class="hs-identifier hs-var">pacChronicles</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; [PoseidonPackage] -&gt; PoseidonIO (Set PackageIteration)
 </span><a href="Poseidon.Chronicle.html#chroniclePackages"><span class="hs-identifier hs-var">chroniclePackages</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635463"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679635464"><span class="hs-identifier hs-var">pacs</span></a></span><span>
-</span><span id="line-137"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">UTCTime</span></span><span> </span><span id="local-6989586621679635468"><span class="annot"><span class="annottext">Day
-</span><a href="#local-6989586621679635468"><span class="hs-identifier hs-var">today</span></a></span></span><span> </span><span class="annot"><span class="annottext">DiffTime
+</span><a href="#local-6989586621679652941"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679652942"><span class="hs-identifier hs-var">pacs</span></a></span><span>
+</span><span id="line-137"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">UTCTime</span></span><span> </span><span id="local-6989586621679652946"><span class="annot"><span class="annottext">Day
+</span><a href="#local-6989586621679652946"><span class="hs-identifier hs-var">today</span></a></span></span><span> </span><span class="annot"><span class="annottext">DiffTime
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime -&gt; ReaderT Env IO UTCTime
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -604,27 +604,27 @@ forall a. a -&gt; Maybe a
 </span><span class="hs-number">0</span></span><span class="hs-special">]</span><span>
 </span><span id="line-142"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">snapYamlLastModified :: Day
 </span><a href="Poseidon.Chronicle.html#snapYamlLastModified"><span class="hs-identifier hs-var">snapYamlLastModified</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Day
-</span><a href="#local-6989586621679635468"><span class="hs-identifier hs-var">today</span></a></span><span>
+</span><a href="#local-6989586621679652946"><span class="hs-identifier hs-var">today</span></a></span><span>
 </span><span id="line-143"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">snapYamlPackages :: Set PackageIteration
 </span><a href="Poseidon.Chronicle.html#snapYamlPackages"><span class="hs-identifier hs-var">snapYamlPackages</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set PackageIteration
-</span><a href="#local-6989586621679635465"><span class="hs-identifier hs-var">pacChronicles</span></a></span><span>
+</span><a href="#local-6989586621679652943"><span class="hs-identifier hs-var">pacChronicles</span></a></span><span>
 </span><span id="line-144"></span><span>    </span><span class="hs-special">}</span><span>
 </span><span id="line-145"></span><span>
 </span><span id="line-146"></span><span class="annot"><a href="Poseidon.Chronicle.html#chroniclePackages"><span class="hs-identifier hs-type">chroniclePackages</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">S.Set</span></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-147"></span><span id="chroniclePackages"><span class="annot"><span class="annottext">chroniclePackages :: String -&gt; [PoseidonPackage] -&gt; PoseidonIO (Set PackageIteration)
-</span><a href="Poseidon.Chronicle.html#chroniclePackages"><span class="hs-identifier hs-var hs-var">chroniclePackages</span></a></span></span><span> </span><span id="local-6989586621679635469"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635469"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span></span><span> </span><span id="local-6989586621679635470"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679635470"><span class="hs-identifier hs-var">pacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-148"></span><span>    </span><span id="local-6989586621679635471"><span class="annot"><span class="annottext">[PackageIteration]
-</span><a href="#local-6989586621679635471"><span class="hs-identifier hs-var">pacStateList</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; ReaderT Env IO PackageIteration)
+</span><a href="Poseidon.Chronicle.html#chroniclePackages"><span class="hs-identifier hs-var hs-var">chroniclePackages</span></a></span></span><span> </span><span id="local-6989586621679652947"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652947"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span></span><span> </span><span id="local-6989586621679652948"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679652948"><span class="hs-identifier hs-var">pacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-148"></span><span>    </span><span id="local-6989586621679652949"><span class="annot"><span class="annottext">[PackageIteration]
+</span><a href="#local-6989586621679652949"><span class="hs-identifier hs-var">pacStateList</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; ReaderT Env IO PackageIteration)
 -&gt; [PoseidonPackage] -&gt; ReaderT Env IO [PackageIteration]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 (a -&gt; m b) -&gt; t a -&gt; m (t b)
 forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
 </span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; ReaderT Env IO PackageIteration
-</span><a href="#local-6989586621679635473"><span class="hs-identifier hs-var">snapOne</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679635470"><span class="hs-identifier hs-var">pacs</span></a></span><span>
+</span><a href="#local-6989586621679652951"><span class="hs-identifier hs-var">snapOne</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679652948"><span class="hs-identifier hs-var">pacs</span></a></span><span>
 </span><span id="line-149"></span><span>    </span><span class="annot"><span class="annottext">Set PackageIteration -&gt; PoseidonIO (Set PackageIteration)
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -634,23 +634,23 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[PackageIteration] -&gt; Set PackageIteration
 forall a. Ord a =&gt; [a] -&gt; Set a
 </span><span class="hs-identifier hs-var">S.fromList</span></span><span> </span><span class="annot"><span class="annottext">[PackageIteration]
-</span><a href="#local-6989586621679635471"><span class="hs-identifier hs-var">pacStateList</span></a></span><span>
+</span><a href="#local-6989586621679652949"><span class="hs-identifier hs-var">pacStateList</span></a></span><span>
 </span><span id="line-150"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-151"></span><span>        </span><span class="annot"><a href="#local-6989586621679635473"><span class="hs-identifier hs-type">snapOne</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span>
-</span><span id="line-152"></span><span>        </span><span id="local-6989586621679635473"><span class="annot"><span class="annottext">snapOne :: PoseidonPackage -&gt; ReaderT Env IO PackageIteration
-</span><a href="#local-6989586621679635473"><span class="hs-identifier hs-var hs-var">snapOne</span></a></span></span><span> </span><span id="local-6989586621679635475"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635475"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-153"></span><span>            </span><span id="local-6989586621679635476"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635476"><span class="hs-identifier hs-var">version</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; PoseidonIO Version
+</span><span id="line-151"></span><span>        </span><span class="annot"><a href="#local-6989586621679652951"><span class="hs-identifier hs-type">snapOne</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><a href="Poseidon.Chronicle.html#PackageIteration"><span class="hs-identifier hs-type">PackageIteration</span></a></span><span>
+</span><span id="line-152"></span><span>        </span><span id="local-6989586621679652951"><span class="annot"><span class="annottext">snapOne :: PoseidonPackage -&gt; ReaderT Env IO PackageIteration
+</span><a href="#local-6989586621679652951"><span class="hs-identifier hs-var hs-var">snapOne</span></a></span></span><span> </span><span id="local-6989586621679652953"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679652953"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-153"></span><span>            </span><span id="local-6989586621679652954"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652954"><span class="hs-identifier hs-var">version</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; PoseidonIO Version
 </span><a href="Poseidon.Chronicle.html#getPackageVersion"><span class="hs-identifier hs-var">getPackageVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635475"><span class="hs-identifier hs-var">pac</span></a></span><span>
-</span><span id="line-154"></span><span>            </span><span id="local-6989586621679635478"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635478"><span class="hs-identifier hs-var">commit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO String
+</span><a href="#local-6989586621679652953"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><span id="line-154"></span><span>            </span><span id="local-6989586621679652956"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652956"><span class="hs-identifier hs-var">commit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO String
 </span><a href="Poseidon.Chronicle.html#getGitCommitHash"><span class="hs-identifier hs-var">getGitCommitHash</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonIO String) -&gt; String -&gt; PoseidonIO String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 </span><a href="Poseidon.Package.html#posPacBaseDir"><span class="hs-identifier hs-var">posPacBaseDir</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635475"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679652953"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-155"></span><span>            </span><span class="annot"><span class="annottext">PackageIteration -&gt; ReaderT Env IO PackageIteration
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -662,47 +662,47 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><a href="Poseidon.Chronicle.html#pacStateTitle"><span class="hs-identifier hs-var">pacStateTitle</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 forall a. HasNameAndVersion a =&gt; a -&gt; String
 </span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635475"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621679652953"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-157"></span><span>                </span><span class="annot"><span class="annottext">pacStateVersion :: Version
 </span><a href="Poseidon.Chronicle.html#pacStateVersion"><span class="hs-identifier hs-var">pacStateVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635476"><span class="hs-identifier hs-var">version</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621679652954"><span class="hs-identifier hs-var">version</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-158"></span><span>                </span><span class="annot"><span class="annottext">pacStateCommit :: String
 </span><a href="Poseidon.Chronicle.html#pacStateCommit"><span class="hs-identifier hs-var">pacStateCommit</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635478"><span class="hs-identifier hs-var">commit</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621679652956"><span class="hs-identifier hs-var">commit</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-159"></span><span>                </span><span class="annot"><span class="annottext">pacStatePath :: String
 </span><a href="Poseidon.Chronicle.html#pacStatePath"><span class="hs-identifier hs-var">pacStatePath</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 </span><span class="hs-identifier hs-var">makeRelative</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
 </span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635469"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ShowS -&gt; ShowS
+</span><a href="#local-6989586621679652947"><span class="hs-identifier hs-var">pathToChronicleFile</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ShowS -&gt; ShowS
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 </span><a href="Poseidon.Package.html#posPacBaseDir"><span class="hs-identifier hs-var">posPacBaseDir</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635475"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679652953"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-160"></span><span>            </span><span class="hs-special">}</span><span>
 </span><span id="line-161"></span><span>
 </span><span id="line-162"></span><span class="annot"><a href="Poseidon.Chronicle.html#getPackageVersion"><span class="hs-identifier hs-type">getPackageVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Version</span></span><span>
 </span><span id="line-163"></span><span id="getPackageVersion"><span class="annot"><span class="annottext">getPackageVersion :: PoseidonPackage -&gt; PoseidonIO Version
-</span><a href="Poseidon.Chronicle.html#getPackageVersion"><span class="hs-identifier hs-var hs-var">getPackageVersion</span></a></span></span><span> </span><span id="local-6989586621679635481"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635481"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.Chronicle.html#getPackageVersion"><span class="hs-identifier hs-var hs-var">getPackageVersion</span></a></span></span><span> </span><span id="local-6989586621679652959"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679652959"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-164"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Version
 forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
 </span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635481"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-165"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679635482"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635482"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Version -&gt; PoseidonIO Version
+</span><a href="#local-6989586621679652959"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-165"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679652960"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679652960"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Version -&gt; PoseidonIO Version
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679635482"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><a href="#local-6989586621679652960"><span class="hs-identifier hs-var">v</span></a></span><span>
 </span><span id="line-166"></span><span>        </span><span class="annot"><span class="annottext">Maybe Version
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-167"></span><span>            </span><span id="local-6989586621679635483"><span class="annot"><span class="annottext">TestMode
-</span><a href="#local-6989586621679635483"><span class="hs-identifier hs-var">testMode</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Env -&gt; TestMode) -&gt; ReaderT Env IO TestMode
+</span><span id="line-167"></span><span>            </span><span id="local-6989586621679652961"><span class="annot"><span class="annottext">TestMode
+</span><a href="#local-6989586621679652961"><span class="hs-identifier hs-var">testMode</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Env -&gt; TestMode) -&gt; ReaderT Env IO TestMode
 forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; a) -&gt; m a
 </span><span class="hs-identifier hs-var">asks</span></span><span> </span><span class="annot"><span class="annottext">Env -&gt; TestMode
 </span><a href="Poseidon.Utils.html#_envTestMode"><span class="hs-identifier hs-var">_envTestMode</span></a></span><span>
 </span><span id="line-168"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestMode
-</span><a href="#local-6989586621679635483"><span class="hs-identifier hs-var">testMode</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679652961"><span class="hs-identifier hs-var">testMode</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-169"></span><span>                </span><span class="annot"><span class="annottext">TestMode
 </span><a href="Poseidon.Utils.html#Testing"><span class="hs-identifier hs-var">Testing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Version -&gt; PoseidonIO Version
 forall a. a -&gt; ReaderT Env IO a
@@ -736,22 +736,22 @@ forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 forall a. HasNameAndVersion a =&gt; a -&gt; String
 </span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679635481"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679652959"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; has no version.&quot;</span></span><span>
 </span><span id="line-173"></span><span>
 </span><span id="line-174"></span><span class="annot"><a href="Poseidon.Chronicle.html#getGitCommitHash"><span class="hs-identifier hs-type">getGitCommitHash</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-175"></span><span id="getGitCommitHash"><span class="annot"><span class="annottext">getGitCommitHash :: String -&gt; PoseidonIO String
-</span><a href="Poseidon.Chronicle.html#getGitCommitHash"><span class="hs-identifier hs-var hs-var">getGitCommitHash</span></a></span></span><span> </span><span id="local-6989586621679635489"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635489"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-176"></span><span>    </span><span id="local-6989586621679635490"><span class="annot"><span class="annottext">TestMode
-</span><a href="#local-6989586621679635490"><span class="hs-identifier hs-var">testMode</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Env -&gt; TestMode) -&gt; ReaderT Env IO TestMode
+</span><a href="Poseidon.Chronicle.html#getGitCommitHash"><span class="hs-identifier hs-var hs-var">getGitCommitHash</span></a></span></span><span> </span><span id="local-6989586621679652967"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652967"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-176"></span><span>    </span><span id="local-6989586621679652968"><span class="annot"><span class="annottext">TestMode
+</span><a href="#local-6989586621679652968"><span class="hs-identifier hs-var">testMode</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Env -&gt; TestMode) -&gt; ReaderT Env IO TestMode
 forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; a) -&gt; m a
 </span><span class="hs-identifier hs-var">asks</span></span><span> </span><span class="annot"><span class="annottext">Env -&gt; TestMode
 </span><a href="Poseidon.Utils.html#_envTestMode"><span class="hs-identifier hs-var">_envTestMode</span></a></span><span>
 </span><span id="line-177"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestMode
-</span><a href="#local-6989586621679635490"><span class="hs-identifier hs-var">testMode</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679652968"><span class="hs-identifier hs-var">testMode</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-178"></span><span>        </span><span class="annot"><span class="annottext">TestMode
 </span><a href="Poseidon.Utils.html#Testing"><span class="hs-identifier hs-var">Testing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO String
 forall a. a -&gt; ReaderT Env IO a
@@ -760,8 +760,8 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-string">&quot;TestMode Git hash&quot;</span></span><span>
 </span><span id="line-179"></span><span>        </span><span class="annot"><span class="annottext">TestMode
 </span><a href="Poseidon.Utils.html#Production"><span class="hs-identifier hs-var">Production</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-180"></span><span>            </span><span id="local-6989586621679635491"><span class="annot"><span class="annottext">Either GitHashException GitInfo
-</span><a href="#local-6989586621679635491"><span class="hs-identifier hs-var">eitherGit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GitHashException GitInfo)
+</span><span id="line-180"></span><span>            </span><span id="local-6989586621679652969"><span class="annot"><span class="annottext">Either GitHashException GitInfo
+</span><a href="#local-6989586621679652969"><span class="hs-identifier hs-var">eitherGit</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GitHashException GitInfo)
 -&gt; ReaderT Env IO (Either GitHashException GitInfo)
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -772,30 +772,30 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO (Either GitHashException GitInfo)
 </span><span class="hs-identifier hs-var">getGitInfo</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635489"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><a href="#local-6989586621679652967"><span class="hs-identifier hs-var">p</span></a></span><span>
 </span><span id="line-181"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either GitHashException GitInfo
-</span><a href="#local-6989586621679635491"><span class="hs-identifier hs-var">eitherGit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679652969"><span class="hs-identifier hs-var">eitherGit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-182"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">GitHashException
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-183"></span><span>                    </span><span id="local-6989586621679635492"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635492"><span class="hs-identifier hs-var">pAbsolute</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO String -&gt; PoseidonIO String
+</span><span id="line-183"></span><span>                    </span><span id="local-6989586621679652970"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679652970"><span class="hs-identifier hs-var">pAbsolute</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO String -&gt; PoseidonIO String
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO String -&gt; PoseidonIO String) -&gt; IO String -&gt; PoseidonIO String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 </span><span class="hs-identifier hs-var">makeAbsolute</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635489"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-184"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679635493"><span class="annot"><span class="annottext">oneLevelUp :: String
-</span><a href="#local-6989586621679635493"><span class="hs-identifier hs-var hs-var">oneLevelUp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="#local-6989586621679652967"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-184"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679652971"><span class="annot"><span class="annottext">oneLevelUp :: String
+</span><a href="#local-6989586621679652971"><span class="hs-identifier hs-var hs-var">oneLevelUp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ShowS
 </span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635492"><span class="hs-identifier hs-var">pAbsolute</span></a></span><span>
+</span><a href="#local-6989586621679652970"><span class="hs-identifier hs-var">pAbsolute</span></a></span><span>
 </span><span id="line-185"></span><span>                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635493"><span class="hs-identifier hs-var">oneLevelUp</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679652971"><span class="hs-identifier hs-var">oneLevelUp</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ShowS
 </span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635493"><span class="hs-identifier hs-var">oneLevelUp</span></a></span><span>
+</span><a href="#local-6989586621679652971"><span class="hs-identifier hs-var">oneLevelUp</span></a></span><span>
 </span><span id="line-186"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO String
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -803,9 +803,9 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-string">&quot;No Git repository found&quot;</span></span><span>
 </span><span id="line-187"></span><span>                    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO String
 </span><a href="Poseidon.Chronicle.html#getGitCommitHash"><span class="hs-identifier hs-var">getGitCommitHash</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679635493"><span class="hs-identifier hs-var">oneLevelUp</span></a></span><span>
-</span><span id="line-188"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679635494"><span class="annot"><span class="annottext">GitInfo
-</span><a href="#local-6989586621679635494"><span class="hs-identifier hs-var">info</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="#local-6989586621679652971"><span class="hs-identifier hs-var">oneLevelUp</span></a></span><span>
+</span><span id="line-188"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679652972"><span class="annot"><span class="annottext">GitInfo
+</span><a href="#local-6989586621679652972"><span class="hs-identifier hs-var">info</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-189"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO String
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -813,5 +813,5 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GitInfo -&gt; String
 </span><span class="hs-identifier hs-var">giHash</span></span><span> </span><span class="annot"><span class="annottext">GitInfo
-</span><a href="#local-6989586621679635494"><span class="hs-identifier hs-var">info</span></a></span><span>
+</span><a href="#local-6989586621679652972"><span class="hs-identifier hs-var">info</span></a></span><span>
 </span><span id="line-190"></span></pre></body></html>
