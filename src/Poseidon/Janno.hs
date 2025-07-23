@@ -9,48 +9,20 @@
 
 module Poseidon.Janno (
     JannoRow(..),
-    GeneticSex (..),
-    GroupName (..),
-    ListColumn (..),
-    Sex (..),
-    JannoCountryISO (..),
-    JannoLatitude (..),
-    JannoLongitude (..),
-    JannoDateType (..),
-    JannoDateBCADMedian (..),
-    JannoCaptureType (..),
-    JannoGenotypePloidy (..),
-    JannoUDG (..),
-    JannoRelationDegree (..),
-    JannoLibraryBuilt (..),
     writeJannoFile,
     writeJannoFileWithoutEmptyCols,
     readJannoFile,
     createMinimalJanno,
     createMinimalSample,
     jannoHeaderString,
-    CsvNamedRecord (..),
     JannoRows (..),
-    JannoStringList,
-    filterLookup,
-    filterLookupOptional,
-    getCsvNR,
-    encodingOptions,
-    decodingOptions,
-    explicitNA,
-    removeUselessSuffix,
-    parseCsvParseError,
-    renderCsvParseError,
-    getMaybeListColumn,
     jannoRows2EigenstratIndEntries,
     makeHeaderWithAdditionalColumns
 ) where
 
-import           Poseidon.ColumnTypes
-import           Poseidon.Utils                       (PoseidonException (..),
-                                                       PoseidonIO, logDebug,
-                                                       logError, logWarning,
-                                                       renderPoseidonException)
+import           Poseidon.ColumnTypesJanno
+import           Poseidon.ColumnTypesUtils
+import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
@@ -60,7 +32,6 @@ import qualified Control.Monad.Writer                 as W
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (chr, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
@@ -73,31 +44,8 @@ import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
-import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
-                                                       Sex (..))
+import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..))
 import qualified Text.Parsec                          as P
-import qualified Text.Parsec.String                   as P
-
--- | A general datatype for janno list columns
-newtype ListColumn a = ListColumn {getListColumn :: [a]}
-    deriving (Eq, Ord, Generic, Show)
-
-getMaybeListColumn :: Maybe (ListColumn a) -> [a]
-getMaybeListColumn Nothing  = []
-getMaybeListColumn (Just x) = getListColumn x
-
-type JannoStringList = ListColumn String
-
-instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
-    toField x = Bchs.intercalate ";" $ map Csv.toField $ getListColumn x
-instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
-    parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
-
--- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
-newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
-
-getCsvNR :: CsvNamedRecord -> Csv.NamedRecord
-getCsvNR (CsvNamedRecord x) = x
 
 -- | A  data type to represent a janno file
 newtype JannoRows = JannoRows {getJannoRows :: [JannoRow]}
@@ -267,26 +215,6 @@ instance Csv.FromNamedRecord JannoRow where
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
 
-filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = case cleanInput $ HM.lookup name m of
-    Nothing -> fail "Missing value in mandatory column (Poseidon_ID, Genetic_Sex, Group_Name)"
-    Just x  -> Csv.parseField  x
-
-filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
-
-cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-cleanInput Nothing           = Nothing
-cleanInput (Just rawInputBS) = transNA rawInputBS
-    where
-        transNA :: Bchs.ByteString -> Maybe Bchs.ByteString
-        transNA ""    = Nothing
-        transNA "n/a" = Nothing
-        transNA x     = Just x
-
-explicitNA :: Csv.NamedRecord -> Csv.NamedRecord
-explicitNA = HM.map (\x -> if Bchs.null x then "n/a" else x)
-
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = explicitNA $ Csv.namedRecord [
           "Poseidon_ID"                     Csv..= jPoseidonID j
@@ -421,14 +349,6 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
                 jannoConcat = Bch.intercalate "\n" $ map (Bch.intercalate "\t") jannoBackTransposed
             Bch.writeFile path (jannoConcat <> "\n")
 
-encodingOptions :: Csv.EncodeOptions
-encodingOptions = Csv.defaultEncodeOptions {
-      Csv.encDelimiter = fromIntegral (ord '\t')
-    , Csv.encUseCrLf = False
-    , Csv.encIncludeHeader = True
-    , Csv.encQuoting = Csv.QuoteMinimal
-}
-
 -- | A function to load one janno file
 readJannoFile :: FilePath -> PoseidonIO JannoRows
 readJannoFile jannoPath = do
@@ -509,41 +429,6 @@ readJannoFileRow jannoPath (lineNumber, row) = do
                 renderLocation :: String
                 renderLocation =  show lineNumber ++
                                   " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
-
-decodingOptions :: Csv.DecodeOptions
-decodingOptions = Csv.defaultDecodeOptions {
-    Csv.decDelimiter = fromIntegral (ord '\t')
-}
-
-removeUselessSuffix :: String -> String
-removeUselessSuffix = T.unpack . T.replace " at \"\"" "" . T.pack
-
--- reformat the parser error
--- from: parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
--- to:   parse error in one column (expected data type: Int, broken value: "430;", problematic characters: ";")
-
-data CsvParseError = CsvParseError {
-      _expected :: String
-    , _actual   :: String
-    , _leftover :: String
-} deriving Show
-
-parseCsvParseError :: P.Parser CsvParseError
-parseCsvParseError = do
-    _ <- P.string "parse error (Failed reading: conversion error: expected "
-    expected <- P.manyTill P.anyChar (P.try (P.string ", got "))
-    actual <- P.manyTill P.anyChar (P.try (P.string " (incomplete field parse, leftover: ["))
-    leftoverList <- P.sepBy (read <$> P.many1 P.digit) (P.char ',')
-    _ <- P.char ']'
-    _ <- P.many P.anyChar
-    return $ CsvParseError expected actual (map chr leftoverList)
-
-renderCsvParseError :: CsvParseError -> String
-renderCsvParseError (CsvParseError expected actual leftover) =
-    "parse error in one column (" ++
-    "expected data type: " ++ expected ++ ", " ++
-    "broken value: " ++ actual ++ ", " ++
-    "problematic characters: " ++ show leftover ++ ")"
 
 -- Global janno consistency checks
 

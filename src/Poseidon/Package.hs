@@ -33,7 +33,13 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypes       (JannoPublication (..))
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
+                                             JannoLibraryBuilt (..),
+                                             JannoPublication (..),
+                                             JannoUDG (..))
+import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
+import           Poseidon.ColumnTypesUtils  (ListColumn (..),
+                                             getMaybeListColumn)
 import           Poseidon.Contributor       (ContributorSpec (..))
 import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
@@ -48,18 +54,13 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress,
                                              reduceGenotypeFilepaths)
-import           Poseidon.Janno             (GeneticSex (..),
-                                             JannoLibraryBuilt (..),
-                                             JannoRow (..), JannoRows (..),
-                                             JannoUDG (..), ListColumn (..),
+import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
-                                             getMaybeListColumn,
                                              jannoHeaderString, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
-                                             SeqSourceRow (..),
+import           Poseidon.SequencingSource  (SeqSourceRow (..),
                                              SeqSourceRows (..),
                                              readSeqSourceFile)
 import           Poseidon.ServerClient      (AddColSpec (..),

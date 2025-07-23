@@ -4,6 +4,8 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
+import           Poseidon.ColumnTypesUtils   (ListColumn (..),
+                                              getMaybeListColumn)
 import           Poseidon.EntityTypes        (EntityInput,
                                               PacNameAndVersion (..),
                                               PoseidonEntity (..),
@@ -22,8 +24,6 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               selectIndices, snpSetMergeList,
                                               writeVCF)
 import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
-                                              ListColumn (..),
-                                              getMaybeListColumn,
                                               jannoRows2EigenstratIndEntries,
                                               writeJannoFile)
 import           Poseidon.Package            (PackageReadOptions (..),
@@ -59,7 +59,7 @@ import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (SafeT, runSafeT)
-import           Poseidon.ColumnTypes        (JannoNrSNPs (..))
+import           Poseidon.ColumnTypesJanno   (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)

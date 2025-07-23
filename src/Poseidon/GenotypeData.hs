@@ -2,10 +2,10 @@
 module Poseidon.GenotypeData where
 
 import           Paths_poseidon_hs                (version)
-import           Poseidon.Janno                   (GroupName (..),
-                                                   JannoGenotypePloidy (..),
-                                                   JannoRow (..),
-                                                   ListColumn (..))
+import           Poseidon.ColumnTypesJanno        (GroupName (..),
+                                                   JannoGenotypePloidy (..))
+import           Poseidon.ColumnTypesUtils        (ListColumn (..))
+import           Poseidon.Janno                   (JannoRow (..))
 import           Poseidon.Utils                   (LogA, PoseidonException (..),
                                                    PoseidonIO,
                                                    envInputPlinkMode, logDebug,
