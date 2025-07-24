@@ -2,15 +2,13 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE TypeOperators     #-}
+-- the following ones are necessary for the generics-sop magic
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Poseidon.ColumnTypesUtils where
-import Poseidon.Utils (PoseidonIO)
 
 import           Data.ByteString       as S
 import qualified Data.ByteString.Char8 as Bchs
@@ -21,18 +19,15 @@ import qualified Data.List             as L
 import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Data.Typeable         (Typeable)
-import           GHC.Generics          as G
+import           Generics.SOP          (All, Generic (Code, from),
+                                        HCollapse (hcollapse), I (..), K (K),
+                                        Proxy (..), hcmap, unSOP, unZ)
+import           GHC.Generics          as G hiding (conName)
 import           Language.Haskell.TH   (Con (..), Dec (..), DecsQ, Info (..),
                                         Name, conE, conP, conT, mkName, reify,
                                         varE, varP)
 import qualified Text.Parsec           as P
 import qualified Text.Parsec.String    as P
-
-import           Generics.SOP              (All, Generic (Code, from),
-                                            HCollapse (hcollapse),
-                                            HPure (hpure), I (..), K (K), NP,
-                                            Proxy (..), SListI, hcmap, hzipWith,
-                                            unI, unSOP, unZ)
 
 -- a typeclass for types with smart constructors
 class Makeable a where
@@ -45,7 +40,7 @@ class Suspicious a where
 instance Suspicious String where
     inspect _ = Nothing
 instance Suspicious a => Suspicious (Maybe a) where
-    inspect Nothing = Nothing
+    inspect Nothing  = Nothing
     inspect (Just x) = inspect x
 instance Suspicious a => Suspicious (ListColumn a) where
     inspect (ListColumn xs) = L.concat <$> mapM inspect xs

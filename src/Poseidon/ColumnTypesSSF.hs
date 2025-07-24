@@ -6,7 +6,6 @@ module Poseidon.ColumnTypesSSF where
 
 import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesUtils
-import Poseidon.Utils (logWarning)
 
 import           Data.Char                 (isHexDigit)
 import qualified Data.Csv                  as Csv
@@ -17,7 +16,6 @@ import           Data.Time.Format          (defaultTimeLocale, formatTime,
                                             parseTimeM)
 import           GHC.Generics              (Generic)
 import           Network.URI               (isURIReference)
-import Data.List as L
 
 -- | A datatype for the udg .ssf column
 data SSFUDG =

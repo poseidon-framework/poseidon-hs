@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- the following three are necessary for deriveGeneric
+-- the following ones are necessary for the generics-sop magic (deriveGeneric)
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -26,6 +26,7 @@ import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
+import qualified Control.Monad                        as OP
 import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
@@ -38,7 +39,7 @@ import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        transpose, (\\))
-import           Data.Maybe                           (fromJust, catMaybes)
+import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
@@ -46,7 +47,6 @@ import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..))
 import qualified Text.Parsec                          as P
-import qualified Control.Monad as OP
 
 -- | A  data type to represent a janno file
 newtype JannoRows = JannoRows {getJannoRows :: [JannoRow]}

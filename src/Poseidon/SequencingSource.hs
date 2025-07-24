@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- the following three are necessary for deriveGeneric
+-- the following ones are necessary for the generics-sop magic (deriveGeneric)
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -14,6 +14,7 @@ import           Poseidon.Utils
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
+import qualified Control.Monad              as OP
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
@@ -22,12 +23,11 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
-import           Data.Maybe                 (isJust, mapMaybe, catMaybes)
+import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import qualified Data.Vector                as V
+import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
-import           Generics.SOP.TH                      (deriveGeneric)
-import qualified Control.Monad as OP
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
@@ -239,9 +239,6 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
             -- return result
             return $ Right seqSourceRow
             where
-                renderWarning :: String -> String
-                renderWarning e = "Cross-column anomaly in " ++ seqSourcePath ++ " " ++
-                                  "in line " ++ renderLocation ++ ": " ++ e
                 renderLocation :: String
                 renderLocation =  show lineNumber
 
