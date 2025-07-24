@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- the following three are necessary for deriveGeneric
+-- the following ones are necessary for the generics-sop magic (deriveGeneric)
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -26,6 +26,7 @@ import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
+import qualified Control.Monad                        as OP
 import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
@@ -38,7 +39,7 @@ import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        transpose, (\\))
-import           Data.Maybe                           (fromJust)
+import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
@@ -123,6 +124,9 @@ data JannoRow = JannoRow
     , jAdditionalColumns          :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
+
+-- deriving with TemplateHaskell necessary for the generics magic in the Survey module
+deriveGeneric ''JannoRow
 
 -- This header also defines the output column order when writing to csv!
 jannoHeader :: [Bchs.ByteString]
@@ -417,14 +421,21 @@ readJannoFileRow jannoPath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
         Right jannoRow -> do
+            -- cell-wise checks
+            let inspectRes = concat $ catMaybes $ inspectEachField jannoRow
+            OP.unless (null inspectRes) $ do
+                logWarning $ "Value anomaly in " ++ jannoPath ++ " in line " ++ renderLocation ++ ": "
+                mapM_ logWarning inspectRes
+            -- cross-column checks
             let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
             mapM_ (logWarning . renderWarning) warnings
+             -- return result
             case errOrJannoRow of
                 Left e  -> return $ Left $ PoseidonFileRowException jannoPath renderLocation e
                 Right r -> return $ Right r
             where
                 renderWarning :: String -> String
-                renderWarning e = "Issue in " ++ jannoPath ++ " " ++
+                renderWarning e = "Cross-column anomaly in " ++ jannoPath ++ " " ++
                                   "in line " ++ renderLocation ++ ": " ++ e
                 renderLocation :: String
                 renderLocation =  show lineNumber ++
@@ -514,9 +525,6 @@ checkRelationColsConsistent x =
         False -> E.throwError "Relation_To, Relation_Degree and Relation_Type \
                       \do not have the same lengths. Relation_Type can be empty"
         True  -> return x
-
--- deriving with TemplateHaskell necessary for the generics magic in the Survey module
-deriveGeneric ''JannoRow
 
 -- | a convenience function to construct Eigenstrat Ind entries out of jannoRows
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]

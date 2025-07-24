@@ -26,6 +26,7 @@ instance Makeable GeneticSex where
         | x == "U"  = pure (GeneticSex Unknown)
         | otherwise = fail $ "Genetic_Sex is set to " ++ show x ++ ". " ++
                              "That is not in the allowed set [F, M, U]."
+instance Suspicious GeneticSex where inspect _ = Nothing
 instance Show GeneticSex where
     show (GeneticSex Female)  = "F"
     show (GeneticSex Male)    = "M"
@@ -77,6 +78,7 @@ instance Makeable JannoRelationDegree where
         | x == "other"        = pure OtherDegree
         | otherwise           = fail $ "Relation_Degree is set to " ++ show x ++ ". " ++
                                        "That is not in the allowed set [identical, first, second, thirdToFifth, sixthToTenth, other]."
+instance Suspicious JannoRelationDegree where inspect _ = Nothing
 instance Show JannoRelationDegree where
     show Identical    = "identical"
     show First        = "first"
@@ -115,6 +117,7 @@ instance Makeable JannoCountryISO where
             "Country_ISO is set to " ++ show x ++ ". " ++
             "That is not a valid ISO-alpha2 code describing an existing country."
         Just c  -> return $ JannoCountryISO c
+instance Suspicious JannoCountryISO where inspect _ = Nothing
 instance Csv.ToField JannoCountryISO where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoCountryISO where parseField = parseTypeCSV "Country_ISO"
 
@@ -138,6 +141,7 @@ instance Makeable JannoLatitude where
                 then pure (JannoLatitude num)
                 else fail $ "Latitude " ++ show x ++ " not between -90 and 90"
             Right (_, rest) -> fail $ "Latitude can not be converted to Double, because of a trailing " ++ show rest
+instance Suspicious JannoLatitude where inspect _ = Nothing
 instance Show JannoLatitude where          show (JannoLatitude x) = show x
 instance Csv.ToField JannoLatitude where   toField (JannoLatitude x) = Csv.toField x
 instance Csv.FromField JannoLatitude where parseField = parseTypeCSV "Latitude"
@@ -154,6 +158,7 @@ instance Makeable JannoLongitude where
                 then pure (JannoLongitude num)
                 else fail $ "Longitude " ++ show x ++ " not between -180 and 180"
             Right (_, rest) -> fail $ "Longitude can not be converted to Double, because of a trailing " ++ show rest
+instance Suspicious JannoLongitude where inspect _ = Nothing
 instance Show JannoLongitude where          show (JannoLongitude x) = show x
 instance Csv.ToField JannoLongitude where   toField (JannoLongitude x) = Csv.toField x
 instance Csv.FromField JannoLongitude where parseField = parseTypeCSV "Longitude"
@@ -172,6 +177,7 @@ instance Makeable JannoDateType where
         | x == "modern"     = pure Modern
         | otherwise         = fail $ "Date_Type is set to " ++ show x ++ ". " ++
                                      "That is not in the allowed set [C14, contextual, modern]."
+instance Suspicious JannoDateType where inspect _ = Nothing
 instance Show JannoDateType where
     show C14        = "C14"
     show Contextual = "contextual"
@@ -192,6 +198,11 @@ instance Makeable JannoDateC14UncalBP where
             Left e -> fail $ "Date_C14_Uncal_BP can not be converted to Int because " ++ e
             Right (num, "") -> pure $ JannoDateC14UncalBP num
             Right (_, rest) -> fail $ "Date_C14_Uncal_BP can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoDateC14UncalBP where
+    inspect (JannoDateC14UncalBP x)
+        | x >= 60000 = Just ["Date_C14_Uncal_BP is " ++ show x ++", so >60k years and thus beyond the \
+                             \pratical limit of radiocarbon dating."]
+        | otherwise = Nothing
 instance Show JannoDateC14UncalBP where          show (JannoDateC14UncalBP x) = show x
 instance Csv.ToField JannoDateC14UncalBP where   toField (JannoDateC14UncalBP x) = Csv.toField x
 instance Csv.FromField JannoDateC14UncalBP where parseField = parseTypeCSV "Date_C14_Uncal_BP"
@@ -205,6 +216,7 @@ instance Makeable JannoDateC14UncalBPErr where
             Left e -> fail $ "Date_C14_Uncal_BP_Err can not be converted to Int because " ++ e
             Right (num, "") -> pure $ JannoDateC14UncalBPErr num
             Right (_, rest) -> fail $ "Date_C14_Uncal_BP_Err can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoDateC14UncalBPErr where inspect _ = Nothing
 instance Show JannoDateC14UncalBPErr where          show (JannoDateC14UncalBPErr x) = show x
 instance Csv.ToField JannoDateC14UncalBPErr where   toField (JannoDateC14UncalBPErr x) = Csv.toField x
 instance Csv.FromField JannoDateC14UncalBPErr where parseField = parseTypeCSV "Date_C14_Uncal_BP_Err"
@@ -223,6 +235,7 @@ instance Makeable JannoDateBCADStart where
                    "Did you accidentally enter a BP date?"
                 else pure $ JannoDateBCADStart num
             Right (_, rest) -> fail $ "Date_BC_AD_Start can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoDateBCADStart where inspect _ = Nothing
 instance Show JannoDateBCADStart where          show (JannoDateBCADStart x) = show x
 instance Csv.ToField JannoDateBCADStart where   toField (JannoDateBCADStart x) = Csv.toField x
 instance Csv.FromField JannoDateBCADStart where parseField = parseTypeCSV "Date_BC_AD_Start"
@@ -241,6 +254,7 @@ instance Makeable JannoDateBCADMedian where
                    "Did you accidentally enter a BP date?"
                 else pure $ JannoDateBCADMedian num
             Right (_, rest) -> fail $ "Date_BC_AD_Median can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoDateBCADMedian where inspect _ = Nothing
 instance Show JannoDateBCADMedian where          show (JannoDateBCADMedian x) = show x
 instance Csv.ToField JannoDateBCADMedian where   toField (JannoDateBCADMedian x) = Csv.toField x
 instance Csv.FromField JannoDateBCADMedian where parseField = parseTypeCSV "Date_BC_AD_Median"
@@ -259,6 +273,7 @@ instance Makeable JannoDateBCADStop where
                    "Did you accidentally enter a BP date?"
                 else pure $ JannoDateBCADStop num
             Right (_, rest) -> fail $ "Date_BC_AD_Stop can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoDateBCADStop where inspect _ = Nothing
 instance Show JannoDateBCADStop where          show (JannoDateBCADStop x) = show x
 instance Csv.ToField JannoDateBCADStop where   toField (JannoDateBCADStop x) = Csv.toField x
 instance Csv.FromField JannoDateBCADStop where parseField = parseTypeCSV "Date_BC_AD_Stop"
@@ -291,6 +306,7 @@ instance Makeable JannoNrLibraries where
                 then fail $ "Nr_Libraries " ++ show x ++ " lower than 1, which is impossible."
                 else pure $ JannoNrLibraries num
             Right (_, rest) -> fail $ "Nr_Libraries can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoNrLibraries where inspect _ = Nothing
 instance Show JannoNrLibraries where          show (JannoNrLibraries x) = show x
 instance Csv.ToField JannoNrLibraries where   toField (JannoNrLibraries x) = Csv.toField x
 instance Csv.FromField JannoNrLibraries where parseField = parseTypeCSV "Nr_Libraries"
@@ -322,7 +338,10 @@ instance Makeable JannoCaptureType where
         | x == "OtherCapture"       = pure OtherCapture
         | x == "ReferenceGenome"    = pure ReferenceGenome
         | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
-                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]."
+                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
+                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, \
+                             \ReferenceGenome]."
+instance Suspicious JannoCaptureType where inspect _ = Nothing
 instance Show JannoCaptureType where
     show Shotgun            = "Shotgun"
     show A1240K             = "1240K"
@@ -351,6 +370,7 @@ instance Makeable JannoUDG where
         | x == "mixed" = pure Mixed
         | otherwise    = fail $ "UDG is set to " ++ show x ++ ". " ++
                                 "That is not in the allowed set [minus, half, plus, mixed]."
+instance Suspicious JannoUDG where inspect _ = Nothing
 instance Show JannoUDG where
     show Minus = "minus"
     show Half  = "half"
@@ -375,6 +395,7 @@ instance Makeable JannoLibraryBuilt where
         | x == "other" = pure Other
         | otherwise    = fail $ "Library_Built is set to " ++ show x ++ ". " ++
                                 "That is not in the allowed set [ds, ss, mixed]."
+instance Suspicious JannoLibraryBuilt where inspect _ = Nothing
 instance Show JannoLibraryBuilt where
     show DS        = "ds"
     show SS        = "ss"
@@ -395,6 +416,7 @@ instance Makeable JannoGenotypePloidy where
         | x == "haploid" = pure Haploid
         | otherwise      = fail $ "Genotype_Ploidy is set to " ++ show x ++ ". " ++
                                   "That is not in the allowed set [diploid, haploid]."
+instance Suspicious JannoGenotypePloidy where inspect _ = Nothing
 instance Show JannoGenotypePloidy where
     show Diploid = "diploid"
     show Haploid = "haploid"
@@ -408,6 +430,7 @@ instance Makeable JannoDataPreparationPipelineURL where
     make x
         | isURIReference (T.unpack x) = pure $ JannoDataPreparationPipelineURL x
         | otherwise                   = fail $ "Data_Preparation_Pipeline_URL " ++ show x ++ " is not a well structured URI."
+instance Suspicious JannoDataPreparationPipelineURL where inspect _ = Nothing
 instance Show JannoDataPreparationPipelineURL where          show (JannoDataPreparationPipelineURL x) = T.unpack x
 instance Csv.ToField JannoDataPreparationPipelineURL where   toField (JannoDataPreparationPipelineURL x) = Csv.toField x
 instance Csv.FromField JannoDataPreparationPipelineURL where parseField = parseTypeCSV "Data_Preparation_Pipeline_URL"
@@ -424,6 +447,7 @@ instance Makeable JannoEndogenous where
                 then pure (JannoEndogenous num)
                 else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
             Right (_, rest) -> fail $ "Endogenous can not be converted to Double, because of a trailing " ++ show rest
+instance Suspicious JannoEndogenous where inspect _ = Nothing
 instance Show JannoEndogenous where          show (JannoEndogenous x) = show x
 instance Csv.ToField JannoEndogenous where   toField (JannoEndogenous x) = Csv.toField x
 instance Csv.FromField JannoEndogenous where parseField = parseTypeCSV "Endogenous"
@@ -440,6 +464,10 @@ instance Makeable JannoNrSNPs where
                 then fail $ "Nr_SNPs " ++ show x ++ " lower than 0, which is not meaningful."
                 else pure $ JannoNrSNPs num
             Right (_, rest) -> fail $ "Nr_SNPs can not be converted to Int, because of a trailing " ++ show rest
+instance Suspicious JannoNrSNPs where
+    inspect (JannoNrSNPs x)
+        | x == 0 = Just ["Nr_SNPs is set to 0, indicating no recorded SNPs in the genotype data."]
+        | otherwise = Nothing
 instance Show JannoNrSNPs where          show (JannoNrSNPs x) = show x
 instance Csv.ToField JannoNrSNPs where   toField (JannoNrSNPs x) = Csv.toField x
 instance Csv.FromField JannoNrSNPs where parseField = parseTypeCSV "Nr_SNPs"
@@ -453,6 +481,7 @@ instance Makeable JannoCoverageOnTargets where
             Left e -> fail $ "Coverage_on_Target_SNPs can not be converted to Double because " ++ e
             Right (num, "") ->  pure (JannoCoverageOnTargets num)
             Right (_, rest) -> fail $ "Coverage_on_Target_SNPs can not be converted to Double, because of a trailing " ++ show rest
+instance Suspicious JannoCoverageOnTargets where inspect _ = Nothing
 instance Show JannoCoverageOnTargets where          show (JannoCoverageOnTargets x) = show x
 instance Csv.ToField JannoCoverageOnTargets where   toField (JannoCoverageOnTargets x) = Csv.toField x
 instance Csv.FromField JannoCoverageOnTargets where parseField = parseTypeCSV "Coverage_on_Target_SNPs"
@@ -469,6 +498,7 @@ instance Makeable JannoDamage where
                 then pure (JannoDamage num)
                 else fail $ "Damage " ++ show x ++ " not between 0 and 100."
             Right (_, rest) -> fail $ "Damage can not be converted to Double, because of a trailing " ++ show rest
+instance Suspicious JannoDamage where inspect _ = Nothing
 instance Show JannoDamage where          show (JannoDamage x) = show x
 instance Csv.ToField JannoDamage where   toField (JannoDamage x) = Csv.toField x
 instance Csv.FromField JannoDamage where parseField = parseTypeCSV "Damage"
@@ -495,6 +525,7 @@ newtype JannoGeneticSourceAccessionID = JannoGeneticSourceAccessionID AccessionI
 
 instance Makeable JannoGeneticSourceAccessionID where
     make x = JannoGeneticSourceAccessionID <$> makeAccessionID x
+instance Suspicious JannoGeneticSourceAccessionID where inspect _ = Nothing
 instance Show JannoGeneticSourceAccessionID where
     show (JannoGeneticSourceAccessionID x) = show x
 instance Csv.ToField JannoGeneticSourceAccessionID where   toField x  = Csv.toField $ show x
