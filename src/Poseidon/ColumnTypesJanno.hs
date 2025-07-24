@@ -198,7 +198,11 @@ instance Makeable JannoDateC14UncalBP where
             Left e -> fail $ "Date_C14_Uncal_BP can not be converted to Int because " ++ e
             Right (num, "") -> pure $ JannoDateC14UncalBP num
             Right (_, rest) -> fail $ "Date_C14_Uncal_BP can not be converted to Int, because of a trailing " ++ show rest
-instance Suspicious JannoDateC14UncalBP where inspect _ = Nothing
+instance Suspicious JannoDateC14UncalBP where
+    inspect (JannoDateC14UncalBP x)
+        | x >= 60000 = Just ["Date_C14_Uncal_BP is " ++ show x ++", so >60k years and thus beyond the \
+                             \pratical limit of radiocarbon dating."]
+        | otherwise = Nothing
 instance Show JannoDateC14UncalBP where          show (JannoDateC14UncalBP x) = show x
 instance Csv.ToField JannoDateC14UncalBP where   toField (JannoDateC14UncalBP x) = Csv.toField x
 instance Csv.FromField JannoDateC14UncalBP where parseField = parseTypeCSV "Date_C14_Uncal_BP"
@@ -334,7 +338,9 @@ instance Makeable JannoCaptureType where
         | x == "OtherCapture"       = pure OtherCapture
         | x == "ReferenceGenome"    = pure ReferenceGenome
         | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
-                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, ReferenceGenome]."
+                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
+                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, \
+                             \ReferenceGenome]."
 instance Suspicious JannoCaptureType where inspect _ = Nothing
 instance Show JannoCaptureType where
     show Shotgun            = "Shotgun"
@@ -458,7 +464,10 @@ instance Makeable JannoNrSNPs where
                 then fail $ "Nr_SNPs " ++ show x ++ " lower than 0, which is not meaningful."
                 else pure $ JannoNrSNPs num
             Right (_, rest) -> fail $ "Nr_SNPs can not be converted to Int, because of a trailing " ++ show rest
-instance Suspicious JannoNrSNPs where inspect _ = Nothing
+instance Suspicious JannoNrSNPs where
+    inspect (JannoNrSNPs x)
+        | x == 0 = Just ["Nr_SNPs is set to 0, indicating no recorded SNPs in the genotype data."]
+        | otherwise = Nothing
 instance Show JannoNrSNPs where          show (JannoNrSNPs x) = show x
 instance Csv.ToField JannoNrSNPs where   toField (JannoNrSNPs x) = Csv.toField x
 instance Csv.FromField JannoNrSNPs where parseField = parseTypeCSV "Nr_SNPs"

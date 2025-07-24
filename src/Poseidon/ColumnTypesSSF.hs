@@ -65,12 +65,14 @@ newtype SSFAccessionIDSample = SSFAccessionIDSample AccessionID
 instance Makeable SSFAccessionIDSample where
     make x = do
         accID <- makeAccessionID x
-        case accID of
-            i@(INSDCBioSample _) -> return $ SSFAccessionIDSample i
-            i@(INSDCSample _) -> return $ SSFAccessionIDSample i
-            --i@(OtherID _) -> return $ SSFAccessionIDSample i
-            i -> fail $ "sample_accession " ++ show i ++ " is not a correct biosample/sample accession."
-instance Suspicious SSFAccessionIDSample where inspect _ = Nothing
+        return $ SSFAccessionIDSample accID
+instance Suspicious SSFAccessionIDSample where
+    inspect (SSFAccessionIDSample x) =
+        case x of
+            (INSDCBioSample _) -> Nothing
+            (INSDCSample _)    -> Nothing
+            i                  -> Just ["sample_accession " ++ show i ++ " is not a correct INSDC \
+                                         \biosample/sample accession."]
 instance Show SSFAccessionIDSample where
     show (SSFAccessionIDSample x) = show x
 instance Csv.ToField SSFAccessionIDSample where   toField x  = Csv.toField $ show x
@@ -83,12 +85,14 @@ newtype SSFAccessionIDStudy = SSFAccessionIDStudy AccessionID
 instance Makeable SSFAccessionIDStudy where
     make x = do
         accID <- makeAccessionID x
-        case accID of
-            i@(INSDCProject _) -> return $ SSFAccessionIDStudy i
-            i@(INSDCStudy _) -> return $ SSFAccessionIDStudy i
-            --i@(OtherID _) -> return $ SSFAccessionIDStudy i
-            i -> fail $ "study_accession " ++ show i ++ " is not a correct project/study accession."
-instance Suspicious SSFAccessionIDStudy where inspect _ = Nothing
+        return $ SSFAccessionIDStudy accID
+instance Suspicious SSFAccessionIDStudy where
+    inspect (SSFAccessionIDStudy x) =
+        case x of
+            (INSDCProject _) -> Nothing
+            (INSDCStudy _)   -> Nothing
+            i                -> Just ["study_accession " ++ show i ++ " is not a correct INSDC \
+                                       \project/study accession."]
 instance Show SSFAccessionIDStudy where
     show (SSFAccessionIDStudy x) = show x
 instance Csv.ToField SSFAccessionIDStudy where   toField x  = Csv.toField $ show x
@@ -101,11 +105,13 @@ newtype SSFAccessionIDRun = SSFAccessionIDRun AccessionID
 instance Makeable SSFAccessionIDRun where
     make x = do
         accID <- makeAccessionID x
-        case accID of
-            i@(INSDCRun _) -> return $ SSFAccessionIDRun i
-            --i@(OtherID _) -> return $ SSFAccessionIDRun i
-            i -> fail $ "run_accession " ++ show i ++ " is not a correct run accession."
-instance Suspicious SSFAccessionIDRun where inspect _ = Nothing
+        return $ SSFAccessionIDRun accID
+instance Suspicious SSFAccessionIDRun where
+    inspect (SSFAccessionIDRun x) =
+        case x of
+            (INSDCRun _) -> Nothing
+            i            -> Just ["run_accession " ++ show i ++ " is not a correct INSDC \
+                                   \run accession."]
 instance Show SSFAccessionIDRun where
     show (SSFAccessionIDRun x) = show x
 instance Csv.ToField SSFAccessionIDRun where   toField x  = Csv.toField $ show x
@@ -241,13 +247,17 @@ newtype SSFReadCount = SSFReadCount Integer deriving (Eq, Ord, Generic)
 
 instance Makeable SSFReadCount where
     make x =
-        case (T.signed T.decimal) x of -- the ENA uses -1 in case the read count failed
+        case T.signed T.decimal x of -- the ENA uses -1 in case the read count failed
             Left e -> fail $ "read_count can not be converted to Integer because " ++ e
-            Right (num, "") -> pure $ SSFReadCount num
+            Right (num, "") ->
+                if num >= -1
+                then pure (SSFReadCount num)
+                else fail $ "read_count " ++ show x ++ " not >0."
             Right (_, rest) -> fail $ "read_count can not be converted to Integer, because of a trailing " ++ show rest
 instance Suspicious SSFReadCount where
-    inspect (SSFReadCount x) | x == -1 = Just ["read_count is set to -1, which may indicate a missing value"]
-                             | otherwise = pure []
+    inspect (SSFReadCount x)
+        | x == -1 = Just ["read_count is set to -1, which indicates a missing value."]
+        | otherwise = pure []
 instance Show SSFReadCount where          show (SSFReadCount x) = show x
 instance Csv.ToField SSFReadCount where   toField (SSFReadCount x) = Csv.toField x
 instance Csv.FromField SSFReadCount where parseField = parseTypeCSV "read_count"
