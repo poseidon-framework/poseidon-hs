@@ -40,32 +40,22 @@ class Makeable a where
 
 -- a typeclass for .csv/.tsv column types that may require a logged warning when read
 class Suspicious a where
-    inspect :: a -> IO ()
-instance Suspicious (Maybe a) where
-    inspect Nothing = putStrLn "huhu"
-    inspect (Just _) = pure ()
+    inspect :: a -> PoseidonIO ()
+
+instance Suspicious String where
+    inspect _ = pure ()
+instance Suspicious a => Suspicious (Maybe a) where
+    inspect Nothing = pure ()
+    inspect (Just x) = inspect x
+instance Suspicious a => Suspicious (ListColumn a) where
+    inspect (ListColumn xs) = mapM_ inspect xs
 instance Suspicious CsvNamedRecord where
     inspect _ = pure ()
 
-inspectEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All Suspicious xs) => a -> IO () --'
+inspectEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All Suspicious xs) => a -> PoseidonIO () --'
 inspectEachField =
     hctraverse_ (Proxy :: Proxy Suspicious) (\(I x) -> inspect x)
   . unZ . unSOP . Generics.SOP.from
-
-
--- getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int] --'
--- getRatiosForEachField =
---     hcollapse
---   . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
---   . hunzip
---   . map (unZ . unSOP . from)
--- hunzip :: SListI xs => [NP I xs] -> NP [] xs
--- hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
--- measureFillState :: PresenceCountable a => [a] -> Ratio Int
--- measureFillState vals =
---     let nrValues = length vals
---         nrFilledValues = sum $ map countPresence vals
---     in nrFilledValues % nrValues
 
 -- helper functions
 parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => String -> S.ByteString -> m a
@@ -80,6 +70,7 @@ makeInstances name col = do
     let x = mkName "x"
     [d|
       instance Makeable $(conT name) where      make txt = return $ $(conE conName) txt
+      instance Suspicious $(conT name) where    inspect _ = pure ()
       instance Show $(conT name) where          show $(conP conName [varP x]) = T.unpack $(varE x)
       instance Csv.ToField $(conT name) where   toField $(conP conName [varP x]) = Csv.toField $(varE x)
       instance Csv.FromField $(conT name) where parseField = parseTypeCSV col

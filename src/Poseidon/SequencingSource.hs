@@ -230,7 +230,7 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
         Right seqSourceRow -> do
-            liftIO $ inspectEachField seqSourceRow
+            inspectEachField seqSourceRow
             return $ Right seqSourceRow
 
 -- Global SSF consistency checks

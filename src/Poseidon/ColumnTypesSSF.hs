@@ -6,6 +6,7 @@ module Poseidon.ColumnTypesSSF where
 
 import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesUtils
+import Poseidon.Utils (logWarning)
 
 import           Data.Char                 (isHexDigit)
 import qualified Data.Csv                  as Csv
@@ -31,6 +32,7 @@ instance Makeable SSFUDG where
         | x == "plus"  = pure SSFPlus
         | otherwise    = fail $ "udg is set to " ++ show x ++ ". " ++
                                 "That is not in the allowed set [minus, half, plus]."
+instance Suspicious SSFUDG where inspect _ = pure ()
 instance Show SSFUDG where
     show SSFMinus = "minus"
     show SSFHalf  = "half"
@@ -50,6 +52,7 @@ instance Makeable SSFLibraryBuilt where
         | x == "ss"    = pure SSFSS
         | otherwise    = fail $ "library_built is set to " ++ show x ++ ". " ++
                                 "That is not in [ds, ss]."
+instance Suspicious SSFLibraryBuilt where inspect _ = pure ()
 instance Show SSFLibraryBuilt where
     show SSFDS = "ds"
     show SSFSS = "ss"
@@ -68,6 +71,7 @@ instance Makeable SSFAccessionIDSample where
             i@(INSDCSample _) -> return $ SSFAccessionIDSample i
             --i@(OtherID _) -> return $ SSFAccessionIDSample i
             i -> fail $ "sample_accession " ++ show i ++ " is not a correct biosample/sample accession."
+instance Suspicious SSFAccessionIDSample where inspect _ = pure ()
 instance Show SSFAccessionIDSample where
     show (SSFAccessionIDSample x) = show x
 instance Csv.ToField SSFAccessionIDSample where   toField x  = Csv.toField $ show x
@@ -85,6 +89,7 @@ instance Makeable SSFAccessionIDStudy where
             i@(INSDCStudy _) -> return $ SSFAccessionIDStudy i
             --i@(OtherID _) -> return $ SSFAccessionIDStudy i
             i -> fail $ "study_accession " ++ show i ++ " is not a correct project/study accession."
+instance Suspicious SSFAccessionIDStudy where inspect _ = pure ()
 instance Show SSFAccessionIDStudy where
     show (SSFAccessionIDStudy x) = show x
 instance Csv.ToField SSFAccessionIDStudy where   toField x  = Csv.toField $ show x
@@ -101,6 +106,7 @@ instance Makeable SSFAccessionIDRun where
             i@(INSDCRun _) -> return $ SSFAccessionIDRun i
             --i@(OtherID _) -> return $ SSFAccessionIDRun i
             i -> fail $ "run_accession " ++ show i ++ " is not a correct run accession."
+instance Suspicious SSFAccessionIDRun where inspect _ = pure ()
 instance Show SSFAccessionIDRun where
     show (SSFAccessionIDRun x) = show x
 instance Csv.ToField SSFAccessionIDRun where   toField x  = Csv.toField $ show x
@@ -124,6 +130,7 @@ instance Makeable SSFFirstPublicSimpleDate where
             Nothing -> fail $ "first_public date " ++ T.unpack x ++
                               " is not a correct date in the format YYYY-MM-DD."
             Just d  -> pure (SSFFirstPublicSimpleDate d)
+instance Suspicious SSFFirstPublicSimpleDate where inspect _ = pure ()
 instance Show SSFFirstPublicSimpleDate where
     show (SSFFirstPublicSimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
 instance Csv.ToField SSFFirstPublicSimpleDate where
@@ -141,6 +148,7 @@ instance Makeable SSFLastUpdatedSimpleDate where
             Nothing -> fail $ "last_updated date " ++ T.unpack x ++
                               " is not a correct date in the format YYYY-MM-DD."
             Just d  -> pure (SSFLastUpdatedSimpleDate d)
+instance Suspicious SSFLastUpdatedSimpleDate where inspect _ = pure ()
 instance Show SSFLastUpdatedSimpleDate where
     show (SSFLastUpdatedSimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
 instance Csv.ToField SSFLastUpdatedSimpleDate where
@@ -181,6 +189,7 @@ instance Makeable SSFFastqFTPURI where
         | isURIReference (T.unpack x) = pure $ SSFFastqFTPURI x
         | otherwise                   = fail $ "fastq_ftp entry " ++ show x ++
                                                " is not a well-structured URI."
+instance Suspicious SSFFastqFTPURI where inspect _ = pure ()
 instance Show SSFFastqFTPURI where show (SSFFastqFTPURI x) = T.unpack x
 instance Csv.ToField SSFFastqFTPURI where toField x = Csv.toField $ show x
 instance Csv.FromField SSFFastqFTPURI where parseField = parseTypeCSV "fastq_ftp"
@@ -194,6 +203,7 @@ instance Makeable SSFFastqASPERAURI where
         | isURIReference (T.unpack x) = pure $ SSFFastqASPERAURI x
         | otherwise                   = fail $ "fastq_aspera entry " ++ show x ++
                                                " is not a well-structured URI."
+instance Suspicious SSFFastqASPERAURI where inspect _ = pure ()
 instance Show SSFFastqASPERAURI where show (SSFFastqASPERAURI x) = T.unpack x
 instance Csv.ToField SSFFastqASPERAURI where toField x = Csv.toField $ show x
 instance Csv.FromField SSFFastqASPERAURI where parseField = parseTypeCSV "fastq_aspera"
@@ -207,6 +217,7 @@ instance Makeable SSFFastqBytes where
             Left e -> fail $ "fastq_bytes can not be converted to Integer because " ++ e
             Right (num, "") -> pure $ SSFFastqBytes num
             Right (_, rest) -> fail $ "fastq_bytes can not be converted to Integer, because of a trailing " ++ show rest
+instance Suspicious SSFFastqBytes where inspect _ = pure ()
 instance Show SSFFastqBytes where          show (SSFFastqBytes x) = show x
 instance Csv.ToField SSFFastqBytes where   toField (SSFFastqBytes x) = Csv.toField x
 instance Csv.FromField SSFFastqBytes where parseField = parseTypeCSV "fastq_bytes"
@@ -221,6 +232,7 @@ instance Makeable SSFFastqMD5 where
                                " does not contain a well-structured MD5 hash"
 isMD5Hash :: T.Text -> Bool
 isMD5Hash x = T.length x == 32 && T.all isHexDigit x
+instance Suspicious SSFFastqMD5 where inspect _ = pure ()
 instance Show SSFFastqMD5 where show (SSFFastqMD5 x) = T.unpack x
 instance Csv.ToField SSFFastqMD5 where   toField x = Csv.toField $ show x
 instance Csv.FromField SSFFastqMD5 where parseField = parseTypeCSV "fastq_md5"
@@ -235,7 +247,8 @@ instance Makeable SSFReadCount where
             Right (num, "") -> pure $ SSFReadCount num
             Right (_, rest) -> fail $ "read_count can not be converted to Integer, because of a trailing " ++ show rest
 instance Suspicious SSFReadCount where
-    inspect (SSFReadCount x) | x < 0 = putStrLn "Fishy! Fishy! Fishy!"
+    inspect (SSFReadCount x) | x < 0 = logWarning "Fishy! Fishy! Fishy!"
+                             | otherwise = pure ()
 instance Show SSFReadCount where          show (SSFReadCount x) = show x
 instance Csv.ToField SSFReadCount where   toField (SSFReadCount x) = Csv.toField x
 instance Csv.FromField SSFReadCount where parseField = parseTypeCSV "read_count"
@@ -249,6 +262,7 @@ instance Makeable SSFSubmittedFTPURI where
         | isURIReference (T.unpack x) = pure $ SSFSubmittedFTPURI x
         | otherwise                   = fail $ "submitted_ftp entry " ++ show x ++
                                                " is not a well-structured URI."
+instance Suspicious SSFSubmittedFTPURI where inspect _ = pure ()
 instance Show SSFSubmittedFTPURI where show (SSFSubmittedFTPURI x) = T.unpack x
 instance Csv.ToField SSFSubmittedFTPURI where toField x = Csv.toField $ show x
 instance Csv.FromField SSFSubmittedFTPURI where parseField = parseTypeCSV "submitted_ftp"
