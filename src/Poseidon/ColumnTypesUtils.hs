@@ -3,7 +3,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE TypeOperators     #-}
+
 module Poseidon.ColumnTypesUtils where
+import Poseidon.Utils (PoseidonIO)
 
 import           Data.ByteString       as S
 import qualified Data.ByteString.Char8 as Bchs
@@ -14,16 +21,51 @@ import qualified Data.List             as L
 import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Data.Typeable         (Typeable)
-import           GHC.Generics          (Generic)
+import           GHC.Generics          as G
 import           Language.Haskell.TH   (Con (..), Dec (..), DecsQ, Info (..),
                                         Name, conE, conP, conT, mkName, reify,
                                         varE, varP)
 import qualified Text.Parsec           as P
 import qualified Text.Parsec.String    as P
 
+import           Generics.SOP              (All, Generic (Code, from),
+                                            HCollapse (hcollapse),
+                                            HPure (hpure), I (..), K (K), NP,
+                                            Proxy (..), SListI, hctraverse_, hzipWith,
+                                            unI, unSOP, unZ)
+
 -- a typeclass for types with smart constructors
 class Makeable a where
     make :: MonadFail m => T.Text -> m a
+
+-- a typeclass for .csv/.tsv column types that may require a logged warning when read
+class Suspicious a where
+    inspect :: a -> IO ()
+instance Suspicious (Maybe a) where
+    inspect Nothing = putStrLn "huhu"
+    inspect (Just _) = pure ()
+instance Suspicious CsvNamedRecord where
+    inspect _ = pure ()
+
+inspectEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All Suspicious xs) => a -> IO () --'
+inspectEachField =
+    hctraverse_ (Proxy :: Proxy Suspicious) (\(I x) -> inspect x)
+  . unZ . unSOP . Generics.SOP.from
+
+
+-- getRatiosForEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All PresenceCountable xs) => [a] -> [Ratio Int] --'
+-- getRatiosForEachField =
+--     hcollapse
+--   . hcmap (Proxy :: Proxy PresenceCountable) (K . measureFillState)
+--   . hunzip
+--   . map (unZ . unSOP . from)
+-- hunzip :: SListI xs => [NP I xs] -> NP [] xs
+-- hunzip = foldr (hzipWith ((:) . unI)) (hpure [])
+-- measureFillState :: PresenceCountable a => [a] -> Ratio Int
+-- measureFillState vals =
+--     let nrValues = length vals
+--         nrFilledValues = sum $ map countPresence vals
+--     in nrFilledValues % nrValues
 
 -- helper functions
 parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => String -> S.ByteString -> m a
@@ -57,7 +99,7 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A datatype to collect additional, unpecified .csv/.tsv file columns (a hashmap in cassava/Data.Csv)
-newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
+newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, G.Generic)
 
 getCsvNR :: CsvNamedRecord -> Csv.NamedRecord
 getCsvNR (CsvNamedRecord x) = x
@@ -85,7 +127,7 @@ explicitNA = HM.map (\x -> if Bchs.null x then "n/a" else x)
 
 -- | A general datatype for janno list columns
 newtype ListColumn a = ListColumn {getListColumn :: [a]}
-    deriving (Eq, Ord, Generic, Show)
+    deriving (Eq, Ord, G.Generic, Show)
 
 getMaybeListColumn :: Maybe (ListColumn a) -> [a]
 getMaybeListColumn Nothing  = []

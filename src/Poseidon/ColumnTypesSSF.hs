@@ -234,6 +234,8 @@ instance Makeable SSFReadCount where
             Left e -> fail $ "read_count can not be converted to Integer because " ++ e
             Right (num, "") -> pure $ SSFReadCount num
             Right (_, rest) -> fail $ "read_count can not be converted to Integer, because of a trailing " ++ show rest
+instance Suspicious SSFReadCount where
+    inspect (SSFReadCount x) | x < 0 = putStrLn "Fishy! Fishy! Fishy!"
 instance Show SSFReadCount where          show (SSFReadCount x) = show x
 instance Csv.ToField SSFReadCount where   toField (SSFReadCount x) = Csv.toField x
 instance Csv.FromField SSFReadCount where parseField = parseTypeCSV "read_count"

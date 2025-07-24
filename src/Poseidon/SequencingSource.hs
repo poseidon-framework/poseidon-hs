@@ -1,6 +1,10 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- the following three are necessary for deriveGeneric
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Poseidon.SequencingSource where
 
@@ -22,6 +26,7 @@ import           Data.Maybe                 (isJust, mapMaybe)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
+import           Generics.SOP.TH                      (deriveGeneric)
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
@@ -77,6 +82,9 @@ data SeqSourceRow = SeqSourceRow
     , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
+
+-- deriving with TemplateHaskell necessary for the generics magic
+deriveGeneric ''SeqSourceRow
 
 -- This header also defines the output column order when writing to csv!
 seqSourceHeader :: [Bchs.ByteString]
@@ -222,6 +230,7 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
         Right seqSourceRow -> do
+            liftIO $ inspectEachField seqSourceRow
             return $ Right seqSourceRow
 
 -- Global SSF consistency checks

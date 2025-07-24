@@ -124,6 +124,9 @@ data JannoRow = JannoRow
     }
     deriving (Show, Eq, Generic)
 
+-- deriving with TemplateHaskell necessary for the generics magic in the Survey module
+deriveGeneric ''JannoRow
+
 -- This header also defines the output column order when writing to csv!
 jannoHeader :: [Bchs.ByteString]
 jannoHeader = [
@@ -514,9 +517,6 @@ checkRelationColsConsistent x =
         False -> E.throwError "Relation_To, Relation_Degree and Relation_Type \
                       \do not have the same lengths. Relation_Type can be empty"
         True  -> return x
-
--- deriving with TemplateHaskell necessary for the generics magic in the Survey module
-deriveGeneric ''JannoRow
 
 -- | a convenience function to construct Eigenstrat Ind entries out of jannoRows
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
