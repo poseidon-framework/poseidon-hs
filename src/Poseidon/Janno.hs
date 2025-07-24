@@ -38,7 +38,7 @@ import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        transpose, (\\))
-import           Data.Maybe                           (fromJust)
+import           Data.Maybe                           (fromJust, catMaybes)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
@@ -46,6 +46,7 @@ import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..))
 import qualified Text.Parsec                          as P
+import qualified Control.Monad as OP
 
 -- | A  data type to represent a janno file
 newtype JannoRows = JannoRows {getJannoRows :: [JannoRow]}
@@ -420,14 +421,21 @@ readJannoFileRow jannoPath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
         Right jannoRow -> do
+            -- cell-wise checks
+            let inspectRes = concat $ catMaybes $ inspectEachField jannoRow
+            OP.unless (null inspectRes) $ do
+                logWarning $ "Value anomaly in " ++ jannoPath ++ " in line " ++ renderLocation ++ ": "
+                mapM_ logWarning inspectRes
+            -- cross-column checks
             let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
             mapM_ (logWarning . renderWarning) warnings
+             -- return result
             case errOrJannoRow of
                 Left e  -> return $ Left $ PoseidonFileRowException jannoPath renderLocation e
                 Right r -> return $ Right r
             where
                 renderWarning :: String -> String
-                renderWarning e = "Issue in " ++ jannoPath ++ " " ++
+                renderWarning e = "Cross-column anomaly in " ++ jannoPath ++ " " ++
                                   "in line " ++ renderLocation ++ ": " ++ e
                 renderLocation :: String
                 renderLocation =  show lineNumber ++

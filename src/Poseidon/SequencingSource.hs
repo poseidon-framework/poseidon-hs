@@ -231,11 +231,19 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
         Right seqSourceRow -> do
+            -- cell-wise checks
             let inspectRes = concat $ catMaybes $ inspectEachField seqSourceRow
             OP.unless (null inspectRes) $ do
-                logWarning $ "Anomalies in row " ++ show lineNumber ++ " in " ++ seqSourcePath ++ ": "
+                logWarning $ "Value anomaly in " ++ seqSourcePath ++ " in line " ++ renderLocation ++ ": "
                 mapM_ logWarning inspectRes
+            -- return result
             return $ Right seqSourceRow
+            where
+                renderWarning :: String -> String
+                renderWarning e = "Cross-column anomaly in " ++ seqSourcePath ++ " " ++
+                                  "in line " ++ renderLocation ++ ": " ++ e
+                renderLocation :: String
+                renderLocation =  show lineNumber
 
 -- Global SSF consistency checks
 
