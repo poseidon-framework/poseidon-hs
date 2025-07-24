@@ -31,7 +31,7 @@ import qualified Text.Parsec.String    as P
 import           Generics.SOP              (All, Generic (Code, from),
                                             HCollapse (hcollapse),
                                             HPure (hpure), I (..), K (K), NP,
-                                            Proxy (..), SListI, hctraverse_, hzipWith,
+                                            Proxy (..), SListI, hcmap, hzipWith,
                                             unI, unSOP, unZ)
 
 -- a typeclass for types with smart constructors
@@ -40,22 +40,24 @@ class Makeable a where
 
 -- a typeclass for .csv/.tsv column types that may require a logged warning when read
 class Suspicious a where
-    inspect :: a -> PoseidonIO ()
+    inspect :: a -> Maybe [String]
 
 instance Suspicious String where
-    inspect _ = pure ()
+    inspect _ = Nothing
 instance Suspicious a => Suspicious (Maybe a) where
-    inspect Nothing = pure ()
+    inspect Nothing = Nothing
     inspect (Just x) = inspect x
 instance Suspicious a => Suspicious (ListColumn a) where
-    inspect (ListColumn xs) = mapM_ inspect xs
+    inspect (ListColumn xs) = L.concat <$> mapM inspect xs
 instance Suspicious CsvNamedRecord where
-    inspect _ = pure ()
+    inspect _ =  Nothing
 
-inspectEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All Suspicious xs) => a -> PoseidonIO () --'
+-- generics-sop magic to inspect all fields of a JannoRow or SeqSourceRow with one command
+inspectEachField :: (Generics.SOP.Generic a, Code a ~ '[ xs ], All Suspicious xs) => a -> [Maybe [String]] --'
 inspectEachField =
-    hctraverse_ (Proxy :: Proxy Suspicious) (\(I x) -> inspect x)
-  . unZ . unSOP . Generics.SOP.from
+      hcollapse
+    . hcmap (Proxy :: Proxy Suspicious) (\(I x) -> K $ inspect x)
+    . unZ . unSOP . Generics.SOP.from
 
 -- helper functions
 parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => String -> S.ByteString -> m a
@@ -70,7 +72,7 @@ makeInstances name col = do
     let x = mkName "x"
     [d|
       instance Makeable $(conT name) where      make txt = return $ $(conE conName) txt
-      instance Suspicious $(conT name) where    inspect _ = pure ()
+      instance Suspicious $(conT name) where    inspect _ = Nothing
       instance Show $(conT name) where          show $(conP conName [varP x]) = T.unpack $(varE x)
       instance Csv.ToField $(conT name) where   toField $(conP conName [varP x]) = Csv.toField $(varE x)
       instance Csv.FromField $(conT name) where parseField = parseTypeCSV col

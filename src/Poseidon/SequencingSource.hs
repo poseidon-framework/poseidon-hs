@@ -22,11 +22,12 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
-import           Data.Maybe                 (isJust, mapMaybe)
+import           Data.Maybe                 (isJust, mapMaybe, catMaybes)
 import qualified Data.Vector                as V
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
 import           Generics.SOP.TH                      (deriveGeneric)
+import qualified Control.Monad as OP
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
@@ -230,7 +231,10 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
         Right seqSourceRow -> do
-            inspectEachField seqSourceRow
+            let inspectRes = concat $ catMaybes $ inspectEachField seqSourceRow
+            OP.unless (null inspectRes) $ do
+                logWarning $ "Anomalies in row " ++ show lineNumber ++ " in " ++ seqSourcePath ++ ": "
+                mapM_ logWarning inspectRes
             return $ Right seqSourceRow
 
 -- Global SSF consistency checks
