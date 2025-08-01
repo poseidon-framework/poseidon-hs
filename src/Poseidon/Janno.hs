@@ -350,8 +350,8 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
             Bch.writeFile path (jannoConcat <> "\n")
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> PoseidonIO JannoRows
-readJannoFile jannoPath = do
+readJannoFile :: Version -> FilePath -> PoseidonIO JannoRows
+readJannoFile poseidonVersion jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
