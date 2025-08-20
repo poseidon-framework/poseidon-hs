@@ -1,6 +1,10 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- the following ones are necessary for the generics-sop magic (deriveGeneric)
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Poseidon.SequencingSource where
 
@@ -10,6 +14,7 @@ import           Poseidon.Utils
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
+import qualified Control.Monad              as OP
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
@@ -18,8 +23,9 @@ import qualified Data.Csv                   as Csv
 import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
-import           Data.Maybe                 (isJust, mapMaybe)
+import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import qualified Data.Vector                as V
+import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
 
@@ -77,6 +83,9 @@ data SeqSourceRow = SeqSourceRow
     , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
+
+-- deriving with TemplateHaskell necessary for the generics magic
+deriveGeneric ''SeqSourceRow
 
 -- This header also defines the output column order when writing to csv!
 seqSourceHeader :: [Bchs.ByteString]
@@ -222,7 +231,16 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException seqSourcePath (show lineNumber) betterError
         Right seqSourceRow -> do
+            -- cell-wise checks
+            let inspectRes = concat $ catMaybes $ inspectEachField seqSourceRow
+            OP.unless (null inspectRes) $ do
+                logWarning $ "Value anomaly in " ++ seqSourcePath ++ " in line " ++ renderLocation ++ ": "
+                mapM_ logWarning inspectRes
+            -- return result
             return $ Right seqSourceRow
+            where
+                renderLocation :: String
+                renderLocation =  show lineNumber
 
 -- Global SSF consistency checks
 

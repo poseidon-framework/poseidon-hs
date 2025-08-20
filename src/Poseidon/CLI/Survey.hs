@@ -1,8 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+-- the following ones are necessary for the generics-sop magic
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Poseidon.CLI.Survey where
