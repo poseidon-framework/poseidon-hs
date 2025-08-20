@@ -66,6 +66,7 @@ import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                notFound, queryParamMaybe, raw,
                                                redirect, request, scottyApp,
                                                setHeader, text)
+import Network.URI (query)
 
 data ServeOptions = ServeOptions
     { cliArchiveConfig   :: Either ArchiveConfig FilePath
@@ -73,6 +74,7 @@ data ServeOptions = ServeOptions
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
+    , cliRetiredPackages :: [PacNameAndVersion]
     }
     deriving (Show)
 
@@ -135,7 +137,7 @@ runServerMainThread opts = do
     runServer opts dummy
 
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
-runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
+runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles retiredPacs) serverReady = do
     let archiveZip = isJust maybeZipPath
         pacReadOpts = defaultPackageReadOptions {
               _readOptIgnoreChecksums  = ignoreChecksums
@@ -171,21 +173,21 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
-            pacs <- getItemFromArchiveStore archiveStore
+            pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             pacInfos <- packagesToPackageInfos False pacs
             let retData = ApiReturnPackageInfo pacInfos
             return $ ServerApiReturnType [] (Just retData)
 
         get "/groups" . conditionOnClientVersion $ do
             logRequest logA
-            pacs <- getItemFromArchiveStore archiveStore
+            pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             groupInfos <- getAllGroupInfo pacs
             let retData = ApiReturnGroupInfo groupInfos
             return $ ServerApiReturnType [] (Just retData)
 
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
-            pacs <- getItemFromArchiveStore archiveStore
+            pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             maybeAdditionalColumnsString <- queryParamMaybe "additionalJannoColumns"
             indInfo <- case maybeAdditionalColumnsString of
                     Just "ALL" -> getExtendedIndividualInfo pacs AddColAll -- Nothing means all Janno Columns
@@ -198,7 +200,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
-            pacs <- getItemFromArchiveStore archiveStore
+            pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             maybeAdditionalBibFieldsString <- queryParamMaybe "additionalBibColumns"
             bibInfo <- case maybeAdditionalBibFieldsString of
                     Just "ALL" -> getBibliographyInfo pacs AddColAll -- Nothing means all Janno Columns
@@ -212,6 +214,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
         -- API for retreiving package zip files
         when archiveZip . get "/zip_file/:package_name" $ do
             logRequest logA
+            -- here we do not filter on retired. Requested packages are always served.
             zipStore <- getItemFromArchiveStore zipArchiveStore
             packageName <- captureParam "package_name"
             maybeVersionString <- queryParamMaybe "package_version"
@@ -257,13 +260,14 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             spec <- getArchiveSpecByName archiveName archiveStore
             let maybeArchiveDataURL = _archSpecDataURL spec
                 excludeFromMap = _archSpecExcludePacsFromMap spec
-            latestPacs <- selectLatest <$> getArchiveContentByName archiveName archiveStore
+            latestPacs <- selectLatest <$> (getArchiveContentByName archiveName archiveStore >>= filterRetired retiredPacs)
             let packagesToMap = excludePackagesByName excludeFromMap latestPacs
                 nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
                 mapMarkers = concatMap (prepMappable archiveName) packagesToMap
             archivePage archiveName maybeArchiveDataURL archiveZip excludeFromMap nrSamplesToMap mapMarkers latestPacs
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
+            -- we do not filter by retired. A requested package is always shown, even if it is retired.
             archive_name <- captureParam "archive_name"
             package_name <- captureParam "package_name"
             redirect ("/explorer/" <> archive_name <> "/" <> package_name <> "/latest")
@@ -514,3 +518,12 @@ getItemFromArchiveStore store = do
     case maybeArchiveName of
         Nothing   -> return . snd . head $ store
         Just name -> getArchiveContentByName name store
+
+filterRetired :: [PacNameAndVersion] -> [PoseidonPackage] -> ActionM [PoseidonPackage]
+filterRetired retiredPacs pacs = do
+    includeRetired <- queryParamMaybe "includeRetired" :: ActionM (Maybe String)
+    if isJust includeRetired
+    then return pacs
+    else do
+        let retiredNames = map getPacName retiredPacs
+        return $ filter (\pac -> getPacName pac `notElem` retiredNames) pacs
