@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.7.2
+@version 1.6.7.3
 
 module Poseidon.AccessionIDs
 
