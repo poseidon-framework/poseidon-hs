@@ -1,3 +1,19 @@
+### V 1.6.7.3
+
+This is a minor release with few changes in the behaviour of trident. It mainly includes internal alterations that allow for better error reporting. On the user side there are three notable changes:
+
+#### Better reporting of parsing errors for .ssf files
+
+Every .ssf file column is now represented by its own data type, as it already has been the case for .janno columns. This allows for more precise reporting of issues. trident now points exactly to the broken column in case something is off.
+
+#### More extensive warning mechanism for .janno and .ssf entries
+
+We introduced a mechanism to not only report outright parsing failures on a per-column basis for .janno and .ssf files, but also minor deviations that make a given value not per-se wrong, but suspicious. These are now reported as warnings, while the respective Poseidon package is still read. The initial set of such checks in this release is small, but it is now easy to add more in the future.
+
+#### Loosened requirements on accession ID columns in .ssf file
+
+This release finally does away with the hard requirements on `sample_accession`, `study_accession`, and `run_accession` in the .ssf file reading process. These requirements were based on a particularly strict reading of the Poseidon schema. Now unexpected accession IDs only raise a warning.
+
 ### V 1.6.7.1
 
 This release finally brings two long-anticipated features: VCF writing support and an html API for `serve`. It also includes some minor bugfixes.
