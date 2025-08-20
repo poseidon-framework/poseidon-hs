@@ -1,3 +1,7 @@
+- V 1.6.7.3:
+    - Introduced a typeclass `Suspicious` for column types for which throwing warnings should be possible with an `inspect` function.
+    - Added a mechanism to `inspect` all columns of .janno and .ssf files upon reading and report anything suspicious.
+    - Removed hard requirements on `sample_accession`, `study_accession`, and `run_accession` in the .ssf reading process. Unexpected accession IDs now only raise a warning (through the `Suspicious` system described above).
 - V 1.6.7.2:
     - Introduced column-wise types for .ssf-files for more precise error messages in reading/validation.
     - Added a special module AccessionIDs for the AccessionID type.
