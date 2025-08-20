@@ -7,8 +7,8 @@ import           Poseidon.EntityTypes         (EntityInput (..),
                                                HasNameAndVersion (..),
                                                PacNameAndVersion,
                                                PoseidonEntity (..),
-                                               renderNameWithVersion,
-                                               readEntityInputs)
+                                               readEntityInputs,
+                                               renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
 import           Poseidon.Janno               (JannoRow (..), getJannoRows)
@@ -27,15 +27,16 @@ import           Poseidon.ServerClient        (AddColSpec (..),
                                                ServerApiReturnType (..))
 import           Poseidon.ServerHTML
 import           Poseidon.ServerStylesheet    (stylesBS)
-import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
-                                               logDebug, logInfo, logWithEnv, logError,
-                                               PoseidonException (..))
+import           Poseidon.Utils               (LogA, PoseidonException (..),
+                                               PoseidonIO, envLogAction,
+                                               logDebug, logError, logInfo,
+                                               logWithEnv)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Exception                  (throwIO)
+import           Control.Exception            (throwIO)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy         as B
@@ -165,8 +166,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 _     -> do
                     logError "Retired packages must be Poseidon packages (with or without version)"
                     liftIO . throwIO $ PoseidonGenericException "Retired packages must be Poseidon packages (with or without version)"
-                
-                
+
+
 
     logInfo "Server starting up. Loading packages..."
     archiveStore <- case archBaseDirs of

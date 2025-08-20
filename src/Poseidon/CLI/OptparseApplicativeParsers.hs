@@ -16,8 +16,8 @@ import           Poseidon.CLI.Validate      (ValidatePlan (..))
 import           Poseidon.Contributor       (ContributorSpec (..),
                                              contributorSpecParser)
 import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
-                                             PoseidonEntity, SignedEntitiesList,
-                                             SignedEntity, EntitySpec,
+                                             EntitySpec, PoseidonEntity,
+                                             SignedEntitiesList, SignedEntity,
                                              readEntitiesFromString)
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
