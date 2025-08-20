@@ -168,7 +168,6 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                     liftIO . throwIO $ PoseidonGenericException "Retired packages must be Poseidon packages (with or without version)"
 
 
-
     logInfo "Server starting up. Loading packages..."
     archiveStore <- case archBaseDirs of
         Left archiveConfig -> readArchiveStore archiveConfig pacReadOpts
