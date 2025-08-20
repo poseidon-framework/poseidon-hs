@@ -297,7 +297,7 @@ parseRetiredPackageEntityInputs = OP.many parseRetiredPackageEntityInput
         OP.long "retiredFile" <>
         OP.metavar "FILE" <>
         OP.help "A file with a list of retired packages. \
-            \Works just as -f for packages, with or withou version. \
+            \Works just as -f for packages, with or without version. \
             \Packages can be separated by comma or newline."
         )
     parseRetiredPackageEntitiesDirect = OP.option (OP.eitherReader readEntities) (
