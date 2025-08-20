@@ -267,6 +267,7 @@ serveOptParser = ServeOptions <$> parseArchiveConfig
                               <*> parsePort
                               <*> parseIgnoreChecksums
                               <*> parseMaybeCertFiles
+                              <*> parseRetiredPackageEntityInputs
 
 jannocoalesceOptParser :: OP.Parser JannoCoalesceOptions
 jannocoalesceOptParser = JannoCoalesceOptions <$> parseJannocoalSourceSpec

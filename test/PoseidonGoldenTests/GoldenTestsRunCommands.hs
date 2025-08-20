@@ -1245,7 +1245,7 @@ archives = Left $ ArchiveConfig [
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-    let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing
+    let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing []
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
     -- this will start the server on another thread
@@ -1337,7 +1337,7 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = ServeOptions archives Nothing 3001 True Nothing
+    let serverOpts = ServeOptions archives Nothing 3001 True Nothing []
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)

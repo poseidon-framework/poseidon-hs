@@ -17,7 +17,7 @@ import           Poseidon.Contributor       (ContributorSpec (..),
                                              contributorSpecParser)
 import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
                                              PoseidonEntity, SignedEntitiesList,
-                                             SignedEntity,
+                                             SignedEntity, EntitySpec,
                                              readEntitiesFromString)
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
@@ -289,6 +289,24 @@ parseFetchEntityInputs = parseDownloadAll <|> OP.some parseEntityInput
         )
     parseEntityInput = (EntitiesFromFile <$> parseFetchEntitiesFromFile) <|> (EntitiesDirect <$> parseFetchEntitiesDirect)
 
+parseRetiredPackageEntityInputs :: OP.Parser [EntityInput PoseidonEntity]
+parseRetiredPackageEntityInputs = OP.many parseRetiredPackageEntityInput
+  where
+    parseRetiredPackageEntityInput = (EntitiesFromFile <$> parseRetiredPackageEntitiesFromFile) <|> (EntitiesDirect <$> parseRetiredPackageEntitiesDirect)
+    parseRetiredPackageEntitiesFromFile = OP.strOption (
+        OP.long "retiredFile" <>
+        OP.metavar "FILE" <>
+        OP.help "A file with a list of retired packages. \
+            \Works just as -f for packages, with or withou version. \
+            \Packages can be separated by comma or newline."
+        )
+    parseRetiredPackageEntitiesDirect = OP.option (OP.eitherReader readEntities) (
+        OP.long "retiredPackage" <>
+        OP.metavar "DSL" <>
+        OP.help "List of retired packages, with or without version, comma-separated. Will be combined with the ones in the file given with --retiredFile. \
+            \Packages follow the syntax *package_title* or *package_title-version* (e.g. *my_package-1.2.3*). \
+            \You can combine multiple values with comma, so for example: \"*package_1*, *package_2-1.0*, *package_3*\"."
+        )
 
 parseIgnorePoseidonVersion :: OP.Parser Bool
 parseIgnorePoseidonVersion = OP.switch (
@@ -328,10 +346,11 @@ parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (
         \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
         \fetchString uses the same parser as forgeString, but does not allow excludes. If groups or individuals are \
         \specified, then packages which include these groups or individuals are included in the download.")
-  where
-    readEntities s = case readEntitiesFromString s of
-        Left e  -> Left $ renderPoseidonException e
-        Right e -> Right e
+
+readEntities :: EntitySpec a => String -> Either String [a]
+readEntities s = case readEntitiesFromString s of
+    Left e  -> Left $ renderPoseidonException e
+    Right e -> Right e
 
 parseForgeEntitiesFromFile :: OP.Parser FilePath
 parseForgeEntitiesFromFile = OP.strOption (

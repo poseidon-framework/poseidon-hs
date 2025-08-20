@@ -3,9 +3,12 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
-import           Poseidon.EntityTypes         (HasNameAndVersion (..),
+import           Poseidon.EntityTypes         (EntityInput (..),
+                                               HasNameAndVersion (..),
                                                PacNameAndVersion,
-                                               renderNameWithVersion)
+                                               PoseidonEntity (..),
+                                               renderNameWithVersion,
+                                               readEntityInputs)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
 import           Poseidon.Janno               (JannoRow (..), getJannoRows)
@@ -25,12 +28,14 @@ import           Poseidon.ServerClient        (AddColSpec (..),
 import           Poseidon.ServerHTML
 import           Poseidon.ServerStylesheet    (stylesBS)
 import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
-                                               logDebug, logInfo, logWithEnv)
+                                               logDebug, logInfo, logWithEnv, logError,
+                                               PoseidonException (..))
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
+import           Control.Exception                  (throwIO)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy         as B
@@ -66,7 +71,6 @@ import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                notFound, queryParamMaybe, raw,
                                                redirect, request, scottyApp,
                                                setHeader, text)
-import Network.URI (query)
 
 data ServeOptions = ServeOptions
     { cliArchiveConfig   :: Either ArchiveConfig FilePath
@@ -74,7 +78,16 @@ data ServeOptions = ServeOptions
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
-    , cliRetiredPackages :: [PacNameAndVersion]
+    , cliRetiredPackages :: [EntityInput PoseidonEntity]
+        -- this reuses the EntityInput type, but entities have to be packages, and this is checked.
+        -- package names with no version: all versions are retired.
+        -- with version: only this version is retired.
+        -- This is used to filter out retired packages from the API responses.
+        -- It is not used for the zip file API, which always serves the requested package.
+        -- It is not used for the HTML per-package page, which always shows the requested package.
+        -- It is used, however, for the Archive HTML page, which lists only non-retired packages.
+        -- all APIs, both HTML and JSON, read a parameter "includeRetired" to determine whether to include retired packages in the response.
+        -- If this parameter is not set, the default is to not include retired packages.
     }
     deriving (Show)
 
@@ -137,12 +150,23 @@ runServerMainThread opts = do
     runServer opts dummy
 
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
-runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles retiredPacs) serverReady = do
+runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles retiredPacInput) serverReady = do
     let archiveZip = isJust maybeZipPath
         pacReadOpts = defaultPackageReadOptions {
               _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = archiveZip
         }
+
+    retiredPacs <- do
+        ent <- readEntityInputs retiredPacInput
+        forM ent $ \e -> do
+            case e of
+                Pac p -> return p
+                _     -> do
+                    logError "Retired packages must be Poseidon packages (with or without version)"
+                    liftIO . throwIO $ PoseidonGenericException "Retired packages must be Poseidon packages (with or without version)"
+                
+                
 
     logInfo "Server starting up. Loading packages..."
     archiveStore <- case archBaseDirs of
