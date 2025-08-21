@@ -5,7 +5,7 @@ module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..), Arc
 
 import           Poseidon.EntityTypes         (EntityInput (..),
                                                HasNameAndVersion (..),
-                                               PacNameAndVersion,
+                                               PacNameAndVersion (PacNameAndVersion),
                                                PoseidonEntity (..),
                                                readEntityInputs,
                                                renderNameWithVersion)
@@ -549,5 +549,19 @@ filterRetired retiredPacs pacs = do
     if isJust includeRetired
     then return pacs
     else do
-        let retiredNames = map getPacName retiredPacs
-        return $ filter (\pac -> getPacName pac `notElem` retiredNames) pacs
+        -- Split retiredPacs into those with and without version
+        let retiredNameOnly = [name | PacNameAndVersion name Nothing <- retiredPacs]
+            retiredNameAndVersion = [(name, v) | PacNameAndVersion name (Just v) <- retiredPacs]
+        return $ do -- list monad to filter retired packages
+            pac <- pacs
+            let name = getPacName pac
+                maybeVersion = getPacVersion pac
+            if name `elem` retiredNameOnly
+                then [] -- all versions of this package are retired, so we skip it
+                else case maybeVersion of
+                    Nothing -> [pac] -- no version specified, so we keep the package as it is not retired
+                    Just version ->
+                        -- if a version is specified, we check if it is retired
+                        if (name, version) `elem` retiredNameAndVersion 
+                             then [] -- this specific version is retired, so we skip it
+                             else [pac] -- this package is not retired, so we keep it
