@@ -301,7 +301,7 @@ parseRetiredPackageEntityInputs = OP.many parseRetiredPackageEntityInput
             \Packages can be separated by comma or newline."
         )
     parseRetiredPackageEntitiesDirect = OP.option (OP.eitherReader readEntities) (
-        OP.long "retiredPackage" <>
+        OP.long "retiredPackages" <>
         OP.metavar "DSL" <>
         OP.help "List of retired packages, with or without version, comma-separated. Will be combined with the ones in the file given with --retiredFile. \
             \Packages follow the syntax *package_title* or *package_title-version* (e.g. *my_package-1.2.3*). \

@@ -274,7 +274,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 let n = _archSpecName spec
                     d = _archSpecDescription spec
                     u = _archSpecURL spec
-                pacs <- selectLatest <$> getArchiveContentByName n archiveStore
+                pacs <- getArchiveContentByName n archiveStore >>= filterRetired retiredPacs . selectLatest
                 return (n, d, u, pacs)
             mainPage pacsPerArchive
         -- archive pages
