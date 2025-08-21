@@ -562,6 +562,6 @@ filterRetired retiredPacs pacs = do
                     Nothing -> [pac] -- no version specified, so we keep the package as it is not retired
                     Just version ->
                         -- if a version is specified, we check if it is retired
-                        if (name, version) `elem` retiredNameAndVersion 
+                        if (name, version) `elem` retiredNameAndVersion
                              then [] -- this specific version is retired, so we skip it
                              else [pac] -- this package is not retired, so we keep it
