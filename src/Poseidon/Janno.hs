@@ -84,7 +84,7 @@ data JannoRow = JannoRow
     , jRelationDegree             :: Maybe (ListColumn JannoRelationDegree)
     , jRelationType               :: Maybe (ListColumn JannoRelationType)
     , jRelationNote               :: Maybe JannoRelationNote
-    , jCollectionID               :: Maybe JannoCollectionID
+    , jCollectionID               :: Maybe (ListColumn JannoCollectionID)
     , jCountry                    :: Maybe JannoCountry
     , jCountryISO                 :: Maybe JannoCountryISO
     , jLocation                   :: Maybe JannoLocation
