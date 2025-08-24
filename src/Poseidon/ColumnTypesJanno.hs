@@ -106,6 +106,10 @@ $(makeInstances ''JannoRelationNote "Relation_Note")
 newtype JannoCollectionID = JannoCollectionID T.Text deriving (Eq)
 $(makeInstances ''JannoCollectionID "Collection_ID")
 
+-- | A datatype for the Custodian_Institution .janno column
+newtype JannoCustodianInstitution = JannoCustodianInstitution T.Text deriving (Eq)
+$(makeInstances ''JannoCustodianInstitution "Custodian_Institution")
+
 -- | A datatype for the Country .janno column
 newtype JannoCountry = JannoCountry T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoCountry "Country")

@@ -85,6 +85,7 @@ data JannoRow = JannoRow
     , jRelationType               :: Maybe (ListColumn JannoRelationType)
     , jRelationNote               :: Maybe JannoRelationNote
     , jCollectionID               :: Maybe (ListColumn JannoCollectionID)
+    , jCustodianInstitution       :: Maybe (ListColumn JannoCustodianInstitution)
     , jCountry                    :: Maybe JannoCountry
     , jCountryISO                 :: Maybe JannoCountryISO
     , jLocation                   :: Maybe JannoLocation
@@ -138,7 +139,7 @@ jannoHeader = [
     , "Group_Name"
     , "Alternative_IDs"
     , "Relation_To", "Relation_Degree", "Relation_Type", "Relation_Note"
-    , "Collection_ID"
+    , "Collection_ID", "Custodian_Institution"
     , "Country", "Country_ISO"
     , "Location", "Site", "Latitude", "Longitude"
     , "Date_Type"
@@ -181,6 +182,7 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Relation_Type"
         <*> filterLookupOptional m "Relation_Note"
         <*> filterLookupOptional m "Collection_ID"
+        <*> filterLookupOptional m "Custodian_Institution"
         <*> filterLookupOptional m "Country"
         <*> filterLookupOptional m "Country_ISO"
         <*> filterLookupOptional m "Location"
@@ -234,6 +236,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Relation_Type"                   Csv..= jRelationType j
         , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
+        , "Custodian_Institution"           Csv..= jCustodianInstitution j
         , "Country"                         Csv..= jCountry j
         , "Country_ISO"                     Csv..= jCountryISO j
         , "Location"                        Csv..= jLocation j
@@ -293,6 +296,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jRelationType                 = Nothing
         , jRelationNote                 = Nothing
         , jCollectionID                 = Nothing
+        , jCustodianInstitution         = Nothing
         , jCountry                      = Nothing
         , jCountryISO                   = Nothing
         , jLocation                     = Nothing
