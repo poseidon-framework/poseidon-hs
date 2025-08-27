@@ -382,7 +382,7 @@ data JannoCaptureType =
     | ArborAncestralPlus
     | TwistAncientDNA
     | OtherCapture
-    | ReferenceGenome
+    | LegacyReferenceGenome -- was removed in Poseidon v3.0.0, kept here for compatibility
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoCaptureType where
@@ -394,12 +394,15 @@ instance Makeable JannoCaptureType where
         | x == "ArborAncestralPlus" = pure ArborAncestralPlus
         | x == "TwistAncientDNA"    = pure TwistAncientDNA
         | x == "OtherCapture"       = pure OtherCapture
-        | x == "ReferenceGenome"    = pure ReferenceGenome
+        | x == "ReferenceGenome"    = pure LegacyReferenceGenome
         | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
                              "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
-                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, \
-                             \ReferenceGenome]."
-instance Suspicious JannoCaptureType where inspect _ = Nothing
+                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture]."
+instance Suspicious JannoCaptureType where
+    inspect LegacyReferenceGenome =  Just ["Capture_Type is set to ReferenceGenome, which is not a \
+                                           \capture type. This value will be changed to n/a when a \
+                                           \new package is created."]
+    inspect _ = Nothing
 instance Show JannoCaptureType where
     show Shotgun            = "Shotgun"
     show A1240K             = "1240K"
@@ -408,7 +411,7 @@ instance Show JannoCaptureType where
     show ArborAncestralPlus = "ArborAncestralPlus"
     show TwistAncientDNA    = "TwistAncientDNA"
     show OtherCapture       = "OtherCapture"
-    show ReferenceGenome    = "ReferenceGenome"
+    show LegacyReferenceGenome = "n/a"
 instance Csv.ToField JannoCaptureType where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoCaptureType where parseField = parseTypeCSV "Capture_Type"
 
