@@ -110,6 +110,48 @@ $(makeInstances ''JannoCollectionID "Collection_ID")
 newtype JannoCustodianInstitution = JannoCustodianInstitution T.Text deriving (Eq)
 $(makeInstances ''JannoCustodianInstitution "Custodian_Institution")
 
+-- | A datatype for the Cultural_Era .janno column
+newtype JannoCulturalEra = JannoCulturalEra T.Text deriving (Eq)
+$(makeInstances ''JannoCulturalEra "Cultural_Era")
+
+-- | A datatype for the Cultural_Era_URL .janno column
+newtype JannoCulturalEraURL = JannoCulturalEraURL T.Text deriving (Eq, Ord, Generic)
+
+instance Makeable JannoCulturalEraURL where
+    make x
+        | isURIReference (T.unpack x) = pure $ JannoCulturalEraURL x
+        | otherwise                   = fail $ "Cultural_Era_URL " ++ show x ++ " is not a well structured URI."
+instance Suspicious JannoCulturalEraURL where
+    inspect (JannoCulturalEraURL x)
+        | T.isInfixOf "n2t.net/ark" x = Nothing
+        | T.isInfixOf "chronontology.dainst.org/period" x = Nothing
+        | otherwise = Just ["Archaeological_Culture_URL " ++ show x ++ " probably not a valid PeriodO \
+                            \or ChronOntology permalink."]
+instance Show JannoCulturalEraURL where          show (JannoCulturalEraURL x) = T.unpack x
+instance Csv.ToField JannoCulturalEraURL where   toField (JannoCulturalEraURL x) = Csv.toField x
+instance Csv.FromField JannoCulturalEraURL where parseField = parseTypeCSV "Cultural_Era_URL"
+
+-- | A datatype for the Archaeological_Culture .janno column
+newtype JannoArchaeologicalCulture = JannoArchaeologicalCulture T.Text deriving (Eq)
+$(makeInstances ''JannoArchaeologicalCulture "Archaeological_Culture")
+
+-- | A datatype for the Archaeological_Culture_URL .janno column
+newtype JannoArchaeologicalCultureURL = JannoArchaeologicalCultureURL T.Text deriving (Eq, Ord, Generic)
+
+instance Makeable JannoArchaeologicalCultureURL where
+    make x
+        | isURIReference (T.unpack x) = pure $ JannoArchaeologicalCultureURL x
+        | otherwise                   = fail $ "Archaeological_Culture_URL " ++ show x ++ " is not a well structured URI."
+instance Suspicious JannoArchaeologicalCultureURL where
+    inspect (JannoArchaeologicalCultureURL x)
+        | T.isInfixOf "n2t.net/ark" x = Nothing
+        | T.isInfixOf "chronontology.dainst.org/period" x = Nothing
+        | otherwise = Just ["Archaeological_Culture_URL " ++ show x ++ " probably not a valid PeriodO \
+                            \or ChronOntology permalink."]
+instance Show JannoArchaeologicalCultureURL where          show (JannoArchaeologicalCultureURL x) = T.unpack x
+instance Csv.ToField JannoArchaeologicalCultureURL where   toField (JannoArchaeologicalCultureURL x) = Csv.toField x
+instance Csv.FromField JannoArchaeologicalCultureURL where parseField = parseTypeCSV "Archaeological_Culture_URL"
+
 -- | A datatype for the Country .janno column
 newtype JannoCountry = JannoCountry T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoCountry "Country")

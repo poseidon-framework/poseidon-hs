@@ -86,6 +86,10 @@ data JannoRow = JannoRow
     , jRelationNote               :: Maybe JannoRelationNote
     , jCollectionID               :: Maybe (ListColumn JannoCollectionID)
     , jCustodianInstitution       :: Maybe (ListColumn JannoCustodianInstitution)
+    , jCulturalEra                :: Maybe (ListColumn JannoCulturalEra)
+    , jCulturalEraURL             :: Maybe (ListColumn JannoCulturalEraURL)
+    , jArchaeologicalCulture      :: Maybe (ListColumn JannoArchaeologicalCulture)
+    , jArchaeologicalCultureURL   :: Maybe (ListColumn JannoArchaeologicalCultureURL)
     , jCountry                    :: Maybe JannoCountry
     , jCountryISO                 :: Maybe JannoCountryISO
     , jLocation                   :: Maybe JannoLocation
@@ -140,6 +144,7 @@ jannoHeader = [
     , "Alternative_IDs"
     , "Relation_To", "Relation_Degree", "Relation_Type", "Relation_Note"
     , "Collection_ID", "Custodian_Institution"
+    , "Cultural_Era", "Cultural_Era_URL", "Archaeological_Culture", "Archaeological_Culture_URL"
     , "Country", "Country_ISO"
     , "Location", "Site", "Latitude", "Longitude"
     , "Date_Type"
@@ -183,6 +188,10 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Relation_Note"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Custodian_Institution"
+        <*> filterLookupOptional m "Cultural_Era"
+        <*> filterLookupOptional m "Cultural_Era_URL"
+        <*> filterLookupOptional m "Archaeological_Culture"
+        <*> filterLookupOptional m "Archaeological_Culture_URL"
         <*> filterLookupOptional m "Country"
         <*> filterLookupOptional m "Country_ISO"
         <*> filterLookupOptional m "Location"
@@ -237,6 +246,10 @@ instance Csv.ToNamedRecord JannoRow where
         , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Custodian_Institution"           Csv..= jCustodianInstitution j
+        , "Cultural_Era"                    Csv..= jCulturalEra j
+        , "Cultural_Era_URL"                Csv..= jCulturalEraURL j
+        , "Archaeological_Culture"          Csv..= jArchaeologicalCulture j
+        , "Archaeological_Culture_URL"      Csv..= jArchaeologicalCultureURL j
         , "Country"                         Csv..= jCountry j
         , "Country_ISO"                     Csv..= jCountryISO j
         , "Location"                        Csv..= jLocation j
@@ -297,6 +310,10 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jRelationNote                 = Nothing
         , jCollectionID                 = Nothing
         , jCustodianInstitution         = Nothing
+        , jCulturalEra                  = Nothing
+        , jCulturalEraURL               = Nothing
+        , jArchaeologicalCulture        = Nothing
+        , jArchaeologicalCultureURL     = Nothing
         , jCountry                      = Nothing
         , jCountryISO                   = Nothing
         , jLocation                     = Nothing
@@ -473,6 +490,8 @@ checkJannoRowConsistency x =
     >>= checkC14ColsConsistent
     >>= checkContamColsConsistent
     >>= checkRelationColsConsistent
+    >>= checkCulturalEraConsistent
+    >>= checkArchaeologicalCultureConsistent
 
 checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
 checkMandatoryStringNotEmpty x =
@@ -533,6 +552,24 @@ checkRelationColsConsistent x =
     in case allSameLength of
         False -> E.throwError "Relation_To, Relation_Degree and Relation_Type \
                       \do not have the same lengths. Relation_Type can be empty"
+        True  -> return x
+
+checkCulturalEraConsistent :: JannoRow -> JannoRowLog JannoRow
+checkCulturalEraConsistent x =
+    let lCulturalEra = getCellLength $ jCulturalEra x
+        lCulturalEraURL = getCellLength $ jCulturalEraURL x
+    in case allEqual [lCulturalEra, lCulturalEraURL] || lCulturalEraURL == 0 of
+        False -> E.throwError "Cultural_Era and Cultural_Era_URL \
+                      \do not have the same lengths. Cultural_Era_URL can be empty"
+        True  -> return x
+
+checkArchaeologicalCultureConsistent :: JannoRow -> JannoRowLog JannoRow
+checkArchaeologicalCultureConsistent x =
+    let lArchaeologicalCulture = getCellLength $ jArchaeologicalCulture x
+        lArchaeologicalCultureURL = getCellLength $ jArchaeologicalCultureURL x
+    in case allEqual [lArchaeologicalCulture, lArchaeologicalCultureURL] || lArchaeologicalCultureURL == 0 of
+        False -> E.throwError "Archaeological_Culture and Archaeological_Culture_URL \
+                      \do not have the same lengths. Archaeological_Culture_URL can be empty"
         True  -> return x
 
 -- | a convenience function to construct Eigenstrat Ind entries out of jannoRows
