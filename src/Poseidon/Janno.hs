@@ -104,6 +104,8 @@ data JannoRow = JannoRow
     , jDateBCADMedian             :: Maybe JannoDateBCADMedian
     , jDateBCADStop               :: Maybe JannoDateBCADStop
     , jDateNote                   :: Maybe JannoDateNote
+    , jChromosomalAnomalies       :: Maybe (ListColumn JannoChromosomalAnomalies)
+    , jChromosomalAnomaliesNote   :: Maybe (ListColumn JannoChromosomalAnomaliesNote)
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
     , jSourceTissue               :: Maybe (ListColumn JannoSourceTissue)
@@ -151,6 +153,7 @@ jannoHeader = [
     , "Date_C14_Labnr", "Date_C14_Uncal_BP", "Date_C14_Uncal_BP_Err"
     , "Date_BC_AD_Start", "Date_BC_AD_Median", "Date_BC_AD_Stop"
     , "Date_Note"
+    , "Chromosomal_Anomalies", "Chromosomal_Anomalies_Note"
     , "MT_Haplogroup", "Y_Haplogroup"
     , "Source_Tissue"
     , "Nr_Libraries", "Library_Names"
@@ -206,6 +209,8 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_BC_AD_Median"
         <*> filterLookupOptional m "Date_BC_AD_Stop"
         <*> filterLookupOptional m "Date_Note"
+        <*> filterLookupOptional m "Chromosomal_Anomalies"
+        <*> filterLookupOptional m "Chromosomal_Anomalies_Note"
         <*> filterLookupOptional m "MT_Haplogroup"
         <*> filterLookupOptional m "Y_Haplogroup"
         <*> filterLookupOptional m "Source_Tissue"
@@ -264,6 +269,8 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
         , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
         , "Date_Note"                       Csv..= jDateNote j
+        , "Chromosomal_Anomalies"           Csv..= jChromosomalAnomalies j
+        , "Chromosomal_Anomalies_Note"      Csv..= jChromosomalAnomaliesNote j
         , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
         , "Y_Haplogroup"                    Csv..= jYHaplogroup j
         , "Source_Tissue"                   Csv..= jSourceTissue j
@@ -328,6 +335,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateBCADMedian               = Nothing
         , jDateBCADStop                 = Nothing
         , jDateNote                     = Nothing
+        , jChromosomalAnomalies         = Nothing
+        , jChromosomalAnomaliesNote     = Nothing
         , jMTHaplogroup                 = Nothing
         , jYHaplogroup                  = Nothing
         , jSourceTissue                 = Nothing

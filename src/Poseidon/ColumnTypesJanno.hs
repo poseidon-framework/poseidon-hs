@@ -332,6 +332,14 @@ instance Csv.FromField JannoDateBCADStop where parseField = parseTypeCSV "Date_B
 newtype JannoDateNote = JannoDateNote T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoDateNote "Date_Note")
 
+-- | A datatype for the Chromosomal_Anomalies .janno column
+newtype JannoChromosomalAnomalies = JannoChromosomalAnomalies T.Text deriving (Eq)
+$(makeInstances ''JannoChromosomalAnomalies "Chromosomal_Anomalies")
+
+-- | A datatype for the Chromosomal_Anomalies_Note .janno column
+newtype JannoChromosomalAnomaliesNote = JannoChromosomalAnomaliesNote T.Text deriving (Eq)
+$(makeInstances ''JannoChromosomalAnomaliesNote "Chromosomal_Anomalies_Note")
+
 -- | A datatype for the MT_Haplogroup .janno column
 newtype JannoMTHaplogroup = JannoMTHaplogroup T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoMTHaplogroup "MT_Haplogroup")
