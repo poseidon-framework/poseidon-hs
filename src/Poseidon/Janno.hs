@@ -119,7 +119,7 @@ data JannoRow = JannoRow
     , jEndogenous                 :: Maybe JannoEndogenous
     , jNrSNPs                     :: Maybe JannoNrSNPs
     , jCoverageOnTargets          :: Maybe JannoCoverageOnTargets
-    , jDamage                     :: Maybe JannoDamage
+    , jDamage                     :: Maybe (ListColumn JannoDamage)
     , jContamination              :: Maybe (ListColumn JannoContamination)
     , jContaminationErr           :: Maybe (ListColumn JannoContaminationErr)
     , jContaminationMeas          :: Maybe (ListColumn JannoContaminationMeas)
