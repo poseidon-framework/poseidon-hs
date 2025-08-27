@@ -33,7 +33,8 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..), JannoDamage (..),
+                                             JannoEndogenous (..),
                                              JannoLibraryBuilt (..),
                                              JannoPublication (..),
                                              JannoUDG (..))
@@ -57,7 +58,9 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
                                              jannoHeaderString, readJannoFile)
-import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
+import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
+                                             isPoseidonVersionBelow,
+                                             latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
@@ -122,7 +125,7 @@ import           System.IO                  (IOMode (ReadMode), hGetContents,
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
-    { _posYamlPoseidonVersion     :: Version
+    { _posYamlPoseidonVersion     :: PoseidonVersion
     , _posYamlTitle               :: String
     , _posYamlDescription         :: Maybe String
     , _posYamlContributor         :: [ContributorSpec]
@@ -196,7 +199,7 @@ instance HasNameAndVersion PoseidonYamlStruct where
 data PoseidonPackage = PoseidonPackage
     { posPacBaseDir             :: FilePath
     -- ^ the base directory of the YAML file
-    , posPacPoseidonVersion     :: Version
+    , posPacPoseidonVersion     :: PoseidonVersion
     -- ^ the version of the package
     , posPacNameAndVersion      :: PacNameAndVersion
     -- ^ the title and version of the package
@@ -322,8 +325,20 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     -- report number of valid packages
     let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
+    -- apply adjustments to old package versions
+    finalPackageListMod <-
+        if any (isPoseidonVersionBelow [3,0,0] . posPacPoseidonVersion) finalPackageList
+        then do
+            logWarning "For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno \
+                       \columns Endogenous and Damage will be rescaled from percent (0-100) to \
+                       \fractions (0-1)."
+            forM finalPackageList $ \p -> do
+                if isPoseidonVersionBelow [3,0,0] $ posPacPoseidonVersion p
+                then return $ rescaleEndogenousAndDamage p
+                else return p
+        else return finalPackageList
     -- return package list
-    return (finalPackageList, skipIndicator)
+    return (finalPackageListMod, skipIndicator)
   where
     checkIfBaseDirExists :: FilePath -> PoseidonIO (Maybe FilePath)
     checkIfBaseDirExists p = do
@@ -363,6 +378,16 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     tryDecodePoseidonPackage (numberPackage, path) = do
         logDebug $ "Package " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
+    rescaleEndogenousAndDamage :: PoseidonPackage -> PoseidonPackage
+    rescaleEndogenousAndDamage p@PoseidonPackage {posPacJanno = janno} =
+        let modRows = map (\j -> j {jEndogenous = modEndogenous <$> jEndogenous j,
+                                    jDamage = modDamage <$> jDamage j}) $ getJannoRows janno
+        in p {posPacJanno = JannoRows modRows}
+        where
+            modEndogenous :: JannoEndogenous -> JannoEndogenous
+            modEndogenous (JannoEndogenous x) = JannoEndogenous $ x / 100
+            modDamage :: ListColumn JannoDamage -> ListColumn JannoDamage
+            modDamage (ListColumn xs) = ListColumn $ map (\(JannoDamage x) -> JannoDamage $ x / 100) xs
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
@@ -689,7 +714,7 @@ newMinimalPackageTemplate baseDir name gd = do
     reducedGD <- snd <$> reduceGenotypeFilepaths gd
     return $ PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
+    ,   posPacPoseidonVersion = latestPoseidonVersion
     ,   posPacNameAndVersion = PacNameAndVersion name Nothing
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
@@ -818,7 +843,7 @@ packagesToPackageInfos withBaseDir pacs = do
         return $ PackageInfo {
             pPac           = posPacNameAndVersion pac,
             pIsLatest      = isLatest,
-            pPosVersion    = posPacPoseidonVersion pac,
+            pPosVersion    = asVersion $ posPacPoseidonVersion pac,
             pDescription   = posPacDescription pac,
             pLastModified  = posPacLastModified pac,
             pNrIndividuals = (length . getJannoRowsFromPac) pac,

@@ -1,15 +1,16 @@
-module Poseidon.PoseidonVersion (
-    validPoseidonVersions,
-    showPoseidonVersion,
-    latestPoseidonVersion,
-    asVersion,
-    minimalRequiredClientVersion
-) where
+module Poseidon.PoseidonVersion where
 
+import           Data.Aeson   (FromJSON, ToJSON (..), parseJSON, toJSON)
 import           Data.Version (Version (..), makeVersion, showVersion)
 
 newtype PoseidonVersion = PoseidonVersion Version
     deriving (Show, Eq, Ord)
+
+instance FromJSON PoseidonVersion where parseJSON v = PoseidonVersion <$> parseJSON v
+instance ToJSON PoseidonVersion where toJSON (PoseidonVersion v) = toJSON v
+
+isPoseidonVersionBelow :: [Int] -> PoseidonVersion -> Bool
+isPoseidonVersionBelow v1 (PoseidonVersion v2) = v2 < makeVersion v1
 
 validPoseidonVersions :: [PoseidonVersion]
 validPoseidonVersions = map (PoseidonVersion . makeVersion) [[2,5,0], [2,6,0], [2,7,0], [2,7,1]]

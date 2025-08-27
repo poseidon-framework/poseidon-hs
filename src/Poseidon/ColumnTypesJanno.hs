@@ -400,17 +400,17 @@ instance Makeable JannoCaptureType where
                              \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture]."
 instance Suspicious JannoCaptureType where
     inspect LegacyReferenceGenome =  Just ["Capture_Type is set to ReferenceGenome, which is not a \
-                                           \capture type. This value will be changed to n/a when a \
-                                           \new package is created."]
+                                           \capture type. It was retired in Poseidon v3.0.0. \
+                                           \The value will be changed to n/a when a new package is created."]
     inspect _ = Nothing
 instance Show JannoCaptureType where
-    show Shotgun            = "Shotgun"
-    show A1240K             = "1240K"
-    show ArborComplete      = "ArborComplete"
-    show ArborPrimePlus     = "ArborPrimePlus"
-    show ArborAncestralPlus = "ArborAncestralPlus"
-    show TwistAncientDNA    = "TwistAncientDNA"
-    show OtherCapture       = "OtherCapture"
+    show Shotgun               = "Shotgun"
+    show A1240K                = "1240K"
+    show ArborComplete         = "ArborComplete"
+    show ArborPrimePlus        = "ArborPrimePlus"
+    show ArborAncestralPlus    = "ArborAncestralPlus"
+    show TwistAncientDNA       = "TwistAncientDNA"
+    show OtherCapture          = "OtherCapture"
     show LegacyReferenceGenome = "n/a"
 instance Csv.ToField JannoCaptureType where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoCaptureType where parseField = parseTypeCSV "Capture_Type"
