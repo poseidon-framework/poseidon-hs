@@ -105,7 +105,7 @@ data JannoRow = JannoRow
     , jDateBCADStop               :: Maybe JannoDateBCADStop
     , jDateNote                   :: Maybe JannoDateNote
     , jChromosomalAnomalies       :: Maybe (ListColumn JannoChromosomalAnomalies)
-    , jChromosomalAnomaliesNote   :: Maybe (ListColumn JannoChromosomalAnomaliesNote)
+    , jChromosomalAnomaliesNote   :: Maybe JannoChromosomalAnomaliesNote
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
     , jSourceMaterial             :: Maybe (ListColumn JannoSourceMaterial)
