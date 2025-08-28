@@ -276,3 +276,15 @@ instance Show SSFSubmittedFTPURI where show (SSFSubmittedFTPURI x) = T.unpack x
 instance Csv.ToField SSFSubmittedFTPURI where toField x = Csv.toField $ show x
 instance Csv.FromField SSFSubmittedFTPURI where parseField = parseTypeCSV "submitted_ftp"
 
+-- | A datatype for the submitted_md5 .ssf column
+newtype SSFSubmittedMD5 = SSFSubmittedMD5 T.Text deriving (Eq, Ord, Generic)
+
+instance Makeable SSFSubmittedMD5 where
+    make x
+        | isMD5Hash x = pure $ SSFSubmittedMD5 x
+        | otherwise   = fail $ "submitted_md5 " ++ show x ++
+                               " does not contain a well-structured MD5 hash"
+instance Suspicious SSFSubmittedMD5 where inspect _ = Nothing
+instance Show SSFSubmittedMD5 where show (SSFSubmittedMD5 x) = T.unpack x
+instance Csv.ToField SSFSubmittedMD5 where   toField x = Csv.toField $ show x
+instance Csv.FromField SSFSubmittedMD5 where parseField = parseTypeCSV "submitted_md5"

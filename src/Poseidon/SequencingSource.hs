@@ -28,6 +28,8 @@ import qualified Data.Vector                as V
 import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
+import qualified Control.Monad.Except as E
+import qualified Control.Monad.Writer as W
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}
@@ -80,6 +82,7 @@ data SeqSourceRow = SeqSourceRow
     -- integer, not int, because it can be a very large number
     , sReadCount                :: Maybe SSFReadCount
     , sSubmittedFTP             :: Maybe (ListColumn SSFSubmittedFTPURI)
+    , sSubmittedMD5             :: Maybe (ListColumn SSFSubmittedMD5)
     , sAdditionalColumns        :: CsvNamedRecord
     }
     deriving (Show, Eq, Generic)
@@ -112,6 +115,7 @@ seqSourceHeader = [
     , "fastq_md5"
     , "read_count"
     , "submitted_ftp"
+    , "submitted_md5"
     ]
 
 instance Csv.DefaultOrdered SeqSourceRow where
@@ -148,6 +152,7 @@ instance Csv.FromNamedRecord SeqSourceRow where
         <*> filterLookupOptional m "fastq_md5"
         <*> filterLookupOptional m "read_count"
         <*> filterLookupOptional m "submitted_ftp"
+        <*> filterLookupOptional m "submitted_md5"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
@@ -176,6 +181,7 @@ instance Csv.ToNamedRecord SeqSourceRow where
         , "fastq_md5"                  Csv..= sFastqMD5 s
         , "read_count"                 Csv..= sReadCount s
         , "submitted_ftp"              Csv..= sSubmittedFTP s
+        , "submitted_md5"              Csv..= sSubmittedMD5 s
         -- beyond that add what is in the hashmap of additional columns
         ] `HM.union` (getCsvNR $ sAdditionalColumns s)
 
@@ -236,13 +242,21 @@ readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
             OP.unless (null inspectRes) $ do
                 logWarning $ "Value anomaly in " ++ seqSourcePath ++ " in line " ++ renderLocation ++ ": "
                 mapM_ logWarning inspectRes
+            -- cross-column checks
+            let (errOrSSFRow, warnings) = W.runWriter (E.runExceptT (checkSSFRowConsistency seqSourceRow))
+            mapM_ (logWarning . renderWarning) warnings
             -- return result
-            return $ Right seqSourceRow
+            case errOrSSFRow of
+                Left e  -> return $ Left $ PoseidonFileRowException seqSourcePath renderLocation e
+                Right r -> return $ Right r
             where
+                renderWarning :: String -> String
+                renderWarning e = "Cross-column anomaly in " ++ seqSourcePath ++ " " ++
+                                  "in line " ++ renderLocation ++ ": " ++ e
                 renderLocation :: String
                 renderLocation =  show lineNumber
 
--- Global SSF consistency checks
+-- Global .ssf consistency checks
 
 warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
 warnSeqSourceConsistency seqSourcePath xs = do
@@ -261,3 +275,51 @@ checkRunsUnique (SeqSourceRows rows) =
 checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
 checkAtLeastOnePoseidonID (SeqSourceRows rows) =
     any (isJust . sPoseidonID) rows
+
+-- Row-wise .ssf consistency checks
+
+checkSSFRowConsistency :: SeqSourceRow -> RowLog SeqSourceRow
+checkSSFRowConsistency x =
+    return x
+    >>= checkFastqConsistency
+    >>= checkSubmittedConsistency
+
+checkFastqConsistency :: SeqSourceRow -> RowLog SeqSourceRow
+checkFastqConsistency x =
+    let lFastqFTP        = getCellLength $ sFastqFTP x
+        lFastqASPERA     = getCellLength $ sFastqASPERA x
+        lFastqBytes      = getCellLength $ sFastqBytes x
+        lFastqMD5        = getCellLength $ sFastqMD5 x
+        linksEqualLength = lFastqFTP == lFastqASPERA || lFastqFTP == 0 || lFastqASPERA == 0
+        nrEntries        = max lFastqFTP lFastqASPERA
+        bytesEqualLength = lFastqBytes == nrEntries
+        md5EqualLength   = lFastqMD5 == nrEntries
+    in case (linksEqualLength, bytesEqualLength, md5EqualLength) of
+        (False,_,_) -> E.throwError "fastq_ftp and fastq_aspera \
+                       \do not have the same lengths. Either or both can be empty"
+        (_,False,_) -> E.throwError "fastq_bytes and fastq_ftp and/or fastq_aspera \
+                       \do not have the same lengths. fastq_bytes can be empty"
+        (_,_,False) -> E.throwError "fastq_md5 and fastq_ftp and/or fastq_aspera \
+                       \do not have the same lengths. fastq_bytes can be empty"
+        (_,_,_)     -> return x
+
+checkSubmittedConsistency :: SeqSourceRow -> RowLog SeqSourceRow
+checkSubmittedConsistency x =
+    let lSubmittedFTP = getCellLength $ sSubmittedFTP x
+        lSubmittedMD5 = getCellLength $ sSubmittedMD5 x
+    in case allEqual [lSubmittedFTP, lSubmittedMD5] || lSubmittedMD5 == 0 of
+        False -> E.throwError "submitted_ftp and submitted_md5 \
+                      \do not have the same lengths. submitted_md5 can be empty"
+        True  -> return x
+
+
+
+
+
+
+
+
+
+
+
+

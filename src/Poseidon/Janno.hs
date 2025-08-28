@@ -476,7 +476,7 @@ readJannoFileRow jannoPath (lineNumber, row) = do
                 renderLocation =  show lineNumber ++
                                   " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
 
--- Global janno consistency checks
+-- Global .janno consistency checks
 
 checkJannoConsistency :: FilePath -> JannoRows -> Either PoseidonException JannoRows
 checkJannoConsistency jannoPath xs
@@ -487,12 +487,9 @@ checkJannoConsistency jannoPath xs
 checkIndividualUnique :: JannoRows -> Bool
 checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
--- Row-wise janno consistency checks
+-- Row-wise .janno consistency checks
 
-type JannoRowWarnings = [String]
-type JannoRowLog = E.ExceptT String (W.Writer JannoRowWarnings)
-
-checkJannoRowConsistency :: JannoRow -> JannoRowLog JannoRow
+checkJannoRowConsistency :: JannoRow -> RowLog JannoRow
 checkJannoRowConsistency x =
     return x
     >>= checkMandatoryStringNotEmpty
@@ -502,7 +499,7 @@ checkJannoRowConsistency x =
     >>= checkCulturalEraConsistent
     >>= checkArchaeologicalCultureConsistent
 
-checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
+checkMandatoryStringNotEmpty :: JannoRow -> RowLog JannoRow
 checkMandatoryStringNotEmpty x =
     let notEmpty = (not . null . jPoseidonID $ x) &&
                    (not . null . getListColumn . jGroupName $ x) &&
@@ -511,14 +508,7 @@ checkMandatoryStringNotEmpty x =
         False -> E.throwError "Poseidon_ID or Group_Name are empty"
         True  -> return x
 
-getCellLength :: Maybe (ListColumn a) -> Int
-getCellLength = maybe 0 (length . getListColumn)
-
-allEqual :: Eq a => [a] -> Bool
-allEqual [] = True
-allEqual x  = length (nub x) == 1
-
-checkC14ColsConsistent :: JannoRow -> JannoRowLog JannoRow
+checkC14ColsConsistent :: JannoRow -> RowLog JannoRow
 checkC14ColsConsistent x =
     let isTypeC14        = jDateType x == Just C14
         lLabnr           = getCellLength $ jDateC14Labnr x
@@ -540,7 +530,7 @@ checkC14ColsConsistent x =
             W.tell ["Date_Type is \"C14\", but either Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"]
             return x
 
-checkContamColsConsistent :: JannoRow -> JannoRowLog JannoRow
+checkContamColsConsistent :: JannoRow -> RowLog JannoRow
 checkContamColsConsistent x =
     let lContamination      = getCellLength $ jContamination x
         lContaminationErr   = getCellLength $ jContaminationErr x
@@ -551,7 +541,7 @@ checkContamColsConsistent x =
                       \do not have the same lengths"
         True  -> return x
 
-checkRelationColsConsistent :: JannoRow -> JannoRowLog JannoRow
+checkRelationColsConsistent :: JannoRow -> RowLog JannoRow
 checkRelationColsConsistent x =
     let lRelationTo     = getCellLength $ jRelationTo x
         lRelationDegree = getCellLength $ jRelationDegree x
@@ -563,7 +553,7 @@ checkRelationColsConsistent x =
                       \do not have the same lengths. Relation_Type can be empty"
         True  -> return x
 
-checkCulturalEraConsistent :: JannoRow -> JannoRowLog JannoRow
+checkCulturalEraConsistent :: JannoRow -> RowLog JannoRow
 checkCulturalEraConsistent x =
     let lCulturalEra = getCellLength $ jCulturalEra x
         lCulturalEraURL = getCellLength $ jCulturalEraURL x
@@ -572,7 +562,7 @@ checkCulturalEraConsistent x =
                       \do not have the same lengths. Cultural_Era_URL can be empty"
         True  -> return x
 
-checkArchaeologicalCultureConsistent :: JannoRow -> JannoRowLog JannoRow
+checkArchaeologicalCultureConsistent :: JannoRow -> RowLog JannoRow
 checkArchaeologicalCultureConsistent x =
     let lArchaeologicalCulture = getCellLength $ jArchaeologicalCulture x
         lArchaeologicalCultureURL = getCellLength $ jArchaeologicalCultureURL x
