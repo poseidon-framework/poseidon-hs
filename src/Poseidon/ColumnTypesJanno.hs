@@ -42,13 +42,13 @@ instance Ord GeneticSex where
 instance Csv.ToField GeneticSex where   toField x  = Csv.toField $ show x
 instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
 
--- | A datatype for the Species .janno column
-newtype JannoSpecies = JannoSpecies T.Text deriving (Eq, Ord)
-$(makeInstances ''JannoSpecies "Species")
-
 -- | A datatype for the Group_Name .janno column
 newtype GroupName = GroupName T.Text deriving (Eq, Ord)
 $(makeInstances ''GroupName "Group_Name")
+
+-- | A datatype for the Species .janno column
+newtype JannoSpecies = JannoSpecies T.Text deriving (Eq, Ord)
+$(makeInstances ''JannoSpecies "Species")
 
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)

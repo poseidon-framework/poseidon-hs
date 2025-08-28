@@ -77,8 +77,8 @@ instance Monoid JannoRows where
 data JannoRow = JannoRow
     { jPoseidonID                 :: String
     , jGeneticSex                 :: GeneticSex
-    , jSpecies                    :: Maybe JannoSpecies
     , jGroupName                  :: ListColumn GroupName
+    , jSpecies                    :: Maybe JannoSpecies
     , jAlternativeIDs             :: Maybe (ListColumn JannoAlternativeID)
     , jRelationTo                 :: Maybe (ListColumn JannoRelationTo)
     , jRelationDegree             :: Maybe (ListColumn JannoRelationDegree)
@@ -142,8 +142,8 @@ jannoHeader :: [Bchs.ByteString]
 jannoHeader = [
       "Poseidon_ID"
     , "Genetic_Sex"
-    , "Species"
     , "Group_Name"
+    , "Species"
     , "Alternative_IDs"
     , "Relation_To", "Relation_Degree", "Relation_Type", "Relation_Note"
     , "Collection_ID", "Custodian_Institution"
@@ -183,8 +183,8 @@ instance Csv.FromNamedRecord JannoRow where
     parseNamedRecord m = JannoRow
         <$> filterLookup         m "Poseidon_ID"
         <*> filterLookup         m "Genetic_Sex"
-        <*> filterLookupOptional m "Species"
         <*> filterLookup         m "Group_Name"
+        <*> filterLookupOptional m "Species"
         <*> filterLookupOptional m "Alternative_IDs"
         <*> filterLookupOptional m "Relation_To"
         <*> filterLookupOptional m "Relation_Degree"
@@ -244,8 +244,8 @@ instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = explicitNA $ Csv.namedRecord [
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
-        , "Species"                         Csv..= jSpecies j
         , "Group_Name"                      Csv..= jGroupName j
+        , "Species"                         Csv..= jSpecies j
         , "Alternative_IDs"                 Csv..= jAlternativeIDs j
         , "Relation_To"                     Csv..= jRelationTo j
         , "Relation_Degree"                 Csv..= jRelationDegree j
@@ -311,8 +311,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow {
           jPoseidonID                   = Bchs.unpack id_ -- TODO: this will have to change. We need to make PoseidonID itself ByteString
         , jGeneticSex                   = GeneticSex sex
-        , jSpecies                      = Nothing
         , jGroupName                    = ListColumn [GroupName . T.pack . Bchs.unpack $ pop] -- same thing, see above.
+        , jSpecies                      = Nothing
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
