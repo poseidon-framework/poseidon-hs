@@ -128,7 +128,8 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
                                                            , Just (JannoLongitude (-180))
                                                            , Just (JannoLongitude 180)
                                                            ]
-        map jDateC14Labnr janno                 `shouldBe` [ Just (ListColumn [JannoDateC14Labnr "A-1"
+        map jDateC14Labnr janno                 `shouldBe` [ Just (ListColumn [
+                                                               JannoDateC14Labnr "A-1"
                                                              , JannoDateC14Labnr "A-2"
                                                              , JannoDateC14Labnr "A-3"])
                                                            , Nothing
@@ -217,3 +218,5 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         testLog (readJannoFile $ borkedDir </> "borked_contamination.janno") `shouldThrow` anyException
         testLog (readJannoFile $ borkedDir </> "borked_dating.janno") `shouldThrow` anyException
         testLog (readJannoFile $ borkedDir </> "borked_ISO_country.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_cultural_era.janno") `shouldThrow` anyException
+        testLog (readJannoFile $ borkedDir </> "borked_arch_cultural_url.janno") `shouldThrow` anyException
