@@ -21,6 +21,7 @@ import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
                                              testLog, usePoseidonLogger)
+import Poseidon.PoseidonVersion (PoseidonVersion (..))
 
 import qualified Data.ByteString.Char8      as B
 import           Data.Either                (fromLeft, fromRight)
@@ -89,7 +90,7 @@ replace from to s =
 
 truePackageRelPaths :: PoseidonYamlStruct
 truePackageRelPaths = PoseidonYamlStruct {
-    _posYamlPoseidonVersion = makeVersion [2, 0, 1],
+    _posYamlPoseidonVersion = PoseidonVersion $ makeVersion [2, 0, 1],
     _posYamlTitle           = "Schiffels_2016",
     _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
     _posYamlContributor     = [
@@ -175,7 +176,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         decodeTest bs = decodeEither' bs
         dummyPackageYamlStruct :: PoseidonYamlStruct
         dummyPackageYamlStruct = PoseidonYamlStruct {
-            _posYamlPoseidonVersion = makeVersion [0, 0, 0],
+            _posYamlPoseidonVersion = PoseidonVersion $ makeVersion [0, 0, 0],
             _posYamlTitle           = "dummyPackage",
             _posYamlDescription     = Nothing,
             _posYamlContributor     = [],
