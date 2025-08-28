@@ -348,9 +348,44 @@ $(makeInstances ''JannoMTHaplogroup "MT_Haplogroup")
 newtype JannoYHaplogroup = JannoYHaplogroup T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoYHaplogroup "Y_Haplogroup")
 
--- | A datatype for the Source_Tissue .janno column
-newtype JannoSourceTissue = JannoSourceTissue T.Text deriving (Eq)
-$(makeInstances ''JannoSourceTissue "Source_Tissue")
+-- | A datatype for the Source_Material .janno column
+data JannoSourceMaterial =
+      MaterialPetrous
+    | MaterialBone
+    | MaterialTooth
+    | MaterialHair
+    | MaterialSoft
+    | MaterialSediment
+    | MaterialOther
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance Makeable JannoSourceMaterial where
+    make x
+        | x == "petrous"  = pure MaterialPetrous
+        | x == "bone"     = pure MaterialBone
+        | x == "tooth"    = pure MaterialTooth
+        | x == "hair"     = pure MaterialHair
+        | x == "soft"     = pure MaterialSoft
+        | x == "sediment" = pure MaterialSediment
+        | x == "other"    = pure MaterialOther
+        | otherwise       = fail $ "Source_Material is set to " ++ show x ++ ". " ++
+                                   "That is not in the allowed set [petrous, bone, tooth, hair, \
+                                   \soft, sediment, other]."
+instance Suspicious JannoSourceMaterial where inspect _ = Nothing
+instance Show JannoSourceMaterial where
+    show MaterialPetrous  = "petrous"
+    show MaterialBone     = "bone"
+    show MaterialTooth    = "tooth"
+    show MaterialHair     = "hair"
+    show MaterialSoft     = "soft"
+    show MaterialSediment = "sediment"
+    show MaterialOther    = "other"
+instance Csv.ToField JannoSourceMaterial where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoSourceMaterial where parseField = parseTypeCSV "Source_Material"
+
+-- | A datatype for the Source_Material_Note .janno column
+newtype JannoSourceMaterialNote = JannoSourceMaterialNote T.Text deriving (Eq)
+$(makeInstances ''JannoSourceMaterialNote "Source_Material_Note")
 
 -- | A datatype for the Nr_Libraries .janno column
 newtype JannoNrLibraries = JannoNrLibraries Int deriving (Eq, Ord, Generic)

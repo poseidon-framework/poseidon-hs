@@ -108,7 +108,8 @@ data JannoRow = JannoRow
     , jChromosomalAnomaliesNote   :: Maybe (ListColumn JannoChromosomalAnomaliesNote)
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
-    , jSourceTissue               :: Maybe (ListColumn JannoSourceTissue)
+    , jSourceMaterial             :: Maybe (ListColumn JannoSourceMaterial)
+    , jSourceMaterialNote         :: Maybe JannoSourceMaterialNote
     , jNrLibraries                :: Maybe JannoNrLibraries
     , jLibraryNames               :: Maybe (ListColumn JannoLibraryName)
     , jCaptureType                :: Maybe (ListColumn JannoCaptureType)
@@ -155,7 +156,7 @@ jannoHeader = [
     , "Date_Note"
     , "Chromosomal_Anomalies", "Chromosomal_Anomalies_Note"
     , "MT_Haplogroup", "Y_Haplogroup"
-    , "Source_Tissue"
+    , "Source_Material", "Source_Material_Note"
     , "Nr_Libraries", "Library_Names"
     , "Capture_Type", "UDG", "Library_Built", "Genotype_Ploidy"
     , "Data_Preparation_Pipeline_URL"
@@ -213,7 +214,8 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Chromosomal_Anomalies_Note"
         <*> filterLookupOptional m "MT_Haplogroup"
         <*> filterLookupOptional m "Y_Haplogroup"
-        <*> filterLookupOptional m "Source_Tissue"
+        <*> filterLookupOptional m "Source_Material"
+        <*> filterLookupOptional m "Source_Material_Note"
         <*> filterLookupOptional m "Nr_Libraries"
         <*> filterLookupOptional m "Library_Names"
         <*> filterLookupOptional m "Capture_Type"
@@ -273,7 +275,8 @@ instance Csv.ToNamedRecord JannoRow where
         , "Chromosomal_Anomalies_Note"      Csv..= jChromosomalAnomaliesNote j
         , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
         , "Y_Haplogroup"                    Csv..= jYHaplogroup j
-        , "Source_Tissue"                   Csv..= jSourceTissue j
+        , "Source_Material"                 Csv..= jSourceMaterial j
+        , "Source_Material_Note"            Csv..= jSourceMaterialNote j
         , "Nr_Libraries"                    Csv..= jNrLibraries j
         , "Library_Names"                   Csv..= jLibraryNames j
         , "Capture_Type"                    Csv..= jCaptureType j
@@ -339,7 +342,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jChromosomalAnomaliesNote     = Nothing
         , jMTHaplogroup                 = Nothing
         , jYHaplogroup                  = Nothing
-        , jSourceTissue                 = Nothing
+        , jSourceMaterial               = Nothing
+        , jSourceMaterialNote           = Nothing
         , jNrLibraries                  = Nothing
         , jLibraryNames                 = Nothing
         , jCaptureType                  = Nothing
