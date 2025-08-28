@@ -15,7 +15,9 @@ import           Poseidon.Utils
 import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
 import qualified Control.Monad              as OP
+import qualified Control.Monad.Except       as E
 import           Control.Monad.IO.Class     (liftIO)
+import qualified Control.Monad.Writer       as W
 import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Lazy.Char8 as Bch
@@ -28,8 +30,6 @@ import qualified Data.Vector                as V
 import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
 import qualified Text.Parsec                as P
-import qualified Control.Monad.Except as E
-import qualified Control.Monad.Writer as W
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}

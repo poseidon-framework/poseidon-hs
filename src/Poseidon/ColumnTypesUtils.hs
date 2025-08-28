@@ -10,6 +10,8 @@
 
 module Poseidon.ColumnTypesUtils where
 
+import qualified Control.Monad.Except  as E
+import qualified Control.Monad.Writer  as W
 import           Data.ByteString       as S
 import qualified Data.ByteString.Char8 as Bchs
 import           Data.Char             (chr, ord)
@@ -28,9 +30,6 @@ import           Language.Haskell.TH   (Con (..), Dec (..), DecsQ, Info (..),
                                         varE, varP)
 import qualified Text.Parsec           as P
 import qualified Text.Parsec.String    as P
-import qualified Control.Monad.Except as E
-import qualified Control.Monad.Writer as W
-import Data.List (nub)
 
 -- a typeclass for types with smart constructors
 class Makeable a where
@@ -99,7 +98,7 @@ getCellLength = maybe 0 (Prelude.length . getListColumn)
 
 allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
-allEqual x  = Prelude.length (nub x) == 1
+allEqual x  = Prelude.length (L.nub x) == 1
 
 -- | A datatype to collect additional, unpecified .csv/.tsv file columns (a hashmap in cassava/Data.Csv)
 newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, G.Generic)
