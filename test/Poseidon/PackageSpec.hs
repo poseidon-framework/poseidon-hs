@@ -17,11 +17,11 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
+import           Poseidon.PoseidonVersion   (PoseidonVersion (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
                                              testLog, usePoseidonLogger)
-import Poseidon.PoseidonVersion (PoseidonVersion (..))
 
 import qualified Data.ByteString.Char8      as B
 import           Data.Either                (fromLeft, fromRight)
