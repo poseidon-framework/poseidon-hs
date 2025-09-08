@@ -38,7 +38,7 @@ import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
-                                                       transpose, (\\))
+                                                       transpose, (\\), insertBy)
 import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
@@ -370,9 +370,33 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
+-- makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
+-- makeHeaderWithAdditionalColumns rows =
+--     V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
 makeHeaderWithAdditionalColumns rows =
-    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+    let addColumns = sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+        nonNoteAdd = filter (\x -> Bchs.tail x /= "_Note") addColumns
+        noteAdd = filter (\x -> Bchs.tail x == "_Note") addColumns
+        headerWithNotes = weave noteAdd jannoHeader
+    in V.fromList $ headerWithNotes ++ nonNoteAdd
+    where
+        weave :: [Bchs.ByteString] -> [Bchs.ByteString] -> [Bchs.ByteString]
+        weave xs rs = reverse $ insertByMulti (\x y -> findSpot x (removeSuffix y)) xs $ reverse rs
+        -- reverse, because Not columns should be at the end
+        insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+        insertByMulti _ [] rs = rs
+        --insertByMulti f [x] rs = insertBy f x rs
+        insertByMulti f (x:xs) rs = insertBy f x (insertByMulti f xs rs)
+        removeSuffix :: Bchs.ByteString -> Bchs.ByteString
+        removeSuffix = Bchs.dropWhileEnd (/= '_')
+        findSpot :: Bchs.ByteString -> Bchs.ByteString -> Ordering
+        findSpot x y
+            | x == y = LT
+            | removeSuffix x == x = GT
+            | otherwise = findSpot (removeSuffix x) y
+
 
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
