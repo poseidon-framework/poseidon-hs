@@ -5,22 +5,50 @@ module Poseidon.JannoSpec (spec, checkEnDe) where
 import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
-import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
-                                             readJannoFile)
+import           Poseidon.Janno
 import           Poseidon.Utils             (testLog)
 
 import           Country                    (decodeAlphaTwo)
 import qualified Data.Csv                   as C
-import           Data.HashMap.Strict        (fromList)
-import           SequenceFormats.Eigenstrat (Sex (..))
+import qualified Data.HashMap.Strict        as HM
+import qualified Data.Vector                as V
+import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
 import           System.FilePath            ((</>))
 import           Test.Hspec                 (Spec, anyException, describe, it,
-                                             shouldBe, shouldThrow)
+                                             shouldBe, shouldContain,
+                                             shouldThrow)
 
 spec :: Spec
 spec = do
+    testMakeHeaderWithAdditionalColumns
     testEnAndDecoding
     testPoseidonSampleFromJannoFile
+
+testMakeHeaderWithAdditionalColumns :: Spec
+testMakeHeaderWithAdditionalColumns = describe "Poseidon.Janno: Column sorting (header preparation)" $ do
+    it "should sort columns as expected" $ do
+        let jannoRowEmpty = createMinimalSample (EigenstratIndEntry "a" Unknown "test")
+            jannoRow = jannoRowEmpty {
+                jAdditionalColumns = CsvNamedRecord $ HM.fromList [
+                  ("Relation_Note","n/a")
+                , ("Date_Note","n/a")
+                , ("Source_Material_Note","n/a")
+                , ("Contamination_Note","n/a")
+                , ("Genetic_Sex_Note","n/a")
+                , ("AdditionalColumn2","n/a")
+                 ,("AdditionalColumn1","n/a")
+                ]
+            }
+            header = V.toList $ makeHeaderWithAdditionalColumns [jannoRow]
+        -- this test is not very clever and will also sometimes need adjustment when
+        -- something unrelated changes in the .janno column setup
+        header `shouldContain` ["Relation_Type", "Relation_Note"]
+        header `shouldContain` ["Date_BC_AD_Stop", "Date_Note"]
+        header `shouldContain` ["Chromosomal_Anomalies", "MT_Haplogroup"]
+        header `shouldContain` ["Source_Material", "Source_Material_Note"]
+        header `shouldContain` ["Contamination_Meas", "Contamination_Note"]
+        header `shouldContain` ["Genetic_Sex", "Genetic_Sex_Note"]
+        header `shouldContain` ["Keywords", "AdditionalColumn1", "AdditionalColumn2"]
 
 testEnAndDecoding :: Spec
 testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ do
@@ -196,24 +224,27 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
                                                            , Just (JannoDataPreparationPipelineURL "https://www.google.de")
                                                            , Just (JannoDataPreparationPipelineURL "http://huhu.org/23&test")
                                                            ]
-        map jAdditionalColumns janno            `shouldBe` [ CsvNamedRecord (fromList [("AdditionalColumn2","test2")
-                                                                                      ,("AdditionalColumn1","test1")
-                                                                                      ,("Contamination_Note","")
-                                                                                      ,("Date_Note","x x x")
-                                                                                      ,("Relation_Note","yyy")
-                                                                                      ,("Source_Tissue","xxx;yyy")])
-                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test4")
-                                                                                      ,("AdditionalColumn1","test3")
-                                                                                      ,("Contamination_Note","xxx")
-                                                                                      ,("Date_Note","yyy")
-                                                                                      ,("Relation_Note","n/a")
-                                                                                      ,("Source_Tissue","xxx")])
-                                                           , CsvNamedRecord (fromList [("AdditionalColumn2","test6")
-                                                                                      ,("AdditionalColumn1","test5")
-                                                                                      ,("Contamination_Note","n/a")
-                                                                                      ,("Date_Note","n/a")
-                                                                                      ,("Relation_Note","xxx")
-                                                                                      ,("Source_Tissue","xxx")])
+        map jAdditionalColumns janno            `shouldBe` [ CsvNamedRecord (HM.fromList
+                                                              [("AdditionalColumn2","test2")
+                                                              ,("AdditionalColumn1","test1")
+                                                              ,("Contamination_Note","")
+                                                              ,("Date_Note","x x x")
+                                                              ,("Relation_Note","yyy")
+                                                              ,("Source_Tissue","xxx;yyy")])
+                                                           , CsvNamedRecord (HM.fromList
+                                                              [("AdditionalColumn2","test4")
+                                                              ,("AdditionalColumn1","test3")
+                                                              ,("Contamination_Note","xxx")
+                                                              ,("Date_Note","yyy")
+                                                              ,("Relation_Note","n/a")
+                                                              ,("Source_Tissue","xxx")])
+                                                           , CsvNamedRecord (HM.fromList
+                                                              [("AdditionalColumn2","test6")
+                                                              ,("AdditionalColumn1","test5")
+                                                              ,("Contamination_Note","n/a")
+                                                              ,("Date_Note","n/a")
+                                                              ,("Relation_Note","xxx")
+                                                              ,("Source_Tissue","xxx")])
                                                            ]
 
     -- the following tests should be more precise and comprehensive; we should consider refactoring
