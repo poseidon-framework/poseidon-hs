@@ -198,12 +198,21 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
                                                            ]
         map jAdditionalColumns janno            `shouldBe` [ CsvNamedRecord (fromList [("AdditionalColumn2","test2")
                                                                                       ,("AdditionalColumn1","test1")
+                                                                                      ,("Contamination_Note","")
+                                                                                      ,("Date_Note","x x x")
+                                                                                      ,("Relation_Note","yyy")
                                                                                       ,("Source_Tissue","xxx;yyy")])
                                                            , CsvNamedRecord (fromList [("AdditionalColumn2","test4")
                                                                                       ,("AdditionalColumn1","test3")
+                                                                                      ,("Contamination_Note","xxx")
+                                                                                      ,("Date_Note","yyy")
+                                                                                      ,("Relation_Note","n/a")
                                                                                       ,("Source_Tissue","xxx")])
                                                            , CsvNamedRecord (fromList [("AdditionalColumn2","test6")
                                                                                       ,("AdditionalColumn1","test5")
+                                                                                      ,("Contamination_Note","n/a")
+                                                                                      ,("Date_Note","n/a")
+                                                                                      ,("Relation_Note","xxx")
                                                                                       ,("Source_Tissue","xxx")])
                                                            ]
 
