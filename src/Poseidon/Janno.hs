@@ -343,8 +343,12 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jPublication                  = Nothing
         , jComments                     = Nothing
         , jKeywords                     = Nothing
-        -- The template should of course not have any additional columns
-        , jAdditionalColumns            = CsvNamedRecord $ HM.fromList []
+        -- additional, non-specified columns
+        , jAdditionalColumns            = CsvNamedRecord $ HM.fromList [
+              ("Relation_Note","n/a")
+            , ("Date_Note","n/a")
+            , ("Contamination_Note","n/a")
+            ]
     }
 
 -- Janno file writing
@@ -359,7 +363,7 @@ makeHeaderWithAdditionalColumns rows =
     where
         weave :: [Bchs.ByteString] -> [Bchs.ByteString] -> [Bchs.ByteString]
         weave inserts xs = reverse $ insertByMulti findSpot inserts $ reverse xs
-        -- reverse, because Note columns should be at the end
+        -- reverse, because Note columns should be at the end of column groups (e.g. Date_*)
         insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
         insertByMulti _ [] rs = rs
         insertByMulti f (i:rest) xs = insertBy f i (insertByMulti f rest xs)
