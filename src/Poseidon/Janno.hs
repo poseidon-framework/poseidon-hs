@@ -37,8 +37,9 @@ import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
-                                                       intercalate, nub, sort,
-                                                       transpose, (\\), insertBy)
+                                                       insertBy, intercalate,
+                                                       nub, sort, transpose,
+                                                       (\\))
 import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
@@ -365,7 +366,7 @@ makeHeaderWithAdditionalColumns rows =
         weave inserts xs = reverse $ insertByMulti findSpot inserts $ reverse xs
         -- reverse, because Note columns should be at the end of column groups (e.g. Date_*)
         insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-        insertByMulti _ [] rs = rs
+        insertByMulti _ [] rs       = rs
         insertByMulti f (i:rest) xs = insertBy f i (insertByMulti f rest xs)
         removeSuffix :: Bchs.ByteString -> Bchs.ByteString
         removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
