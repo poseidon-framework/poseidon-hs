@@ -348,6 +348,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jAdditionalColumns            = CsvNamedRecord $ HM.fromList [
               ("Relation_Note","n/a")
             , ("Date_Note","n/a")
+            , ("Chromosomal_Anomalies_Note","n/a")
+            , ("Source_Material_Note","n/a")
             , ("Contamination_Note","n/a")
             ]
     }
