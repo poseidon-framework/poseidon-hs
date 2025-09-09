@@ -83,7 +83,6 @@ data JannoRow = JannoRow
     , jRelationTo                 :: Maybe (ListColumn JannoRelationTo)
     , jRelationDegree             :: Maybe (ListColumn JannoRelationDegree)
     , jRelationType               :: Maybe (ListColumn JannoRelationType)
-    , jRelationNote               :: Maybe JannoRelationNote
     , jCollectionID               :: Maybe (ListColumn JannoCollectionID)
     , jCustodianInstitution       :: Maybe (ListColumn JannoCustodianInstitution)
     , jCulturalEra                :: Maybe (ListColumn JannoCulturalEra)
@@ -103,13 +102,10 @@ data JannoRow = JannoRow
     , jDateBCADStart              :: Maybe JannoDateBCADStart
     , jDateBCADMedian             :: Maybe JannoDateBCADMedian
     , jDateBCADStop               :: Maybe JannoDateBCADStop
-    , jDateNote                   :: Maybe JannoDateNote
     , jChromosomalAnomalies       :: Maybe (ListColumn JannoChromosomalAnomalies)
-    , jChromosomalAnomaliesNote   :: Maybe JannoChromosomalAnomaliesNote
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
     , jSourceMaterial             :: Maybe (ListColumn JannoSourceMaterial)
-    , jSourceMaterialNote         :: Maybe JannoSourceMaterialNote
     , jNrLibraries                :: Maybe JannoNrLibraries
     , jLibraryNames               :: Maybe (ListColumn JannoLibraryName)
     , jCaptureType                :: Maybe (ListColumn JannoCaptureType)
@@ -124,7 +120,6 @@ data JannoRow = JannoRow
     , jContamination              :: Maybe (ListColumn JannoContamination)
     , jContaminationErr           :: Maybe (ListColumn JannoContaminationErr)
     , jContaminationMeas          :: Maybe (ListColumn JannoContaminationMeas)
-    , jContaminationNote          :: Maybe JannoContaminationNote
     , jGeneticSourceAccessionIDs  :: Maybe (ListColumn JannoGeneticSourceAccessionID)
     , jPrimaryContact             :: Maybe JannoPrimaryContact
     , jPublication                :: Maybe (ListColumn JannoPublication)
@@ -145,7 +140,7 @@ jannoHeader = [
     , "Group_Name"
     , "Species"
     , "Alternative_IDs"
-    , "Relation_To", "Relation_Degree", "Relation_Type", "Relation_Note"
+    , "Relation_To", "Relation_Degree", "Relation_Type"
     , "Collection_ID", "Custodian_Institution"
     , "Cultural_Era", "Cultural_Era_URL", "Archaeological_Culture", "Archaeological_Culture_URL"
     , "Country", "Country_ISO"
@@ -153,15 +148,14 @@ jannoHeader = [
     , "Date_Type"
     , "Date_C14_Labnr", "Date_C14_Uncal_BP", "Date_C14_Uncal_BP_Err"
     , "Date_BC_AD_Start", "Date_BC_AD_Median", "Date_BC_AD_Stop"
-    , "Date_Note"
-    , "Chromosomal_Anomalies", "Chromosomal_Anomalies_Note"
+    , "Chromosomal_Anomalies"
     , "MT_Haplogroup", "Y_Haplogroup"
-    , "Source_Material", "Source_Material_Note"
+    , "Source_Material"
     , "Nr_Libraries", "Library_Names"
     , "Capture_Type", "UDG", "Library_Built", "Genotype_Ploidy"
     , "Data_Preparation_Pipeline_URL"
     , "Endogenous", "Nr_SNPs", "Coverage_on_Target_SNPs", "Damage"
-    , "Contamination", "Contamination_Err", "Contamination_Meas", "Contamination_Note"
+    , "Contamination", "Contamination_Err", "Contamination_Meas"
     , "Genetic_Source_Accession_IDs"
     , "Primary_Contact"
     , "Publication"
@@ -189,7 +183,6 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Relation_To"
         <*> filterLookupOptional m "Relation_Degree"
         <*> filterLookupOptional m "Relation_Type"
-        <*> filterLookupOptional m "Relation_Note"
         <*> filterLookupOptional m "Collection_ID"
         <*> filterLookupOptional m "Custodian_Institution"
         <*> filterLookupOptional m "Cultural_Era"
@@ -209,13 +202,10 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Date_BC_AD_Start"
         <*> filterLookupOptional m "Date_BC_AD_Median"
         <*> filterLookupOptional m "Date_BC_AD_Stop"
-        <*> filterLookupOptional m "Date_Note"
         <*> filterLookupOptional m "Chromosomal_Anomalies"
-        <*> filterLookupOptional m "Chromosomal_Anomalies_Note"
         <*> filterLookupOptional m "MT_Haplogroup"
         <*> filterLookupOptional m "Y_Haplogroup"
         <*> filterLookupOptional m "Source_Material"
-        <*> filterLookupOptional m "Source_Material_Note"
         <*> filterLookupOptional m "Nr_Libraries"
         <*> filterLookupOptional m "Library_Names"
         <*> filterLookupOptional m "Capture_Type"
@@ -230,7 +220,6 @@ instance Csv.FromNamedRecord JannoRow where
         <*> filterLookupOptional m "Contamination"
         <*> filterLookupOptional m "Contamination_Err"
         <*> filterLookupOptional m "Contamination_Meas"
-        <*> filterLookupOptional m "Contamination_Note"
         <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
         <*> filterLookupOptional m "Primary_Contact"
         <*> filterLookupOptional m "Publication"
@@ -250,7 +239,6 @@ instance Csv.ToNamedRecord JannoRow where
         , "Relation_To"                     Csv..= jRelationTo j
         , "Relation_Degree"                 Csv..= jRelationDegree j
         , "Relation_Type"                   Csv..= jRelationType j
-        , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
         , "Custodian_Institution"           Csv..= jCustodianInstitution j
         , "Cultural_Era"                    Csv..= jCulturalEra j
@@ -270,13 +258,10 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
         , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
         , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
-        , "Date_Note"                       Csv..= jDateNote j
         , "Chromosomal_Anomalies"           Csv..= jChromosomalAnomalies j
-        , "Chromosomal_Anomalies_Note"      Csv..= jChromosomalAnomaliesNote j
         , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
         , "Y_Haplogroup"                    Csv..= jYHaplogroup j
         , "Source_Material"                 Csv..= jSourceMaterial j
-        , "Source_Material_Note"            Csv..= jSourceMaterialNote j
         , "Nr_Libraries"                    Csv..= jNrLibraries j
         , "Library_Names"                   Csv..= jLibraryNames j
         , "Capture_Type"                    Csv..= jCaptureType j
@@ -291,7 +276,6 @@ instance Csv.ToNamedRecord JannoRow where
         , "Contamination"                   Csv..= jContamination j
         , "Contamination_Err"               Csv..= jContaminationErr j
         , "Contamination_Meas"              Csv..= jContaminationMeas j
-        , "Contamination_Note"              Csv..= jContaminationNote j
         , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
         , "Primary_Contact"                 Csv..= jPrimaryContact j
         , "Publication"                     Csv..= jPublication j
@@ -317,7 +301,6 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
         , jRelationType                 = Nothing
-        , jRelationNote                 = Nothing
         , jCollectionID                 = Nothing
         , jCustodianInstitution         = Nothing
         , jCulturalEra                  = Nothing
@@ -337,13 +320,10 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateBCADStart                = Nothing
         , jDateBCADMedian               = Nothing
         , jDateBCADStop                 = Nothing
-        , jDateNote                     = Nothing
         , jChromosomalAnomalies         = Nothing
-        , jChromosomalAnomaliesNote     = Nothing
         , jMTHaplogroup                 = Nothing
         , jYHaplogroup                  = Nothing
         , jSourceMaterial               = Nothing
-        , jSourceMaterialNote           = Nothing
         , jNrLibraries                  = Nothing
         , jLibraryNames                 = Nothing
         , jCaptureType                  = Nothing
@@ -358,7 +338,6 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jContamination                = Nothing
         , jContaminationErr             = Nothing
         , jContaminationMeas            = Nothing
-        , jContaminationNote            = Nothing
         , jGeneticSourceAccessionIDs    = Nothing
         , jPrimaryContact               = Nothing
         , jPublication                  = Nothing
@@ -370,33 +349,27 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
--- makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
--- makeHeaderWithAdditionalColumns rows =
---     V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
-
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
 makeHeaderWithAdditionalColumns rows =
-    let addColumns = sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
-        nonNoteAdd = filter (\x -> Bchs.tail x /= "_Note") addColumns
-        noteAdd = filter (\x -> Bchs.tail x == "_Note") addColumns
-        headerWithNotes = weave noteAdd jannoHeader
-    in V.fromList $ headerWithNotes ++ nonNoteAdd
+    let addCols = sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+        nonNoteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x /= "Note") addCols
+        noteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x == "Note") addCols
+        allNoneNoteCols = jannoHeader ++ nonNoteAddCols
+    in V.fromList $ weave noteAddCols allNoneNoteCols
     where
         weave :: [Bchs.ByteString] -> [Bchs.ByteString] -> [Bchs.ByteString]
-        weave xs rs = reverse $ insertByMulti (\x y -> findSpot x (removeSuffix y)) xs $ reverse rs
-        -- reverse, because Not columns should be at the end
+        weave inserts xs = reverse $ insertByMulti findSpot inserts $ reverse xs
+        -- reverse, because Note columns should be at the end
         insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
         insertByMulti _ [] rs = rs
-        --insertByMulti f [x] rs = insertBy f x rs
-        insertByMulti f (x:xs) rs = insertBy f x (insertByMulti f xs rs)
+        insertByMulti f (i:rest) xs = insertBy f i (insertByMulti f rest xs)
         removeSuffix :: Bchs.ByteString -> Bchs.ByteString
-        removeSuffix = Bchs.dropWhileEnd (/= '_')
+        removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
         findSpot :: Bchs.ByteString -> Bchs.ByteString -> Ordering
-        findSpot x y
-            | x == y = LT
+        findSpot i x
+            | removeSuffix i == x = LT
             | removeSuffix x == x = GT
-            | otherwise = findSpot (removeSuffix x) y
-
+            | otherwise = findSpot i (removeSuffix x)
 
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
