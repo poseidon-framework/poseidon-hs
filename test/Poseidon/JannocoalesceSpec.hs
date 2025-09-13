@@ -26,7 +26,6 @@ jannoTargetRow =
     in  row {
             jCountry = Just $ JannoCountry "Austria",
             jSite = Just $ JannoSite "Vienna",
-            jDateNote = Just $ JannoDateNote "dating didn't work",
             jAdditionalColumns = CsvNamedRecord $ HM.fromList [
                 ("AdditionalColumn2", "C")
             ]

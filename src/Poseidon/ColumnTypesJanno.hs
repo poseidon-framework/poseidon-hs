@@ -98,10 +98,6 @@ instance Csv.FromField JannoRelationDegree where parseField = parseTypeCSV "Rela
 newtype JannoRelationType = JannoRelationType T.Text deriving (Eq)
 $(makeInstances ''JannoRelationType "Relation_Type")
 
--- | A datatype for the Relation_Note .janno column
-newtype JannoRelationNote = JannoRelationNote T.Text deriving (Eq)
-$(makeInstances ''JannoRelationNote "Relation_Note")
-
 -- | A datatype for the Collection_ID .janno column
 newtype JannoCollectionID = JannoCollectionID T.Text deriving (Eq)
 $(makeInstances ''JannoCollectionID "Collection_ID")
@@ -328,17 +324,9 @@ instance Show JannoDateBCADStop where          show (JannoDateBCADStop x) = show
 instance Csv.ToField JannoDateBCADStop where   toField (JannoDateBCADStop x) = Csv.toField x
 instance Csv.FromField JannoDateBCADStop where parseField = parseTypeCSV "Date_BC_AD_Stop"
 
--- | A datatype for the Date_Note .janno column
-newtype JannoDateNote = JannoDateNote T.Text deriving (Eq, Ord)
-$(makeInstances ''JannoDateNote "Date_Note")
-
 -- | A datatype for the Chromosomal_Anomalies .janno column
 newtype JannoChromosomalAnomalies = JannoChromosomalAnomalies T.Text deriving (Eq)
 $(makeInstances ''JannoChromosomalAnomalies "Chromosomal_Anomalies")
-
--- | A datatype for the Chromosomal_Anomalies_Note .janno column
-newtype JannoChromosomalAnomaliesNote = JannoChromosomalAnomaliesNote T.Text deriving (Eq)
-$(makeInstances ''JannoChromosomalAnomaliesNote "Chromosomal_Anomalies_Note")
 
 -- | A datatype for the MT_Haplogroup .janno column
 newtype JannoMTHaplogroup = JannoMTHaplogroup T.Text deriving (Eq, Ord)
@@ -382,10 +370,6 @@ instance Show JannoSourceMaterial where
     show MaterialOther    = "other"
 instance Csv.ToField JannoSourceMaterial where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoSourceMaterial where parseField = parseTypeCSV "Source_Material"
-
--- | A datatype for the Source_Material_Note .janno column
-newtype JannoSourceMaterialNote = JannoSourceMaterialNote T.Text deriving (Eq)
-$(makeInstances ''JannoSourceMaterialNote "Source_Material_Note")
 
 -- | A datatype for the Nr_Libraries .janno column
 newtype JannoNrLibraries = JannoNrLibraries Int deriving (Eq, Ord, Generic)
@@ -609,10 +593,6 @@ $(makeInstances ''JannoContaminationErr "Contamination_Err")
 -- | A datatype for the Contamination_Meas .janno column
 newtype JannoContaminationMeas = JannoContaminationMeas T.Text deriving (Eq)
 $(makeInstances ''JannoContaminationMeas "Contamination_Meas")
-
--- | A datatype for the Contamination_Note .janno column
-newtype JannoContaminationNote = JannoContaminationNote T.Text deriving (Eq)
-$(makeInstances ''JannoContaminationNote "Contamination_Note")
 
 -- | A datatype for the Genetic_Source_Accession_IDs .janno column
 newtype JannoGeneticSourceAccessionID = JannoGeneticSourceAccessionID AccessionID
