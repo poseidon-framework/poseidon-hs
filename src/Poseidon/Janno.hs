@@ -358,17 +358,17 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
 makeHeaderWithAdditionalColumns rows =
-    let addCols = sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+    let addCols = sort . HM.keys . HM.unions . map (getCsvNR . jAdditionalColumns) $ rows
         nonNoteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x /= "Note") addCols
         noteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x == "Note") addCols
         allNoneNoteCols = jannoHeader ++ nonNoteAddCols
     in V.fromList $ weave noteAddCols allNoneNoteCols
     where
         weave :: [Bchs.ByteString] -> [Bchs.ByteString] -> [Bchs.ByteString]
-        weave inserts xs = reverse $ insertByMulti findSpot inserts $ reverse xs
+        weave inserts = reverse . insertByMulti findSpot inserts . reverse
         -- reverse, because Note columns should be at the end of column groups (e.g. Date_*)
         insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-        insertByMulti _ [] rs       = rs
+        insertByMulti _ [] xs       = xs
         insertByMulti f (i:rest) xs = insertBy f i (insertByMulti f rest xs)
         removeSuffix :: Bchs.ByteString -> Bchs.ByteString
         removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
