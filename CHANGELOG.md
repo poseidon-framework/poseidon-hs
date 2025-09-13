@@ -1,3 +1,5 @@
+- V X.X.X.X:
+    - Changed the handling of `_Note` columns in .janno files. Previously they were explicitly specified and part of the `JannoRow` record type. Now they are just treated as arbitrary additional columns that get algorithmically sorted in when writing .janno files (e.g. in `forge`).
 - V 1.6.7.3:
     - Introduced a typeclass `Suspicious` for column types for which throwing warnings should be possible with an `inspect` function.
     - Added a mechanism to `inspect` all columns of .janno and .ssf files upon reading and report anything suspicious.
