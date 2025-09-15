@@ -4,6 +4,7 @@
 module Poseidon.CLI.Jannocoalesce where
 
 import           Poseidon.Janno         (JannoRow (..), JannoRows (..),
+                                         parseJannoRowFromNamedRecord,
                                          readJannoFile, writeJannoFile)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
@@ -20,6 +21,7 @@ import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
 import qualified Data.IORef             as R
 import           Data.List              ((\\))
+import qualified Data.Set               as S
 import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)
@@ -122,7 +124,7 @@ mergeRow cp targetRow sourceRow fields overwrite sKey tKey = do
         -- fill in the target row with dummy values for desired fields that might not be present yet
         targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
         newRowRecord      = HM.mapWithKey fillFromSource targetComplete
-        parseResult       = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
+        parseResult       = Csv.runParser . (parseJannoRowFromNamedRecord S.empty) $ newRowRecord
     logInfo $ "matched target " ++ BSC.unpack (targetComplete  HM.! BSC.pack tKey) ++
               " with source "   ++ BSC.unpack (sourceRowRecord HM.! BSC.pack sKey)
     case parseResult of

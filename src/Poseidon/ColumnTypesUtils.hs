@@ -16,6 +16,7 @@ import           Data.Char             (chr, ord)
 import qualified Data.Csv              as Csv
 import qualified Data.HashMap.Strict   as HM
 import qualified Data.List             as L
+import qualified Data.Set              as S
 import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Data.Typeable         (Typeable)
@@ -95,11 +96,16 @@ getCsvNR (CsvNamedRecord x) = x
 -- helper functions for .csv/.tsv reading
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
 filterLookup m name = case cleanInput $ HM.lookup name m of
-    Nothing -> fail "Missing value in mandatory column"
+    Nothing -> fail $ "Missing value in mandatory column " <> Bchs.unpack name
     Just x  -> Csv.parseField  x
 
-filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
+filterLookupOptional :: Csv.FromField a => S.Set Bchs.ByteString -> Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
+filterLookupOptional mandatory m name = -- maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
+    case cleanInput $ HM.lookup name m of
+        Nothing -> if name `S.member` mandatory
+                   then fail $ "Missing value in mandatory column " <> Bchs.unpack name
+                   else pure Nothing
+        Just x  -> Csv.parseField x
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 cleanInput Nothing           = Nothing
