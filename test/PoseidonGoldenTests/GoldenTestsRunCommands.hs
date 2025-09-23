@@ -42,7 +42,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
-                                             getChecksum, testLog,
+                                             getChecksum, testLog, testLogErr,
                                              usePoseidonLogger)
 import           Poseidon.Version           (VersionComponent (..))
 
@@ -68,8 +68,9 @@ import           System.Directory           (copyFile, createDirectory,
                                              doesDirectoryExist, listDirectory,
                                              removeDirectoryRecursive)
 import           System.FilePath.Posix      ((</>))
-import           System.IO                  (IOMode (WriteMode), hPutStrLn,
-                                             openFile, stderr, stdout, withFile)
+import           System.IO                  (Handle, IOMode (WriteMode),
+                                             hPutStrLn, openFile, stderr,
+                                             stdout, withFile)
 import           System.Process             (callCommand)
 
 -- file paths --
@@ -126,8 +127,12 @@ runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
             appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
 
 runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
-runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
-    -- store stdout in a specific output file
+runAndChecksumStdOut = runAndChecksum stdout
+runAndChecksumStdErr :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
+runAndChecksumStdErr = runAndChecksum stderr
+runAndChecksum :: Handle -> FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
+runAndChecksum handle checkSumFilePath testDir action actionName outFileNumber = do
+    -- store command line output in a specific output file
     let outFileName = actionName ++ show outFileNumber
         outDirInTestDir = actionName </> outFileName
         outDir = testDir </> actionName
@@ -135,23 +140,23 @@ runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = 
     -- create outdir if it doesn't exist
     outDirExists <- doesDirectoryExist outDir
     unless outDirExists $ createDirectory outDir
-    -- catch stdout and write it to the outPath
-    writeStdOutToFile outPath action
+    -- catch output and write it to the outPath
+    redirectHandleToFile handle outPath action
     -- append checksum to checksumfile
-    checksum <- getChecksum $ outPath
+    checksum <- getChecksum outPath
     appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
 
-writeStdOutToFile :: FilePath -> IO () -> IO ()
-writeStdOutToFile path action =
-    withFile path WriteMode $ \handle -> do
-      -- backup stdout handle
-      stdout_old <- hDuplicate stdout
-      -- redirect stdout to file
-      hDuplicateTo handle stdout
+redirectHandleToFile :: Handle -> FilePath -> IO () -> IO ()
+redirectHandleToFile handleIn path action =
+    withFile path WriteMode $ \handleOut -> do
+      -- backup handleIn
+      handleIn_old <- hDuplicate handleIn
+      -- redirect handleIn to file
+      hDuplicateTo handleOut handleIn
       -- run action
       action
       -- load backup again
-      hDuplicateTo stdout_old stdout
+      hDuplicateTo handleIn_old handleIn
 
 -- test pipeline --
 
@@ -277,54 +282,29 @@ testPipelineInit testDir checkFilePath = do
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
+    let validatePlan1 = ValPlanBaseDirs {
+          _valPlanBaseDirs         = [testPacsDir]
+        , _valPlanIgnoreGeno       = False
+        , _valPlanFullGeno         = False
+        , _valPlanIgnoreDuplicates = True
+        , _valPlanIgnoreChecksums  = False
+        , _valPlanIgnorePosVersion = False
+        }
     let validateOpts1 = ValidateOptions {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs         = [testPacsDir]
-            , _valPlanIgnoreGeno       = False
-            , _valPlanFullGeno         = False
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
+          _validatePlan = validatePlan1
+        , _validateMandatoryJanno      = []
+        , _validateMandatorySSF        = []
         , _validateNoExitCode          = True
         , _validateOnlyLatest          = False
-    }
-    run 1 validateOpts1
-    validateOpts1 {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs         = [testPacsDir]
-            , _valPlanIgnoreGeno       = True
-            , _valPlanFullGeno         = False
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
-    } & run 2
-    validateOpts1 {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs         = [testPacsDir]
-            , _valPlanIgnoreGeno       = False
-            , _valPlanFullGeno         = True
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
-    } & run 3
-    -- validate packages generated with init
-    validateOpts1 {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs = [testDir </> "init"]
-            , _valPlanIgnoreGeno       = False
-            , _valPlanFullGeno         = False
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
-    } & run 4
+        }
+    -- basic validation
+    validateOpts1 { _validatePlan = validatePlan1 } & run 1
+    validateOpts1 { _validatePlan = validatePlan1 { _valPlanIgnoreGeno = True } } & run 2
+    validateOpts1 { _validatePlan = validatePlan1 { _valPlanFullGeno = True } } & run 3
     -- validate individual files
     validateOpts1 {
           _validatePlan = ValPlanPoseidonYaml $ testPacsDir </> "Schiffels_2016" </> "POSEIDON.yml"
-    } & run 5
+    } & run 4
     validateOpts1 {
           _validatePlan = ValPlanGeno $ GenotypeDataSpec {
               genotypeFileSpec = GenotypeEigenstrat {
@@ -337,19 +317,30 @@ testPipelineValidate testDir checkFilePath = do
               }
             , genotypeSnpSet      = Nothing
             }
-    } & run 6
+    } & run 5
     validateOpts1 {
           _validatePlan = ValPlanJanno $ testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno"
-    } & run 7
+    } & run 6
     validateOpts1 {
           _validatePlan = ValPlanSSF $ testPacsDir </> "Schiffels_2016" </> "ena_table.ssf"
-    } & run 8
+    } & run 7
     validateOpts1 {
           _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
-    } & run 9
+    } & run 8
+    -- validate with user-defined mandatory columns
+    let validateOpts2 = validateOpts1 {
+          _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Schiffels_2016"] }
+        }
+    validateOpts2 { _validateMandatoryJanno = ["Poseidon_ID"] } & run 9
+    validateOpts2 { _validateMandatoryJanno = ["Notstrom"] } & run 10
+    validateOpts2 { _validateMandatorySSF = ["Kaesebrot", "Hutschnur"] } & run 11
+    validateOpts1 {
+          _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"] }
+        , _validateMandatorySSF = ["Kaesebrot", "Hutschnur"]
+    } & run 12
     where
         run :: Integer -> ValidateOptions -> IO ()
-        run nr opts = runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate opts) "validate" nr
+        run nr opts = runAndChecksumStdErr checkFilePath testDir (testLogErr $ runValidate opts) "validate" nr
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do

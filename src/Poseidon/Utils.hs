@@ -5,6 +5,7 @@ module Poseidon.Utils (
     renderPoseidonException,
     usePoseidonLogger,
     testLog,
+    testLogErr,
     PoseidonIO,
     envLogAction,
     envInputPlinkMode,
@@ -98,6 +99,8 @@ usePoseidonLogger VerboseLog testMode plinkMode errLength = flip runReaderT (Env
 
 testLog :: PoseidonIO a -> IO a
 testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily CharInf
+testLogErr :: PoseidonIO a -> IO a
+testLogErr = usePoseidonLogger SimpleLog Testing PlinkPopNameAsFamily CharInf
 --testLog = usePoseidonLogger VerboseLog Testing PlinkPopNameAsFamily
 
 noLog      :: LogA

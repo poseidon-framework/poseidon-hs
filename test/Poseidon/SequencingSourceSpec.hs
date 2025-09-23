@@ -13,7 +13,8 @@ import           Poseidon.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
 import           Data.Time                 (fromGregorian)
-import           Test.Hspec                (Spec, describe, it, shouldBe, shouldThrow, anyException)
+import           Test.Hspec                (Spec, anyException, describe, it,
+                                            shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do
@@ -163,6 +164,6 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
                                                         ]
                                                     ]
         map sAdditionalColumns s         `shouldBe` [CsvNamedRecord $ fromList [], CsvNamedRecord $ fromList [], CsvNamedRecord $ fromList []]
-        
+
     it "should fail to read ssf files with missing mandatory columns" $ do
-        testLog (readSeqSourceFile ["Bohrmaschine"] normalFullSeqSourcePath) `shouldThrow` anyException        
+        testLog (readSeqSourceFile ["Bohrmaschine"] normalFullSeqSourcePath) `shouldThrow` anyException
