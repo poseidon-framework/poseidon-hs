@@ -120,6 +120,9 @@ instance Csv.DefaultOrdered SeqSourceRow where
 seqSourceHeaderString :: [String]
 seqSourceHeaderString = map Bchs.unpack seqSourceHeader
 
+mainSSFColumns :: [Bchs.ByteString]
+mainSSFColumns =  ["run_accession"]
+
 -- This hashmap represents an empty seqSourceFile with all normal, specified columns
 seqSourceRefHashMap :: HM.HashMap Bchs.ByteString ()
 seqSourceRefHashMap = HM.fromList $ map (\x -> (x, ())) seqSourceHeader

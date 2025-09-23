@@ -15,6 +15,7 @@ module Poseidon.Janno (
     createMinimalJanno,
     createMinimalSample,
     jannoHeaderString,
+    mainJannoColumns,
     JannoRows (..),
     jannoRows2EigenstratIndEntries,
     makeHeaderWithAdditionalColumns,
@@ -163,6 +164,9 @@ instance Csv.DefaultOrdered JannoRow where
 
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
+
+mainJannoColumns :: [Bchs.ByteString]
+mainJannoColumns =  ["Poseidon_ID", "Genetic_Sex", "Group_Name"]
 
 -- This hashmap represents an empty janno file with all normal, specified columns
 jannoRefHashMap :: HM.HashMap Bchs.ByteString ()

@@ -56,12 +56,13 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              reduceGenotypeFilepaths)
 import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
-                                             jannoHeaderString, readJannoFile)
+                                             jannoHeaderString,
+                                             mainJannoColumns, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
-                                             SeqSourceRows (..),
+                                             SeqSourceRows (..), mainSSFColumns,
                                              readSeqSourceFile)
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              BibliographyInfo (..),
@@ -397,7 +398,10 @@ readPoseidonPackage opts ymlPath = do
 
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
-            return $ createMinimalJanno indEntries
+            -- create minimal, but fail if more cols are mandatory
+            if _readOptMandatoryJannoCols opts `subset` mainJannoColumns
+            then return $ createMinimalJanno indEntries
+            else throwM $ PoseidonNewPackageConstructionException "Missing mandatory .janno columns."
         Just p -> do
             loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
@@ -405,7 +409,11 @@ readPoseidonPackage opts ymlPath = do
 
     -- read seqSource
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
-        Nothing -> return mempty
+        Nothing ->
+            -- create empty, but fail if more cols are mandatory
+            if _readOptMandatorySSFCols opts `subset` mainSSFColumns
+            then return mempty
+            else throwM $ PoseidonNewPackageConstructionException "Missing mandatory .ssf columns."
         Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
@@ -427,6 +435,9 @@ readPoseidonPackage opts ymlPath = do
 
     -- return complete, valid package
     return pac
+
+subset :: Eq a => [a] -> [a] -> Bool
+subset x y = all (`elem` y) x
 
 checkYML :: PoseidonYamlStruct -> PoseidonIO ()
 checkYML yml = do
