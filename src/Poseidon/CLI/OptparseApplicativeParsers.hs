@@ -34,6 +34,7 @@ import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
 
 import           Control.Applicative        ((<|>))
+import qualified Data.ByteString.Char8      as Bchs
 import           Data.List                  (intercalate)
 import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
@@ -43,7 +44,6 @@ import           System.FilePath            (splitExtension, splitExtensions,
                                              takeExtension, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
-import qualified Data.ByteString.Char8                as Bchs
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)

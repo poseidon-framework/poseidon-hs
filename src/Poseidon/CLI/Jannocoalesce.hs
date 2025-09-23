@@ -21,7 +21,6 @@ import qualified Data.Csv               as Csv
 import qualified Data.HashMap.Strict    as HM
 import qualified Data.IORef             as R
 import           Data.List              ((\\))
-import qualified Data.Set               as S
 import           Data.Text              (pack, replace, unpack)
 import           System.Directory       (createDirectoryIfMissing)
 import           System.FilePath        (takeDirectory)

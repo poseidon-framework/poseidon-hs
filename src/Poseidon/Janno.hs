@@ -41,7 +41,6 @@ import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        transpose, (\\))
 import           Data.Maybe                           (catMaybes, fromJust)
-import qualified Data.Set                             as S
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)

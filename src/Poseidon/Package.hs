@@ -84,6 +84,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
+import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Char8      as BSC
 import           Data.Char                  (isSpace)
 import           Data.Csv                   (toNamedRecord)
@@ -119,7 +120,6 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
-import qualified Data.ByteString.Char8                as Bchs
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -242,21 +242,21 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptIgnoreChecksums  :: Bool
+    { _readOptIgnoreChecksums    :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno       :: Bool
+    , _readOptIgnoreGeno         :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck        :: Bool
+    , _readOptGenoCheck          :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno         :: Bool
+    , _readOptFullGeno           :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptIgnorePosVersion :: Bool
+    , _readOptIgnorePosVersion   :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptOnlyLatest       :: Bool
+    , _readOptOnlyLatest         :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
     , _readOptMandatoryJannoCols :: [Bchs.ByteString]
-    -- ^ .janno columns that should be treated as mandatory 
-    , _readOptMandatorySSFCols :: [Bchs.ByteString]
+    -- ^ .janno columns that should be treated as mandatory
+    , _readOptMandatorySSFCols   :: [Bchs.ByteString]
     -- ^ .ssf columns that should be treated as mandatory
     }
 

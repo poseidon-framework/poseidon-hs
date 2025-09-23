@@ -24,7 +24,6 @@ import           Data.Either                (lefts, rights)
 import qualified Data.HashMap.Strict        as HM
 import           Data.List                  (foldl', nub, sort)
 import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
-import qualified Data.Set                   as S
 import qualified Data.Vector                as V
 import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
