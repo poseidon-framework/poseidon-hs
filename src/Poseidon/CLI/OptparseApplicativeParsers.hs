@@ -43,7 +43,6 @@ import           System.FilePath            (splitExtension, splitExtensions,
                                              takeExtension, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
-import qualified Data.Set as S
 import qualified Data.ByteString.Char8                as Bchs
 
 parseChronOperation :: OP.Parser ChronOperation
@@ -409,9 +408,9 @@ parseValidatePlan =
     <|> (ValPlanSSF <$> parseInSSFile)
     <|> (ValPlanBib <$> parseInBibFile)
 
-parseMandatoryJannoCols :: OP.Parser (S.Set Bchs.ByteString)
+parseMandatoryJannoCols :: OP.Parser [Bchs.ByteString]
 parseMandatoryJannoCols =
-    S.fromList <$> OP.many (OP.option (Bchs.pack <$> OP.str) (
+   OP.many (OP.option (Bchs.pack <$> OP.str) (
       OP.short 'j' <>
       OP.long "mandatoryJannoColumn" <>
       OP.metavar "COLNAME" <>
@@ -419,9 +418,9 @@ parseMandatoryJannoCols =
               \such as e.g. Individual_ID. Can be given multiple times."
     ))
 
-parseMandatorySSFCols :: OP.Parser (S.Set Bchs.ByteString)
+parseMandatorySSFCols :: OP.Parser [Bchs.ByteString]
 parseMandatorySSFCols =
-    S.fromList <$> OP.many (OP.option (Bchs.pack <$> OP.str) (
+   OP.many (OP.option (Bchs.pack <$> OP.str) (
       OP.short 's' <>
       OP.long "mandatorySSFColumn" <>
       OP.metavar "COLNAME" <>

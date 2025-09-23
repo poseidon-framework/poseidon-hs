@@ -171,54 +171,56 @@ jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
 -- instance Csv.FromNamedRecord JannoRow where
 --     parseNamedRecord m = JannoRow
-parseJannoRowFromNamedRecord :: S.Set Bchs.ByteString -> Csv.NamedRecord -> Csv.Parser JannoRow
-parseJannoRowFromNamedRecord mandatory m = JannoRow
+parseJannoRowFromNamedRecord :: [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser JannoRow
+parseJannoRowFromNamedRecord mandatory m = do
+    mapM_ (checkMandatory m) mandatory
+    JannoRow
         <$> filterLookup         m "Poseidon_ID"
         <*> filterLookup         m "Genetic_Sex"
         <*> filterLookup         m "Group_Name"
-        <*> filterLookupOptional mandatory m "Alternative_IDs"
-        <*> filterLookupOptional mandatory m "Relation_To"
-        <*> filterLookupOptional mandatory m "Relation_Degree"
-        <*> filterLookupOptional mandatory m "Relation_Type"
-        <*> filterLookupOptional mandatory m "Relation_Note"
-        <*> filterLookupOptional mandatory m "Collection_ID"
-        <*> filterLookupOptional mandatory m "Country"
-        <*> filterLookupOptional mandatory m "Country_ISO"
-        <*> filterLookupOptional mandatory m "Location"
-        <*> filterLookupOptional mandatory m "Site"
-        <*> filterLookupOptional mandatory m "Latitude"
-        <*> filterLookupOptional mandatory m "Longitude"
-        <*> filterLookupOptional mandatory m "Date_Type"
-        <*> filterLookupOptional mandatory m "Date_C14_Labnr"
-        <*> filterLookupOptional mandatory m "Date_C14_Uncal_BP"
-        <*> filterLookupOptional mandatory m "Date_C14_Uncal_BP_Err"
-        <*> filterLookupOptional mandatory m "Date_BC_AD_Start"
-        <*> filterLookupOptional mandatory m "Date_BC_AD_Median"
-        <*> filterLookupOptional mandatory m "Date_BC_AD_Stop"
-        <*> filterLookupOptional mandatory m "Date_Note"
-        <*> filterLookupOptional mandatory m "MT_Haplogroup"
-        <*> filterLookupOptional mandatory m "Y_Haplogroup"
-        <*> filterLookupOptional mandatory m "Source_Tissue"
-        <*> filterLookupOptional mandatory m "Nr_Libraries"
-        <*> filterLookupOptional mandatory m "Library_Names"
-        <*> filterLookupOptional mandatory m "Capture_Type"
-        <*> filterLookupOptional mandatory m "UDG"
-        <*> filterLookupOptional mandatory m "Library_Built"
-        <*> filterLookupOptional mandatory m "Genotype_Ploidy"
-        <*> filterLookupOptional mandatory m "Data_Preparation_Pipeline_URL"
-        <*> filterLookupOptional mandatory m "Endogenous"
-        <*> filterLookupOptional mandatory m "Nr_SNPs"
-        <*> filterLookupOptional mandatory m "Coverage_on_Target_SNPs"
-        <*> filterLookupOptional mandatory m "Damage"
-        <*> filterLookupOptional mandatory m "Contamination"
-        <*> filterLookupOptional mandatory m "Contamination_Err"
-        <*> filterLookupOptional mandatory m "Contamination_Meas"
-        <*> filterLookupOptional mandatory m "Contamination_Note"
-        <*> filterLookupOptional mandatory m "Genetic_Source_Accession_IDs"
-        <*> filterLookupOptional mandatory m "Primary_Contact"
-        <*> filterLookupOptional mandatory m "Publication"
-        <*> filterLookupOptional mandatory m "Note"
-        <*> filterLookupOptional mandatory m "Keywords"
+        <*> filterLookupOptional m "Alternative_IDs"
+        <*> filterLookupOptional m "Relation_To"
+        <*> filterLookupOptional m "Relation_Degree"
+        <*> filterLookupOptional m "Relation_Type"
+        <*> filterLookupOptional m "Relation_Note"
+        <*> filterLookupOptional m "Collection_ID"
+        <*> filterLookupOptional m "Country"
+        <*> filterLookupOptional m "Country_ISO"
+        <*> filterLookupOptional m "Location"
+        <*> filterLookupOptional m "Site"
+        <*> filterLookupOptional m "Latitude"
+        <*> filterLookupOptional m "Longitude"
+        <*> filterLookupOptional m "Date_Type"
+        <*> filterLookupOptional m "Date_C14_Labnr"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP"
+        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
+        <*> filterLookupOptional m "Date_BC_AD_Start"
+        <*> filterLookupOptional m "Date_BC_AD_Median"
+        <*> filterLookupOptional m "Date_BC_AD_Stop"
+        <*> filterLookupOptional m "Date_Note"
+        <*> filterLookupOptional m "MT_Haplogroup"
+        <*> filterLookupOptional m "Y_Haplogroup"
+        <*> filterLookupOptional m "Source_Tissue"
+        <*> filterLookupOptional m "Nr_Libraries"
+        <*> filterLookupOptional m "Library_Names"
+        <*> filterLookupOptional m "Capture_Type"
+        <*> filterLookupOptional m "UDG"
+        <*> filterLookupOptional m "Library_Built"
+        <*> filterLookupOptional m "Genotype_Ploidy"
+        <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
+        <*> filterLookupOptional m "Endogenous"
+        <*> filterLookupOptional m "Nr_SNPs"
+        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
+        <*> filterLookupOptional m "Damage"
+        <*> filterLookupOptional m "Contamination"
+        <*> filterLookupOptional m "Contamination_Err"
+        <*> filterLookupOptional m "Contamination_Meas"
+        <*> filterLookupOptional m "Contamination_Note"
+        <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
+        <*> filterLookupOptional m "Primary_Contact"
+        <*> filterLookupOptional m "Publication"
+        <*> filterLookupOptional m "Note"
+        <*> filterLookupOptional m "Keywords"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
@@ -358,7 +360,7 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
             Bch.writeFile path (jannoConcat <> "\n")
 
 -- | A function to load one janno file
-readJannoFile :: S.Set Bchs.ByteString -> FilePath -> PoseidonIO JannoRows
+readJannoFile :: [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
 readJannoFile mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -414,7 +416,7 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: S.Set Bchs.ByteString
+readJannoFileRow :: [Bchs.ByteString]
                  -> FilePath
                  -> (Int, Bch.ByteString)
                  -> PoseidonIO (Either PoseidonException JannoRow)

@@ -127,30 +127,32 @@ seqSourceRefHashMap = HM.fromList $ map (\x -> (x, ())) seqSourceHeader
 
 -- instance Csv.FromNamedRecord SeqSourceRow where
 --     parseNamedRecord m = SeqSourceRow
-parseSeqSourceRowFromNamedRecord :: S.Set Bchs.ByteString -> Csv.NamedRecord -> Csv.Parser SeqSourceRow
-parseSeqSourceRowFromNamedRecord mandatory m = SeqSourceRow
-        <$> filterLookupOptional mandatory m "poseidon_IDs"
-        <*> filterLookupOptional mandatory m "udg"
-        <*> filterLookupOptional mandatory m "library_built"
-        <*> filterLookupOptional mandatory m "sample_accession"
-        <*> filterLookupOptional mandatory m "study_accession"
+parseSeqSourceRowFromNamedRecord :: [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser SeqSourceRow
+parseSeqSourceRowFromNamedRecord mandatory m = do
+    mapM_ (checkMandatory m) mandatory
+    SeqSourceRow
+        <$> filterLookupOptional m "poseidon_IDs"
+        <*> filterLookupOptional m "udg"
+        <*> filterLookupOptional m "library_built"
+        <*> filterLookupOptional m "sample_accession"
+        <*> filterLookupOptional m "study_accession"
         <*> filterLookup         m "run_accession"
-        <*> filterLookupOptional mandatory m "sample_alias"
-        <*> filterLookupOptional mandatory m "secondary_sample_accession"
-        <*> filterLookupOptional mandatory m "first_public"
-        <*> filterLookupOptional mandatory m "last_updated"
-        <*> filterLookupOptional mandatory m "instrument_model"
-        <*> filterLookupOptional mandatory m "library_layout"
-        <*> filterLookupOptional mandatory m "library_source"
-        <*> filterLookupOptional mandatory m "instrument_platform"
-        <*> filterLookupOptional mandatory m "library_name"
-        <*> filterLookupOptional mandatory m "library_strategy"
-        <*> filterLookupOptional mandatory m "fastq_ftp"
-        <*> filterLookupOptional mandatory m "fastq_aspera"
-        <*> filterLookupOptional mandatory m "fastq_bytes"
-        <*> filterLookupOptional mandatory m "fastq_md5"
-        <*> filterLookupOptional mandatory m "read_count"
-        <*> filterLookupOptional mandatory m "submitted_ftp"
+        <*> filterLookupOptional m "sample_alias"
+        <*> filterLookupOptional m "secondary_sample_accession"
+        <*> filterLookupOptional m "first_public"
+        <*> filterLookupOptional m "last_updated"
+        <*> filterLookupOptional m "instrument_model"
+        <*> filterLookupOptional m "library_layout"
+        <*> filterLookupOptional m "library_source"
+        <*> filterLookupOptional m "instrument_platform"
+        <*> filterLookupOptional m "library_name"
+        <*> filterLookupOptional m "library_strategy"
+        <*> filterLookupOptional m "fastq_ftp"
+        <*> filterLookupOptional m "fastq_aspera"
+        <*> filterLookupOptional m "fastq_bytes"
+        <*> filterLookupOptional m "fastq_md5"
+        <*> filterLookupOptional m "read_count"
+        <*> filterLookupOptional m "submitted_ftp"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
@@ -193,7 +195,7 @@ writeSeqSourceFile path (SeqSourceRows rows) = do
             V.fromList $ seqSourceHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . sAdditionalColumns) rows)))
 
 -- | A function to read one seqSourceFile
-readSeqSourceFile :: S.Set Bchs.ByteString -> FilePath -> PoseidonIO SeqSourceRows
+readSeqSourceFile :: [Bchs.ByteString] -> FilePath -> PoseidonIO SeqSourceRows
 readSeqSourceFile mandatoryCols seqSourcePath = do
     logDebug $ "Reading: " ++ seqSourcePath
     seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
@@ -223,7 +225,7 @@ readSeqSourceFile mandatoryCols seqSourcePath = do
         return seqSource
 
 -- | A function to read one row of a seqSourceFile
-readSeqSourceFileRow :: S.Set Bchs.ByteString
+readSeqSourceFileRow :: [Bchs.ByteString]
                      -> FilePath
                      -> (Int, Bch.ByteString)
                      -> PoseidonIO (Either PoseidonException SeqSourceRow)

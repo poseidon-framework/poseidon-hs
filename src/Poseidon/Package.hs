@@ -119,7 +119,6 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
-import qualified Data.Set as S
 import qualified Data.ByteString.Char8                as Bchs
 
 -- | Internal structure for YAML loading only
@@ -255,10 +254,10 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to ignore the Poseidon version of an input package.
     , _readOptOnlyLatest       :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
-    , _readOptMandatoryJannoCols :: S.Set Bchs.ByteString
-    -- ^ optional .janno columns that should be treated as mandatory 
-    , _readOptMandatorySSFCols :: S.Set Bchs.ByteString
-    -- ^ optional .janno columns that should be treated as mandatory
+    , _readOptMandatoryJannoCols :: [Bchs.ByteString]
+    -- ^ .janno columns that should be treated as mandatory 
+    , _readOptMandatorySSFCols :: [Bchs.ByteString]
+    -- ^ .ssf columns that should be treated as mandatory
     }
 
 -- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
@@ -272,8 +271,8 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptFullGeno             = False
     , _readOptIgnorePosVersion     = False
     , _readOptOnlyLatest           = False
-    , _readOptMandatoryJannoCols   = S.empty
-    , _readOptMandatorySSFCols     = S.empty
+    , _readOptMandatoryJannoCols   = []
+    , _readOptMandatorySSFCols     = []
     }
 
 readPoseidonPackageCollection :: PackageReadOptions

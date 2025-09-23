@@ -27,14 +27,13 @@ import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
 import           Poseidon.EntityTypes      (IndividualInfo (..))
 import           System.Exit               (exitFailure, exitSuccess)
-import qualified Data.Set as S
 import qualified Data.ByteString.Char8                as Bchs
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
     { _validatePlan       :: ValidatePlan
-    , _validateMandatoryJanno :: S.Set Bchs.ByteString
-    , _validateMandatorySSF :: S.Set Bchs.ByteString
+    , _validateMandatoryJanno :: [Bchs.ByteString]
+    , _validateMandatorySSF :: [Bchs.ByteString]
     , _validateNoExitCode :: Bool
     , _validateOnlyLatest :: Bool
     }
