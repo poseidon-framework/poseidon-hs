@@ -96,12 +96,12 @@ getCsvNR (CsvNamedRecord x) = x
 checkMandatory :: Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser ()
 checkMandatory m mandatory =
   case cleanInput (HM.lookup mandatory m) of
-    Nothing -> fail ("Missing value in mandatory column " <> Bchs.unpack mandatory)
+    Nothing -> fail ("Missing value in mandatory column: " <> Bchs.unpack mandatory)
     Just _  -> pure ()
 
 filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
 filterLookup m name = case cleanInput $ HM.lookup name m of
-    Nothing -> fail $ "Missing value in mandatory column " <> Bchs.unpack name
+    Nothing -> fail $ "Missing value in mandatory column: " <> Bchs.unpack name
     Just x  -> Csv.parseField  x
 
 filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)

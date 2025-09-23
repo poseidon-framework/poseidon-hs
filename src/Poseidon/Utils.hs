@@ -201,7 +201,7 @@ renderPoseidonException :: PoseidonException -> String
 renderPoseidonException (PoseidonYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ":\n" ++ prettyPrintParseException e
 renderPoseidonException (PoseidonPackageException s) =
-    "Encountered a logical error with a package: " ++ s
+    "Encountered an issue in a package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++
     ". This package is build according to Poseidon schema v" ++ s ++

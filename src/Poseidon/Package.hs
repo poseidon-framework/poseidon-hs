@@ -399,9 +399,11 @@ readPoseidonPackage opts ymlPath = do
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             -- create minimal, but fail if more cols are mandatory
-            if _readOptMandatoryJannoCols opts `subset` mainJannoColumns
+            let extraMandatoryColumns = filter (`notElem` mainJannoColumns) $ _readOptMandatoryJannoCols opts
+            if null extraMandatoryColumns
             then return $ createMinimalJanno indEntries
-            else throwM $ PoseidonNewPackageConstructionException "Missing mandatory .janno columns."
+            else throwM $ PoseidonPackageException $
+                "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
             loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
@@ -409,11 +411,13 @@ readPoseidonPackage opts ymlPath = do
 
     -- read seqSource
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
-        Nothing ->
-            -- create empty, but fail if more cols are mandatory
-            if _readOptMandatorySSFCols opts `subset` mainSSFColumns
+        Nothing -> do
+            -- create minimal, but fail if more cols are mandatory
+            let extraMandatoryColumns = filter (`notElem` mainSSFColumns) $ _readOptMandatorySSFCols opts
+            if null extraMandatoryColumns
             then return mempty
-            else throwM $ PoseidonNewPackageConstructionException "Missing mandatory .ssf columns."
+            else throwM $ PoseidonPackageException $
+                "Missing mandatory .ssf columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
@@ -435,9 +439,6 @@ readPoseidonPackage opts ymlPath = do
 
     -- return complete, valid package
     return pac
-
-subset :: Eq a => [a] -> [a] -> Bool
-subset x y = all (`elem` y) x
 
 checkYML :: PoseidonYamlStruct -> PoseidonIO ()
 checkYML yml = do
