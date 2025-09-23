@@ -193,8 +193,8 @@ writeSeqSourceFile path (SeqSourceRows rows) = do
             V.fromList $ seqSourceHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . sAdditionalColumns) rows)))
 
 -- | A function to read one seqSourceFile
-readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
-readSeqSourceFile seqSourcePath = do
+readSeqSourceFile :: S.Set Bchs.ByteString -> FilePath -> PoseidonIO SeqSourceRows
+readSeqSourceFile mandatoryCols seqSourcePath = do
     logDebug $ "Reading: " ++ seqSourcePath
     seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
     let seqSourceFileRows = Bch.lines seqSourceFile
@@ -211,7 +211,7 @@ readSeqSourceFile seqSourcePath = do
         rowsOnly = tail seqSourceFileRowsWithNumberFiltered
         seqSourceFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
     -- read seqSourceFile by rows
-    seqSourceRepresentation <- mapM (readSeqSourceFileRow seqSourcePath) seqSourceFileRowsWithHeader
+    seqSourceRepresentation <- mapM (readSeqSourceFileRow mandatoryCols seqSourcePath) seqSourceFileRowsWithHeader
     -- error case management
     if not (null (lefts seqSourceRepresentation))
     then do
@@ -223,9 +223,12 @@ readSeqSourceFile seqSourcePath = do
         return seqSource
 
 -- | A function to read one row of a seqSourceFile
-readSeqSourceFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
-readSeqSourceFileRow seqSourcePath (lineNumber, row) = do
-    let decoded = Csv.decodeByNameWithP (parseSeqSourceRowFromNamedRecord S.empty) decodingOptions row
+readSeqSourceFileRow :: S.Set Bchs.ByteString
+                     -> FilePath
+                     -> (Int, Bch.ByteString)
+                     -> PoseidonIO (Either PoseidonException SeqSourceRow)
+readSeqSourceFileRow mandatoryCols seqSourcePath (lineNumber, row) = do
+    let decoded = Csv.decodeByNameWithP (parseSeqSourceRowFromNamedRecord mandatoryCols) decodingOptions row
         simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
     case simplifiedDecoded of
         Left e -> do

@@ -358,8 +358,8 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
             Bch.writeFile path (jannoConcat <> "\n")
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> PoseidonIO JannoRows
-readJannoFile jannoPath = do
+readJannoFile :: S.Set Bchs.ByteString -> FilePath -> PoseidonIO JannoRows
+readJannoFile mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
@@ -387,7 +387,7 @@ readJannoFile jannoPath = do
             intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
             additional_columns (findSimilarNames missing_columns additional_columns)))
     -- load janno by rows
-    jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
+    jannoRepresentation <- mapM (readJannoFileRow mandatoryCols jannoPath) jannoFileRowsWithHeader
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
@@ -414,9 +414,12 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException JannoRow)
-readJannoFileRow jannoPath (lineNumber, row) = do
-    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord S.empty) decodingOptions row
+readJannoFileRow :: S.Set Bchs.ByteString
+                 -> FilePath
+                 -> (Int, Bch.ByteString)
+                 -> PoseidonIO (Either PoseidonException JannoRow)
+readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
+    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord mandatoryCols) decodingOptions row
         simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
     case simplifiedDecoded of
         Left e -> do

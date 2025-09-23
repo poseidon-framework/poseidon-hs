@@ -27,10 +27,14 @@ import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
 import           Poseidon.EntityTypes      (IndividualInfo (..))
 import           System.Exit               (exitFailure, exitSuccess)
+import qualified Data.Set as S
+import qualified Data.ByteString.Char8                as Bchs
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
     { _validatePlan       :: ValidatePlan
+    , _validateMandatoryJanno :: S.Set Bchs.ByteString
+    , _validateMandatorySSF :: S.Set Bchs.ByteString
     , _validateNoExitCode :: Bool
     , _validateOnlyLatest :: Bool
     }
@@ -53,6 +57,7 @@ data ValidatePlan =
 runValidate :: ValidateOptions -> PoseidonIO ()
 runValidate (ValidateOptions
     (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup ignoreChecksums ignorePosVersion)
+    mandatoryJannoCols mandatorySSFCols
     noExitCode onlyLatest) = do
     logInfo $ "Validating: " ++ intercalate ", " baseDirs
     let pacReadOpts = defaultPackageReadOptions {
@@ -62,6 +67,8 @@ runValidate (ValidateOptions
         , _readOptFullGeno         = fullGeno
         , _readOptIgnorePosVersion = ignorePosVersion
         , _readOptOnlyLatest       = onlyLatest
+        , _readOptMandatoryJannoCols = mandatoryJannoCols
+        , _readOptMandatorySSFCols   = mandatorySSFCols
         }
     -- load all packages
     (allPackages, packagesSkipped) <- readPoseidonPackageCollectionWithSkipIndicator pacReadOpts baseDirs
@@ -81,7 +88,7 @@ runValidate (ValidateOptions
             throwM . PoseidonCollectionException $ "Detected duplicate individuals."
     -- fail the validation if not all POSEIDON.yml files yielded a clean package
     conclude (not packagesSkipped) noExitCode
-runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode _) = do
+runValidate (ValidateOptions (ValPlanPoseidonYaml path) _ _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
     bs <- liftIO $ B.readFile path
     yml <- case decodeEither' bs of
@@ -89,7 +96,7 @@ runValidate (ValidateOptions (ValPlanPoseidonYaml path) noExitCode _) = do
         Right pac -> return (pac :: PoseidonYamlStruct)
     logInfo $ "Read .yml file of package " ++ _posYamlTitle yml
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanGeno geno) noExitCode _) = do
+runValidate (ValidateOptions (ValPlanGeno geno) _ _ noExitCode _) = do
     let gFile = case genotypeFileSpec geno of
             GenotypeEigenstrat gf _ _ _ _ _ -> gf
             GenotypePlink      gf _ _ _ _ _ -> gf
@@ -98,17 +105,17 @@ runValidate (ValidateOptions (ValPlanGeno geno) noExitCode _) = do
     pac <- makePseudoPackageFromGenotypeData geno
     validateGeno pac True
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanJanno path) noExitCode _) = do
+runValidate (ValidateOptions (ValPlanJanno path) mandatoryJannoCols _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (JannoRows entries) <- readJannoFile path
+    (JannoRows entries) <- readJannoFile mandatoryJannoCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanSSF path) noExitCode _) = do
+runValidate (ValidateOptions (ValPlanSSF path) _ mandatorySSFCols noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (SeqSourceRows entries) <- readSeqSourceFile path
+    (SeqSourceRows entries) <- readSeqSourceFile mandatorySSFCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanBib path) noExitCode _) = do
+runValidate (ValidateOptions (ValPlanBib path) _ _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
     entries <- liftIO $ readBibTeXFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"

@@ -119,6 +119,8 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
+import qualified Data.Set as S
+import qualified Data.ByteString.Char8                as Bchs
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -253,6 +255,10 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to ignore the Poseidon version of an input package.
     , _readOptOnlyLatest       :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
+    , _readOptMandatoryJannoCols :: S.Set Bchs.ByteString
+    -- ^ optional .janno columns that should be treated as mandatory 
+    , _readOptMandatorySSFCols :: S.Set Bchs.ByteString
+    -- ^ optional .janno columns that should be treated as mandatory
     }
 
 -- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
@@ -266,6 +272,8 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptFullGeno             = False
     , _readOptIgnorePosVersion     = False
     , _readOptOnlyLatest           = False
+    , _readOptMandatoryJannoCols   = S.empty
+    , _readOptMandatorySSFCols     = S.empty
     }
 
 readPoseidonPackageCollection :: PackageReadOptions
@@ -392,14 +400,14 @@ readPoseidonPackage opts ymlPath = do
         Nothing -> do
             return $ createMinimalJanno indEntries
         Just p -> do
-            loadedJanno <- readJannoFile p
+            loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
     -- read seqSource
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
         Nothing -> return mempty
-        Just p  -> readSeqSourceFile p
+        Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)

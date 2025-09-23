@@ -49,7 +49,7 @@ data JannoCoalesceOptions = JannoCoalesceOptions
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
 runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrite sKey tKey maybeStrip) = do
     JannoRows sourceRows <- case sourceSpec of
-        JannoSourceSingle sourceFile -> readJannoFile sourceFile
+        JannoSourceSingle sourceFile -> readJannoFile S.empty sourceFile
         JannoSourceBaseDirs sourceDirs -> do
             let pacReadOpts = defaultPackageReadOptions {
                       _readOptIgnoreChecksums      = True
@@ -58,7 +58,7 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
                     , _readOptOnlyLatest           = True
                 }
             getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
-    JannoRows targetRows <- readJannoFile target
+    JannoRows targetRows <- readJannoFile S.empty target
 
     newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
 
