@@ -13,7 +13,7 @@ import           Poseidon.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
 import           Data.Time                 (fromGregorian)
-import           Test.Hspec                (Spec, describe, it, shouldBe)
+import           Test.Hspec                (Spec, describe, it, shouldBe, shouldThrow, anyException)
 
 spec :: Spec
 spec = do
@@ -55,7 +55,7 @@ testReadSeqSourceFile :: Spec
 testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $ do
     let normalFullSeqSourcePath = "test/testDat/testSeqSourceFiles/normal_full.ssf"
     it "should read normal .ssf files correctly" $ do
-        (SeqSourceRows s) <- testLog $ readSeqSourceFile normalFullSeqSourcePath
+        (SeqSourceRows s) <- testLog $ readSeqSourceFile [] normalFullSeqSourcePath
         length s `shouldBe` 3
         map sPoseidonID s                `shouldBe` [ Just $ ListColumn ["Ash033.SG"]
                                                     , Just $ ListColumn ["Ash002.SG"]
@@ -163,3 +163,6 @@ testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $
                                                         ]
                                                     ]
         map sAdditionalColumns s         `shouldBe` [CsvNamedRecord $ fromList [], CsvNamedRecord $ fromList [], CsvNamedRecord $ fromList []]
+        
+    it "should fail to read ssf files with missing mandatory columns" $ do
+        testLog (readSeqSourceFile ["Bohrmaschine"] normalFullSeqSourcePath) `shouldThrow` anyException        
