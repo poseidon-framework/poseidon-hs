@@ -1,16 +1,8 @@
-Validating: test/testDat/testPackages/ancient/Schiffels_2016
+Validating: some/path
 Checking base directories... 
 Searching POSEIDON.yml files... 
 1 found
 Checking Poseidon versions... 
 Initializing packages... 
-Can't read sample in test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno in line 2: parse error (Failed reading: conversion error: Missing value in mandatory column: Notstrom)
-Can't read sample in test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno in line 3: parse error (Failed reading: conversion error: Missing value in mandatory column: Notstrom)
-Can't read sample in test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno in line 4: parse error (Failed reading: conversion error: Missing value in mandatory column: Notstrom)
-Can't read sample in test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno in line 5: parse error (Failed reading: conversion error: Missing value in mandatory column: Notstrom)
-Can't read sample in test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno in line 6: parse error (Failed reading: conversion error: Missing value in mandatory column: Notstrom)
-Some packages were skipped due to issues:
-In the package described in test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml:
-Consistency issues in file test/testDat/testPackages/ancient/Schiffels_2016/Schiffels_2016.janno: Broken lines.
-Packages loaded: 0
-Validation failed
+Packages loaded: 1
+Validation passed

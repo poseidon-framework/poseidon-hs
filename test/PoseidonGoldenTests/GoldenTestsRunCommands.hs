@@ -110,9 +110,19 @@ patchLastModified testDir yamlFile = do
     let patchedLines = do
             l <- lines_
             if "lastModified" `T.isPrefixOf` l
-                then return "lastModified: 1970-01-01"
-                else return l
+            then return "lastModified: 1970-01-01"
+            else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+patchValidatePath :: FilePath -> FilePath -> IO ()
+patchValidatePath testDir file = do
+    lines_ <- T.lines <$> T.readFile (testDir </> file)
+    let patchedLines = do
+            l <- lines_
+            if "Validating:" `T.isPrefixOf` l
+            then return "Validating: some/path"
+            else return l
+    T.writeFile (testDir </> file) (T.unlines patchedLines)
 
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
@@ -127,11 +137,12 @@ runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
             appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
 
 runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
-runAndChecksumStdOut = runAndChecksum stdout
-runAndChecksumStdErr :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
+runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber =
+    runAndChecksum stdout checkSumFilePath testDir action (pure ()) actionName outFileNumber
+runAndChecksumStdErr :: FilePath -> FilePath -> IO () -> IO () -> String -> Integer -> IO ()
 runAndChecksumStdErr = runAndChecksum stderr
-runAndChecksum :: Handle -> FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
-runAndChecksum handle checkSumFilePath testDir action actionName outFileNumber = do
+runAndChecksum :: Handle -> FilePath -> FilePath -> IO () -> IO () -> String -> Integer -> IO ()
+runAndChecksum handle checkSumFilePath testDir action unLogged actionName outFileNumber = do
     -- store command line output in a specific output file
     let outFileName = actionName ++ show outFileNumber
         outDirInTestDir = actionName </> outFileName
@@ -142,6 +153,7 @@ runAndChecksum handle checkSumFilePath testDir action actionName outFileNumber =
     unless outDirExists $ createDirectory outDir
     -- catch output and write it to the outPath
     redirectHandleToFile handle outPath action
+    unLogged
     -- append checksum to checksumfile
     checksum <- getChecksum outPath
     appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
@@ -301,13 +313,17 @@ testPipelineValidate testDir checkFilePath = do
     validateOpts1 { _validatePlan = validatePlan1 } & run 1
     validateOpts1 { _validatePlan = validatePlan1 { _valPlanIgnoreGeno = True } } & run 2
     validateOpts1 { _validatePlan = validatePlan1 {
-        _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"],
-        _valPlanFullGeno = True
+          _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"],
+          _valPlanFullGeno = True
     } } & run 3
+    -- validate package created with init
+    validateOpts1 { _validatePlan = validatePlan1 {
+          _valPlanBaseDirs =  [testDir </> "init" </> "Schiffels"]
+    } } & run 4
     -- validate individual files
     validateOpts1 {
           _validatePlan = ValPlanPoseidonYaml $ testPacsDir </> "Schiffels_2016" </> "POSEIDON.yml"
-    } & run 4
+    } & run 5
     validateOpts1 {
           _validatePlan = ValPlanGeno $ GenotypeDataSpec {
               genotypeFileSpec = GenotypeEigenstrat {
@@ -320,30 +336,34 @@ testPipelineValidate testDir checkFilePath = do
               }
             , genotypeSnpSet      = Nothing
             }
-    } & run 5
-    validateOpts1 {
-          _validatePlan = ValPlanJanno $ testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno"
     } & run 6
     validateOpts1 {
-          _validatePlan = ValPlanSSF $ testPacsDir </> "Schiffels_2016" </> "ena_table.ssf"
+          _validatePlan = ValPlanJanno $ testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno"
     } & run 7
     validateOpts1 {
-          _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
+          _validatePlan = ValPlanSSF $ testPacsDir </> "Schiffels_2016" </> "ena_table.ssf"
     } & run 8
+    validateOpts1 {
+          _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
+    } & run 9
     -- validate with user-defined mandatory columns
     let validateOpts2 = validateOpts1 {
           _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Schiffels_2016"] }
         }
-    validateOpts2 { _validateMandatoryJanno = ["Poseidon_ID"] } & run 9
-    validateOpts2 { _validateMandatoryJanno = ["Notstrom"] } & run 10
-    validateOpts2 { _validateMandatorySSF = ["Kaesebrot", "Hutschnur"] } & run 11
+    validateOpts2 { _validateMandatoryJanno = ["Poseidon_ID"] } & run 10
+    validateOpts2 { _validateMandatoryJanno = ["Notstrom"] } & run 11
+    validateOpts2 { _validateMandatorySSF = ["Kaesebrot", "Hutschnur"] } & run 12
     validateOpts1 {
           _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"] }
         , _validateMandatorySSF = ["Kaesebrot", "Hutschnur"]
-    } & run 12
+    } & run 13
     where
         run :: Integer -> ValidateOptions -> IO ()
-        run nr opts = runAndChecksumStdErr checkFilePath testDir (testLogErr $ runValidate opts) "validate" nr
+        run nr opts = do
+            let action = testLogErr (runValidate opts)
+                -- patching can not be part of the action: race condition
+                unLogged = patchValidatePath testDir ("validate" </> ("validate" ++ show nr))
+            runAndChecksumStdErr checkFilePath testDir action unLogged "validate" nr
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
