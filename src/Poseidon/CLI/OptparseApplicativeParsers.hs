@@ -425,7 +425,7 @@ parseMandatorySSFCols =
       OP.long "mandatorySSFColumn" <>
       OP.metavar "COLNAME" <>
       OP.help "Usually optional .ssf file column that should be treated as mandatory, \
-              \such as e.g. Individual_ID. Can be given multiple times."
+              \such as e.g. poseidon_IDs. Can be given multiple times."
     ))
 
 parseInPoseidonYamlFile :: OP.Parser FilePath
