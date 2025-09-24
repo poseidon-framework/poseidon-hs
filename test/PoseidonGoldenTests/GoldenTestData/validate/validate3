@@ -1,18 +1,10 @@
-Validating: test/testDat/testPackages/ancient
+Validating: test/testDat/testPackages/ancient/Lamnidis_2018
 Checking base directories... 
 Searching POSEIDON.yml files... 
-5 found
+1 found
 Checking Poseidon versions... 
 Initializing packages... 
 Trying to parse genotype data for package: Lamnidis_2018
 SNPs:         0    0s
-Trying to parse genotype data for package: Lamnidis_2018
-SNPs:         0    0s
-Trying to parse genotype data for package: Schiffels_2016
-SNPs:         0    0s
-Trying to parse genotype data for package: Schmid_2028
-SNPs:         0    0s
-Trying to parse genotype data for package: Wang_2020
-SNPs:         0    0s
-Packages loaded: 5
+Packages loaded: 1
 Validation passed

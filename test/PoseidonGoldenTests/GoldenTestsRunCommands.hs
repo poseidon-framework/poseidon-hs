@@ -300,7 +300,10 @@ testPipelineValidate testDir checkFilePath = do
     -- basic validation
     validateOpts1 { _validatePlan = validatePlan1 } & run 1
     validateOpts1 { _validatePlan = validatePlan1 { _valPlanIgnoreGeno = True } } & run 2
-    validateOpts1 { _validatePlan = validatePlan1 { _valPlanFullGeno = True } } & run 3
+    validateOpts1 { _validatePlan = validatePlan1 {
+        _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"],
+        _valPlanFullGeno = True
+    } } & run 3
     -- validate individual files
     validateOpts1 {
           _validatePlan = ValPlanPoseidonYaml $ testPacsDir </> "Schiffels_2016" </> "POSEIDON.yml"

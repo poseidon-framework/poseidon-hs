@@ -13,7 +13,7 @@ b088fa0fea0d013ddebacd7b6276fc53 init init_vcf/Schiffels_vcf/geno.vcf
 9edc4a757f785a8ecb59c54d16c5690a init init_vcf/Schiffels_vcf/Schiffels.bib
 f157f7738dce256dc5a7b0add887cb76 validate validate/validate1
 f157f7738dce256dc5a7b0add887cb76 validate validate/validate2
-8593dc597de1ac76e1c1ed3b66cbaefa validate validate/validate3
+bf11fb1764ff69d116c28e8683bea11c validate validate/validate3
 948567d95655f64560873ff633a91e0f validate validate/validate4
 702e7e226069f65ceedd3c5e3da9047a validate validate/validate5
 8a9bb872b1b563a1d79470d584eb3344 validate validate/validate6
