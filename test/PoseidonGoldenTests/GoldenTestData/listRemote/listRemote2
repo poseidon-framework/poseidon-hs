@@ -6,10 +6,7 @@
 | 3     | Wang_2020     | 0.1.0           | True      | 1              |
 | 4     | Wang_2020     | 0.1.0           | True      | 1              |
 | 5     | Wang_2020     | 0.1.0           | True      | 1              |
-| POP1  | Lamnidis_2018 | 1.0.0           | False     | 4              |
-| POP1  | Lamnidis_2018 | 1.0.1           | True      | 4              |
-| POP2  | Lamnidis_2018 | 1.0.0           | False     | 4              |
-| POP2  | Lamnidis_2018 | 1.0.1           | True      | 4              |
-| POP3  | Lamnidis_2018 | 1.0.0           | False     | 2              |
-| POP3  | Lamnidis_2018 | 1.0.1           | True      | 2              |
+| POP1  | Lamnidis_2018 | 1.0.0           | True      | 4              |
+| POP2  | Lamnidis_2018 | 1.0.0           | True      | 4              |
+| POP3  | Lamnidis_2018 | 1.0.0           | True      | 2              |
 '-------'---------------'-----------------'-----------'----------------'
