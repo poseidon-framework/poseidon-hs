@@ -25,10 +25,8 @@ import           Poseidon.ServerClient        (AddColSpec (..),
                                                ServerApiReturnType (..))
 import           Poseidon.ServerHTML
 import           Poseidon.ServerStylesheet    (stylesBS)
-import           Poseidon.Utils               (LogA,
-                                               PoseidonIO, envLogAction,
-                                               logDebug, logInfo,
-                                               logWithEnv)
+import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
+                                               logDebug, logInfo, logWithEnv)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
@@ -139,9 +137,9 @@ getArchiveSpecs = map fst
 extractFromArchive :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m (ArchiveSpec, a)
 extractFromArchive name store =
     case filter (\(spec, _) -> _archSpecName spec == name) store of
-      []         -> fail $ "Archive " <> name <> " does not exist"
+      []     -> fail $ "Archive " <> name <> " does not exist"
       [pair] -> pure pair
-      _          -> fail $ "Archive " <> name <> " is ambiguous"
+      _      -> fail $ "Archive " <> name <> " is ambiguous"
 
 getArchiveSpecByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m ArchiveSpec
 getArchiveSpecByName name store = fst <$> extractFromArchive name store
