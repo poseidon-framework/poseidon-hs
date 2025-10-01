@@ -3,11 +3,9 @@
 
 module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
-import           Poseidon.EntityTypes         (EntityInput (..),
-                                               HasNameAndVersion (..),
+import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                PacNameAndVersion (PacNameAndVersion),
                                                PoseidonEntity (..),
-                                               readEntityInputs,
                                                renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
@@ -27,18 +25,19 @@ import           Poseidon.ServerClient        (AddColSpec (..),
                                                ServerApiReturnType (..))
 import           Poseidon.ServerHTML
 import           Poseidon.ServerStylesheet    (stylesBS)
-import           Poseidon.Utils               (LogA, PoseidonException (..),
+import           Poseidon.Utils               (LogA,
                                                PoseidonIO, envLogAction,
-                                               logDebug, logError, logInfo,
+                                               logDebug, logInfo,
                                                logWithEnv)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
                                                emptyArchive, fromArchive,
                                                toEntry)
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Exception            (throwIO)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Data.Aeson                   (Object)
+import           Data.Aeson.Types             (Parser)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (foldl', groupBy, intercalate,
                                                sortOn)
@@ -73,33 +72,9 @@ import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                redirect, request, scottyApp,
                                                setHeader, text)
 
-data ServeOptions = ServeOptions
-    { cliArchiveConfig   :: Either ArchiveConfig FilePath
-    , cliZipDir          :: Maybe FilePath
-    , cliPort            :: Int
-    , cliIgnoreChecksums :: Bool
-    , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
-    , cliRetiredPackages :: [EntityInput PoseidonEntity]
-        -- this reuses the EntityInput type, but entities have to be packages, and this is checked.
-        -- package names with no version: all versions are retired.
-        -- with version: only this version is retired.
-        -- This is used to filter out retired packages from the API responses.
-        -- It is not used for the zip file API, which always serves the requested package.
-        -- It is not used for the HTML per-package page, which always shows the requested package.
-        -- It is used, however, for the Archive HTML page, which lists only non-retired packages.
-        -- all APIs, both HTML and JSON, read a parameter "includeRetired" to determine whether to include retired packages in the response.
-        -- If this parameter is not set, the default is to not include retired packages.
-    }
-    deriving (Show)
+-- Archive specification
 
-newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
-
-instance FromJSON ArchiveConfig where
-    parseJSON = withObject "archiveConfig" $ \v -> ArchiveConfig
-        <$> v .: "archives"
-
-parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
-parseArchiveConfigFile = decodeFileThrow
+type ArchiveName = String
 
 data ArchiveSpec = ArchiveSpec
     { _archSpecName               :: ArchiveName
@@ -108,6 +83,16 @@ data ArchiveSpec = ArchiveSpec
     , _archSpecURL                :: Maybe String
     , _archSpecDataURL            :: Maybe String
     , _archSpecExcludePacsFromMap :: [String]
+    , _archRetiredPackages        :: [PacNameAndVersion]
+        -- to set retired packages:
+        -- package names with no version: all versions are retired.
+        -- with version: only this version is retired.
+        -- This is used to filter out retired packages from the API responses.
+        -- It is not used for the zip file API, which always serves the requested package.
+        -- It is not used for the HTML per-package page, which always shows the requested package.
+        -- It is used, however, for the Archive HTML page, which lists only non-retired packages.
+        -- all APIs, both HTML and JSON, read a parameter "includeRetired" to determine whether to include retired packages in the response.
+        -- If this parameter is not set, the default is to not include retired packages.
     } deriving (Show)
 
 instance FromJSON ArchiveSpec where
@@ -118,30 +103,87 @@ instance FromJSON ArchiveSpec where
         <*> v .:? "URL"
         <*> v .:? "dataURL"
         <*> ((v .:? "excludeFromMap") >>= maybe (return []) return)
+        <*> parseCLIretiredPackages v
+      where
+        parseCLIretiredPackages :: Object -> Parser [PacNameAndVersion]
+        parseCLIretiredPackages v = do
+            retiredEntities <- v .: "retiredPackages" :: Parser [PoseidonEntity]
+            forM retiredEntities $ \e -> do
+                case e of
+                    Pac p -> return p
+                    _     -> fail "Retired packages must be Poseidon packages (with or without version)"
 
-type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
+newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
 
-type ArchiveName = String
+instance FromJSON ArchiveConfig where
+    parseJSON = withObject "archiveConfig" $ \v -> ArchiveConfig
+        <$> v .: "archives"
+
+parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
+parseArchiveConfigFile = decodeFileThrow
+
+
+
+-- Stores to be used by the server App
 
 type ArchiveStore a = [(ArchiveSpec, a)] -- a generic lookup table from an archive specification to an item
--- we have two concrete ones: ArchiveStore [PoseidonPackage]   and     ArchiveStore ZipStore
+
+type ArchiveStorePackages = ArchiveStore [PoseidonPackage]
+type ArchiveStoreZipFiles = ArchiveStore ZipStore
+
+type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
 getArchiveSpecs :: ArchiveStore a -> [ArchiveSpec]
 getArchiveSpecs = map fst
 
-getArchiveSpecByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m ArchiveSpec
-getArchiveSpecByName name store =
+extractFromArchive :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m (ArchiveSpec, a)
+extractFromArchive name store =
     case filter (\(spec, _) -> _archSpecName spec == name) store of
       []         -> fail $ "Archive " <> name <> " does not exist"
-      [(spec,_)] -> pure spec
+      [pair] -> pure pair
       _          -> fail $ "Archive " <> name <> " is ambiguous"
 
+getArchiveSpecByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m ArchiveSpec
+getArchiveSpecByName name store = fst <$> extractFromArchive name store
+
 getArchiveContentByName :: (MonadFail m) => ArchiveName -> ArchiveStore a -> m a
-getArchiveContentByName name store =
-    case filter (\(spec, _) -> _archSpecName spec == name) store of
-      []      -> fail $ "Archive " <> name <> " does not exist"
-      [(_,a)] -> pure a
-      _       -> fail $ "Archive " <> name <> " is ambiguous"
+getArchiveContentByName name store = snd <$> extractFromArchive name store
+
+readArchiveStore :: ArchiveConfig -> PackageReadOptions -> PoseidonIO ArchiveStorePackages
+readArchiveStore (ArchiveConfig archiveSpecs) pacReadOpts = do
+    forM archiveSpecs $ \spec -> do
+        logInfo $ "Loading packages for archive " ++ _archSpecName spec
+        let relevantDirs = _archSpecPaths spec
+        pacs <- readPoseidonPackageCollection pacReadOpts relevantDirs
+        return (spec, pacs)
+
+createZipArchiveStore :: ArchiveStorePackages -> FilePath -> PoseidonIO ArchiveStoreZipFiles
+createZipArchiveStore archiveStore zipPath =
+    forM archiveStore $ \(spec, packages) -> do
+        logInfo $ "Zipping packages in archive " ++ _archSpecName spec
+        (spec,) <$> forM packages (\pac -> do
+            logInfo "Checking whether zip files are missing or outdated"
+            liftIO $ createDirectoryIfMissing True (zipPath </> _archSpecName spec)
+            let combinedPackageVersionTitle = renderNameWithVersion pac
+            let fn = zipPath </> _archSpecName spec </> combinedPackageVersionTitle <.> "zip"
+            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
+            when zipFileOutdated $ do
+                logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
+                zip_ <- liftIO $ makeZipArchive pac
+                let zip_raw = fromArchive zip_
+                liftIO $ B.writeFile fn zip_raw
+            return (posPacNameAndVersion pac, fn))
+
+
+-- CLI options and routines
+data ServeOptions = ServeOptions
+    { cliArchiveConfig   :: Either ArchiveConfig FilePath
+    , cliZipDir          :: Maybe FilePath
+    , cliPort            :: Int
+    , cliIgnoreChecksums :: Bool
+    , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
+    }
+    deriving (Show)
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
@@ -151,22 +193,12 @@ runServerMainThread opts = do
     runServer opts dummy
 
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
-runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles retiredPacInput) serverReady = do
+runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
     let archiveZip = isJust maybeZipPath
         pacReadOpts = defaultPackageReadOptions {
               _readOptIgnoreChecksums  = ignoreChecksums
             , _readOptGenoCheck        = archiveZip
         }
-
-    retiredPacs <- do
-        ent <- readEntityInputs retiredPacInput
-        forM ent $ \e -> do
-            case e of
-                Pac p -> return p
-                _     -> do
-                    logError "Retired packages must be Poseidon packages (with or without version)"
-                    liftIO . throwIO $ PoseidonGenericException "Retired packages must be Poseidon packages (with or without version)"
-
 
     logInfo "Server starting up. Loading packages..."
     archiveStore <- case archBaseDirs of
@@ -197,6 +229,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
+            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             pacInfos <- packagesToPackageInfos False pacs
             let retData = ApiReturnPackageInfo pacInfos
@@ -204,6 +237,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/groups" . conditionOnClientVersion $ do
             logRequest logA
+            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             groupInfos <- getAllGroupInfo pacs
             let retData = ApiReturnGroupInfo groupInfos
@@ -211,6 +245,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
+            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             maybeAdditionalColumnsString <- queryParamMaybe "additionalJannoColumns"
             indInfo <- case maybeAdditionalColumnsString of
@@ -224,6 +259,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
+            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             maybeAdditionalBibFieldsString <- queryParamMaybe "additionalBibColumns"
             bibInfo <- case maybeAdditionalBibFieldsString of
@@ -251,11 +287,17 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 [] -> fail $ "unknown package " ++ packageName -- no version found
                 [(pacNameAndVersion, fn)] -> case maybeVersion of -- exactly one version found
                     Nothing -> file fn
-                    Just v -> if getPacVersion pacNameAndVersion == Just v then file fn else fail $ "Package " ++ packageName ++ " is not available for version " ++ showVersion v
+                    Just v -> if getPacVersion pacNameAndVersion == Just v
+                            then file fn
+                            else
+                                fail $ "Package " ++ packageName ++
+                                    " is not available for version " ++showVersion v
                 pl@((_, fnLatest) : _) -> case maybeVersion of
                     Nothing -> file fnLatest
                     Just v -> case filter ((==Just v) . getPacVersion . fst) pl of
-                        [] -> fail $ "Package " ++ packageName ++ "is not available for version " ++ showVersion v
+                        [] -> fail $
+                            "Package " ++ packageName ++
+                            "is not available for version " ++ showVersion v
                         [(_, fn)] -> file fn
                         _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
 
@@ -274,7 +316,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 let n = _archSpecName spec
                     d = _archSpecDescription spec
                     u = _archSpecURL spec
-                pacs <- getArchiveContentByName n archiveStore >>= filterRetired retiredPacs . selectLatest
+                    re = _archRetiredPackages spec
+                pacs <- getArchiveContentByName n archiveStore >>= filterRetired re . selectLatest
                 return (n, d, u, pacs)
             mainPage pacsPerArchive
         -- archive pages
@@ -284,6 +327,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             spec <- getArchiveSpecByName archiveName archiveStore
             let maybeArchiveDataURL = _archSpecDataURL spec
                 excludeFromMap = _archSpecExcludePacsFromMap spec
+                retiredPacs = _archRetiredPackages spec
             latestPacs <- selectLatest <$> (getArchiveContentByName archiveName archiveStore >>= filterRetired retiredPacs)
             let packagesToMap = excludePackagesByName excludeFromMap latestPacs
                 nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
@@ -332,6 +376,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         -- catch anything else
         notFound $ fail "Unknown request"
+
 
 -- prepare data for the html API
 
@@ -392,31 +437,6 @@ prepSample sampleName rows = do
        []  -> fail $ "Sample " <> sampleName <> " does not exist"
        [x] -> return x
        _   -> fail $ "Sample " <> sampleName <> " exists multiple times"
-
-readArchiveStore :: ArchiveConfig -> PackageReadOptions -> PoseidonIO (ArchiveStore [PoseidonPackage])
-readArchiveStore (ArchiveConfig archiveSpecs) pacReadOpts = do
-    forM archiveSpecs $ \spec -> do
-        logInfo $ "Loading packages for archive " ++ _archSpecName spec
-        let relevantDirs = _archSpecPaths spec
-        pacs <- readPoseidonPackageCollection pacReadOpts relevantDirs
-        return (spec, pacs)
-
-createZipArchiveStore :: ArchiveStore [PoseidonPackage] -> FilePath -> PoseidonIO (ArchiveStore ZipStore)
-createZipArchiveStore archiveStore zipPath =
-    forM archiveStore $ \(spec, packages) -> do
-        logInfo $ "Zipping packages in archive " ++ _archSpecName spec
-        (spec,) <$> forM packages (\pac -> do
-            logInfo "Checking whether zip files are missing or outdated"
-            liftIO $ createDirectoryIfMissing True (zipPath </> _archSpecName spec)
-            let combinedPackageVersionTitle = renderNameWithVersion pac
-            let fn = zipPath </> _archSpecName spec </> combinedPackageVersionTitle <.> "zip"
-            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
-            when zipFileOutdated $ do
-                logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
-                zip_ <- liftIO $ makeZipArchive pac
-                let zip_raw = fromArchive zip_
-                liftIO $ B.writeFile fn zip_raw
-            return (posPacNameAndVersion pac, fn))
 
 -- this serves as a point to broadcast messages to clients. Adapt in the future as necessary.
 genericServerMessages :: [String]
@@ -543,6 +563,13 @@ getItemFromArchiveStore store = do
         Nothing   -> return . snd . head $ store
         Just name -> getArchiveContentByName name store
 
+getArchiveSpecFromArchiveStore :: ArchiveStore a -> ActionM ArchiveSpec
+getArchiveSpecFromArchiveStore store = do
+    maybeArchiveName <- queryParamMaybe "archive"
+    case maybeArchiveName of
+        Nothing   -> return . fst . head $ store
+        Just name -> getArchiveSpecByName name store
+
 filterRetired :: [PacNameAndVersion] -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 filterRetired retiredPacs pacs = do
     includeRetired <- queryParamMaybe "includeRetired" :: ActionM (Maybe String)
@@ -560,8 +587,8 @@ filterRetired retiredPacs pacs = do
                 then [] -- all versions of this package are retired, so we skip it
                 else case maybeVersion of
                     Nothing -> [pac] -- no version specified, so we keep the package as it is not retired
-                    Just version ->
+                    Just ver ->
                         -- if a version is specified, we check if it is retired
-                        if (name, version) `elem` retiredNameAndVersion
+                        if (name, ver) `elem` retiredNameAndVersion
                              then [] -- this specific version is retired, so we skip it
                              else [pac] -- this package is not retired, so we keep it

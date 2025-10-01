@@ -850,7 +850,7 @@ parseArchiveConfigCLI = ArchiveConfig <$> OP.some parseArchiveSpec
         in  case parts of
                 [name, fp] -> do
                     let fps = splitOn "," fp
-                    return $ ArchiveSpec name fps Nothing Nothing Nothing []
+                    return $ ArchiveSpec name fps Nothing Nothing Nothing [] []
                 _ -> Left $ "could not parse archive and base directory " ++ str ++
                             ". Please use format name=path1,path2,... "
 
@@ -860,7 +860,7 @@ parseArchiveConfigPath = OP.strOption (
     OP.metavar "FILE" <>
     OP.help "Path to a .yml config file for the server archive configuration. \
             \This file must include a list of \"archives:\", each with the fields\
-            \ \"name\", \"paths\", \"description\", \"URL\" and \"dataURL\"."
+            \ \"name\", \"paths\", \"description\", \"URL\", \"dataURL\" and \"retiredPackages\"."
     )
 
 parseMaybeArchiveName :: OP.Parser (Maybe String)
