@@ -1231,11 +1231,11 @@ archives = Left $ ArchiveConfig [
         "test/testDat/testPackages/ancient/Lamnidis_2018"
       , "test/testDat/testPackages/ancient/Lamnidis_2018_newVersion"
       , "test/testDat/testPackages/ancient/Wang_2020"
-      ] Nothing Nothing Nothing []
+      ] Nothing Nothing Nothing [] []
     , ArchiveSpec "testArchive2" [
         "test/testDat/testPackages/ancient/Schiffels_2016"
       , "test/testDat/testPackages/ancient/Schmid_2028"
-      ] Nothing Nothing Nothing []
+      ] Nothing Nothing Nothing [] []
     ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
@@ -1245,7 +1245,7 @@ archives = Left $ ArchiveConfig [
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-    let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing []
+    let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
     -- this will start the server on another thread
@@ -1337,7 +1337,7 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = ServeOptions archives Nothing 3001 True Nothing []
+    let serverOpts = ServeOptions archives Nothing 3001 True Nothing
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)
