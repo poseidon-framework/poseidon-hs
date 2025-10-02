@@ -289,24 +289,6 @@ parseFetchEntityInputs = parseDownloadAll <|> OP.some parseEntityInput
         )
     parseEntityInput = (EntitiesFromFile <$> parseFetchEntitiesFromFile) <|> (EntitiesDirect <$> parseFetchEntitiesDirect)
 
-parseRetiredPackageEntityInputs :: OP.Parser [EntityInput PoseidonEntity]
-parseRetiredPackageEntityInputs = OP.many parseRetiredPackageEntityInput
-  where
-    parseRetiredPackageEntityInput = (EntitiesFromFile <$> parseRetiredPackageEntitiesFromFile) <|> (EntitiesDirect <$> parseRetiredPackageEntitiesDirect)
-    parseRetiredPackageEntitiesFromFile = OP.strOption (
-        OP.long "retiredFile" <>
-        OP.metavar "FILE" <>
-        OP.help "A file with a list of retired packages. \
-            \Works just as -f for packages, with or without version. \
-            \Packages can be separated by comma or newline."
-        )
-    parseRetiredPackageEntitiesDirect = OP.option (OP.eitherReader readEntities) (
-        OP.long "retiredPackages" <>
-        OP.metavar "DSL" <>
-        OP.help "List of retired packages, with or without version, comma-separated. Will be combined with the ones in the file given with --retiredFile. \
-            \Packages follow the syntax *package_title* or *package_title-version* (e.g. *my_package-1.2.3*). \
-            \You can combine multiple values with comma, so for example: \"*package_1*, *package_2-1.0*, *package_3*\"."
-        )
 
 parseIgnorePoseidonVersion :: OP.Parser Bool
 parseIgnorePoseidonVersion = OP.switch (

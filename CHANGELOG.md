@@ -1,5 +1,5 @@
 - V 1.6.8.0:
-    - Introduced new "retiredPackage" option in the CLI parsers to specify retired packages for serving. Retired packages are by default ignored in the /packages, /groups, /bibliography and /individuals endpoints, as well as ignored in the archive HTML page of the explorer. However, /zip_file still serves retired packages, so that they can be downloaded, and the retired packages are still available in the per-package Explorer HTML page.
+    - Introduced new "retiredPackages" field to be given in the Archive Specification YAML file of the server, to specify retired packages for serving. Retired packages are by default ignored in the /packages, /groups, /bibliography and /individuals endpoints, as well as ignored in the archive HTML page of the explorer. However, /zip_file still serves retired packages, so that they can be downloaded, and the retired packages are still available in the per-package Explorer HTML page.
 - V 1.6.7.3:
     - Introduced a typeclass `Suspicious` for column types for which throwing warnings should be possible with an `inspect` function.
     - Added a mechanism to `inspect` all columns of .janno and .ssf files upon reading and report anything suspicious.
