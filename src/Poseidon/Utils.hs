@@ -97,11 +97,11 @@ usePoseidonLogger DefaultLog testMode plinkMode errLength = flip runReaderT (Env
 usePoseidonLogger ServerLog  testMode plinkMode errLength = flip runReaderT (Env serverLog testMode plinkMode errLength)
 usePoseidonLogger VerboseLog testMode plinkMode errLength = flip runReaderT (Env verboseLog testMode plinkMode errLength)
 
+-- wrappers of usePoseidonLogger used in the unit- and golden tests
 testLog :: PoseidonIO a -> IO a
 testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily CharInf
 testLogErr :: PoseidonIO a -> IO a
 testLogErr = usePoseidonLogger SimpleLog Testing PlinkPopNameAsFamily CharInf
---testLog = usePoseidonLogger VerboseLog Testing PlinkPopNameAsFamily
 
 noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
