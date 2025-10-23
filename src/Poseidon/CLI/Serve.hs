@@ -70,6 +70,17 @@ import           Web.Scotty                   (ActionM, ScottyM, captureParam,
                                                redirect, request, scottyApp,
                                                setHeader, text)
 
+-- CLI options and routines
+data ServeOptions = ServeOptions
+    { cliArchiveConfig   :: Either ArchiveConfig FilePath
+    , cliZipDir          :: Maybe FilePath
+    , cliPort            :: Int
+    , cliIgnoreChecksums :: Bool
+    , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
+    }
+    deriving (Show)
+
+
 -- Archive specification
 
 type ArchiveName = String
@@ -105,11 +116,14 @@ instance FromJSON ArchiveSpec where
       where
         parseCLIretiredPackages :: Object -> Parser [PacNameAndVersion]
         parseCLIretiredPackages v = do
-            retiredEntities <- v .: "retiredPackages" :: Parser [PoseidonEntity]
-            forM retiredEntities $ \e -> do
-                case e of
-                    Pac p -> return p
-                    _     -> fail "Retired packages must be Poseidon packages (with or without version)"
+            maybeRetiredEntities <- v .:? "retiredPackages" :: Parser (Maybe [PoseidonEntity])
+            case maybeRetiredEntities of
+                Nothing              -> return []
+                Just retiredEntities -> forM retiredEntities $ \e -> do
+                    case e of
+                        Pac p -> return p
+                        _     -> fail "Retired packages must be Poseidon packages (with or without version). Example: \
+                        \ *my_package-1.0.1* or *my_package* to retire all versions of my_package."
 
 newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
 
@@ -171,17 +185,6 @@ createZipArchiveStore archiveStore zipPath =
                 let zip_raw = fromArchive zip_
                 liftIO $ B.writeFile fn zip_raw
             return (posPacNameAndVersion pac, fn))
-
-
--- CLI options and routines
-data ServeOptions = ServeOptions
-    { cliArchiveConfig   :: Either ArchiveConfig FilePath
-    , cliZipDir          :: Maybe FilePath
-    , cliPort            :: Int
-    , cliIgnoreChecksums :: Bool
-    , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
-    }
-    deriving (Show)
 
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
