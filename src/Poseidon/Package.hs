@@ -57,18 +57,13 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              reduceGenotypeFilepaths)
 import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
-<<<<<<< HEAD
-                                             jannoHeaderString, readJannoFile)
-import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
-                                             isPoseidonVersionBelow,
-                                             latestPoseidonVersion,
-=======
                                              jannoHeaderString,
                                              mainJannoColumns, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
->>>>>>> master
+                                             isPoseidonVersionBelow,
                                              showPoseidonVersion,
-                                             validPoseidonVersions)
+                                             validPoseidonVersions,
+                                             PoseidonVersion (..))
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
                                              SeqSourceRows (..), mainSSFColumns,
                                              readSeqSourceFile)
