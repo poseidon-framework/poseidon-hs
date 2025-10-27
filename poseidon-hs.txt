@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.7.3
+@version 1.6.8.0
 
 module Poseidon.AccessionIDs
 
@@ -44,6 +44,7 @@ encodingOptions :: EncodeOptions
 newtype CsvNamedRecord
 CsvNamedRecord :: NamedRecord -> CsvNamedRecord
 getCsvNR :: CsvNamedRecord -> NamedRecord
+checkMandatory :: NamedRecord -> ByteString -> Parser ()
 filterLookup :: FromField a => NamedRecord -> ByteString -> Parser a
 filterLookupOptional :: FromField a => NamedRecord -> ByteString -> Parser (Maybe a)
 cleanInput :: Maybe ByteString -> Maybe ByteString
@@ -1005,6 +1006,7 @@ PoseidonCantPreserveException :: PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
 testLog :: PoseidonIO a -> IO a
+testLogErr :: PoseidonIO a -> IO a
 type PoseidonIO = ReaderT Env IO
 envLogAction :: PoseidonIO LogA
 envInputPlinkMode :: PoseidonIO PlinkPopNameMode
@@ -1091,23 +1093,24 @@ SeqSourceRow :: Maybe (ListColumn String) -> Maybe SSFUDG -> Maybe SSFLibraryBui
 [sAdditionalColumns] :: SeqSourceRow -> CsvNamedRecord
 seqSourceHeader :: [ByteString]
 seqSourceHeaderString :: [String]
+mainSSFColumns :: [ByteString]
 seqSourceRefHashMap :: HashMap ByteString ()
+parseSeqSourceRowFromNamedRecord :: [ByteString] -> NamedRecord -> Parser SeqSourceRow
 
 -- | A function to write one seqSourceFile
 writeSeqSourceFile :: FilePath -> SeqSourceRows -> IO ()
 
 -- | A function to read one seqSourceFile
-readSeqSourceFile :: FilePath -> PoseidonIO SeqSourceRows
+readSeqSourceFile :: [ByteString] -> FilePath -> PoseidonIO SeqSourceRows
 
 -- | A function to read one row of a seqSourceFile
-readSeqSourceFileRow :: FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
+readSeqSourceFileRow :: [ByteString] -> FilePath -> (Int, ByteString) -> PoseidonIO (Either PoseidonException SeqSourceRow)
 warnSeqSourceConsistency :: FilePath -> SeqSourceRows -> PoseidonIO ()
 checkRunsUnique :: SeqSourceRows -> Bool
 checkAtLeastOnePoseidonID :: SeqSourceRows -> Bool
 instance Generics.SOP.Universe.Generic Poseidon.SequencingSource.SeqSourceRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.SequencingSource.SeqSourceRow
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.SequencingSource.SeqSourceRow
-instance Data.Csv.Conversion.FromNamedRecord Poseidon.SequencingSource.SeqSourceRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.SequencingSource.SeqSourceRow
 instance GHC.Generics.Generic Poseidon.SequencingSource.SeqSourceRow
 instance GHC.Classes.Eq Poseidon.SequencingSource.SeqSourceRow
@@ -1176,7 +1179,7 @@ writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
 
 -- | A function to load one janno file
-readJannoFile :: FilePath -> PoseidonIO JannoRows
+readJannoFile :: [ByteString] -> FilePath -> PoseidonIO JannoRows
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
@@ -1184,6 +1187,7 @@ createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
 -- | A function to create an empty janno row for an individual
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 jannoHeaderString :: [String]
+mainJannoColumns :: [ByteString]
 
 -- | A data type to represent a janno file
 newtype JannoRows
@@ -1194,10 +1198,10 @@ JannoRows :: [JannoRow] -> JannoRows
 --   jannoRows
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Header
+parseJannoRowFromNamedRecord :: [ByteString] -> NamedRecord -> Parser JannoRow
 instance Generics.SOP.Universe.Generic Poseidon.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.DefaultOrdered Poseidon.Janno.JannoRow
-instance Data.Csv.Conversion.FromNamedRecord Poseidon.Janno.JannoRow
 instance Data.Csv.Conversion.ToNamedRecord Poseidon.Janno.JannoRow
 instance GHC.Generics.Generic Poseidon.Janno.JannoRow
 instance GHC.Classes.Eq Poseidon.Janno.JannoRow
@@ -1726,7 +1730,7 @@ PoseidonGitException :: FilePath -> String -> PoseidonException
 -- | An exception for issues with --preservePyml
 PoseidonCantPreserveException :: PoseidonException
 data PackageReadOptions
-PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageReadOptions
+PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> [ByteString] -> [ByteString] -> PackageReadOptions
 
 -- | whether to ignore all checksums
 [_readOptIgnoreChecksums] :: PackageReadOptions -> Bool
@@ -1747,6 +1751,12 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> PackageRea
 -- | whether to keep multiple versions of the same package (True) or just
 --   the latest one (False)
 [_readOptOnlyLatest] :: PackageReadOptions -> Bool
+
+-- | .janno columns that should be treated as mandatory
+[_readOptMandatoryJannoCols] :: PackageReadOptions -> [ByteString]
+
+-- | .ssf columns that should be treated as mandatory
+[_readOptMandatorySSFCols] :: PackageReadOptions -> [ByteString]
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
 readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO [PoseidonPackage]
@@ -1926,8 +1936,10 @@ module Poseidon.CLI.Validate
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions
-ValidateOptions :: ValidatePlan -> Bool -> Bool -> ValidateOptions
+ValidateOptions :: ValidatePlan -> [ByteString] -> [ByteString] -> Bool -> Bool -> ValidateOptions
 [_validatePlan] :: ValidateOptions -> ValidatePlan
+[_validateMandatoryJanno] :: ValidateOptions -> [ByteString]
+[_validateMandatorySSF] :: ValidateOptions -> [ByteString]
 [_validateNoExitCode] :: ValidateOptions -> Bool
 [_validateOnlyLatest] :: ValidateOptions -> Bool
 data ValidatePlan
@@ -2207,6 +2219,8 @@ parseGenoDataSource :: Parser GenoDataSource
 parseRepoLocation :: Parser RepoLocationSpec
 parseArchiveEndpoint :: Parser ArchiveEndpoint
 parseValidatePlan :: Parser ValidatePlan
+parseMandatoryJannoCols :: Parser [ByteString]
+parseMandatorySSFCols :: Parser [ByteString]
 parseInPoseidonYamlFile :: Parser FilePath
 parseInJannoFile :: Parser FilePath
 parseInSSFile :: Parser FilePath
