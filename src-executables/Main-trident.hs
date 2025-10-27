@@ -249,6 +249,8 @@ rectifyOptParser = RectifyOptions <$> parseBasePaths
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseValidatePlan
+                                    <*> parseMandatoryJannoCols
+                                    <*> parseMandatorySSFCols
                                     <*> parseNoExitCode
                                     <*> parseOnlyLatest
 

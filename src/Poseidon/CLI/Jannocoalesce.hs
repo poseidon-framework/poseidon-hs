@@ -4,6 +4,7 @@
 module Poseidon.CLI.Jannocoalesce where
 
 import           Poseidon.Janno         (JannoRow (..), JannoRows (..),
+                                         parseJannoRowFromNamedRecord,
                                          readJannoFile, writeJannoFile)
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
@@ -47,7 +48,7 @@ data JannoCoalesceOptions = JannoCoalesceOptions
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
 runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrite sKey tKey maybeStrip) = do
     JannoRows sourceRows <- case sourceSpec of
-        JannoSourceSingle sourceFile -> readJannoFile sourceFile
+        JannoSourceSingle sourceFile -> readJannoFile [] sourceFile
         JannoSourceBaseDirs sourceDirs -> do
             let pacReadOpts = defaultPackageReadOptions {
                       _readOptIgnoreChecksums      = True
@@ -56,7 +57,7 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
                     , _readOptOnlyLatest           = True
                 }
             getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
-    JannoRows targetRows <- readJannoFile target
+    JannoRows targetRows <- readJannoFile [] target
 
     newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
 
@@ -122,7 +123,7 @@ mergeRow cp targetRow sourceRow fields overwrite sKey tKey = do
         -- fill in the target row with dummy values for desired fields that might not be present yet
         targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
         newRowRecord      = HM.mapWithKey fillFromSource targetComplete
-        parseResult       = Csv.runParser . Csv.parseNamedRecord $ newRowRecord
+        parseResult       = Csv.runParser . parseJannoRowFromNamedRecord [] $ newRowRecord
     logInfo $ "matched target " ++ BSC.unpack (targetComplete  HM.! BSC.pack tKey) ++
               " with source "   ++ BSC.unpack (sourceRowRecord HM.! BSC.pack sKey)
     case parseResult of
