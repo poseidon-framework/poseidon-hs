@@ -34,7 +34,7 @@ import           Poseidon.Version           (VersionComponent (..),
                                              parseVersion)
 
 import           Control.Applicative        ((<|>))
-import qualified Data.ByteString.Char8      as BSC
+import qualified Data.ByteString.Char8      as Bchs
 import           Data.List                  (intercalate)
 import           Data.List.Split            (splitOn)
 import           Data.Version               (Version)
@@ -407,6 +407,26 @@ parseValidatePlan =
     <|> (ValPlanJanno <$> parseInJannoFile)
     <|> (ValPlanSSF <$> parseInSSFile)
     <|> (ValPlanBib <$> parseInBibFile)
+
+parseMandatoryJannoCols :: OP.Parser [Bchs.ByteString]
+parseMandatoryJannoCols =
+   OP.many (OP.option (Bchs.pack <$> OP.str) (
+      OP.short 'j' <>
+      OP.long "mandatoryJannoColumn" <>
+      OP.metavar "COLNAME" <>
+      OP.help "Usually optional .janno file column that should be treated as mandatory, \
+              \such as e.g. Individual_ID. Can be given multiple times."
+    ))
+
+parseMandatorySSFCols :: OP.Parser [Bchs.ByteString]
+parseMandatorySSFCols =
+   OP.many (OP.option (Bchs.pack <$> OP.str) (
+      OP.short 's' <>
+      OP.long "mandatorySSFColumn" <>
+      OP.metavar "COLNAME" <>
+      OP.help "Usually optional .ssf file column that should be treated as mandatory, \
+              \such as e.g. poseidon_IDs. Can be given multiple times."
+    ))
 
 parseInPoseidonYamlFile :: OP.Parser FilePath
 parseInPoseidonYamlFile = OP.strOption (
@@ -889,13 +909,13 @@ parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
 parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec
 parseJannocoalJannoColumns = includeJannoColumns OP.<|> excludeJannoColumns OP.<|> pure AllJannoColumns
     where
-        includeJannoColumns = OP.option (IncludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
+        includeJannoColumns = OP.option (IncludeJannoColumns . map Bchs.pack . splitOn "," <$> OP.str) (
             OP.long "includeColumns" <>
             OP.help "A comma-separated list of .janno column names to coalesce. \
                     \If not specified, all columns that can be found in the source \
                     \and target will get filled."
             )
-        excludeJannoColumns = OP.option (ExcludeJannoColumns . map BSC.pack . splitOn "," <$> OP.str) (
+        excludeJannoColumns = OP.option (ExcludeJannoColumns . map Bchs.pack . splitOn "," <$> OP.str) (
             OP.long "excludeColumns" <>
             OP.help "A comma-separated list of .janno column names NOT to coalesce. \
                     \All columns that can be found in the source and target will get filled, \

@@ -5,6 +5,7 @@ module Poseidon.Utils (
     renderPoseidonException,
     usePoseidonLogger,
     testLog,
+    testLogErr,
     PoseidonIO,
     envLogAction,
     envInputPlinkMode,
@@ -96,9 +97,11 @@ usePoseidonLogger DefaultLog testMode plinkMode errLength = flip runReaderT (Env
 usePoseidonLogger ServerLog  testMode plinkMode errLength = flip runReaderT (Env serverLog testMode plinkMode errLength)
 usePoseidonLogger VerboseLog testMode plinkMode errLength = flip runReaderT (Env verboseLog testMode plinkMode errLength)
 
+-- wrappers of usePoseidonLogger used in the unit- and golden tests
 testLog :: PoseidonIO a -> IO a
 testLog = usePoseidonLogger NoLog Testing PlinkPopNameAsFamily CharInf
---testLog = usePoseidonLogger VerboseLog Testing PlinkPopNameAsFamily
+testLogErr :: PoseidonIO a -> IO a
+testLogErr = usePoseidonLogger SimpleLog Testing PlinkPopNameAsFamily CharInf
 
 noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
@@ -201,7 +204,7 @@ renderPoseidonException :: PoseidonException -> String
 renderPoseidonException (PoseidonYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ":\n" ++ prettyPrintParseException e
 renderPoseidonException (PoseidonPackageException s) =
-    "Encountered a logical error with a package: " ++ s
+    "Encountered an issue in a package: " ++ s
 renderPoseidonException (PoseidonPackageVersionException p s) =
     "Poseidon version mismatch in " ++ show p ++
     ". This package is build according to Poseidon schema v" ++ s ++
