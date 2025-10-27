@@ -59,11 +59,11 @@ import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
                                              jannoHeaderString,
                                              mainJannoColumns, readJannoFile)
-import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
+import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
                                              isPoseidonVersionBelow,
+                                             latestPoseidonVersion,
                                              showPoseidonVersion,
-                                             validPoseidonVersions,
-                                             PoseidonVersion (..))
+                                             validPoseidonVersions)
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
                                              SeqSourceRows (..), mainSSFColumns,
                                              readSeqSourceFile)
