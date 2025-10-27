@@ -1,3 +1,6 @@
+- V 1.6.8.0:
+    - Added a mechanism to check for the presence and completeness of usually optional .janno and .ssf columns. It is exclusively used in `validate`, where a user can set one or multiple of these additional mandatory columns with `-j,--mandatoryJannoColumn` and `-s,--mandatorySSFColumn`.
+    - Fixed the golden tests for `validate`. They had become ineffective, because `validate` does not generate stdout any more.
 - V 1.6.7.3:
     - Introduced a typeclass `Suspicious` for column types for which throwing warnings should be possible with an `inspect` function.
     - Added a mechanism to `inspect` all columns of .janno and .ssf files upon reading and report anything suspicious.

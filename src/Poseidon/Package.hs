@@ -56,12 +56,13 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              reduceGenotypeFilepaths)
 import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
-                                             jannoHeaderString, readJannoFile)
+                                             jannoHeaderString,
+                                             mainJannoColumns, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
-                                             SeqSourceRows (..),
+                                             SeqSourceRows (..), mainSSFColumns,
                                              readSeqSourceFile)
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              BibliographyInfo (..),
@@ -84,6 +85,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
+import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Char8      as BSC
 import           Data.Char                  (isSpace)
 import           Data.Csv                   (toNamedRecord)
@@ -241,18 +243,22 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptIgnoreChecksums  :: Bool
+    { _readOptIgnoreChecksums    :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno       :: Bool
+    , _readOptIgnoreGeno         :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck        :: Bool
+    , _readOptGenoCheck          :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno         :: Bool
+    , _readOptFullGeno           :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptIgnorePosVersion :: Bool
+    , _readOptIgnorePosVersion   :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptOnlyLatest       :: Bool
+    , _readOptOnlyLatest         :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
+    , _readOptMandatoryJannoCols :: [Bchs.ByteString]
+    -- ^ .janno columns that should be treated as mandatory
+    , _readOptMandatorySSFCols   :: [Bchs.ByteString]
+    -- ^ .ssf columns that should be treated as mandatory
     }
 
 -- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
@@ -266,6 +272,8 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptFullGeno             = False
     , _readOptIgnorePosVersion     = False
     , _readOptOnlyLatest           = False
+    , _readOptMandatoryJannoCols   = []
+    , _readOptMandatorySSFCols     = []
     }
 
 readPoseidonPackageCollection :: PackageReadOptions
@@ -390,16 +398,27 @@ readPoseidonPackage opts ymlPath = do
 
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
-            return $ createMinimalJanno indEntries
+            -- create minimal, but fail if more cols are mandatory
+            let extraMandatoryColumns = filter (`notElem` mainJannoColumns) $ _readOptMandatoryJannoCols opts
+            if null extraMandatoryColumns
+            then return $ createMinimalJanno indEntries
+            else throwM $ PoseidonPackageException $
+                "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
-            loadedJanno <- readJannoFile p
+            loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
     -- read seqSource
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
-        Nothing -> return mempty
-        Just p  -> readSeqSourceFile p
+        Nothing -> do
+            -- create minimal, but fail if more cols are mandatory
+            let extraMandatoryColumns = filter (`notElem` mainSSFColumns) $ _readOptMandatorySSFCols opts
+            if null extraMandatoryColumns
+            then return mempty
+            else throwM $ PoseidonPackageException $
+                "Missing mandatory .ssf columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
+        Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)
