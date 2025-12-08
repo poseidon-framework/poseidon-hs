@@ -54,6 +54,10 @@ $(makeInstances ''JannoSpecies "Species")
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)
 $(makeInstances ''JannoAlternativeID "Alternative_IDs")
 
+-- | A datatype for the Alternative_IDs_Context .janno column
+newtype JannoAlternativeIDContext = JannoAlternativeIDContext T.Text deriving (Eq)
+$(makeInstances ''JannoAlternativeIDContext "Alternative_IDs_Context")
+
 -- | A datatype for the Relation_To .janno column
 newtype JannoRelationTo = JannoRelationTo T.Text deriving (Eq)
 $(makeInstances ''JannoRelationTo "Relation_To")

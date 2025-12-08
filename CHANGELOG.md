@@ -5,11 +5,12 @@
         - New column `Custodian_Institution`.
         - New columns `Cultural_Era` + `Cultural_Era_URL` and `Archaeological_Culture` + `Archaeological_Culture_URL`.
         - New column `Chromosomal_Anomalies`.
+        - New column `Alternative_IDs_Context` linked to `Alternative_IDs`.
         - Made column `Collection_ID` a list column.
         - Soft-retired the option `ReferenceGenome` in the column `Capture_Type`.
         - Added rescaling feature for the columns `Endogenous` and `Damage` for packages below Poseidon v3.0.0.. (TODO: Rethink the order in which that is done)
         - Made column `Damage` a list column.
-        - Changed the handling of `_Note` columns. Previously they were explicitly specified and part of the `JannoRow` record type. Now they are just treated as arbitrary additional columns that get algorithmically sorted in when writing .janno files (e.g. in `forge`).
+        - Changed the handling of `_Note` columns. Previously they were explicitly specified and part of the `JannoRow` record type. Now they are just treated as arbitrary additional columns that get algorithmically sorted in when writing .janno files (e.g. in `forge`). See `makeHeaderWithAdditionalColumns`.
     - Changes to .ssf columns according to Poseidon v3.0.0:
         - New column `submitted_md5`.
 - V 1.6.8.0:

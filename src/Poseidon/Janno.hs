@@ -83,6 +83,7 @@ data JannoRow = JannoRow
     , jGroupName                  :: ListColumn GroupName
     , jSpecies                    :: Maybe JannoSpecies
     , jAlternativeIDs             :: Maybe (ListColumn JannoAlternativeID)
+    , jAlternativeIDsContext      :: Maybe (ListColumn JannoAlternativeIDContext)
     , jRelationTo                 :: Maybe (ListColumn JannoRelationTo)
     , jRelationDegree             :: Maybe (ListColumn JannoRelationDegree)
     , jRelationType               :: Maybe (ListColumn JannoRelationType)
@@ -142,7 +143,7 @@ jannoHeader = [
     , "Genetic_Sex"
     , "Group_Name"
     , "Species"
-    , "Alternative_IDs"
+    , "Alternative_IDs", "Alternative_IDs_Context"
     , "Relation_To", "Relation_Degree", "Relation_Type"
     , "Collection_ID", "Custodian_Institution"
     , "Cultural_Era", "Cultural_Era_URL", "Archaeological_Culture", "Archaeological_Culture_URL"
@@ -190,6 +191,7 @@ parseJannoRowFromNamedRecord mandatory m = do
         <*> filterLookup         m "Group_Name"
         <*> filterLookupOptional m "Species"
         <*> filterLookupOptional m "Alternative_IDs"
+        <*> filterLookupOptional m "Alternative_IDs_Context"
         <*> filterLookupOptional m "Relation_To"
         <*> filterLookupOptional m "Relation_Degree"
         <*> filterLookupOptional m "Relation_Type"
@@ -246,6 +248,7 @@ instance Csv.ToNamedRecord JannoRow where
         , "Group_Name"                      Csv..= jGroupName j
         , "Species"                         Csv..= jSpecies j
         , "Alternative_IDs"                 Csv..= jAlternativeIDs j
+        , "Alternative_IDs_Context"         Csv..= jAlternativeIDsContext j
         , "Relation_To"                     Csv..= jRelationTo j
         , "Relation_Degree"                 Csv..= jRelationDegree j
         , "Relation_Type"                   Csv..= jRelationType j
@@ -308,6 +311,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jGroupName                    = ListColumn [GroupName . T.pack . Bchs.unpack $ pop] -- same thing, see above.
         , jSpecies                      = Nothing
         , jAlternativeIDs               = Nothing
+        , jAlternativeIDsContext        = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
         , jRelationType                 = Nothing
@@ -513,6 +517,7 @@ checkJannoRowConsistency :: JannoRow -> RowLog JannoRow
 checkJannoRowConsistency x =
     return x
     >>= checkMandatoryStringNotEmpty
+    >>= checkAlternativeIDsConsistent
     >>= checkC14ColsConsistent
     >>= checkContamColsConsistent
     >>= checkRelationColsConsistent
@@ -527,6 +532,22 @@ checkMandatoryStringNotEmpty x =
     in case notEmpty of
         False -> E.throwError "Poseidon_ID or Group_Name are empty"
         True  -> return x
+
+checkAlternativeIDsConsistent :: JannoRow -> RowLog JannoRow
+checkAlternativeIDsConsistent x =
+    let lAlternativeIDs = getCellLength $ jAlternativeIDs x
+        lAlternativeIDsContext = getCellLength $ jAlternativeIDsContext x
+        anyAlts = lAlternativeIDsContext > 0
+        anyContext = lAlternativeIDsContext > 0
+        allSameLength = allEqual [lAlternativeIDs, lAlternativeIDsContext]
+    in case (anyAlts, anyContext, allSameLength) of
+        (False,_,_) -> return x
+        (True,False,_) -> do
+            W.tell ["Alternative_IDs should be contextualized with Alternative_IDs_Context"]
+            return x
+        (True,True,True) -> return x
+        (True,True,False) -> E.throwError "Alternative_IDs_Context and Alternative_IDs \
+                                          \do not have the same lengths"
 
 checkC14ColsConsistent :: JannoRow -> RowLog JannoRow
 checkC14ColsConsistent x =
