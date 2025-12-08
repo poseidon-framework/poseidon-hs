@@ -262,3 +262,4 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         testLog (readJannoFile [] $ borkedDir </> "borked_ISO_country.janno") `shouldThrow` anyException
         testLog (readJannoFile [] $ borkedDir </> "borked_cultural_era.janno") `shouldThrow` anyException
         testLog (readJannoFile [] $ borkedDir </> "borked_arch_cultural_url.janno") `shouldThrow` anyException
+        testLog (readJannoFile [] $ borkedDir </> "borked_alternative_ids_context.janno") `shouldThrow` anyException

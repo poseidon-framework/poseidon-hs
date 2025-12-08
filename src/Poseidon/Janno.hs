@@ -537,13 +537,13 @@ checkAlternativeIDsConsistent :: JannoRow -> RowLog JannoRow
 checkAlternativeIDsConsistent x =
     let lAlternativeIDs = getCellLength $ jAlternativeIDs x
         lAlternativeIDsContext = getCellLength $ jAlternativeIDsContext x
-        anyAlts = lAlternativeIDsContext > 0
+        anyAlts = lAlternativeIDs > 0
         anyContext = lAlternativeIDsContext > 0
         allSameLength = allEqual [lAlternativeIDs, lAlternativeIDsContext]
     in case (anyAlts, anyContext, allSameLength) of
         (False,_,_) -> return x
         (True,False,_) -> do
-            W.tell ["Alternative_IDs should be contextualized with Alternative_IDs_Context"]
+            W.tell ["Alternative_IDs should be contextualised with Alternative_IDs_Context"]
             return x
         (True,True,True) -> return x
         (True,True,False) -> E.throwError "Alternative_IDs_Context and Alternative_IDs \

@@ -22,9 +22,9 @@ testRenderJannoCompleteness =
     it "should work for a full janno file" $ do
         janno <- testLog $ readJannoFile [] testJannoNormal
         renderJannoCompleteness janno
-            `shouldBe` "███.▓██▓..▒▒▒▒███████▒▒▒███.████▓█████████▓▓▓███▓▓"
+            `shouldBe` "███.▓.██▓..▒▒▒▒███████▒▒▒███.████▓█████████▓▓▓███▓▓"
     it "should work for a minimum janno file" $ do
         janno <- testLog $ readJannoFile [] testJannoMinimal
         renderJannoCompleteness janno
             `shouldBe`
-            "███..............................................."
+            "███................................................"
