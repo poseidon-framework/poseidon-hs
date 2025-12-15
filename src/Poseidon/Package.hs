@@ -8,6 +8,7 @@ module Poseidon.Package (
     PoseidonException(..),
     PackageReadOptions (..),
     findAllPoseidonYmlFiles,
+    checkJannoIndConsistency,
     readPoseidonPackageCollection,
     readPoseidonPackageCollectionWithSkipIndicator,
     getJointGenotypeData,
@@ -32,7 +33,13 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypes       (JannoPublication (..))
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
+                                             JannoLibraryBuilt (..),
+                                             JannoPublication (..),
+                                             JannoUDG (..))
+import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
+import           Poseidon.ColumnTypesUtils  (ListColumn (..),
+                                             getMaybeListColumn)
 import           Poseidon.Contributor       (ContributorSpec (..))
 import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
@@ -47,19 +54,15 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress,
                                              reduceGenotypeFilepaths)
-import           Poseidon.Janno             (GeneticSex (..),
-                                             JannoLibraryBuilt (..),
-                                             JannoRow (..), JannoRows (..),
-                                             JannoUDG (..), ListColumn (..),
+import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
-                                             getMaybeListColumn,
-                                             jannoHeaderString, readJannoFile)
+                                             jannoHeaderString,
+                                             mainJannoColumns, readJannoFile)
 import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SequencingSource  (SSFLibraryBuilt (..), SSFUDG (..),
-                                             SeqSourceRow (..),
-                                             SeqSourceRows (..),
+import           Poseidon.SequencingSource  (SeqSourceRow (..),
+                                             SeqSourceRows (..), mainSSFColumns,
                                              readSeqSourceFile)
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              BibliographyInfo (..),
@@ -82,6 +85,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
+import qualified Data.ByteString.Char8      as Bchs
 import qualified Data.ByteString.Char8      as BSC
 import           Data.Char                  (isSpace)
 import           Data.Csv                   (toNamedRecord)
@@ -109,7 +113,7 @@ import qualified Pipes.Prelude              as P
 import           Pipes.Safe                 (MonadSafe, runSafeT)
 import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
                                              EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine,
+                                             GenoEntry (..), GenoLine, Sex (..),
                                              readEigenstratSnpFile)
 import           SequenceFormats.Plink      (readBimFile)
 import           System.Directory           (doesDirectoryExist, listDirectory)
@@ -239,18 +243,22 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptIgnoreChecksums  :: Bool
+    { _readOptIgnoreChecksums    :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno       :: Bool
+    , _readOptIgnoreGeno         :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck        :: Bool
+    , _readOptGenoCheck          :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno         :: Bool
+    , _readOptFullGeno           :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptIgnorePosVersion :: Bool
+    , _readOptIgnorePosVersion   :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptOnlyLatest       :: Bool
+    , _readOptOnlyLatest         :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
+    , _readOptMandatoryJannoCols :: [Bchs.ByteString]
+    -- ^ .janno columns that should be treated as mandatory
+    , _readOptMandatorySSFCols   :: [Bchs.ByteString]
+    -- ^ .ssf columns that should be treated as mandatory
     }
 
 -- Even though PlinkPopNameAsFamily is a sensible default, I would like to force the API to demand this explicitly
@@ -264,6 +272,8 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptFullGeno             = False
     , _readOptIgnorePosVersion     = False
     , _readOptOnlyLatest           = False
+    , _readOptMandatoryJannoCols   = []
+    , _readOptMandatorySSFCols     = []
     }
 
 readPoseidonPackageCollection :: PackageReadOptions
@@ -382,22 +392,33 @@ readPoseidonPackage opts ymlPath = do
 
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
-    let (checkSex, checkGroups) = case genotypeFileSpec geno of
-            GenotypeVCF _ _ -> (False, False)
-            _               -> (True, True)
+    let isVCF = case genotypeFileSpec geno of
+            GenotypeVCF _ _ -> True
+            _               -> False
 
     janno <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
-            return $ createMinimalJanno indEntries
+            -- create minimal, but fail if more cols are mandatory
+            let extraMandatoryColumns = filter (`notElem` mainJannoColumns) $ _readOptMandatoryJannoCols opts
+            if null extraMandatoryColumns
+            then return $ createMinimalJanno indEntries
+            else throwM $ PoseidonPackageException $
+                "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
-            loadedJanno <- readJannoFile p
-            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries checkSex checkGroups
+            loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
+            liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
     -- read seqSource
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
-        Nothing -> return mempty
-        Just p  -> readSeqSourceFile p
+        Nothing -> do
+            -- create minimal, but fail if more cols are mandatory
+            let extraMandatoryColumns = filter (`notElem` mainSSFColumns) $ _readOptMandatorySSFCols opts
+            if null extraMandatoryColumns
+            then return mempty
+            else throwM $ PoseidonPackageException $
+                "Missing mandatory .ssf columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
+        Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)
@@ -518,10 +539,9 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
                 then checkFile (d </> genoF) Nothing
                 else checkFile (d </> genoF) genoFc
 
--- the final two flags are important for reading VCFs, which lack group and sex information. So
--- we want to skip these checks in this case, see client code in readPoseidonPackage
-checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> Bool -> IO ()
-checkJannoIndConsistency pacName (JannoRows rows) indEntries checkGroups checkSex = do
+-- the last flag is important for reading VCFs, which can lack group and sex information.
+checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
+checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
     let genoIDs         = [ BSC.unpack x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
         genoGroups      = [ BSC.unpack x | EigenstratIndEntry  _ _ x <- indEntries]
@@ -531,13 +551,15 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries checkGroups checkSe
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
+    let sexAllUnknown = all (==Unknown) genoSexs
+        groupsAllUnknown = all (=="unknown") genoGroups
     when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch genoIDs jannoIDs
-    when (sexMis && checkSex) $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when (sexMis && not (isVCF && sexAllUnknown)) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
-    when (groupMis && checkGroups) $ throwM $ PoseidonCrossFileConsistencyException pacName $
+    when (groupMis && not (isVCF && groupsAllUnknown)) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
         \that this could be due to a wrong Plink file population-name encoding \
         \(see the --inPlinkPopName option). " ++
@@ -804,17 +826,29 @@ writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno j
           "changelogFile"
          ]
 
-packagesToPackageInfos :: (MonadThrow m) => [PoseidonPackage] -> m [PackageInfo]
-packagesToPackageInfos pacs = do
+packagesToPackageInfos :: (MonadThrow m) => Bool -> [PoseidonPackage] -> m [PackageInfo]
+packagesToPackageInfos withBaseDir pacs = do
     forM pacs $ \pac -> do
         isLatest <- isLatestInCollection pacs pac
+        let gFiles = case genotypeFileSpec . posPacGenotypeData $ pac of
+                GenotypeEigenstrat f1 _ f2 _ f3 _ -> [f1, f2, f3]
+                GenotypePlink      f1 _ f2 _ f3 _ -> [f1, f2, f3]
+                GenotypeVCF        f1 _           -> [f1]
         return $ PackageInfo {
             pPac           = posPacNameAndVersion pac,
             pIsLatest      = isLatest,
             pPosVersion    = posPacPoseidonVersion pac,
             pDescription   = posPacDescription pac,
             pLastModified  = posPacLastModified pac,
-            pNrIndividuals = (length . getJannoRowsFromPac) pac
+            pNrIndividuals = (length . getJannoRowsFromPac) pac,
+            pContributors  = posPacContributor pac,
+            pGenotypeFiles = gFiles,
+            pBaseDir       = if withBaseDir then Just (posPacBaseDir pac) else Nothing,
+            pJannoFile     = posPacJannoFile pac,
+            pSeqSourceFile = posPacSeqSourceFile pac,
+            pBibFile       = posPacBibFile pac,
+            pReadmeFile    = posPacReadmeFile pac,
+            pChangelogFile = posPacChangelogFile pac
         }
 
 getAllGroupInfo :: (MonadThrow m) => [PoseidonPackage] -> m [GroupInfo]

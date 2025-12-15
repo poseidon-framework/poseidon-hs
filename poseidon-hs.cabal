@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             1.6.6.0
+version:             1.6.8.0
 synopsis:            A package with tools for working with Poseidon genotype data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -14,7 +14,8 @@ extra-source-files:  README.md,
 
 library
     exposed-modules:    Poseidon.Package, Poseidon.GenotypeData, Poseidon.BibFile, Poseidon.Janno,
-                        Poseidon.ColumnTypes, Poseidon.ColumnTypesUtils, Poseidon.MathHelpers,
+                        Poseidon.ColumnTypesJanno, Poseidon.ColumnTypesSSF, Poseidon.ColumnTypesUtils,
+                        Poseidon.MathHelpers, Poseidon.AccessionIDs,
                         Poseidon.PoseidonVersion, Poseidon.SequencingSource, Poseidon.Chronicle,
                         Poseidon.EntityTypes, Poseidon.ServerClient, Poseidon.ServerHTML,
                         Poseidon.ServerStylesheet, Poseidon.Contributor, Poseidon.Version,
@@ -29,7 +30,7 @@ library
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
-                        scotty, cassava, pureMD5, wai, githash,
+                        scotty, cassava, pureMD5, wai, githash, attoparsec,
                         http-conduit, conduit, http-types, zip-archive,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
                         scientific, country, generics-sop, containers, process, deepseq, template-haskell,

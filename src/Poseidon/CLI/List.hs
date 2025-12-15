@@ -3,6 +3,7 @@
 module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
 import           Poseidon.BibFile       (authorAbbrvString, parseAuthors)
+import           Poseidon.Contributor   (ContributorSpec (..), renderORCID)
 import           Poseidon.EntityTypes   (HasNameAndVersion (..))
 import           Poseidon.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
@@ -24,7 +25,6 @@ import           Data.List              (intercalate, nub, sortOn)
 import           Data.Maybe             (catMaybes, fromMaybe)
 import qualified Data.Text              as T
 import           Data.Version           (Version, showVersion)
-
 import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
                                          rowsG, tableString, titlesH)
 
@@ -39,7 +39,7 @@ data ListOptions = ListOptions
 data RepoLocationSpec = RepoLocal [FilePath] | RepoRemote ArchiveEndpoint
 
 -- | A datatype to represent the options what to list
-data ListEntity = ListPackages
+data ListEntity = ListPackages Bool -- an option to list all YAML columns as well
     | ListGroups
     | ListIndividuals AddColSpec
     | ListBibliography AddColSpec
@@ -55,7 +55,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     }
     -- build tables
     (tableH, tableB) <- case listEntity of
-        ListPackages -> do
+        ListPackages fullOutput -> do
             packageInfos <- case repoLocation of
                 RepoRemote (ArchiveEndpoint remoteURL archive) -> do
                     logInfo "Downloading package data from server"
@@ -65,16 +65,27 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                         _ -> error "should not happen"
                 RepoLocal baseDirs -> do
                     pacCollection <- readPoseidonPackageCollection pacReadOpts baseDirs
-                    packagesToPackageInfos pacCollection
-            let tableH = ["Package", "Package Version", "Is Latest", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
+                    packagesToPackageInfos True pacCollection
+            let tableH =
+                    let baseColumnH = ["Package", "Package Version", "Is Latest", "Poseidon Version", "Description", "Last modified", "Nr Individuals"]
+                    in  if fullOutput then
+                            baseColumnH ++ ["Contributors", "Base Directory", "GenotypeFiles", "JannoFile", "SeqSourceFile", "BibFile", "ReadmeFile", "ChangelogFile"]
+                        else
+                            baseColumnH
                 tableB = sortOn head $ do
-                    pInf@(PackageInfo _ isLatest posV desc lastMod nrInds) <- packageInfos
+                    pInf <- packageInfos
                     -- for the locally read packages this doesn't do anything,
                     -- because the dataset is already reduced to the latest packages
                     -- in the reading process
-                    True <- return (not onlyLatest || isLatest)
-                    return [getPacName pInf, showMaybeVersion (getPacVersion pInf), show isLatest,
-                            showVersion posV, showMaybe desc, showMaybe (show <$> lastMod), show nrInds]
+                    True <- return (not onlyLatest || pIsLatest pInf)
+                    let baseCols = [getPacName pInf, showMaybeVersion (getPacVersion pInf), show $ pIsLatest pInf,
+                            showVersion $ pPosVersion pInf, showMaybe $ pDescription pInf, showMaybe (show <$> pLastModified pInf), show $ pNrIndividuals pInf]
+                    if fullOutput then
+                        return $ baseCols ++ [intercalate ";" . map showContributor . pContributors $ pInf, showMaybe $ pBaseDir pInf, intercalate "," . pGenotypeFiles $ pInf,
+                            showMaybe $ pJannoFile pInf, showMaybe $ pSeqSourceFile pInf, showMaybe $ pBibFile pInf, showMaybe $ pReadmeFile pInf,
+                            showMaybe $ pChangelogFile pInf]
+                    else
+                        return baseCols
             return (tableH, tableB)
         ListGroups -> do
             groupInfos <- case repoLocation of
@@ -198,3 +209,5 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
     -- which we need to get rid of to avoid down-stream problems
     curateBibField :: Maybe String -> String
     curateBibField = T.unpack . T.intercalate " " . map T.strip . T.lines . T.pack . fromMaybe ""
+    showContributor :: ContributorSpec -> String
+    showContributor (ContributorSpec n e o) = n ++ " (" ++ e ++ ") ORCID: " ++ maybe "n/a" renderORCID o

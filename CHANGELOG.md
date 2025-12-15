@@ -1,3 +1,21 @@
+- V 1.6.8.0:
+    - Added a mechanism to check for the presence and completeness of usually optional .janno and .ssf columns. It is exclusively used in `validate`, where a user can set one or multiple of these additional mandatory columns with `-j,--mandatoryJannoColumn` and `-s,--mandatorySSFColumn`.
+    - Fixed the golden tests for `validate`. They had become ineffective, because `validate` does not generate stdout any more.
+- V 1.6.7.3:
+    - Introduced a typeclass `Suspicious` for column types for which throwing warnings should be possible with an `inspect` function.
+    - Added a mechanism to `inspect` all columns of .janno and .ssf files upon reading and report anything suspicious.
+    - Removed hard requirements on `sample_accession`, `study_accession`, and `run_accession` in the .ssf reading process. Unexpected accession IDs now only raise a warning (through the `Suspicious` system described above).
+- V 1.6.7.2:
+    - Introduced column-wise types for .ssf-files for more precise error messages in reading/validation.
+    - Added a special module AccessionIDs for the AccessionID type.
+    - Moved code that is equally relevant for .janno and .ssf parsing to neutral ground.
+    - Cleaned up some imports previously done via re-exports through the Janno module.
+    - Adjusted the tests in Janno- and SequencingSourceSpec accordingly.
+- V 1.6.7.1:
+    - VCF files can now contain headers `##group_names=Group1,Group2,...` and `##genetic_sex=F,F,M,U,...`, which is correctly parsed, and these fields are also written if VCF files are output.
+    - Validate now has modified behavior for consistency checks between Ind- and Geno-File for VCFs. Since VCF files do not _have_ to have our custom header fields defined above, we read them setting all group names to "unknown" and all genetic sex entries to "U" (unknown). So when validate now checks consistency, it will allow inconsisteny if and only if (i) the data comes from a VCF file, and (ii) all group names and all genetic sex entries are indeed unknown (in other words, they are missing).
+- V 1.6.7.0:
+    - added new option `--fullOutput` for `list --packages` to extend the output with additional information from each packages (file names, contributors, etc.)
 - V 1.6.6.0:
     - Added a feature to `serve` that allows to specify a list of packages to be excluded from the leaflet map in the archive view of the html API. The packages can be listed in the new `excludeFromMap` field of the `--archiveConfigFile`.
 - V 1.6.5.0:

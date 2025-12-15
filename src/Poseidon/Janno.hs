@@ -2,102 +2,53 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- the following three are necessary for deriveGeneric
+-- the following ones are necessary for the generics-sop magic (deriveGeneric)
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
 
 module Poseidon.Janno (
     JannoRow(..),
-    GeneticSex (..),
-    GroupName (..),
-    ListColumn (..),
-    Sex (..),
-    JannoCountryISO (..),
-    JannoLatitude (..),
-    JannoLongitude (..),
-    JannoDateType (..),
-    JannoDateBCADMedian (..),
-    JannoCaptureType (..),
-    JannoGenotypePloidy (..),
-    JannoUDG (..),
-    JannoRelationDegree (..),
-    JannoLibraryBuilt (..),
     writeJannoFile,
     writeJannoFileWithoutEmptyCols,
     readJannoFile,
     createMinimalJanno,
     createMinimalSample,
     jannoHeaderString,
-    CsvNamedRecord (..),
+    mainJannoColumns,
     JannoRows (..),
-    JannoStringList,
-    filterLookup,
-    filterLookupOptional,
-    getCsvNR,
-    encodingOptions,
-    decodingOptions,
-    explicitNA,
-    removeUselessSuffix,
-    parseCsvParseError,
-    renderCsvParseError,
-    getMaybeListColumn,
     jannoRows2EigenstratIndEntries,
-    makeHeaderWithAdditionalColumns
+    makeHeaderWithAdditionalColumns,
+    parseJannoRowFromNamedRecord
 ) where
 
-import           Poseidon.ColumnTypes
-import           Poseidon.Utils                       (PoseidonException (..),
-                                                       PoseidonIO, logDebug,
-                                                       logError, logWarning,
-                                                       renderPoseidonException)
+import           Poseidon.ColumnTypesJanno
+import           Poseidon.ColumnTypesUtils
+import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)
+import qualified Control.Monad                        as OP
 import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
 import           Data.Bifunctor                       (second)
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
-import           Data.Char                            (chr, ord)
 import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        transpose, (\\))
-import           Data.Maybe                           (fromJust)
+import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
-import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..),
-                                                       Sex (..))
+import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..))
 import qualified Text.Parsec                          as P
-import qualified Text.Parsec.String                   as P
-
--- | A general datatype for janno list columns
-newtype ListColumn a = ListColumn {getListColumn :: [a]}
-    deriving (Eq, Ord, Generic, Show)
-
-getMaybeListColumn :: Maybe (ListColumn a) -> [a]
-getMaybeListColumn Nothing  = []
-getMaybeListColumn (Just x) = getListColumn x
-
-type JannoStringList = ListColumn String
-
-instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
-    toField x = Bchs.intercalate ";" $ map Csv.toField $ getListColumn x
-instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
-    parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
-
--- | A datatype to collect additional, unpecified .janno file columns (a hashmap in cassava/Data.Csv)
-newtype CsvNamedRecord = CsvNamedRecord Csv.NamedRecord deriving (Show, Eq, Generic)
-
-getCsvNR :: CsvNamedRecord -> Csv.NamedRecord
-getCsvNR (CsvNamedRecord x) = x
 
 -- | A  data type to represent a janno file
 newtype JannoRows = JannoRows {getJannoRows :: [JannoRow]}
@@ -176,6 +127,9 @@ data JannoRow = JannoRow
     }
     deriving (Show, Eq, Generic)
 
+-- deriving with TemplateHaskell necessary for the generics magic in the Survey module
+deriveGeneric ''JannoRow
+
 -- This header also defines the output column order when writing to csv!
 jannoHeader :: [Bchs.ByteString]
 jannoHeader = [
@@ -211,12 +165,19 @@ instance Csv.DefaultOrdered JannoRow where
 jannoHeaderString :: [String]
 jannoHeaderString = map Bchs.unpack jannoHeader
 
+mainJannoColumns :: [Bchs.ByteString]
+mainJannoColumns =  ["Poseidon_ID", "Genetic_Sex", "Group_Name"]
+
 -- This hashmap represents an empty janno file with all normal, specified columns
 jannoRefHashMap :: HM.HashMap Bchs.ByteString ()
 jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
-instance Csv.FromNamedRecord JannoRow where
-    parseNamedRecord m = JannoRow
+-- instance Csv.FromNamedRecord JannoRow where
+--     parseNamedRecord m = JannoRow
+parseJannoRowFromNamedRecord :: [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser JannoRow
+parseJannoRowFromNamedRecord mandatory m = do
+    mapM_ (checkMandatory m) mandatory
+    JannoRow
         <$> filterLookup         m "Poseidon_ID"
         <*> filterLookup         m "Genetic_Sex"
         <*> filterLookup         m "Group_Name"
@@ -266,26 +227,6 @@ instance Csv.FromNamedRecord JannoRow where
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
-
-filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = case cleanInput $ HM.lookup name m of
-    Nothing -> fail "Missing value in mandatory column (Poseidon_ID, Genetic_Sex, Group_Name)"
-    Just x  -> Csv.parseField  x
-
-filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
-
-cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
-cleanInput Nothing           = Nothing
-cleanInput (Just rawInputBS) = transNA rawInputBS
-    where
-        transNA :: Bchs.ByteString -> Maybe Bchs.ByteString
-        transNA ""    = Nothing
-        transNA "n/a" = Nothing
-        transNA x     = Just x
-
-explicitNA :: Csv.NamedRecord -> Csv.NamedRecord
-explicitNA = HM.map (\x -> if Bchs.null x then "n/a" else x)
 
 instance Csv.ToNamedRecord JannoRow where
     toNamedRecord j = explicitNA $ Csv.namedRecord [
@@ -421,17 +362,9 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
                 jannoConcat = Bch.intercalate "\n" $ map (Bch.intercalate "\t") jannoBackTransposed
             Bch.writeFile path (jannoConcat <> "\n")
 
-encodingOptions :: Csv.EncodeOptions
-encodingOptions = Csv.defaultEncodeOptions {
-      Csv.encDelimiter = fromIntegral (ord '\t')
-    , Csv.encUseCrLf = False
-    , Csv.encIncludeHeader = True
-    , Csv.encQuoting = Csv.QuoteMinimal
-}
-
 -- | A function to load one janno file
-readJannoFile :: FilePath -> PoseidonIO JannoRows
-readJannoFile jannoPath = do
+readJannoFile :: [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
+readJannoFile mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
@@ -459,7 +392,7 @@ readJannoFile jannoPath = do
             intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
             additional_columns (findSimilarNames missing_columns additional_columns)))
     -- load janno by rows
-    jannoRepresentation <- mapM (readJannoFileRow jannoPath) jannoFileRowsWithHeader
+    jannoRepresentation <- mapM (readJannoFileRow mandatoryCols jannoPath) jannoFileRowsWithHeader
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
@@ -486,9 +419,12 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: FilePath -> (Int, Bch.ByteString) -> PoseidonIO (Either PoseidonException JannoRow)
-readJannoFileRow jannoPath (lineNumber, row) = do
-    let decoded = Csv.decodeByNameWith decodingOptions row
+readJannoFileRow :: [Bchs.ByteString]
+                 -> FilePath
+                 -> (Int, Bch.ByteString)
+                 -> PoseidonIO (Either PoseidonException JannoRow)
+readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
+    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord mandatoryCols) decodingOptions row
         simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
     case simplifiedDecoded of
         Left e -> do
@@ -497,53 +433,25 @@ readJannoFileRow jannoPath (lineNumber, row) = do
                     Right result -> renderCsvParseError result
             return $ Left $ PoseidonFileRowException jannoPath (show lineNumber) betterError
         Right jannoRow -> do
+            -- cell-wise checks
+            let inspectRes = concat $ catMaybes $ inspectEachField jannoRow
+            OP.unless (null inspectRes) $ do
+                logWarning $ "Value anomaly in " ++ jannoPath ++ " in line " ++ renderLocation ++ ": "
+                mapM_ logWarning inspectRes
+            -- cross-column checks
             let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
             mapM_ (logWarning . renderWarning) warnings
+             -- return result
             case errOrJannoRow of
                 Left e  -> return $ Left $ PoseidonFileRowException jannoPath renderLocation e
                 Right r -> return $ Right r
             where
                 renderWarning :: String -> String
-                renderWarning e = "Issue in " ++ jannoPath ++ " " ++
+                renderWarning e = "Cross-column anomaly in " ++ jannoPath ++ " " ++
                                   "in line " ++ renderLocation ++ ": " ++ e
                 renderLocation :: String
                 renderLocation =  show lineNumber ++
                                   " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
-
-decodingOptions :: Csv.DecodeOptions
-decodingOptions = Csv.defaultDecodeOptions {
-    Csv.decDelimiter = fromIntegral (ord '\t')
-}
-
-removeUselessSuffix :: String -> String
-removeUselessSuffix = T.unpack . T.replace " at \"\"" "" . T.pack
-
--- reformat the parser error
--- from: parse error (Failed reading: conversion error: expected Int, got "430;" (incomplete field parse, leftover: [59]))
--- to:   parse error in one column (expected data type: Int, broken value: "430;", problematic characters: ";")
-
-data CsvParseError = CsvParseError {
-      _expected :: String
-    , _actual   :: String
-    , _leftover :: String
-} deriving Show
-
-parseCsvParseError :: P.Parser CsvParseError
-parseCsvParseError = do
-    _ <- P.string "parse error (Failed reading: conversion error: expected "
-    expected <- P.manyTill P.anyChar (P.try (P.string ", got "))
-    actual <- P.manyTill P.anyChar (P.try (P.string " (incomplete field parse, leftover: ["))
-    leftoverList <- P.sepBy (read <$> P.many1 P.digit) (P.char ',')
-    _ <- P.char ']'
-    _ <- P.many P.anyChar
-    return $ CsvParseError expected actual (map chr leftoverList)
-
-renderCsvParseError :: CsvParseError -> String
-renderCsvParseError (CsvParseError expected actual leftover) =
-    "parse error in one column (" ++
-    "expected data type: " ++ expected ++ ", " ++
-    "broken value: " ++ actual ++ ", " ++
-    "problematic characters: " ++ show leftover ++ ")"
 
 -- Global janno consistency checks
 
@@ -629,9 +537,6 @@ checkRelationColsConsistent x =
         False -> E.throwError "Relation_To, Relation_Degree and Relation_Type \
                       \do not have the same lengths. Relation_Type can be empty"
         True  -> return x
-
--- deriving with TemplateHaskell necessary for the generics magic in the Survey module
-deriveGeneric ''JannoRow
 
 -- | a convenience function to construct Eigenstrat Ind entries out of jannoRows
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]

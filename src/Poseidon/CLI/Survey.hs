@@ -1,17 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
+-- the following ones are necessary for the generics-sop magic
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
+import           Poseidon.ColumnTypesJanno (GeneticSex (..))
+import           Poseidon.ColumnTypesUtils (CsvNamedRecord, ListColumn (..))
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
-import           Poseidon.Janno            (CsvNamedRecord, GeneticSex,
-                                            JannoRows (..), ListColumn (..))
+import           Poseidon.Janno            (JannoRows (..))
 import           Poseidon.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,

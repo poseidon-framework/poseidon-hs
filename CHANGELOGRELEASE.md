@@ -1,3 +1,49 @@
+### V 1.6.7.3
+
+This is a minor release with few changes in the behaviour of trident. It mainly includes internal alterations that allow for better error reporting. On the user side there are three notable changes:
+
+#### Better reporting of parsing errors for .ssf files
+
+Every .ssf file column is now represented by its own data type, as it already has been the case for .janno columns. This allows for more precise reporting of issues. trident now points exactly to the broken column in case something is off.
+
+#### More extensive warning mechanism for .janno and .ssf entries
+
+We introduced a mechanism to not only report outright parsing failures on a per-column basis for .janno and .ssf files, but also minor deviations that make a given value not per-se wrong, but suspicious. These are now reported as warnings, while the respective Poseidon package is still read. The initial set of such checks in this release is small, but it is now easy to add more in the future.
+
+#### Loosened requirements on accession ID columns in .ssf file
+
+This release finally does away with the hard requirements on `sample_accession`, `study_accession`, and `run_accession` in the .ssf file reading process. These requirements were based on a particularly strict reading of the Poseidon schema. Now unexpected accession IDs only raise a warning.
+
+### V 1.6.7.1
+
+This release finally brings two long-anticipated features: VCF writing support and an html API for `serve`. It also includes some minor bugfixes.
+
+#### Writing support for VCF files
+
+v1.5.7.0 added experimental reading support for .vcf files. In this release trident finally learns to also write them as an output of `forge` and `genoconvert`. This new output option is available with `--outFormat VCF`.
+
+VCF is a rich format (as specified [here](https://samtools.github.io/hts-specs/VCFv4.2.pdf)) and trident currently uses only the features relevant for the genotype data typically handled by Poseidon. In particular, as trident must be able to convert from Plink and Eigenstrat, many fields that are typically expected in VCF files (such as read- and allelic depths or genotype likelihoods) are not written.
+
+On the other hand VCF files written by trident contain the extra headers `##group_names=Group1,Group2,...` and `##genetic_sex=F,F,M,U,...` to encode information typically not stored in VCF. This is to ensure compatibility with the PLINK and EIGENSTRAT data formats. trident has modified behavior for consistency checks between Ind- and Geno-file for VCFs, since VCF files do not _have_ to have these custom header fields defined above.
+
+Please note that the VCF format support is still not specified in the Poseidon schema version this trident version supports (v2.7.1), so the feature continues to be experimental.
+
+#### HMTL API for the web server implementation
+
+trident includes a web server to host Poseidon packages and relevant meta-information. It can be started with the subcommand `serve`. The central Poseidon server at https://server.poseidon-adna.org is nothing but a public instance of `serve` with access to the public package archives. Previously this web server provided only context data through a JSON API and allowed downloading packages as .zip archives (these interfaces are used by `list --remote` and `fetch`).
+
+This release now adds HTML output, so a human-readable website, to the server's API. The central, public version is available [here](https://server.poseidon-adna.org/explorer), but by running `serve` locally one can just as well host such a website for a private package archive.
+
+`serve` can still be started with `trident serve -d <name_of_archive>=<path/to/archive>`, but now a new `--archiveConfigFile` argument allows to read more complex configuration in YML format.
+
+#### More info from the POSEIDON.yml file in the `list` output
+
+Added a new option `--fullOutput` for `list --packages` to extend the output with additional information from the underlying packages' POSEIDON.yml files (file names, contributors, etc.).
+
+#### Fixed two bugs in `rectify`
+
+Fixed a small bug that prevented calculation of checksums for genotype data in `rectify`, and another one that prevented trident from reading packages with a wrong individual file (.ind/.fam) checksum even in `rectify`, where this should be possible.
+
 ### V 1.6.2.1
 
 This is a bigger release with various new features and improvements. It is technically breaking, because a minor, redundant argument of `genoconvert` was removed.

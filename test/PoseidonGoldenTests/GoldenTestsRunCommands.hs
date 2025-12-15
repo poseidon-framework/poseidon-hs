@@ -42,7 +42,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
-                                             getChecksum, testLog,
+                                             getChecksum, testLog, testLogErr,
                                              usePoseidonLogger)
 import           Poseidon.Version           (VersionComponent (..))
 
@@ -68,8 +68,9 @@ import           System.Directory           (copyFile, createDirectory,
                                              doesDirectoryExist, listDirectory,
                                              removeDirectoryRecursive)
 import           System.FilePath.Posix      ((</>))
-import           System.IO                  (IOMode (WriteMode), hPutStrLn,
-                                             openFile, stderr, stdout, withFile)
+import           System.IO                  (Handle, IOMode (WriteMode),
+                                             hPutStrLn, openFile, stderr,
+                                             stdout, withFile)
 import           System.Process             (callCommand)
 
 -- file paths --
@@ -109,9 +110,19 @@ patchLastModified testDir yamlFile = do
     let patchedLines = do
             l <- lines_
             if "lastModified" `T.isPrefixOf` l
-                then return "lastModified: 1970-01-01"
-                else return l
+            then return "lastModified: 1970-01-01"
+            else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+patchValidatePath :: FilePath -> FilePath -> IO ()
+patchValidatePath testDir file = do
+    lines_ <- T.lines <$> T.readFile (testDir </> file)
+    let patchedLines = do
+            l <- lines_
+            if "Validating:" `T.isPrefixOf` l
+            then return "Validating: some/path"
+            else return l
+    T.writeFile (testDir </> file) (T.unlines patchedLines)
 
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
 runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
@@ -126,8 +137,13 @@ runAndChecksumFiles checkSumFilePath testDir action actionName outFiles = do
             appendFile checkSumFilePath_ $ "\n" ++ checksum ++ " " ++ actionName_ ++ " " ++ outFile
 
 runAndChecksumStdOut :: FilePath -> FilePath -> IO () -> String -> Integer -> IO ()
-runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = do
-    -- store stdout in a specific output file
+runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber =
+    runAndChecksum stdout checkSumFilePath testDir action (pure ()) actionName outFileNumber
+runAndChecksumStdErr :: FilePath -> FilePath -> IO () -> IO () -> String -> Integer -> IO ()
+runAndChecksumStdErr = runAndChecksum stderr
+runAndChecksum :: Handle -> FilePath -> FilePath -> IO () -> IO () -> String -> Integer -> IO ()
+runAndChecksum handle checkSumFilePath testDir action unLogged actionName outFileNumber = do
+    -- store command line output in a specific output file
     let outFileName = actionName ++ show outFileNumber
         outDirInTestDir = actionName </> outFileName
         outDir = testDir </> actionName
@@ -135,23 +151,24 @@ runAndChecksumStdOut checkSumFilePath testDir action actionName outFileNumber = 
     -- create outdir if it doesn't exist
     outDirExists <- doesDirectoryExist outDir
     unless outDirExists $ createDirectory outDir
-    -- catch stdout and write it to the outPath
-    writeStdOutToFile outPath action
+    -- catch output and write it to the outPath
+    redirectHandleToFile handle outPath action
+    unLogged
     -- append checksum to checksumfile
-    checksum <- getChecksum $ outPath
+    checksum <- getChecksum outPath
     appendFile checkSumFilePath $ "\n" ++ checksum ++ " " ++ actionName ++ " " ++ outDirInTestDir
 
-writeStdOutToFile :: FilePath -> IO () -> IO ()
-writeStdOutToFile path action =
-    withFile path WriteMode $ \handle -> do
-      -- backup stdout handle
-      stdout_old <- hDuplicate stdout
-      -- redirect stdout to file
-      hDuplicateTo handle stdout
+redirectHandleToFile :: Handle -> FilePath -> IO () -> IO ()
+redirectHandleToFile handleIn path action =
+    withFile path WriteMode $ \handleOut -> do
+      -- backup handleIn
+      handleIn_old <- hDuplicate handleIn
+      -- redirect handleIn to file
+      hDuplicateTo handleOut handleIn
       -- run action
       action
       -- load backup again
-      hDuplicateTo stdout_old stdout
+      hDuplicateTo handleIn_old handleIn
 
 -- test pipeline --
 
@@ -277,50 +294,32 @@ testPipelineInit testDir checkFilePath = do
 
 testPipelineValidate :: FilePath -> FilePath -> IO ()
 testPipelineValidate testDir checkFilePath = do
+    let validatePlan1 = ValPlanBaseDirs {
+          _valPlanBaseDirs         = [testPacsDir]
+        , _valPlanIgnoreGeno       = False
+        , _valPlanFullGeno         = False
+        , _valPlanIgnoreDuplicates = True
+        , _valPlanIgnoreChecksums  = False
+        , _valPlanIgnorePosVersion = False
+        }
     let validateOpts1 = ValidateOptions {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs         = [testPacsDir]
-            , _valPlanIgnoreGeno       = False
-            , _valPlanFullGeno         = False
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
+          _validatePlan = validatePlan1
+        , _validateMandatoryJanno      = []
+        , _validateMandatorySSF        = []
         , _validateNoExitCode          = True
         , _validateOnlyLatest          = False
-    }
-    run 1 validateOpts1
-    validateOpts1 {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs         = [testPacsDir]
-            , _valPlanIgnoreGeno       = True
-            , _valPlanFullGeno         = False
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
-    } & run 2
-    validateOpts1 {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs         = [testPacsDir]
-            , _valPlanIgnoreGeno       = False
-            , _valPlanFullGeno         = True
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
-    } & run 3
-    -- validate packages generated with init
-    validateOpts1 {
-          _validatePlan = ValPlanBaseDirs {
-              _valPlanBaseDirs = [testDir </> "init"]
-            , _valPlanIgnoreGeno       = False
-            , _valPlanFullGeno         = False
-            , _valPlanIgnoreDuplicates = True
-            , _valPlanIgnoreChecksums  = False
-            , _valPlanIgnorePosVersion = False
-            }
-    } & run 4
+        }
+    -- basic validation
+    validateOpts1 { _validatePlan = validatePlan1 } & run 1
+    validateOpts1 { _validatePlan = validatePlan1 { _valPlanIgnoreGeno = True } } & run 2
+    validateOpts1 { _validatePlan = validatePlan1 {
+          _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"],
+          _valPlanFullGeno = True
+    } } & run 3
+    -- validate package created with init
+    validateOpts1 { _validatePlan = validatePlan1 {
+          _valPlanBaseDirs =  [testDir </> "init" </> "Schiffels"]
+    } } & run 4
     -- validate individual files
     validateOpts1 {
           _validatePlan = ValPlanPoseidonYaml $ testPacsDir </> "Schiffels_2016" </> "POSEIDON.yml"
@@ -347,15 +346,30 @@ testPipelineValidate testDir checkFilePath = do
     validateOpts1 {
           _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
     } & run 9
+    -- validate with user-defined mandatory columns
+    let validateOpts2 = validateOpts1 {
+          _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Schiffels_2016"] }
+        }
+    validateOpts2 { _validateMandatoryJanno = ["Poseidon_ID"] } & run 10
+    validateOpts2 { _validateMandatoryJanno = ["Notstrom"] } & run 11
+    validateOpts2 { _validateMandatorySSF = ["Kaesebrot", "Hutschnur"] } & run 12
+    validateOpts1 {
+          _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"] }
+        , _validateMandatorySSF = ["Kaesebrot", "Hutschnur"]
+    } & run 13
     where
         run :: Integer -> ValidateOptions -> IO ()
-        run nr opts = runAndChecksumStdOut checkFilePath testDir (testLog $ runValidate opts) "validate" nr
+        run nr opts = do
+            let action = testLogErr (runValidate opts)
+                -- patching can not be part of the action: race condition
+                unLogged = patchValidatePath testDir ("validate" </> ("validate" ++ show nr))
+            runAndChecksumStdErr checkFilePath testDir action unLogged "validate" nr
 
 testPipelineList :: FilePath -> FilePath -> IO ()
 testPipelineList testDir checkFilePath = do
     let listOpts1 = ListOptions {
           _listRepoLocation  = RepoLocal [testPacsDir </> "Schiffels_2016", testPacsDir  </> "Wang_Wang_2020"]
-        , _listListEntity    = ListPackages
+        , _listListEntity    = ListPackages False
         , _listRawOutput     = False
         , _listOnlyLatest    = False
         }
@@ -1347,7 +1361,7 @@ testPipelineListRemote testDir checkFilePath = do
         -- list from default archive
         let listOpts1 = ListOptions {
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" Nothing)
-            , _listListEntity   = ListPackages
+            , _listListEntity   = ListPackages False
             , _listRawOutput    = False
             , _listOnlyLatest   = False
             }
@@ -1365,7 +1379,7 @@ testPipelineListRemote testDir checkFilePath = do
         -- list from alternative archive
         let listOpts4 = ListOptions {
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" (Just "testArchive2"))
-            , _listListEntity   = ListPackages
+            , _listListEntity   = ListPackages False
             , _listRawOutput    = False
             , _listOnlyLatest   = False
             }
