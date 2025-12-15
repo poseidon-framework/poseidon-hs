@@ -430,8 +430,8 @@ encodingOptions = Csv.defaultEncodeOptions {
 }
 
 -- | A function to load one janno file
-readJannoFile :: Version -> FilePath -> PoseidonIO JannoRows
-readJannoFile poseidonVersion jannoPath = do
+readJannoFile :: FilePath -> PoseidonIO JannoRows
+readJannoFile jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
