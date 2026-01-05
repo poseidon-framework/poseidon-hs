@@ -852,7 +852,7 @@ parseArchiveConfigCLI = ArchiveConfig <$> OP.some parseArchiveSpec
         in  case parts of
                 [name, fp] -> do
                     let fps = splitOn "," fp
-                    return $ ArchiveSpec name fps Nothing Nothing Nothing [] []
+                    return $ ArchiveSpec name fps Nothing Nothing Nothing [] Nothing
                 _ -> Left $ "could not parse archive and base directory " ++ str ++
                             ". Please use format name=path1,path2,... "
 

@@ -43,6 +43,7 @@ import           Data.List.Split              (splitOn)
 import           Data.Maybe                   (isJust, mapMaybe)
 import           Data.Ord                     (Down (..))
 import           Data.Text.Lazy               (pack)
+import           Data.Time                    (Day)
 import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
 import           Data.Version                 (Version, parseVersion,
                                                showVersion)
@@ -92,17 +93,30 @@ data ArchiveSpec = ArchiveSpec
     , _archSpecURL                :: Maybe String
     , _archSpecDataURL            :: Maybe String
     , _archSpecExcludePacsFromMap :: [String]
-    , _archRetiredPackages        :: [PacNameAndVersion]
-        -- to set retired packages:
-        -- package names with no version: all versions are retired.
-        -- with version: only this version is retired.
-        -- This is used to filter out retired packages from the API responses.
-        -- It is not used for the zip file API, which always serves the requested package.
-        -- It is not used for the HTML per-package page, which always shows the requested package.
-        -- It is used, however, for the Archive HTML page, which lists only non-retired packages.
-        -- all APIs, both HTML and JSON, read a parameter "includeRetired" to determine whether to include retired packages in the response.
-        -- If this parameter is not set, the default is to not include retired packages.
+    , _archRetiredPackagesFile    :: Maybe FilePath
     } deriving (Show)
+
+data RetiredPackages = RetiredPackages
+    { _retPacFileTitle        :: String
+    , _retPacFileVersion      :: Version
+    , _retPacFileLastModified :: Day
+    , _retPacFilePackages     :: [RetiredPac]
+    } deriving (Show)
+
+data RetiredPac = RetiredPac
+    { _retPacName    :: String
+    , _retPacVersion :: Maybe Version
+    , _retPacComment :: String
+    } deriving (Show)
+-- package names with no version: all versions are retired.
+-- with version: only this version is retired.
+-- The "retired" feature is used to filter out retired packages from the API responses.
+-- It is not used for the zip file API, which always serves the requested package.
+-- It is not used for the HTML per-package page, which always shows the requested package.
+-- It is used, however, for the Archive HTML page, which lists only non-retired packages.
+-- all APIs, both HTML and JSON, read a parameter "includeRetired" to determine whether to include retired packages in the response.
+-- If this parameter is not set, the default is to not include retired packages.
+
 
 instance FromJSON ArchiveSpec where
     parseJSON = withObject "archiveSpec" $ \v -> ArchiveSpec
@@ -112,18 +126,7 @@ instance FromJSON ArchiveSpec where
         <*> v .:? "URL"
         <*> v .:? "dataURL"
         <*> ((v .:? "excludeFromMap") >>= maybe (return []) return)
-        <*> parseCLIretiredPackages v
-      where
-        parseCLIretiredPackages :: Object -> Parser [PacNameAndVersion]
-        parseCLIretiredPackages v = do
-            maybeRetiredEntities <- v .:? "retiredPackages" :: Parser (Maybe [PoseidonEntity])
-            case maybeRetiredEntities of
-                Nothing              -> return []
-                Just retiredEntities -> forM retiredEntities $ \e -> do
-                    case e of
-                        Pac p -> return p
-                        _     -> fail "Retired packages must be Poseidon packages (with or without version). Example: \
-                        \ *my_package-1.0.1* or *my_package* to retire all versions of my_package."
+        <*> (v .:? "retiredPackagesFile")
 
 newtype ArchiveConfig = ArchiveConfig [ArchiveSpec] deriving Show
 
@@ -131,10 +134,22 @@ instance FromJSON ArchiveConfig where
     parseJSON = withObject "archiveConfig" $ \v -> ArchiveConfig
         <$> v .: "archives"
 
+
+instance FromJSON RetiredPackages where
+    parseJSON = withObject "retiredPackages" $ \v -> RetiredPackages
+        <$> v .:  "title"
+        <*> v .:  "version"
+        <*> v .:  "lastModified"
+        <*> v .:  "packages"
+
+instance FromJSON RetiredPac where
+    parseJSON = withObject "retiredPac" $ \v -> RetiredPac
+        <$> v .:  "name"
+        <*> v .:? "version"
+        <*> v .:  "comment"
+
 parseArchiveConfigFile :: (MonadIO m) => FilePath -> m ArchiveConfig
 parseArchiveConfigFile = decodeFileThrow
-
-
 
 -- Stores to be used by the server App
 
@@ -230,7 +245,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/packages" . conditionOnClientVersion $ do
             logRequest logA
-            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
+            retiredPacs <- getArchiveSpecFromArchiveStore archiveStore >>= getRetiredPackages
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             pacInfos <- packagesToPackageInfos False pacs
             let retData = ApiReturnPackageInfo pacInfos
@@ -238,7 +253,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/groups" . conditionOnClientVersion $ do
             logRequest logA
-            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
+            retiredPacs <- getArchiveSpecFromArchiveStore archiveStore >>= getRetiredPackages
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             groupInfos <- getAllGroupInfo pacs
             let retData = ApiReturnGroupInfo groupInfos
@@ -246,7 +261,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/individuals" . conditionOnClientVersion $ do
             logRequest logA
-            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
+            retiredPacs <- getArchiveSpecFromArchiveStore archiveStore >>= getRetiredPackages
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             maybeAdditionalColumnsString <- queryParamMaybe "additionalJannoColumns"
             indInfo <- case maybeAdditionalColumnsString of
@@ -260,7 +275,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
 
         get "/bibliography" . conditionOnClientVersion $ do
             logRequest logA
-            retiredPacs <- _archRetiredPackages <$> getArchiveSpecFromArchiveStore archiveStore
+            retiredPacs <- getArchiveSpecFromArchiveStore archiveStore >>= getRetiredPackages
             pacs <- getItemFromArchiveStore archiveStore >>= filterRetired retiredPacs
             maybeAdditionalBibFieldsString <- queryParamMaybe "additionalBibColumns"
             bibInfo <- case maybeAdditionalBibFieldsString of
@@ -317,7 +332,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 let n = _archSpecName spec
                     d = _archSpecDescription spec
                     u = _archSpecURL spec
-                    re = _archRetiredPackages spec
+                re <- getRetiredPackages spec
                 pacs <- getArchiveContentByName n archiveStore >>= filterRetired re . selectLatest
                 return (n, d, u, pacs)
             mainPage pacsPerArchive
@@ -328,7 +343,7 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             spec <- getArchiveSpecByName archiveName archiveStore
             let maybeArchiveDataURL = _archSpecDataURL spec
                 excludeFromMap = _archSpecExcludePacsFromMap spec
-                retiredPacs = _archRetiredPackages spec
+            retiredPacs <- getRetiredPackages spec
             latestPacs <- selectLatest <$> (getArchiveContentByName archiveName archiveStore >>= filterRetired retiredPacs)
             let packagesToMap = excludePackagesByName excludeFromMap latestPacs
                 nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
@@ -570,6 +585,13 @@ getArchiveSpecFromArchiveStore store = do
     case maybeArchiveName of
         Nothing   -> return . fst . head $ store
         Just name -> getArchiveSpecByName name store
+
+getRetiredPackages :: (MonadIO m) => ArchiveSpec -> m [PacNameAndVersion]
+getRetiredPackages spec = case _archRetiredPackagesFile spec of
+    Nothing -> return []
+    Just fn -> do
+        retiredPacsData <- decodeFileThrow fn
+        return [PacNameAndVersion n v | RetiredPac n v _ <- _retPacFilePackages retiredPacsData]
 
 filterRetired :: [PacNameAndVersion] -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 filterRetired retiredPacs pacs = do
