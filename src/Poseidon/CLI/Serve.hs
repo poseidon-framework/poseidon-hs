@@ -5,7 +5,6 @@ module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..), Arc
 
 import           Poseidon.EntityTypes         (HasNameAndVersion (..),
                                                PacNameAndVersion (PacNameAndVersion),
-                                               PoseidonEntity (..),
                                                renderNameWithVersion)
 import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
@@ -34,8 +33,6 @@ import           Codec.Archive.Zip            (Archive, addEntryToArchive,
 import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                (foldM, forM, when)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import           Data.Aeson                   (Object)
-import           Data.Aeson.Types             (Parser)
 import qualified Data.ByteString.Lazy         as B
 import           Data.List                    (foldl', groupBy, intercalate,
                                                sortOn)
