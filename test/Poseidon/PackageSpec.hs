@@ -10,6 +10,7 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
 import           Poseidon.Janno             (createMinimalJanno)
 import           Poseidon.Package           (PackageReadOptions (..),
                                              PoseidonPackage (..),
+                                             LicenseSpec(..),
                                              PoseidonYamlStruct (..),
                                              checkJannoIndConsistency,
                                              defaultPackageReadOptions,
@@ -71,6 +72,9 @@ contributor:
     email: schiffels@institute.org
     orcid: 0000-0002-1017-9150
 packageVersion: 1.0.0
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 lastModified: 2020-02-28
 bibFile: sources.bib
 genotypeData:
@@ -100,7 +104,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         ],
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
-    _posYamlLicense         = Nothing,
+    _posYamlLicense         = Just $ LicenseSpec "CC-BY-4.0" (Just "https://creativecommons.org/licenses/by/4.0/") Nothing,
     _posYamlGenotypeData    = GenotypeDataSpec {
         genotypeFileSpec   = GenotypePlink {
             _plGenoFile = "Schiffels_2016.bed",

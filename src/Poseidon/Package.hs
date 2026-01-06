@@ -7,6 +7,7 @@ module Poseidon.Package (
     PoseidonPackage(..),
     PoseidonException(..),
     PackageReadOptions (..),
+    LicenseSpec (..),
     findAllPoseidonYmlFiles,
     checkJannoIndConsistency,
     readPoseidonPackageCollection,
@@ -145,6 +146,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
 
 data LicenseSpec = LicenseSpec
     { licenseName :: String
+    , licenseURL  :: Maybe String
     , licenseFile :: Maybe FilePath
     }
     deriving (Show, Eq, Generic)
@@ -202,11 +204,13 @@ instance ToJSON PoseidonYamlStruct where
 instance FromJSON LicenseSpec where
     parseJSON = withObject "LicenseSpec" $ \v -> LicenseSpec
         <$> v .:  "name"
+        <*> v .:  "url"
         <*> v .:? "file"
 
 instance ToJSON LicenseSpec where
     toJSON x = object [
         "name" .= licenseName x,
+        "url"  .= licenseURL x,
         "file" .= licenseFile x
         ]
 
