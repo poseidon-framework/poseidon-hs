@@ -15,8 +15,8 @@ import qualified Control.Monad               as OP
 import           Data.Aeson                  (defaultOptions, encode,
                                               genericToEncoding)
 import           Data.Aeson.Types            (ToJSON (..))
+import qualified Data.ByteString.Char8       as BS
 import qualified Data.ByteString.Lazy.Char8  as C
-import qualified Data.ByteString.Char8        as BS
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
 import           Data.List                   (intercalate, sortBy)

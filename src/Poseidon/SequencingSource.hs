@@ -8,7 +8,7 @@
 
 module Poseidon.SequencingSource where
 
-import Poseidon.ColumnTypesJanno ( PoseidonID )
+import           Poseidon.ColumnTypesJanno  (PoseidonID)
 import           Poseidon.ColumnTypesSSF
 import           Poseidon.ColumnTypesUtils
 import           Poseidon.Utils

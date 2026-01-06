@@ -33,12 +33,10 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (PoseidonID (..),
-                                             GroupName (..),
-                                             GeneticSex (..),
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..), GroupName (..),
                                              JannoLibraryBuilt (..),
                                              JannoPublication (..),
-                                             JannoUDG (..))
+                                             JannoUDG (..), PoseidonID (..))
 import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
 import           Poseidon.ColumnTypesUtils  (ListColumn (..),
                                              getMaybeListColumn)

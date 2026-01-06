@@ -13,7 +13,7 @@ import           Country                    (Country, alphaTwoUpper,
 import qualified Data.ByteString.Char8      as B
 import qualified Data.Char                  as C
 import qualified Data.Csv                   as Csv
-import           Data.String                (IsString(..))
+import           Data.String                (IsString (..))
 import qualified Data.Text                  as T
 import qualified Data.Text.Read             as T
 import           GHC.Generics               (Generic)

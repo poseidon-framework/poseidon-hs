@@ -16,8 +16,9 @@ import           Data.HashMap.Strict        (fromList)
 import qualified Data.Text                  as T
 import           SequenceFormats.Eigenstrat (Sex (..))
 import           System.FilePath            ((</>))
-import           Test.Hspec                 (Spec, anyException, describe, it,
-                                             shouldBe, shouldThrow, anyIOException)
+import           Test.Hspec                 (Spec, anyException, anyIOException,
+                                             describe, it, shouldBe,
+                                             shouldThrow)
 
 spec :: Spec
 spec = do
