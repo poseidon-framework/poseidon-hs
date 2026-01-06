@@ -40,10 +40,10 @@
 </span><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var hs-var">renderMaybeVersion</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe Version
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
-</span><span id="line-40"></span><span class="annot"><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var">renderMaybeVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679669845"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679669845"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
+</span><span id="line-40"></span><span class="annot"><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var">renderMaybeVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671448"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679671448"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
 </span><span class="hs-identifier hs-var">showVersion</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679669845"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><a href="#local-6989586621679671448"><span class="hs-identifier hs-var">v</span></a></span><span>
 </span><span id="line-41"></span><span>
 </span><span id="line-42"></span><span class="hs-keyword">data</span><span> </span><span id="MapMarker"><span class="annot"><a href="Poseidon.ServerHTML.html#MapMarker"><span class="hs-identifier hs-var">MapMarker</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MapMarker"><span class="annot"><a href="Poseidon.ServerHTML.html#MapMarker"><span class="hs-identifier hs-var">MapMarker</span></a></span></span><span> </span><span class="hs-special">{</span><span>
 </span><span id="line-43"></span><span>      </span><span id="mmLat"><span class="annot"><span class="annottext">MapMarker -&gt; Double
@@ -62,7 +62,7 @@
 </span><a href="Poseidon.ServerHTML.html#mmLocation"><span class="hs-identifier hs-var hs-var">mmLocation</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-50"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="mmAge"><span class="annot"><span class="annottext">MapMarker -&gt; Maybe String
 </span><a href="Poseidon.ServerHTML.html#mmAge"><span class="hs-identifier hs-var hs-var">mmAge</span></a></span></span><span>            </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
-</span><span id="line-51"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679669856"><span id="local-6989586621679669858"><span class="annot"><span class="annottext">(forall x. MapMarker -&gt; Rep MapMarker x)
+</span><span id="line-51"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679671459"><span id="local-6989586621679671461"><span class="annot"><span class="annottext">(forall x. MapMarker -&gt; Rep MapMarker x)
 -&gt; (forall x. Rep MapMarker x -&gt; MapMarker) -&gt; Generic MapMarker
 forall x. Rep MapMarker x -&gt; MapMarker
 forall x. MapMarker -&gt; Rep MapMarker x
@@ -72,7 +72,7 @@ $cfrom :: forall x. MapMarker -&gt; Rep MapMarker x
 from :: forall x. MapMarker -&gt; Rep MapMarker x
 $cto :: forall x. Rep MapMarker x -&gt; MapMarker
 to :: forall x. Rep MapMarker x -&gt; MapMarker
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679669862"><span id="local-6989586621679669878"><span id="local-6989586621679669882"><span class="annot"><span class="annottext">Int -&gt; MapMarker -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679671465"><span id="local-6989586621679671481"><span id="local-6989586621679671485"><span class="annot"><span class="annottext">Int -&gt; MapMarker -&gt; ShowS
 [MapMarker] -&gt; ShowS
 MapMarker -&gt; String
 (Int -&gt; MapMarker -&gt; ShowS)
@@ -89,16 +89,16 @@ $cshowList :: [MapMarker] -&gt; ShowS
 showList :: [MapMarker] -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-52"></span><span>
-</span><span id="line-53"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679669887"><span id="local-6989586621679669894"><span id="local-6989586621679669897"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerHTML.html#MapMarker"><span class="hs-identifier hs-type">MapMarker</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-54"></span><span>    </span><span id="local-6989586621679670227"><span class="annot"><span class="annottext">toEncoding :: MapMarker -&gt; Encoding
-</span><a href="#local-6989586621679670227"><span class="hs-identifier hs-var hs-var hs-var hs-var">toEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Options -&gt; MapMarker -&gt; Encoding
+</span><span id="line-53"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679671490"><span id="local-6989586621679671497"><span id="local-6989586621679671500"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Poseidon.ServerHTML.html#MapMarker"><span class="hs-identifier hs-type">MapMarker</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-54"></span><span>    </span><span id="local-6989586621679671830"><span class="annot"><span class="annottext">toEncoding :: MapMarker -&gt; Encoding
+</span><a href="#local-6989586621679671830"><span class="hs-identifier hs-var hs-var hs-var hs-var">toEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Options -&gt; MapMarker -&gt; Encoding
 forall a.
 (Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
 Options -&gt; a -&gt; Encoding
 </span><span class="hs-identifier hs-var">genericToEncoding</span></span><span> </span><span class="annot"><span class="annottext">Options
 </span><span class="hs-identifier hs-var">defaultOptions</span></span><span>
 </span><span id="line-55"></span><span>
-</span><span id="line-56"></span><span id="local-6989586621679669323"><span class="annot"><a href="Poseidon.ServerHTML.html#dataToJSON"><span class="hs-identifier hs-type">dataToJSON</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="#local-6989586621679669323"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679669323"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span></span><span>
+</span><span id="line-56"></span><span id="local-6989586621679670926"><span class="annot"><a href="Poseidon.ServerHTML.html#dataToJSON"><span class="hs-identifier hs-type">dataToJSON</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="#local-6989586621679670926"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679670926"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span></span><span>
 </span><span id="line-57"></span><span id="dataToJSON"><span class="annot"><span class="annottext">dataToJSON :: forall a. ToJSON a =&gt; a -&gt; Text
 </span><a href="Poseidon.ServerHTML.html#dataToJSON"><span class="hs-identifier hs-var hs-var">dataToJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
 </span><span class="hs-identifier hs-var">T.pack</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Text) -&gt; (a -&gt; String) -&gt; a -&gt; Text
@@ -114,9 +114,9 @@ forall a. ToJSON a =&gt; a -&gt; ByteString
 </span><span id="line-60"></span><span>
 </span><span id="line-61"></span><span class="annot"><a href="Poseidon.ServerHTML.html#onloadJS"><span class="hs-identifier hs-type">onloadJS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>
 </span><span id="line-62"></span><span id="onloadJS"><span class="annot"><span class="annottext">onloadJS :: Text -&gt; Text -&gt; Text
-</span><a href="Poseidon.ServerHTML.html#onloadJS"><span class="hs-identifier hs-var hs-var">onloadJS</span></a></span></span><span> </span><span id="local-6989586621679670236"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670236"><span class="hs-identifier hs-var">nrLoaded</span></a></span></span><span> </span><span id="local-6989586621679670237"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670237"><span class="hs-identifier hs-var">mapMarkers</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="">[text|
+</span><a href="Poseidon.ServerHTML.html#onloadJS"><span class="hs-identifier hs-var hs-var">onloadJS</span></a></span></span><span> </span><span id="local-6989586621679671839"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671839"><span class="hs-identifier hs-var">nrLoaded</span></a></span></span><span> </span><span id="local-6989586621679671840"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671840"><span class="hs-identifier hs-var">mapMarkers</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="">[text|
   window.onload = function() {
 
     // transform table to sortable version
@@ -202,9 +202,9 @@ forall a. ToJSON a =&gt; a -&gt; ByteString
 </span><span id="line-144"></span><span>
 </span><span id="line-145"></span><span class="annot"><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-type">explorerPage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">H.Html</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">H.Html</span></span><span>
 </span><span id="line-146"></span><span id="explorerPage"><span class="annot"><span class="annottext">explorerPage :: [Text] -&gt; Html -&gt; Html
-</span><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-var hs-var">explorerPage</span></a></span></span><span> </span><span id="local-6989586621679670245"><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670245"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span id="local-6989586621679670246"><span class="annot"><span class="annottext">Html
-</span><a href="#local-6989586621679670246"><span class="hs-identifier hs-var">content</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-var hs-var">explorerPage</span></a></span></span><span> </span><span id="local-6989586621679671848"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679671848"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span id="local-6989586621679671849"><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679671849"><span class="hs-identifier hs-var">content</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-147"></span><span>    </span><span class="annot"><span class="annottext">Html
 </span><span class="hs-identifier hs-var">H.docType</span></span><span>
 </span><span id="line-148"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -225,9 +225,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><a href="Poseidon.ServerHTML.html#navBar"><span class="hs-identifier hs-var">navBar</span></a></span><span>
 </span><span id="line-153"></span><span>          </span><span class="annot"><span class="annottext">[Text] -&gt; Html
 </span><a href="Poseidon.ServerHTML.html#breadcrumb"><span class="hs-identifier hs-var">breadcrumb</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670245"><span class="hs-identifier hs-var">urlPath</span></a></span><span>
+</span><a href="#local-6989586621679671848"><span class="hs-identifier hs-var">urlPath</span></a></span><span>
 </span><span id="line-154"></span><span>          </span><span class="annot"><span class="annottext">Html
-</span><a href="#local-6989586621679670246"><span class="hs-identifier hs-var">content</span></a></span><span>
+</span><a href="#local-6989586621679671849"><span class="hs-identifier hs-var">content</span></a></span><span>
 </span><span id="line-155"></span><span>          </span><span class="annot"><span class="annottext">Html
 </span><a href="Poseidon.ServerHTML.html#footer"><span class="hs-identifier hs-var">footer</span></a></span><span>
 </span><span id="line-156"></span><span>
@@ -412,8 +412,8 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-186"></span><span>
 </span><span id="line-187"></span><span class="annot"><a href="Poseidon.ServerHTML.html#breadcrumb"><span class="hs-identifier hs-type">breadcrumb</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">H.Html</span></span><span>
 </span><span id="line-188"></span><span id="breadcrumb"><span class="annot"><span class="annottext">breadcrumb :: [Text] -&gt; Html
-</span><a href="Poseidon.ServerHTML.html#breadcrumb"><span class="hs-identifier hs-var hs-var">breadcrumb</span></a></span></span><span> </span><span id="local-6989586621679670271"><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670271"><span class="hs-identifier hs-var">segments</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Poseidon.ServerHTML.html#breadcrumb"><span class="hs-identifier hs-var hs-var">breadcrumb</span></a></span></span><span> </span><span id="local-6989586621679671874"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679671874"><span class="hs-identifier hs-var">segments</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-189"></span><span>  </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -428,35 +428,35 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (a -&gt; m b) -&gt; t a -&gt; m ()
 </span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="annot"><span class="annottext">(Text, Text) -&gt; Html
 forall {a}. ToMarkup a =&gt; (a, Text) -&gt; Html
-</span><a href="#local-6989586621679670275"><span class="hs-identifier hs-var">toLi</span></a></span><span> </span><span class="annot"><span class="annottext">([(Text, Text)] -&gt; Html) -&gt; [(Text, Text)] -&gt; Html
+</span><a href="#local-6989586621679671878"><span class="hs-identifier hs-var">toLi</span></a></span><span> </span><span class="annot"><span class="annottext">([(Text, Text)] -&gt; Html) -&gt; [(Text, Text)] -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; [Text] -&gt; [(Text, Text)]
 forall a b. [a] -&gt; [b] -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670271"><span class="hs-identifier hs-var">segments</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670276"><span class="hs-identifier hs-var">paths</span></a></span><span>
+</span><a href="#local-6989586621679671874"><span class="hs-identifier hs-var">segments</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679671879"><span class="hs-identifier hs-var">paths</span></a></span><span>
 </span><span id="line-191"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-192"></span><span>    </span><span id="local-6989586621679670276"><span class="annot"><span class="annottext">paths :: [Text]
-</span><a href="#local-6989586621679670276"><span class="hs-identifier hs-var hs-var">paths</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; [Text]
+</span><span id="line-192"></span><span>    </span><span id="local-6989586621679671879"><span class="annot"><span class="annottext">paths :: [Text]
+</span><a href="#local-6989586621679671879"><span class="hs-identifier hs-var hs-var">paths</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; [Text]
 forall a. HasCallStack =&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">tail</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Text -&gt; Text -&gt; Text) -&gt; Text -&gt; [Text] -&gt; [Text]
 forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">scanl</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679670286"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670286"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span id="local-6989586621679670287"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670287"><span class="hs-identifier hs-var">seg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670286"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">scanl</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679671889"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671889"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span id="local-6989586621679671890"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671890"><span class="hs-identifier hs-var">seg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671889"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670287"><span class="hs-identifier hs-var">seg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671890"><span class="hs-identifier hs-var">seg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670271"><span class="hs-identifier hs-var">segments</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-193"></span><span>    </span><span id="local-6989586621679670275"><span class="annot"><span class="annottext">toLi :: (a, Text) -&gt; Html
-</span><a href="#local-6989586621679670275"><span class="hs-identifier hs-var hs-var">toLi</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679670294"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679670294"><span class="hs-identifier hs-var">seg</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679670295"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670295"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="#local-6989586621679671874"><span class="hs-identifier hs-var">segments</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span>    </span><span id="local-6989586621679671878"><span class="annot"><span class="annottext">toLi :: (a, Text) -&gt; Html
+</span><a href="#local-6989586621679671878"><span class="hs-identifier hs-var hs-var">toLi</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679671897"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679671897"><span class="hs-identifier hs-var">seg</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679671898"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679671898"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-194"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.a</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -467,12 +467,12 @@ forall a. ToValue a =&gt; a -&gt; AttributeValue
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
 </span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670295"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671898"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679670294"><span class="hs-identifier hs-var">seg</span></a></span><span>
+</span><a href="#local-6989586621679671897"><span class="hs-identifier hs-var">seg</span></a></span><span>
 </span><span id="line-195"></span><span>        </span><span class="annot"><span class="annottext">Text -&gt; Html
 </span><span class="hs-identifier hs-var">H.text</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot; / &quot;</span></span><span>
@@ -528,10 +528,10 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-207"></span><span class="annot"><a href="Poseidon.ServerHTML.html#mainPage"><span class="hs-identifier hs-type">mainPage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.ActionM</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-208"></span><span id="mainPage"><span class="annot"><span class="annottext">mainPage :: [(String, Maybe String, Maybe String, [PoseidonPackage])]
 -&gt; ActionM ()
-</span><a href="Poseidon.ServerHTML.html#mainPage"><span class="hs-identifier hs-var hs-var">mainPage</span></a></span></span><span> </span><span id="local-6989586621679670301"><span class="annot"><span class="annottext">[(String, Maybe String, Maybe String, [PoseidonPackage])]
-</span><a href="#local-6989586621679670301"><span class="hs-identifier hs-var">pacsPerArchive</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-209"></span><span>  </span><span id="local-6989586621679670302"><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670302"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
+</span><a href="Poseidon.ServerHTML.html#mainPage"><span class="hs-identifier hs-var hs-var">mainPage</span></a></span></span><span> </span><span id="local-6989586621679671904"><span class="annot"><span class="annottext">[(String, Maybe String, Maybe String, [PoseidonPackage])]
+</span><a href="#local-6989586621679671904"><span class="hs-identifier hs-var">pacsPerArchive</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-209"></span><span>  </span><span id="local-6989586621679671905"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679671905"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
 </span><span class="hs-identifier hs-var">pathInfo</span></span><span> </span><span class="annot"><span class="annottext">(Request -&gt; [Text]) -&gt; ActionT IO Request -&gt; ActionT IO [Text]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ActionT IO Request
@@ -544,7 +544,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Html -&gt; Html
 </span><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-var">explorerPage</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670302"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671905"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-211"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -561,23 +561,23 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String, Maybe String, [PoseidonPackage])]
-</span><a href="#local-6989586621679670301"><span class="hs-identifier hs-var">pacsPerArchive</span></a></span><span> </span><span class="annot"><span class="annottext">(((String, Maybe String, Maybe String, [PoseidonPackage]) -&gt; Html)
+</span><a href="#local-6989586621679671904"><span class="hs-identifier hs-var">pacsPerArchive</span></a></span><span> </span><span class="annot"><span class="annottext">(((String, Maybe String, Maybe String, [PoseidonPackage]) -&gt; Html)
  -&gt; Html)
 -&gt; ((String, Maybe String, Maybe String, [PoseidonPackage])
     -&gt; Html)
 -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679670309"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670309"><span class="hs-identifier hs-var">archiveName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679670310"><span class="annot"><span class="annottext">Maybe String
-</span><a href="#local-6989586621679670310"><span class="hs-identifier hs-var">maybeDescription</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679670311"><span class="annot"><span class="annottext">Maybe String
-</span><a href="#local-6989586621679670311"><span class="hs-identifier hs-var">maybeURL</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679670312"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670312"><span class="hs-identifier hs-var">pacs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-213"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670314"><span class="annot"><span class="annottext">nrPackages :: Int
-</span><a href="#local-6989586621679670314"><span class="hs-identifier hs-var hs-var">nrPackages</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage] -&gt; Int
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679671912"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671912"><span class="hs-identifier hs-var">archiveName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679671913"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679671913"><span class="hs-identifier hs-var">maybeDescription</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679671914"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679671914"><span class="hs-identifier hs-var">maybeURL</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679671915"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679671915"><span class="hs-identifier hs-var">pacs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-213"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679671917"><span class="annot"><span class="annottext">nrPackages :: Int
+</span><a href="#local-6989586621679671917"><span class="hs-identifier hs-var hs-var">nrPackages</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670312"><span class="hs-identifier hs-var">pacs</span></a></span><span>
+</span><a href="#local-6989586621679671915"><span class="hs-identifier hs-var">pacs</span></a></span><span>
 </span><span id="line-214"></span><span>      </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.article</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -596,13 +596,13 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670309"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671912"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
 </span><span id="line-217"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670309"><span class="hs-identifier hs-var">archiveName</span></a></span><span>
+</span><a href="#local-6989586621679671912"><span class="hs-identifier hs-var">archiveName</span></a></span><span>
 </span><span id="line-218"></span><span>        </span><span class="hs-comment">-- normal archive</span><span>
 </span><span id="line-219"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
@@ -611,7 +611,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679670314"><span class="hs-identifier hs-var">nrPackages</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679671917"><span class="hs-identifier hs-var">nrPackages</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; packages&quot;</span></span><span>
@@ -648,30 +648,30 @@ forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">sortBy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; PoseidonPackage -&gt; Ordering)
 -&gt; PoseidonPackage -&gt; PoseidonPackage -&gt; Ordering
 forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
-</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679670323"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670323"><span class="hs-identifier hs-var">p1</span></a></span></span><span> </span><span id="local-6989586621679670324"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670324"><span class="hs-identifier hs-var">p2</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Day -&gt; Maybe Day -&gt; Ordering
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679671926"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679671926"><span class="hs-identifier hs-var">p1</span></a></span></span><span> </span><span id="local-6989586621679671927"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679671927"><span class="hs-identifier hs-var">p2</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Day -&gt; Maybe Day -&gt; Ordering
 forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 </span><span class="hs-identifier hs-var">compare</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
 </span><a href="Poseidon.Package.html#posPacLastModified"><span class="hs-identifier hs-var">posPacLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670323"><span class="hs-identifier hs-var">p1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
+</span><a href="#local-6989586621679671926"><span class="hs-identifier hs-var">p1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
 </span><a href="Poseidon.Package.html#posPacLastModified"><span class="hs-identifier hs-var">posPacLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670324"><span class="hs-identifier hs-var">p2</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670312"><span class="hs-identifier hs-var">pacs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((PoseidonPackage -&gt; Html) -&gt; Html)
+</span><a href="#local-6989586621679671927"><span class="hs-identifier hs-var">p2</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679671915"><span class="hs-identifier hs-var">pacs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((PoseidonPackage -&gt; Html) -&gt; Html)
 -&gt; (PoseidonPackage -&gt; Html) -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679670327"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670327"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-224"></span><span>              </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670329"><span class="annot"><span class="annottext">pacName :: String
-</span><a href="#local-6989586621679670329"><span class="hs-identifier hs-var hs-var">pacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679671930"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679671930"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-224"></span><span>              </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679671932"><span class="annot"><span class="annottext">pacName :: String
+</span><a href="#local-6989586621679671932"><span class="hs-identifier hs-var hs-var">pacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 forall a. HasNameAndVersion a =&gt; a -&gt; String
 </span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670327"><span class="hs-identifier hs-var">pac</span></a></span><span>
-</span><span id="line-225"></span><span>                  </span><span id="local-6989586621679670332"><span class="annot"><span class="annottext">pacNameVersion :: String
-</span><a href="#local-6989586621679670332"><span class="hs-identifier hs-var hs-var">pacNameVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
+</span><a href="#local-6989586621679671930"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><span id="line-225"></span><span>                  </span><span id="local-6989586621679671935"><span class="annot"><span class="annottext">pacNameVersion :: String
+</span><a href="#local-6989586621679671935"><span class="hs-identifier hs-var hs-var">pacNameVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 forall a. HasNameAndVersion a =&gt; a -&gt; String
 </span><a href="Poseidon.EntityTypes.html#renderNameWithVersion"><span class="hs-identifier hs-var">renderNameWithVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670327"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679671930"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-226"></span><span>              </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.a</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -682,7 +682,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670309"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671912"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -690,12 +690,12 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670329"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671932"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670332"><span class="hs-identifier hs-var">pacNameVersion</span></a></span><span>
+</span><a href="#local-6989586621679671935"><span class="hs-identifier hs-var">pacNameVersion</span></a></span><span>
 </span><span id="line-227"></span><span>              </span><span class="annot"><span class="annottext">Html -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
@@ -713,17 +713,17 @@ forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
 </span><a href="Poseidon.Package.html#posPacLastModified"><span class="hs-identifier hs-var">posPacLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670327"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679671930"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;); &quot;</span></span><span>
 </span><span id="line-228"></span><span>        </span><span class="hs-comment">-- archives with more info</span><span>
 </span><span id="line-229"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe String
-</span><a href="#local-6989586621679670310"><span class="hs-identifier hs-var">maybeDescription</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Maybe String
-</span><a href="#local-6989586621679670311"><span class="hs-identifier hs-var">maybeURL</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-230"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670335"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670335"><span class="hs-identifier hs-var">desc</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670336"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670336"><span class="hs-identifier hs-var">url</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="#local-6989586621679671913"><span class="hs-identifier hs-var">maybeDescription</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679671914"><span class="hs-identifier hs-var">maybeURL</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-230"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671938"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671938"><span class="hs-identifier hs-var">desc</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671939"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671939"><span class="hs-identifier hs-var">url</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-231"></span><span>            </span><span class="annot"><span class="annottext">Html
 </span><span class="hs-identifier hs-var">H.br</span></span><span>
 </span><span id="line-232"></span><span>            </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -732,7 +732,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670335"><span class="hs-identifier hs-var">desc</span></a></span><span>
+</span><a href="#local-6989586621679671938"><span class="hs-identifier hs-var">desc</span></a></span><span>
 </span><span id="line-233"></span><span>            </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.footer</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -746,7 +746,7 @@ forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
 </span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
 </span><span class="hs-identifier hs-var">A.href</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.stringValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670336"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671939"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-235"></span><span>              </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
 </span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
@@ -781,16 +781,16 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 -&gt; [MapMarker]
 -&gt; [PoseidonPackage]
 -&gt; ActionM ()
-</span><a href="Poseidon.ServerHTML.html#archivePage"><span class="hs-identifier hs-var hs-var">archivePage</span></a></span></span><span> </span><span id="local-6989586621679670339"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670339"><span class="hs-identifier hs-var">archiveName</span></a></span></span><span> </span><span id="local-6989586621679670340"><span class="annot"><span class="annottext">Maybe String
-</span><a href="#local-6989586621679670340"><span class="hs-identifier hs-var">maybeArchiveSpecURL</span></a></span></span><span> </span><span id="local-6989586621679670341"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679670341"><span class="hs-identifier hs-var">archiveZip</span></a></span></span><span> </span><span id="local-6989586621679670342"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679670342"><span class="hs-identifier hs-var">excludeFromMap</span></a></span></span><span> </span><span id="local-6989586621679670343"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679670343"><span class="hs-identifier hs-var">nrSamplesToMap</span></a></span></span><span> </span><span id="local-6989586621679670344"><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670344"><span class="hs-identifier hs-var">mapMarkers</span></a></span></span><span> </span><span id="local-6989586621679670345"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670345"><span class="hs-identifier hs-var">pacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-249"></span><span>  </span><span id="local-6989586621679670346"><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670346"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
+</span><a href="Poseidon.ServerHTML.html#archivePage"><span class="hs-identifier hs-var hs-var">archivePage</span></a></span></span><span> </span><span id="local-6989586621679671942"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671942"><span class="hs-identifier hs-var">archiveName</span></a></span></span><span> </span><span id="local-6989586621679671943"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679671943"><span class="hs-identifier hs-var">maybeArchiveSpecURL</span></a></span></span><span> </span><span id="local-6989586621679671944"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679671944"><span class="hs-identifier hs-var">archiveZip</span></a></span></span><span> </span><span id="local-6989586621679671945"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679671945"><span class="hs-identifier hs-var">excludeFromMap</span></a></span></span><span> </span><span id="local-6989586621679671946"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679671946"><span class="hs-identifier hs-var">nrSamplesToMap</span></a></span></span><span> </span><span id="local-6989586621679671947"><span class="annot"><span class="annottext">[MapMarker]
+</span><a href="#local-6989586621679671947"><span class="hs-identifier hs-var">mapMarkers</span></a></span></span><span> </span><span id="local-6989586621679671948"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679671948"><span class="hs-identifier hs-var">pacs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-249"></span><span>  </span><span id="local-6989586621679671949"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679671949"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
 </span><span class="hs-identifier hs-var">pathInfo</span></span><span> </span><span class="annot"><span class="annottext">(Request -&gt; [Text]) -&gt; ActionT IO Request -&gt; ActionT IO [Text]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ActionT IO Request
@@ -803,7 +803,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Html -&gt; Html
 </span><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-var">explorerPage</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670346"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671949"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-251"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -826,17 +826,17 @@ forall a. ToJSON a =&gt; a -&gt; Text
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670344"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679670343"><span class="hs-identifier hs-var">nrSamplesToMap</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679671947"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679671946"><span class="hs-identifier hs-var">nrSamplesToMap</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">[MapMarker] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670344"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MapMarker] -&gt; Text
+</span><a href="#local-6989586621679671947"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MapMarker] -&gt; Text
 forall a. ToJSON a =&gt; a -&gt; Text
 </span><a href="Poseidon.ServerHTML.html#dataToJSON"><span class="hs-identifier hs-var">dataToJSON</span></a></span><span> </span><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670344"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671947"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-253"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.h1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
@@ -846,7 +846,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Archive: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670339"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671942"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-254"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -861,7 +861,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html
 </span><span class="hs-string">&quot;&quot;</span></span><span>
 </span><span id="line-255"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679670342"><span class="hs-identifier hs-var">excludeFromMap</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679671945"><span class="hs-identifier hs-var">excludeFromMap</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-256"></span><span>      </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-257"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
@@ -878,8 +878,8 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 </span><span class="hs-identifier hs-var">H.string</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;No packages excluded from map.&quot;</span></span><span>
-</span><span id="line-259"></span><span>      </span><span id="local-6989586621679670348"><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679670348"><span class="hs-identifier hs-var">exclude</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-259"></span><span>      </span><span id="local-6989586621679671951"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679671951"><span class="hs-identifier hs-var">exclude</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-260"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -902,7 +902,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. [a] -&gt; [[a]] -&gt; [a]
 </span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679670348"><span class="hs-identifier hs-var">exclude</span></a></span><span>
+</span><a href="#local-6989586621679671951"><span class="hs-identifier hs-var">exclude</span></a></span><span>
 </span><span id="line-262"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -957,18 +957,18 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670345"><span class="hs-identifier hs-var">pacs</span></a></span><span> </span><span class="annot"><span class="annottext">((PoseidonPackage -&gt; Html) -&gt; Html)
+</span><a href="#local-6989586621679671948"><span class="hs-identifier hs-var">pacs</span></a></span><span> </span><span class="annot"><span class="annottext">((PoseidonPackage -&gt; Html) -&gt; Html)
 -&gt; (PoseidonPackage -&gt; Html) -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679670354"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670354"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-271"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670356"><span class="annot"><span class="annottext">pacName :: String
-</span><a href="#local-6989586621679670356"><span class="hs-identifier hs-var hs-var">pacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679671957"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679671957"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-271"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679671959"><span class="annot"><span class="annottext">pacName :: String
+</span><a href="#local-6989586621679671959"><span class="hs-identifier hs-var hs-var">pacName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; String
 forall a. HasNameAndVersion a =&gt; a -&gt; String
 </span><a href="Poseidon.EntityTypes.html#getPacName"><span class="hs-identifier hs-var">getPacName</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670354"><span class="hs-identifier hs-var">pac</span></a></span><span>
-</span><span id="line-272"></span><span>            </span><span id="local-6989586621679670358"><span class="annot"><span class="annottext">nrSamples :: Int
-</span><a href="#local-6989586621679670358"><span class="hs-identifier hs-var hs-var">nrSamples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[JannoRow] -&gt; Int
+</span><a href="#local-6989586621679671957"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><span id="line-272"></span><span>            </span><span id="local-6989586621679671961"><span class="annot"><span class="annottext">nrSamples :: Int
+</span><a href="#local-6989586621679671961"><span class="hs-identifier hs-var hs-var">nrSamples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[JannoRow] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">([JannoRow] -&gt; Int) -&gt; [JannoRow] -&gt; Int
@@ -978,11 +978,11 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; JannoRows
 </span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670354"><span class="hs-identifier hs-var">pac</span></a></span><span>
-</span><span id="line-273"></span><span>            </span><span id="local-6989586621679670361"><span class="annot"><span class="annottext">lastMod :: Maybe Day
-</span><a href="#local-6989586621679670361"><span class="hs-identifier hs-var hs-var">lastMod</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
+</span><a href="#local-6989586621679671957"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><span id="line-273"></span><span>            </span><span id="local-6989586621679671964"><span class="annot"><span class="annottext">lastMod :: Maybe Day
+</span><a href="#local-6989586621679671964"><span class="hs-identifier hs-var hs-var">lastMod</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
 </span><a href="Poseidon.Package.html#posPacLastModified"><span class="hs-identifier hs-var">posPacLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670354"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679671957"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-274"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.tr</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -999,7 +999,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670339"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671942"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1007,12 +1007,12 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670356"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671959"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670356"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671959"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-277"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1023,11 +1023,11 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679670358"><span class="hs-identifier hs-var">nrSamples</span></a></span><span>
+</span><a href="#local-6989586621679671961"><span class="hs-identifier hs-var">nrSamples</span></a></span><span>
 </span><span id="line-278"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe Day
-</span><a href="#local-6989586621679670361"><span class="hs-identifier hs-var">lastMod</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-279"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670363"><span class="annot"><span class="annottext">Day
-</span><a href="#local-6989586621679670363"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="#local-6989586621679671964"><span class="hs-identifier hs-var">lastMod</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-279"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671966"><span class="annot"><span class="annottext">Day
+</span><a href="#local-6989586621679671966"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
@@ -1037,7 +1037,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Day -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Day
-</span><a href="#local-6989586621679670363"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679671966"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-280"></span><span>            </span><span class="annot"><span class="annottext">Maybe Day
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
@@ -1047,9 +1047,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;n/a&quot;</span></span><span>
 </span><span id="line-281"></span><span>          </span><span class="hs-comment">-- archives with more info</span><span>
 </span><span id="line-282"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe String
-</span><a href="#local-6989586621679670340"><span class="hs-identifier hs-var">maybeArchiveSpecURL</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-283"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670364"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670364"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="#local-6989586621679671943"><span class="hs-identifier hs-var">maybeArchiveSpecURL</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-283"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671967"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671967"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1058,7 +1058,7 @@ forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
 </span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
 </span><span class="hs-identifier hs-var">A.href</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.stringValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670364"><span class="hs-identifier hs-var">url</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671967"><span class="hs-identifier hs-var">url</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1066,7 +1066,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670356"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671959"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
@@ -1080,7 +1080,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">H.string</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;n/a&quot;</span></span><span>
 </span><span id="line-285"></span><span>          </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679670341"><span class="hs-identifier hs-var">archiveZip</span></a></span><span>
+</span><a href="#local-6989586621679671944"><span class="hs-identifier hs-var">archiveZip</span></a></span><span>
 </span><span id="line-286"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1094,7 +1094,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670356"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671959"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;?archive=&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1102,7 +1102,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670339"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671942"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
@@ -1133,28 +1133,28 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 -&gt; [JannoRow]
 -&gt; ActionM ()
 </span><a href="Poseidon.ServerHTML.html#packageVersionPage"><span class="hs-identifier hs-var hs-var">packageVersionPage</span></a></span></span><span>
-</span><span id="line-297"></span><span>  </span><span id="local-6989586621679670365"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670365"><span class="hs-identifier hs-var">archiveName</span></a></span></span><span> </span><span id="local-6989586621679670366"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span></span><span> </span><span id="local-6989586621679670367"><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670367"><span class="hs-identifier hs-var">pacVersion</span></a></span></span><span>
-</span><span id="line-298"></span><span>  </span><span id="local-6989586621679670368"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679670368"><span class="hs-identifier hs-var">archiveZip</span></a></span></span><span>
-</span><span id="line-299"></span><span>  </span><span id="local-6989586621679670369"><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670369"><span class="hs-identifier hs-var">mapMarkers</span></a></span></span><span>
-</span><span id="line-300"></span><span>  </span><span id="local-6989586621679670370"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670370"><span class="hs-identifier hs-var">bib</span></a></span></span><span>
-</span><span id="line-301"></span><span>  </span><span id="local-6989586621679670371"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670371"><span class="hs-identifier hs-var">oneVersion</span></a></span></span><span> </span><span id="local-6989586621679670372"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670372"><span class="hs-identifier hs-var">allVersions</span></a></span></span><span> </span><span id="local-6989586621679670373"><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679670373"><span class="hs-identifier hs-var">samples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-302"></span><span>  </span><span id="local-6989586621679670374"><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670374"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
+</span><span id="line-297"></span><span>  </span><span id="local-6989586621679671968"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671968"><span class="hs-identifier hs-var">archiveName</span></a></span></span><span> </span><span id="local-6989586621679671969"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span></span><span> </span><span id="local-6989586621679671970"><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679671970"><span class="hs-identifier hs-var">pacVersion</span></a></span></span><span>
+</span><span id="line-298"></span><span>  </span><span id="local-6989586621679671971"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679671971"><span class="hs-identifier hs-var">archiveZip</span></a></span></span><span>
+</span><span id="line-299"></span><span>  </span><span id="local-6989586621679671972"><span class="annot"><span class="annottext">[MapMarker]
+</span><a href="#local-6989586621679671972"><span class="hs-identifier hs-var">mapMarkers</span></a></span></span><span>
+</span><span id="line-300"></span><span>  </span><span id="local-6989586621679671973"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679671973"><span class="hs-identifier hs-var">bib</span></a></span></span><span>
+</span><span id="line-301"></span><span>  </span><span id="local-6989586621679671974"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679671974"><span class="hs-identifier hs-var">oneVersion</span></a></span></span><span> </span><span id="local-6989586621679671975"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679671975"><span class="hs-identifier hs-var">allVersions</span></a></span></span><span> </span><span id="local-6989586621679671976"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679671976"><span class="hs-identifier hs-var">samples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-302"></span><span>  </span><span id="local-6989586621679671977"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679671977"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
 </span><span class="hs-identifier hs-var">pathInfo</span></span><span> </span><span class="annot"><span class="annottext">(Request -&gt; [Text]) -&gt; ActionT IO Request -&gt; ActionT IO [Text]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ActionT IO Request
 </span><span class="hs-identifier hs-var">S.request</span></span><span>
-</span><span id="line-303"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670376"><span class="annot"><span class="annottext">nrSamples :: Int
-</span><a href="#local-6989586621679670376"><span class="hs-identifier hs-var hs-var">nrSamples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[JannoRow] -&gt; Int
+</span><span id="line-303"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679671979"><span class="annot"><span class="annottext">nrSamples :: Int
+</span><a href="#local-6989586621679671979"><span class="hs-identifier hs-var hs-var">nrSamples</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[JannoRow] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">([JannoRow] -&gt; Int) -&gt; [JannoRow] -&gt; Int
@@ -1164,7 +1164,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; JannoRows
 </span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670371"><span class="hs-identifier hs-var">oneVersion</span></a></span><span>
+</span><a href="#local-6989586621679671974"><span class="hs-identifier hs-var">oneVersion</span></a></span><span>
 </span><span id="line-304"></span><span>  </span><span class="annot"><span class="annottext">Text -&gt; ActionM ()
 </span><span class="hs-identifier hs-var">S.html</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; ActionM ()) -&gt; Text -&gt; ActionM ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1173,7 +1173,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Html -&gt; Html
 </span><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-var">explorerPage</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670374"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671977"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-305"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1196,19 +1196,19 @@ forall a. ToJSON a =&gt; a -&gt; Text
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670369"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679670376"><span class="hs-identifier hs-var">nrSamples</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679671972"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679671979"><span class="hs-identifier hs-var">nrSamples</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">[MapMarker] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670369"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MapMarker] -&gt; Text
+</span><a href="#local-6989586621679671972"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MapMarker] -&gt; Text
 forall a. ToJSON a =&gt; a -&gt; Text
 </span><a href="Poseidon.ServerHTML.html#dataToJSON"><span class="hs-identifier hs-var">dataToJSON</span></a></span><span> </span><span class="annot"><span class="annottext">[MapMarker]
-</span><a href="#local-6989586621679670369"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671972"><span class="hs-identifier hs-var">mapMarkers</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-307"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670367"><span class="hs-identifier hs-var">pacVersion</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679671970"><span class="hs-identifier hs-var">pacVersion</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-308"></span><span>      </span><span class="annot"><span class="annottext">Maybe Version
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.h1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Html
@@ -1219,9 +1219,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Package: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-309"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670377"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679670377"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-309"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671980"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679671980"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.h1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; String -&gt; Html
@@ -1230,14 +1230,14 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Package: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;-&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
 </span><span class="hs-identifier hs-var">showVersion</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679670377"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671980"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-310"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -1270,7 +1270,7 @@ forall a. a -&gt; Maybe a -&gt; a
 </span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;unknown&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe String
 </span><a href="Poseidon.Package.html#posPacDescription"><span class="hs-identifier hs-var">posPacDescription</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670371"><span class="hs-identifier hs-var">oneVersion</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671974"><span class="hs-identifier hs-var">oneVersion</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-316"></span><span>      </span><span class="annot"><span class="annottext">Html
 </span><span class="hs-identifier hs-var">H.br</span></span><span>
 </span><span id="line-317"></span><span>      </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1286,7 +1286,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Version
 forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
 </span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670371"><span class="hs-identifier hs-var">oneVersion</span></a></span><span>
+</span><a href="#local-6989586621679671974"><span class="hs-identifier hs-var">oneVersion</span></a></span><span>
 </span><span id="line-319"></span><span>      </span><span class="annot"><span class="annottext">Html
 </span><span class="hs-identifier hs-var">H.br</span></span><span>
 </span><span id="line-320"></span><span>      </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1303,7 +1303,7 @@ forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Day
 </span><a href="Poseidon.Package.html#posPacLastModified"><span class="hs-identifier hs-var">posPacLastModified</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670371"><span class="hs-identifier hs-var">oneVersion</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671974"><span class="hs-identifier hs-var">oneVersion</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-322"></span><span>      </span><span class="annot"><span class="annottext">Html
 </span><span class="hs-identifier hs-var">H.br</span></span><span>
 </span><span id="line-323"></span><span>      </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1316,7 +1316,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679670376"><span class="hs-identifier hs-var">nrSamples</span></a></span><span>
+</span><a href="#local-6989586621679671979"><span class="hs-identifier hs-var">nrSamples</span></a></span><span>
 </span><span id="line-325"></span><span>    </span><span class="hs-comment">-- versions and bibliography</span><span>
 </span><span id="line-326"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
@@ -1342,22 +1342,22 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679670372"><span class="hs-identifier hs-var">allVersions</span></a></span><span> </span><span class="annot"><span class="annottext">((PoseidonPackage -&gt; Html) -&gt; Html)
+</span><a href="#local-6989586621679671975"><span class="hs-identifier hs-var">allVersions</span></a></span><span> </span><span class="annot"><span class="annottext">((PoseidonPackage -&gt; Html) -&gt; Html)
 -&gt; (PoseidonPackage -&gt; Html) -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679670382"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670382"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679671985"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679671985"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.li</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-331"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670384"><span class="annot"><span class="annottext">v :: Maybe Version
-</span><a href="#local-6989586621679670384"><span class="hs-identifier hs-var hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Version
+</span><span id="line-331"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679671987"><span class="annot"><span class="annottext">v :: Maybe Version
+</span><a href="#local-6989586621679671987"><span class="hs-identifier hs-var hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe Version
 forall a. HasNameAndVersion a =&gt; a -&gt; Maybe Version
 </span><a href="Poseidon.EntityTypes.html#getPacVersion"><span class="hs-identifier hs-var">getPacVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679670382"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679671985"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-332"></span><span>            </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.a</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -1368,7 +1368,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670365"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671968"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1376,7 +1376,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1385,7 +1385,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe Version -&gt; String
 </span><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var">renderMaybeVersion</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670384"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671987"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
 </span><span id="line-333"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; Html
@@ -1394,11 +1394,11 @@ forall a. ToMarkup a =&gt; a -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Maybe Version -&gt; String
 </span><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var">renderMaybeVersion</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670384"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><a href="#local-6989586621679671987"><span class="hs-identifier hs-var">v</span></a></span><span>
 </span><span id="line-334"></span><span>            </span><span class="annot"><span class="annottext">Bool -&gt; Html -&gt; Html
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">OP.when</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679670368"><span class="hs-identifier hs-var">archiveZip</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671971"><span class="hs-identifier hs-var">archiveZip</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-335"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; Html
@@ -1415,7 +1415,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;?package_version=&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1424,7 +1424,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe Version -&gt; String
 </span><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var">renderMaybeVersion</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670384"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671987"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;&amp;archive=&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1432,7 +1432,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670365"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671968"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
 </span><span id="line-337"></span><span>                </span><span class="annot"><span class="annottext">String -&gt; Html
@@ -1456,12 +1456,12 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670370"><span class="hs-identifier hs-var">bib</span></a></span><span>
+</span><a href="#local-6989586621679671973"><span class="hs-identifier hs-var">bib</span></a></span><span>
 </span><span id="line-341"></span><span>    </span><span class="hs-comment">-- download button</span><span>
 </span><span id="line-342"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Html -&gt; Html
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">OP.when</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679670368"><span class="hs-identifier hs-var">archiveZip</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671971"><span class="hs-identifier hs-var">archiveZip</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
 </span><span id="line-343"></span><span>      </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1473,7 +1473,7 @@ forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-344"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670367"><span class="hs-identifier hs-var">pacVersion</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679671970"><span class="hs-identifier hs-var">pacVersion</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-345"></span><span>          </span><span class="annot"><span class="annottext">Maybe Version
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-346"></span><span>            </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1486,7 +1486,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;?archive=&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1494,15 +1494,15 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670365"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671968"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
 </span><span id="line-347"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
 </span><span class="hs-identifier hs-var">H.toMarkup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;Download&quot;</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
-</span><span id="line-348"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670388"><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679670388"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-348"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679671991"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679671991"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-349"></span><span>            </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.a</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
@@ -1513,7 +1513,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;?package_version=&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1522,7 +1522,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; String
 </span><span class="hs-identifier hs-var">showVersion</span></span><span> </span><span class="annot"><span class="annottext">Version
-</span><a href="#local-6989586621679670388"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671991"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;&amp;archive=&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1530,7 +1530,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670365"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679671968"><span class="hs-identifier hs-var">archiveName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
 </span><span id="line-350"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; Html
@@ -1584,18 +1584,18 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679670373"><span class="hs-identifier hs-var">samples</span></a></span><span> </span><span class="annot"><span class="annottext">((JannoRow -&gt; Html) -&gt; Html) -&gt; (JannoRow -&gt; Html) -&gt; Html
+</span><a href="#local-6989586621679671976"><span class="hs-identifier hs-var">samples</span></a></span><span> </span><span class="annot"><span class="annottext">((JannoRow -&gt; Html) -&gt; Html) -&gt; (JannoRow -&gt; Html) -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679670389"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670389"><span class="hs-identifier hs-var">jannoRow</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-359"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670405"><span class="annot"><span class="annottext">link :: AttributeValue
-</span><a href="#local-6989586621679670405"><span class="hs-identifier hs-var hs-var">link</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679671992"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679671992"><span class="hs-identifier hs-var">jannoRow</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-359"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679672008"><span class="annot"><span class="annottext">link :: AttributeValue
+</span><a href="#local-6989586621679672008"><span class="hs-identifier hs-var hs-var">link</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/explorer/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670365"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671968"><span class="hs-identifier hs-var">archiveName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1603,7 +1603,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; AttributeValue
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679670366"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671969"><span class="hs-identifier hs-var">pacName</span></a></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1612,7 +1612,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe Version -&gt; String
 </span><a href="Poseidon.ServerHTML.html#renderMaybeVersion"><span class="hs-identifier hs-var">renderMaybeVersion</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679670367"><span class="hs-identifier hs-var">pacVersion</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
+</span><a href="#local-6989586621679671970"><span class="hs-identifier hs-var">pacVersion</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
 </span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; AttributeValue -&gt; AttributeValue
@@ -1621,7 +1621,7 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a. ToValue a =&gt; a -&gt; AttributeValue
 </span><span class="hs-identifier hs-var">H.toValue</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">JannoRow -&gt; String
 </span><a href="Poseidon.Janno.html#jPoseidonID"><span class="hs-identifier hs-var">jPoseidonID</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670389"><span class="hs-identifier hs-var">jannoRow</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679671992"><span class="hs-identifier hs-var">jannoRow</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-360"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.tr</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1634,7 +1634,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
 </span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
 </span><span class="hs-identifier hs-var">A.href</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
-</span><a href="#local-6989586621679670405"><span class="hs-identifier hs-var">link</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679672008"><span class="hs-identifier hs-var">link</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
 forall a. ToMarkup a =&gt; a -&gt; Html
@@ -1642,7 +1642,7 @@ forall a. ToMarkup a =&gt; a -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; String
 </span><a href="Poseidon.Janno.html#jPoseidonID"><span class="hs-identifier hs-var">jPoseidonID</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670389"><span class="hs-identifier hs-var">jannoRow</span></a></span><span>
+</span><a href="#local-6989586621679671992"><span class="hs-identifier hs-var">jannoRow</span></a></span><span>
 </span><span id="line-362"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1656,7 +1656,7 @@ forall a. Show a =&gt; a -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; GeneticSex
 </span><a href="Poseidon.Janno.html#jGeneticSex"><span class="hs-identifier hs-var">jGeneticSex</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670389"><span class="hs-identifier hs-var">jannoRow</span></a></span><span>
+</span><a href="#local-6989586621679671992"><span class="hs-identifier hs-var">jannoRow</span></a></span><span>
 </span><span id="line-363"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1670,9 +1670,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(GroupName -&gt; Text) -&gt; [GroupName] -&gt; [Text]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ColumnTypesJanno.html#GroupName"><span class="hs-identifier hs-type">GroupName</span></a></span><span> </span><span id="local-6989586621679670409"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670409"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679670409"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([GroupName] -&gt; [Text]) -&gt; [GroupName] -&gt; [Text]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.ColumnTypesJanno.html#GroupName"><span class="hs-identifier hs-type">GroupName</span></a></span><span> </span><span id="local-6989586621679672012"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679672012"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679672012"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([GroupName] -&gt; [Text]) -&gt; [GroupName] -&gt; [Text]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ListColumn GroupName -&gt; [GroupName]
 forall a. ListColumn a -&gt; [a]
@@ -1681,27 +1681,27 @@ forall a. ListColumn a -&gt; [a]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; ListColumn GroupName
 </span><a href="Poseidon.Janno.html#jGroupName"><span class="hs-identifier hs-var">jGroupName</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670389"><span class="hs-identifier hs-var">jannoRow</span></a></span><span>
+</span><a href="#local-6989586621679671992"><span class="hs-identifier hs-var">jannoRow</span></a></span><span>
 </span><span id="line-364"></span><span>
 </span><span id="line-365"></span><span class="annot"><a href="Poseidon.ServerHTML.html#samplePage"><span class="hs-identifier hs-type">samplePage</span></a></span><span> </span><span class="hs-glyph">::</span><span>
 </span><span id="line-366"></span><span>     </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.ServerHTML.html#MapMarker"><span class="hs-identifier hs-type">MapMarker</span></a></span><span>
 </span><span id="line-367"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Janno.html#JannoRow"><span class="hs-identifier hs-type">JannoRow</span></a></span><span>
 </span><span id="line-368"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.ActionM</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-369"></span><span id="samplePage"><span class="annot"><span class="annottext">samplePage :: Maybe MapMarker -&gt; JannoRow -&gt; ActionM ()
-</span><a href="Poseidon.ServerHTML.html#samplePage"><span class="hs-identifier hs-var hs-var">samplePage</span></a></span></span><span> </span><span id="local-6989586621679670411"><span class="annot"><span class="annottext">Maybe MapMarker
-</span><a href="#local-6989586621679670411"><span class="hs-identifier hs-var">maybeMapMarker</span></a></span></span><span> </span><span id="local-6989586621679670412"><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670412"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-370"></span><span>  </span><span id="local-6989586621679670413"><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670413"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
+</span><a href="Poseidon.ServerHTML.html#samplePage"><span class="hs-identifier hs-var hs-var">samplePage</span></a></span></span><span> </span><span id="local-6989586621679672014"><span class="annot"><span class="annottext">Maybe MapMarker
+</span><a href="#local-6989586621679672014"><span class="hs-identifier hs-var">maybeMapMarker</span></a></span></span><span> </span><span id="local-6989586621679672015"><span class="annot"><span class="annottext">JannoRow
+</span><a href="#local-6989586621679672015"><span class="hs-identifier hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-370"></span><span>  </span><span id="local-6989586621679672016"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679672016"><span class="hs-identifier hs-var">urlPath</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Request -&gt; [Text]
 </span><span class="hs-identifier hs-var">pathInfo</span></span><span> </span><span class="annot"><span class="annottext">(Request -&gt; [Text]) -&gt; ActionT IO Request -&gt; ActionT IO [Text]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ActionT IO Request
 </span><span class="hs-identifier hs-var">S.request</span></span><span>
-</span><span id="line-371"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679670416"><span class="annot"><span class="annottext">hashMap :: NamedRecord
-</span><a href="#local-6989586621679670416"><span class="hs-identifier hs-var hs-var">hashMap</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; NamedRecord
+</span><span id="line-371"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679672019"><span class="annot"><span class="annottext">hashMap :: NamedRecord
+</span><a href="#local-6989586621679672019"><span class="hs-identifier hs-var hs-var">hashMap</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; NamedRecord
 forall a. ToNamedRecord a =&gt; a -&gt; NamedRecord
 </span><span class="hs-identifier hs-var">toNamedRecord</span></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670412"><span class="hs-identifier hs-var">row</span></a></span><span>
+</span><a href="#local-6989586621679672015"><span class="hs-identifier hs-var">row</span></a></span><span>
 </span><span id="line-372"></span><span>  </span><span class="annot"><span class="annottext">Text -&gt; ActionM ()
 </span><span class="hs-identifier hs-var">S.html</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; ActionM ()) -&gt; Text -&gt; ActionM ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1710,7 +1710,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Html -&gt; Html
 </span><a href="Poseidon.ServerHTML.html#explorerPage"><span class="hs-identifier hs-var">explorerPage</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
-</span><a href="#local-6989586621679670413"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+</span><a href="#local-6989586621679672016"><span class="hs-identifier hs-var">urlPath</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-373"></span><span>    </span><span class="annot"><span class="annottext">Html -&gt; Html
@@ -1718,9 +1718,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-374"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe MapMarker
-</span><a href="#local-6989586621679670411"><span class="hs-identifier hs-var">maybeMapMarker</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-375"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679670418"><span class="annot"><span class="annottext">MapMarker
-</span><a href="#local-6989586621679670418"><span class="hs-identifier hs-var">mapMarker</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="#local-6989586621679672014"><span class="hs-identifier hs-var">maybeMapMarker</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-375"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679672021"><span class="annot"><span class="annottext">MapMarker
+</span><a href="#local-6989586621679672021"><span class="hs-identifier hs-var">mapMarker</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.script</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
 forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
 </span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
@@ -1737,7 +1737,7 @@ forall a. ToJSON a =&gt; a -&gt; Text
 </span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MapMarker] -&gt; Text
 forall a. ToJSON a =&gt; a -&gt; Text
 </span><a href="Poseidon.ServerHTML.html#dataToJSON"><span class="hs-identifier hs-var">dataToJSON</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">MapMarker
-</span><a href="#local-6989586621679670418"><span class="hs-identifier hs-var">mapMarker</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679672021"><span class="hs-identifier hs-var">mapMarker</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-376"></span><span>        </span><span class="annot"><span class="annottext">Maybe MapMarker
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Html
 forall a. a -&gt; MarkupM a
@@ -1753,9 +1753,9 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">JannoRow -&gt; String
 </span><a href="Poseidon.Janno.html#jPoseidonID"><span class="hs-identifier hs-var">jPoseidonID</span></a></span><span> </span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670412"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679672015"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-378"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe MapMarker
-</span><a href="#local-6989586621679670411"><span class="hs-identifier hs-var">maybeMapMarker</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679672014"><span class="hs-identifier hs-var">maybeMapMarker</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-379"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="annot"><span class="annottext">MapMarker
 </span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.div</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
@@ -1804,10 +1804,10 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[JannoRow] -&gt; Vector Name
 </span><a href="Poseidon.Janno.html#makeHeaderWithAdditionalColumns"><span class="hs-identifier hs-var">makeHeaderWithAdditionalColumns</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">JannoRow
-</span><a href="#local-6989586621679670412"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Name -&gt; Html) -&gt; Html) -&gt; (Name -&gt; Html) -&gt; Html
+</span><a href="#local-6989586621679672015"><span class="hs-identifier hs-var">row</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Name -&gt; Html) -&gt; Html) -&gt; (Name -&gt; Html) -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679670420"><span class="annot"><span class="annottext">Name
-</span><a href="#local-6989586621679670420"><span class="hs-identifier hs-var">key</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679672023"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679672023"><span class="hs-identifier hs-var">key</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-386"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.tr</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1821,7 +1821,7 @@ forall a. ToMarkup a =&gt; a -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Name -&gt; Text
 </span><span class="hs-identifier hs-var">T.decodeUtf8Lenient</span></span><span> </span><span class="annot"><span class="annottext">Name
-</span><a href="#local-6989586621679670420"><span class="hs-identifier hs-var">key</span></a></span><span>
+</span><a href="#local-6989586621679672023"><span class="hs-identifier hs-var">key</span></a></span><span>
 </span><span id="line-388"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html
 </span><span class="hs-identifier hs-var">H.td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -1836,8 +1836,8 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall k v. (Eq k, Hashable k) =&gt; v -&gt; k -&gt; HashMap k v -&gt; v
 </span><span class="hs-identifier hs-var">HM.findWithDefault</span></span><span> </span><span class="annot"><span class="annottext">Name
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Name
-</span><a href="#local-6989586621679670420"><span class="hs-identifier hs-var">key</span></a></span><span> </span><span class="annot"><span class="annottext">NamedRecord
-</span><a href="#local-6989586621679670416"><span class="hs-identifier hs-var">hashMap</span></a></span><span>
+</span><a href="#local-6989586621679672023"><span class="hs-identifier hs-var">key</span></a></span><span> </span><span class="annot"><span class="annottext">NamedRecord
+</span><a href="#local-6989586621679672019"><span class="hs-identifier hs-var">hashMap</span></a></span><span>
 </span><span id="line-389"></span><span>
 </span><span id="line-390"></span><span>
 </span><span id="line-391"></span></pre></body></html>

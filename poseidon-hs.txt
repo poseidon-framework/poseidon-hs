@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 1.6.8.0
+@version 1.6.9.0
 
 module Poseidon.AccessionIDs
 
@@ -1458,6 +1458,7 @@ instance GHC.Generics.Generic Poseidon.EntityTypes.IndividualInfo
 instance GHC.Classes.Ord Poseidon.EntityTypes.IndividualInfo
 instance GHC.Classes.Eq Poseidon.EntityTypes.IndividualInfo
 instance GHC.Show.Show Poseidon.EntityTypes.IndividualInfo
+instance GHC.Show.Show a => GHC.Show.Show (Poseidon.EntityTypes.EntityInput a)
 instance Poseidon.EntityTypes.EntitySpec Poseidon.EntityTypes.SignedEntity
 instance Poseidon.EntityTypes.EntitySpec Poseidon.EntityTypes.PoseidonEntity
 instance Poseidon.EntityTypes.HasNameAndVersion Poseidon.EntityTypes.IndividualInfo
@@ -1971,18 +1972,23 @@ ServeOptions :: Either ArchiveConfig FilePath -> Maybe FilePath -> Int -> Bool -
 newtype ArchiveConfig
 ArchiveConfig :: [ArchiveSpec] -> ArchiveConfig
 data ArchiveSpec
-ArchiveSpec :: ArchiveName -> [FilePath] -> Maybe String -> Maybe String -> Maybe String -> [String] -> ArchiveSpec
+ArchiveSpec :: ArchiveName -> [FilePath] -> Maybe String -> Maybe String -> Maybe String -> [String] -> Maybe FilePath -> ArchiveSpec
 [_archSpecName] :: ArchiveSpec -> ArchiveName
 [_archSpecPaths] :: ArchiveSpec -> [FilePath]
 [_archSpecDescription] :: ArchiveSpec -> Maybe String
 [_archSpecURL] :: ArchiveSpec -> Maybe String
 [_archSpecDataURL] :: ArchiveSpec -> Maybe String
 [_archSpecExcludePacsFromMap] :: ArchiveSpec -> [String]
+[_archRetiredPackagesFile] :: ArchiveSpec -> Maybe FilePath
 instance GHC.Show.Show Poseidon.CLI.Serve.ArchiveSpec
+instance GHC.Show.Show Poseidon.CLI.Serve.RetiredPac
+instance GHC.Show.Show Poseidon.CLI.Serve.RetiredPackages
 instance GHC.Show.Show Poseidon.CLI.Serve.ArchiveConfig
 instance GHC.Show.Show Poseidon.CLI.Serve.ServeOptions
 instance GHC.Show.Show Poseidon.CLI.Serve.PacVersion
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.CLI.Serve.ArchiveConfig
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.CLI.Serve.RetiredPackages
+instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.CLI.Serve.RetiredPac
 instance Data.Aeson.Types.FromJSON.FromJSON Poseidon.CLI.Serve.ArchiveSpec
 
 module Poseidon.CLI.List
@@ -2209,6 +2215,7 @@ parseFetchEntityInputs :: Parser [EntityInput PoseidonEntity]
 parseIgnorePoseidonVersion :: Parser Bool
 parseForgeEntitiesDirect :: Parser SignedEntitiesList
 parseFetchEntitiesDirect :: Parser EntitiesList
+readEntities :: EntitySpec a => String -> Either String [a]
 parseForgeEntitiesFromFile :: Parser FilePath
 parseFetchEntitiesFromFile :: Parser FilePath
 parseIntersect :: Parser Bool
