@@ -463,10 +463,10 @@ parseBasePath = OP.strOption (
     OP.help "A base directory to search for Poseidon packages.")
 
 parseInGenoWithoutSNPSet :: OP.Parser GenotypeDataSpec
-parseInGenoWithoutSNPSet = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> pure Nothing
+parseInGenoWithoutSNPSet = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> pure Nothing <*> pure Nothing <*> pure Nothing
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> (Just <$> parseGenotypeSNPSet)
+parseInGenotypeDataset = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> (Just <$> parseGenotypeSNPSet) <*> pure Nothing <*> pure Nothing
 
 parseInGenoOne :: OP.Parser GenotypeFileSpec
 parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
