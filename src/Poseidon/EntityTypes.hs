@@ -250,7 +250,8 @@ type IndividualInfoCollection = ([IndividualInfo], [Bool])
 
 -- data types for the selection process
 
-data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath -- an empty list is interpreted as "all packages"
+data EntityInput a = EntitiesDirect [a] | EntitiesFromFile FilePath deriving (Show)
+    -- an empty list is interpreted as "all packages"
 
 -- | determine all packages with versions that contain individuals covered by the given entities
 determineRelevantPackages :: (MonadThrow m, EntitySpec a) => [a] -> IndividualInfoCollection -> m [PacNameAndVersion]
