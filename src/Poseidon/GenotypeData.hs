@@ -62,10 +62,10 @@ data GenoDataSource = PacBaseDir
     deriving Show
 
 data GenotypeDataSpec = GenotypeDataSpec {
-    genotypeFileSpec :: GenotypeFileSpec,
-    genotypeSnpSet   :: Maybe SNPSetSpec,
+    genotypeFileSpec        :: GenotypeFileSpec,
+    genotypeSnpSet          :: Maybe SNPSetSpec,
     genotypeRefAssemblyName :: Maybe String,
-    genotypeRefAssemblyURL :: Maybe String
+    genotypeRefAssemblyURL  :: Maybe String
 } deriving (Show, Eq)
 
 data GenotypeFileSpec = GenotypeEigenstrat {

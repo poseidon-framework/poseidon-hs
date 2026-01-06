@@ -8,9 +8,9 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.Janno             (createMinimalJanno)
-import           Poseidon.Package           (PackageReadOptions (..),
+import           Poseidon.Package           (LicenseSpec (..),
+                                             PackageReadOptions (..),
                                              PoseidonPackage (..),
-                                             LicenseSpec(..),
                                              PoseidonYamlStruct (..),
                                              checkJannoIndConsistency,
                                              defaultPackageReadOptions,
@@ -116,7 +116,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         },
         genotypeSnpSet = Just SNPSet1240K,
         genotypeRefAssemblyName = Nothing,
-        genotypeRefAssemblyURL = Nothing  
+        genotypeRefAssemblyURL = Nothing
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,

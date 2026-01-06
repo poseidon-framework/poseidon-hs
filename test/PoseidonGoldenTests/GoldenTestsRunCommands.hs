@@ -872,7 +872,7 @@ testPipelineForge testDir checkFilePath = do
                 }
                 , genotypeSnpSet   = Just SNPSetOther
                 , genotypeRefAssemblyName = Nothing
-                , genotypeRefAssemblyURL = Nothing                
+                , genotypeRefAssemblyURL = Nothing
               }
             ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]

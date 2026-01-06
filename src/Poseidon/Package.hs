@@ -170,7 +170,7 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:?  "contributor" .!= []
         <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
-        <*> v .:?  "license"   
+        <*> v .:?  "license"
         <*> v .:   "genotypeData"
         <*> v .:?  "jannoFile"
         <*> v .:?  "jannoFileChkSum"

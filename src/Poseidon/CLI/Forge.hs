@@ -51,7 +51,7 @@ import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
                                               when)
 import           Data.List                   (intercalate, nub)
-import           Data.Maybe                  (mapMaybe, catMaybes)
+import           Data.Maybe                  (catMaybes, mapMaybe)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
