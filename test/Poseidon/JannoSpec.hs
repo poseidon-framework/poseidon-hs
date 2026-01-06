@@ -81,7 +81,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateType janno                     `shouldBe` [Nothing, Nothing, Nothing]
         map jCaptureType janno                  `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno               `shouldBe` [Nothing, Nothing, Nothing]
-        map jGroupName janno                    `shouldBe` [ListColumn [GroupName "POP1"], ListColumn [GroupName "POP2"], ListColumn [GroupName "POP1"]]
+        map jGroupName janno                    `shouldBe` [ListColumn ["POP1"], ListColumn ["POP2"], ListColumn ["POP1"]]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno                          `shouldBe` [Nothing, Nothing, Nothing]

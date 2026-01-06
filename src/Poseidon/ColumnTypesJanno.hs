@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE InstanceSigs      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -9,7 +10,10 @@ import           Poseidon.ColumnTypesUtils
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)
+import qualified Data.ByteString.Char8      as B
+import qualified Data.Char                  as C
 import qualified Data.Csv                   as Csv
+import           Data.String                (IsString(..))
 import qualified Data.Text                  as T
 import qualified Data.Text.Read             as T
 import           GHC.Generics               (Generic)
@@ -40,11 +44,59 @@ instance Ord GeneticSex where
     compare (GeneticSex Unknown) (GeneticSex Female) = LT
     compare _ _                                      = EQ
 instance Csv.ToField GeneticSex where   toField x  = Csv.toField $ show x
-instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
+instance Csv.FromField GeneticSex where parseField :: Csv.Field -> Csv.Parser GeneticSex
+                                        parseField = parseTypeCSV "Genetic_Sex"
+
+newtype PoseidonID = PoseidonID {unPoseidonID :: B.ByteString} deriving (Eq, Ord)
+
+instance Makeable PoseidonID where
+    make txt =
+        if T.all isValidPoseidonIDChar txt
+        then return . PoseidonID . B.pack . T.unpack $ txt
+        else fail $ "PoseidonID contains invalid characters: " ++ T.unpack txt
+
+isValidPoseidonIDChar :: Char -> Bool
+isValidPoseidonIDChar c =
+    C.isAscii c && (C.isAlphaNum c || c `elem` ['_', '-', '.'])
+
+instance Suspicious PoseidonID where inspect _ = Nothing
+
+instance Show PoseidonID where
+    show (PoseidonID x) = B.unpack x
+
+instance Csv.ToField PoseidonID where
+    toField (PoseidonID x) = Csv.toField x
+
+instance Csv.FromField PoseidonID where
+    parseField = parseTypeCSV "PoseidonID"
+
+-- the IsString instance allows us to write PoseidonID "MyID" directly, mainly for testing purposes.
+instance IsString PoseidonID where
+    fromString str = PoseidonID (B.pack str)
 
 -- | A datatype for the Group_Name .janno column
-newtype GroupName = GroupName T.Text deriving (Eq, Ord)
-$(makeInstances ''GroupName "Group_Name")
+newtype GroupName = GroupName {unGroupName :: B.ByteString} deriving (Eq, Ord)
+
+instance Makeable GroupName where
+    make txt =
+        if T.all isValidPoseidonIDChar txt
+        then return . GroupName . B.pack . T.unpack $ txt
+        else fail $ "GroupName contains invalid characters: " ++ T.unpack txt
+
+instance Suspicious GroupName where inspect _ = Nothing
+
+instance Show GroupName where
+    show (GroupName x) = B.unpack x
+
+instance Csv.ToField GroupName where
+    toField (GroupName x) = Csv.toField x
+
+instance Csv.FromField GroupName where
+    parseField = parseTypeCSV "Group_Name"
+
+-- the IsString instance allows us to write GroupName "MyGroup" directly, mainly for testing purposes.
+instance IsString GroupName where
+    fromString str = GroupName (B.pack str)
 
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)

@@ -8,7 +8,7 @@
 module Poseidon.CLI.Survey where
 
 import           Poseidon.BibFile          (BibTeX)
-import           Poseidon.ColumnTypesJanno (GeneticSex (..))
+import           Poseidon.ColumnTypesJanno (GeneticSex (..), PoseidonID(..))
 import           Poseidon.ColumnTypesUtils (CsvNamedRecord, ListColumn (..))
 import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
@@ -123,6 +123,9 @@ renderJannoCompleteness (JannoRows rows) =
 -- A typeclass to determine if a field in a .janno row is filled
 class PresenceCountable a where
     countPresence :: a -> Int
+
+instance PresenceCountable PoseidonID where
+    countPresence _ = 1
 instance PresenceCountable (Maybe a) where
     countPresence Nothing  = 0
     countPresence (Just _) = 1

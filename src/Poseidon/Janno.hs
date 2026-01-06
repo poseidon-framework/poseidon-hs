@@ -42,7 +42,6 @@ import           Data.List                            (elemIndex, foldl',
                                                        intercalate, nub, sort,
                                                        transpose, (\\))
 import           Data.Maybe                           (catMaybes, fromJust)
-import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
@@ -77,7 +76,7 @@ instance Monoid JannoRows where
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/janno_columns.tsv
 -- for more details
 data JannoRow = JannoRow
-    { jPoseidonID                 :: String
+    { jPoseidonID                 :: PoseidonID
     , jGeneticSex                 :: GeneticSex
     , jGroupName                  :: ListColumn GroupName
     , jAlternativeIDs             :: Maybe (ListColumn JannoAlternativeID)
@@ -288,9 +287,9 @@ createMinimalJanno xs = JannoRows $ map createMinimalSample xs
 createMinimalSample :: EigenstratIndEntry -> JannoRow
 createMinimalSample (EigenstratIndEntry id_ sex pop) =
     JannoRow {
-          jPoseidonID                   = Bchs.unpack id_ -- TODO: this will have to change. We need to make PoseidonID itself ByteString
+          jPoseidonID                   = PoseidonID id_
         , jGeneticSex                   = GeneticSex sex
-        , jGroupName                    = ListColumn [GroupName . T.pack . Bchs.unpack $ pop] -- same thing, see above.
+        , jGroupName                    = ListColumn [GroupName pop]
         , jAlternativeIDs               = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
@@ -450,8 +449,7 @@ readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
                 renderWarning e = "Cross-column anomaly in " ++ jannoPath ++ " " ++
                                   "in line " ++ renderLocation ++ ": " ++ e
                 renderLocation :: String
-                renderLocation =  show lineNumber ++
-                                  " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
+                renderLocation =  show lineNumber ++ " (Poseidon_ID: " ++ show (jPoseidonID jannoRow) ++ ")"
 
 -- Global janno consistency checks
 
@@ -479,7 +477,7 @@ checkJannoRowConsistency x =
 
 checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
 checkMandatoryStringNotEmpty x =
-    let notEmpty = (not . null . jPoseidonID $ x) &&
+    let notEmpty = (not . Bchs.null . unPoseidonID . jPoseidonID $ x) &&
                    (not . null . getListColumn . jGroupName $ x) &&
                    (not . null . show . head . getListColumn . jGroupName $ x)
     in case notEmpty of
@@ -543,4 +541,5 @@ jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
 jannoRows2EigenstratIndEntries (JannoRows jannoRows) = do -- list monad
     jannoRow <- jannoRows -- looping over jannoRows
     let GroupName gText = head . getListColumn . jGroupName $ jannoRow
-    return $ EigenstratIndEntry (Bchs.pack $ jPoseidonID jannoRow) (sfSex (jGeneticSex jannoRow)) (Bchs.pack $ T.unpack gText)
+        PoseidonID id_ = jPoseidonID jannoRow
+    return $ EigenstratIndEntry id_ (sfSex (jGeneticSex jannoRow)) gText
