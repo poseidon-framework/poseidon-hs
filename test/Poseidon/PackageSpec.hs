@@ -100,6 +100,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         ],
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
+    _posYamlLicense         = Nothing,
     _posYamlGenotypeData    = GenotypeDataSpec {
         genotypeFileSpec   = GenotypePlink {
             _plGenoFile = "Schiffels_2016.bed",
@@ -181,6 +182,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             _posYamlContributor     = [],
             _posYamlPackageVersion  = Nothing,
             _posYamlLastModified    = Nothing,
+            _posYamlLicense         = Nothing,
             _posYamlGenotypeData    = GenotypeDataSpec {
                 genotypeFileSpec   = GenotypePlink {
                     _plGenoFile = "test.bed",
