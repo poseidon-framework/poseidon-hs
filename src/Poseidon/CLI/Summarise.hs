@@ -51,7 +51,7 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Nr Samples"
                 , show (length rows)],
                 ["Samples"
-                , paste . sort . map jPoseidonID $ rows],
+                , paste . sort . map (show . jPoseidonID) $ rows],
                 ["Nr Primary Groups"
                 , uniqueNumber . map (head . getListColumn . jGroupName) $ rows],
                 ["Primary Groups"
