@@ -51,7 +51,7 @@ import           Control.Exception           (catch, throwIO)
 import           Control.Monad               (filterM, forM, forM_, unless,
                                               when)
 import           Data.List                   (intercalate, nub)
-import           Data.Maybe                  (mapMaybe)
+import           Data.Maybe                  (mapMaybe, catMaybes)
 import           Data.Time                   (getCurrentTime)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Unboxed         as VU
@@ -186,6 +186,7 @@ runForge (
             maybeSnpFile of
                 Nothing -> snpSetMergeList snpSetList intersect_
                 Just _  -> SNPSetOther
+    (newRefName, newRefUrl) <- fillMissingReferenceAssemblyInfo relevantPackages
     -- compile genotype data structure
     let gz = if outZip then "gz" else ""
     genotypeFileData <- case outFormat of
@@ -198,7 +199,7 @@ runForge (
                                    (outName <.> "bim" <.> gz)  Nothing
                                    (outName <.> "fam")  Nothing
             GenotypeOutFormatVCF        -> return $ GenotypeVCF (outName <.> "vcf" <.> gz) Nothing
-    let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet)
+    let genotypeData = GenotypeDataSpec genotypeFileData (Just newSNPSet) newRefName newRefUrl
 
     -- assemble and write result depending on outMode --
     logInfo "Creating new package entity"
@@ -351,3 +352,23 @@ fillMissingSnpSets packages = forM packages $ \pac -> do
             logWarning $ "Warning for package " ++ show pac_ ++ ": field \"snpSet\" \
                 \is not set. I will interpret this as \"snpSet: Other\""
             return SNPSetOther
+
+fillMissingReferenceAssemblyInfo :: [PoseidonPackage] -> PoseidonIO (Maybe String, Maybe String)
+fillMissingReferenceAssemblyInfo packages = do
+    let refNames = map (genotypeRefAssemblyName . posPacGenotypeData) packages
+        refUrls  = map (genotypeRefAssemblyName  . posPacGenotypeData) packages
+        uniqueRefNames = nub $ catMaybes refNames
+        uniqueRefUrls  = nub $ catMaybes refUrls
+    when (length uniqueRefNames > 1) $
+        logWarning $ "different reference genome assembly names given: " ++ show uniqueRefNames ++
+            ". I will pick the first for the forge output file"
+    when (length uniqueRefUrls > 1) $
+        logWarning $ "different reference genome assembly URLs given: " ++ show uniqueRefUrls ++
+            ". I will pick the first for the forge output file"
+    let finalRefName = case uniqueRefNames of
+            []    -> Nothing
+            (x:_) -> Just x
+        finalRefUrl = case uniqueRefUrls of
+            []    -> Nothing
+            (x:_) -> Just x
+    return (finalRefName, finalRefUrl)

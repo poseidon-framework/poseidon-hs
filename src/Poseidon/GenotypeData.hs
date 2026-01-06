@@ -63,7 +63,9 @@ data GenoDataSource = PacBaseDir
 
 data GenotypeDataSpec = GenotypeDataSpec {
     genotypeFileSpec :: GenotypeFileSpec,
-    genotypeSnpSet   :: Maybe SNPSetSpec
+    genotypeSnpSet   :: Maybe SNPSetSpec,
+    genotypeRefAssemblyName :: Maybe String,
+    genotypeRefAssemblyURL :: Maybe String
 } deriving (Show, Eq)
 
 data GenotypeFileSpec = GenotypeEigenstrat {
@@ -122,11 +124,13 @@ instance FromJSON GenotypeDataSpec where
                 <*> v .:? "genoFileChkSum"
             _ -> fail ("unknown format " ++ T.unpack gformat)
         snpSet <- v .:? "snpSet"
-        return $ GenotypeDataSpec gfileSpec snpSet
+        refName <- v .:? "referenceGenomeAssembly"
+        refURL  <- v .:? "referenceGenomeAssemblyURL"
+        return $ GenotypeDataSpec gfileSpec snpSet refName refURL
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
-    toJSON (GenotypeDataSpec gfileSpec snpSet) = case gfileSpec of
+    toJSON (GenotypeDataSpec gfileSpec snpSet refName refURL) = case gfileSpec of
         GenotypeEigenstrat genoF genoFchk snpF snpFchk indF indFchk ->
             object [
                 "format"        .= ("EIGENSTRAT" :: String),
@@ -136,7 +140,9 @@ instance ToJSON GenotypeDataSpec where
                 "snpFileChkSum" .= snpFchk,
                 "indFile"       .= indF,
                 "indFileChkSum" .= indFchk,
-                "snpSet"        .= snpSet
+                "snpSet"        .= snpSet,
+                "referenceGenomeAssembly"    .= refName,
+                "referenceGenomeAssemblyURL" .= refURL
             ]
         GenotypePlink genoF genoFchk snpF snpFchk indF indFchk ->
             object [
@@ -147,13 +153,18 @@ instance ToJSON GenotypeDataSpec where
                 "snpFileChkSum" .= snpFchk,
                 "indFile"       .= indF,
                 "indFileChkSum" .= indFchk,
-                "snpSet"        .= snpSet
+                "snpSet"        .= snpSet,
+                "referenceGenomeAssembly"    .= refName,
+                "referenceGenomeAssemblyURL" .= refURL
             ]
         GenotypeVCF genoF genoFchk ->
             object [
                 "format"        .= ("VCF" :: String),
                 "genoFile"      .= genoF,
-                "genoFileChkSum".= genoFchk
+                "genoFileChkSum".= genoFchk,
+                "snpSet"        .= snpSet,
+                "referenceGenomeAssembly"    .= refName,
+                "referenceGenomeAssemblyURL" .= refURL
             ]
 
 data SNPSetSpec = SNPSet1240K
@@ -196,7 +207,7 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 -- | removes directories of all filenames and returns a tuple of the basename and a modified GenotypeDataSpec with pure filenames
 -- In case basedirectories do not match, this function will throw an exception
 reduceGenotypeFilepaths :: (MonadThrow m) => GenotypeDataSpec -> m (FilePath, GenotypeDataSpec)
-reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _) = do
+reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _ _ _) = do
     (baseDir, newGfileSpec) <- case gFileSpec of
         GenotypeEigenstrat genoF _ snpF _ indF _ -> do
             let baseDirs  = map takeDirectory   [genoF, snpF, indF]
@@ -218,7 +229,7 @@ reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _) = do
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
                -> PoseidonIO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
+loadIndividuals d (GenotypeDataSpec gFileSpec _ _ _) = do
     popMode <- envInputPlinkMode
     case gFileSpec of
         GenotypeEigenstrat _ _ _ _ fn _ -> readEigenstratInd (d </> fn)
@@ -260,7 +271,7 @@ loadGenotypeData :: (MonadSafe m) =>
                 -> GenotypeDataSpec -- ^ the genotype spec
                 -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a Producer over the Snp position values and the genotype line.
-loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _) =
+loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _ _ _) =
     case gFileSpec of
         GenotypeEigenstrat genoF _ snpF _ indF _ -> snd <$> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypePlink      genoF _ snpF _ indF _ -> snd <$> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)

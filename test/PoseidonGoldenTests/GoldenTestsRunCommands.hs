@@ -234,6 +234,8 @@ testPipelineInit testDir checkFilePath = do
               , _esIndFileChkSum = Nothing
               }
             , genotypeSnpSet   = Just SNPSetOther
+            , genotypeRefAssemblyName = Nothing
+            , genotypeRefAssemblyURL = Nothing
             }
         , _initPacPath      = testDir </> "init" </> "Schiffels"
         , _initPacName      = Just "Schiffels"
@@ -259,6 +261,8 @@ testPipelineInit testDir checkFilePath = do
             , _plIndFileChkSum = Nothing
             }
           , genotypeSnpSet   = Just SNPSetOther
+          , genotypeRefAssemblyName = Nothing
+          , genotypeRefAssemblyURL = Nothing
           }
         , _initPacPath   = testDir </> "init" </> "Wang"
         , _initPacName   = Nothing
@@ -278,6 +282,8 @@ testPipelineInit testDir checkFilePath = do
               , _vcfGenoFileChkSum = Nothing
               }
             , genotypeSnpSet   = Just SNPSetOther
+            , genotypeRefAssemblyName = Nothing
+            , genotypeRefAssemblyURL = Nothing
             }
         , _initPacPath      = testDir </> "init_vcf" </> "Schiffels_vcf"
         , _initPacName      = Just "Schiffels"
@@ -335,6 +341,8 @@ testPipelineValidate testDir checkFilePath = do
               , _esIndFileChkSum  = Nothing
               }
             , genotypeSnpSet      = Nothing
+            , genotypeRefAssemblyName = Nothing
+            , genotypeRefAssemblyURL = Nothing
             }
     } & run 6
     validateOpts1 {
@@ -501,6 +509,8 @@ testPipelineGenoconvert testDir checkFilePath = do
                   , _esIndFileChkSum = Nothing
                 }
                 , genotypeSnpSet   = Just SNPSetOther
+                , genotypeRefAssemblyName = Nothing
+                , genotypeRefAssemblyURL = Nothing
               }
           ]
         , _genoConvertOutFormat = GenotypeOutFormatPlink
@@ -525,6 +535,8 @@ testPipelineGenoconvert testDir checkFilePath = do
                   , _vcfGenoFileChkSum = Nothing
                 }
                 , genotypeSnpSet   = Just SNPSetOther
+                , genotypeRefAssemblyName = Nothing
+                , genotypeRefAssemblyURL = Nothing
               }
           ]
         , _genoConvertOutFormat = GenotypeOutFormatPlink
@@ -557,7 +569,7 @@ testPipelineGenoconvert testDir checkFilePath = do
               let gSpec = GenotypePlink (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bed.gz") Nothing
                                         (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.bim.gz") Nothing
                                         (testDir </> "genoconvert" </> "zip_roundtrip" </> "Schiffels_2016.fam") Nothing
-              in  [GenoDirect $ GenotypeDataSpec gSpec Nothing]
+              in  [GenoDirect $ GenotypeDataSpec gSpec Nothing Nothing Nothing]
         , _genoConvertOutFormat = GenotypeOutFormatPlink
         , _genoMaybeOutPackagePath = Nothing
         , _genoconvertRemoveOld = True
@@ -807,6 +819,8 @@ testPipelineForge testDir checkFilePath = do
                   , _esIndFileChkSum = Nothing
                 }
                 , genotypeSnpSet   = Just SNPSetOther
+                , genotypeRefAssemblyName = Nothing
+                , genotypeRefAssemblyURL = Nothing
               },
             GenoDirect $
               GenotypeDataSpec {
@@ -819,6 +833,8 @@ testPipelineForge testDir checkFilePath = do
                   , _plIndFileChkSum = Nothing
                 }
                 , genotypeSnpSet   = Just SNPSetOther
+                , genotypeRefAssemblyName = Nothing
+                , genotypeRefAssemblyURL = Nothing
               }
           ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
@@ -855,6 +871,8 @@ testPipelineForge testDir checkFilePath = do
                   , _plIndFileChkSum = Nothing
                 }
                 , genotypeSnpSet   = Just SNPSetOther
+                , genotypeRefAssemblyName = Nothing
+                , genotypeRefAssemblyURL = Nothing                
               }
             ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]

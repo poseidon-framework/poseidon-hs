@@ -114,7 +114,9 @@ truePackageRelPaths = PoseidonYamlStruct {
             _plIndFile  = "Schiffels_2016.fam",
             _plIndFileChkSum = Nothing
         },
-        genotypeSnpSet = Just SNPSet1240K
+        genotypeSnpSet = Just SNPSet1240K,
+        genotypeRefAssemblyName = Nothing,
+        genotypeRefAssemblyURL = Nothing  
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -196,7 +198,9 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
                     _plIndFile  = "test.fam",
                     _plIndFileChkSum = Nothing
                 },
-                genotypeSnpSet = Nothing
+                genotypeSnpSet = Nothing,
+                genotypeRefAssemblyName = Nothing,
+                genotypeRefAssemblyURL = Nothing
             },
             _posYamlJannoFile       = Nothing,
             _posYamlJannoFileChkSum = Nothing,
