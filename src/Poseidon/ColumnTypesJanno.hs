@@ -46,9 +46,21 @@ instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
 newtype GroupName = GroupName T.Text deriving (Eq, Ord)
 $(makeInstances ''GroupName "Group_Name")
 
+-- | A datatype for the Individual_ID .janno column
+newtype JannoIndividualID = JannoIndividualID T.Text deriving (Eq, Ord)
+$(makeInstances ''JannoIndividualID "Individual_ID")
+
+-- | A datatype for the Species .janno column
+newtype JannoSpecies = JannoSpecies T.Text deriving (Eq, Ord)
+$(makeInstances ''JannoSpecies "Species")
+
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)
 $(makeInstances ''JannoAlternativeID "Alternative_IDs")
+
+-- | A datatype for the Alternative_IDs_Context .janno column
+newtype JannoAlternativeIDContext = JannoAlternativeIDContext T.Text deriving (Eq)
+$(makeInstances ''JannoAlternativeIDContext "Alternative_IDs_Context")
 
 -- | A datatype for the Relation_To .janno column
 newtype JannoRelationTo = JannoRelationTo T.Text deriving (Eq)
@@ -94,13 +106,55 @@ instance Csv.FromField JannoRelationDegree where parseField = parseTypeCSV "Rela
 newtype JannoRelationType = JannoRelationType T.Text deriving (Eq)
 $(makeInstances ''JannoRelationType "Relation_Type")
 
--- | A datatype for the Relation_Note .janno column
-newtype JannoRelationNote = JannoRelationNote T.Text deriving (Eq)
-$(makeInstances ''JannoRelationNote "Relation_Note")
-
 -- | A datatype for the Collection_ID .janno column
 newtype JannoCollectionID = JannoCollectionID T.Text deriving (Eq)
 $(makeInstances ''JannoCollectionID "Collection_ID")
+
+-- | A datatype for the Custodian_Institution .janno column
+newtype JannoCustodianInstitution = JannoCustodianInstitution T.Text deriving (Eq)
+$(makeInstances ''JannoCustodianInstitution "Custodian_Institution")
+
+-- | A datatype for the Cultural_Era .janno column
+newtype JannoCulturalEra = JannoCulturalEra T.Text deriving (Eq)
+$(makeInstances ''JannoCulturalEra "Cultural_Era")
+
+-- | A datatype for the Cultural_Era_URL .janno column
+newtype JannoCulturalEraURL = JannoCulturalEraURL T.Text deriving (Eq, Ord, Generic)
+
+instance Makeable JannoCulturalEraURL where
+    make x
+        | isURIReference (T.unpack x) = pure $ JannoCulturalEraURL x
+        | otherwise                   = fail $ "Cultural_Era_URL " ++ show x ++ " is not a well structured URI."
+instance Suspicious JannoCulturalEraURL where
+    inspect (JannoCulturalEraURL x)
+        | T.isInfixOf "n2t.net/ark" x = Nothing
+        | T.isInfixOf "chronontology.dainst.org/period" x = Nothing
+        | otherwise = Just ["Archaeological_Culture_URL " ++ show x ++ " probably not a valid PeriodO \
+                            \or ChronOntology permalink."]
+instance Show JannoCulturalEraURL where          show (JannoCulturalEraURL x) = T.unpack x
+instance Csv.ToField JannoCulturalEraURL where   toField (JannoCulturalEraURL x) = Csv.toField x
+instance Csv.FromField JannoCulturalEraURL where parseField = parseTypeCSV "Cultural_Era_URL"
+
+-- | A datatype for the Archaeological_Culture .janno column
+newtype JannoArchaeologicalCulture = JannoArchaeologicalCulture T.Text deriving (Eq)
+$(makeInstances ''JannoArchaeologicalCulture "Archaeological_Culture")
+
+-- | A datatype for the Archaeological_Culture_URL .janno column
+newtype JannoArchaeologicalCultureURL = JannoArchaeologicalCultureURL T.Text deriving (Eq, Ord, Generic)
+
+instance Makeable JannoArchaeologicalCultureURL where
+    make x
+        | isURIReference (T.unpack x) = pure $ JannoArchaeologicalCultureURL x
+        | otherwise                   = fail $ "Archaeological_Culture_URL " ++ show x ++ " is not a well structured URI."
+instance Suspicious JannoArchaeologicalCultureURL where
+    inspect (JannoArchaeologicalCultureURL x)
+        | T.isInfixOf "n2t.net/ark" x = Nothing
+        | T.isInfixOf "chronontology.dainst.org/period" x = Nothing
+        | otherwise = Just ["Archaeological_Culture_URL " ++ show x ++ " probably not a valid PeriodO \
+                            \or ChronOntology permalink."]
+instance Show JannoArchaeologicalCultureURL where          show (JannoArchaeologicalCultureURL x) = T.unpack x
+instance Csv.ToField JannoArchaeologicalCultureURL where   toField (JannoArchaeologicalCultureURL x) = Csv.toField x
+instance Csv.FromField JannoArchaeologicalCultureURL where parseField = parseTypeCSV "Archaeological_Culture_URL"
 
 -- | A datatype for the Country .janno column
 newtype JannoCountry = JannoCountry T.Text deriving (Eq, Ord)
@@ -278,9 +332,9 @@ instance Show JannoDateBCADStop where          show (JannoDateBCADStop x) = show
 instance Csv.ToField JannoDateBCADStop where   toField (JannoDateBCADStop x) = Csv.toField x
 instance Csv.FromField JannoDateBCADStop where parseField = parseTypeCSV "Date_BC_AD_Stop"
 
--- | A datatype for the Date_Note .janno column
-newtype JannoDateNote = JannoDateNote T.Text deriving (Eq, Ord)
-$(makeInstances ''JannoDateNote "Date_Note")
+-- | A datatype for the Chromosomal_Anomalies .janno column
+newtype JannoChromosomalAnomalies = JannoChromosomalAnomalies T.Text deriving (Eq)
+$(makeInstances ''JannoChromosomalAnomalies "Chromosomal_Anomalies")
 
 -- | A datatype for the MT_Haplogroup .janno column
 newtype JannoMTHaplogroup = JannoMTHaplogroup T.Text deriving (Eq, Ord)
@@ -290,9 +344,40 @@ $(makeInstances ''JannoMTHaplogroup "MT_Haplogroup")
 newtype JannoYHaplogroup = JannoYHaplogroup T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoYHaplogroup "Y_Haplogroup")
 
--- | A datatype for the Source_Tissue .janno column
-newtype JannoSourceTissue = JannoSourceTissue T.Text deriving (Eq)
-$(makeInstances ''JannoSourceTissue "Source_Tissue")
+-- | A datatype for the Source_Material .janno column
+data JannoSourceMaterial =
+      MaterialPetrous
+    | MaterialBone
+    | MaterialTooth
+    | MaterialHair
+    | MaterialSoft
+    | MaterialSediment
+    | MaterialOther
+    deriving (Eq, Ord, Generic, Enum, Bounded)
+
+instance Makeable JannoSourceMaterial where
+    make x
+        | x == "petrous"  = pure MaterialPetrous
+        | x == "bone"     = pure MaterialBone
+        | x == "tooth"    = pure MaterialTooth
+        | x == "hair"     = pure MaterialHair
+        | x == "soft"     = pure MaterialSoft
+        | x == "sediment" = pure MaterialSediment
+        | x == "other"    = pure MaterialOther
+        | otherwise       = fail $ "Source_Material is set to " ++ show x ++ ". " ++
+                                   "That is not in the allowed set [petrous, bone, tooth, hair, \
+                                   \soft, sediment, other]."
+instance Suspicious JannoSourceMaterial where inspect _ = Nothing
+instance Show JannoSourceMaterial where
+    show MaterialPetrous  = "petrous"
+    show MaterialBone     = "bone"
+    show MaterialTooth    = "tooth"
+    show MaterialHair     = "hair"
+    show MaterialSoft     = "soft"
+    show MaterialSediment = "sediment"
+    show MaterialOther    = "other"
+instance Csv.ToField JannoSourceMaterial where   toField x = Csv.toField $ show x
+instance Csv.FromField JannoSourceMaterial where parseField = parseTypeCSV "Source_Material"
 
 -- | A datatype for the Nr_Libraries .janno column
 newtype JannoNrLibraries = JannoNrLibraries Int deriving (Eq, Ord, Generic)
@@ -324,7 +409,7 @@ data JannoCaptureType =
     | ArborAncestralPlus
     | TwistAncientDNA
     | OtherCapture
-    | ReferenceGenome
+    | LegacyReferenceGenome -- was removed in Poseidon v3.0.0, kept here for compatibility
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoCaptureType where
@@ -336,21 +421,23 @@ instance Makeable JannoCaptureType where
         | x == "ArborAncestralPlus" = pure ArborAncestralPlus
         | x == "TwistAncientDNA"    = pure TwistAncientDNA
         | x == "OtherCapture"       = pure OtherCapture
-        | x == "ReferenceGenome"    = pure ReferenceGenome
+        | x == "ReferenceGenome"    = pure LegacyReferenceGenome
         | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
                              "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
-                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture, \
-                             \ReferenceGenome]."
-instance Suspicious JannoCaptureType where inspect _ = Nothing
+                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, OtherCapture]."
+instance Suspicious JannoCaptureType where
+    inspect LegacyReferenceGenome =  Just ["Capture_Type is set to ReferenceGenome, which is not a \
+                                           \capture setup. This option was retired in Poseidon v3.0.0."]
+    inspect _ = Nothing
 instance Show JannoCaptureType where
-    show Shotgun            = "Shotgun"
-    show A1240K             = "1240K"
-    show ArborComplete      = "ArborComplete"
-    show ArborPrimePlus     = "ArborPrimePlus"
-    show ArborAncestralPlus = "ArborAncestralPlus"
-    show TwistAncientDNA    = "TwistAncientDNA"
-    show OtherCapture       = "OtherCapture"
-    show ReferenceGenome    = "ReferenceGenome"
+    show Shotgun               = "Shotgun"
+    show A1240K                = "1240K"
+    show ArborComplete         = "ArborComplete"
+    show ArborPrimePlus        = "ArborPrimePlus"
+    show ArborAncestralPlus    = "ArborAncestralPlus"
+    show TwistAncientDNA       = "TwistAncientDNA"
+    show OtherCapture          = "OtherCapture"
+    show LegacyReferenceGenome = "ReferenceGenome"
 instance Csv.ToField JannoCaptureType where   toField x = Csv.toField $ show x
 instance Csv.FromField JannoCaptureType where parseField = parseTypeCSV "Capture_Type"
 
@@ -514,10 +601,6 @@ $(makeInstances ''JannoContaminationErr "Contamination_Err")
 -- | A datatype for the Contamination_Meas .janno column
 newtype JannoContaminationMeas = JannoContaminationMeas T.Text deriving (Eq)
 $(makeInstances ''JannoContaminationMeas "Contamination_Meas")
-
--- | A datatype for the Contamination_Note .janno column
-newtype JannoContaminationNote = JannoContaminationNote T.Text deriving (Eq)
-$(makeInstances ''JannoContaminationNote "Contamination_Note")
 
 -- | A datatype for the Genetic_Source_Accession_IDs .janno column
 newtype JannoGeneticSourceAccessionID = JannoGeneticSourceAccessionID AccessionID
