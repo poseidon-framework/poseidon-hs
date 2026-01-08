@@ -46,6 +46,10 @@ instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
 newtype GroupName = GroupName T.Text deriving (Eq, Ord)
 $(makeInstances ''GroupName "Group_Name")
 
+-- | A datatype for the Individual_ID .janno column
+newtype JannoIndividualID = JannoIndividualID T.Text deriving (Eq, Ord)
+$(makeInstances ''JannoIndividualID "Individual_ID")
+
 -- | A datatype for the Species .janno column
 newtype JannoSpecies = JannoSpecies T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoSpecies "Species")

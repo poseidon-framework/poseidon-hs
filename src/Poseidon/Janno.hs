@@ -81,6 +81,7 @@ data JannoRow = JannoRow
     { jPoseidonID                 :: String
     , jGeneticSex                 :: GeneticSex
     , jGroupName                  :: ListColumn GroupName
+    , jIndividualID               :: Maybe JannoIndividualID
     , jSpecies                    :: Maybe JannoSpecies
     , jAlternativeIDs             :: Maybe (ListColumn JannoAlternativeID)
     , jAlternativeIDsContext      :: Maybe (ListColumn JannoAlternativeIDContext)
@@ -142,6 +143,7 @@ jannoHeader = [
       "Poseidon_ID"
     , "Genetic_Sex"
     , "Group_Name"
+    , "Individual_ID"
     , "Species"
     , "Alternative_IDs", "Alternative_IDs_Context"
     , "Relation_To", "Relation_Degree", "Relation_Type"
@@ -189,6 +191,7 @@ parseJannoRowFromNamedRecord mandatory m = do
         <$> filterLookup         m "Poseidon_ID"
         <*> filterLookup         m "Genetic_Sex"
         <*> filterLookup         m "Group_Name"
+        <*> filterLookupOptional m "Individual_ID"
         <*> filterLookupOptional m "Species"
         <*> filterLookupOptional m "Alternative_IDs"
         <*> filterLookupOptional m "Alternative_IDs_Context"
@@ -246,6 +249,7 @@ instance Csv.ToNamedRecord JannoRow where
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
         , "Group_Name"                      Csv..= jGroupName j
+        , "Individual_ID"                   Csv..= jIndividualID j
         , "Species"                         Csv..= jSpecies j
         , "Alternative_IDs"                 Csv..= jAlternativeIDs j
         , "Alternative_IDs_Context"         Csv..= jAlternativeIDsContext j
@@ -309,6 +313,7 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
           jPoseidonID                   = Bchs.unpack id_ -- TODO: this will have to change. We need to make PoseidonID itself ByteString
         , jGeneticSex                   = GeneticSex sex
         , jGroupName                    = ListColumn [GroupName . T.pack . Bchs.unpack $ pop] -- same thing, see above.
+        , jIndividualID                 = Nothing
         , jSpecies                      = Nothing
         , jAlternativeIDs               = Nothing
         , jAlternativeIDsContext        = Nothing

@@ -1,11 +1,12 @@
 - V X.X.X.X:
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.
+        - New column `Individual_ID`.
         - New column `Species`.
+        - New column `Alternative_IDs_Context` linked to `Alternative_IDs`.
         - New column `Custodian_Institution`.
         - New columns `Cultural_Era` + `Cultural_Era_URL` and `Archaeological_Culture` + `Archaeological_Culture_URL`.
         - New column `Chromosomal_Anomalies`.
-        - New column `Alternative_IDs_Context` linked to `Alternative_IDs`.
         - Made column `Collection_ID` a list column.
         - Soft-retired the option `ReferenceGenome` in the column `Capture_Type`.
         - Added rescaling feature for the columns `Endogenous` and `Damage` for packages below Poseidon v3.0.0.. (TODO: Rethink the order in which that is done)
