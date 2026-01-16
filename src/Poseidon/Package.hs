@@ -455,7 +455,7 @@ readPoseidonPackage opts ymlPath = do
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
-            loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
+            loadedJanno <- readJannoFile ver (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
@@ -468,7 +468,7 @@ readPoseidonPackage opts ymlPath = do
             then return mempty
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .ssf columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
-        Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
+        Just p  -> readSeqSourceFile ver (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)

@@ -28,6 +28,7 @@ import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
 import           Poseidon.EntityTypes      (IndividualInfo (..))
 import           System.Exit               (exitFailure, exitSuccess)
+import Poseidon.PoseidonVersion (latestPoseidonVersion)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions
@@ -106,12 +107,12 @@ runValidate (ValidateOptions (ValPlanGeno geno) _ _ noExitCode _) = do
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanJanno path) mandatoryJannoCols _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (JannoRows entries) <- readJannoFile mandatoryJannoCols path
+    (JannoRows entries) <- readJannoFile latestPoseidonVersion mandatoryJannoCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanSSF path) _ mandatorySSFCols noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (SeqSourceRows entries) <- readSeqSourceFile mandatorySSFCols path
+    (SeqSourceRows entries) <- readSeqSourceFile latestPoseidonVersion mandatorySSFCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanBib path) _ _ noExitCode _) = do
