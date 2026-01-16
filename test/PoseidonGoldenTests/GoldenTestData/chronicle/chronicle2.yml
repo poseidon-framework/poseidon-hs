@@ -1,6 +1,7 @@
 title: Chronicle title
 description: Chronicle description
 chronicleVersion: 0.2.0
+<<<<<<< HEAD
 lastModified: 2026-01-08
 packages:
 - title: Lamnidis_2018
@@ -26,4 +27,31 @@ packages:
 - title: Wang_2020
   version: 0.1.0
   commit: 5803877990afdf51a4dcb485607877c708e9a000
+=======
+lastModified: 2026-01-06
+packages:
+- title: Lamnidis_2018
+  version: 1.0.0
+  commit: 42aa4ed94a92a370940c1cbf7d92f6c7f3a20835
+  path: Lamnidis_2018
+- title: Lamnidis_2018
+  version: 1.0.1
+  commit: 42aa4ed94a92a370940c1cbf7d92f6c7f3a20835
+  path: Lamnidis_2018_newVersion
+- title: Schiffels
+  version: 1.1.1
+  commit: 40a20143a2d7f604a6b8a7dd9bd0fdc30061019e
+  path: Schiffels
+- title: Schiffels_2016
+  version: 1.0.1
+  commit: 42aa4ed94a92a370940c1cbf7d92f6c7f3a20835
+  path: Schiffels_2016
+- title: Schmid_2028
+  version: 1.0.0
+  commit: 42aa4ed94a92a370940c1cbf7d92f6c7f3a20835
+  path: Schmid_2028
+- title: Wang_2020
+  version: 0.1.0
+  commit: 42aa4ed94a92a370940c1cbf7d92f6c7f3a20835
+>>>>>>> Schema_300_dev
   path: Wang_2020

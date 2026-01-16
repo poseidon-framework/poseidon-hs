@@ -7,8 +7,13 @@ Automatically generated with: poseidon-devtools golden
 9edc4a757f785a8ecb59c54d16c5690a init init/Schiffels/Schiffels.bib
 c35421d9be15aa66fa3a3c46df1f746c init init/Wang/POSEIDON.yml
 ae66d851301f4a761b819f97ec28fa55 init init/Wang/Wang_2020.bed
+<<<<<<< HEAD
 956c7bf4c6999cc322ad8407d8bef776 init init_vcf/Schiffels_vcf/POSEIDON.yml
 133823b9a04fb56e6816d370ca378be6 init init_vcf/Schiffels_vcf/Schiffels.janno
+=======
+72400156a00aa01e4da7c84a1fcfe829 init init_vcf/Schiffels_vcf/POSEIDON.yml
+fd632717ecaf337a39cfd7a828a54e99 init init_vcf/Schiffels_vcf/Schiffels.janno
+>>>>>>> Schema_300_dev
 b088fa0fea0d013ddebacd7b6276fc53 init init_vcf/Schiffels_vcf/geno.vcf
 9edc4a757f785a8ecb59c54d16c5690a init init_vcf/Schiffels_vcf/Schiffels.bib
 b801959350af2505387bb63a5ac11834 validate validate/validate1
@@ -129,8 +134,13 @@ ad7e56177aad0a720f0bde13d47f2ac1 forge forge/ForgePac19/CHANGELOG.md
 9b22cab26cdae87bd79d24c289e48433 forge forge/ForgePac19/ForgePac19.fam
 1ccc00ce437c91730e13ad9afe248663 forge forge/ForgePac19/ForgePac19.janno
 b36b3ca509c235d0f15571c96195e801 forge forge/ForgePac20/POSEIDON.yml
+<<<<<<< HEAD
 100405d0cc3bf72c1c3d7b87b7a22029 forge forge/ForgePac20/ForgePac20.janno
 1f24e4ad0943c830a58e9ae168f9ffa6 forge forge/ForgePac21/POSEIDON.yml
+=======
+e375863bca9e4a91c9855396abde31c7 forge forge/ForgePac20/ForgePac20.janno
+d17a13be042bc19941d3b45fe9e699eb forge forge/ForgePac21/POSEIDON.yml
+>>>>>>> Schema_300_dev
 abdb2335dc85cbd21af5c41db3d8394e forge forge/ForgePac21/ForgePac21.vcf
 848cf0fab32e4078a88cc17ad8ec3381 forge forge/ForgePac21/ForgePac21.janno
 a1daaa1ebc9c93405acb4a0f24ffa355 forge forge/ForgePac21/ForgePac21.ssf

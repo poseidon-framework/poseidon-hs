@@ -7,6 +7,7 @@ module Poseidon.Package (
     PoseidonPackage(..),
     PoseidonException(..),
     PackageReadOptions (..),
+    LicenseSpec (..),
     findAllPoseidonYmlFiles,
     checkJannoIndConsistency,
     readPoseidonPackageCollection,
@@ -133,6 +134,7 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlContributor         :: [ContributorSpec]
     , _posYamlPackageVersion      :: Maybe Version
     , _posYamlLastModified        :: Maybe Day
+    , _posYamlLicense             :: Maybe LicenseSpec
     , _posYamlGenotypeData        :: GenotypeDataSpec
     , _posYamlJannoFile           :: Maybe FilePath
     , _posYamlJannoFileChkSum     :: Maybe String
@@ -142,6 +144,13 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlBibFileChkSum       :: Maybe String
     , _posYamlReadmeFile          :: Maybe FilePath
     , _posYamlChangelogFile       :: Maybe FilePath
+    }
+    deriving (Show, Eq, Generic)
+
+data LicenseSpec = LicenseSpec
+    { licenseName :: String
+    , licenseURL  :: Maybe String
+    , licenseFile :: Maybe FilePath
     }
     deriving (Show, Eq, Generic)
 
@@ -164,6 +173,7 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:?  "contributor" .!= []
         <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
+        <*> v .:?  "license"
         <*> v .:   "genotypeData"
         <*> v .:?  "jannoFile"
         <*> v .:?  "jannoFileChkSum"
@@ -182,6 +192,7 @@ instance ToJSON PoseidonYamlStruct where
         (if not $ null (_posYamlContributor x) then ["contributor" .= _posYamlContributor x] else []) ++
         ["packageVersion"  .= _posYamlPackageVersion x,
         "lastModified"    .= _posYamlLastModified x,
+        "license"         .= _posYamlLicense x,
         "genotypeData"    .= _posYamlGenotypeData x,
         "jannoFile"       .= _posYamlJannoFile x,
         "jannoFileChkSum" .= _posYamlJannoFileChkSum x,
@@ -191,6 +202,19 @@ instance ToJSON PoseidonYamlStruct where
         "bibFileChkSum"   .= _posYamlBibFileChkSum x,
         "readmeFile"      .= _posYamlReadmeFile x,
         "changelogFile"   .= _posYamlChangelogFile x
+        ]
+
+instance FromJSON LicenseSpec where
+    parseJSON = withObject "LicenseSpec" $ \v -> LicenseSpec
+        <$> v .:  "name"
+        <*> v .:? "url"
+        <*> v .:? "file"
+
+instance ToJSON LicenseSpec where
+    toJSON x = object [
+        "name" .= licenseName x,
+        "url"  .= licenseURL x,
+        "file" .= licenseFile x
         ]
 
 instance HasNameAndVersion PoseidonYamlStruct where
@@ -211,6 +235,7 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the contributor(s) of the package
     , posPacLastModified        :: Maybe Day
     -- ^ the optional date of last update
+    , posPacLicense             :: Maybe LicenseSpec
     , posPacGenotypeData        :: GenotypeDataSpec
     -- ^ the paths to the genotype files
     , posPacJannoFile           :: Maybe FilePath
@@ -407,7 +432,7 @@ readPoseidonPackage opts ymlPath = do
     bs <- liftIO $ B.readFile ymlPath
 
     -- read yml files
-    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
     checkYML yml
@@ -456,7 +481,7 @@ readPoseidonPackage opts ymlPath = do
         logInfo $ "Trying to parse genotype data for package: " ++ tit
 
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
+    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ lic geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
 
     -- validate genotype data
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
@@ -738,6 +763,7 @@ newMinimalPackageTemplate baseDir name gd = do
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
     ,   posPacLastModified = Nothing
+    ,   posPacLicense = Nothing
     ,   posPacGenotypeData = reducedGD
     ,   posPacJannoFile = Nothing
     ,   posPacJanno = mempty
@@ -815,8 +841,8 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
             }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF) = do
-    let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
+writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ lic geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF) = do
+    let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     B.writeFile outF $!! encodePretty opts yamlPac
     where
@@ -832,6 +858,7 @@ writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno j
           "orcid",
           "packageVersion",
           "lastModified",
+          "license",
           "genotypeData",
           "format",
           "genoFile",

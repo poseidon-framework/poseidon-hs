@@ -8,7 +8,8 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.Janno             (createMinimalJanno)
-import           Poseidon.Package           (PackageReadOptions (..),
+import           Poseidon.Package           (LicenseSpec (..),
+                                             PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
                                              checkJannoIndConsistency,
@@ -72,6 +73,9 @@ contributor:
     email: schiffels@institute.org
     orcid: 0000-0002-1017-9150
 packageVersion: 1.0.0
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 lastModified: 2020-02-28
 bibFile: sources.bib
 genotypeData:
@@ -101,6 +105,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         ],
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
+    _posYamlLicense         = Just $ LicenseSpec "CC-BY-4.0" (Just "https://creativecommons.org/licenses/by/4.0/") Nothing,
     _posYamlGenotypeData    = GenotypeDataSpec {
         genotypeFileSpec   = GenotypePlink {
             _plGenoFile = "Schiffels_2016.bed",
@@ -110,7 +115,9 @@ truePackageRelPaths = PoseidonYamlStruct {
             _plIndFile  = "Schiffels_2016.fam",
             _plIndFileChkSum = Nothing
         },
-        genotypeSnpSet = Just SNPSet1240K
+        genotypeSnpSet = Just SNPSet1240K,
+        genotypeRefAssemblyName = Nothing,
+        genotypeRefAssemblyURL = Nothing
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -182,6 +189,7 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
             _posYamlContributor     = [],
             _posYamlPackageVersion  = Nothing,
             _posYamlLastModified    = Nothing,
+            _posYamlLicense         = Nothing,
             _posYamlGenotypeData    = GenotypeDataSpec {
                 genotypeFileSpec   = GenotypePlink {
                     _plGenoFile = "test.bed",
@@ -191,7 +199,9 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
                     _plIndFile  = "test.fam",
                     _plIndFileChkSum = Nothing
                 },
-                genotypeSnpSet = Nothing
+                genotypeSnpSet = Nothing,
+                genotypeRefAssemblyName = Nothing,
+                genotypeRefAssemblyURL = Nothing
             },
             _posYamlJannoFile       = Nothing,
             _posYamlJannoFileChkSum = Nothing,
