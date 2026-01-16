@@ -4,6 +4,7 @@ module Poseidon.CLI.Forge where
 
 import           Poseidon.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
+import           Poseidon.ColumnTypesJanno   (PoseidonID (..))
 import           Poseidon.ColumnTypesUtils   (ListColumn (..),
                                               getMaybeListColumn)
 import           Poseidon.EntityTypes        (EntityInput,
@@ -330,9 +331,9 @@ sumNonMissingSNPs accumulator (_, geno) = do
 filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
 filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
     let desiredPoseidonIDs = map jPoseidonID jRows
-    in SeqSourceRows $ filter (hasAPoseidonID desiredPoseidonIDs) sRows
+    in  SeqSourceRows $ filter (hasAPoseidonID desiredPoseidonIDs) sRows
     where
-        hasAPoseidonID :: [String] -> SeqSourceRow -> Bool
+        hasAPoseidonID :: [PoseidonID] -> SeqSourceRow -> Bool
         hasAPoseidonID jIDs seqSourceRow =
             let sIDs = getMaybeListColumn $ sPoseidonID seqSourceRow
             in any (`elem` jIDs) sIDs

@@ -34,10 +34,10 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..), GroupName (..),
                                              JannoLibraryBuilt (..),
                                              JannoPublication (..),
-                                             JannoUDG (..))
+                                             JannoUDG (..), PoseidonID (..))
 import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
 import           Poseidon.ColumnTypesUtils  (ListColumn (..),
                                              getMaybeListColumn)
@@ -567,12 +567,12 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
 -- the last flag is important for reading VCFs, which can lack group and sex information.
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
 checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
-    let genoIDs         = [ BSC.unpack x | EigenstratIndEntry  x _ _ <- indEntries]
+    let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
-        genoGroups      = [ BSC.unpack x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jPoseidonID rows
+        genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
+    let jannoIDs        = map (unPoseidonID . jPoseidonID) rows
         jannoSexs       = map (sfSex . jGeneticSex) rows
-        jannoGroups     = map (show . head . getListColumn . jGroupName) rows
+        jannoGroups     = map (unGroupName . head . getListColumn . jGroupName) rows
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -580,7 +580,7 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
         groupsAllUnknown = all (=="unknown") genoGroups
     when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
-        renderMismatch genoIDs jannoIDs
+        renderMismatch (map show genoIDs) (map show jannoIDs)
     when (sexMis && not (isVCF && sexAllUnknown)) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
@@ -588,7 +588,7 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
         "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
         \that this could be due to a wrong Plink file population-name encoding \
         \(see the --inPlinkPopName option). " ++
-        renderMismatch genoGroups jannoGroups
+        renderMismatch (map show genoGroups) (map show jannoGroups)
 
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b =
@@ -608,20 +608,20 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
     checkPoseidonIDOverlap
     checkUDGandLibraryBuiltOverlap
     where
-        js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
-        ss = map (\r -> (getMaybeListColumn $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        js = [(jPoseidonID r, jUDG r, jLibraryBuilt r) | r <- jRows]
+        ss = [(getMaybeListColumn $ sPoseidonID r, sUDG r, sLibraryBuilt r) | r <- sRows]
         checkPoseidonIDOverlap :: PoseidonIO ()
         checkPoseidonIDOverlap = do
             let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
                 misMatch = flatSeqSourceIDs \\ [a | (a,_,_) <- js]
             unless (null misMatch) $ do
                 logWarning $ "The .ssf file in the package " ++ pacName ++
-                    " features Poseidon_IDs that are not in the package: " ++ intercalate ", " misMatch
+                    " features Poseidon_IDs that are not in the package: " ++ (intercalate ", " . map show $ misMatch)
         checkUDGandLibraryBuiltOverlap :: PoseidonIO ()
         checkUDGandLibraryBuiltOverlap = do
             mapM_ checkOneIndividual js
             where
-                checkOneIndividual :: (String, Maybe JannoUDG, Maybe JannoLibraryBuilt) -> PoseidonIO ()
+                checkOneIndividual :: (PoseidonID, Maybe JannoUDG, Maybe JannoLibraryBuilt) -> PoseidonIO ()
                 checkOneIndividual (jannoPoseidonID, jannoUDG, jannoLibraryBuilt) = do
                     let relevantSeqSourceRows = filter (\(seqSourcePoseidonID,_,_) -> jannoPoseidonID `elem` seqSourcePoseidonID) ss
                         allSeqSourceUDGs = catMaybes $ [b | (_,b,_) <- relevantSeqSourceRows]
@@ -631,13 +631,13 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
                         Just j -> unless (all (compareU j) allSeqSourceUDGs) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on UDG treatment in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceUDGs ++ ")"
+                            " for the individual: " ++ show jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceUDGs ++ ")"
                     case jannoLibraryBuilt of
                         Nothing -> return ()
                         Just j -> unless (all (compareL j) allSeqSourceLibraryBuilts) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on library strandedness in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceLibraryBuilts ++ ")"
+                            " for the individual: " ++ show jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceLibraryBuilts ++ ")"
                 compareU :: JannoUDG -> SSFUDG -> Bool
                 compareU Mixed _        = True
                 compareU Minus SSFMinus = True
@@ -899,7 +899,7 @@ getJointIndividualInfo packages = do
         isLatest <- isLatestInCollection packages pac
         forM (getJannoRowsFromPac pac) $ \jannoRow -> do
             let indInfo = IndividualInfo
-                    (jPoseidonID jannoRow)
+                    (show . jPoseidonID $ jannoRow)
                     ((map show . getListColumn . jGroupName) jannoRow)
                     (makePacNameAndVersion pac)
             return (indInfo, isLatest)
@@ -910,7 +910,7 @@ getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> AddColSpec -
 getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list monad
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
-    let name = jPoseidonID jannoRow
+    let name = show $ jPoseidonID jannoRow
         groups = map show $ getListColumn . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
             AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
