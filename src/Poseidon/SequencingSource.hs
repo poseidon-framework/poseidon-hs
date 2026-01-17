@@ -29,8 +29,8 @@ import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import qualified Data.Vector                as V
 import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
+import           Poseidon.PoseidonVersion
 import qualified Text.Parsec                as P
-import Poseidon.PoseidonVersion
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}

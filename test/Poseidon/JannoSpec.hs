@@ -6,8 +6,8 @@ import           Poseidon.AccessionIDs
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
 import           Poseidon.Janno
-import           Poseidon.Utils             (testLog)
 import           Poseidon.PoseidonVersion
+import           Poseidon.Utils             (testLog)
 
 import           Country                    (decodeAlphaTwo)
 import qualified Data.Csv                   as C

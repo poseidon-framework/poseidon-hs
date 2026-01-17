@@ -10,27 +10,27 @@
 
 module Poseidon.ColumnTypesUtils where
 
-import qualified Control.Monad.Except  as E
-import qualified Control.Monad.Writer  as W
-import           Data.ByteString       as S
-import qualified Data.ByteString.Char8 as Bchs
-import           Data.Char             (chr, ord)
-import qualified Data.Csv              as Csv
-import qualified Data.HashMap.Strict   as HM
-import qualified Data.List             as L
-import qualified Data.Text             as T
-import qualified Data.Text.Encoding    as T
-import           Data.Typeable         (Typeable)
-import           Generics.SOP          (All, Generic (Code, from),
-                                        HCollapse (hcollapse), I (..), K (K),
-                                        Proxy (..), hcmap, unSOP, unZ)
-import           GHC.Generics          as G hiding (conName)
-import           Language.Haskell.TH   (Con (..), Dec (..), DecsQ, Info (..),
-                                        Name, conE, conP, conT, mkName, reify,
-                                        varE, varP)
-import qualified Text.Parsec           as P
-import qualified Text.Parsec.String    as P
-import Poseidon.PoseidonVersion (PoseidonVersion)
+import qualified Control.Monad.Except     as E
+import qualified Control.Monad.Writer     as W
+import           Data.ByteString          as S
+import qualified Data.ByteString.Char8    as Bchs
+import           Data.Char                (chr, ord)
+import qualified Data.Csv                 as Csv
+import qualified Data.HashMap.Strict      as HM
+import qualified Data.List                as L
+import qualified Data.Text                as T
+import qualified Data.Text.Encoding       as T
+import           Data.Typeable            (Typeable)
+import           Generics.SOP             (All, Generic (Code, from),
+                                           HCollapse (hcollapse), I (..), K (K),
+                                           Proxy (..), hcmap, unSOP, unZ)
+import           GHC.Generics             as G hiding (conName)
+import           Language.Haskell.TH      (Con (..), Dec (..), DecsQ, Info (..),
+                                           Name, conE, conP, conT, mkName,
+                                           reify, varE, varP)
+import           Poseidon.PoseidonVersion (PoseidonVersion)
+import qualified Text.Parsec              as P
+import qualified Text.Parsec.String       as P
 
 -- a typeclass like cassavas FromField, but aware of PoseidonVersions
 class FromFieldVersioned a where

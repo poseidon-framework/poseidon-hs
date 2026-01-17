@@ -13,9 +13,9 @@ import           Poseidon.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
 import           Data.Time                 (fromGregorian)
+import           Poseidon.PoseidonVersion
 import           Test.Hspec                (Spec, anyException, describe, it,
                                             shouldBe, shouldThrow)
-import           Poseidon.PoseidonVersion
 
 spec :: Spec
 spec = do

@@ -12,11 +12,11 @@ import           Country                    (Country, alphaTwoUpper,
 import qualified Data.Csv                   as Csv
 import qualified Data.Text                  as T
 import qualified Data.Text.Read             as T
+import           Data.Version               (makeVersion)
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
+import           Poseidon.PoseidonVersion
 import           SequenceFormats.Eigenstrat (Sex (..))
-import Poseidon.PoseidonVersion
-import Data.Version (makeVersion)
 
 -- | A datatype for the Genetic_Sex .janno column
 newtype GeneticSex = GeneticSex { sfSex :: Sex } deriving (Eq)

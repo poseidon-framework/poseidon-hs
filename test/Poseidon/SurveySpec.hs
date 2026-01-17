@@ -2,9 +2,9 @@ module Poseidon.SurveySpec (spec) where
 
 import           Poseidon.CLI.Survey
 import           Poseidon.Janno
-import Poseidon.PoseidonVersion
+import           Poseidon.PoseidonVersion
 
-import           Poseidon.Utils      (testLog)
+import           Poseidon.Utils           (testLog)
 import           Test.Hspec
 
 spec :: Spec

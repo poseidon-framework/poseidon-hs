@@ -7,8 +7,8 @@ import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
 import           Poseidon.Janno             (JannoRow (..), createMinimalSample)
-import           Poseidon.Utils             (testLog)
 import           Poseidon.PoseidonVersion
+import           Poseidon.Utils             (testLog)
 
 import           Control.Monad.IO.Class     (liftIO)
 import qualified Data.HashMap.Strict        as HM
