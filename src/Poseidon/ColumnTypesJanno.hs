@@ -15,6 +15,8 @@ import qualified Data.Text.Read             as T
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
 import           SequenceFormats.Eigenstrat (Sex (..))
+import Poseidon.PoseidonVersion
+import Data.Version (makeVersion)
 
 -- | A datatype for the Genetic_Sex .janno column
 newtype GeneticSex = GeneticSex { sfSex :: Sex } deriving (Eq)
@@ -530,13 +532,19 @@ instance FromFieldVersioned JannoDataPreparationPipelineURL where parseFieldVers
 newtype JannoEndogenous = JannoEndogenous Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoEndogenous where
-    make _ x =
+    make pv x =
         case T.double x of
             Left e -> fail $ "Endogenous can not be converted to Double because " ++ e
             Right (num, "") ->
-                if num >= 0 && num <= 100
-                then pure (JannoEndogenous num)
-                else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
+                if asVersion pv >= makeVersion [3,0,0]
+                then do
+                    if num >= 0 && num <= 1
+                    then pure (JannoEndogenous num)
+                    else fail $ "Endogenous " ++ show x ++ " not between 0 and 1."
+                else do
+                    if num >= 0 && num <= 100
+                    then pure (JannoEndogenous $ num / 100) -- rescale to 0-1
+                    else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
             Right (_, rest) -> fail $ "Endogenous can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoEndogenous where inspect _ = Nothing
 instance Show JannoEndogenous where          show (JannoEndogenous x) = show x
@@ -581,13 +589,19 @@ instance FromFieldVersioned JannoCoverageOnTargets where parseFieldVersioned pv 
 newtype JannoDamage = JannoDamage Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDamage where
-    make _ x =
+    make pv x =
         case T.double x of
             Left e -> fail $ "Damage can not be converted to Double because " ++ e
             Right (num, "") ->
-                if num >= 0 && num <= 100
-                then pure (JannoDamage num)
-                else fail $ "Damage " ++ show x ++ " not between 0 and 100."
+                if asVersion pv >= makeVersion [3,0,0]
+                then do
+                    if num >= 0 && num <= 1
+                    then pure (JannoDamage num)
+                    else fail $ "Damage " ++ show x ++ " not between 0 and 1."
+                else do
+                    if num >= 0 && num <= 100
+                    then pure (JannoDamage $ num / 100) -- rescale to 0-1
+                    else fail $ "Damage " ++ show x ++ " not between 0 and 100."
             Right (_, rest) -> fail $ "Damage can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoDamage where inspect _ = Nothing
 instance Show JannoDamage where          show (JannoDamage x) = show x

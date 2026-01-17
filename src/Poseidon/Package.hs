@@ -34,8 +34,7 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (GeneticSex (..), JannoDamage (..),
-                                             JannoEndogenous (..),
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
                                              JannoLibraryBuilt (..),
                                              JannoPublication (..),
                                              JannoUDG (..))
@@ -61,7 +60,6 @@ import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              jannoHeaderString,
                                              mainJannoColumns, readJannoFile)
 import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
-                                             isPoseidonVersionBelow,
                                              latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
@@ -125,6 +123,7 @@ import           System.FilePath            (takeBaseName, takeDirectory,
                                              takeExtension, takeFileName, (</>))
 import           System.IO                  (IOMode (ReadMode), hGetContents,
                                              withFile)
+import qualified Control.Monad as OP
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -358,20 +357,13 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     -- report number of valid packages
     let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
-    -- apply adjustments to old package versions
-    finalPackageListMod <-
-        if any (isPoseidonVersionBelow [3,0,0] . posPacPoseidonVersion) finalPackageList
-        then do
-            logWarning "For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno \
-                       \columns Endogenous and Damage will be rescaled from percent (0-100) to \
-                       \fractions (0-1)."
-            forM finalPackageList $ \p -> do
-                if isPoseidonVersionBelow [3,0,0] $ posPacPoseidonVersion p
-                then return $ rescaleEndogenousAndDamage p
-                else return p
-        else return finalPackageList
+    -- warn about adjustments to old package versions
+    OP.when (any (\x -> asVersion (posPacPoseidonVersion x) < makeVersion [3,0,0]) finalPackageList) $ do
+        logWarning "For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno \
+                   \columns Endogenous and Damage were rescaled from percent (0-100) to \
+                   \fractions (0-1)."
     -- return package list
-    return (finalPackageListMod, skipIndicator)
+    return (finalPackageList, skipIndicator)
   where
     checkIfBaseDirExists :: FilePath -> PoseidonIO (Maybe FilePath)
     checkIfBaseDirExists p = do
@@ -411,16 +403,6 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     tryDecodePoseidonPackage (numberPackage, path) = do
         logDebug $ "Package " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
-    rescaleEndogenousAndDamage :: PoseidonPackage -> PoseidonPackage
-    rescaleEndogenousAndDamage p@PoseidonPackage {posPacJanno = janno} =
-        let modRows = map (\j -> j {jEndogenous = modEndogenous <$> jEndogenous j,
-                                    jDamage = modDamage <$> jDamage j}) $ getJannoRows janno
-        in p {posPacJanno = JannoRows modRows}
-        where
-            modEndogenous :: JannoEndogenous -> JannoEndogenous
-            modEndogenous (JannoEndogenous x) = JannoEndogenous $ x / 100
-            modDamage :: ListColumn JannoDamage -> ListColumn JannoDamage
-            modDamage (ListColumn xs) = ListColumn $ map (\(JannoDamage x) -> JannoDamage $ x / 100) xs
 
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
