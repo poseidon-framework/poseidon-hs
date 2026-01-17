@@ -7,6 +7,7 @@ import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
 import           Poseidon.Janno
 import           Poseidon.Utils             (testLog)
+import           Poseidon.PoseidonVersion
 
 import           Country                    (decodeAlphaTwo)
 import qualified Data.Csv                   as C
@@ -79,11 +80,11 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe ([Nothing, Just $ JannoLatitude (-45), Just $ JannoLatitude 45] :: [Maybe JannoLatitude])
 
 -- infrastructure to check an en- and decoding cycle
-checkEnDe :: (Show a, Eq a, C.FromField a, C.ToField a) => [a] -> IO ()
+checkEnDe :: (Show a, Eq a, FromFieldVersioned a, C.ToField a) => [a] -> IO ()
 checkEnDe xs = cassavaCycle xs `shouldBe` cassavaResult xs
     where
-        cassavaCycle :: (C.FromField a, C.ToField a) => [a] -> [Either String a]
-        cassavaCycle = map (C.runParser . C.parseField . C.toField)
+        cassavaCycle :: (FromFieldVersioned a, C.ToField a) => [a] -> [Either String a]
+        cassavaCycle = map (C.runParser . (parseFieldVersioned latestPoseidonVersion) . C.toField)
         cassavaResult = map Right
 
 
@@ -93,7 +94,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let normalJannoPath       = "test/testDat/testJannoFiles/normal.janno"
     let borkedJannoPath       = "test/testDat/testJannoFiles/borked.janno"
     it "should read minimal janno files correctly" $ do
-        (JannoRows janno) <- testLog $ readJannoFile [] minimalJannoPath
+        (JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] minimalJannoPath
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
         map jGroupName janno                    `shouldBe` [ ListColumn [GroupName "POP1"]
@@ -102,7 +103,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
                                                            ]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
     it "should read normal janno files correctly" $ do
-        (JannoRows janno) <- testLog $ readJannoFile [] normalJannoPath
+        (JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] normalJannoPath
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` [ "XXX011", "XXX012", "XXX013" ]
         map jRelationDegree janno               `shouldBe` [ Just (ListColumn [First, Second])
@@ -250,16 +251,16 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     -- the following tests should be more precise and comprehensive; we should consider refactoring
     -- (maybe when we eventually switch to a different error logging strategy)
     it "should fail to read janno files with missing mandatory columns" $ do
-        testLog (readJannoFile ["Bohrmaschine"] normalJannoPath) `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion ["Bohrmaschine"] normalJannoPath) `shouldThrow` anyException
     it "should fail to read somehow borked janno files" $ do
-        testLog (readJannoFile [] borkedJannoPath) `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] borkedJannoPath) `shouldThrow` anyException
     it "should fail to read borked janno files with specific issues" $ do
         let borkedDir = "test/testDat/testJannoFiles/specificallyBorked"
-        testLog (readJannoFile [] $ borkedDir </> "borked_wrong_name.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_relations.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_contamination.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_dating.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_ISO_country.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_cultural_era.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_arch_cultural_url.janno") `shouldThrow` anyException
-        testLog (readJannoFile [] $ borkedDir </> "borked_alternative_ids_context.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_wrong_name.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_relations.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_contamination.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_dating.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_ISO_country.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_cultural_era.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_arch_cultural_url.janno") `shouldThrow` anyException
+        testLog (readJannoFile latestPoseidonVersion [] $ borkedDir </> "borked_alternative_ids_context.janno") `shouldThrow` anyException

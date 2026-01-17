@@ -36,8 +36,13 @@ import Poseidon.PoseidonVersion (PoseidonVersion)
 class FromFieldVersioned a where
     parseFieldVersioned :: PoseidonVersion -> Csv.Field -> Csv.Parser a
 
--- legacy instance for Poseidon_ID and Group_Name; can be removed eventually
 instance FromFieldVersioned String where parseFieldVersioned _ = Csv.parseField
+instance FromFieldVersioned Int where parseFieldVersioned _ = Csv.parseField
+-- modified from cassava's FromField (Maybe a) instance
+instance FromFieldVersioned a => FromFieldVersioned (Maybe a) where
+    parseFieldVersioned pv s
+        | Bchs.null s  = pure Nothing
+        | otherwise = Just <$> parseFieldVersioned pv s
 
 -- a typeclass for types with smart constructors
 class Makeable a where

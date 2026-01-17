@@ -24,6 +24,7 @@ module Poseidon.Janno (
 
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
+import           Poseidon.PoseidonVersion
 import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
@@ -50,7 +51,6 @@ import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
 import           SequenceFormats.Eigenstrat           (EigenstratIndEntry (..))
 import qualified Text.Parsec                          as P
-import Poseidon.PoseidonVersion
 
 -- | A  data type to represent a janno file
 newtype JannoRows = JannoRows {getJannoRows :: [JannoRow]}
