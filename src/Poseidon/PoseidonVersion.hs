@@ -10,7 +10,7 @@ instance FromJSON PoseidonVersion where parseJSON v = PoseidonVersion <$> parseJ
 instance ToJSON PoseidonVersion where toJSON (PoseidonVersion v) = toJSON v
 
 validPoseidonVersions :: [PoseidonVersion]
-validPoseidonVersions = map (PoseidonVersion . makeVersion) [[2,5,0], [2,6,0], [2,7,0], [2,7,1]]
+validPoseidonVersions = map (PoseidonVersion . makeVersion) [[2,5,0], [2,6,0], [2,7,0], [2,7,1], [3,0,0]]
 
 latestPoseidonVersion :: PoseidonVersion
 latestPoseidonVersion = last validPoseidonVersions

@@ -61,7 +61,7 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe [GeneticSex Female, GeneticSex Male, GeneticSex Unknown]
         checkEnDe [JannoDateBCADStart (-100), JannoDateBCADStart 100]
         checkEnDe (enumFrom minBound :: [JannoDateType]) -- get all constructors for JannoDateType in a list
-        checkEnDe (enumFrom minBound :: [JannoCaptureType])
+        checkEnDe [Shotgun, A1240K, ArborComplete, ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, OtherCapture]
         checkEnDe (enumFrom minBound :: [JannoGenotypePloidy])
         checkEnDe (enumFrom minBound :: [JannoUDG])
         checkEnDe (enumFrom minBound :: [JannoLibraryBuilt])
@@ -70,7 +70,7 @@ testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ d
         checkEnDe [JannoCountryISO <$> decodeAlphaTwo "DE", JannoCountryISO <$> decodeAlphaTwo "FR", JannoCountryISO <$> decodeAlphaTwo "KE"]
         checkEnDe [JannoLatitude (-45), JannoLatitude 45]
         checkEnDe [JannoLongitude (-100), JannoLongitude 100]
-        checkEnDe [JannoEndogenous 0, JannoEndogenous 100]
+        checkEnDe [JannoEndogenous 0, JannoEndogenous 1]
         checkEnDe [JannoDataPreparationPipelineURL "http://www.google.de"]
         checkEnDe [JannoGeneticSourceAccessionID $ INSDCProject "PRJEA0", JannoGeneticSourceAccessionID $ INSDCStudy "ERP000000"]
         checkEnDe [ListColumn (["a", "b", "c"] :: [String])]
@@ -185,7 +185,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
                                                            ]
         map jCaptureType janno                  `shouldBe` [ Just (ListColumn [Shotgun, A1240K])
                                                            , Just (ListColumn [A1240K])
-                                                           , Just (ListColumn [LegacyReferenceGenome])
+                                                           , Just (ListColumn [ArborPrimePlus])
                                                            ]
         map jGenotypePloidy janno               `shouldBe` [ Just Diploid
                                                            , Just Haploid
