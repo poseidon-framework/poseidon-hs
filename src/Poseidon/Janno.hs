@@ -499,7 +499,7 @@ readJannoFileRow pv mandatoryCols jannoPath (lineNumber, row) = do
                 logWarning $ "Value anomaly in " ++ jannoPath ++ " in line " ++ renderLocation ++ ": "
                 mapM_ logWarning inspectRes
             -- cross-column checks
-            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
+            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency pv jannoRow))
             mapM_ (logWarning . renderWarning) warnings
              -- return result
             case errOrJannoRow of
@@ -526,16 +526,16 @@ checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPosei
 
 -- Row-wise .janno consistency checks
 
-checkJannoRowConsistency :: JannoRow -> RowLog JannoRow
-checkJannoRowConsistency x =
+checkJannoRowConsistency :: PoseidonVersion -> JannoRow -> RowLog JannoRow
+checkJannoRowConsistency pv x =
     return x
     >>= checkMandatoryStringNotEmpty
-    >>= checkAlternativeIDsConsistent
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkAlternativeIDsConsistent else return)
     >>= checkC14ColsConsistent
     >>= checkContamColsConsistent
     >>= checkRelationColsConsistent
-    >>= checkCulturalEraConsistent
-    >>= checkArchaeologicalCultureConsistent
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkCulturalEraConsistent else return)
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkArchaeologicalCultureConsistent else return)
 
 checkMandatoryStringNotEmpty :: JannoRow -> RowLog JannoRow
 checkMandatoryStringNotEmpty x =
