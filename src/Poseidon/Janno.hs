@@ -46,6 +46,7 @@ import           Data.List                            (elemIndex, foldl',
 import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
+import           Data.Version                         (makeVersion)
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
@@ -444,6 +445,11 @@ readJannoFile pv mandatoryCols jannoPath = do
         -- for each additional column a standard column is suggested: "Countro (Country?)"
             intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
             additional_columns (findSimilarNames missing_columns additional_columns)))
+    -- report outdated columns
+    OP.when ((asVersion pv >= makeVersion [3,0,0]) && "Source_Tissue" `elem` jannoColNames) $
+        logWarning $ ("Outdated .janno column in " ++
+                      jannoPath ++
+                      ": The Source_Tissue column was replaced by Source_Material in Poseidon v3.0.0.")
     -- load janno by rows
     jannoRepresentation <- mapM (readJannoFileRow pv mandatoryCols jannoPath) jannoFileRowsWithHeader
     -- error case management
