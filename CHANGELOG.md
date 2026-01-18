@@ -1,4 +1,5 @@
 - V X.X.X.X:
+    - Introduced smart .janno field construction based on the relevant Poseidon version.
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.
         - New column `Individual_ID`.
