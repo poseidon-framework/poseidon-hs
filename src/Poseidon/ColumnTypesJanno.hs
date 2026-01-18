@@ -416,7 +416,7 @@ data JannoCaptureType =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoCaptureType where
-    make _ x
+    make pv x
         | x == "Shotgun"            = pure Shotgun
         | x == "1240K"              = pure A1240K
         | x == "ArborComplete"      = pure ArborComplete
@@ -425,15 +425,14 @@ instance Makeable JannoCaptureType where
         | x == "TwistAncientDNA"    = pure TwistAncientDNA
         | x == "WISC2013"           = pure WISC2013
         | x == "OtherCapture"       = pure OtherCapture
-        | x == "ReferenceGenome"    = pure LegacyReferenceGenome
-        | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
-                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
-                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
-                             \OtherCapture]."
-instance Suspicious JannoCaptureType where
-    inspect LegacyReferenceGenome =  Just ["Capture_Type is set to ReferenceGenome, which is not a \
-                                           \capture setup. This option was retired in Poseidon v3.0.0."]
-    inspect _ = Nothing
+        | otherwise =
+            if x == "ReferenceGenome" && asVersion pv < makeVersion [3,0,0]
+            then pure LegacyReferenceGenome
+            else fail $ "Capture_Type is set to " ++ show x ++ ". " ++
+                        "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
+                        \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
+                        \OtherCapture]. Note that ReferenceGenome was retired in Poseidon v3.0.0."
+instance Suspicious JannoCaptureType where inspect _ = Nothing
 instance Show JannoCaptureType where
     show Shotgun               = "Shotgun"
     show A1240K                = "1240K"
