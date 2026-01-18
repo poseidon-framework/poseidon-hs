@@ -1416,8 +1416,8 @@ testPipelineJannocoalesce :: FilePath -> FilePath -> IO ()
 testPipelineJannocoalesce testDir checkFilePath = do
     -- simple coalesce
     let jannocoalesceOpts1 = JannoCoalesceOptions {
-            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target1.janno"),
             _jannocoalesceJannoColumns     = AllJannoColumns,
             _jannocoalesceOverwriteColumns = False,
@@ -1430,8 +1430,8 @@ testPipelineJannocoalesce testDir checkFilePath = do
         ]
     -- only coalesce certain columns (--includeColumns)
     let jannocoalesceOpts2 = JannoCoalesceOptions {
-            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target2.janno"),
             _jannocoalesceJannoColumns     = IncludeJannoColumns ["Latitude", "Longitude"],
             _jannocoalesceOverwriteColumns = False,
@@ -1444,8 +1444,8 @@ testPipelineJannocoalesce testDir checkFilePath = do
         ]
     -- do not coalesce certain columns (--excludeColumns)
     let jannocoalesceOpts3 = JannoCoalesceOptions {
-            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal_full.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal_full.janno",
+            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal.janno",
+            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target3.janno"),
             _jannocoalesceJannoColumns     = ExcludeJannoColumns ["Latitude", "Longitude"],
             _jannocoalesceOverwriteColumns = False,

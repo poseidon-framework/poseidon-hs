@@ -3,28 +3,29 @@
 
 module Poseidon.CLI.Jannocoalesce where
 
-import           Poseidon.Janno         (JannoRow (..), JannoRows (..),
-                                         parseJannoRowFromNamedRecord,
-                                         readJannoFile, writeJannoFile)
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         defaultPackageReadOptions,
-                                         getJointJanno,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
-                                         logDebug, logInfo, logWarning)
+import           Poseidon.Janno           (JannoRow (..), JannoRows (..),
+                                           parseJannoRowFromNamedRecord,
+                                           readJannoFile, writeJannoFile)
+import           Poseidon.Package         (PackageReadOptions (..),
+                                           defaultPackageReadOptions,
+                                           getJointJanno,
+                                           readPoseidonPackageCollection)
+import           Poseidon.Utils           (PoseidonException (..), PoseidonIO,
+                                           logDebug, logInfo, logWarning)
 
-import           Control.Monad          (filterM, forM_, when)
-import           Control.Monad.Catch    (MonadThrow, throwM)
-import           Control.Monad.IO.Class (liftIO)
-import qualified Data.ByteString.Char8  as BSC
-import qualified Data.Csv               as Csv
-import qualified Data.HashMap.Strict    as HM
-import qualified Data.IORef             as R
-import           Data.List              ((\\))
-import           Data.Text              (pack, replace, unpack)
-import           System.Directory       (createDirectoryIfMissing)
-import           System.FilePath        (takeDirectory)
-import           Text.Regex.TDFA        ((=~))
+import           Control.Monad            (filterM, forM_, when)
+import           Control.Monad.Catch      (MonadThrow, throwM)
+import           Control.Monad.IO.Class   (liftIO)
+import qualified Data.ByteString.Char8    as BSC
+import qualified Data.Csv                 as Csv
+import qualified Data.HashMap.Strict      as HM
+import qualified Data.IORef               as R
+import           Data.List                ((\\))
+import           Data.Text                (pack, replace, unpack)
+import           Poseidon.PoseidonVersion (latestPoseidonVersion)
+import           System.Directory         (createDirectoryIfMissing)
+import           System.FilePath          (takeDirectory)
+import           Text.Regex.TDFA          ((=~))
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
@@ -48,7 +49,7 @@ data JannoCoalesceOptions = JannoCoalesceOptions
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
 runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrite sKey tKey maybeStrip) = do
     JannoRows sourceRows <- case sourceSpec of
-        JannoSourceSingle sourceFile -> readJannoFile [] sourceFile
+        JannoSourceSingle sourceFile -> readJannoFile latestPoseidonVersion [] sourceFile
         JannoSourceBaseDirs sourceDirs -> do
             let pacReadOpts = defaultPackageReadOptions {
                       _readOptIgnoreChecksums      = True
@@ -57,7 +58,7 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
                     , _readOptOnlyLatest           = True
                 }
             getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
-    JannoRows targetRows <- readJannoFile [] target
+    JannoRows targetRows <- readJannoFile latestPoseidonVersion [] target
 
     newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
 
@@ -123,7 +124,7 @@ mergeRow cp targetRow sourceRow fields overwrite sKey tKey = do
         -- fill in the target row with dummy values for desired fields that might not be present yet
         targetComplete    = HM.union targetRowRecord (HM.fromList $ map (, BSC.empty) sourceKeysDesired)
         newRowRecord      = HM.mapWithKey fillFromSource targetComplete
-        parseResult       = Csv.runParser . parseJannoRowFromNamedRecord [] $ newRowRecord
+        parseResult       = Csv.runParser . parseJannoRowFromNamedRecord latestPoseidonVersion [] $ newRowRecord
     logInfo $ "matched target " ++ BSC.unpack (targetComplete  HM.! BSC.pack tKey) ++
               " with source "   ++ BSC.unpack (sourceRowRecord HM.! BSC.pack sKey)
     case parseResult of
